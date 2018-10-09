@@ -1,0 +1,225 @@
+/*格式标注工作界面*/
+.labelformat{
+	position: relative;
+	height:100%;
+	margin:115px 50px 50px 50px;
+}
+@media screen and (max-width:1440px){
+	.labelformat{
+		margin:60px 20px 50px 20px;
+	}
+}
+.labelformat-in{
+	padding:5px;
+	background-color: #fff;
+}
+.labelformat .left-con{
+	width:45%;
+	margin-right: 2%;
+}
+.labelformat .left-con .scale{
+	font-size:0;
+	text-align: right;
+	padding-top: 3px;
+	line-height: 32px;
+	margin-bottom: 7px;
+}
+.labelformat .left-con .scale span{
+	display: inline-block;
+	width:30px;
+	height:26px;
+	border:1px solid #333;
+	text-align: center;
+	line-height: 24px;
+	font-size:22px;
+	font-weight:bold;
+	vertical-align: top;
+}
+.labelformat .left-con .scale .add{
+	border-top-left-radius: 20px;
+	border-bottom-left-radius: 20px;
+}
+.labelformat .left-con .scale .reduce{
+	border-top-right-radius: 20px;
+	border-bottom-right-radius: 20px;
+}
+.labelformat .left-con .scale input{
+	display: inline-block;
+	width:40px;
+	height:26px;
+	border:0 none;
+	border:1px solid #333;
+	vertical-align: top;
+	text-align: center;
+	line-height: 26px;
+	font-size:18px;
+}
+.labelformat .left{
+	width: 100%;
+	height:550px;
+	border:1px solid #ccc;
+	border-radius:5px;
+	overflow:scroll;
+}
+.labelformat .right{
+	width: 53%;
+	position: relative;
+}
+.labelformat .right .hd{
+	line-height: 35px;
+	margin-bottom: 7px;
+}
+.labelformat .right .hd .hd-left{
+	padding-left: 20px;
+	position: relative;
+	font-size:14px;
+}
+.labelformat .right .hd .hd-left:before{
+	content:"";
+	position: absolute;
+	left:0;
+	top:9px;
+	background:url(../imgs/tag.png) no-repeat;
+	width:14px;
+	height:17px;
+}
+.labelformat .right .hd .hd-left em{
+	color:#f40;
+	margin-left: 5px;
+}
+.labelformat .right .hd .hd-right span{
+	display:inline-block;
+}
+.labelformat .right .hd .hd-right span:first-child{
+	background:url(../imgs/save.png) no-repeat;
+	width:16px;
+	height:16px;
+	vertical-align: top;
+	margin-top:9px;
+	margin-right: 23px;;
+}
+.labelformat .right .hd .hd-right span:nth-child(2){
+	font-size:14px;
+	width:69px;
+	height:32px;
+	background-color:#B8906F;
+	border-radius:3px;
+	text-align: center;
+	line-height: 32px;
+	color:#fff;
+	vertical-align: top;
+	margin-top: 1px;
+}
+.labelformat .right .bd{
+	min-height:550px;
+	border:1px solid #ccc;
+	border-radius:5px;
+	box-sizing:border-box;
+}
+.labelformat .right .text{
+	padding:10px 30px;
+	width:76%;
+	box-sizing: border-box;
+}
+.labelformat .right .text li{
+	color: #333;
+	border-bottom: 1px dashed #ccc;
+	font-size:18px;
+	padding-bottom: 5px;
+	margin-bottom: 10px;
+}
+.labelformat .right .text li:first-child{
+	border:1px solid #f40;
+	text-align: right;
+	font-size:14px;
+	padding:6px 0;
+}
+.labelformat .right .text li:nth-child(2){
+	color:#4aa6ff;
+	text-align: right;
+	font-size:14px;
+}
+.labelformat .right .tags{
+	width: 22%;
+	margin-top: 88px;
+	border:1px solid #ebebeb;
+	border-radius:5px;
+	box-sizing: border-box;
+	margin-right:2%;
+}
+.labelformat .right .tags span{
+	width:100%;
+	box-sizing:border-box;
+	display:block;
+	cursor: pointer;
+	height:40px;
+	line-height: 40px;
+	border-bottom:1px solid #ebebeb;
+	padding-left: 50px;
+	position: relative;
+	font-size:13px;
+}
+.labelformat .right .tags span:last-child{
+	border-bottom:0 none;
+}
+.labelformat .right .tags span i{
+	position: absolute;
+	top:0;
+	left:20px;
+}
+.labelformat .right .tags span:first-child i{
+	top:12px;
+	width:15px;
+	height:17px;
+	background:url(../imgs/icon2.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(2) i{
+	top:11px;
+	width:18px;
+	height:21px;
+	background:url(../imgs/icon3.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(3) i{
+	top:14px;
+	width:20px;
+	height:17px;
+	background:url(../imgs/icon4.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(4) i{
+	top:12px;
+	width:15px;
+	height:17px;
+	background:url(../imgs/icon5.png) no-repeat;
+}
+
+.labelformat .right .tags .active:nth-child(4) i{
+	top:13px;
+	width:23px;
+	height:24px;
+	background:url(../imgs/icon5-active.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(5) i{
+	top:13px;
+	width:20px;
+	height:16px;
+	background:url(../imgs/icon6.png) no-repeat;
+}
+
+.labelformat .right .tags span:nth-child(6) i{
+	top:11px;
+	width:20px;
+	height:20px;
+	background:url(../imgs/icon7.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(7) i{
+	top:10px;
+	width:18px;
+	height:20px;
+	background:url(../imgs/icon8.png) no-repeat;
+}
+.labelformat .right .tags span:nth-child(8) i{
+	top:13px;
+	width:18px;
+	height:16px;
+	background:url(../imgs/icon9.png) no-repeat;
+}

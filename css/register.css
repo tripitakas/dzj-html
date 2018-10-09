@@ -1,0 +1,163 @@
+.app-main{
+    width:100%;
+    height:100%;
+}
+.main{
+    position: relative;
+    width:100%;
+    height:100%;
+    background: url(../imgs/login/background.jpg) no-repeat top center;
+    background-size: cover;
+}
+.register{
+    width:880px;
+    height:550px;
+    background: #fff;
+    position: absolute;
+    left:50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+    -webkit-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    -moz-transform: translate(-50%,-50%);
+}
+.register-in{
+    padding:40px;
+}
+.register .hd{
+    margin-bottom:66px;
+}
+.register .logo{
+    background: url(../imgs/login/logo.png) no-repeat;
+    width:356px;
+    height:56px;
+}
+.register .desc{
+    color:#6b6b6b;
+    margin-top:30px;
+}
+.register .desc em{
+    color:#c53023;
+    cursor: pointer;
+}
+.register .bd{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.register .bd .item{
+    flex:50%;
+    margin-bottom:25px;
+    padding-right:48px;
+    box-sizing: border-box;
+    position: relative;
+}
+.register .bd .item:nth-child(2n+2){
+    padding-right:0;
+}
+.register .bd .item input{
+    line-height:56px;
+    border:0 none;
+    background: none;
+    outline: none;
+    border-bottom:1px solid #d5d5d5;
+    display: block;
+    width:100%;
+    box-sizing: border-box;
+    padding-left:40px;
+    font-size:14px;
+}
+.register .bd .item:last-child input{
+    width:50%;
+}
+.register .item input:-moz-placeholder
+{
+    color: #B3B3B3;
+}
+.register .item input:-ms-input-placeholder
+{
+    color: #B3B3B3;
+}
+.register .item input::-webkit-input-placeholder
+{
+    color: #B3B3B3;
+}
+.register .item input:focus {
+    border-color: #c22d22;
+}
+.register .item i{
+    position: absolute;
+    left:0;
+    top:50%;
+    transform: translateY(-50%);
+}
+.register .item i.user-icon{
+    background: url(../imgs/login/user.png) no-repeat;
+    background-position: 0 0;
+    width:27px;
+    height:29px;
+}
+.register .item input:focus+i.user-icon{
+    background-position: 0 -30px;
+}
+.register .item .pass-icon{
+    background: url(../imgs/login/pass.png) no-repeat;
+    background-position: 0 0;
+    width:23px;
+    height:28px;
+}
+.register .item input:focus+i.pass-icon{
+    background-position: 0 -30px;
+}
+.register .item .hide{
+    position: absolute;
+    right:0;
+    top:50%;
+    width:19px;
+    height:10px;
+    background: url(../imgs/login/hide.png) no-repeat;
+    transform: translateY(-50%);
+}
+.register .item .email-icon{
+    background: url(../imgs/login/email.png) no-repeat;
+    background-position: 0 0;
+    width:29px;
+    height:22px;
+}
+.register .item input:focus+i.email-icon{
+    background-position: 0 -24px;
+}
+.register .item .password-icon{
+    background: url(../imgs/login/again.png) no-repeat;
+    background-position: 0 0;
+    width:20px;
+    height:12px;
+}
+.register .item input:focus+i.password-icon{
+    background-position: 0 -14px;
+}
+.register-btn{
+    margin:0 auto;
+    width:364px;
+    height:40px;
+    background: #b8906f;
+    border-radius:4px;
+    text-align: center;
+    line-height:40px;
+    color:#fff;
+    margin-top:57px;
+    cursor: pointer;
+    font-size:16px;
+    /*letter-spacing: 25px;*/
+    font-weight:600;
+}
+.login_a{
+	color: #c53023;
+}
+.register-btn a{
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	color: white;
+}
