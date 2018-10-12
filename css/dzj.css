@@ -227,7 +227,7 @@ a:hover{
 }
 
 .pagers {
-	margin: 80px 0;
+	margin: 50px 0;
 	text-align: center;
 }
 
@@ -254,14 +254,13 @@ a:hover{
 	/*父元素的font-size设为0，消除display:inline-block产生的默认间隙*/
 	font-size: 0;
 	margin-bottom: 0;
-	margin-right: 30px;
+	/*margin-right: 30px;*/
 }
 
 .pagers ul li {
 	display: inline-block;
 	height: 32px;
 	line-height: 32px;
-	padding: 0 20px;
 	background: #fff;
 	color: #4e4e4e;
 	font-size: 14px;
@@ -348,7 +347,7 @@ a:hover{
 
 .tripitaka-volume .volume-left .bd .search i {
 	position: absolute;
-	background: url(imgs/ser-btn.png) no-repeat;
+	background: url(../imgs/ser-btn.png) no-repeat;
 	right: 14px;
 	top: 5px;
 	width: 16px;
@@ -538,7 +537,7 @@ a:hover{
 	font-size: 12px;
 	text-align: center;
 	padding-left: 15px;
-	background: #408fef url(imgs/feedback.png) no-repeat 5px 3px;
+	background: #408fef url(../imgs/feedback.png) no-repeat 5px 3px;
 	background-size: 14px 14px;
 	z-index: 2;
 }
@@ -591,7 +590,7 @@ a:hover{
 	position: absolute;
 	left: 15px;
 	top: 14px;
-	background: url(imgs/window.png) no-repeat;
+	background: url(../imgs/window.png) no-repeat;
 	width: 16px;
 	height: 13px;
 }
@@ -604,7 +603,7 @@ a:hover{
         position: absolute;
         right:15px;
         top:12px;
-        background: url(imgs/close.png) no-repeat;
+        background: url(../imgs/close.png) no-repeat;
         width:14px;
         height:16px;*/
 
@@ -674,7 +673,7 @@ a:hover{
 	height: 40px;
 	cursor: pointer;
 	float: right;
-	background: url(imgs/close.png) no-repeat;
+	background: url(../imgs/close.png) no-repeat;
 	background-position: 0 center;
 }
 
@@ -730,7 +729,7 @@ a:hover{
 	position: absolute;
 	top: 5px;
 	left: 0;
-	background: url(imgs/search-icon.png) no-repeat;
+	background: url(../imgs/search-icon.png) no-repeat;
 	width: 15px;
 	height: 17px;
 }
@@ -785,6 +784,22 @@ a:hover{
 	color: #fff;
 	font-size: 14px;
 	cursor: pointer;
+	margin-right: 10px;
+}
+
+.collate-list .operation span{
+	display: block;
+	float: left;
+	width: 70px;
+	height: 32px;
+	background: #b8906f;
+	border-radius: 3px;
+	text-align: center;
+	line-height: 32px;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	margin-right: 10px;
 }
 
 
@@ -861,11 +876,11 @@ a:hover{
 }
 
 .home .left ul li:first-child:before {
-	background: url(imgs/01.png) no-repeat;
+	background: url(../imgs/01.png) no-repeat;
 }
 
 .home .left ul li:nth-child(2):before {
-	background: url(imgs/02.png) no-repeat;
+	background: url(../imgs/02.png) no-repeat;
 }
 
 .home .left ul li:last-child {
@@ -873,7 +888,7 @@ a:hover{
 }
 
 .home .left ul li:last-child:before {
-	background: url(imgs/03.png) no-repeat;
+	background: url(../imgs/03.png) no-repeat;
 }
 
 .home .left ul li p {
@@ -1016,7 +1031,7 @@ a:hover{
 	content: '';
 	width: 16px;
 	height: 18px;
-	background: url(imgs/medal.png) no-repeat;
+	background: url(../imgs/medal.png) no-repeat;
 	left: 0;
 	top: 12px;
 }
@@ -1052,4 +1067,21 @@ a:hover{
 
 .dzj_wrapper1 a {
 	color: #337AB7;
+}
+.pagers li.active a{
+	background: #b8906f;
+	color: #FFFFFF;
+}
+.pagers li a{
+	display: inline-block;
+	height: 100%;
+	cursor: pointer;
+	color: #4e4e4e;
+	padding: 0 20px;
+}
+.pagers li a:hover{
+	color: #000000;
+}
+.pagers ul li:last-child{
+	padding: 0 10px;
 }
