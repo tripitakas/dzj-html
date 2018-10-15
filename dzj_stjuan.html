@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-实体藏</title>
+		<title>大藏经古籍数字化平台-实体卷</title>
 
 		<!-- Base Css Files -->
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -114,7 +114,7 @@
 									<i></i>
 								</div>
 								<ul class="sub-ul sub-ul-hidden">
-									<li class="sub-active">
+									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_stz.html">实体藏管理</a></span>
 									</li>
@@ -130,11 +130,11 @@
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span>实体经管理</span>
 									</li>
-									<li>
+									<li class="sub-active">
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_stjuan.html">实体卷管理</a></span>
 									</li>
-									<li>
+									<li >
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_sty.html">实体页管理</a></span>
 									</li>
@@ -168,59 +168,30 @@
 						</div>
 					</div>
 					<div class="single-page-con">
-						<!-- Modify Modals -->
-						<div class="panel-body" style="padding: 0;">
+						
+						<!-- Add Modals BAT UPLOAD-->
+						<div class="panel-body" style="padding-bottom: 2px;">
 							<!-- modal content -->
-							<div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+							<div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 								<div class="modal-dialog">
 									<div class="modal-content">
 										<div class="modal-header">
 											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-											<h4 class="modal-title" id="myModalLabel">实体藏管理</h4>
+											<h4 class="modal-title" id="myModalLabel">批量上传新增</h4>
 										</div>
 										<div class="modal-body">
-											<form class="form-horizontal">
-												<div class="form-group">
-													<label class="col-sm-2 control-label">藏名</label>
-													<div class="col-md-10">
-														<input type="text" class="form-control" value="藏名" id="dlg_name">
-													</div>
+											<i>支持上传Excel格式文件，一次最多上传1个Excel文件，文件大小不超过50MB</i>
+											<input type="file" class="form-control" />
+											<div class="progress progress-lg">
+												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
+													86%
 												</div>
-												<div class="form-group">
-													<label class="col-sm-2 control-label">简称</label>
-													<div class="col-md-10">
-														<input type="text" class="form-control" value="这里写简称" id="dlg_short_name">
-													</div>
-												</div>
-												<div class="form-group">
-													<label class="col-md-2 control-label">编码</label>
-													<div class="col-md-10">
-														<input type="text" class="form-control" value="这里写编码" id="dlg_code">
-													</div>
-												</div>
-												<div class="form-group">
-													<label class="col-sm-2 control-label">编码规则</label>
-													<div class="col-sm-10">
-														<select class="form-control" id="dlg_rule">
-															<option value="1">规则一</option>
-															<option value="2">规则二</option>
-															<option value="3">规则三</option>
-															<option value="4">规则四</option>
-															<option value="5">规则五</option>
-														</select>
-													</div>
-												</div>
-												<div class="form-group">
-													<label class="col-md-2 control-label">备注</label>
-													<div class="col-md-10">
-														<input type="text" class="form-control" value="填写备注" id="dlg_summary">
-													</div>
-												</div>
-											</form>
+											</div>
+											
 										</div>
 										<div class="modal-footer">
 											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-											<button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
 										</div>
 									</div>
 									<!-- /.modal-content -->
@@ -228,7 +199,6 @@
 								<!-- /.modal-dialog -->
 							</div>
 							<!-- /.modal -->
-
 						</div>
 						<!-- End BootStrap Modal -->
 						<!-- Add Modals -->
@@ -239,44 +209,65 @@
 									<div class="modal-content">
 										<div class="modal-header">
 											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-											<h4 class="modal-title" id="myModalLabel">实体藏管理</h4>
+											<h4 class="modal-title" id="myModalLabel">新增实体卷</h4>
 										</div>
 										<div class="modal-body">
 											<form class="form-horizontal">
 												<div class="form-group">
-													<label class="col-sm-2 control-label">藏名</label>
+													<label class="col-sm-2 control-label">卷编码</label>
 													<div class="col-md-10">
-														<input type="text" class="form-control" value="藏名" >
+														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-sm-2 control-label">简称</label>
+													<label class="col-sm-2 control-label">卷号</label>
 													<div class="col-md-10">
-														<input type="text" class="form-control" value="这里写简称" >
+														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">编码</label>
+													<label class="col-md-2 control-label">起始册</label>
 													<div class="col-md-10">
-														<input type="text" class="form-control" value="这里写编码" >
+														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-sm-2 control-label">编码规则</label>
+													<label class="col-md-2 control-label">起始页码</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">结束侧</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">结束页码</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">总页数</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-sm-2 control-label">是否包含卷内结构</label>
 													<div class="col-sm-10">
 														<select class="form-control">
-															<option value="1">规则一</option>
-															<option value="2">规则二</option>
-															<option value="3">规则三</option>
-															<option value="4">规则四</option>
-															<option value="5">规则五</option>
+															<option value="1">是</option>
+															<option value="2">否</option>
 														</select>
 													</div>
 												</div>
 												<div class="form-group">
 													<label class="col-md-2 control-label">备注</label>
 													<div class="col-md-10">
-														<input type="text" class="form-control" value="填写备注" >
+														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 											</form>
@@ -294,144 +285,254 @@
 
 						</div>
 						<!-- End BootStrap Modal -->
+						<!-- EDIT Modals -->
+						<div class="panel-body" style="padding: 0;">
+							<!-- modal content -->
+							<div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="myModalLabel">编辑实体卷</h4>
+										</div>
+										<div class="modal-body">
+											<form class="form-horizontal">
+												<div class="form-group">
+													<label class="col-sm-2 control-label">卷编码</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value="" >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-sm-2 control-label">卷号</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value="" >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">起始册</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">起始页码</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">结束侧</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">结束页码</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">总页数</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-sm-2 control-label">是否包含卷内结构</label>
+													<div class="col-sm-10">
+														<select class="form-control">
+															<option value="1">是</option>
+															<option value="2">否</option>
+														</select>
+													</div>
+												</div>
+												<div class="form-group">
+													<label class="col-md-2 control-label">备注</label>
+													<div class="col-md-10">
+														<input type="text" class="form-control" value=" " >
+													</div>
+												</div>
+											</form>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light" data-dismiss="modal" id="modal_confirm">确定</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+
+						</div>
+						<!-- End BootStrap Modal -->
 						<div class="layout">
 							<div class="layout-content">
 								<div class="collate-history">
 									<div class="wrapper">
 										<div class="collate-list">
 											<div class="operation">
-												<span>批量删除</span>
-												<span onclick="javascript:add();">新增</span>
+												<span data-toggle="modal" data-target="#batModal">批量删除</span>
+												<span data-toggle="modal" data-target="#batModal">下载模板</span>
+												<div class="btn-group dropdown">
+		                                            <button type="button" class="btn btn-default waves-effect">新增实体卷</button>
+		                                            <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+		                                            <ul class="dropdown-menu" role="menu">
+		                                                <li><a href="javascript:add();">新增实体卷</a></li>
+		                                                <li class="divider"></li>
+		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传实体卷</a></li>
+		                                            </ul>
+		                                        </div>
 											</div>
 											<div class="search fr">
 												<input type="text" placeholder="搜索">
 												<i class="ser-btn"></i>
 											</div>
-											<table style="border-collapse:separate; border-spacing:0px 10px;">
+											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
 												<thead>
 													<tr>
 														<th><input type="checkbox" name="" id="" value="" /></th>
-														<th>藏名</th>
-														<th>简称</th>
-														<th>编码</th>
-														<th>存储模式</th>
-														<th>备注</th>
-														<th>创建时间</th>
-														<th>创建人</th>
-														<th>操作</th>
+														<th><span>卷编码</span></th>
+														<th><span>卷号</span></th>
+														<th><span>起始册</span></th>
+														<th><span>起始页码</span></th>
+														<th><span>终止册</span></th>
+														<th><span>结束页码</span></th>
+														<th><span>总页数</span></th>
+														<th><span>是否含卷内结构</span></th>
+														<th><span>备注</span></th>
+														<th><span>创建时间</span></th>
+														<th><span>创建人</span></th>
+														<th><span>操作</span></th>
 													</tr>
 												</thead>
+
 												<tbody>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>12</td>
+														<td>123</td>
+														<td>35</td>
+														<td>199</td>
+														<td>299</td>
+														<td>是</td>
+														<td>大藏经</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
-														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>高丽藏</td>
-														<td>高丽</td>
-														<td>GL</td>
-														<td>藏册页</td>
-														<td>高丽藏初雕</td>
-														<td>2018/06/23 15:52:37</td>
-														<td>张三</td>
-														<td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-													</tr>
+													
+													
 												</tbody>
 											</table>
 										</div>
@@ -474,15 +575,33 @@
 		<script src="assets/sweet-alert/sweet-alert.min.js"></script>
 		<script src="assets/sweet-alert/sweet-alert.init.js"></script>
 
-		<!-- CUSTOM JS -->
+		<script>
+			$(function() {
+				$('.sidebar-collapse').slimScroll({
+					height: '100%',
+					railOpacity: 0.9,
+					alwaysVisible: false
+				});
+				$('.submenu-title').click(function() {
+					$('.sub-ul').slideUp(300);
+					$('.submenu-title').css("color", "#e4c3a8");
+					if($(this).hasClass('active')) {
+						$(this).removeClass('active');
+					} else {
+						$(this).addClass('active');
+						$(this).next().slideDown(300);
+						$(this).css("color", "#f56558");
+					}
 
+				});
+			});
+		</script>
 		<script type="text/javascript">
-			
 			/**
 			 * 删除记录
 			 * @param {Object} name 删除行的标记名
 			 */
-			function delUser(name) {
+			function del(name) {
 				swal({
 						title: "确定删除" + name + "的记录吗？",
 						text: "帐号删除后无法恢复！",
@@ -506,60 +625,23 @@
 						});
 					});
 			}
-			/**
-			 * 编辑
-			 * @param {Object} name 该行的藏名
-			 * @param {Object} short_name 该行的简称
-			 * @param {Object} code 该行的编码
-			 * @param {Object} rule 该行的存储规则
-			 * @param {Object} summary 该行的备注
-			 */
-			function modify(name, short_name,code,rule,summary) {
-				$('#roleModal').modal();
-				$("#myModalLabel").html('编辑实体藏');
-				$('#dlg_name').val(name);
-				$('#dlg_short_name').val(name);
-				$('#dlg_code').val(name);
-				$('#dlg_summary').val(name);
-				$("#dlg_rule").find("option[value = '"+rule+"']").attr("selected","selected");
-				$("#dlg_rule").find("option[value = '"+rule+"']").prop("selected","selected");
-				
+			//编辑实体卷
+			function modify() {
+				$('#modifyModal').modal();
 			}
-			//编辑框的确定按钮
-			$("#modal_confirm").click(function(){
-				$('#roleModal').modal('hide');
-				console.log('modify confirm');
-			});
-			//新增弹出框
+			//新增实体卷
 			function add() {
 				$('#addModal').modal();
 				
 			}
+			//编辑框的确定按钮
+			$("#modal_confirm").click(function(){
+				$('#modi	fyModal').modal('hide');
+				console.log('modify confirm');
+			});
 			//新增框的确定按钮
 			$("#add_modal_confirm").click(function(){
 				console.log('add confirm');
-			});
-			
-		</script>
-		<script>
-			$(function() {
-				$('.sidebar-collapse').slimScroll({
-					height: '100%',
-					railOpacity: 0.9,
-					alwaysVisible: false
-				});
-				$('.submenu-title').click(function() {
-					$('.sub-ul').slideUp(300);
-					$('.submenu-title').css("color", "#e4c3a8");
-					if($(this).hasClass('active')) {
-						$(this).removeClass('active');
-					} else {
-						$(this).addClass('active');
-						$(this).next().slideDown(300);
-						$(this).css("color", "#f56558");
-					}
-
-				});
 			});
 		</script>
 	</body>
