@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Base Css Files -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="css/base.css">
     <link rel="stylesheet" type="text/css" href="css/register.css">
     <link href="assets/ionicon/css/ionicons.min.css" rel="stylesheet" />
@@ -11,6 +14,7 @@
     <div class="app-main">
         <div class="main">
             <div class="register">
+            	<form>
                 <div class="register-in">
                     <div class="hd clearfix">
                         <h3 class="logo fl"></h3>
@@ -45,10 +49,15 @@
                         </div>
                     </div>
                     <div class="register_agreement">
-                    		<input type="checkbox" name="" id="" value="" />同意<a href="#">《网站注册协议》</a>
+                    		<div class="checkbox">
+						    <label>
+						      <input type="checkbox"> 同意<a href="#">《网站注册协议》</a>
+						    </label>
+						  </div>
                     </div>
                     <div class="register-btn"><a href="dzj_register.html">注&nbsp;&nbsp;&nbsp;&nbsp;册</a></div>
                 </div>
+                </form>
             </div>
         </div>
     </div>
