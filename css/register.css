@@ -91,6 +91,8 @@
     left:0;
     top:50%;
     transform: translateY(-50%);
+    color: #985F0D;
+    font-size: 2.5em;
 }
 .register .item i.user-icon{
     background: url(../imgs/login/user.png) no-repeat;
@@ -146,7 +148,7 @@
     text-align: center;
     line-height:40px;
     color:#fff;
-    margin-top:57px;
+    margin-top:27px;
     cursor: pointer;
     font-size:16px;
     /*letter-spacing: 25px;*/
@@ -160,4 +162,31 @@
 	width: 100%;
 	height: 100%;
 	color: white;
+}
+.register_agreement{
+	width: 100%;
+	text-align: center;
+}
+.register_agreement a{
+	color: #761C19;
+}
+.register_code_input{
+	float: left;	
+}
+.register_code{
+	float: left;
+}
+.register_code_btn{
+	float: right;
+    margin:0 auto;
+    width:30%;
+    height:40px;
+    background: #b8906f;
+    border-radius:4px;
+    text-align: center;
+    line-height:40px;
+    color:#fff;
+    cursor: pointer;
+    font-size:14px;
+	margin-top: 10px;    
 }

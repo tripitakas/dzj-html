@@ -743,7 +743,7 @@ a:hover{
 .collate-history .collate-list table th {
 	font-weight: normal;
 	font-size: 12px;
-	padding-bottom: 17px;
+	/*padding-bottom: 17px;*/
 }
 
 .collate-history .collate-list table th:first-child {
@@ -1084,4 +1084,53 @@ a:hover{
 }
 .pagers ul li:last-child{
 	padding: 0 10px;
+}
+.sub-active a:hover{
+	color: #FFFFFF;
+}
+.sort{
+	cursor: pointer;
+}
+.sty_table th{
+	text-align: center;
+}
+.sty_table td{
+	text-align: center;
+}
+.sty_table td a{
+	font-size: 12px;
+	margin-right: 10px;
+	color: #B8906F;
+}
+.sty_table td a:hover{
+	color:#b33c2b;
+}
+.collate-history .collate-list .sty_table td.datetime{
+	font-size: 12px;
+	width: 100px;
+}
+.collate-list .bat-upload span{
+	width: 150px;
+}
+.modal-body .progress-lg{
+	margin-top: 20px;
+}
+.single-page-con .panel-body{
+	padding: 0px;
+}
+.preview_img{
+	width: 60%;
+	float: left;
+	/*overflow: scroll;*/
+}
+.preview_img img{
+	width: 100%;
+}
+.preview_text{
+	float: left;
+	width: 40%;
+	padding: 20px;
+}
+.modal-footer .pagers{
+	margin: 20px 0px;
 }
