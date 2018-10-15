@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-实体卷</title>
+		<title>大藏经古籍数字化平台-实体经</title>
 
 		<!-- Base Css Files -->
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -126,11 +126,11 @@
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_stc.html">实体册管理</a></span>
 									</li>
-									<li>
+									<li class="sub-active">
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_stjing.html">实体经管理</a></span>
 									</li>
-									<li class="sub-active">
+									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
 										<span><a href="dzj_stjuan.html">实体卷管理</a></span>
 									</li>
@@ -209,59 +209,50 @@
 									<div class="modal-content">
 										<div class="modal-header">
 											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-											<h4 class="modal-title" id="myModalLabel">新增实体卷</h4>
+											<h4 class="modal-title" id="myModalLabel">新增实体经</h4>
 										</div>
 										<div class="modal-body">
 											<form class="form-horizontal">
 												<div class="form-group">
-													<label class="col-sm-2 control-label">卷编码</label>
+													<label class="col-sm-2 control-label">经编码</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-sm-2 control-label">卷号</label>
+													<label class="col-sm-2 control-label">经序号</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">起始册</label>
+													<label class="col-md-2 control-label">别本号</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">起始页码</label>
+													<label class="col-md-2 control-label">经名</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">结束侧</label>
+													<label class="col-md-2 control-label">应存卷数</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">结束页码</label>
+													<label class="col-md-2 control-label">实存卷数</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">总页数</label>
+													<label class="col-md-2 control-label">作译者</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
-													</div>
-												</div>
-												<div class="form-group">
-													<label class="col-sm-2 control-label">是否包含卷内结构</label>
-													<div class="col-sm-10">
-														<select class="form-control">
-															<option value="1">是</option>
-															<option value="2">否</option>
-														</select>
 													</div>
 												</div>
 												<div class="form-group">
@@ -298,54 +289,45 @@
 										<div class="modal-body">
 											<form class="form-horizontal">
 												<div class="form-group">
-													<label class="col-sm-2 control-label">卷编码</label>
+													<label class="col-sm-2 control-label">经编码</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-sm-2 control-label">卷号</label>
+													<label class="col-sm-2 control-label">经序号</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value="" >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">起始册</label>
+													<label class="col-md-2 control-label">别本号</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">起始页码</label>
+													<label class="col-md-2 control-label">经名</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">结束侧</label>
+													<label class="col-md-2 control-label">应存卷数</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">结束页码</label>
+													<label class="col-md-2 control-label">实存卷数</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
 													</div>
 												</div>
 												<div class="form-group">
-													<label class="col-md-2 control-label">总页数</label>
+													<label class="col-md-2 control-label">作译者</label>
 													<div class="col-md-10">
 														<input type="text" class="form-control" value=" " >
-													</div>
-												</div>
-												<div class="form-group">
-													<label class="col-sm-2 control-label">是否包含卷内结构</label>
-													<div class="col-sm-10">
-														<select class="form-control">
-															<option value="1">是</option>
-															<option value="2">否</option>
-														</select>
 													</div>
 												</div>
 												<div class="form-group">
@@ -378,12 +360,12 @@
 												<span>批量删除</span>
 												<span>下载模板</span>
 												<div class="btn-group dropdown">
-		                                            <button type="button" class="btn btn-default waves-effect">新增实体卷</button>
+		                                            <button type="button" class="btn btn-default waves-effect">新增实体经</button>
 		                                            <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
 		                                            <ul class="dropdown-menu" role="menu">
-		                                                <li><a href="javascript:add();">新增实体卷</a></li>
+		                                                <li><a href="javascript:add();">新增实体经</a></li>
 		                                                <li class="divider"></li>
-		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传实体卷</a></li>
+		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传实体经</a></li>
 		                                            </ul>
 		                                        </div>
 											</div>
@@ -396,13 +378,12 @@
 													<tr>
 														<th><input type="checkbox" name="" id="" value="" /></th>
 														<th><span>卷编码</span></th>
-														<th><span>卷号</span></th>
-														<th><span>起始册</span></th>
-														<th><span>起始页码</span></th>
-														<th><span>终止册</span></th>
-														<th><span>结束页码</span></th>
-														<th><span>总页数</span></th>
-														<th><span>是否含卷内结构</span></th>
+														<th><span>经序号</span></th>
+														<th><span>别本号</span></th>
+														<th><span>经名</span></th>
+														<th><span>应存卷数</span></th>
+														<th><span>实存卷数</span></th>
+														<th><span>作译者</span></th>
 														<th><span>备注</span></th>
 														<th><span>创建时间</span></th>
 														<th><span>创建人</span></th>
@@ -419,8 +400,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -434,8 +414,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -449,8 +428,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -464,8 +442,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -479,8 +456,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -494,8 +470,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -509,8 +484,7 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
@@ -524,13 +498,13 @@
 														<td>123</td>
 														<td>35</td>
 														<td>199</td>
-														<td>299</td>
-														<td>是</td>
+														<td>鸠摩罗什</td>
 														<td>大藏经</td>
 														<td class="datetime">2018/06/23 15:52:37</td>
 														<td>张三</td>
 														<td><a href="javascript:del(12);">删除</a><a href="javascript:modify();" >编辑</a></td>
 													</tr>
+													
 													
 													
 												</tbody>
@@ -592,6 +566,7 @@
 						$(this).next().slideDown(300);
 						$(this).css("color", "#f56558");
 					}
+
 				});
 				$('.menu-active').addClass('active');
 				$('.menu-active').next().slideDown(300);

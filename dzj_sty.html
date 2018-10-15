@@ -108,7 +108,7 @@
 								</ul>
 							</li>
 							<li>
-								<div class="submenu-title">
+								<div class="submenu-title menu-active">
 									<i><img src="imgs/frame/task-room.png" alt="" style="margin-top:9px;"></i>
 									<span>数据管理</span>
 									<i></i>
@@ -120,15 +120,15 @@
 									</li>
 									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体函管理</span>
+										<span><a href="dzj_sth.html">实体函管理</a></span>
 									</li>
 									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体册管理</span>
+										<span><a href="dzj_stc.html">实体册管理</a></span>
 									</li>
 									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体经管理</span>
+										<span><a href="dzj_stjing.html">实体经管理</a></span>
 									</li>
 									<li>
 										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
@@ -496,8 +496,9 @@
 						$(this).next().slideDown(300);
 						$(this).css("color", "#f56558");
 					}
-
 				});
+				$('.menu-active').addClass('active');
+				$('.menu-active').next().slideDown(300);
 			});
 		</script>
 	</body>
