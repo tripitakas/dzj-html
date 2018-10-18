@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-实体页</title>
+		<title>大藏经古籍数字化平台-切分校对</title>
 
 		<!-- Base Css Files -->
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -37,16 +37,15 @@
         <![endif]-->
 
 	</head>
-	<style>
-
-	</style>
+	
 
 	<body>
 		<div class="app-main">
 			<div class="main">
-				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="data-management" sub="data-management-sty" ></common-left>
+				<!--公共左侧导航栏 -->
+				<common-left title="mission-lobby" sub="mission-lobby-slice"></common-left>
 				<div class="main-content">
+					<!--公共头部 -->
 					<common-head></common-head>
 					<div class="single-page-con">
 						<!-- UPLOAD OCR-->
@@ -359,9 +358,9 @@
 		<!-- sweet alerts -->
 		<script src="assets/sweet-alert/sweet-alert.min.js"></script>
 		<script src="assets/sweet-alert/sweet-alert.init.js"></script>
-
 		<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
 		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+		
 	</body>
 
 </html>

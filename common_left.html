@@ -1,0 +1,134 @@
+<div class="sidebar-menu-con" style="">
+	<div class="ivu-shrinkable-menu sidebar-collapse">
+		<div class="logo-con">
+			<img class="large" src="imgs/logo-large.png" alt="">
+			<img class="mini" src="imgs/logo-small.png" alt="">
+		</div>
+		<ul class="menu" id="side-menu">
+			<li class="menu-item" >
+				<i><img src="imgs/frame/home.png" alt="" style="margin-top:10px;"></i>
+				<span id="index"><a href="dzj_home.html">首页</a></span>
+			</li>
+			<li class="menu-item">
+				<i><img src="imgs/frame/tem.png" alt="" style="margin-top:11px;margin-right: -4px;"></i>
+				<span id="rszj"><a href="dzj_rszj.html">如是藏经</a></span>
+			</li>
+			<li class="menu-item">
+				<i><img src="imgs/frame/book.png" alt="" style="margin-top:12px;"></i>
+				<span id="stzj"><a href="dzj_stzj.html">实体藏经</a></span>
+			</li>
+			<li>
+				<div class="submenu-title ">
+					<i><img src="imgs/frame/task.png" alt="" style="margin-top:9px;"></i>
+					<span>我的任务</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li>
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_history.html">我的记录</a></span>
+					</li>
+					<li>
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_check.html">文字校对审定</a></span>
+					</li>
+					<li>
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_labelformat.html">文字校对难字</a></span>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<div class="submenu-title" id="mission-lobby">
+					<i><img src="imgs/frame/task-room.png" alt="" style="margin-top:9px;"></i>
+					<span>任务大厅</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li id="mission-lobby-slice">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span>切分校对</span>
+					</li>
+					<li id="mission-lobby-slice-check">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span>切分审定</span>
+					</li>
+					<li id="mission-lobby-char">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span>文字校对</span>
+					</li>
+					<li id="mission-lobby-char-check">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span>文字校对审定</span>
+					</li>
+					<li id="mission-lobby-char-hard">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span>难字处理</span>
+					</li>
+
+				</ul>
+			</li>
+			<li>
+				<div class="submenu-title" id="data-management">
+					<i><img src="imgs/frame/task-room.png" alt="" style="margin-top:9px;"></i>
+					<span>数据管理</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li id="data-management-stz">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_stz.html">实体藏管理</a></span>
+					</li>
+					<li id="data-management-sth">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_sth.html">实体函管理</a></span>
+					</li>
+					<li id="data-management-stc">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_stc.html">实体册管理</a></span>
+					</li>
+					<li id="data-management-stjing">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_stjing.html">实体经管理</a></span>
+					</li>
+					<li id="data-management-stjuan">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_stjuan.html">实体卷管理</a></span>
+					</li>
+					<li id="data-management-sty">
+						<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
+						<span><a href="dzj_sty.html">实体页管理</a></span>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<img class="budda" src="imgs/frame/budda.png" alt="">
+	</div>
+
+</div>
+
+<script>
+	$(function() {
+		$('.sidebar-collapse').slimScroll({
+			height: '100%',
+			railOpacity: 0.9,
+			alwaysVisible: false
+		});
+		$('.submenu-title').click(function() {
+			$('.sub-ul').slideUp(300);
+			$('.submenu-title').css("color", "#e4c3a8");
+			if($(this).hasClass('active')) {
+				$(this).removeClass('active');
+			} else {
+				$(this).addClass('active');
+				$(this).next().slideDown(300);
+				$(this).css("color", "#f56558");
+			}
+		});
+		var title = $("common-left").attr("title");
+		$("#"+title).addClass("active");
+		$('.active').next().slideDown(300);
+		var sub = $("common-left").attr("sub");
+		$("#"+sub).addClass("sub-active");
+	});
+</script>

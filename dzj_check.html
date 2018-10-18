@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="app">
 
 	<head>
 		<meta charset="UTF-8">
@@ -22,128 +22,10 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<div class="sidebar-menu-con" style="">
-					<div class="ivu-shrinkable-menu sidebar-collapse">
-						<div class="logo-con">
-							<img class="large" src="imgs/logo-large.png" alt="">
-							<img class="mini" src="imgs/logo-small.png" alt="">
-						</div>
-						<ul class="menu" id="side-menu">
-							<li class="menu-item">
-								<i><img src="imgs/frame/home.png" alt="" style="margin-top:10px;"></i>
-								<span><a href="dzj_home.html">首页</a></span>
-							</li>
-							<li class="menu-item">
-								<i><img src="imgs/frame/tem.png" alt="" style="margin-top:11px;margin-right: -4px;"></i>
-								<span><a href="dzj_rszj.html">如是藏经</a></span>
-							</li>
-							<li class="menu-item">
-								<i><img src="imgs/frame/book.png" alt="" style="margin-top:12px;"></i>
-								<span><a href="dzj_stzj.html">实体藏经</a></span>
-							</li>
-							<li>
-								<div class="submenu-title ">
-									<i><img src="imgs/frame/task.png" alt="" style="margin-top:9px;"></i>
-									<span>我的任务</span>
-									<i></i>
-								</div>
-								<ul class="sub-ul sub-ul-hidden">
-									<li class="sub-active">
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span><a href="dzj_history.html">我的记录</a></span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span><a href="dzj_check.html">文字校对审定</a></span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span><a href="dzj_labelformat.html">文字校对难字</a></span>
-									</li>
-								</ul>
-							</li>
-							<li>
-								<div class="submenu-title">
-									<i><img src="imgs/frame/task-room.png" alt="" style="margin-top:9px;"></i>
-									<span>任务大厅</span>
-									<i></i>
-								</div>
-								<ul class="sub-ul sub-ul-hidden">
-									<li class="sub-active">
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>文字校对</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>文字校对审定</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>文字校对难字</span>
-									</li>
-
-								</ul>
-							</li>
-							<li>
-								<div class="submenu-title">
-									<i><img src="imgs/frame/task-room.png" alt="" style="margin-top:9px;"></i>
-									<span>数据管理</span>
-									<i></i>
-								</div>
-								<ul class="sub-ul sub-ul-hidden">
-									<li class="sub-active">
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span><a href="dzj_stz.html">实体藏管理</a></span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体函管理</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体册管理</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体经管理</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体卷管理</span>
-									</li>
-									<li>
-										<i><img src="imgs/frame/sub.png" alt="" class="sub-img"/></i>
-										<span>实体页管理</span>
-									</li>
-								</ul>
-							</li>
-						</ul>
-						<img class="budda" src="imgs/frame/budda.png" alt="">
-					</div>
-
-				</div>
+				<common-left></common-left>
+				
 				<div class="main-content">
-					<div class="main-header-con">
-						<div class="main-header">
-							<div class="ivu-row-flex">
-								<div class="main-header-left">
-									<div class="title">
-										<span class="toggle"><img src="imgs/frame/toggle.png" alt=""></span>
-										<span class="platform"><img src="imgs/frame/platform.png" alt=""></span>
-									</div>
-									<div class="line"></div>
-								</div>
-								<div class="main-header-right">
-									<span class="welcome">欢迎您：某某某</span>
-									<span><img src="imgs/frame/user.png" alt=""></span>
-									<span><img src="imgs/frame/message.png" alt=""></span>
-									<span><img src="imgs/frame/help.png" alt=""></span>
-									<span><img src="imgs/frame/logout.png" alt=""></span>
-								</div>
-
-							</div>
-						</div>
-					</div>
+					<common-head></common-head>
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
@@ -376,6 +258,9 @@
 		</div>
 		<script src="./plugins/jquery.min.js"></script>
 		<script src="./plugins/jquery.slimscroll.min.js"></script>
+		<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+		
 		<script>
 			$(function() {
 				$('.sidebar-collapse').slimScroll({
@@ -383,18 +268,7 @@
 					railOpacity: 0.9,
 					alwaysVisible: false
 				});
-				$('.submenu-title').click(function() {
-					$('.sub-ul').slideUp(300);
-					$('.submenu-title').css("color", "#e4c3a8");
-					if($(this).hasClass('active')) {
-						$(this).removeClass('active');
-					} else {
-						$(this).addClass('active');
-						$(this).next().slideDown(300);
-						$(this).css("color", "#f56558");
-					}
-
-				});
+				
 				$("#label_feedback").click(function() {
 					$(".mask").show();
 				});

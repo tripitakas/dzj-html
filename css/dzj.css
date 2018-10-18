@@ -1134,3 +1134,15 @@ a:hover{
 .modal-footer .pagers{
 	margin: 20px 0px;
 }
+.layout-content1.rszj-layout-content{
+	padding-top: 50px;
+}
+.rszj-layout-content .dzj_wrapper1{
+	padding-left: 50px;
+} 
+.submenu-title.active{
+	color:#f56558;
+}
+span.active a{
+	color:#F56558;
+}
