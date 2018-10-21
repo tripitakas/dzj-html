@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>大藏经古籍数字化平台-实体页</title>
-
+		<link rel="shortcut icon" href="imgs/favicon.ico" type="image/x-icon">
 		<!-- Base Css Files -->
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
 
@@ -181,16 +181,16 @@
 													<tr>
 														<th><span>页编码</span></th>
 														<th><span>逻辑编码</span></th>
-														<th><span class="sort">图片</span><span class="ion-android-sort"></th>
-														<th><span class="sort">OCR切栏</span><span class="ion-android-sort"></th>
-														<th><span class="sort">审定切栏</span><span class="ion-android-sort"></th>
-														<th><span class="sort">OCR切列</span><span class="ion-android-sort"></th>
-														<th><span class="sort">审定切列</span><span class="ion-android-sort"></th>
-														<th><span class="sort">OCR切字</span><span class="ion-android-sort"></th>
-														<th><span class="sort">审定切字</span><span class="ion-android-sort"></th>
-														<th><span class="sort">审定文本</span><span class="ion-android-sort"></th>
-														<th><span class="sort">OCR切列</span><span class="ion-android-sort"></th>
-														<th><span class="sort">审定切列</span><span class="ion-android-sort"></th>
+														<th><span class="sort">图片</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切栏</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切栏</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切字</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切字</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定文本</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切列</span><span class="ion-arrow-down-b"></th>
 														<th><span>创建时间</span></th>
 														<th><span>创建人</span></th>
 														<th><span>操作</span></th>
@@ -362,6 +362,13 @@
 
 		<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
 		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			//排序图标
+			$(".sort").click(function(){
+				$(this).toggleClass('toggle');
+				$(this).next().toggleClass('toggle');
+			});
+		</script>
 	</body>
 
 </html>

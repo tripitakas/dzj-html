@@ -3,7 +3,7 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>任务管理-切分校对</title>
+		<title>人员管理-角色管理</title>
 		<link rel="shortcut icon" href="imgs/favicon.ico" type="image/x-icon">
 		<!-- Base Css Files -->
 		<link href="css/bootstrap.min.css" rel="stylesheet" />
@@ -45,7 +45,7 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="mission-manage" sub="mission-manage-slice" ></common-left>
+				<common-left title="user-management" sub="user-management-role" ></common-left>
 				<div class="main-content">
 					<common-head></common-head>
 					<div class="single-page-con">
@@ -54,9 +54,6 @@
 								<div class="collate-history">
 									<div class="wrapper">
 										<div class="collate-list">
-											<div class="operation">
-												<span onclick="revoke(100)">批量撤销任务</span>
-											</div>
 											<div class="search fr">
 												<input type="text" placeholder="搜索">
 												<i class="ser-btn"></i>
@@ -65,132 +62,75 @@
 												<thead>
 													<tr>
 														<th><input type="checkbox" name="" id="" value="" /></th>
-														<th>页编码</th>
+														<th>姓名</th>
+														<th>手机</th>
+														<th>邮箱</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">类型</span><span class="ion-android-sort " ></span>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">性别</span><span class="ion-android-sort " ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">切栏</a></li>
-					                                                <li><a href="#">切列</a></li>
-					                                                <li><a href="#">切字</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>阶段</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
+					                                                <li><a href="#">全部</a></li>
+					                                                <li><a href="#">男</a></li>
+					                                                <li><a href="#">女</a></li>
 					                                            </ul>
 					                                        </div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-android-sort " ></span>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">用户状态</span><span class="ion-android-sort " ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">高</a></li>
-					                                                <li><a href="#">中</a></li>
-					                                                <li><a href="#">低</a></li>
+					                                                <li><a href="#">全部</a></li>
+					                                                <li><a href="#">已生效</a></li>
+					                                                <li><a href="#">已注销</a></li>
+					                                                <li><a href="#">已删除</a></li>
 					                                            </ul>
 					                                        </div>
 														</th>
-														<th>退回理由</th>
-														<th>备注</th>
-														<th>领取人</th>
-														<th>领取时间</th>
-														<th>完成时间</th>
+														<th>注册时间</th>
 														<th>操作</th>
 													</tr>
 												</thead>
 												<tbody>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
+														<td>
+															<img src="imgs/ava.png" alt="" class="thumb-md img-circle">
+														</td>
+														<td>肖亚文</td>
+														<td>15977889999</td>
+														<td>778998@sina.com</td>
+														<td>女</td>
+														<td>已生效</td>
 														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
+														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
+														<td>
+															<img src="imgs/ava2.png" alt="" class="thumb-md img-circle">
+														</td>
+														<td>韩楚风</td>
+														<td>15977889999</td>
+														<td>778998@sina.com</td>
+														<td>男</td>
+														<td>已生效</td>
 														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
+														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
 													</tr>
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
+														<td>
+															<img src="imgs/ava3.png" alt="" class="thumb-md img-circle">
+														</td>
 														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
+														<td>15977889999</td>
+														<td>778998@sina.com</td>
+														<td>男</td>
+														<td>已生效</td>
 														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
+														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span style="background: #CCCCCC;">下载结果</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
-														<td>已领取</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span style="background: #CCCCCC;">下载结果</span></td>
-													</tr>
+													
 												</tbody>
 											</table>
 										</div>
@@ -238,17 +178,17 @@
 		<script type="text/javascript">
 			
 			/**
-			 * 撤销任务
-			 * @param {Object} name 任务的标记名
+			 * 删除用户
+			 * @param {Object} name 用户名
 			 */
-			function revoke(name) {
+			function del(name) {
 				swal({
-						title: "确定撤回" + name + "任务吗？",
-						text: "撤回后无法恢复！",
+						title: "确定删除" + name + "吗？",
+						text: "删除后无法恢复！",
 						type: "warning",
 						showCancelButton: true,
 						confirmButtonColor: "#b8906f",
-						confirmButtonText: "确定撤回",
+						confirmButtonText: "确定删除",
 						cancelButtonText: "取消",
 						closeOnConfirm: false
 					},
@@ -257,8 +197,37 @@
 						
 						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
 						swal({
-							title: "撤回任务！",
-							text: name + "的任务已经被撤回。",
+							title: "删除！",
+							text: name + "已经被删除。",
+							type: "success",
+							confirmButtonColor: "#b8906f",
+							confirmButtonText: "确定"
+						});
+					});
+			}
+			
+			/**
+			 * 重置密码
+			 * @param {Object} name 用户名
+			 */
+			function reset(name) {
+				swal({
+						title: "确定重置" + name + "吗？",
+						text: "重置后无法恢复！",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#b8906f",
+						confirmButtonText: "确定重置",
+						cancelButtonText: "取消",
+						closeOnConfirm: false
+					},
+					function() {
+						//此处调用后台删除逻辑(ajax)
+						
+						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
+						swal({
+							title: "重置密码！",
+							text: name + "的密码已经被重置。",
 							type: "success",
 							confirmButtonColor: "#b8906f",
 							confirmButtonText: "确定"
