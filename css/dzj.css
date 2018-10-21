@@ -790,8 +790,9 @@ a:hover{
 .collate-list .operation span{
 	display: block;
 	float: left;
-	width: 70px;
+	/*width: 70px;*/
 	height: 32px;
+	padding: 0 20px;
 	background: #b8906f;
 	border-radius: 3px;
 	text-align: center;
