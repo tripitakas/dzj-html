@@ -1196,3 +1196,27 @@ span.active a {
 	/* Opera */
 	color: #317EEB;
 }
+.collate-history .collate-list table.table{
+	margin-top: 0px;
+}
+.btn-toolbar{
+	margin-bottom: 0px;
+	float: right;
+}
+.btn-toolbar .dropdown-toggle.btn-primary{
+	 padding-left: 0px; 
+	 padding-right: 0px; 
+	 letter-spacing: 0px; 
+}
+.table-wrapper{
+	position: relative;
+}
+.collate-list .btn-toolbar{
+	position: absolute;
+	left: 0px;
+	margin-top: -20px;
+}
+.collate-list .table-responsive{
+	margin-top: 0px;
+	top:10px;
+}

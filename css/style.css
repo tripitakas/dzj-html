@@ -540,9 +540,9 @@ a:focus {
 .open>.dropdown-toggle.btn-primary {
 	background-color: #b88f6f;
 	border: 1px solid #b88b6b;
-	padding-left: 25px;
+	/*padding-left: 25px;
 	padding-right: 25px;
-	letter-spacing: 5px;
+	letter-spacing: 5px;*/
 }
 
 .btn-success,

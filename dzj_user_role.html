@@ -12,7 +12,8 @@
 		<link href="assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
 		<link href="assets/ionicon/css/ionicons.min.css" rel="stylesheet" />
 		<link href="css/material-design-iconic-font.min.css" rel="stylesheet">
-
+		<!-- Responsive-table -->
+		<link href="assets/responsive-table/rwd-table.min.css" rel="stylesheet" type="text/css" media="screen" />
 		<!-- animate css -->
 		<link href="css/animate.css" rel="stylesheet" />
 
@@ -45,7 +46,7 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="user-management" sub="user-management-role" ></common-left>
+				<common-left title="user-management" sub="user-management-role"></common-left>
 				<div class="main-content">
 					<common-head></common-head>
 					<div class="single-page-con">
@@ -58,98 +59,457 @@
 												<input type="text" placeholder="搜索">
 												<i class="ser-btn"></i>
 											</div>
-											<table style="border-collapse:separate; border-spacing:0px 10px;">
-												<thead>
-													<tr>
-														<th><input type="checkbox" name="" id="" value="" /></th>
-														<th>姓名</th>
-														<th>手机</th>
-														<th>邮箱</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">性别</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">全部</a></li>
-					                                                <li><a href="#">男</a></li>
-					                                                <li><a href="#">女</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">用户状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">全部</a></li>
-					                                                <li><a href="#">已生效</a></li>
-					                                                <li><a href="#">已注销</a></li>
-					                                                <li><a href="#">已删除</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>注册时间</th>
-														<th>操作</th>
-													</tr>
-												</thead>
-												<tbody>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>
-															<img src="imgs/ava.png" alt="" class="thumb-md img-circle">
-														</td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>女</td>
-														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>
-															<img src="imgs/ava2.png" alt="" class="thumb-md img-circle">
-														</td>
-														<td>韩楚风</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>男</td>
-														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>
-															<img src="imgs/ava3.png" alt="" class="thumb-md img-circle">
-														</td>
-														<td>丁元英</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>男</td>
-														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
-													</tr>
-													
-												</tbody>
-											</table>
+											<div class="table-responsive" data-pattern="priority-columns">
+												<table class="table table-small-font">
+													<thead>
+														<tr>
+															<th data-priority="2">姓名</th>
+															<th data-priority="0">手机</th>
+															<th data-priority="0">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">普通用户</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">切分校对员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">切分审定员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字校对员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字审定员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字专家</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">格式标注员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">格式审定员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">任务管理员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">数据管理员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="0">
+																<div class="btn-group">
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">超级管理员</span><span class="ion-android-sort "></span>
+																	<ul class="dropdown-menu" role="menu">
+																		<li>
+																			<a href="#">是</a>
+																		</li>
+																		<li>
+																			<a href="#">否</a>
+																		</li>
+																	</ul>
+																</div>
+															</th>
+															<th data-priority="2">操作</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+														<tr>
+															<th>GOOG</th>
+															<td>15066557799</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>是</td>
+															<td>
+																<a href="javascript:modify('10')">编辑</a>
+															</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
 										</div>
 										<div class="pagers">
 											<!--<img src="imgs/cloud1.png" alt="" class="hidden-md hidden-sm">-->
 											<ul>
-												<li><a href="">首页</a></li>
-												<li><a href="">上一页</a></li>
-												<li class="active"><a href="">1</a></li>
-												<li><a href="">2</a></li>
-												<li><a href="">3</a></li>
-												<li><a href="">4</a></li>
-												<li><a href="">5</a></li>
-												<li><a href="">6</a></li>
-												<li><a href="">7</a></li>
-												<li><a href="">8</a></li>
-												<li><a href="">9</a></li>
-												<li><a href="">下一页</a></li>
-												<li><a href="">末页</a></li>
+												<li>
+													<a href="">首页</a>
+												</li>
+												<li>
+													<a href="">上一页</a>
+												</li>
+												<li class="active">
+													<a href="">1</a>
+												</li>
+												<li>
+													<a href="">2</a>
+												</li>
+												<li>
+													<a href="">3</a>
+												</li>
+												<li>
+													<a href="">4</a>
+												</li>
+												<li>
+													<a href="">5</a>
+												</li>
+												<li>
+													<a href="">6</a>
+												</li>
+												<li>
+													<a href="">7</a>
+												</li>
+												<li>
+													<a href="">8</a>
+												</li>
+												<li>
+													<a href="">9</a>
+												</li>
+												<li>
+													<a href="">下一页</a>
+												</li>
+												<li>
+													<a href="">末页</a>
+												</li>
 												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
 											</ul>
 											<!--<img src="imgs/cloud2.png" alt="" class="hidden-md hidden-sm">-->
@@ -162,82 +522,112 @@
 				</div>
 			</div>
 		</div>
-		<script src="./plugins/jquery.min.js"></script>
-		<script src="./plugins/jquery.slimscroll.min.js"></script>
-		<!-- jQuery  -->
-		<script src="js/bootstrap.min.js"></script>
-		<script src="js/waves.js"></script>
-		<script src="js/wow.min.js"></script>
-		<script src="assets/fastclick/fastclick.js"></script>
-		<!-- sweet alerts -->
-		<script src="assets/sweet-alert/sweet-alert.min.js"></script>
-		<script src="assets/sweet-alert/sweet-alert.init.js"></script>
+		<!-- Modify Modals -->
+		<div class="panel-body" style="padding: 0;">
+			<!-- modal content -->
+			<div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h4 class="modal-title" id="myModalLabel">编辑用户信息</h4>
+						</div>
+						<div class="modal-body">
+							<form class="form-horizontal">
+								<div class="form-group">
+									<label class="col-sm-2 control-label">姓名</label>
+									<div class="col-md-10">
+										<input type="text" class="form-control" readonly="" value="罗辑">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-2 control-label">手机号</label>
+									<div class="col-md-10">
+										<input type="text" class="form-control" readonly="" value="15088998899">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-md-2 control-label">角色选择</label>
+									<div class="col-md-10">
+										<label class="checkbox-inline">
+										  <input type="checkbox"  value="option1">普通用户
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox"  value="option2">切分校对员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox"  value="option3">切分审定员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">文字校对员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">文字审定员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">文字专家
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">格式标注员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">格式审定员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">数据管理员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">任务管理员
+										</label>
+										<label class="checkbox-inline">
+										  <input type="checkbox" value="option3">超级管理员
+										</label>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+							<button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+			</div>
+			<!-- /.modal -->
+			<script src="./plugins/jquery.min.js"></script>
+			<script src="./plugins/jquery.slimscroll.min.js"></script>
+			<!-- jQuery  -->
+			<script src="js/bootstrap.min.js"></script>
+			<script src="js/waves.js"></script>
+			<script src="js/wow.min.js"></script>
+			<script src="assets/fastclick/fastclick.js"></script>
+			<!-- sweet alerts -->
+			<script src="assets/sweet-alert/sweet-alert.min.js"></script>
+			<script src="assets/sweet-alert/sweet-alert.init.js"></script>
 
-		<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
-		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript">
-			
-			/**
-			 * 删除用户
-			 * @param {Object} name 用户名
-			 */
-			function del(name) {
-				swal({
-						title: "确定删除" + name + "吗？",
-						text: "删除后无法恢复！",
-						type: "warning",
-						showCancelButton: true,
-						confirmButtonColor: "#b8906f",
-						confirmButtonText: "确定删除",
-						cancelButtonText: "取消",
-						closeOnConfirm: false
-					},
-					function() {
-						//此处调用后台删除逻辑(ajax)
-						
-						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-						swal({
-							title: "删除！",
-							text: name + "已经被删除。",
-							type: "success",
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定"
-						});
-					});
-			}
-			
-			/**
-			 * 重置密码
-			 * @param {Object} name 用户名
-			 */
-			function reset(name) {
-				swal({
-						title: "确定重置" + name + "吗？",
-						text: "重置后无法恢复！",
-						type: "warning",
-						showCancelButton: true,
-						confirmButtonColor: "#b8906f",
-						confirmButtonText: "确定重置",
-						cancelButtonText: "取消",
-						closeOnConfirm: false
-					},
-					function() {
-						//此处调用后台删除逻辑(ajax)
-						
-						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-						swal({
-							title: "重置密码！",
-							text: name + "的密码已经被重置。",
-							type: "success",
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定"
-						});
-					});
-			}
-			
-			
-		</script>
-		
+			<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+			<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+			<!-- responsive-table-->
+			<script src="assets/responsive-table/rwd-table.min.js" type="text/javascript"></script>
+			<script type="text/javascript">
+				$('.table-responsive').responsiveTable({
+					addFocusBtn: false,
+					addDisplayAllBtn: true
+
+				});
+
+				function modify(name) {
+					$('#modifyModal').modal();
+
+				}
+				//编辑框的确定按钮
+				$("#modal_confirm").click(function() {
+					$('#modifyModal').modal('hide');
+					console.log('modify confirm');
+				});
+			</script>
 	</body>
 
 </html>
