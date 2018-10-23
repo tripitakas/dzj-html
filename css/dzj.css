@@ -1172,7 +1172,9 @@ a:hover {
 .submenu-title.active {
 	color: #f56558;
 }
-
+.submenu-title:hover span{
+	color: #f56558;
+}
 span.active a {
 	color: #F56558;
 }
@@ -1219,4 +1221,16 @@ span.active a {
 .collate-list .table-responsive{
 	margin-top: 0px;
 	top:10px;
+}
+.single-page-con.enlarge{
+	margin-left: 0px;
+}
+.main-header-con.enlarge{
+	padding-left: 0px;
+}
+.sidebar-menu-con.collapse{
+	width: 0px;
+}
+.toggle img{
+	cursor: pointer;
 }
