@@ -3,38 +3,10 @@
 
 	<head>
 		<meta charset="UTF-8">
-		<title>文字校对审定</title>
+		<title>文字校对</title>
 		<link rel="shortcut icon" href="imgs/favicon.ico" type="image/x-icon">
-		<!-- Base Css Files -->
-		<link href="css/bootstrap.min.css" rel="stylesheet" />
-
-		<!-- Font Icons -->
-		<link href="assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-		<link href="assets/ionicon/css/ionicons.min.css" rel="stylesheet" />
-		<link href="css/material-design-iconic-font.min.css" rel="stylesheet">
-
-		<!-- animate css -->
-		<link href="css/animate.css" rel="stylesheet" />
-
-		<!-- Waves-effect -->
-		<link href="css/waves-effect.css" rel="stylesheet">
-
-		<!-- sweet alerts -->
-		<link href="assets/sweet-alert/sweet-alert.min.css" rel="stylesheet">
-		<!-- DataTables -->
-		<link href="assets/datatables/jquery.dataTables.min.css" rel="stylesheet" type="text/css" />
-		<!-- Custom Files -->
-		<link href="css/helper.css" rel="stylesheet" type="text/css" />
-		<link href="css/style.css" rel="stylesheet" type="text/css" />
 		<link rel="stylesheet" href="css/base.css">
 		<link rel="stylesheet" type="text/css" href="css/dzj.css" />
-
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-        <![endif]-->
 		<link rel="stylesheet" type="text/css" href="css/labelformat.css">
 		<style>
 			/*内容*/
@@ -44,106 +16,31 @@
 				height: 100%;
 				padding-bottom: 50px;
 			}
-			
-			.head_home {
-				display: inline-block;
-				width: 30px;
-				height: 30px;
-				font-size: 30px;
-				float: left;
-				margin-right: 5px;
-			}
-			
-			.wrapper {
-				margin: 0px;
-				padding-bottom: 0px;
-			}
-			
-			.layout-content {
-				margin: 0px;
-			}
-			
-			.tripitaka-volume .volume-right {
-				top: 0px;
-				margin: 0px;
-			}
-			
-			.tripitaka-volume .volume-right .full .full-hd {
-				height: 55px;
-				padding-top: 10px;
-			}
-			
-			.tripitaka-volume .volume-right .full-bd {
-				height: 100%;
-			}
-			
-			.slice_title {
-				display: inline-block;
-				float: left;
-				line-height: 37px;
-				height: 37px;
-				vertical-align: middle;
-				padding: 0px 10px;
-				background: #843534;
-				color: #FFFFFF;
-				margin-right: 12px;
-			}
-			
-			.slice_btn_group {
-				display: inline-block;
-				float: left;
-				margin-right: 10px;
-			}
-			
-			.slice_info {
-				display: inline-block;
-				float: left;
-				padding: 0 10px;
-			}
-			
-			.s_h_count {
-				font-size: 75%;
-			}
-			
-			.slice_title a:hover {
-				color: #FFFFFF;
-			}
 		</style>
 	</head>
 
 	<body>
 		<div class="app-main">
-			<div class="single-page-con enlarge">
-				<div class="layout">
-					<div class="layout-content">
-						<!-- 中间内容 -->
-						<!--<div class="single-page-con">-->
+			<div class="main">
+				<!--模拟出左边菜单，方便写样式-->
+				<common-left title="mission_history" sub="mission-char"></common-left>
+
+				<div class="main-content">
+					<common-head></common-head>
+					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
-								<div class="tripitaka-volume">
-									<div class="wrapper">
-										<div class="main-volume">
-											<div class="volume-right">
-												<!--根据接口返回数据情况--右侧没有文本数据时-->
-												<div class="full">
-													<div class="full-hd clearfix">
-														<div class="left fl">
-															<a href="dzj_home.html"><span class="head_home ion-home"></span></a>
-															<span class="slice_title">
-																<a href="dzj_char_check_history.html">文字校对审定</a>
-															</span>
-															<span class="slice_info">高丽再雕 / 大方广佛严经 / 第48卷 / 第1页</span>
-															
-															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-ios7-bookmarks"></i> <span>保存</span> </button>
-															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-upload"></i> <span>提交</span> </button>
-														</div>
-														<div class="right fr">
-
-														</div>
-													</div>
-													<div class="full-bd">
+								<!-- 中间内容 -->
+								<!--<div class="single-page-con">-->
+								<div class="layout">
+									<div class="layout-content">
+										<div class="tripitaka-volume">
+											<div class="wrapper">
+												<div class="main-volume">
+													<div class="volume-right">
+														<!--根据接口返回数据情况--右侧没有文本数据时-->
 														<div class="seprate">
-															<p class="name"></p>
+															<p class="name">高丽再雕 / 大方广佛严经 / 第48卷 / 第1页</p>
 															<div class="seprate-in clearfix">
 																<div class="left fl">
 																	<div class="hd">
@@ -248,7 +145,7 @@
 																	</div>
 																</div>
 															</div>
-															<!--<div class="pagers">
+															<div class="pagers">
 																<span>当前&nbsp;<em>1/4</em>&nbsp;页，共&nbsp;<em>29</em>&nbsp;条</span>
 																<ul>
 																	<li>首页</li>
@@ -257,7 +154,7 @@
 																	<li>下一页</li>
 																	<li>末页</li>
 																</ul>
-															</div>-->
+															</div>
 														</div>
 														<!--./右侧有文本数据时-->
 														<!--弹窗-->
@@ -272,38 +169,27 @@
 																</div>
 															</div>
 														</div>
+														
 													</div>
-
 												</div>
-												<!--./右侧没有文本数据时-->
-												<!--根据接口返回数据情况--右侧有文本数据时-->
 
-												<!--./右侧有文本数据时-->
-												<!--弹窗-->
-
-												<!--./弹窗-->
 											</div>
 										</div>
-
 									</div>
 								</div>
+								<!--</div>-->
+								<!-- ./中间内容 -->
 							</div>
 						</div>
-						<!--</div>-->
-						<!-- ./中间内容 -->
 					</div>
 				</div>
 			</div>
 		</div>
 		<script src="./plugins/jquery.min.js"></script>
 		<script src="./plugins/jquery.slimscroll.min.js"></script>
-		<!-- jQuery  -->
-		<script src="js/bootstrap.min.js"></script>
-		<script src="js/waves.js"></script>
-		<script src="js/wow.min.js"></script>
 		<script src="js/framework/angular.min.js" type="text/javascript" charset="utf-8"></script>
 		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
-<script>
+		<script>
 			$(function() {
 				$('.sidebar-collapse').slimScroll({
 					height: '100%',
