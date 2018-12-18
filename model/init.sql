@@ -71,7 +71,7 @@ DROP TABLE IF EXISTS `t_op_log`;
 CREATE TABLE `t_op_log` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `type` varchar(20) NOT NULL COMMENT '操作类型',
-  `user_id` char(16) NOT NULL COMMENT '用户ID',
+  `user_id` char(16) DEFAULT NULL COMMENT '用户ID',
   `file_id` varchar(24) DEFAULT NULL COMMENT '文件ID',
   `ip` int(10) unsigned NOT NULL COMMENT 'IP地址',
   `context` varchar(80) DEFAULT '' COMMENT '操作内容',

@@ -7,6 +7,7 @@
 
 from tornado.web import authenticated
 from controller.base import BaseHandler
+from os import path
 
 
 class InvalidPageHandler(BaseHandler):
@@ -14,12 +15,15 @@ class InvalidPageHandler(BaseHandler):
         if '/api/' in self.request.path:
             self.set_status(404, reason='Not found')
             return self.finish()
+        if path.exists(path.join(self.get_template_path(), self.request.path.replace('/', ''))):
+            return self.render(self.request.path.replace('/', ''))
         self.render('_404.html')
 
 
 class HomeHandler(BaseHandler):
-    URL = r'/'
+    URL = ['/', '/dzj_home.html']
 
+    @authenticated
     def get(self):
         """ 首页 """
-        self.render('index.html')
+        self.render('dzj_home.html')

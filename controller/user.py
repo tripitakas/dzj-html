@@ -11,7 +11,7 @@ import logging
 
 
 class LoginHandler(BaseHandler):
-    URL = r'/login'
+    URL = ['/login', '/dzj_login.html']
 
     def get(self):
         """ 登录页面 """
@@ -22,7 +22,7 @@ class LoginHandler(BaseHandler):
 
 
 class RegisterHandler(BaseHandler):
-    URL = r'/register'
+    URL = ['/register', '/dzj_register.html']
 
     def get(self):
         """ 注册页面 """
@@ -30,7 +30,7 @@ class RegisterHandler(BaseHandler):
 
 
 class UsersHandler(BaseHandler):
-    URL = r'/users'
+    URL = ['/user_manage', '/dzj_user_manage.html']
 
     @authenticated
     def get(self):

@@ -4,9 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/base.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ static_url('css/register.css') }}">
     {% include _base_css.html %}
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/register.css') }}">
     <title>注册</title>
 </head>
 <body>
@@ -21,24 +20,24 @@
                     </div>
                     <div class="bd">
                         <div class="item">
-                            <input type="text" placeholder='请输入用户名'>
+                            <input type="text" placeholder='请输入姓名' id="name">
                             <i class="ion-ios7-person-outline"></i>
                         </div>
                         <div class="item">
-                            <input type="password" placeholder='请输入密码'>
+                            <input type="password" placeholder='请输入密码' id="password">
                             <i class="ion-ios7-unlocked-outline"></i>
                             <span class="hide"></span>
                         </div>
                         <div class="item">
-                            <input type="number" placeholder='请输入手机号'>
+                            <input type="number" placeholder='请输入手机号' id="phone">
                             <i class="ion-ios7-telephone-outline"></i>
                         </div>
                         <div class="item">
-                            <input type="password" placeholder='请再次输入密码'>
+                            <input type="password" placeholder='请再次输入密码' id="confirm_psw">
                             <i class="ion-ios7-locked-outline"></i>
                         </div>
                         <div class="item">
-                            <input type="text" placeholder='请输入您的邮箱'>
+                            <input type="text" placeholder='请输入您的邮箱' id="email">
                             <i class="ion-ios7-email-outline"></i>
                         </div>
                         <div class="item">
@@ -54,7 +53,7 @@
 						    </label>
 						  </div>
                     </div>
-                    <div class="register-btn"><a href="dzj_register.html">注&nbsp;&nbsp;&nbsp;&nbsp;册</a></div>
+                    <div class="register-btn"><a href="#">注&nbsp;&nbsp;&nbsp;&nbsp;册</a></div>
                 </div>
                 </form>
             </div>
@@ -62,4 +61,22 @@
     </div>
     {% include _base_js.html %}
 </body>
+<script>
+    $('.register-btn > a').click(function () {
+      var password = $('#password').val();
+      var confirm_psw = $('#confirm_psw').val();
+
+      if (password !== confirm_psw) {
+        return showError('密码错误', '两次输入的密码不一致。');
+      }
+      postApi('/user/register', {data: {
+        name: $('#name').val(),
+        email: $('#email').val(),
+        password: password,
+        phone: parseInt($('#phone').val() || 0)
+      }}, function () {
+        window.location = '{{next}}';
+      });
+    });
+</script>
 </html>

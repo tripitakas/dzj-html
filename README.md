@@ -25,7 +25,7 @@
 
 - [Bootstrap 3 中文文档](https://v3.bootcss.com)
 - [Tornado 官方文档中文版](https://tornado-zh.readthedocs.io/zh/latest/)
-- [Tornado 前端模板语法]()
+- [Tornado 前端模板语法][templates]
 - [Introduction to Tornado 中文版](http://demo.pythoner.com/itt2zh/)
 - [MongoDB 数据库开发](http://demo.pythoner.com/itt2zh/ch4.html)
 
