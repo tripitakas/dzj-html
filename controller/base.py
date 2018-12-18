@@ -65,7 +65,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                     body = str(r.body, encoding='utf-8').strip()
                 except UnicodeDecodeError:
                     body = str(r.body, encoding='gb18030').strip()
-                if re.match('\S*(<!DOCTYPE|<html)', body, re.I):
+                if re.match('(\s|\n)*(<!DOCTYPE|<html)', body, re.I | re.M):
                     if 'var next' in body:
                         body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.uri, body)
                         body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.uri, body)

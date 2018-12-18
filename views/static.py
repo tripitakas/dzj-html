@@ -26,5 +26,29 @@ def scan_files(html_path):
                 f.write(text)
 
 
+def scan_dup_html(html_path, base_file):
+    with open(path.join(html_path, base_file)) as f:
+        template = [re.sub(r'\s', '', t) for t in f.readlines() if 'static_url' in t]
+    for fn in glob(path.join(html_path, '*.html')):
+        if '_base_' in fn:
+            continue
+        with open(fn) as f:
+            lines = f.readlines()
+        found = False
+        n = len(lines) - 1
+        for i, t in enumerate(lines[::-1]):
+            s = re.sub(r'\s', '', t)
+            if s in template:
+                if not found:
+                    found = True
+                    lines[n - i] = re.sub(r'<.+$', '{% include ' + base_file + ' %}', t)
+                else:
+                    lines.remove(t)
+        if found:
+            with open(fn, 'w') as f:
+                print(fn)
+                f.writelines(lines)
+
+
 static_path = path.join(path.dirname(__file__), '..', 'static')
-scan_files(path.dirname(__file__))
+scan_dup_html(path.dirname(__file__), '_base_js.html')
