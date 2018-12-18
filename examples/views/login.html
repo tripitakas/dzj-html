@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  {% include _base_meta.html %}
+
+  <title>{{site['name']}} - 登录</title>
+
+  {% include _base_css.html %}
+</head>
+
+<body class="fixed-left">
+
+<div class="wrapper-page">
+  <div class="panel panel-color panel-primary panel-pages">
+    <div class="panel-heading bg-img">
+      <div class="bg-overlay"></div>
+      <h3 class="text-center m-t-10 text-white">&nbsp;</h3>
+    </div>
+
+    <div class="panel-body">
+      <h4 class="text-center">{{site['name']}}</h4>
+      <form class="form-horizontal m-t-20" action="/">
+
+        <div class="form-group ">
+          <div class="col-xs-12">
+            <input class="form-control input-lg" type="text" id="email" required="" placeholder="帐号">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-12">
+            <input class="form-control input-lg" type="password" id="password" required="" placeholder="密码">
+            <small id="psw_info" style="color: #AC2925;display: none;"></small>
+          </div>
+        </div>
+
+        <div class="form-group text-center m-t-40">
+          <div class="col-xs-12">
+            <button class="btn btn-block btn-lg btn-primary waves-effect waves-light" type="submit">登录</button>
+          </div>
+        </div>
+        <!--<div class="container">
+          <div class="row">-->
+        <div class="col-xs-7">
+          <a id="reset"><i class="fa fa-lock m-r-5"></i> 忘记密码?</a>
+        </div>
+        <div class="col-xs-5 text-right">
+          <a href="/register?next={{next}}">注册新用户</a>
+        </div>
+        <!--</div>
+      </div>-->
+
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<script>
+  var next = '{{next}}';
+</script>
+<script src="{{ static_url('view_js/login.js') }}"></script>
+</body>
+</html>

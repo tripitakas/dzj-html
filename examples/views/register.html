@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  {% include _base_meta.html %}
+
+  <title>{{site['name']}} - 注册</title>
+
+  {% include _base_css.html %}
+  <style>
+    .input-group > .input-group-addon {
+      min-width: 70px;
+    }
+  </style>
+</head>
+
+<body class="fixed-left">
+
+<div class="wrapper-page">
+  <div class="panel panel-color panel-primary panel-pages">
+    <div class="panel-heading bg-img">
+      <!--<div class="bg-overlay"></div>-->
+      <h3 class="text-center m-t-10 text-white"> &nbsp;</h3>
+    </div>
+
+    <div class="panel-body">
+      <h4 class="text-center">注册新用户</h4>
+      <form class="form-horizontal m-t-20" action="/">
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon" id="basic-addon-name">姓名</span>
+            <input class="form-control input-lg" type="text" id="name"
+                   required placeholder="请填写真实姓名，注册后不可改变">
+          </div>
+          <small id="name_info" style="color: #AC2925;display: none;"></small>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon" id="basic-addon-email">帐号</span>
+            <input class="form-control input-lg" type="email" id="email" required placeholder="邮箱地址">
+          </div>
+          <small id="email_info" style="color: #AC2925;display: none;"></small>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon" id="basic-addon-invite">邀请码</span>
+            <input class="form-control input-lg" type="text" id="school"
+                   required placeholder="所在学校的邀请码">
+          </div>
+          <small id="invite_info" style="color: #AC2925;display: none;">邀请码不对，请填写您所在学校的邀请码</small>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon" id="basic-addon-password">密码</span>
+            <input id="password" class="form-control input-lg" type="password" required
+                   placeholder="请输入包含数字和字母的6~18位密码">
+          </div>
+          <small id="psw_info" style="color: #AC2925;display: none;">请设置包含数字和字母的6~18位密码</small>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-addon" id="basic-addon-confirm">确认</span>
+            <input id="confirm_psw" class="form-control input-lg" type="password" required placeholder="请确认您的密码">
+          </div>
+          <small id="confirm_psw_info" style="color: #AC2925;display: none;">两次输入的密码不一致</small>
+        </div>
+
+        <div class="form-group text-center m-t-40">
+          <div class="col-xs-12">
+            <button class="btn btn-block btn-lg btn-primary waves-effect waves-light" type="submit">注册</button>
+          </div>
+        </div>
+
+        <div class="form-group m-t-30">
+          <div class="col-sm-12 text-center">
+            <a href="/login?next={{next}}">若已注册，请点此处直接登录</a>
+          </div>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<script>
+  var next = '{{next}}';
+</script>
+<script src="{{ static_url('view_js/register.js') }}"></script>
+</body>
+</html>
