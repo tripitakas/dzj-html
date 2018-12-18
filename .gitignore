@@ -1,0 +1,46 @@
+# OS junk files
+[Tt]humbs.db
+*.DS_Store
+*.bak*
+*.tmp
+*.log
+._*
+~$*
+
+# Node Files
+node_modules/
+bower_components/
+dist/
+package-lock.json
+
+# PyCharm
+.idea/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+*.egg-info/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache/
+.pytest*/
+nosetests.xml
+coverage.xml
+
+# PyBuilder
+target/
+
+# Project Files
+static/built/
