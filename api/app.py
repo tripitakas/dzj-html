@@ -16,7 +16,7 @@ from operator import itemgetter
 import re
 from tornado.log import access_log
 
-from api import home
+from api import home, user
 
 __version__ = '0.0.1.81218'
 APP = None
@@ -31,7 +31,7 @@ class Application(web.Application):
 
         self.version = __version__
         self.BASE_DIR = BASE_DIR
-        self.handlers = (front or [])
+        self.handlers = user.handlers + (front or [])
         handlers = [('/api', home.ApiTable)]
 
         for cls in self.handlers:
