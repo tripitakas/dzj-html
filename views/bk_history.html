@@ -4,8 +4,8 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>大藏经古籍数字化平台</title>
-		<link rel="stylesheet" href="css/base.css">
-		<link rel="stylesheet" type="text/css" href="css/dzj.css" />
+		<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ static_url('css/dzj.css') }}" />
 	</head>
 	<style>
 
@@ -25,8 +25,8 @@
 									<div class="wrapper">
 										<div class="collate-list">
 											<div class="count">
-												<span><img src="imgs/ongoing.png" alt=""><em>9</em><img src="imgs/piece1.png" alt=""></span>
-												<span><img src="imgs/done.png" alt=""><em>5</em><img src="imgs/piece2.png" alt=""></span>
+												<span><img src="{{ static_url('imgs/ongoing.png') }}" alt=""><em>9</em><img src="{{ static_url('imgs/piece1.png') }}" alt=""></span>
+												<span><img src="{{ static_url('imgs/done.png') }}" alt=""><em>5</em><img src="{{ static_url('imgs/piece2.png') }}" alt=""></span>
 											</div>
 											<div class="search fr">
 												<input type="text">
@@ -48,7 +48,7 @@
 												</thead>
 												<tbody>
 													<tr>
-														<td><img src="imgs/middle-red.png" alt=""></td>
+														<td><img src="{{ static_url('imgs/middle-red.png') }}" alt=""></td>
 														<td>赵城金藏</td>
 														<td>大方廣佛華嚴經</td>
 														<td>2</td>
@@ -59,7 +59,7 @@
 														<td><span>查看</span></td>
 													</tr>
 													<tr>
-														<td><img src="imgs/high.png" alt=""></td>
+														<td><img src="{{ static_url('imgs/high.png') }}" alt=""></td>
 														<td>赵城金藏</td>
 														<td>大方廣佛華嚴經</td>
 														<td>2</td>
@@ -70,7 +70,7 @@
 														<td><span>查看</span></td>
 													</tr>
 													<tr>
-														<td><img src="imgs/middle-gray.png" alt=""></td>
+														<td><img src="{{ static_url('imgs/middle-gray.png') }}" alt=""></td>
 														<td>赵城金藏</td>
 														<td>大方廣佛華嚴經</td>
 														<td>2</td>
@@ -84,7 +84,7 @@
 											</table>
 										</div>
 										<div class="pagers">
-											<img src="imgs/cloud1.png" alt="">
+											<img src="{{ static_url('imgs/cloud1.png') }}" alt="">
 											<span>当前&nbsp;<em>1/4</em>&nbsp;页，共&nbsp;<em>29</em>&nbsp;条</span>
 											<ul>
 												<li>首页</li>
@@ -93,7 +93,7 @@
 												<li>下一页</li>
 												<li>末页</li>
 											</ul>
-											<img src="imgs/cloud2.png" alt="">
+											<img src="{{ static_url('imgs/cloud2.png') }}" alt="">
 										</div>
 									</div>
 								</div>
@@ -103,10 +103,10 @@
 				</div>
 			</div>
 		</div>
-		<script src="./plugins/jquery.min.js"></script>
-		<script src="./plugins/jquery.slimscroll.min.js"></script>
-		<script src="js/angular.min.js"></script>
-		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+		<script src="{{ static_url('plugins/jquery.min.js') }}"></script>
+		<script src="{{ static_url('plugins/jquery.slimscroll.min.js') }}"></script>
+		<script src="{{ static_url('js/angular.min.js') }}"></script>
+		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 		<script>
 			$(function() {
 				$('.sidebar-collapse').slimScroll({

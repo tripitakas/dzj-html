@@ -4,10 +4,10 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>文字校对</title>
-		<link rel="shortcut icon" href="imgs/favicon.ico" type="image/x-icon">
-		<link rel="stylesheet" href="css/base.css">
-		<link rel="stylesheet" type="text/css" href="css/dzj.css" />
-		<link rel="stylesheet" type="text/css" href="css/labelformat.css">
+		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
+		<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+		<link rel="stylesheet" type="text/css" href="{{ static_url('css/dzj.css') }}" />
+		<link rel="stylesheet" type="text/css" href="{{ static_url('css/labelformat.css') }}">
 		<style>
 			/*内容*/
 			
@@ -53,7 +53,7 @@
 																		</div>
 																	</div>
 																	<div class="bd">
-																		<img src="imgs/examImg1.png" alt="">
+																		<img src="{{ static_url('imgs/examImg1.png') }}" alt="">
 																	</div>
 																</div>
 																<div class="right fr">
@@ -185,10 +185,10 @@
 				</div>
 			</div>
 		</div>
-		<script src="./plugins/jquery.min.js"></script>
-		<script src="./plugins/jquery.slimscroll.min.js"></script>
-		<script src="js/framework/angular.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+		<script src="{{ static_url('plugins/jquery.min.js') }}"></script>
+		<script src="{{ static_url('plugins/jquery.slimscroll.min.js') }}"></script>
+		<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
+		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 		<script>
 			$(function() {
 				$('.sidebar-collapse').slimScroll({

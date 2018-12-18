@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>大藏经古籍数字化平台</title>
-    <link rel="shortcut icon" href="imgs/favicon.ico" type="image/x-icon">
-    <link href="css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" type="text/css" href="css/dzj.css"/>
+    <link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
+    <link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/dzj.css') }}"/>
 </head>
 
 <body>
@@ -25,9 +25,9 @@
                              <p class="index">首页</p>
                              <div class="top clearfix">
                                <div class="left fl">
-                                 <p class="title"><img src="imgs/person.png" alt=""></p>
+                                 <p class="title"><img src="{{ static_url('imgs/person.png') }}" alt=""></p>
                                  <div class="person clearfix">
-                                   <img class="ava fl" src="imgs/ava.png" alt="">
+                                   <img class="ava fl" src="{{ static_url('imgs/ava.png') }}" alt="">
                                    <dl class="fl">
                                      <dt>欢迎, 7月校勘之星  某某</dt>
                                      <dd>访问情况：今日访问次数6次</dd>
@@ -50,7 +50,7 @@
                                  </ul>
                                </div>
                                <div class="right fl">
-                                 <p class="title"><img src="imgs/work.png" alt=""></p>
+                                 <p class="title"><img src="{{ static_url('imgs/work.png') }}" alt=""></p>
                                  <table style="border-collapse:separate; border-spacing:0px 10px;">
                                    <thead>
                                    <tr>
@@ -68,7 +68,7 @@
                                    <tbody>
                                    <tr>
                                      <td>格式标注</td>
-                                     <td><img src="imgs/middle-red.png" alt=""></td>
+                                     <td><img src="{{ static_url('imgs/middle-red.png') }}" alt=""></td>
                                      <td>赵城金藏</td>
                                      <td>大方廣佛華嚴經</td>
                                      <td>2</td>
@@ -79,7 +79,7 @@
                                    </tr>
                                    <tr>
                                      <td>格式标注</td>
-                                     <td><img src="imgs/middle-red.png" alt=""></td>
+                                     <td><img src="{{ static_url('imgs/middle-red.png') }}" alt=""></td>
                                      <td>赵城金藏</td>
                                      <td>大方廣佛華嚴經</td>
                                      <td>2</td>
@@ -90,7 +90,7 @@
                                    </tr>
                                    <tr>
                                      <td>格式标注</td>
-                                     <td><img src="imgs/middle-red.png" alt=""></td>
+                                     <td><img src="{{ static_url('imgs/middle-red.png') }}" alt=""></td>
                                      <td>赵城金藏</td>
                                      <td>大方廣佛華嚴經</td>
                                      <td>2</td>
@@ -101,7 +101,7 @@
                                    </tr>
                                    <tr>
                                      <td>格式标注</td>
-                                     <td><img src="imgs/middle-red.png" alt=""></td>
+                                     <td><img src="{{ static_url('imgs/middle-red.png') }}" alt=""></td>
                                      <td>赵城金藏</td>
                                      <td>大方廣佛華嚴經</td>
                                      <td>2</td>
@@ -116,8 +116,8 @@
                              </div>
                              <div class="bottom clearfix">
                                <div class="item">
-                                 <p><img src="imgs/star.png" alt=""></p>
-                                 <p class="tit"><img src="imgs/star-title.png" alt=""></p>
+                                 <p><img src="{{ static_url('imgs/star.png') }}" alt=""></p>
+                                 <p class="tit"><img src="{{ static_url('imgs/star-title.png') }}" alt=""></p>
                                  <ul>
                                    <li><span>张明明</span>7月完成文字校对100卷</li>
                                    <li><span>张明明</span>7月完成文字校对100卷</li>
@@ -130,8 +130,8 @@
                                  <p class="more"><a href="#">更多</a></p>
                                </div>
                                <div class="item">
-                                 <p class="other"><img src="imgs/other.png" alt=""></p>
-                                 <p class="tit"><img src="imgs/status.png" alt=""></p>
+                                 <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
+                                 <p class="tit"><img src="{{ static_url('imgs/status.png') }}" alt=""></p>
                                  <ul>
                                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
                                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
@@ -144,8 +144,8 @@
                                  <p class="more"><a href="#">更多</a></p>
                                </div>
                                <div class="item">
-                                 <p class="other"><img src="imgs/other.png" alt=""></p>
-                                 <p class="tit"><img src="imgs/news.png" alt=""></p>
+                                 <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
+                                 <p class="tit"><img src="{{ static_url('imgs/news.png') }}" alt=""></p>
                                  <ul>
                                    <li>小明完成了文字校对永乐北北藏校对</li>
                                    <li>小明完成了文字校对永乐北北藏校对</li>
@@ -158,8 +158,8 @@
                                  <p class="more"><a href="#">更多</a></p>
                                </div>
                                <div class="item">
-                                 <p class="other"><img src="imgs/other.png" alt=""></p>
-                                 <p class="tit"><img src="imgs/share.png" alt=""></p>
+                                 <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
+                                 <p class="tit"><img src="{{ static_url('imgs/share.png') }}" alt=""></p>
                                  <ul>
                                    <li>小明完成了文字校对永乐北北藏校对</li>
                                    <li>小明完成了文字校对永乐北北藏校对</li>
@@ -180,11 +180,11 @@
            </div>
        </div>
    </div>
-   <script src="./plugins/jquery.min.js"></script>
-   <script src="js/bootstrap.min.js"></script>
-   <script src="./plugins/jquery.slimscroll.min.js"></script>
-   <script src="js/framework/angular.min.js" type="text/javascript" charset="utf-8"></script>
-   <script src="js/ngapp.js" type="text/javascript" charset="utf-8"></script>
+   <script src="{{ static_url('plugins/jquery.min.js') }}"></script>
+   <script src="{{ static_url('js/bootstrap.min.js') }}"></script>
+   <script src="{{ static_url('plugins/jquery.slimscroll.min.js') }}"></script>
+   <script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
+   <script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>
