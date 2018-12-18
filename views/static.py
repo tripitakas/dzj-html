@@ -27,28 +27,42 @@ def scan_files(html_path):
 
 
 def scan_dup_html(html_path, base_file):
+    def sub_ref(line):
+        return re.sub(r'^.{{"|}}.+$|\s', '', line)
+
     with open(path.join(html_path, base_file)) as f:
-        template = [re.sub(r'\s', '', t) for t in f.readlines() if 'static_url' in t]
+        template = [sub_ref(t) for t in f.readlines() if 'static_url' in t]
+
+    last_replaced = False
+    ref = '{% include ' + base_file + ' %}'
+
     for fn in glob(path.join(html_path, '*.html')):
         if '_base_' in fn:
             continue
         with open(fn) as f:
-            lines = f.readlines()
-        found = False
+            text = f.read()
+            lines = text.split('\n')
+        found = ref in text
         n = len(lines) - 1
         for i, t in enumerate(lines[::-1]):
-            s = re.sub(r'\s', '', t)
+            s = sub_ref(t)
             if s in template:
+                last_replaced = True
                 if not found:
                     found = True
-                    lines[n - i] = re.sub(r'<.+$', '{% include ' + base_file + ' %}', t)
+                    lines[n - i] = re.sub(r'<.+$', ref, t)
                 else:
                     lines.remove(t)
+            elif last_replaced:
+                if '<!--' in t or len(t) < 2:
+                    lines.remove(t)
+                else:
+                    last_replaced = False
         if found:
             with open(fn, 'w') as f:
                 print(fn)
-                f.writelines(lines)
+                f.write('\n'.join(lines))
 
 
 static_path = path.join(path.dirname(__file__), '..', 'static')
-scan_dup_html(path.dirname(__file__), '_base_js.html')
+scan_dup_html(path.dirname(__file__), '_base_css.html')

@@ -1,33 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" ng-app="app">
-
 	<head>
 		<meta charset="UTF-8">
 		<title>任务管理-切分校对</title>
 		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
-		<!-- Base Css Files -->
-		<link href="{{ static_url('css/bootstrap.min.css') }}" rel="stylesheet" />
 
-		<!-- Font Icons -->
-		<link href="{{ static_url('assets/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" />
-		<link href="{{ static_url('assets/ionicon/css/ionicons.min.css') }}" rel="stylesheet" />
-		<link href="{{ static_url('css/material-design-iconic-font.min.css') }}" rel="stylesheet">
-
-		<!-- animate css -->
-		<link href="{{ static_url('css/animate.css') }}" rel="stylesheet" />
-
-		<!-- Waves-effect -->
-		<link href="{{ static_url('css/waves-effect.css') }}" rel="stylesheet">
-
-		<!-- sweet alerts -->
-		<link href="{{ static_url('assets/sweet-alert/sweet-alert.min.css') }}" rel="stylesheet">
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
 		<!-- Custom Files -->
 		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
-		<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
-		<link rel="stylesheet" type="text/css" href="{{ static_url('css/dzj.css') }}" />
+		{% include _base_css.html %}
 
 		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
