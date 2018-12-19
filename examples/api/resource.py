@@ -8,7 +8,7 @@
 from tornado.web import authenticated
 from tornado.escape import json_decode
 from api.base import BaseHandler, convert_bson, db_errors
-from api import errors
+from controller.public import errors
 from api.resource import base_res
 from bson import ObjectId
 from pymysql.cursors import DictCursor

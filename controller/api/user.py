@@ -10,8 +10,8 @@ from tornado.escape import json_encode
 from pymysql.constants import ER
 from pymysql.err import MySQLError
 from pymysql.cursors import DictCursor
-from api.base import BaseHandler, fetch_authority
-from api import errors
+from controller.public.base import BaseHandler, fetch_authority
+from controller.public import errors
 import model.user as u
 import re
 import logging
@@ -28,7 +28,7 @@ def trim_user(r):
     return r
 
 
-class LoginHandler(BaseHandler):
+class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
     def post(self):
@@ -87,7 +87,7 @@ class LoginHandler(BaseHandler):
         self.send_response(user, trim=trim_user)
 
 
-class RegisterHandler(BaseHandler):
+class RegisterApi(BaseHandler):
     URL = '/api/user/register'
 
     def check_info(self, user):
@@ -152,7 +152,7 @@ class RegisterHandler(BaseHandler):
             self.send_response(user, trim=trim_user)
 
 
-class ChangeUserHandler(BaseHandler):
+class ChangeUserApi(BaseHandler):
     URL = '/api/user/change'
 
     def check(self):
@@ -233,7 +233,7 @@ class ChangeUserHandler(BaseHandler):
         return c2
 
 
-class LogoutHandler(BaseHandler):
+class LogoutApi(BaseHandler):
     URL = '/api/user/logout'
 
     def get(self):
@@ -273,7 +273,7 @@ class LogoutHandler(BaseHandler):
         self.send_response()
 
 
-class GetUsersHandler(BaseHandler):
+class GetUsersApi(BaseHandler):
     URL = '/api/user/list'
 
     def get(self):
@@ -310,7 +310,7 @@ class GetUsersHandler(BaseHandler):
         self.send_response(response)
 
 
-class GetOptionsHandler(BaseHandler):
+class GetOptionsApi(BaseHandler):
     URL = r'/api/options/(\w+)'
 
     def get(self, kind):
@@ -321,7 +321,7 @@ class GetOptionsHandler(BaseHandler):
         self.send_response(ret)
 
 
-class ResetPasswordHandler(BaseHandler):
+class ResetPasswordApi(BaseHandler):
     URL = r'/api/pwd/reset/(\w+)'
 
     def post(self, rid):
@@ -353,7 +353,7 @@ class ResetPasswordHandler(BaseHandler):
         self.send_response({'password': pwd})
 
 
-class ChangePasswordHandler(BaseHandler):
+class ChangePasswordApi(BaseHandler):
     URL = '/api/pwd/change'
 
     def post(self):

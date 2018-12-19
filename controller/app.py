@@ -16,7 +16,9 @@ from operator import itemgetter
 import re
 from tornado.log import access_log
 
-from api import home, user
+from controller import api, views
+from controller.views import invalid
+
 
 __version__ = '0.0.1.81218'
 APP = None
@@ -25,14 +27,14 @@ define('debug', default=True, help='the debug mode', type=bool)
 
 
 class Application(web.Application):
-    def __init__(self, front=None, **settings):
+    def __init__(self, **settings):
         self.db = self.config = self.site = None
         self.load_config()
 
         self.version = __version__
         self.BASE_DIR = BASE_DIR
-        self.handlers = user.handlers + (front or [])
-        handlers = [('/api', home.ApiTable)]
+        self.handlers = api.handlers + views.handlers
+        handlers = [('/api', invalid.ApiTable)]
 
         for cls in self.handlers:
             if isinstance(cls.URL, list):
@@ -47,6 +49,7 @@ class Application(web.Application):
                                  template_path=path.join(BASE_DIR, 'views'),
                                  cookie_secret=self.config['cookie_secret'],
                                  xsrf_cookies=True,
+                                 default_handler_class=invalid.InvalidPageHandler,
                                  log_function=self.log_function,
                                  **settings)
 

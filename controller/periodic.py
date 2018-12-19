@@ -25,8 +25,3 @@ def periodic_task(app):
                 conn.close()
         except Exception as e:
             logging.error('periodic_db_task: %s %s' % (e.__class__.__name__, str(e)))
-
-        try:
-            app.remove_idle_channels()
-        except Exception as e:
-            logging.error('periodic_task: %s %s' % (e.__class__.__name__, str(e)))

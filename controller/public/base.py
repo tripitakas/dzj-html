@@ -20,7 +20,7 @@ from model.user import User, authority_map, ACCESS_ALL
 import re
 import logging
 from datetime import datetime
-from api import errors
+from controller.public import errors
 import traceback
 
 
@@ -131,6 +131,16 @@ class BaseHandler(CorsMixin, RequestHandler):
                 raise Warning(1, '需要重新登录或注册')
         self.authority = self.current_user.authority
         return True
+
+    def render(self, template_name, **kwargs):
+        kwargs['user'] = self.current_user
+        kwargs['authority'] = self.current_user.authority if self.current_user else ''
+        kwargs['uri'] = self.request.uri
+        kwargs['protocol'] = self.request.protocol
+        kwargs['debug'] = self.application.settings['debug']
+        kwargs['site'] = dict(self.application.site)
+
+        super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
 
     def get_body_obj(self, param_type):
         """

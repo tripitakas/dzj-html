@@ -2,8 +2,7 @@
 
 ## 前端改版
 
-- 参考[前端模板语法][templates]修改网页代码，主要使用`{% if/for %}`、`{{ py_expr }}`，
-  例如 `{{ user.get('name') }}` 得到用户昵称。
+- 参考[前端模板语法][templates]修改网页代码，主要使用`{% if/for %}`、`{{ py_expr }}`。
   
   常用变量见 `controller/base.py render()` 和相应的响应Handler中的参数。
 
