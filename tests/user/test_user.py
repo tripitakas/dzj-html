@@ -23,9 +23,12 @@ class TestUserApi(APITestCase):
         response = self.fetch('/api/user/login', body={'data': dict(email='test')})
         self.assert_code(e.need_password, response)
 
+    def _add_admin_user(self):
+        return self.fetch('/api/user/register', body={'data': dict(email=admin[0], name='管理', password=admin[1])})
+
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
-        r = self.fetch('/api/user/register', body={'data': dict(email=admin[0], name='管理', password=admin[1])})
+        r = self._add_admin_user()
         r = self.parse_response(r)
         if 'error' not in r:
             self.assertIn('超级管理员', r['authority'])
@@ -39,6 +42,7 @@ class TestUserApi(APITestCase):
         """ 测试为新用户设置权限 """
 
         # 注册一个新用户
+        self._add_admin_user()
         self.fetch('/api/user/register', body={'data': dict(email='t1@test.com', name='测试', password='t12345')})
         r = self.fetch('/api/user/login', body={'data': dict(email='t1@test.com', password='t12345')})
         user = self.parse_response(r)

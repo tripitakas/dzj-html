@@ -1,5 +1,7 @@
 # 大藏经古籍数字化平台
 
+[![Build Status](https://travis-ci.org/tripitakas/dzj-html.svg?branch=tornado)](https://travis-ci.org/tripitakas/dzj-html)
+
 ## 前端改版
 
 - 参考[前端模板语法][templates]修改网页代码，主要使用`{% if/for %}`、`{{ py_expr }}`。
@@ -26,9 +28,7 @@
 
 ```
 pip install -r tests/requirements.txt
-mysql -uroot
-create database tripitaka_test;
-quit
+mysql -u root -e 'create database if not exists tripitaka_test;'
 mysql -u root tripitaka_test < model/init.sql;
 python run_tests.py 或选中测试用例文件调试
 ```

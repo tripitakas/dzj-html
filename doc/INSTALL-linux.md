@@ -33,10 +33,8 @@ sudo yum -y install mariadb mariadb-server
 sudo systemctl enable mariadb
 sudo systemctl start mariadb
 mysql_secure_installation
-mysql -uroot -p
-create database tripitaka;
-quit
-mysql -u root -p tripitaka < model/init.sql;
+mysql -u root -e 'create database tripitaka;'
+mysql -u root tripitaka < model/init.sql;
 ```
 
 将输入的 root 密码记到 `app.yml` 的 `database.password` 中。

@@ -16,9 +16,7 @@
    ```
    brew install mariadb
    mysql.server start
-   mysql -uroot
-   create database tripitaka;
-   quit
+   mysql -u root -e 'create database tripitaka;'
    mysql -u root tripitaka < model/init.sql;
    ```
    如果数据库的用户和密码不是默认的root空密码，就修改 `app.yml` 中的数据库配置。
