@@ -2,8 +2,8 @@ cookie_secret: '3uHFa8fuSiqeWNO6shr8TzkiRTdluEkBpxaeZ26J0Og='
 database:
   host: 127.0.0.1
   port: 3306
-  dbname: tripitaka
-  dbuser: root
+  name: tripitaka
+  user: root
   password:
 
 site:

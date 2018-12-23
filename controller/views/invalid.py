@@ -5,9 +5,9 @@
 @time: 2018/6/23
 """
 
-from controller.public.base import BaseHandler
-from os import path
 from operator import itemgetter
+from os import path
+from controller.base import BaseHandler
 
 
 class InvalidPageHandler(BaseHandler):
@@ -21,21 +21,21 @@ class InvalidPageHandler(BaseHandler):
 
 
 class ApiTable(BaseHandler):
-    """ 显示网站所有API和路由的响应类 """
+    URL = '/api'
 
     def get(self):
+        """ 显示网站所有API和路由的响应类 """
         handlers = []
         for cls in self.application.handlers:
-            p = cls(self.application, self.request)
-            for method in p._get_methods().split(','):
+            handler = cls(self.application, self.request)
+            for method in handler._get_methods().split(','):
                 method = method.strip()
-                if 'OPTIONS' not in method:
+                if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
                     if isinstance(cls.URL, list):
-                        for i, s in enumerate(cls.URL):
-                            handlers.append((s, method, func.__doc__))
+                        for i, url in enumerate(cls.URL):
+                            handlers.append((url, method, func.__doc__))
                     else:
                         handlers.append((cls.URL, method, func.__doc__))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
-        self.application.load_config()  # reload configure

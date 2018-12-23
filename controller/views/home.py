@@ -5,8 +5,8 @@
 @time: 2018/6/23
 """
 
-from controller.public.base import BaseHandler
 from tornado.web import authenticated
+from controller.base import BaseHandler
 
 
 class HomeHandler(BaseHandler):

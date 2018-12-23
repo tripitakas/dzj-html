@@ -30,7 +30,7 @@ CREATE TABLE `t_user` (
   `id` char(16) NOT NULL COMMENT '用户ID',
   `name` varchar(20) NOT NULL COMMENT '姓名',
   `email` varchar(80) NOT NULL COMMENT '邮箱',
-  `phone` int(11) unsigned NOT NULL COMMENT '手机号',
+  `phone` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '手机号',
   `password` char(16) NOT NULL COMMENT '密码MD5',
   `create_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '注册时间',
   `last_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '访问时间',

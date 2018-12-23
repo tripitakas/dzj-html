@@ -2,6 +2,8 @@
 
 1. 安装 Python 3.6+ 和 pip3
 
+   本平台也可在 Python 2.7 下运行。
+
 2. 安装 Python 依赖包（选择其一）：
 
    ```
@@ -16,7 +18,8 @@
    mysql.server start
    mysql -uroot
    create database tripitaka;
-   mysql -u root -p tripitaka < model/init.sql;
+   quit
+   mysql -u root tripitaka < model/init.sql;
    ```
    如果数据库的用户和密码不是默认的root空密码，就修改 `app.yml` 中的数据库配置。
    每次重启操作系统后运行 `mysql.server start` 启动数据库，`mysql.server stop` 可关闭数据库。
@@ -42,5 +45,3 @@
 sudo lsof -i:8000
 sudo kill -9 PID号
 ```
-
-[mongodb-down]: https://www.mongodb.com/download-center/community

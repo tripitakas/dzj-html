@@ -4,10 +4,15 @@
 @author: Zhang Yungui
 @time: 2018/10/23
 """
+import sys
+
+if sys.version_info < (3, 0):
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
 
 class User(object):
-    id = int
+    id = str
     name = str
     email = str
     password = str

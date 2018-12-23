@@ -6,22 +6,24 @@
 @time: 2018/6/23
 """
 
+import logging
+import re
+import traceback
+from datetime import datetime
+
+from bson.errors import BSONError
+from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
+from pymongo.errors import PyMongoError
+from pymysql.constants import ER
+from pymysql.cursors import DictCursor
+from pymysql.err import MySQLError, Warning, ProgrammingError
+from tornado.escape import json_decode, json_encode, basestring_type
+from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-from tornado.options import options
-from tornado.escape import json_decode, json_encode
-from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
-from pymysql.cursors import DictCursor
-from pymysql.constants import ER
-from pymysql.err import MySQLError, Warning
-from pymongo.errors import PyMongoError
-from bson.errors import BSONError
+
+from controller import errors
 from model.user import User, authority_map, ACCESS_ALL
-import re
-import logging
-from datetime import datetime
-from controller.public import errors
-import traceback
 
 
 def my_framer():
@@ -33,11 +35,12 @@ def my_framer():
             f = f.f_back
     return f0
 
+
 old_framer = logging.currentframe
 logging.currentframe = my_framer
 
-mongo_errors = (PyMongoError, BSONError)
-db_errors = (PyMongoError, BSONError, MySQLError)
+MongoError = (PyMongoError, BSONError)
+DbError = (PyMongoError, BSONError, MySQLError)
 
 
 def fetch_authority(user, record):
@@ -74,6 +77,15 @@ def convert2obj(cls, json_obj):
         if f not in obj.__dict__:
             obj.__dict__[f] = None
     return obj
+
+
+def execute(cursor, query, args=None):
+    query = cursor.mogrify(query, args)
+    try:
+        return cursor.execute(query)
+    except ProgrammingError:
+        logging.warning(query)
+        raise
 
 
 class BaseHandler(CorsMixin, RequestHandler):
@@ -117,7 +129,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         fields = ['email'] + list(authority_map.keys())
         sql = 'SELECT {0} FROM t_user a,t_authority b WHERE a.id=b.user_id and a.id=%s'.format(','.join(fields))
         with conn.cursor(DictCursor) as cursor:
-            cursor.execute(sql, (self.current_user.id,))
+            execute(cursor, sql, (self.current_user.id,))
             old_user = self.fetch2obj(cursor.fetchone(), User, fetch_authority)
             if old_user:
                 user = self.current_user
@@ -135,12 +147,25 @@ class BaseHandler(CorsMixin, RequestHandler):
     def render(self, template_name, **kwargs):
         kwargs['user'] = self.current_user
         kwargs['authority'] = self.current_user.authority if self.current_user else ''
+        kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
         kwargs['uri'] = self.request.uri
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
-
         super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+
+    @staticmethod
+    def _trim_obj(obj, param_type):
+        if param_type not in [dict, str, int, float]:
+            fields = [f for f in param_type.__dict__.keys() if f[0] != '_']
+            for f in list(obj.__dict__):
+                if f not in fields and '__' not in f:
+                    del obj.__dict__[f]
+            for f in fields:
+                if f not in obj.__dict__:
+                    obj.__dict__[f] = None
+                elif isinstance(obj.__dict__[f], str):
+                    obj.__dict__[f] = obj.__dict__[f].strip()
 
     def get_body_obj(self, param_type):
         """
@@ -157,19 +182,10 @@ class BaseHandler(CorsMixin, RequestHandler):
                         text.pop(k)
             return convert2obj(param_type, text)
 
-        def trim_obj(obj):
-            if param_type not in [dict, str, int, float]:
-                fields = [f for f in param_type.__dict__.keys() if f[0] != '_']
-                for f in list(obj.__dict__):
-                    if f not in fields and '__' not in f:
-                        del obj.__dict__[f]
-                for f in fields:
-                    if f not in obj.__dict__:
-                        obj.__dict__[f] = None
-                    elif isinstance(obj.__dict__[f], str):
-                        obj.__dict__[f] = obj.__dict__[f].strip()
-
-        body = self.get_body_argument('data')
+        if 'data' not in self.request.body_arguments:
+            body = json_decode(self.request.body)['data']
+        else:
+            body = self.get_body_argument('data')
         if param_type == str:
             param_obj = body
         elif param_type == dict:
@@ -187,9 +203,9 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return
 
         if type(param_obj) == list:
-            [trim_obj(p) for p in param_obj]
+            [self._trim_obj(p, param_type) for p in param_obj]
         else:
-            trim_obj(param_obj)
+            self._trim_obj(param_obj, param_type)
         return param_obj
 
     @staticmethod
@@ -253,19 +269,19 @@ class BaseHandler(CorsMixin, RequestHandler):
     def send_db_error(self, e):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
         reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
-        if not code and '[Errno' in reason and isinstance(e, mongo_errors):
+        if not code and '[Errno' in reason and isinstance(e, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             return self.send_error(errors.mongo_error[0] + code,
                                    reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
+                                       errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
         if code:
             logging.error(e.args[1])
         if 'InvalidId' == e.__class__.__name__:
             code, reason = 1, errors.no_object[1]
         if code not in [2003, ER.ACCESS_DENIED_ERROR, 1]:
             traceback.print_exc()
-        default_error = errors.mongo_error if isinstance(e, mongo_errors) else errors.db_error
+        default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
         self.send_error(default_error[0] + code, for_yield=True,
                         reason='无法连接数据库' if code in [2003, ER.ACCESS_DENIED_ERROR] else '%s(%s)%s' % (
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
@@ -278,9 +294,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 字段名与值的字典对象
         :return: SQL语句, 额外的字符串参数（在 execute 中使用）
         """
-        extra = [v for v in kwargs.values() if v != str and isinstance(v, str)]
+        extra = [v for v in kwargs.values() if v != str and isinstance(v, basestring_type)]
         values = ['INET_ATON(%s)' if k == 'ip' else
-                  '%s' if v != str and isinstance(v, str) else
+                  '%s' if v != str and isinstance(v, basestring_type) else
                   'null' if v is None or v == str else str(v) for k, v in kwargs.items()]
         return 'INSERT INTO {0}({1}) VALUES({2})'.format(table, ','.join(kwargs.keys()), ','.join(values)), extra
 
@@ -330,10 +346,10 @@ class BaseHandler(CorsMixin, RequestHandler):
                                                create_time=errors.get_date_time(),
                                                ip=self.get_ip()))
         if cursor:
-            return cursor.execute(*sql)
+            return execute(cursor, *sql)
         with self.connection as conn:
             with conn.cursor() as cursor:
-                return cursor.execute(*sql)
+                return execute(cursor, *sql)
 
 
 class auto_commit(object):

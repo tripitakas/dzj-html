@@ -14,11 +14,26 @@
 
 ## 安装
 
-本平台需要 Python 3.6+、MySQL 5.5+/MariaDB 10.3+、MongoDB，请参考下面的说明安装和部署。
+本平台需要 Python 3.6+/2.7、MySQL 5.5+/MariaDB 10.3+、MongoDB，请参考下面的说明安装和部署。
 
-- [INSTALL-linux.md](INSTALL-linux.md)
-- [INSTALL-mac.md](INSTALL-mac.md)
-- [INSTALL-win.md](INSTALL-win.md)
+- [INSTALL-linux.md](doc/INSTALL-linux.md)
+- [INSTALL-mac.md](doc/INSTALL-mac.md)
+- [INSTALL-win.md](doc/INSTALL-win.md)
+
+## 测试
+
+本项目可采用测试驱动开发(TDD)模式实现后端接口：
+
+```
+pip install -r tests/requirements.txt
+mysql -uroot
+create database tripitaka_test;
+quit
+mysql -u root tripitaka_test < model/init.sql;
+python run_tests.py 或选中测试用例文件调试
+```
+
+在 `tests` 下编写测试用例，然后在 `controller.views` 或 `controller.api` 中实现后端接口。
 
 ## 参考资料
 

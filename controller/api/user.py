@@ -5,21 +5,22 @@
 @time: 2018/10/23
 """
 
-from tornado.util import unicode_type
-from tornado.escape import json_encode
-from pymysql.constants import ER
-from pymysql.err import MySQLError
-from pymysql.cursors import DictCursor
-from controller.public.base import BaseHandler, fetch_authority
-from controller.public import errors
-import model.user as u
-import re
 import logging
 import random
+import re
 
+from pymysql.constants import ER
+from pymysql.cursors import DictCursor
+from tornado.escape import json_encode
+from tornado.util import unicode_type
+
+import model.user as u
+from controller import errors
+from controller.base import BaseHandler, DbError, execute, fetch_authority
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
+re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
 base_fields = ['id', 'name', 'email', 'phone', 'create_time']
 
 
@@ -33,8 +34,8 @@ class LoginApi(BaseHandler):
 
     def post(self):
         """ 登录 """
-        user = self.get_body_obj(u.User) or {}
-        email = (user.email or '').lower()
+        user = self.get_body_obj(u.User)
+        email = user.email
         password = user.password
 
         if not email:
@@ -51,20 +52,21 @@ class LoginApi(BaseHandler):
                    'TIMESTAMPDIFF(SECOND,create_time,NOW()) < 1800 and context LIKE "% {0}"'.format(email)
         try:
             with self.connection as conn:
+                # 检查是否多次登录失败
                 with conn.cursor() as cursor:
-                    cursor.execute(sql_fail)
+                    execute(cursor, sql_fail)
                     times = cursor.fetchone()[0]
                     if times >= 20:
                         return self.send_error(errors.unauthorized, reason='请半小时后重试，或者申请重置密码')
-                    r = times >= 5 and cursor.execute(sql_fail.replace('< 1800', '< 60'))
+                    r = times >= 5 and execute(cursor, sql_fail.replace('< 1800', '< 60'))
                     times = r and cursor.fetchone()[0] or 0
                     if times >= 5:
                         return self.send_error(errors.unauthorized, reason='请一分钟后重试')
 
+                # 尝试登录，成功后清除登录失败记录，设置为当前用户
                 with conn.cursor(DictCursor) as cursor:
-                    cursor.execute(sql, (email,))
-                    record = cursor.fetchone()
-                    user = self.fetch2obj(record, u.User, fetch_authority)
+                    execute(cursor, sql, (email,))
+                    user = self.fetch2obj(cursor.fetchone(), u.User, fetch_authority)
                     if not user:
                         self.add_op_log(cursor, 'login-no', context='账号不存在: ' + email)
                         return self.send_error(errors.no_user, reason=email)
@@ -73,8 +75,9 @@ class LoginApi(BaseHandler):
                         return self.send_error(errors.invalid_password)
                     self.current_user = user
                     self.add_op_log(cursor, 'login-ok', context=email + ': ' + user.name)
+                    ResetPasswordApi.remove_login_fails(cursor, email)
                     user.login_md5 = errors.gen_id(user.authority)
-        except MySQLError as e:
+        except DbError as e:
             return self.send_db_error(e)
 
         user.__dict__.pop('old_password', 0)
@@ -103,8 +106,7 @@ class RegisterApi(BaseHandler):
         user.email = user.email.lower()
         if not re_email.match(user.email):
             return self.send_error(errors.invalid_email)
-        if not re.match(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$', user.password) or\
-                re.match(r'^(\d+|[A-Z]+|[a-z]+)$', user.password):
+        if not re_password.match(user.password) or re.match(r'^(\d+|[A-Z]+|[a-z]+)$', user.password):
             return self.send_error(errors.invalid_psw_format)
 
         if not re_name.match(unicode_type(user.name)):
@@ -122,22 +124,22 @@ class RegisterApi(BaseHandler):
         if self.check_info(user):
             try:
                 with self.connection as conn:
+                    # 如果是第一个用户则设置为管理员
                     with conn.cursor() as cursor:
-                        cursor.execute('SELECT count(*) FROM t_user')
+                        execute(cursor, 'SELECT count(*) FROM t_user')
                         mgr = cursor.fetchone()[0] == 0
 
+                    # 创建用户，分配权限，设置为当前用户
                     sql = self.insert_sql('t_user', dict(
-                        id=user.id, name=user.name, email=user.email, phone=user.phone or 0,
+                        id=user.id, name=user.name, email=user.email,
                         password=errors.gen_id(user.password), create_time=user.create_time))
                     with conn.cursor() as cursor:
-                        cursor.execute(*sql)
+                        execute(cursor, *sql)
                         user.authority = u.ACCESS_MANAGER if mgr else ''
-                        cursor.execute(*self.insert_sql('t_authority', dict(
-                            user_id=user.id, manager=int(mgr))))
+                        execute(cursor, *self.insert_sql('t_authority', dict(user_id=user.id, manager=int(mgr))))
                         self.current_user = user
-                        self.add_op_log(cursor, 'register',
-                                        context=user.email + ': ' + user.name)
-            except MySQLError as e:
+                        self.add_op_log(cursor, 'register', context=user.email + ': ' + user.name)
+            except DbError as e:
                 if e.args[0] == ER.DUP_ENTRY:
                     return self.send_error(errors.user_exists, reason=user.email)
                 return self.send_db_error(e)
@@ -146,6 +148,7 @@ class RegisterApi(BaseHandler):
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
+            self.authority = user.authority
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
 
@@ -184,7 +187,7 @@ class ChangeUserApi(BaseHandler):
                     fields = base_fields + list(u.authority_map.keys())
                     sql = 'SELECT {0} FROM t_user a,t_authority b WHERE user_id=%s and a.id=b.user_id'.format(
                         ','.join(fields))
-                    cursor.execute(sql, (info.id,))
+                    execute(cursor, sql, (info.id,))
                     old_user = self.fetch2obj(cursor.fetchone(), u.User, fetch_authority)
                     if not old_user:
                         return self.send_error(errors.no_user, reason=info.email)
@@ -197,7 +200,7 @@ class ChangeUserApi(BaseHandler):
                         return self.send_error(errors.no_change)
                     self.send_response()
 
-            except MySQLError as e:
+            except DbError as e:
                 return self.send_db_error(e)
 
     def change_info(self, conn, info, old_user, old_auth):
@@ -206,12 +209,13 @@ class ChangeUserApi(BaseHandler):
         if sets:
             if self.current_user.id != info.id and u.ACCESS_MANAGER not in self.authority:
                 return self.send_error(errors.unauthorized)
+
             if info.name and not re_name.match(unicode_type(info.name)):
                 return self.send_error(errors.invalid_name, reason=info.name) or -1
 
             with conn.cursor() as cursor:
                 sql = 'UPDATE t_user SET {0} WHERE email=%s'.format(','.join(sets))
-                c1 = cursor.execute(sql, (info.email,))
+                c1 = execute(cursor, sql, (info.email,))
                 if c1:
                     self.add_op_log(cursor, 'change_user', context=','.join([info.email] + sets))
             sets = str(sets)
@@ -227,7 +231,7 @@ class ChangeUserApi(BaseHandler):
                 sets = ['%s=%d' % (f, hz in info.authority) for f, hz in u.authority_map.items()
                         if (hz in info.authority) != (hz in old_auth)]
                 sql = 'UPDATE t_authority SET {0} WHERE user_id=%s'.format(','.join(sets))
-                c2 = cursor.execute(sql, (info.id,)) + 1
+                c2 = execute(cursor, sql, (info.id,)) + 1
                 if c2 > 1:
                     self.add_op_log(cursor, 'change_user', context=','.join([info.email] + sets))
         return c2
@@ -262,11 +266,11 @@ class LogoutApi(BaseHandler):
                     return self.send_error(errors.unauthorized, reason=u.ACCESS_MANAGER)
 
                 with conn.cursor() as cursor:
-                    r = cursor.execute('DELETE FROM t_user WHERE name=%s and email=%s', (info.name, info.email))
+                    r = execute(cursor, 'DELETE FROM t_user WHERE name=%s and email=%s', (info.name, info.email))
                     if not r:
                         return self.send_error(errors.no_user)
                     self.add_op_log(cursor, 'remove_user', context=info.email + ': ' + info.name)
-        except MySQLError as e:
+        except DbError as e:
             return self.send_db_error(e)
 
         logging.info('remove user %s %s' % (info.name, info.email))
@@ -291,17 +295,18 @@ class GetUsersApi(BaseHandler):
                 error = None
                 self.update_login(conn)
                 if u.ACCESS_MANAGER not in self.authority:
-                    error = '您不能做管理操作'
-                    sql += ' and id="{0}"'.format(self.current_user.id)
+                    error = '您还无权限做管理操作'
+                if u.ACCESS_MANAGER not in self.authority:
+                    sql += ' and user_id="{0}"'.format(self.current_user.id)
 
                 with conn.cursor(DictCursor) as cursor:
-                    cursor.execute(sql)
+                    execute(cursor, sql)
                     users = [self.fetch2obj(r, u.User, fetch_authority) for r in cursor.fetchall()]
                     users.sort(key=lambda a: a.name)
                     users = self.convert_for_send(users, trim=trim_user)
                     self.add_op_log(cursor, 'get_users', context='取到 %d 个用户' % len(users))
 
-        except MySQLError as e:
+        except DbError as e:
             return self.send_db_error(e)
 
         response = dict(items=users, authority=self.authority, time=errors.get_date_time())
@@ -338,19 +343,23 @@ class ResetPasswordApi(BaseHandler):
                     return self.send_error(errors.unauthorized)
 
                 with conn.cursor() as cursor:
-                    r = cursor.execute('UPDATE t_user SET password=%s WHERE id=%s', (errors.gen_id(pwd), rid))
+                    r = execute(cursor, 'UPDATE t_user SET password=%s WHERE id=%s', (errors.gen_id(pwd), rid))
                     if not r:
                         return self.send_error(errors.no_user)
 
-                    cursor.execute('SELECT email,name FROM t_user WHERE id=%s', (rid,))
+                    execute(cursor, 'SELECT email,name FROM t_user WHERE id=%s', (rid,))
                     user = cursor.fetchone()
-                    cursor.execute('DELETE FROM t_op_log WHERE type="login-fail" and '
-                                   'TIMESTAMPDIFF(SECOND,create_time,NOW()) < 3600 and '
-                                   'context LIKE "% {0}"'.format(user[0]))
+                    self.remove_login_fails(cursor, user[0])
                     self.add_op_log(cursor, 'reset_pwd', context=': '.join(user))
-        except MySQLError as e:
+        except DbError as e:
             return self.send_db_error(e)
         self.send_response({'password': pwd})
+
+    @staticmethod
+    def remove_login_fails(cursor, email):
+        execute(cursor, 'DELETE FROM t_op_log WHERE type="login-fail" and '
+                        'TIMESTAMPDIFF(SECOND,create_time,NOW()) < 3600 and '
+                        'context LIKE "% {0}"'.format(email))
 
 
 class ChangePasswordApi(BaseHandler):
@@ -368,8 +377,7 @@ class ChangePasswordApi(BaseHandler):
             return self.send_error(errors.need_password)
         if not info.old_password:
             return self.send_error(errors.incomplete, reason="缺原密码")
-        if not re.match(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$', info.password) or\
-                re.match(r'^(\d+|[A-Z]+|[a-z]+)$', info.password):
+        if not re_password.match(info.password) or re.match(r'^(\d+|[A-Z]+|[a-z]+)$', info.password):
             return self.send_error(errors.invalid_psw_format)
         if info.password == info.old_password:
             return self.send_response()
@@ -379,13 +387,13 @@ class ChangePasswordApi(BaseHandler):
                 self.update_login(conn)
                 with conn.cursor() as cursor:
                     sql = 'UPDATE t_user SET password=%s WHERE id=%s and password=%s'
-                    r = cursor.execute(sql, (errors.gen_id(info.password), self.current_user.id,
-                                             errors.gen_id(info.old_password)))
+                    r = execute(cursor, sql, (errors.gen_id(info.password), self.current_user.id,
+                                              errors.gen_id(info.old_password)))
                     if not r:
-                        cursor.execute('SELECT name FROM t_user WHERE id=%s', (self.current_user.id,))
+                        execute(cursor, 'SELECT name FROM t_user WHERE id=%s', (self.current_user.id,))
                         return self.send_error(errors.invalid_password if cursor.fetchone() else errors.no_user)
                     self.add_op_log(cursor, 'change_pwd')
-        except MySQLError as e:
+        except DbError as e:
             return self.send_db_error(e)
 
         logging.info('change password %s %s' % (info.id, info.name))

@@ -16,6 +16,8 @@ sudo ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
 
 如果提示 `wget` 工具不存在，可换为 `curl -O ` 或安装 wget。
 
+本平台也可在 Python 2.7 下运行。
+
 ### 2. 安装 Python 依赖包
 
 ```
@@ -64,15 +66,9 @@ mongod -logpath log/mongo.log -logappend -fork
 
 - 如果服务器不需要支持 HTTPS，则将 `start.sh` 中的 `--port` 处和 `app.yml` 的`port` 处改为实际的端口号。
 
-- 在 `app.yml` 中指定域名 `domain`。
+- 在 `app.yml` 中的 `domain` 指定服务器的域名。
 
 - 然后启动网站服务：
   ```
-  mkdir log
   sh start.sh
-  ```
-  如果提示端口被占用，可以按如下结束端口上的进程：
-  ```sh
-  sudo lsof -i:8000
-  sudo kill -9 PID号
   ```

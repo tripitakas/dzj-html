@@ -5,6 +5,8 @@
 可在 [官网](https://www.python.org/downloads/) 下载 Python 3.6或3.7 的安装程序，
 安装时勾选 “添加Python到PATH” 选项以便可在命令行运行Python。
 
+本平台也可在 Python 2.7 下运行。
+
 ### 2. 安装 Python 依赖包
 
 ```
