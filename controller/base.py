@@ -145,10 +145,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         return True
 
     def render(self, template_name, **kwargs):
-        kwargs['user'] = self.current_user
         kwargs['authority'] = self.current_user.authority if self.current_user else ''
         kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
-        kwargs['uri'] = self.request.uri
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)

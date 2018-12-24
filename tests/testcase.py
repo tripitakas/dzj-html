@@ -7,6 +7,7 @@
 from tornado.escape import json_decode, json_encode, native_str
 from tornado.options import options
 from tornado.testing import AsyncHTTPSTestCase
+from tornado.httpclient import HTTPRequest
 from tornado.util import PY3
 import re
 from controller.api import handlers
@@ -50,7 +51,8 @@ class APITestCase(AsyncHTTPSTestCase):
         headers = kwargs.get('headers', {})
         headers['Cookie'] = ''.join(['%s=%s;' % (x, morsel.value) for (x, morsel) in cookie.items()])
 
-        self.http_client.fetch(self.get_url(url), self.stop, headers=headers, **kwargs)
+        request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
+        self.http_client.fetch(request, self.stop)
 
         response = self.wait(timeout=2)
         headers = response.headers
