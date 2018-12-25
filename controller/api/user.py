@@ -231,7 +231,7 @@ class ChangeUserApi(BaseHandler):
                 sets = ['%s=%d' % (f, hz in info.authority) for f, hz in u.authority_map.items()
                         if (hz in info.authority) != (hz in old_auth)]
                 sql = 'UPDATE t_authority SET {0} WHERE user_id=%s'.format(','.join(sets))
-                c2 = execute(cursor, sql, (info.id,)) + 1
+                c2 = execute(cursor, sql, (info.id,)) + 1 if sets else 1
                 if c2 > 1:
                     self.add_op_log(cursor, 'change_user', context=','.join([info.email] + sets))
         return c2

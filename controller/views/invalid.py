@@ -17,6 +17,7 @@ class InvalidPageHandler(BaseHandler):
             return self.finish()
         if path.exists(path.join(self.get_template_path(), self.request.path.replace('/', ''))):
             return self.render(self.request.path.replace('/', ''))
+        self.set_status(404, reason='Not found')
         self.render('_404.html')
 
 
