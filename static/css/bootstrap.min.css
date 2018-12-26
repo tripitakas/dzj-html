@@ -3275,7 +3275,7 @@ input[type=search] {
 .checkbox-inline+.checkbox-inline,
 .radio-inline+.radio-inline {
 	margin-top: 0;
-	margin-left: 10px
+	margin-right: 10px
 }
 
 fieldset[disabled] input[type=checkbox],

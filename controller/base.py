@@ -50,7 +50,7 @@ def fetch_authority(user, record):
         items = [authority_map[f] for f in list(authority_map.keys()) if record.get(f)]
         authority = ','.join(sorted(items, key=lambda a: ACCESS_ALL.index(a) if a in ACCESS_ALL else -1))
     if user:
-        user.authority = authority
+        user.authority = authority or '普通用户'
     return authority
 
 
