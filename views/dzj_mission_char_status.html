@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>任务管理-文字状态</title>
-		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -29,9 +28,9 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="mission-manage" sub="mission-manage-char-status" ></common-left>
+				{% module CommonLeft(title="mission-manage", sub="mission-manage-char-status" ) %}
 				<div class="main-content">
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						
 						<!-- Add Modals BAT UPLOAD-->
@@ -329,8 +328,6 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-		<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
         <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">

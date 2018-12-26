@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>大藏经古籍数字化平台-如是藏经</title>
-		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
 
 		<!-- Plugins css -->
 		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -30,9 +29,9 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="rszj"></common-left>
+				{% module CommonLeft(title="rszj") %}
 				<div class="main-content">
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content1 rszj-layout-content">
@@ -275,9 +274,6 @@
 				</div>
 			</div>
 		</div>
-		<script>
-			var resizefunc = [];
-		</script>
 
 		<!-- jQuery  -->
 		<script src="{{ static_url('js/jquery.min.js') }}"></script>
@@ -294,8 +290,6 @@
 
 		<!-- CUSTOM JS -->
 		<script src="{{ static_url('js/jquery.app.js') }}"></script>
-		<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript">
 			$('.modal-dialog1').click(function() {
 				var width = $(document).width();

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>人员管理-角色管理</title>
-		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
 		<!-- Responsive-table -->
 		<link href="{{ static_url('assets/responsive-table/rwd-table.min.css') }}" rel="stylesheet" type="text/css" media="screen" />
 
@@ -30,9 +29,9 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="user-management" sub="user-management-role"></common-left>
+				{% module CommonLeft(title="user-management", sub="user-management-role") %}
 				<div class="main-content">
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
@@ -583,8 +582,6 @@
 
 			{% include _base_js.html %}
 
-			<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-			<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 			<!-- responsive-table-->
 			<script src="{{ static_url('assets/responsive-table/rwd-table.min.js') }}" type="text/javascript"></script>
 			<script type="text/javascript">

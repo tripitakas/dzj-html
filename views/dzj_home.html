@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>大藏经古籍数字化平台</title>
-    <link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
     {% include _base_css.html %}
 </head>
 
@@ -11,9 +10,9 @@
    <div class="app-main">
        <div class="main">
            <!--模拟出左边菜单，方便写样式-->
-           <common-left title="index"></common-left>
+           {% module CommonLeft(title="index") %}
            <div class="main-content">
-                <common-head></common-head>
+                {% module CommonHead() %}
                <div class="single-page-con">
                    <div class="layout">
                        <div class="layout-content">
@@ -179,8 +178,6 @@
        </div>
    </div>
    {% include _base_js.html %}
-   <script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-   <script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 </body>
 
 </html>

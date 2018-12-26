@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 
 	<head>
 		<meta charset="UTF-8">
 		<title>切分校对</title>
-		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
 		{% include _base_css.html %}
 		<link rel="stylesheet" type="text/css" href="{{ static_url('css/labelformat.css') }}">
 		<style>
@@ -22,10 +21,10 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left title="mission_history" sub="mission-slice"></common-left>
+				{% module CommonLeft(title="mission_history", sub="mission-slice") %}
 
 				<div class="main-content">
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
@@ -80,8 +79,6 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-		<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 
 	</body>
 

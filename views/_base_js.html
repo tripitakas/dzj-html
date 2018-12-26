@@ -1,7 +1,11 @@
 {% raw xsrf_form_html() %}
 
-<!-- jQuery  -->
-<script src="{{ static_url('plugins/jquery.min.js') }}"></script>
+<script>
+  var resizefunc = [];
+  var currentUserId = '{{currentUserId}}';
+</script>
+
+<!-- jQuery plugins -->
 <script src="{{ static_url('plugins/jquery.slimscroll.min.js') }}"></script>
 
 <!-- Bootstrap  -->

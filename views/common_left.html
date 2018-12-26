@@ -191,10 +191,8 @@
 				$(this).css("color", "#f56558");
 			}
 		});
-		var title = $("common-left").attr("title");
-		$("#"+title).addClass("active");
+		$("#{{title}}").addClass("active");
 		$('.active').next().slideDown(300);
-		var sub = $("common-left").attr("sub");
-		$("#"+sub).addClass("sub-active");
+		$("#{{sub}}").addClass("sub-active");
 	});
 </script>

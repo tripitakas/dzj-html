@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 	<head>
 		<meta charset="UTF-8">
 		<title>我的任务-文字校对审定</title>
-		<link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -26,10 +25,10 @@
 		<div class="app-main">
 			<div class="main">
 				<!--公共左侧导航栏 -->
-				<common-left title="mission_history" sub="mission-char-check"></common-left>
+				{% module CommonLeft(title="mission_history", sub="mission-char-check") %}
 				<div class="main-content">
 					<!--公共头部 -->
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
@@ -102,8 +101,6 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-		<script src="{{ static_url('js/framework/angular.min.js') }}" type="text/javascript" charset="utf-8"></script>
-		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 		
 	</body>
 

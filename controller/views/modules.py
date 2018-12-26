@@ -8,6 +8,11 @@
 from tornado.web import UIModule
 
 
-class DemoPanel(UIModule):
-    def render(self, owner=False):
-        return self.render_string('demo.html', owner=owner)
+class CommonLeft(UIModule):
+    def render(self, title='', sub=''):
+        return self.render_string('common_left.html', title=title, sub=sub)
+
+
+class CommonHead(UIModule):
+    def render(self):
+        return self.render_string('common_head.html')

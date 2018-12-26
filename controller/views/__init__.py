@@ -5,4 +5,5 @@
 from controller.views import modules, home, user
 
 handlers = [home.HomeHandler, user.LoginHandler, user.RegisterHandler, user.UsersHandler]
-modules = {'DemoPanel': modules.DemoPanel}
+
+modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead}

@@ -40,8 +40,8 @@ def scan_dup_html(html_path, base_file):
         if '_base_' in fn:
             continue
         with open(fn) as f:
-            text = f.read()
-            old = lines = text.split('\n')
+            old = text = f.read()
+            lines = text.split('\n')
         found = ref in text
         n = len(lines) - 1
         for i, t in enumerate(lines[::-1]):
@@ -58,10 +58,11 @@ def scan_dup_html(html_path, base_file):
                     lines.remove(t)
                 else:
                     last_replaced = False
+        lines = '\n'.join(lines)
         if lines != old:
             with open(fn, 'w') as f:
                 print(fn)
-                f.write('\n'.join(lines))
+                f.write(lines)
 
 
 static_path = path.join(path.dirname(__file__), '..', 'static')

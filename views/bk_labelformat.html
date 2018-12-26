@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="en">
 
 	<head>
 		<meta charset="UTF-8">
@@ -12,9 +12,9 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				<common-left></common-left>
+				{% module CommonLeft() %}
 				<div class="main-content">
-					<common-head></common-head>
+					{% module CommonHead() %}
 					<div class="single-page-con">
 						<div class="layout">
 							<div class="layout-content">
@@ -79,8 +79,6 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-		<script src="{{ static_url('js/angular.min.js') }}"></script>
-		<script src="{{ static_url('js/ngapp.js') }}" type="text/javascript" charset="utf-8"></script>
 	</body>
 
 </html>
