@@ -59,10 +59,10 @@ mongod -logpath log/mongo.log -logappend -fork
 
 注：如果是在个人电脑上开发和测试，则不需要配置下面的参数，直接运行 `python3 main.py` 即可。
 
-- 如果要部署的云服务器有HTTPS证书和私钥文件，可以复制到本项目的目录下，
-  在 `app.yml` 的 `https` 中指定这两个文件，将 `port` 改为 443。
+- 如果要部署的云服务器有HTTPS证书和私钥文件（例如腾讯云是在下载的证书包的 Nginx 目录下），可以复制到本项目的目录下，
+  在 `app.yml` 的 `https` 中指定这两个文件。
 
-- 如果服务器不需要支持 HTTPS，则将 `start.sh` 中的 `--port` 处和 `app.yml` 的`port` 处改为实际的端口号。
+- 如果服务器不需要支持 HTTPS，则将 `start.sh` 中的 `--port` 处改为实际的端口号。
 
 - 在 `app.yml` 中的 `domain` 指定服务器的域名。
 
@@ -70,5 +70,4 @@ mongod -logpath log/mongo.log -logappend -fork
   ```
   sh start.sh
   ```
-
-在浏览器中打开本网站，进行登录或注册等操作，注册的第一个用户将是管理员。
+  在浏览器中打开本网站，进行登录或注册等操作，注册的第一个用户将是管理员。

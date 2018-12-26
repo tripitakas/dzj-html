@@ -5,7 +5,6 @@
 @time: 2018/6/23
 """
 
-import logging
 from tornado.web import authenticated
 from controller.base import BaseHandler
 
@@ -15,9 +14,6 @@ class LoginHandler(BaseHandler):
 
     def get(self):
         """ 登录页面 """
-        if self.current_user:
-            logging.info('logout id=%s, name=%s' % (self.current_user.id, self.current_user.name))
-            self.clear_cookie('user')
         self.render('dzj_login.html', next=self.get_query_argument('next', '/'))
 
 

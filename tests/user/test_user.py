@@ -57,6 +57,16 @@ class TestUserApi(APITestCase):
             id=user['id'], email=user['email'], authority='切分校对员')})
         self.assert_code([e.unauthorized, e.no_change], r)
 
+        # 可以修改自己的基本信息
+        r = self.fetch('/api/user/change', body={'data': dict(
+            id=user['id'], email=user['email'], name='教师')})
+        self.assert_code(200, r)
+
+        # 普通用户取用户列表只能得到自己
+        r = self.parse_response(self.fetch('/api/user/list'))
+        self.assertEqual(len(r.get('items', [])), 1)
+        self.assertIn(user['name'], [t['name'] for t in r.get('items', [])])
+
         # 管理员可设置或取消权限
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
         self.assert_code(200, r)
@@ -69,6 +79,7 @@ class TestUserApi(APITestCase):
         """ 测试修改密码、重置密码、删除用户 """
 
         self._add_admin_user()
+        self.fetch('/api/user/logout', body={'data': dict(email='t2@test.com', name='测试')})
         r = self._register_login(dict(email='t2@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)
 
@@ -76,6 +87,9 @@ class TestUserApi(APITestCase):
         r = self.fetch('/api/pwd/change', body={'data': dict(old_password='err123', password='test123')})
         self.assert_code(e.invalid_password, r)
         r = self.fetch('/api/pwd/change', body={'data': dict(old_password='t12345', password='test123')})
+        self.assert_code(200, r)
+
+        r = self.fetch('/api/user/logout')
         self.assert_code(200, r)
 
         self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})

@@ -180,8 +180,6 @@ class ChangeUserApi(BaseHandler):
         with self.connection as conn:
             if not self.update_login(conn):
                 return self.send_error(errors.auth_changed)
-            if not self.authority:
-                return self.send_error(errors.unauthorized)
             try:
                 with conn.cursor(DictCursor) as cursor:
                     fields = base_fields + list(u.authority_map.keys())
@@ -247,8 +245,8 @@ class LogoutApi(BaseHandler):
         """ 注销 """
         if self.current_user:
             self.add_op_log(None, 'logout')
-        self.clear_cookie('user')
-        self.send_response()
+            self.clear_cookie('user')
+            self.send_response({'result': 'ok'})
 
     def post(self):
         """ 删除用户 """
@@ -310,8 +308,6 @@ class GetUsersApi(BaseHandler):
             return self.send_db_error(e)
 
         response = dict(items=users, authority=self.authority, time=errors.get_date_time())
-        if error:
-            response['not_auth'] = error
         self.send_response(response)
 
 
@@ -390,8 +386,8 @@ class ChangePasswordApi(BaseHandler):
                     r = execute(cursor, sql, (errors.gen_id(info.password), self.current_user.id,
                                               errors.gen_id(info.old_password)))
                     if not r:
-                        execute(cursor, 'SELECT name FROM t_user WHERE id=%s', (self.current_user.id,))
-                        return self.send_error(errors.invalid_password if cursor.fetchone() else errors.no_user)
+                        r = execute(cursor, 'SELECT name FROM t_user WHERE id=%s', (self.current_user.id,))
+                        return self.send_error(errors.invalid_password if r else errors.no_user)
                     self.add_op_log(cursor, 'change_pwd')
         except DbError as e:
             return self.send_db_error(e)

@@ -4,13 +4,13 @@
 @author: Zhang Yungui
 @time: 2018/12/22
 """
-from tornado.escape import json_decode, json_encode, native_str
+from tornado.escape import json_decode, json_encode, to_basestring, native_str
 from tornado.options import options
 from tornado.testing import AsyncHTTPSTestCase
 from tornado.httpclient import HTTPRequest
 from tornado.util import PY3
 import re
-from controller.api import handlers
+from controller import handlers, InvalidPageHandler
 from controller.app import Application
 
 if PY3:
@@ -24,21 +24,33 @@ cookie = Cookie.SimpleCookie()
 class APITestCase(AsyncHTTPSTestCase):
 
     def get_app(self):
+        options.testing = True
+        options.debug = False
         options.port = self.get_http_port()
-        return Application(handlers, db_name_ext='_test')
+        return Application(handlers, db_name_ext='_test',
+                           default_handler_class=InvalidPageHandler)
+
+    def tearDown(self):
+        super(APITestCase, self).tearDown()
+        self._app.stop()
 
     @staticmethod
     def parse_response(response):
-        return response.body and json_decode(response.body) or {}
+        body = response.body and to_basestring(response.body) or '{}'
+        return json_decode(body) if body and body.startswith('{') else body
+
+    def get_code(self, response):
+        response = self.parse_response(response)
+        return response.get('code', 200)
 
     def assert_code(self, code, response):
         code = code[0] if isinstance(code, tuple) else code
-        response = self.parse_response(response)
-        response_code = response.get('code', 200)
+        r2 = self.parse_response(response)
+        r_code = r2.get('code', response.code)
         if isinstance(code, list):
-            self.assertIn(response_code, [c[0] if isinstance(c, tuple) else c for c in code])
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code])
         else:
-            self.assertEqual(code, response_code, response.get('error'))
+            self.assertEqual(code, r_code, r2.get('error'))
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
