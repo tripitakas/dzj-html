@@ -59,13 +59,13 @@ class TestUserApi(APITestCase):
 
         # 可以修改自己的基本信息
         r = self.fetch('/api/user/change', body={'data': dict(
-            id=user['id'], email=user['email'], name='教师')})
+            id=user['id'], email=user['email'], name='教师甲')})
         self.assert_code(200, r)
 
         # 普通用户取用户列表只能得到自己
         r = self.parse_response(self.fetch('/api/user/list'))
         self.assertEqual(len(r.get('items', [])), 1)
-        self.assertIn(user['name'], [t['name'] for t in r.get('items', [])])
+        self.assertIn('教师甲', [t['name'] for t in r.get('items', [])])
 
         # 管理员可设置或取消权限
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
