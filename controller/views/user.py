@@ -18,7 +18,7 @@ class LoginHandler(BaseHandler):
 
 
 class RegisterHandler(BaseHandler):
-    URL = ['/register', '/dzj_register.html']
+    URL = '/dzj_register.html'
 
     def get(self):
         """ 注册页面 """
@@ -26,7 +26,7 @@ class RegisterHandler(BaseHandler):
 
 
 class UsersHandler(BaseHandler):
-    URL = ['/user_manage', '/dzj_user_manage.html']
+    URL = '/dzj_user_manage.html'
 
     @authenticated
     def get(self):

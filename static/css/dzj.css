@@ -1237,3 +1237,17 @@ span.active a {
 .toggle img{
 	cursor: pointer;
 }
+
+.ajax-error {
+	padding: 8px 10px;
+	margin-bottom: 10px;
+	border-radius: 4px;
+	border: 1px solid #faebcc;
+	color: #8a6d3b;
+	background-color: #fcf8e3;
+	text-align: center;
+	font-weight: 500;
+	font-size: 14px;
+	height: auto;
+	line-height: 20px;
+}

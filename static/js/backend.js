@@ -3,6 +3,13 @@
  */
 
 function showError(title, text) {
+  var $err = $('.ajax-error');
+  if ($err.length === 1) {
+    $err.text(text.replace(/[。！]$/, '')).show(200);
+    return setTimeout(function () {
+      $err.hide();
+    }, 2000);
+  }
   swal({
     title: title, text: text, type: /失败|错误/.test(title) ? 'error' : 'warning',
     timer: 2000, showConfirmButton: false

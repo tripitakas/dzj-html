@@ -6,6 +6,7 @@
 """
 from tests.testcase import APITestCase
 from controller.views import handlers
+import re
 
 admin = 'admin@test.com', 'test123'
 
@@ -15,7 +16,7 @@ class TestViews(APITestCase):
     def _test_view(self, url):
         if '(' not in url:
             r = self.parse_response(self.fetch(url))
-            self.assertIn('currentUserId', r, url)
+            self.assertTrue('currentUserId' in r, url + re.sub(r'(\n|\s)+', '', r)[:120])
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})

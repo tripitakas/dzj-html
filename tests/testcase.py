@@ -10,7 +10,7 @@ from tornado.testing import AsyncHTTPSTestCase
 from tornado.httpclient import HTTPRequest
 from tornado.util import PY3
 import re
-from controller import handlers, InvalidPageHandler
+import controller as c
 from controller.app import Application
 
 if PY3:
@@ -27,8 +27,9 @@ class APITestCase(AsyncHTTPSTestCase):
         options.testing = True
         options.debug = False
         options.port = self.get_http_port()
-        return Application(handlers, db_name_ext='_test',
-                           default_handler_class=InvalidPageHandler)
+        return Application(c.handlers, db_name_ext='_test',
+                           ui_modules=c.modules,
+                           default_handler_class=c.InvalidPageHandler)
 
     def tearDown(self):
         super(APITestCase, self).tearDown()
