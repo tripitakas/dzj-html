@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
-
 import controller.app as meta
 
-setup(name='dzj-api',
+setup(name='tripitaka',
       version=meta.__version__,
       description='大藏经古籍数字化平台',
       keywords="大藏经,古籍数字化,tripitaka",

@@ -24,7 +24,6 @@ cookie = Cookie.SimpleCookie()
 class APITestCase(AsyncHTTPSTestCase):
 
     def get_app(self):
-        options.debug = False
         options.port = self.get_http_port()
         return Application(handlers, db_name_ext='_test')
 
@@ -54,7 +53,7 @@ class APITestCase(AsyncHTTPSTestCase):
         request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
         self.http_client.fetch(request, self.stop)
 
-        response = self.wait(timeout=2)
+        response = self.wait()
         headers = response.headers
         try:
             sc = headers._dict['Set-Cookie'] if hasattr(headers, '_dict') else headers['Set-Cookie']

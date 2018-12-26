@@ -70,3 +70,5 @@ mongod -logpath log/mongo.log -logappend -fork
   ```
   sh start.sh
   ```
+
+在浏览器中打开本网站，进行登录或注册等操作，注册的第一个用户将是管理员。

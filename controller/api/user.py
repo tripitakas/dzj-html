@@ -223,13 +223,16 @@ class ChangeUserApi(BaseHandler):
 
     def change_auth(self, conn, info, old_auth):
         c2 = 1
-        if old_auth != info.authority:
+        sets = ['%s=%d' % (f, hz in info.authority) for f, hz in u.authority_map.items()
+                if (hz in info.authority) != (hz in old_auth)]
+        if sets:
             if u.ACCESS_MANAGER not in self.authority:
-                return self.send_error(errors.unauthorized)
+                return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
+            if u.ACCESS_MANAGER not in info.authority and u.ACCESS_MANAGER in old_auth \
+                    and info.id == self.current_user.id:
+                return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
             with conn.cursor() as cursor:
-                sets = ['%s=%d' % (f, hz in info.authority) for f, hz in u.authority_map.items()
-                        if (hz in info.authority) != (hz in old_auth)]
                 sql = 'UPDATE t_authority SET {0} WHERE user_id=%s'.format(','.join(sets))
                 c2 = execute(cursor, sql, (info.id,)) + 1 if sets else 1
                 if c2 > 1:
@@ -292,10 +295,7 @@ class GetUsersApi(BaseHandler):
                     ','.join('a.' + f if f in 'id,name' else f for f in fields), sql)
         try:
             with self.connection as conn:
-                error = None
                 self.update_login(conn)
-                if u.ACCESS_MANAGER not in self.authority:
-                    error = '您还无权限做管理操作'
                 if u.ACCESS_MANAGER not in self.authority:
                     sql += ' and user_id="{0}"'.format(self.current_user.id)
 
