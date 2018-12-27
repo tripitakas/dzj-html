@@ -32,6 +32,8 @@ CREATE TABLE `t_user` (
   `email` varchar(80) NOT NULL COMMENT '邮箱',
   `phone` int(11) unsigned NOT NULL DEFAULT 0 COMMENT '手机号',
   `password` char(16) NOT NULL COMMENT '密码MD5',
+  `gender` varchar(2) DEFAULT NULL COMMENT '性别',
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态',
   `create_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '注册时间',
   `last_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00' COMMENT '访问时间',
   PRIMARY KEY (`id`),

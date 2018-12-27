@@ -50,7 +50,7 @@ def fetch_authority(user, record):
         items = [authority_map[f] for f in list(authority_map.keys()) if record.get(f)]
         authority = ','.join(sorted(items, key=lambda a: ACCESS_ALL.index(a) if a in ACCESS_ALL else -1))
     if user:
-        user.authority = authority
+        user.authority = authority or '普通用户'
     return authority
 
 
@@ -71,6 +71,10 @@ def convert_bson(r):
 
 def convert2obj(cls, json_obj):
     """ 将JSON对象转换为指定模型类的对象 """
+    if isinstance(json_obj, dict):
+        for k, v in list(json_obj.items()):
+            if v is None or v == str:
+                json_obj.pop(k)
     obj = convertJSON2OBJ(cls, json_obj)
     fields = [f for f in cls.__dict__.keys() if f[0] != '_']
     for f in fields:

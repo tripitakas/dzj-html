@@ -78,46 +78,21 @@
 													</tr>
 												</thead>
 												<tbody>
-													<tr>
+												  {% for p in users %}
+													<tr id="{{p['id']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>
-															<img src="{{ static_url('imgs/ava.png') }}" alt="" class="thumb-md img-circle">
+															<img src="{{ static_url(p['image']) }}" alt="" class="thumb-md img-circle">
 														</td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>女</td>
+														<td>{{p['name']}}</td>
+														<td>{{p.get('phone') or ''}}</td>
+														<td>{{p['email']}}</td>
+														<td>{{p.get('gender', '')}}</td>
 														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
+														<td>{{p['create_time']}}</td>
 														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>
-															<img src="{{ static_url('imgs/ava2.png') }}" alt="" class="thumb-md img-circle">
-														</td>
-														<td>韩楚风</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>男</td>
-														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>
-															<img src="{{ static_url('imgs/ava3.png') }}" alt="" class="thumb-md img-circle">
-														</td>
-														<td>丁元英</td>
-														<td>15977889999</td>
-														<td>778998@sina.com</td>
-														<td>男</td>
-														<td>已生效</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
-													</tr>
-													
+													{% end %}
 												</tbody>
 											</table>
 										</div>
