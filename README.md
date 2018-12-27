@@ -30,10 +30,13 @@
 pip install -r tests/requirements.txt
 mysql -u root -e 'create database if not exists tripitaka_test;'
 mysql -u root tripitaka_test < model/init.sql;
+python tests/add_pages.py --json_path=tests/data --db_name=tripitaka_test
 python run_tests.py 或选中测试用例文件调试
 ```
 
 在 `tests` 下编写测试用例，然后在 `controller.views` 或 `controller.api` 中实现后端接口。
+
+使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径。
 
 ## 参考资料
 

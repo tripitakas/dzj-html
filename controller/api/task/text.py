@@ -13,7 +13,7 @@ from controller import errors
 
 
 class PickTextTaskApi(BaseHandler):
-    URL = r'/api/pick/text/([A-Za-z0-9]+)'
+    URL = r'/api/pick/text/([A-Za-z0-9_]+)'
 
     @authenticated
     def get(self, tid):

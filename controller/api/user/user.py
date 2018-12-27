@@ -164,7 +164,7 @@ class ChangeUserApi(BaseHandler):
             return self.send_error(errors.need_login)
 
         info = self.get_body_obj(u.User)
-        if not info or not info.email or not info.id:
+        if not info or not info.email:
             return self.send_error(errors.incomplete)
         if info.name and not re_name.match(unicode_type(info.name)):
             return self.send_error(errors.invalid_name)
@@ -183,13 +183,14 @@ class ChangeUserApi(BaseHandler):
             try:
                 with conn.cursor(DictCursor) as cursor:
                     fields = base_fields + list(u.authority_map.keys())
-                    sql = 'SELECT {0} FROM t_user a,t_authority b WHERE user_id=%s and a.id=b.user_id'.format(
+                    sql = 'SELECT {0} FROM t_user a,t_authority b WHERE email=%s and a.id=b.user_id'.format(
                         ','.join(fields))
-                    execute(cursor, sql, (info.id,))
+                    execute(cursor, sql, (info.email,))
                     old_user = self.fetch2obj(cursor.fetchone(), u.User, fetch_authority)
                     if not old_user:
                         return self.send_error(errors.no_user, reason=info.email)
                     old_auth = old_user.authority
+                    info.id = old_user.id
 
                 c1 = self.change_info(conn, info, old_user, old_auth)
                 c2 = c1 is not None and info.authority is not None and self.change_auth(conn, info, old_auth)
