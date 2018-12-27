@@ -15,7 +15,8 @@ class ChooseCharProofHandler(BaseHandler):
     @authenticated
     def get(self):
         """ 任务大厅-文字校对 """
-        self.render('dzj_char.html')
+        tasks = [dict(id='GL010101', name='GL-1-1-1', stage='校一', priority='高', status='待领取')] * 5
+        self.render('dzj_char.html', tasks=tasks)
 
 
 class MyCharProofHandler(BaseHandler):
@@ -28,9 +29,9 @@ class MyCharProofHandler(BaseHandler):
 
 
 class CharProofDetailHandler(BaseHandler):
-    URL = '/dzj_char_detail.html'
+    URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9]+)']
 
     @authenticated
-    def get(self):
+    def get(self, tid=''):
         """ 任务大厅-文字校对 """
         self.render('dzj_char_detail.html')

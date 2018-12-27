@@ -63,30 +63,14 @@
 												</thead>
 
 												<tbody>
+												  {% for t in tasks %}
 													<tr>
-														<td>GL-1-1-1</td>
-														<td>校一</td>
-														<td>高</td>
-														<td><a href="dzj_char_detail.html" >领取</a></td>
+														<td>{{t['name']}}</td>
+														<td>{{t['stage']}}</td>
+														<td>{{t['priority']}}</td>
+														<td><a href="#" class="pick-task" id="{{t['id']}}">领取</a></td>
 													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>校一</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>校一</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>校一</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
+													{% end %}
 												</tbody>
 											</table>
 										</div>
@@ -117,7 +101,13 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-		
+		<script>
+			$('.pick-task').click(function () {
+			  getApi('/pick/text/' + $(this).attr('id'), function (res) {
+					window.location = '/dzj_char/' + res.id;
+        });
+      });
+		</script>
 	</body>
 
 </html>
