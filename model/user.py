@@ -18,6 +18,9 @@ class User(object):
     password = str
     phone = int
     authority = str  # ACCESS_ALL 组合而成，逗号分隔
+    gender = str
+    image = str
+    status = int
     create_time = str
     last_time = str
     old_password = str  # 修改密码临时用

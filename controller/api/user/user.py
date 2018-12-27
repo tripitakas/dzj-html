@@ -21,7 +21,7 @@ from controller.base import BaseHandler, DbError, execute, fetch_authority
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
 re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
-base_fields = ['id', 'name', 'email', 'phone', 'create_time']
+base_fields = ['id', 'name', 'email', 'phone', 'gender', 'create_time']
 
 
 def trim_user(r):
@@ -192,17 +192,17 @@ class ChangeUserApi(BaseHandler):
                     old_auth = old_user.authority
 
                 c1 = self.change_info(conn, info, old_user, old_auth)
-                c2 = c1 != -1 and info.authority is not None and self.change_auth(conn, info, old_auth)
-                if c2:
+                c2 = c1 is not None and info.authority is not None and self.change_auth(conn, info, old_auth)
+                if c1 is not None and c2 is not None:
                     if not c1 and c2 == 1:
                         return self.send_error(errors.no_change)
-                    self.send_response()
+                    self.send_response(dict(info=c1, auth=c2))
 
             except DbError as e:
                 return self.send_db_error(e)
 
     def change_info(self, conn, info, old_user, old_auth):
-        sets = ["{0}='{1}'".format(f, info.__dict__[f]) for f in ['name', 'phone']
+        sets = ["{0}='{1}'".format(f, info.__dict__[f]) for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]]
         if sets:
             if self.current_user.id != info.id and u.ACCESS_MANAGER not in self.authority:
@@ -216,8 +216,8 @@ class ChangeUserApi(BaseHandler):
                 c1 = execute(cursor, sql, (info.email,))
                 if c1:
                     self.add_op_log(cursor, 'change_user', context=','.join([info.email] + sets))
-            sets = str(sets)
-            return (1 if 'name=' in sets else 0) + (2 if 'phone=' in sets else 0) if c1 else 0
+                    return [s.split('=')[0] for s in sets]
+        return []
 
     def change_auth(self, conn, info, old_auth):
         c2 = 1
