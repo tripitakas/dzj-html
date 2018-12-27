@@ -11,7 +11,7 @@ import random
 
 
 class ChooseCharProofHandler(BaseHandler):
-    URL = '/dzj_char.html'
+    URL = ['/dzj_char.html', '/dzj_chars']
 
     @authenticated
     def get(self):
@@ -20,7 +20,7 @@ class ChooseCharProofHandler(BaseHandler):
             pages = list(self.db.cutpage.find(dict(text_lock=None)))
             random.shuffle(pages)
             tasks = [dict(name=p['name'], stage='校一', priority='高', status='待领取')
-                     for p in pages[:12]]
+                     for p in pages[: int(self.get_argument('count', 12))]]
             self.render('dzj_char.html', tasks=tasks, count=len(pages))
         except DbError as e:
             return self.send_db_error(e)
@@ -36,7 +36,7 @@ class MyCharProofHandler(BaseHandler):
 
 
 class CharProofDetailHandler(BaseHandler):
-    URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9]+)']
+    URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9_]+)']
 
     @authenticated
     def get(self, tid=''):

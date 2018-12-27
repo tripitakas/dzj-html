@@ -154,6 +154,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
+        if self.get_query_argument('_raw', 0) == '1':
+            return self.send_response(kwargs)
         super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
 
     @staticmethod
