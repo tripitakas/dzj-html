@@ -3371,7 +3371,7 @@ div.dataTables_info {
 /************* 17.PAGES ****************/
 
 .bg-img {
-	background: url(../img/small/bg.jpg) center;
+	background: url(../imgs/bg_small.jpg) center;
 }
 
 .bg-overlay {
@@ -4165,12 +4165,12 @@ div.dataTables_info {
 
 .dzj_wrapper {
 	padding: 0px 0 0 80px;
-	/*background: url(../img/lqdzj_bg.png) repeat;*/
+	/*background: url(../imgs/lqdzj_bg.png) repeat;*/
 }
 
 .dzj_wrapper1 {
 	padding: 0px 0 0 80px;
-	background: url(../img/lqdzj_bg.png) repeat;
+	background: url(../imgs/lqdzj_bg.png) repeat;
 }
 
 .dialog-h3 {
