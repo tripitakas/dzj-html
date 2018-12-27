@@ -1,6 +1,6 @@
 # 大藏经古籍数字化平台
 
-[![Build Status](https://travis-ci.org/tripitakas/dzj-html.svg?branch=tornado)](https://travis-ci.org/tripitakas/dzj-html)
+[![Build Status](https://travis-ci.org/tripitakas/dzj-html.svg?branch=text_task)](https://travis-ci.org/tripitakas/dzj-html)
 
 ## 前端改版
 

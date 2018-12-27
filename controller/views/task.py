@@ -6,7 +6,8 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler
+from controller.base import BaseHandler, DbError
+import random
 
 
 class ChooseCharProofHandler(BaseHandler):
@@ -15,8 +16,14 @@ class ChooseCharProofHandler(BaseHandler):
     @authenticated
     def get(self):
         """ 任务大厅-文字校对 """
-        tasks = [dict(id='GL010101', name='GL-1-1-1', stage='校一', priority='高', status='待领取')] * 5
-        self.render('dzj_char.html', tasks=tasks)
+        try:
+            pages = list(self.db.cutpage.find(dict(text_lock=None)))
+            random.shuffle(pages)
+            tasks = [dict(name=p['name'], stage='校一', priority='高', status='待领取')
+                     for p in pages[:12]]
+            self.render('dzj_char.html', tasks=tasks, count=len(pages))
+        except DbError as e:
+            return self.send_db_error(e)
 
 
 class MyCharProofHandler(BaseHandler):
