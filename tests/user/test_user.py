@@ -23,17 +23,13 @@ class TestUserApi(APITestCase):
         response = self.fetch('/api/user/login', body={'data': dict(email='test')})
         self.assert_code(e.need_password, response)
 
-    def _add_admin_user(self):
-        """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
-        return self.fetch('/api/user/register', body={'data': dict(email=admin[0], name='管理', password=admin[1])})
-
     def _register_login(self, info):
         self.fetch('/api/user/register', body={'data': info})
         return self.fetch('/api/user/login', body={'data': dict(email=info['email'], password=info['password'])})
 
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
-        r = self._add_admin_user()
+        r = self.add_admin_user()
         r = self.parse_response(r)
         if 'error' not in r:
             self.assertIn('超级管理员', r['authority'])
@@ -47,7 +43,7 @@ class TestUserApi(APITestCase):
         """ 测试为新用户设置权限 """
 
         # 注册一个新用户
-        self._add_admin_user()
+        self.add_admin_user()
         r = self._register_login(dict(email='t1@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)
         self.assertIn('id', user)
@@ -78,7 +74,7 @@ class TestUserApi(APITestCase):
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """
 
-        self._add_admin_user()
+        self.add_admin_user()
         self.fetch('/api/user/logout', body={'data': dict(email='t2@test.com', name='测试')})
         r = self._register_login(dict(email='t2@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)

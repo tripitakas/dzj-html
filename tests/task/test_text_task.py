@@ -16,6 +16,8 @@ class TestTextTask(APITestCase):
 
     def setUp(self):
         super(APITestCase, self).setUp()
+
+        self.add_admin_user()
         self.fetch('/api/user/register', body={'data': dict(email=user1[0], name='文字测试', password=user1[1])})
 
         self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})

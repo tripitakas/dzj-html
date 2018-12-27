@@ -14,6 +14,6 @@ before_script:
     - "mysql -V && mongo --version"
     - "mysql -e 'create database if not exists tripitaka_test;'"
     - "mysql tripitaka_test < model/init.sql;"
-    - "./tests/add_pages.py --json_path=tests/data --db_name=tripitaka_test"
+    - "python tests/add_pages.py --json_path=tests/data --db_name=tripitaka_test"
 
 script: ./run_tests.py --cov=controller --cov-report=term tests
