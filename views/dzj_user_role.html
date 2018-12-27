@@ -203,7 +203,7 @@
 															<td>{{r if r in p['authority'] else '否'}}</td>
 															{% end %}
 															<td>
-																<a href="javascript:modify('10')">编辑</a>
+																<a href='javascript:modify("{{p}}")'>编辑</a>
 															</td>
 														</tr>
 														{% end %}
@@ -280,21 +280,18 @@
 								<div class="form-group">
 									<label class="col-sm-2 control-label">姓名</label>
 									<div class="col-md-10">
-										<input type="text" class="form-control" readonly="" value="罗辑">
+										<input type="text" class="form-control" value="罗辑" id="name">
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-sm-2 control-label">手机号</label>
+									<label class="col-sm-2 control-label">联系方式</label>
 									<div class="col-md-10">
-										<input type="text" class="form-control" readonly="" value="15088998899">
+										<p class="form-control-static" id="account"></p>
 									</div>
 								</div>
 								<div class="form-group">
 									<label class="col-md-2 control-label">角色选择</label>
-									<div class="col-md-10">
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option1">普通用户
-										</label>
+									<div class="col-md-10 authority-list">
 										<label class="checkbox-inline">
 										  <input type="checkbox"  value="option2">切分校对员
 										</label>
@@ -351,15 +348,47 @@
 
 				});
 
-				function modify(name) {
-					$('#modifyModal').modal();
+				function modify(user) {
+					var $dlg = $('#modifyModal');
+					var $name = $dlg.find('#name');
+					var $account = $dlg.find('#account');
+					var $list = $dlg.find('.authority-list');
 
+					user = decodeJSON(user);
+					$dlg.modal();
+					$name.val(user.name);
+					$account.text((user.phone ? user.phone + ' ' : '') + user.email);
+
+					$list.find('label').each(function (i, el) {
+						var label = $(el).text().replace(/\s/g, '');
+						$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
+					});
+
+					$dlg.find("#modal_confirm").unbind('click').click(function () {
+						var info = {email: user.email, name: $name.val()};
+						var authority = [];
+						$list.find('label').each(function (i, el) {
+							var label = $(el).text().replace(/\s/g, '');
+							if ($(el).find('input').is(':checked')) {
+								authority.push(label);
+							}
+						});
+						info.authority = authority.join(',');
+
+						postApi('/user/change', {data: info}, function () {
+							showSuccess('修改成功', user.name + ' 的信息已修改。');
+							setTimeout(function () {
+								window.location.reload();
+							}, 1500);
+						}, function (msg, code) {
+							if (code === 1009) {
+								showSuccess('修改成功', '用户信息没有发生改变。');
+								return $dlg.modal('hide');
+							}
+							showError('修改失败', msg);
+						});
+					});
 				}
-				//编辑框的确定按钮
-				$("#modal_confirm").click(function() {
-					$('#modifyModal').modal('hide');
-					console.log('modify confirm');
-				});
 			</script>
 	</body>
 

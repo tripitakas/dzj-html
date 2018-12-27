@@ -22,6 +22,12 @@
 - [INSTALL-mac.md](doc/INSTALL-mac.md)
 - [INSTALL-win.md](doc/INSTALL-win.md)
 
+使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径，或者使用示例数据：
+
+```
+python tests/add_pages.py
+```
+
 ## 测试
 
 本项目可采用测试驱动开发(TDD)模式实现后端接口：
@@ -30,7 +36,7 @@
 pip install -r tests/requirements.txt
 mysql -u root -e 'create database if not exists tripitaka_test;'
 mysql -u root tripitaka_test < model/init.sql;
-python tests/add_pages.py --json_path=tests/data --db_name=tripitaka_test
+python tests/add_pages.py --db_name=tripitaka_test
 python run_tests.py 或选中测试用例文件调试
 ```
 
