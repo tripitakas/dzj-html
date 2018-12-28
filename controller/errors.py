@@ -26,6 +26,9 @@ user_exists = 1012, '账号已存在'
 auth_changed = 1013, '授权信息已改变，请您重新登录'
 no_object = 1014, '对象不存在或已删除'
 
+task_locked = 2000, '本任务已被领走，请领取新的任务'
+task_uncompleted = 2001, '您还有未完成的任务，请继续完成后再领取新的任务'
+
 
 def get_date_time(fmt=None):
     return datetime.now().strftime(fmt or '%Y-%m-%d %H:%M:%S')

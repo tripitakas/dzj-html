@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
-# python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--kind=藏经类别码]
+# python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 from os import path, listdir, mkdir
 import sys
@@ -60,11 +60,27 @@ def add_page(name, info, db):
                     blocks=info.get('blocks', []),
                     columns=info.get('columns', []),
                     chars=info.get('chars', []),
+                    txt='',
                     create_time=datetime.now())
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
         db.cutpage.insert_one(meta)
+
+
+def add_texts(src_path, pages, db):
+    if not path.exists(src_path):
+        return
+    for fn in listdir(src_path):
+        filename = path.join(src_path, fn)
+        if path.isdir(filename):
+            add_texts(filename, pages, db)
+        elif fn.endswith('.txt') and fn[:-4] in pages:
+            with open(filename) as f:
+                txt = f.read().strip().replace('\n', '|')
+            r = db.cutpage.find_one(dict(name=fn[:-4]))
+            if r and not r.get('txt'):
+                db.cutpage.update_one(dict(name=fn[:-4]), {'$set': {'txt': txt}})
 
 
 def copy_img_files(src_path, pages):
@@ -83,12 +99,15 @@ def copy_img_files(src_path, pages):
                 shutil.copy(filename, dst_file)
 
 
-def main(json_path, img_path='img', kind='', db_name='tripitaka'):
+def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka'):
+    if not json_path:
+        txt_path = json_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient('localhost')
     db = conn[db_name]
     pages = set()
     scan_dir(json_path, kind, db, pages)
-    copy_img_files(img_path, list(pages))
+    copy_img_files(img_path, pages)
+    add_texts(txt_path, pages, db)
     return data['count']
 
 

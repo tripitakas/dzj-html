@@ -68,7 +68,7 @@
 														<td>{{t['name']}}</td>
 														<td>{{t['stage']}}</td>
 														<td>{{t['priority']}}</td>
-														<td><a href="#" class="pick-task" id="{{t['id']}}">领取</a></td>
+														<td><a href="#" class="pick-task" id="{{t['name']}}">领取</a></td>
 													</tr>
 													{% end %}
 												</tbody>
@@ -104,7 +104,7 @@
 		<script>
 			$('.pick-task').click(function () {
 			  getApi('/pick/text/' + $(this).attr('id'), function (res) {
-					window.location = '/dzj_char/' + res.id;
+					window.location = '/dzj_char/' + res.name;
         });
       });
 		</script>
