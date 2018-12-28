@@ -20,12 +20,20 @@ class PickTextTaskApi(BaseHandler):
     def get(self, name):
         """ 取文字校对任务 """
         try:
+            # 检查是否有校对权限
             self.update_login()
             if u.ACCESS_TEXT_PROOF not in self.authority:
                 return self.send_error(errors.unauthorized, reason=u.ACCESS_TEXT_PROOF)
 
-            lock = {'text_lock': [self.current_user.id, datetime.now(), 0]}
-            r = self.db.cutpage.update_one(dict(text_lock=None, name=name), {'$set': lock})
+            # 有未完成的任务则不能继续
+            names = list(self.db.cutpage.find(dict(text_lock_user=self.current_user.id, text_status=None)))
+            names = [p['name'] for p in names]
+            if names and name not in names:
+                return self.send_error(errors.task_uncompleted, reason=','.join(names))
+
+            # 领取新任务或继续原任务
+            lock = dict(text_lock_user=self.current_user.id, text_lock_time=datetime.now())
+            r = self.db.cutpage.update_one(dict(text_lock_user=None, name=name), {'$set': lock})
             page = convert_bson(self.db.cutpage.find_one(dict(name=name)))
 
             if r.matched_count:
@@ -33,10 +41,10 @@ class PickTextTaskApi(BaseHandler):
             else:
                 if not page:
                     return self.send_error(errors.no_object)
-                lock = page.get('text_lock')
-                if not lock or lock[0] != self.current_user.id:
+                if page.get('text_lock_user') != self.current_user.id:
                     return self.send_error(errors.task_locked)
 
-            self.send_response(dict(id=page['id'], name=page['name']))
+            # 反馈领取成功
+            self.send_response(dict(name=page['name']))
         except DbError as e:
             return self.send_db_error(e)
