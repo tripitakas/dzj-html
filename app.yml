@@ -5,7 +5,7 @@ database:
   port: 3306
   name: tripitaka
   user: root
-  password:
+  password: jet123789
 
 site:
   name: 大藏经平台
