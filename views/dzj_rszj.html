@@ -198,7 +198,7 @@
                                 <p>上妙宝轮，及众宝华、清净摩尼，以为严饰；</p>
                                 <p>诸色相海，无边显现；</p>
                                 <p>摩尼为幢，常放光明，恒出妙音，</p>
-                                <p>众宝罗网，妙香华缨，周匝垂布；</p>
+                                <p>众宝罗网，妙香华<b class="kw">缨</b>，周匝垂布；</p>
                                 <p>摩尼宝王，变现自在，雨无尽宝及众妙华分散于地；</p>
                                 <p>宝树行列，枝叶光茂。</p>
                                 <p>佛神力故，令此道场一切庄严于中影现。</p>
@@ -211,7 +211,7 @@
                                 <p>说种种法，无有尽极。</p>
                                 <p>如来所处宫殿楼阁，广博严丽充遍十方，</p>
                                 <p>众色摩尼之所集成，种种宝华以为庄校；</p>
-                                <p>诸庄严具流光如云，从宫殿间萃影成幢。</p>
+                                <p>诸庄严具流光如云，从<b class="kw">宫殿</b>间萃影成幢。</p>
                                 <p>无边菩萨道场众会咸集其所，以能出现诸佛光明不思议音。</p>
 
 
@@ -222,6 +222,94 @@
 				</div>
 			</div>
 		</div>
+
+        <!--鼠标移入关键字时，弹出的对话框-->
+        <div id="mouse_over_dlg">
+            <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+            <div><b>聼【大正】=听【开宝】【元官】【永北】【毗卢】</b></div>
+            <div class="m-btn-group">
+                <div class="m-btn"><a href=""><i class="ion-ios7-copy-outline"></i>复制</a></div>
+                <div class="m-btn"><a href="javascript:showList()"><i class="ion-navicon"></i>查看列图</a></div>
+            </div>
+        </div>
+
+        <!--鼠标选中文字时，弹出的对话框-->
+        <div id="text_selected_dlg">
+            <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+            <ul>
+                <li><img src="{{ static_url('imgs/icon9_1.png') }}"/><span>复制文字</span></li>
+                <li><img src="{{ static_url('imgs/icon10.png') }}"/><span>引用复制</span></li>
+                <li><img src="{{ static_url('imgs/icon11.png') }}"/><span>查词典</span></li>
+                <li><img src="{{ static_url('imgs/icon12.png') }}"/><span>查字典</span></li>
+                <li><img src="{{ static_url('imgs/icon13.png') }}"/><span>检索</span></li>
+            </ul>
+        </div>
+
+        <!-- Modify Modals -->
+			<!-- modal content -->
+			<div id="jk_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-lg ">
+					<div class="modal-content black_bg">
+
+						<div class="modal-body">
+							<ul class="jk_list_ul">
+                                <li>
+                                    <h5>赵城</h5>
+                                    <ul class="jk_list_char_ul">
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                    </ul>
+                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                                </li>
+                                <li>
+                                    <h5>赵城</h5>
+                                    <ul class="jk_list_char_ul">
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                    </ul>
+                                    <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+                                </li>
+                                <li>
+                                    <h5>赵城</h5>
+                                    <ul class="jk_list_char_ul">
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                    </ul>
+                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                                </li>
+                                <li>
+                                    <h5>赵城</h5>
+                                    <ul class="jk_list_char_ul">
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                    </ul>
+                                    <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+                                </li>
+                                <li>
+                                    <h5>赵城</h5>
+                                    <ul class="jk_list_char_ul">
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                        <li><span>幢</span></li>
+                                    </ul>
+                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                                </li>
+
+                            </ul>
+						</div>
+
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+			</div>
+			<!-- /.modal -->
+
+		<!-- End BootStrap Modal -->
 
 		{% include _base_js.html %}
 
@@ -295,10 +383,54 @@
 				}
 			});
 
+            <!--点击搜索按钮显示搜索视图-->
             $('#search_btn').click(function(){
                $("#side-menu").hide();
                $("#menu-search").show();
             });
+
+            <!--鼠标移过关键字时，显示弹框-->
+            $('.kw').mouseover(function(e){
+                var positionX=$(this).offset().left;
+                var positionY=$(this).offset().top;
+                var height = $('.main-right-content').height();
+                $('#mouse_over_dlg').css('left',positionX+30);
+                if(positionY+90>height){
+                    $('#mouse_over_dlg').css('top',positionY-90);
+                }else{
+                    $('#mouse_over_dlg').css('top',positionY+30);
+                }
+                $('#mouse_over_dlg').show();
+            });
+
+            $('.main-right-content p').mouseup(function(e){
+                var txt = window.getSelection?window.getSelection():document.selection.createRange().text;//选中的文本
+                if(txt.toString().length>0){
+                    var positionX=e.originalEvent.x ||e.originalEvent.layerX || 0;
+                    var positionY=e.originalEvent.y ||e.originalEvent.layerY || 0;
+                    var height = $('.main-right-content').height();
+                    if(positionY+170>height){
+                        $('#text_selected_dlg').css('top',positionY-150);
+                    }else{
+                        $('#text_selected_dlg').css('top',positionY+10);
+                    }
+                    $('#text_selected_dlg').css('left',positionX+10);
+                    $('#text_selected_dlg').show();
+                }
+
+
+            });
+            $("#mouse_over_dlg .dlg_close_btn").click(function(){
+                $('#mouse_over_dlg').hide();
+            });
+            $("#text_selected_dlg .dlg_close_btn").click(function(){
+                $('#text_selected_dlg').hide();
+            });
+
+            <!--遮罩层弹出框-->
+            function showList() {
+				$('#jk_modal').modal();
+			}
 
 		</script>
 
