@@ -23,7 +23,7 @@ def create_folder(filename):
 def load_json(filename):
     if path.exists(filename):
         try:
-            with open(filename) as f:
+            with open(filename, encoding='UTF-8') as f:
                 return json.load(f)
         except Exception as e:
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
@@ -76,7 +76,7 @@ def add_texts(src_path, pages, db):
         if path.isdir(filename):
             add_texts(filename, pages, db)
         elif fn.endswith('.txt') and fn[:-4] in pages:
-            with open(filename) as f:
+            with open(filename, encoding='UTF-8') as f:
                 txt = f.read().strip().replace('\n', '|')
             r = db.cutpage.find_one(dict(name=fn[:-4]))
             if r and not r.get('txt'):
