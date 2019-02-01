@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-如是藏经</title>
+		<title>大藏经古籍数字化平台-实体藏经</title>
 
 		<!-- Plugins css -->
 		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -34,7 +34,12 @@
 					<header class="m-header">
 						<div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
 
-						<div class="m-header-title">如是藏经</div>
+						<div class="m-header-title">法华经</div>
+                        <div class="m-header-edit-btn">
+                            <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
+                        </div>
 						<div class="m-header-page">
 							<div class="m-header-page-info">
 								当前第<span> 1 </span>卷,共<span> 80 </span>卷
@@ -45,6 +50,12 @@
 							<div class="m-header-page-btn next"><a href="" >下一卷</a></div>
                             <div class="m-header-page-btn last"><a href="" >末卷</a></div>
 						</div>
+                        <div class="checkbox checkbox-grey custom">
+                            <input id="checkbox6" type="checkbox" checked="">
+                            <label for="checkbox6">
+                                显示图片
+                            </label>
+                        </div>
 						<div class="m-header-font">
 							<div class="m-header-font-reduce"><a href="" >A-</a></div>
 							<div class="m-header-font-current">20</div>
@@ -171,7 +182,7 @@
                                         <div class="search_result2"><a href="">按经号排序</a><i><img src="{{ static_url('imgs/icon16.png') }}"/></i></div>
                                     </div>
                                     <div class="search_item">
-                                        <b>RS001:大方广佛华严经</b>
+                                        <a href="dzj_stzj_search.html"><b>RS001:大方广佛华严经</b></a>
                                         <p>佛驮跋陀罗</p>
                                         <p>佛驮跋陀罗(359～429)，简称佛驮跋陀，意译“觉贤”</p>
                                     </div>
@@ -192,7 +203,10 @@
                         </div>
 					    <div class="fold_btn"><img src="{{ static_url('imgs/icon17.png') }}"/></div>
                         <div class="main-right">
-                            <div class="main-right-content">
+                            <div class="main-right-img">
+                                <img src="{{ static_url('imgs/examImg1.png') }}">
+                            </div>
+                            <div class="main-right-content w-40">
                                 <p>如是我闻：</p>
                                 <p>一时，佛在摩竭提国阿兰若法菩提场中，</p>
                                 <p>始成正觉。其地坚固，金刚所成；</p>
@@ -203,18 +217,6 @@
                                 <p>摩尼宝王，变现自在，雨无尽宝及众妙华分散于地；</p>
                                 <p>宝树行列，枝叶光茂。</p>
                                 <p>佛神力故，令此道场一切庄严于中影现。</p>
-                                <p>其菩提树高显殊特：金刚为身，琉璃为干；</p>
-                                <p>众杂妙宝以为枝条；宝叶扶疏，垂荫如云；</p>
-                                <p>宝华杂色，分枝布影，复以摩尼而为其果，含辉发焰，与华间列。</p>
-                                <p>其树周圆咸放光明，于光明中雨摩尼宝，</p>
-                                <p>摩尼宝内，有诸菩萨，其众如云，俱时出现。</p>
-                                <p>又以如来威神力故，其菩提树恒出妙音，</p>
-                                <p>说种种法，无有尽极。</p>
-                                <p>如来所处宫殿楼阁，广博严丽充遍十方，</p>
-                                <p>众色摩尼之所集成，种种宝华以为庄校；</p>
-                                <p>诸庄严具流光如云，从<b class="kw">宫殿</b>间萃影成幢。</p>
-                                <p>无边菩萨道场众会咸集其所，以能出现诸佛光明不思议音。</p>
-
 
                             </div>
                         </div>
@@ -394,8 +396,14 @@
             $('.kw').mouseover(function(e){
                 var positionX=$(this).offset().left;
                 var positionY=$(this).offset().top;
+                var width = $('.main-right-content').width();
                 var height = $('.main-right-content').height();
-                $('#mouse_over_dlg').css('left',positionX+30);
+
+                if(positionX+200>width){
+                    $('#mouse_over_dlg').css('left',positionX-300);
+                }else{
+                    $('#mouse_over_dlg').css('left',positionX+30);
+                }
                 if(positionY+90>height){
                     $('#mouse_over_dlg').css('top',positionY-90);
                 }else{
@@ -409,13 +417,19 @@
                 if(txt.toString().length>0){
                     var positionX=e.originalEvent.x ||e.originalEvent.layerX || 0;
                     var positionY=e.originalEvent.y ||e.originalEvent.layerY || 0;
+                    var width = $('.main-right-content').width();
                     var height = $('.main-right-content').height();
+                    if(positionX+200>width){
+                        $('#text_selected_dlg').css('left',positionX-100);
+                    }else{
+                        $('#text_selected_dlg').css('left',positionX+10);
+                    }
                     if(positionY+170>height){
                         $('#text_selected_dlg').css('top',positionY-150);
                     }else{
                         $('#text_selected_dlg').css('top',positionY+10);
                     }
-                    $('#text_selected_dlg').css('left',positionX+10);
+
                     $('#text_selected_dlg').show();
                 }
 

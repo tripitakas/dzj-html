@@ -1428,7 +1428,7 @@ span.active a {
     height:100%;
     float:left;
     background:var(--Color_Brown_Dark);
-    min-height:600px;
+    min-height:800px;
 }
 .submenu-title-icon{
     float:right;
@@ -1444,7 +1444,7 @@ span.active a {
     transition: all 0.3s ease-in-out;
 
 }
-.flex_btn{
+.fold_btn{
     float:left;
     width:15px;
     height:57px;
@@ -1465,8 +1465,15 @@ span.active a {
     background:var(--Color_White);
     padding:14px;
 }
+.main-right.no-bg{
+    background:none;
+}
+.main-right.no-pm{
+    margin:0px;
+    padding:0px;
+}
 .main-right-content{
-    width:100%;
+
     height:100%;
     border:1px solid var(--Color_Grey_Line);
     padding:14px;
@@ -1685,4 +1692,53 @@ span.active a {
 }
 .jk_list_char_ul li:last-child span{
     border:0px;
+}
+.main-right-img{
+    float:left;
+    width:60%;
+    height:100%;
+}
+.main-right-img img{
+    width:100%;
+    height:100%;
+}
+.main-right-img.bg-black img{
+    width:50%;
+    height:auto;
+}
+.main-right-content.w-40{
+    width:40%;
+    height:100%;
+    overflow:scroll;
+}
+.m-header-edit-btn{
+    margin-right:20px;
+}
+.checkbox-grey input[type="checkbox"]:checked+label::before {
+	background-color: var(--Color_Grey_Light);
+	border-color: var(--Color_Grey_Line);
+}
+.checkbox-grey label{
+    padding:0px;
+}
+.main-right.pt{
+    padding-top:15px;
+    position:relative;
+    padding-left:40px;
+    padding-right:40px;
+}
+.main-right-img.bg-black{
+    width:100%;
+    background:var(--Color_Black);
+    text-align:center;
+}
+.left_btn{
+    position:absolute;
+    top:300px;
+    left:10px;
+}
+.right_btn{
+    position:absolute;
+    top:300px;
+    right:10px;
 }
