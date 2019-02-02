@@ -34,8 +34,9 @@ class TestTextTask(APITestCase):
             # 取任务列表
             r = self.parse_response(self.fetch('/dzj_chars?_raw=1&count=1'))
             self.assertIn('tasks', r)
-            name = len(r.get('tasks', [])) == 1 and r['tasks'][0].get('name')
-            self.assertTrue(name)
+            self.assertEqual(len(r['tasks']), 1)
+            name = r['tasks'][0].get('name')
+            self.assertTrue(r['tasks'][0].get('name'))
 
             # 领取任务
             r = self.fetch('/api/pick/text/' + name)

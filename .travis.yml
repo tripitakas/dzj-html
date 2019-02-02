@@ -1,7 +1,6 @@
 language: python
 python:
   - "3.6"
-  - "2.7"
 
 services:
   - mysql
@@ -16,6 +15,7 @@ before_script:
     - mysql -e 'create database if not exists tripitaka_test;'
     - mysql tripitaka_test < model/init.sql;
     - python tests/add_pages.py --db_name=tripitaka_test
+    - find . -name "*.pyc" | xargs rm -rf
 
 script:
     - ./run_tests.py --cov=controller --cov-report=term tests
