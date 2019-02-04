@@ -23,10 +23,11 @@
 - [INSTALL-mac.md](doc/INSTALL-mac.md)
 - [INSTALL-win.md](doc/INSTALL-win.md)
 
-使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径，或者使用示例数据：
+使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径，或者选择下面某一种方式使用示例数据：
 
 ```
 python3 tests/add_pages.py
+python3 tests/add_pages.py --db_name=tripitaka --uri=mongodb://user:password@server
 ```
 
 ## 测试

@@ -96,7 +96,7 @@ class Application(web.Application):
             self.config = yaml.load(f)
             self.site = self.config['site']
             self.site['url'] = 'localhost:{0}'.format(options.port)
-            if db_name_ext:
+            if db_name_ext and not self.config['database']['name'].endswith('_test'):
                 self.config['database']['name'] += db_name_ext
 
     def stop(self):

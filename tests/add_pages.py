@@ -99,10 +99,10 @@ def copy_img_files(src_path, pages):
                 shutil.copy(filename, dst_file)
 
 
-def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka'):
+def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost'):
     if not json_path:
         txt_path = json_path = path.join(path.dirname(__file__), 'data')
-    conn = pymongo.MongoClient('localhost')
+    conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     pages = set()
     scan_dir(json_path, kind, db, pages)
