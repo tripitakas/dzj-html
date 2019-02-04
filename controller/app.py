@@ -78,13 +78,12 @@ class Application(web.Application):
     def db(self):
         if not self._db:
             cfg = self.config['database']
-            params = dict(username=cfg.get('user'),
-                          password=cfg.get('password'),
-                          connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
-                          maxPoolSize=10, waitQueueTimeoutMS=5000)
+            uri = cfg['host']
             if cfg.get('user'):
-                params['authMechanism'] = 'SCRAM-SHA-256'
-            conn = pymongo.MongoClient(cfg['host'], **params)
+                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
+                    cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port'))
+            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
             self._db = conn[cfg['name']]
         return self._db
 

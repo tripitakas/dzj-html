@@ -14,7 +14,7 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
 from pymongo.errors import PyMongoError
-from tornado.escape import json_decode, json_encode, basestring_type
+from tornado.escape import json_decode, json_encode
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
@@ -266,11 +266,11 @@ class BaseHandler(CorsMixin, RequestHandler):
             logging.error(e.args[1])
         if 'InvalidId' == e.__class__.__name__:
             code, reason = 1, errors.no_object[1]
-        if code not in [2003, ER.ACCESS_DENIED_ERROR, 1]:
+        if code not in [2003, 1]:
             traceback.print_exc()
         default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
         self.send_error(default_error[0] + code, for_yield=True,
-                        reason='无法连接数据库' if code in [2003, ER.ACCESS_DENIED_ERROR] else '%s(%s)%s' % (
+                        reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
     @staticmethod
