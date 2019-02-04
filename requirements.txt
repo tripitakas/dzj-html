@@ -1,7 +1,6 @@
 tornado==5.0.2
 hashids==1.2.0
 tornado-cors
-pymysql==0.9.2
 pymongo==3.7.2
 pyconvert
 pyyaml

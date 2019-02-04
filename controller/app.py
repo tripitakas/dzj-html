@@ -12,14 +12,14 @@ from tornado.options import define, options
 from tornado.util import PY3
 import pymongo
 import yaml
-import pymysql
 from operator import itemgetter
 import os
 import re
+import shutil
 from tornado.log import access_log
 
 
-__version__ = '0.0.1.81222'
+__version__ = '0.0.2.90204'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -77,31 +77,28 @@ class Application(web.Application):
     @property
     def db(self):
         if not self._db:
-            conn = pymongo.MongoClient('localhost', connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
-                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
-            self._db = conn[self.config['database']['name']]
+            cfg = self.config['database']
+            params = dict(username=cfg.get('user'),
+                          password=cfg.get('password'),
+                          connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+                          maxPoolSize=10, waitQueueTimeoutMS=5000)
+            if cfg.get('user'):
+                params['authMechanism'] = 'SCRAM-SHA-256'
+            conn = pymongo.MongoClient(cfg['host'], **params)
+            self._db = conn[cfg['name']]
         return self._db
 
     def load_config(self, db_name_ext=None):
         param = dict(encoding='utf-8') if PY3 else {}
-        with open(path.join(BASE_DIR, 'app.yml'), **param) as f:
+        cfg_file = path.join(BASE_DIR, 'app.yml')
+        if not os.path.exists(cfg_file):
+            shutil.copy(path.join(BASE_DIR, '_app.yml'), cfg_file)
+        with open(cfg_file, **param) as f:
             self.config = yaml.load(f)
             self.site = self.config['site']
             self.site['url'] = 'localhost:{0}'.format(options.port)
             if db_name_ext:
                 self.config['database']['name'] += db_name_ext
-
-    def open_connection(self):
-        cfg = dict(self.config['database'])
-        return pymysql.connect(host=cfg['host'],
-                               port=cfg['port'],
-                               user=cfg['user'],
-                               passwd=cfg['password'],
-                               db=cfg['name'],
-                               connect_timeout=3,
-                               read_timeout=3,
-                               write_timeout=5,
-                               charset='utf8')
 
     def stop(self):
         pass

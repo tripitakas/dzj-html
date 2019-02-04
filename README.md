@@ -17,7 +17,7 @@
 
 ## 安装
 
-本平台需要 Python 3.6+/2.7、MySQL 5.5+/MariaDB 10.3+、MongoDB，请参考下面的说明安装和部署。
+本平台需要 Python 3.6+、MongoDB(可用远程数据库)，请参考下面的说明安装和部署。
 
 - [INSTALL-linux.md](doc/INSTALL-linux.md)
 - [INSTALL-mac.md](doc/INSTALL-mac.md)
@@ -26,7 +26,7 @@
 使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径，或者使用示例数据：
 
 ```
-python tests/add_pages.py
+python3 tests/add_pages.py
 ```
 
 ## 测试
@@ -35,10 +35,8 @@ python tests/add_pages.py
 
 ```
 pip install -r tests/requirements.txt
-mysql -u root -e 'create database if not exists tripitaka_test;'
-mysql -u root tripitaka_test < model/init.sql;
-python tests/add_pages.py --db_name=tripitaka_test
-python run_tests.py 或选中测试用例文件调试
+python3 tests/add_pages.py --db_name=tripitaka_test
+python3 run_tests.py 或选中测试用例文件调试
 ```
 
 在 `tests` 下编写测试用例，然后在 `controller.views` 或 `controller.api` 中实现后端接口。
@@ -52,5 +50,6 @@ python run_tests.py 或选中测试用例文件调试
 - [Tornado 前端模板语法][templates]
 - [Introduction to Tornado 中文版](http://demo.pythoner.com/itt2zh/)
 - [MongoDB 数据库开发](http://demo.pythoner.com/itt2zh/ch4.html)
+- [MongoDB 官方文档](http://api.mongodb.com/python/current/index.html)
 
 [templates]: https://tornado-zh.readthedocs.io/zh/latest/guide/templates.html

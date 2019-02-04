@@ -1,6 +1,6 @@
 #!/bin/sh
+/usr/bin/kill -9 `ps -ef | grep 443 | grep python3 | awk -F" " {'print $2'}`
 cd `dirname $0`
 test -d log || mkdir log
-sudo pkill -f 'python3 main.py'
-find . -name "*.pyc" | sudo xargs rm -rf
-sudo nohup python3 main.py --port=443 >> log/app.log 2>&1 &
+find `dirname $0` -name "*.pyc" | xargs rm -rf
+nohup python3 main.py --port=443 --debug=0 >> log/app.log 2>&1 &

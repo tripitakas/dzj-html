@@ -6,8 +6,7 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler, execute, fetch_authority, DbError
-from pymysql.cursors import DictCursor
+from controller.base import BaseHandler, fetch_authority, DbError
 import model.user as u
 
 
@@ -34,19 +33,14 @@ class UsersHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
-        sql = 'SELECT {0} FROM t_user'.format(','.join(fields))
         try:
-            with self.connection as conn:
-                self.update_login(conn)
-                if u.ACCESS_MANAGER not in self.authority:
-                    sql += ' WHERE id="{0}"'.format(self.current_user.id)
-
-                with conn.cursor(DictCursor) as cursor:
-                    execute(cursor, sql)
-                    users = [self.fetch2obj(r, u.User) for r in cursor.fetchall()]
-                    users.sort(key=lambda a: a.name)
-                    users = self.convert_for_send(users, trim=self.trim_user)
-                    self.add_op_log(cursor, 'get_users', context='取到 %d 个用户' % len(users))
+            self.update_login()
+            cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
+            users = self.db.user.find(cond)
+            users = [self.fetch2obj(r, u.User, fields=fields) for r in users]
+            users.sort(key=lambda a: a.name)
+            users = self.convert_for_send(users, trim=self.trim_user)
+            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except DbError as e:
             return self.send_db_error(e)
@@ -68,17 +62,13 @@ class UserRolesHandler(BaseHandler):
         fields = ['a.id', 'name', 'phone', 'email'] + list(u.authority_map.keys())
         sql = 'SELECT {0} FROM t_user a,t_authority b WHERE a.id=b.user_id'.format(','.join(fields))
         try:
-            with self.connection as conn:
-                self.update_login(conn)
-                if u.ACCESS_MANAGER not in self.authority:
-                    sql += ' and user_id="{0}"'.format(self.current_user.id)
-
-                with conn.cursor(DictCursor) as cursor:
-                    execute(cursor, sql)
-                    users = [self.fetch2obj(r, u.User, fetch_authority) for r in cursor.fetchall()]
-                    users.sort(key=lambda a: a.name)
-                    users = self.convert_for_send(users)
-                    self.add_op_log(cursor, 'get_users', context='取到 %d 个用户' % len(users))
+            self.update_login()
+            cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
+            users = self.db.user.find(cond)
+            users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
+            users.sort(key=lambda a: a.name)
+            users = self.convert_for_send(users)
+            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except DbError as e:
             return self.send_db_error(e)

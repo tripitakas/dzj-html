@@ -37,7 +37,7 @@ class PickTextTaskApi(BaseHandler):
             page = convert_bson(self.db.cutpage.find_one(dict(name=name)))
 
             if r.matched_count:
-                self.add_op_log(None, 'pick_text_task', file_id=page['id'], context=name)
+                self.add_op_log('pick_text_task', file_id=page['id'], context=name)
             else:
                 if not page:
                     return self.send_error(errors.no_object)

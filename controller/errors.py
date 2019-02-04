@@ -5,7 +5,7 @@
 @author: Zhang Yungui
 @time: 2018/10/23
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashids import Hashids
 
 need_login = 403, '还未登录'
@@ -30,8 +30,11 @@ task_locked = 2000, '本任务已被领走，请领取新的任务'
 task_uncompleted = 2001, '您还有未完成的任务，请继续完成后再领取新的任务'
 
 
-def get_date_time(fmt=None):
-    return datetime.now().strftime(fmt or '%Y-%m-%d %H:%M:%S')
+def get_date_time(fmt=None, diff_seconds=None):
+    time = datetime.now()
+    if diff_seconds:
+        time += timedelta(seconds=diff_seconds)
+    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
 def gen_id(value, salt='', rand=False, length=16):

@@ -5,8 +5,6 @@
 可在 [官网](https://www.python.org/downloads/) 下载 Python 3.6或3.7 的安装程序，
 安装时勾选 “添加Python到PATH” 选项以便可在命令行运行Python。
 
-本平台也可在 Python 2.7 下运行。
-
 ### 2. 安装 Python 依赖包
 
 ```
@@ -15,18 +13,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-### 3. 安装 MySQL 5.5+/MariaDB 10.3+ 数据库
-
-可在 [官网](https://downloads.mariadb.org/) 下载安装程序，如果设置了root密码就记到 `app.yml` 的 `database.password` 中。
-
-在“开始”程序菜单中打开“MySQL Client”，执行下列命令：
-```
-create database tripitaka;
-quit
-mysql -u root -p tripitaka < this_project\model\init.sql
-```
-
-### 4. 安装 MongoDB 文档数据库
+### 3. 安装 MongoDB 文档数据库（可直接使用远程数据库）
 
 - 从 [官网](https://www.mongodb.com/download-center#community) 下载安装程序，如果是32位操作系统就选择3.2版本。
 
@@ -37,8 +24,11 @@ mysql -u root -p tripitaka < this_project\model\init.sql
   mongod --dbpath c:\data\db
   ```
   如果提示默认的 `storageEngine` 不支持，则按照提示添加参数，例如 `--storageEngine=mmapv1`。
+  
+- 如果使用远程数据库则不需要在本地安装 MongoDB：在 `app.yml` （首次启动网站服务可得到，或从 `_app.yml` 复制得到）中的`database`中
+  设置远程数据库的地址和密码等相应参数。
 
-### 5. 启动网站服务
+### 4. 启动网站服务
 
 运行 `python main.py`，或者在 PyCharm 等集成开发环境中选中 main.py 调试。
 在浏览器中打开本网站，进行登录或注册等操作，注册的第一个用户将是管理员。

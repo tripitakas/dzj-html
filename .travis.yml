@@ -3,7 +3,6 @@ python:
   - "3.6"
 
 services:
-  - mysql
   - mongodb
 
 install:
@@ -11,9 +10,7 @@ install:
     - pip install codecov
 
 before_script:
-    - mysql -V && mongo --version
-    - mysql -e 'create database if not exists tripitaka_test;'
-    - mysql tripitaka_test < model/init.sql;
+    - mongo --version
     - python tests/add_pages.py --db_name=tripitaka_test
     - find . -name "*.pyc" | xargs rm -rf
 

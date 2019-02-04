@@ -14,9 +14,6 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
 from pymongo.errors import PyMongoError
-from pymysql.constants import ER
-from pymysql.cursors import DictCursor
-from pymysql.err import MySQLError, Warning, ProgrammingError
 from tornado.escape import json_decode, json_encode, basestring_type
 from tornado.options import options
 from tornado.web import RequestHandler
@@ -40,7 +37,7 @@ old_framer = logging.currentframe
 logging.currentframe = my_framer
 
 MongoError = (PyMongoError, BSONError)
-DbError = (PyMongoError, BSONError, MySQLError)
+DbError = MongoError
 
 
 def fetch_authority(user, record):
@@ -83,15 +80,6 @@ def convert2obj(cls, json_obj):
     return obj
 
 
-def execute(cursor, query, args=None):
-    query = cursor.mogrify(query, args)
-    try:
-        return cursor.execute(query)
-    except ProgrammingError:
-        logging.warning(query)
-        raise
-
-
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
@@ -122,29 +110,24 @@ class BaseHandler(CorsMixin, RequestHandler):
         except TypeError as e:
             print(user, str(e))
 
-    def update_login(self, conn=None):
+    def update_login(self):
         """ 更新内存中的当前用户及其权限信息 """
         if not self.current_user:
             return False
-        if not conn:
-            with self.connection as conn:
-                return self.update_login(conn)
 
         fields = ['email'] + list(authority_map.keys())
-        sql = 'SELECT {0} FROM t_user a,t_authority b WHERE a.id=b.user_id and a.id=%s'.format(','.join(fields))
-        with conn.cursor(DictCursor) as cursor:
-            execute(cursor, sql, (self.current_user.id,))
-            old_user = self.fetch2obj(cursor.fetchone(), User, fetch_authority)
-            if old_user:
-                user = self.current_user
-                user.authority = old_user.authority
-                for k, v in list(user.__dict__.items()):
-                    if v is None or v == str:
-                        user.__dict__.pop(k)
-                self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
-            else:
-                self.current_user.authority = ''
-                raise Warning(1, '需要重新登录或注册')
+        old_user = self.fetch2obj(self.db.user.find_one(dict(email=self.current_user.email)),
+                                  User, fetch_authority, fields=fields)
+        if old_user:
+            user = self.current_user
+            user.authority = old_user.authority
+            for k, v in list(user.__dict__.items()):
+                if v is None or v == str:
+                    user.__dict__.pop(k)
+            self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
+        else:
+            self.current_user.authority = ''
+            raise Warning(1, '需要重新登录或注册')
         self.authority = self.current_user.authority
         return True
 
@@ -291,31 +274,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
     @staticmethod
-    def insert_sql(table, kwargs):
-        """
-        得到 INSERT 语句
-        :param table: 表名
-        :param kwargs: 字段名与值的字典对象
-        :return: SQL语句, 额外的字符串参数（在 execute 中使用）
-        """
-        extra = [v for v in kwargs.values() if v != str and isinstance(v, basestring_type)]
-        values = ['INET_ATON(%s)' if k == 'ip' else
-                  '%s' if v != str and isinstance(v, basestring_type) else
-                  'null' if v is None or v == str else str(v) for k, v in kwargs.items()]
-        return 'INSERT INTO {0}({1}) VALUES({2})'.format(table, ','.join(kwargs.keys()), ','.join(values)), extra
-
-    @staticmethod
-    def select_sql(fields, from_where):
-        """
-        得到 SELECT 语句
-        :param fields: 要读取的数据库字段的列表或元组，可为字段名指定模型属性名，例如 ('user_id=id', 'name')
-        :param from_where: 包含 FROM 和 WHERE 的子句
-        :return: SQL语句
-        """
-        return 'SELECT {0} {1}'.format(','.join(f.split('=')[0] for f in fields), from_where)
-
-    @staticmethod
-    def fetch2obj(record, cls, extra=None):
+    def fetch2obj(record, cls, extra=None, fields=None):
         """
         将从数据库取到(fetchall、fetchone)的记录字典对象转为模型对象
         :param record: 数据库记录，字典对象
@@ -330,7 +289,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 value = record[f]
                 if type(value) == datetime:
                     value = value.strftime('%Y-%m-%d %H:%M:%S')
-                if value is not None:
+                if value is not None and (not fields or f in fields):
                     obj[f] = value
             obj = convert2obj(cls, obj)
             if obj and extra:
@@ -341,32 +300,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, cursor, op_type, file_id=None, context=None):
+    def add_op_log(self, op_type, file_id=None, context=None):
         logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
-        sql = self.insert_sql('t_op_log', dict(type=op_type,
-                                               user_id=self.current_user and self.current_user.id,
-                                               file_id=file_id or None,
-                                               context=context and context[:80],
-                                               create_time=errors.get_date_time(),
-                                               ip=self.get_ip()))
-        if cursor:
-            return execute(cursor, *sql)
-        with self.connection as conn:
-            with conn.cursor() as cursor:
-                return execute(cursor, *sql)
-
-
-class auto_commit(object):
-    def __init__(self, handler, conn):
-        self.handler = handler
-        self.conn = conn
-
-    def __enter__(self):
-        return self.conn
-
-    def __exit__(self, err, exc_val, exc_tb):
-        if err:
-            self.conn.rollback()
-        else:
-            self.conn.commit()
-        self.conn.close()
+        self.db.log.insert_one(dict(type=op_type,
+                                    user_id=self.current_user and self.current_user.id,
+                                    file_id=file_id or None,
+                                    context=context and context[:80],
+                                    create_time=errors.get_date_time(),
+                                    ip=self.get_ip()))

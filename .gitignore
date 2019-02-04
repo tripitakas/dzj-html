@@ -45,3 +45,4 @@ target/
 # Project Files
 static/built/
 static/img/
+app.yml

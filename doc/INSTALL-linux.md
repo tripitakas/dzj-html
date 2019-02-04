@@ -16,8 +16,6 @@ sudo ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
 
 如果提示 `wget` 工具不存在，可换为 `curl -O ` 或安装 wget。
 
-本平台也可在 Python 2.7 下运行。
-
 ### 2. 安装 Python 依赖包
 
 ```
@@ -26,20 +24,7 @@ sudo pip3 install --upgrade pip
 sudo pip3 install -r requirements.txt
 ```
 
-### 3. 安装 MySQL 5.5+/MariaDB 10.3+ 数据库
-
-```
-sudo yum -y install mariadb mariadb-server
-sudo systemctl enable mariadb
-sudo systemctl start mariadb
-mysql_secure_installation
-mysql -u root -e 'create database tripitaka;'
-mysql -u root tripitaka < model/init.sql;
-```
-
-将输入的 root 密码记到 `app.yml` 的 `database.password` 中。
-
-### 4. 安装 MongoDB 文档数据库
+### 3. 安装 MongoDB 文档数据库
 
 ```
 wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.4.tgz
@@ -55,7 +40,7 @@ mongod -logpath log/mongo.log -logappend -fork
 
 [mongodb-down]: https://www.mongodb.com/download-center/community
 
-### 5. 启动网站服务
+### 4. 启动网站服务
 
 注：如果是在个人电脑上开发和测试，则不需要配置下面的参数，直接运行 `python3 main.py` 即可。
 
