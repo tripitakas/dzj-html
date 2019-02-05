@@ -3,6 +3,7 @@
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
 # python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
+from tornado.util import PY3
 from os import path, listdir, mkdir
 import sys
 import json
@@ -20,10 +21,14 @@ def create_folder(filename):
         mkdir(filename)
 
 
+def open_file(filename):
+    return open(filename, encoding='UTF-8') if PY3 else open(filename)
+
+
 def load_json(filename):
     if path.exists(filename):
         try:
-            with open(filename, encoding='UTF-8') as f:
+            with open_file(filename) as f:
                 return json.load(f)
         except Exception as e:
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
@@ -76,7 +81,7 @@ def add_texts(src_path, pages, db):
         if path.isdir(filename):
             add_texts(filename, pages, db)
         elif fn.endswith('.txt') and fn[:-4] in pages:
-            with open(filename, encoding='UTF-8') as f:
+            with open_file(filename) as f:
                 txt = f.read().strip().replace('\n', '|')
             r = db.cutpage.find_one(dict(name=fn[:-4]))
             if r and not r.get('txt'):

@@ -1,6 +1,6 @@
 ## 在 Windows 上的安装说明
 
-### 1. 安装 Python 3.6+ 和 pip3
+### 1. 安装 Python 3.6+/2.7 和 pip3
 
 可在 [官网](https://www.python.org/downloads/) 下载 Python 3.6或3.7 的安装程序，
 安装时勾选 “添加Python到PATH” 选项以便可在命令行运行Python。

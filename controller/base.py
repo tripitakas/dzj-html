@@ -249,10 +249,6 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.write({'code': status_code, 'error': reason})
             self.finish()
 
-    @property
-    def connection(self):
-        return auto_commit(self, self.application.open_connection())
-
     def send_db_error(self, e):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
         reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))

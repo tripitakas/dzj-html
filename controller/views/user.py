@@ -60,7 +60,6 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         fields = ['a.id', 'name', 'phone', 'email'] + list(u.authority_map.keys())
-        sql = 'SELECT {0} FROM t_user a,t_authority b WHERE a.id=b.user_id'.format(','.join(fields))
         try:
             self.update_login()
             cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
