@@ -1,163 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-如是藏经</title>
 
-		<!-- Plugins css -->
-		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+<head>
+    <meta charset="UTF-8">
+    <title>如是藏经</title>
 
-		<!-- Custom Files -->
-		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+    <!-- Plugins css -->
+    <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
 
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9]>
+    <!-- Custom Files -->
+    <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+    <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
         <![endif]-->
 
-		{% include _base_css.html %}
+    {% include _base_css.html %}
 
-	</head>
-	<style>
+</head>
+<style>
 
-	</style>
+</style>
 
-	<body>
-		<div class="app-main">
-			<div class="main">
+<body>
+    <div class="app-main">
+        <div class="main">
 
-				<div class="main-content">
+            <div class="main-content">
 
-					<header class="m-header">
-						<div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
+                <header class="m-header">
+                    <div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
 
-						<div class="m-header-title">如是藏经</div>
-						<div class="m-header-page">
-							<div class="m-header-page-info">
-								当前第<span> 1 </span>卷,共<span> 80 </span>卷
-							</div>
-							<div class="m-header-page-btn first"><a href="" >首卷</a></div>
-							<div class="m-header-page-btn prev"><a href="" >上一卷</a></div>
-							<div class="m-header-page-btn to">跳至<span><input type="text"/></span>卷</div>
-							<div class="m-header-page-btn next"><a href="" >下一卷</a></div>
-                            <div class="m-header-page-btn last"><a href="" >末卷</a></div>
-						</div>
-						<div class="m-header-font">
-							<div class="m-header-font-reduce"><a href="" >A-</a></div>
-							<div class="m-header-font-current">20</div>
-							<div class="m-header-font-enlarge"><a href="" >A+</a></div>
-						</div>
-						<div class="m-header-togglebtn">
-							<img src="{{ static_url('imgs/icon_toggle.png') }}" class="m-header-img"/>
-						</div>
-						<div class="m-header-help"><a href=""><img src="{{ static_url('imgs/icon_help.png') }}" class="m-header-img" /></a></div>
-					</header>
-					<div class="flex-content">
-                        <div class="main-left">
-                            <div class="main-left-tab">
-                                <div class="main-left-tab1 active">函-册</div>
-                                <div class="main-left-tab1">经-卷</div>
-                                <div class="main-left-search">
-                                    <input type="text" placeholder="检索">
-                                    <img src="{{ static_url('imgs/icon13.png') }}" id="search_btn">
-                                </div>
+                    <div class="m-header-title">如是藏经</div>
+                    <div class="m-header-page">
+                        <div class="m-header-page-info">
+                            当前第<span> 1 </span>卷，共<span> 80 </span>卷
+                        </div>
+                        <div class="m-header-page-btn first"><a href="">首卷</a></div>
+                        <div class="m-header-page-btn prev"><a href="">上一卷</a></div>
+                        <div class="m-header-page-btn to">跳至<span><input type="text" /></span>卷</div>
+                        <div class="m-header-page-btn next"><a href="">下一卷</a></div>
+                        <div class="m-header-page-btn last"><a href="">末卷</a></div>
+                    </div>
+                    <div class="m-header-font">
+                        <div class="m-header-font-reduce"><a href="">A-</a></div>
+                        <div class="m-header-font-current">20</div>
+                        <div class="m-header-font-enlarge"><a href="">A+</a></div>
+                    </div>
+                    <div class="m-header-togglebtn">
+                        <img src="{{ static_url('imgs/icon_toggle.png') }}" class="m-header-img" />
+                    </div>
+                    <div class="m-header-help"><a href=""><img src="{{ static_url('imgs/icon_help.png') }}" class="m-header-img" /></a></div>
+                </header>
+                <div class="flex-content">
+                    <div class="main-left" id="main-left">
+                        <div class="main-left-tab">
+                            <div class="main-left-tab1 active" id="sutra-nav">经-卷</div>
+                            <div class="main-left-search">
+                                <input type="text" id="search_input" placeholder="全文检索">
+                                <img src="{{ static_url('imgs/icon13.png') }}" id="search_btn">
                             </div>
-                            <div class="main-left-menu">
-                                <ul class="menu" id="side-menu">
-                                    <li>
-                                        <div class="submenu-title">
-                                            <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="submenu-title">
-                                            <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
-                                        </div>
-                                        <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
-                                            </li>
-
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <div class="submenu-title">
-                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
-                                        </div>
-                                        <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
-                                            </li>
-
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <div class="submenu-title">
-                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
-                                        </div>
-                                        <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
-                                            </li>
-
-                                        </ul>
-                                    </li>
-
-                                </ul>
-
-                                <div class="menu-search" id="menu-search">
-                                    <div class="menu-search-wrapper">
-                                        <input type="text" />
-                                        <img src="{{ static_url('imgs/icon13.png') }}"/>
+                        </div>
+                        <div class="main-left-menu">
+                            <ul class="menu" id="side-menu">
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
+                                        <span>大般若波羅蜜多經(600)</span>
+                                        <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
                                     </div>
-                                    <div class="menu-search-scope">
-                                        <span>范围</span>
-                                        <ul>
-                                            <li class="active">全部</li>
-                                            <li>经编号</li>
-                                            <li>经名</li>
-                                            <li>作译者</li>
-                                            <li>正文</li>
-                                        </ul>
+                                    <ul class="sub-ul sub-ul-hidden">
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第1卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第2卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第3卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">......</a></span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
+                                        <span>放光般若波羅蜜經(20)</span>
+                                        <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
                                     </div>
+                                    <ul class="sub-ul sub-ul-hidden">
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第1卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第2卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第3卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第4卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第5卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第6卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第7卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第8卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第9卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第10卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第11卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第12卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第13卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第14卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第15卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第16卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第17卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第18卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第19卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第20卷</a></span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>摩訶般若鈔經(5))</span>
+                                        <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
+                                    </div>
+                                    <ul class="sub-ul sub-ul-hidden">
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第1卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第2卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第3卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第4卷</a></span>
+                                        </li>
+                                        <li>
+                                            <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                            <span><a href="">第5卷</a></span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>道行般若經(10)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>小品般若波羅蜜經(10)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>勝天王般若波羅蜜經(7)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>大明度經(6)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>般若波羅蜜多心經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>金剛般若波羅蜜經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>大寶積經(120)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說無量淸淨平等覺經(4)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說無量壽經(2)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說普門品經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>法鏡經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說決定毗尼經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說幻士仁賢經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說離垢施女經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>佛說太子和休經(1)</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="submenu-title">
+                                        <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                        <span>大方等大集經(60)</span>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                            <div class="menu-search" id="menu-search">
+                                <div class="menu-search-wrapper">
+                                    <input type="text" />
+                                    <img src="{{ static_url('imgs/icon13.png') }}" />
+                                </div>
+                                <div class="menu-search-scope">
+                                    <span>范围</span>
+                                    <ul>
+                                        <li class="active">全部</li>
+                                        <li>经编号</li>
+                                        <li>经名</li>
+                                        <li>作译者</li>
+                                        <li>正文</li>
+                                    </ul>
                                     <div class="search_ck">
                                         <div class="checkbox checkbox-brown custom">
                                             <input id="checkbox5" type="checkbox" checked="">
@@ -166,276 +331,945 @@
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="search_result">
-                                        <div class="search_result1">共找到<span>301</span>个结果</div>
-                                        <div class="search_result2"><a href="">按经号排序</a><i><img src="{{ static_url('imgs/icon16.png') }}"/></i></div>
-                                    </div>
-                                    <div class="search_item">
-                                        <b>RS001:大方广佛华严经</b>
-                                        <p>佛驮跋陀罗</p>
-                                        <p>佛驮跋陀罗(359～429)，简称佛驮跋陀，意译“觉贤”</p>
-                                    </div>
-                                    <div class="search_item">
-                                        <b>RS002:大方广佛华严经</b>
-                                        <p>唐般剌密谛</p>
-                                        <p>般剌密谛在唐中宗神龙元年（705年）于广州</p>
-                                    </div>
-                                    <div class="search_item">
-                                        <b>RS003:妙法莲华经</b>
-                                        <p>鸠摩罗什</p>
-                                        <p>法华经是释迦牟尼佛晚年在王舍城灵鹫山所说</p>
-                                    </div>
                                 </div>
-
+                                
+                                <div class="search_result">
+                                    <div class="search_result1">共找到<span>301</span>个结果</div>
+                                    <div class="search_result2"><a href="">按经号排序</a><i><img src="{{ static_url('imgs/icon16.png') }}" /></i></div>
+                                </div>
+                                <div class="search_item">
+                                    <p><b>RS-0001：大般若波羅蜜多經 </b> 第566卷</p>
+                                    <p>三藏法師 玄奘奉　詔譯</p>
+                                    <div class="search_result_text">所謂寶相菩薩、寶手菩薩、寶印菩薩、寶髻菩薩、寶冠菩薩、寶峯菩薩、寶海菩薩、寶焰菩薩、寶幢菩薩、寶藏菩薩、金藏菩薩、淨藏菩薩、德藏菩薩、定藏菩薩、智藏菩薩、日藏菩薩、月藏菩薩、如來藏菩薩、蓮華藏菩薩、金剛藏菩薩、解脫月菩薩、普賢菩薩、普音菩薩、普戒菩薩、普行菩薩、<span class="hit" style="color:red">普眼菩薩</span>、廣眼菩薩、蓮華眼菩薩、智慧菩薩、上慧菩薩、勝慧菩薩、蓮華慧菩薩、金剛慧菩薩、日光菩薩、月光菩薩、智光菩薩、智德菩薩、賢德菩薩、華德菩薩、日觀菩薩、月觀菩薩、無染菩薩、妙音菩薩、大音王菩薩、師子吼菩薩、師子遊戲菩薩，賢首菩薩等十六賢菩薩，慈氏菩薩等賢劫諸菩薩，觀自在菩薩、妙吉祥菩薩而為上首。</div>
+                                </div>
+                                <div class="search_item">
+                                    <p><b>RS-0009：大方廣佛華嚴經</b>  第40卷</p>
+                                    <p>東晉天竺三藏 佛馱跋陀羅 譯</p>
+                                    <div class="search_result_text">月光菩薩、一塵菩薩、堅固行菩薩、霔法雨菩薩、最勝幢菩薩、普莊嚴菩薩、智眼菩薩、法眼菩薩、慧雲菩薩、總持王菩薩、無住願菩薩、智藏菩薩、心王菩薩、內覺慧菩薩、住佛智菩薩、陀羅尼勇健力菩薩、持地力菩薩、妙月菩薩、須彌頂菩薩、寶頂菩薩、普光照菩薩、威德王菩薩、智慧輪菩薩、大威德菩薩、大龍相菩薩、質直行菩薩、不退轉菩薩、持法幢菩薩、無忘失菩薩、攝諸趣菩薩、不思議決定慧菩薩、遊戲無邊智菩薩、無盡妙法藏菩薩、智日菩薩、法日菩薩、智藏菩薩、智澤菩薩、普見菩薩、不空見菩薩、金剛通菩薩、金剛智菩薩、金剛焰菩薩、金剛慧菩薩、<span class="hit" style="color:red">普眼菩薩</span>、佛日菩薩、持佛金剛祕密義菩薩、普眼境界智莊嚴菩薩……。如是等菩薩摩訶薩十佛剎微塵數，往昔皆與毘盧遮那如來同修菩薩諸善根行。爾時，普眼菩薩摩訶薩承佛神力從座而起，偏袒右肩，右膝著地，合掌白佛言：「世尊！我於如來、應、正等覺，欲有所問，願垂哀許。</div>
+                                    <p><a>還有8條...</a></p>
+                                </div>
+                                <div class="search_item">
+                                    <p><b>RS-0009：大方廣佛華嚴經</b>  第43卷</p>
+                                    <p>東晉天竺三藏 佛馱跋陀羅 譯</p>
+                                    <div class="search_result_text">何者為十？所謂：得諸相好，種種莊嚴，同於諸佛；能放清淨大光明網，同於諸佛；神通變化，調伏眾生，同於諸佛；無邊色身，清淨圓音，同於諸佛；隨眾生業現淨佛國，同於諸佛；一切眾生所有語言皆能攝持、不忘不失，同於諸佛；無盡辯才隨眾生心而轉法輪令生智慧，同於諸佛；大師子吼無所怯畏，以無量法開悟群生，同於諸佛；於一念頃，以大神通普入三世，同於諸佛；普能顯示一切眾生諸佛莊嚴、諸佛威力、諸佛境界，同於諸佛。爾時，<span class="hit" style="color:red">普眼菩薩</span>白普賢菩薩言：「佛子！此菩薩摩訶薩得如是法，同諸如來，何故不名：佛？何故不名：十力？何故不名：一切智？何故不名：一切法中得菩提者？何故不得名為：普眼？何故不名：一切境中無礙見者？何故不名：覺一切法？何故不名：與三世佛無二住者？何故不名：住實際者？何故修行普賢行願猶未休息？何故不能究竟法界捨菩薩道？」</div>
+                                    <p><a>還有1條...</a></p>
+                                </div>
+                                <div class="search_item">
+                                    <p><b>RS-0014：大方廣佛華嚴經</b>  第1卷</p>
+                                    <p>大唐三藏法師 菩提流志 奉　詔譯</p>
+                                    <div class="search_result_text">金剛智威德菩薩、無垢威德菩薩、日威德菩薩、月威德菩薩、福山威德菩薩、智照威德菩薩、普勝威德菩薩、地藏菩薩、虛空藏菩薩、蓮華藏菩薩、寶藏菩薩、日藏菩薩、清淨功德藏菩薩、法海藏菩薩、遍照藏菩薩、齊藏菩薩、勝蓮華藏菩薩、日眼菩薩、淨眼菩薩、無垢眼菩薩、無礙眼菩薩、普明眼菩薩、善利智眼菩薩、金剛眼菩薩、寶眼菩薩、虛空眼菩薩、<span class="hit" style="color:red">普眼菩薩</span>、天冠菩薩、照法界摩尼冠菩薩、妙菩提摩尼冠菩薩、照十方冠菩薩、出現一切佛藏冠菩薩、超一切世間冠菩薩、普照冠菩薩、無映蔽冠菩薩、執持一切如來師子座冠菩薩、普照法界虛空冠菩薩、梵王髻菩薩、龍王髻菩薩、一切佛變化影像髻菩薩、妙菩提髻菩薩、一切願海音聲摩尼王髻菩薩、放一切如來圓光摩尼寶雷聲髻菩薩、一切虛空無差別表示摩尼寶網覆髻菩薩、一切如來法輪聲髻菩薩、一切三世名輪聲髻菩薩、大光菩薩、無垢光菩薩、寶光菩薩、離塵光菩薩</div>
+                                </div>
                             </div>
 
                         </div>
-					    <div class="fold_btn"><img src="{{ static_url('imgs/icon17.png') }}"/></div>
-                        <div class="main-right">
-                            <div class="main-right-content">
-                                <p>如是我闻：</p>
-                                <p>一时，佛在摩竭提国阿兰若法菩提场中，</p>
-                                <p>始成正觉。其地坚固，金刚所成；</p>
-                                <p>上妙宝轮，及众宝华、清净摩尼，以为严饰；</p>
-                                <p>诸色相海，无边显现；</p>
-                                <p>摩尼为幢，常放光明，恒出妙音，</p>
-                                <p>众宝罗网，妙香华<b class="kw">缨</b>，周匝垂布；</p>
-                                <p>摩尼宝王，变现自在，雨无尽宝及众妙华分散于地；</p>
-                                <p>宝树行列，枝叶光茂。</p>
-                                <p>佛神力故，令此道场一切庄严于中影现。</p>
-                                <p>其菩提树高显殊特：金刚为身，琉璃为干；</p>
-                                <p>众杂妙宝以为枝条；宝叶扶疏，垂荫如云；</p>
-                                <p>宝华杂色，分枝布影，复以摩尼而为其果，含辉发焰，与华间列。</p>
-                                <p>其树周圆咸放光明，于光明中雨摩尼宝，</p>
-                                <p>摩尼宝内，有诸菩萨，其众如云，俱时出现。</p>
-                                <p>又以如来威神力故，其菩提树恒出妙音，</p>
-                                <p>说种种法，无有尽极。</p>
-                                <p>如来所处宫殿楼阁，广博严丽充遍十方，</p>
-                                <p>众色摩尼之所集成，种种宝华以为庄校；</p>
-                                <p>诸庄严具流光如云，从<b class="kw">宫殿</b>间萃影成幢。</p>
-                                <p>无边菩萨道场众会咸集其所，以能出现诸佛光明不思议音。</p>
 
+                    </div>
+                    <div class="fold_btn"><img src="{{ static_url('imgs/icon17.png') }}" /></div>
+                    <div class="main-right"  id="main-right">
+                        <div class="main-right-content">
+                            <p style="text-align:center; font-size:22px; font-weight: bold">正法華經卷第一</p>
+                            <p style="text-align:right; font-size:16px; padding-right: 18px">西晉月氏國三藏竺法護譯</p>
+                            <p style="text-align:center; font-size:18px">光瑞品第一</p>
+                            <p>聞如是：</p>
+                            <p>一時佛遊王舍城靈鷲山，與大比丘眾俱，比丘千二百，一切無著，諸漏已盡無復欲塵，已得自在逮<b class="kw">得</b>己利，生死已索眾結即斷，一切由已獲度無極，已脫於慧心解得度、名曰：賢者知本際、賢者大迦葉、上時迦葉、象迦葉、江迦葉、舍利弗、大目揵連、迦旃延、阿那律、劫賓㝹、牛呞、離越、譬利斯、薄拘盧、拘絺、難陀、善意、滿願子、須菩提、阿難、羅云；菩薩八萬，皆不退轉，堅住無上正真之道，逮總持法得大辯才，常讚歎不退轉法輪，供養無數百千諸佛，於無量佛殖眾德本，諸佛世尊所見諮嗟，身常行慈入如來慧，善權普至大知度無極，從無數劫多所博聞，名達十方，救護無量百千眾生，遊於三界猶如日明，解一切法如幻如化野馬影響，悉無所有住無所住，雖<b
+                                    class="kw">見</b>終始亦無去來，既見色像本無形貌，現諸所生永無起滅，導利群黎不著三處，分別空慧無想無願，起三脫門至三達智，無去來今現在之想，開化黎庶使了本無。</p>
+                            <p>其名曰：溥首菩薩、光世音菩薩、大勢至菩薩、常精進菩薩、不置遠菩薩、寶掌菩薩、印手菩薩、藥王菩薩、妙勇菩薩、寶月菩薩、月光菩薩、月滿菩薩、大度菩薩、超無量菩薩、越世菩薩、解縛菩薩、寶事菩薩、恩施菩薩、雄施菩薩、水天菩薩、帝天菩薩、大導師菩薩、妙意菩薩、慈氏菩薩，如是大士八萬上首。爾時天帝釋與二萬天子俱，日天子與無數眷屬俱，月天子以寶光明普有所炤，寶光天子、光燿天子俱，四大天王與萬天子俱，㷿明大梵自在天子與三萬天子俱，梵忍跡天子與三萬二千天子俱，飾乾大梵與無數天子，又梵名㷿光與無數大眾俱，來詣佛所，稽首畢退坐一面。有八龍王，與無央數千諸龍眷屬俱；四真陀羅王——慎法真陀羅王，大法真陀羅王，仁和真陀羅王，持法真陀羅王；香音神，各與營從來詣佛所，稽首畢退住一面。淨身四天子——柔軟天子，和音天子，美軟天子，悅響天子——俱來詣佛所，前稽首畢退坐一面。四阿須倫王——最勝阿須倫，欲錦阿須倫，燕居阿須倫，吸氣阿須倫——與無央數百千阿須倫人民俱，來詣佛所，前稽首畢退坐一面。四金翅鳥王——大身王，大具足王，得神足王，不可動王——俱來詣佛所，稽首畢退住一面。摩竭國王阿闍世，與十子并諸營從，來詣佛所，稽首畢退坐一面。諸天、龍神、世人，莫不歸命奉敬侍坐。</p>
+                            <p>爾時世尊與四部眾眷屬圍繞而為說經，講演菩薩方等大頌一切諸佛嚴淨之業。說斯經已，昇于自然師子之床加趺而坐，三昧正受定意，名曰立無量頌。尋應所宜，不見身貌、不得心意，所坐立處則有瑞應，天雨、意華、大意華、柔軟音華、大柔軟音華，散世尊上及於大會四部之眾，普佛國土六反震動。時大眾會比丘、比丘尼、清信士、清信女，天、龍、神鬼、揵沓惒、阿須倫、迦留羅、真陀羅、摩休勒、人與非人，國王君主大力轉輪聖王，各與營從，咸悉一心瞻戴世尊，意皆愕然怪未曾有。於時佛放面口結光明，普炤東方萬八千佛土，其大光明照諸佛國，靡不周遍，至於無擇大地獄中，上徹三十三天，彼此世界六趣周旋，所有蒸民一切皆現，其界諸佛現在所由，此土眾會悉遙見之；彼土覩斯亦復如是，十方諸佛所說經法，普遍聞焉。諸比丘、比丘尼、清信士、清信女，修行獨處者逮得德果一切表露，又諸菩薩意寂解脫，其出家者求報應行，皆亦悉現；諸佛世界滅度眾聖，所建寶廟自然為現。</p>
+                            <p>於是彌勒菩薩心自念言：「今者世尊，如來、至真、等正覺，三昧正受，現大感變，多所降伏，覩未曾有，天上世間諸佛廟寺，恢闊彰顯，將何所興而有此瑞？從昔暨今未曾見也。欲問其歸，孰堪發遣解斯誼乎？」尋改思曰：「今者大士溥首童真，所作已辦靡所不達，供養過去無數諸佛，曾當瞻覲如來、至真、等正覺，如此瑞應欲請問之。」</p>
+                            <p>時四部眾比丘、比丘尼、清信士、清信女，諸天、龍、神、揵沓惒、阿須倫、迦留羅、真陀羅、摩休勒，志懷猶豫得未曾有，見斯大聖無極威曜神足變化，各各發意，欲問世尊決散疑網。慈氏大士見眾會心，便問溥首曰：「仁者惟說，今何因緣有此瑞應，大聖神足放大光明，照于東方萬八千土，諸佛世界自然為現，所說經法皆遙聞之？」</p>
+                            <p>於是慈氏以頌而問溥首曰：</p>
+                            <p>「文殊師利！　　今何以故，　　導利眾庶，</p>
+                            <p>　放演光明？　　甚大威曜，　　出于面門，</p>
+                            <p>　神變遍照，　　十方㸌然；　　天雨眾華，</p>
+                            <p>　紛紛如降，　　意華大意，　　柔軟音華，</p>
+                            <p>　種種若干，　　其色殊妙，　　栴檀馨香，</p>
+                            <p>　悅可眾心，　　嚴淨巍巍，　　皆悉周遍。</p>
+                            <p>　今日四輩，　　欣然踊躍，　　於此佛土，</p>
+                            <p>　十方世界，　　六反震動，　　莫不傾搖。</p>
+                            <p>　于彼光明，　　則照東方，　　萬八千土，</p>
+                            <p>　其暉普徹，　　諸佛境土，　　紫磨金色，</p>
+                            <p>　煌煌灼灼，　　㷿無不接。　　國邑群萌，</p>
+                            <p>　莫不蒙賴，　　達盡上界，　　入無擇獄。</p>
+                            <p>　眾庶受生，　　用無明故，　　滅沒墮落，</p>
+                            <p>　歸此諸趣。　　斯等黎民，　　覩見因緣，</p>
+                            <p>　若干之趣，　　今現嚴淨，　　賢明不肖，</p>
+                            <p>　中間品類，　　吾於此住，　　皆遙見之。</p>
+                            <p>　又覩諸佛，　　而師子吼，　　演說經典，</p>
+                            <p>　開闡法門，　　消除眾生，　　無數之穢。</p>
+                            <p>　歌頌聖教，　　出柔軟音，　　其響深妙，</p>
+                            <p>　令人欣踊。　　各各自捨，　　境界所有，</p>
+                            <p>　講說譬喻，　　億載報應，　　分別敷演，</p>
+                            <p>　於此佛法。　　一切眾生，　　所造苦患，</p>
+                            <p>　以無巧便，　　治老病死，　　猶斯等類，</p>
+                            <p>　說寂滅度。　　比丘當知，　　貧劇困惱，</p>
+                            <p>　眾人則處，　　安雅快樂，　　積累功德，</p>
+                            <p>　乃見聖尊，　　又得逮至，　　緣一覺乘，</p>
+                            <p>　一切令入，　　於此道業，　　見佛殊異，</p>
+                            <p>　諸所經籍，　　或有志求，　　無上之慧。</p>
+                            <p>　一切世間，　　見若干形，　　斯等眾類，</p>
+                            <p>　歌詠佛德。　　仁者溥首！　　彼所言說，</p>
+                            <p>　我立住此，　　今悉見聞，　　及餘無數，</p>
+                            <p>　諸億千眾，　　在此遊居，　　吾悉覩眄。</p>
+                            <p>　又見佛土，　　不可計數，　　諸菩薩等，</p>
+                            <p>　如江河沙，　　億百千數，　　而不減少，</p>
+                            <p>　建志精進，　　興發道意。　　或有放捨，</p>
+                            <p>　諸所財業，　　而行布施。　　金銀珍寶，</p>
+                            <p>　明月真珠，　　車𤦲馬腦，　　奴婢車乘，</p>
+                            <p>　床臥机榻，　　諸所珍異，　　環珮瓔珞，</p>
+                            <p>　於是具足，　　皆用惠賜，　　悉以勸助，</p>
+                            <p>　上尊佛道。　　今我等類，　　聞斯音聲，</p>
+                            <p>　安住所歎，　　正覺大乘，　　遊於三界，</p>
+                            <p>　而無所猗，　　其人速逮，　　得獲斯願。</p>
+                            <p>　或以諸乘，　　則而施與，　　諸華伎樂，</p>
+                            <p>　欄楯莊嚴，　　簫成鼓吹，　　音節所娛，</p>
+                            <p>　四事如應，　　惠與奉授，　　以此布施，</p>
+                            <p>　心不悋惜。　　妻妾子孫，　　所重輦輿，</p>
+                            <p>　或慮非常，　　手足與人，　　志不矜愛，</p>
+                            <p>　皆用惠施，　　欲以慕求，　　此尊佛道。</p>
+                            <p>　復有捨身，　　給諸所有，　　頭眼支體，</p>
+                            <p>　無所遺愛，　　所以布施，　　用成佛道，</p>
+                            <p>　志願逮獲，　　如來聖慧。　　溥首童真！</p>
+                            <p>　吾瞻國王，　　與眷屬俱，　　而出遊立，</p>
+                            <p>　中宮后妃，　　婇女貴人，　　族姓娛樂，</p>
+                            <p>　俱禮佛身。　　眾庶朋黨，　　悉詣導師，</p>
+                            <p>　而於法王，　　啟問經典，　　則除俗服，</p>
+                            <p>　下其鬚髮，　　而被袈裟，　　以為法式。</p>
+                            <p>　我覩若干，　　諸菩薩眾，　　比丘知友，</p>
+                            <p>　頓止山巖，　　獨處閑居，　　解暢空無，</p>
+                            <p>　或有受經，　　而讀誦讚。　　吾復瞻見，</p>
+                            <p>　開士之黨，　　英雄儔疋，　　出入山谷，</p>
+                            <p>　專精思惟，　　歷察眾相，　　分別講說，</p>
+                            <p>　演諸佛乘，　　捐棄愛欲，　　永使無餘。</p>
+                            <p>　常自纂修，　　悕仰正行，　　安住諸子，</p>
+                            <p>　不離閑居，　　則便逮得，　　成五神通。</p>
+                            <p>　高妙之士，　　志平等句，　　向諸導師，</p>
+                            <p>　恭敬叉手，　　心懷踊躍，　　歌詠佛德，</p>
+                            <p>　以數千偈，　　歎人中王。　　覩無所畏，</p>
+                            <p>　志踊調和，　　曉了分別，　　出家之業，</p>
+                            <p>　諮稟經典，　　於兩足尊，　　所聞頻數，</p>
+                            <p>　尋即執翫，　　安住眾子，　　先自修已。</p>
+                            <p>　我又遙見，　　諸佛孫息，　　為無數億，</p>
+                            <p>　人民講法，　　而現報應，　　兆載難計，</p>
+                            <p>　志懷欣喜，　　自歸正法，　　勸助開化。</p>
+                            <p>　無數菩薩，　　降伏眾魔，　　秉勢官屬，</p>
+                            <p>　而雷擊扣，　　於此法鼓，　　善逝典誥。</p>
+                            <p>　我又覽歷，　　諸天人神，　　所共宗奉，</p>
+                            <p>　安住諸子，　　不以奇雅，　　益用寂然，</p>
+                            <p>　履行定隱，　　無所猗著，　　猶如師子，</p>
+                            <p>　開化度眾，　　令發道意。　　眾生在居，</p>
+                            <p>　手執所供，　　心懷悅豫，　　僉然俱詣。</p>
+                            <p>　又諸佛子，　　立於精進，　　棄捐欲塵，</p>
+                            <p>　常得自在，　　建志經行，　　遊諸樹間，</p>
+                            <p>　心願勤修，　　根求佛道。　　而護身口，</p>
+                            <p>　常行清淨，　　禁戒安隱，　　不畏生死，</p>
+                            <p>　於彼秉心，　　具足諸行，　　以斯禁戒，</p>
+                            <p>　寤諸不覺。　　最勝之子，　　據忍辱力，</p>
+                            <p>　為諸貢高，　　卑下謙順，　　輕毀罵詈，</p>
+                            <p>　若撾捶者，　　其求佛道，　　默然不校。</p>
+                            <p>　吾或復觀，　　菩薩之眾，　　一切棄離，</p>
+                            <p>　調戲伎樂，　　與諸力勢，　　親友等俱，</p>
+                            <p>　其心堅固，　　平如虛空。　　蠲除諸穢，</p>
+                            <p>　憒亂之意，　　建立一心，　　消滅陰蓋，</p>
+                            <p>　禪思思惟，　　億百千歲，　　布施立意，</p>
+                            <p>　求尊佛道。　　或自割損，　　多所惠潤，</p>
+                            <p>　刈除貪嫉，　　閑不懷懅，　　飲食供具，</p>
+                            <p>　所當得者，　　及無數人，　　諸病醫藥。</p>
+                            <p>　又復施與，　　衣被服飾，　　檀已濟裸，</p>
+                            <p>　無所藏積。　　與營從俱，　　面見最勝，</p>
+                            <p>　在上化立，　　億百千供。　　所造珍寶，</p>
+                            <p>　及栴檀香，　　多有床座，　　明珠諸藏。</p>
+                            <p>　現在目前，　　奉上安住，　　其寶之價，</p>
+                            <p>　直億百千。　　所覩園觀，　　樹葉華實，</p>
+                            <p>　具足鮮淨，　　悅可人意。　　夙夜修行，</p>
+                            <p>　兼加進獻，　　上人正士，　　諸聲聞等，</p>
+                            <p>　所可慧益，　　品列如斯，　　雜種若干，</p>
+                            <p>　歡喜濟乏，　　深自欣慶，　　而建道行，</p>
+                            <p>　以此所施，　　願求尊覺。　　或有得人，</p>
+                            <p>　寂然法誼，　　察諸報應，　　眾億兆載，</p>
+                            <p>　發起民庶，　　使其悔過，　　令捨億寶，</p>
+                            <p>　志願佛道。　　曉了觀察，　　不祕悋法，</p>
+                            <p>　滅除三事，　　寂等如空，　　安住之子，</p>
+                            <p>　悉無所著，　　斯等智慧，　　求尊佛道。</p>
+                            <p>　溥柔軟音，　　吾復覩見，　　諸滅度佛，</p>
+                            <p>　安住開化。　　諸所現在，　　大菩薩眾，</p>
+                            <p>　咸共奉敬，　　最勝舍利。　　吾覲佛廟，</p>
+                            <p>　億千之數，　　凡難限計，　　如江河沙。</p>
+                            <p>　在于億土，　　常見尊戴，　　諸所化現，</p>
+                            <p>　最勝由已。　　七寶自然，　　清淨而現，</p>
+                            <p>　具足里數，　　二十五萬。　　諸蓋幢幡，</p>
+                            <p>　各有數千，　　廣長周匝，　　各二千里，</p>
+                            <p>　其蓋妙好，　　殊異嚴淨。　　所在眾香，</p>
+                            <p>　珍寶自然，　　諸果芬馥，　　伎樂和雅。</p>
+                            <p>　鬼神羅剎，　　肅恭人尊，　　安住諸子，</p>
+                            <p>　所興感動，　　以用供養，　　舍利若斯。</p>
+                            <p>　今此佛廟，　　昱鑠璨麗，　　普布香華，</p>
+                            <p>　如晝度樹。　　於斯人眾，　　無數億千，</p>
+                            <p>　悉遙覩見，　　煒曄斒斕，　　衣毛為竪，</p>
+                            <p>　眷屬馳造，　　欲見最勝，　　顯發光明。</p>
+                            <p>　人中之上，　　演大光燿，　　妙哉明哲，</p>
+                            <p>　離垢無漏，　　乃能闡現，　　如斯弘暉，</p>
+                            <p>　示諸佛土，　　無央數千。　　見此瑞應，</p>
+                            <p>　得未曾有。　　如是疇類，　　諸大變化，</p>
+                            <p>　唯願溥首，　　具說斯誼。　　吾今欽羨，</p>
+                            <p>　及諸佛子，　　於四部眾，　　心懷悅豫。</p>
+                            <p>　渴仰仁者，　　兼見瞻察，　　今日安住，</p>
+                            <p>　何所因由，　　奮大光明，　　而從口出，</p>
+                            <p>　解散狐疑，　　勸發欣躍。　　何故佛現，</p>
+                            <p>　無極大光？　　如斯所變，　　當有所感。</p>
+                            <p>　安住之子，　　願用時說。　　大聖所成，</p>
+                            <p>　此微妙法，　　在于道場，　　正士敷演。</p>
+                            <p>　世雄導師，　　所由方面，　　願為分別。</p>
+                            <p>　此諸菩薩，　　欲見佛土，　　無央數千，</p>
+                            <p>　群生倫品，　　眾寶嚴淨，　　諸佛自現，</p>
+                            <p>　無量明目。　　凡新學者，　　得無猶豫，</p>
+                            <p>　諸最勝子，　　普共啟問。　　悅諸人民，</p>
+                            <p>　天神羅剎，　　四部之眾，　　一切戴仰。</p>
+                            <p>　今者溥首，　　惟具分別。」</p>
+                            <p>於是溥首告慈氏、諸大士眾會者族姓子女：「吾心惟忖，今者如來，當敷大法演無極典，散大法雨、擊大法鼓、吹大法螺，講無量法。又自追憶，乃從過去諸佛世尊見斯像瑞，彼如來等所放光明亦復若茲，猶斯識察知講大法。諸如來、至真、等正覺，欲令眾生聽無極典，故現斯應。所以者何？世尊欲令群生洗除俗穢，聞服佛法，現弘大變光明神化。又念往故無央數劫不可思議無能度量，時有如來，號日月燈明至真、等正覺、明行成為、善逝、世間解、無上士、道法御、天人師，為佛、世尊，演說經典，初語亦善、中語亦善、竟語亦善，分別其誼微妙具足，究竟清淨修梵行，為聲聞乘講陳聖諦，則令眾庶度生老死憂惱眾患入近無為。為諸菩薩大士之眾，顯揚部分分別六度無極無上正真。</p>
+                            <p>「又族姓子，其日月燈明如來滅度之後，次復有佛，亦號日月燈明。滅度之後，次復有佛，亦號日月燈明。滅度之後，復次有佛，亦號日月燈明。如是等倫八十如來，皆同一號日月燈明，胄紹一姓。若斯之比二萬如來，佛語莫能勝。彼二萬如來最前興者，號日月燈明，最後起者，故復名曰日月燈明如來、至真、等正覺，其佛說經，初語、中語、竟語皆善，分別其誼微妙具足淨修梵行，為諸聲聞講說四諦、十二因緣，生老病死愁慼諸患，皆令滅度究竟無為。為諸菩薩講六度無極，使逮無上正真道，至諸通慧。</p>
+                            <p>「其日月燈明如來未出家時有八子：一名有志，二曰善意，三曰加勸，四曰寶志，五曰持意，六曰除慢，七曰響意，八曰法意，是八太子則如來子，神足弘普。時一一子各各典主四域天下，其土豐殖治以正法無所侵枉，而見世尊棄國修道逮最正覺適聞得佛，尋皆離俗不顧重位，詣世尊所悉為沙門，皆志無上正真之道，盡為法師，常修梵行，於無央數百千諸佛殖眾德本。」</p>
+                            <p>又曰：「阿逸！時日月燈明，勸發菩薩護諸佛法，而為眾會講演大頌方等正經。時彼世尊於座寂然，以無量頌三昧正受即不復現，無身無意都不可得心無所立。世尊適三昧已，天雨意華、大意華、柔軟音華、大軟音華，而散佛上及於大會四部之眾，應時其地六反震動，國中人民各取天華復散佛上，四部弟子諸天世人愕然疑怪。其佛三昧未久威神德本，面出一光，其光普照東方萬八千佛土，靡不周遍，諸佛國土所可造作悉自然現，亦如今日諸佛土現。彼時世尊與二十億諸菩薩俱，於眾會中講說經法。諸菩薩大士覩大光明普照世間，而其佛世有菩薩，名曰超光，侍者十八人，有一菩薩而獨勞懈，名曰名聞，佛三昧正受，從三昧起，為超光菩薩講正法華方等之業，諸菩薩行皆說佛法，一處安坐具足六十劫說斯經典，眾會亦然，身不傾動心無因緣。又彼世尊六十中劫，因為諸會說法，聽者一無疲厭心不勞擾。</p>
+                            <p>「日月燈明六十劫中，為諸菩薩講演《法華》方等正經，便自說言，當般泥洹。告天世人、諸梵魔眾、沙門梵志、阿須倫、鬼神、諸比丘等：『察於其時，如來夜半至無餘界當般泥洹。』授其菩薩首藏之決，告諸比丘：『吾滅度後，首藏開士當逮無上正真道成最正覺，號離垢體如來、至真、等正覺。』佛授決已，尋於夜半而取滅度。彼世尊子等類八人，皆歸超光菩薩大士而順教勅，咸志無上正真之道，見無央數億載諸佛，供養奉侍悉逮正覺，最後興者號曰法事。十八人中有一菩薩，於利無節慇懃求供，尊己貪穢多於三病，分別句誼中而忽忘，便得於閑不復懅務。時族姓子得名聞定，以斯德本從不可計億百千佛，求願得見悉奉眾聖。」</p>
+                            <p>溥首謂莫能勝：「欲知爾時比丘法師號超光者，則吾是也。其名聞菩薩大士而懈怠者，則莫能勝是。是故當知，見此世尊所見瑞應放其光明，吾觀察之，今日大聖當為我等講《正法華》方等典籍。」</p>
+                            <p>於是溥首菩薩，欲重現誼，說此頌曰：</p>
+                            <p>「吾自憶念，　　往古過去，　　不可思議，</p>
+                            <p>　無央數劫。　　最勝造誼，　　智慧無上，</p>
+                            <p>　其號名曰，　　日月燈明。　　彼講說法，</p>
+                            <p>　聖達無極，　　開化眾生，　　不可計億。</p>
+                            <p>　勸助發起，　　無數菩薩，　　不可思議，</p>
+                            <p>　億百千人。　　於時如來，　　尊者諸子，</p>
+                            <p>　皆為幼童，　　見佛導師，　　則從所尊，</p>
+                            <p>　悉作沙門，　　棄捐愛欲，　　一切所有。</p>
+                            <p>　導利世者，　　為講說法，　　所演經典，</p>
+                            <p>　名無量頌，　　而號最上，　　厥誼如此，</p>
+                            <p>　開化黎庶，　　億千之數。　　大聖適說，</p>
+                            <p>　斯經典已，　　能仁至尊，　　處於法床，</p>
+                            <p>　加趺而坐，　　尋有瑞應，　　三昧正受，</p>
+                            <p>　名無量頌。　　於時即雨，　　大意音華，</p>
+                            <p>　又現電㷿，　　大雷音聲，　　諸天鬼神，</p>
+                            <p>　住於虛空，　　一心奉敬，　　人中之尊。</p>
+                            <p>　尋則感動，　　諸佛國土，　　從其眉間，</p>
+                            <p>　顯出妙㷿，　　放斯光明，　　無量難限，</p>
+                            <p>　不可計人，　　怪未曾有。　　其明遍照，</p>
+                            <p>　東方佛土，　　周萬八千，　　億數世界。</p>
+                            <p>　常以應時，　　多所分別，　　示于眾生，</p>
+                            <p>　終始根原。　　或有佛土，　　立諸寶蓋，</p>
+                            <p>　光如琉璃，　　及若水精，　　以導師光，</p>
+                            <p>　威神之曜，　　現若干種，　　瑰異雅麗。</p>
+                            <p>　諸天人民，　　并鬼神龍，　　揵沓惒等，</p>
+                            <p>　驚喜希有。　　其有專精，　　奉事安住，</p>
+                            <p>　彼諸世界，　　皆自然現。　　又見諸佛，</p>
+                            <p>　各各自由，　　端正姝妙，　　紫磨金色，</p>
+                            <p>　如琉璃中，　　而有眾寶，　　在於會中，</p>
+                            <p>　為雨法教。　　其諸聲聞，　　不可稱計，</p>
+                            <p>　嗟歎無量，　　安住弟子。　　一切導師，</p>
+                            <p>　一一世界，　　又光明曜，　　皆悉巍巍。</p>
+                            <p>　常行精進，　　戒無所犯，　　忍辱之力，</p>
+                            <p>　猶明月珠。　　世尊諸子，　　現無央數，</p>
+                            <p>　遊於閑居，　　山林曠野，　　一切禪定，</p>
+                            <p>　不起因緣，　　若有加害，　　不興瞋恨。</p>
+                            <p>　諸菩薩眾，　　如恒沙數，　　安住光明，</p>
+                            <p>　感動若斯，　　心念無常，　　不為放逸，</p>
+                            <p>　忍辱樂禪，　　不捨一心。　　有安住子，</p>
+                            <p>　普悉來現，　　自伏其志，　　慕尊佛道，</p>
+                            <p>　立審諦住，　　其心寂然，　　各以緣便，</p>
+                            <p>　多所開化。　　無數佛界，　　廣說經法，</p>
+                            <p>　世尊所為，　　感應如此。　　又覩大聖，</p>
+                            <p>　猶如船師，　　所出光明，　　蔽日月暉。</p>
+                            <p>　一切眾生，　　所立歡喜，　　各各問言，</p>
+                            <p>　此何感變？　　天人所奉，　　從三昧起，</p>
+                            <p>　未久之頃，　　導師便坐。　　其菩薩者，</p>
+                            <p>　名曰超光，　　而作法師，　　佛為解說，</p>
+                            <p>　世間之眼，　　蠲除眾趣，　　唯安悅我，</p>
+                            <p>　示諸種大，　　為我分別。　　於斯經法，</p>
+                            <p>　吾愍眾生，　　以是教化，　　建立勸助。</p>
+                            <p>　諸菩薩眾，　　聞佛教詔，　　欣然嗟歎。</p>
+                            <p>　於時世尊，　　說大經法，　　所演具足，</p>
+                            <p>　六十中劫，　　於一床上，　　結加趺坐。</p>
+                            <p>　導師化世，　　說殊特教，　　彼諸佛等，</p>
+                            <p>　皆已滅度。　　其法師者，　　超光仁人，</p>
+                            <p>　最勝所演，　　講說經典。　　無央數人，</p>
+                            <p>　皆悉歡喜，　　惟願大聖，　　分別解之。</p>
+                            <p>　在諸天上，　　及與世間，　　講說經典，</p>
+                            <p>　自然之誼，　　顯示眾庶，　　此《正法華》。</p>
+                            <p>　告諸比丘，　　吾已時到，　　當於夜半，</p>
+                            <p>　而取滅度，　　修無放逸，　　堅固其心。</p>
+                            <p>　吾已解說，　　諸經法教。　　大聖神通，</p>
+                            <p>　難得值遇，　　於無央數，　　億那術劫，</p>
+                            <p>　常當供養。　　無量佛子，　　憂惱諸患，</p>
+                            <p>　甚亦苦劇。　　時聞世尊，　　所現章句，</p>
+                            <p>　觀於無為，　　採習言教。　　值覩人尊，</p>
+                            <p>　所見安慰，　　會無數人，　　不可思憶。</p>
+                            <p>　比丘莫懼，　　吾當泥曰，　　我去然後，</p>
+                            <p>　已不復現。　　第二菩薩，　　號曰首藏，</p>
+                            <p>　無有諸漏，　　無所不入，　　當究竟逮，</p>
+                            <p>　尊上佛道，　　所號名曰，　　離垢之體。</p>
+                            <p>　即尋於此，　　夜半之時，　　便取滅度，</p>
+                            <p>　盡執光耀。　　其佛舍利，　　而廣分布，</p>
+                            <p>　即起塔廟，　　無量億載。　　諸比丘等，</p>
+                            <p>　及比丘尼，　　志悉慕求，　　上尊佛道，</p>
+                            <p>　不可稱限，　　如江河沙，　　常修精進，</p>
+                            <p>　尊安住教。　　爾時比丘，　　為法師者，</p>
+                            <p>　超光大人，　　執持經典，　　一坐之頃，</p>
+                            <p>　演說尊法，　　則具足滿，　　八十中劫。</p>
+                            <p>　彼時侍從，　　有十八人，　　教化度之，</p>
+                            <p>　皆蒙安隱。　　此等值見，　　無數億佛，</p>
+                            <p>　至心供養，　　諸大聖尊，　　常尊奉教，</p>
+                            <p>　柔順之法，　　於諸世界，　　皆各成佛。</p>
+                            <p>　尊得自在，　　受持無量，　　各各授決，</p>
+                            <p>　使逮正覺。　　於時諸佛，　　皆悉究竟，</p>
+                            <p>　定光世尊，　　最後得佛，　　大仙日月，</p>
+                            <p>　開化聖眾，　　導師所化，　　巨億百千，</p>
+                            <p>　安住所興，　　諸大威化。　　法師超光，</p>
+                            <p>　則吾身是。　　爾時侍從，　　志懈怠者，</p>
+                            <p>　求索利養，　　親屬交友，　　志所願求，</p>
+                            <p>　但慕名聞。　　周旋行來，　　詣諸族姓，</p>
+                            <p>　捨置所學，　　不諷誦讀。　　彼時不肯，</p>
+                            <p>　分別而說，　　以故其人，　　唐載此名。</p>
+                            <p>　於佛法教，　　欲使稱譽，　　其人由此，</p>
+                            <p>　所造德本，　　在住世尊，　　而有瑕疵，</p>
+                            <p>　值見諸佛，　　億千之數。　　積累功德，</p>
+                            <p>　廣普大聖，　　專修正行，　　得最順忍，</p>
+                            <p>　又覩世尊，　　於斯能行。　　然於將來，</p>
+                            <p>　最後世時，　　當得無上，　　尊佛正道，</p>
+                            <p>　成至世尊，　　號曰慈氏。　　教化眾生，</p>
+                            <p>　無數億千，　　逮得勇猛，　　所在自由。</p>
+                            <p>　安住滅度，　　仁順其教，　　於彼世時，</p>
+                            <p>　比像如是。　　我身爾時，　　則為法師，</p>
+                            <p>　是以之故，　　行哀如此。　　過世覩見，</p>
+                            <p>　如是之類，　　安住之仁，　　變動若茲。</p>
+                            <p>　本第一察，　　如斯瑞應，　　彼時世尊，</p>
+                            <p>　無量明目，　　諸釋中王，　　現第一誼，</p>
+                            <p>　今者欲說，　　《正法華》典。　　吾過世時，</p>
+                            <p>　所聞道業，　　今日變化，　　而得具足。</p>
+                            <p>　諸導師尊，　　行權方便，　　大釋師子，</p>
+                            <p>　建立興發，　　講說經法，　　自然之教，</p>
+                            <p>　諸懷道意，　　悉叉手歸。　　導利世者，</p>
+                            <p>　今者分別，　　當雨法雨，　　柔軟法教，</p>
+                            <p>　普潤飽滿，　　履道意者。　　其有諸天，</p>
+                            <p>　入於無為，　　志懷狐疑，　　而有猶豫。</p>
+                            <p>　若有菩薩，　　求斯道意，　　今當蠲除，</p>
+                            <p>　吾我之想。」</p>
+                            <p>正法華經善權品第二</p>
+                            <p>於是世尊從三昧覺，告賢者舍利弗：「佛道甚深，如來、至真、等正覺，所入之慧難曉難了不可及知。雖聲聞、緣覺，從本億載所事歸命，無央數劫造立德本，奉遵佛法慇懃勞苦精進修行，尚不能了道品之化。又舍利弗！如來觀察人所緣起，善權方便隨誼順導，猗靡現慧各為分別，而散法誼用度群生，以大智慧力無所畏，一心脫門三昧正受，不可限量，所說經典不可及逮，而如來尊較略說耳。大聖所說得未曾有巍巍難量，如來皆了諸法所由，從何所來，諸法自然，分別法貌眾相根本，知法自然。」</p>
+                            <p>於時世尊欲重解誼，更說頌曰：</p>
+                            <p>「世雄不可量，　　諸天世間人，</p>
+                            <p>　一切眾生類，　　焉能知導師。</p>
+                            <p>　離垢解脫門，　　寂然無所畏，</p>
+                            <p>　如諸佛法貌，　　莫有逮及者。</p>
+                            <p>　本從億諸佛，　　依因而造行，</p>
+                            <p>　入於深妙誼，　　所現不可及。</p>
+                            <p>　於無央數劫，　　而學佛道業，</p>
+                            <p>　果應至道場，　　猶如行慈慜。</p>
+                            <p>　使我獲斯慧，　　如十方諸佛，</p>
+                            <p>　諸相普具足，　　眾好亦如是。</p>
+                            <p>　其身不可見，　　亦無有言說，</p>
+                            <p>　察諸群黎類，　　世間無與等。</p>
+                            <p>　若說經法時，　　有能分別解，</p>
+                            <p>　其惟有菩薩，　　常履懷信樂。</p>
+                            <p>　假使諸佛，　　弟子之眾，　　所作已辦，</p>
+                            <p>　如安住教，　　盡除疾病，　　執御其心，</p>
+                            <p>　不能達彼，　　若干種慧。　　設令於斯，</p>
+                            <p>　佛之境界，　　皆以七寶，　　充滿其中，</p>
+                            <p>　以獻安住，　　神明至尊，　　欲解此慧，</p>
+                            <p>　終無能了。　　正使十方，　　諸佛剎土，</p>
+                            <p>　諸明哲者，　　悉滿其中，　　及吾現在，</p>
+                            <p>　諸聲聞眾，　　一切具足，　　亦復如是。</p>
+                            <p>　一時普會，　　共思惟之，　　計安住慧，</p>
+                            <p>　無能及知。　　佛之智慧，　　無量若斯，</p>
+                            <p>　欲知其限，　　莫能逮者。　　諸緣一覺，</p>
+                            <p>　無有眾漏，　　諸根通達，　　總攝其心。</p>
+                            <p>　假使十方，　　悉滿中人，　　譬如甘蔗，</p>
+                            <p>　若竹蘆葦，　　悉俱合會，　　而共思惟，</p>
+                            <p>　欲察知佛，　　所說解法，　　於億那術，</p>
+                            <p>　劫載計念，　　未曾能知，　　及法利誼。</p>
+                            <p>　新學發意，　　諸菩薩等，　　假使供養，</p>
+                            <p>　無數億佛，　　講說經法，　　分別其誼，</p>
+                            <p>　復令是等，　　周滿十方，　　其數譬如，</p>
+                            <p>　稻麻叢林，　　在諸世界，　　滋茂不損，</p>
+                            <p>　悉俱合會，　　而共思惟，　　世尊所明，</p>
+                            <p>　覩諸法本，　　不可思議，　　無數億劫，</p>
+                            <p>　如江河沙，　　不可限量，　　心無變異，</p>
+                            <p>　超越智慧，　　欲得知者，　　非其境界。</p>
+                            <p>　無數菩薩，　　皆不退轉，　　無崖底劫，</p>
+                            <p>　如恒邊沙，　　一心專精，　　悉共思惟，</p>
+                            <p>　此之等類，　　亦不堪任。　　諸佛聖明，</p>
+                            <p>　不可及逮，　　一切漏盡，　　非心所念。</p>
+                            <p>　獨佛世尊，　　能解了知，　　分別十方，</p>
+                            <p>　諸佛世界。　　告舍利弗，　　安住所說，</p>
+                            <p>　唯佛具足，　　解達知彼，　　最勝導利，</p>
+                            <p>　悉暢了識，　　說無上誼，　　以來久遠。</p>
+                            <p>　佛今日告，　　諸聲聞眾，　　緣覺之乘，</p>
+                            <p>　如所立處，　　捨置已逝，　　入泥曰者，</p>
+                            <p>　所可開化，　　各各得度。　　佛有尊法，</p>
+                            <p>　善權方便，　　猶以講說，　　法化世間，</p>
+                            <p>　常如獨步，　　多所度脫，　　以斯示現，</p>
+                            <p>　真諦經法。」</p>
+                            <p>爾時大眾會中，一切聲聞阿羅漢等，諸漏已盡知本際黨，千二百眾及弟子學，比丘、比丘尼、清信士、清信女諸聲聞乘，各各興心念：「世尊何故慇懃諮嗟善權方便，宣暢如來深妙經業，致最正覺慧不可及，聲聞、緣覺莫能知者？如今世尊乃演斯教，於是佛法無逮泥洹，雖說此經，吾等不解誼之所趣。」</p>
+                            <p>賢者舍利弗，見四部眾心懷猶豫，欲為發問決其疑網，冀并被蒙，前白佛言：「唯然世尊！今日如來何故獨宣善權方便，以深妙法逮最正覺，道德巍巍不可稱限？」</p>
+                            <p>時舍利弗以偈頌曰：</p>
+                            <p>「樂慧聖大尊，　　久宣如是教，</p>
+                            <p>　力脫門禪定，　　所奉無央數。</p>
+                            <p>　讚揚佛道場，　　無敢發問者，</p>
+                            <p>　獨諮嗟真法，　　無能啟微妙。</p>
+                            <p>　顯現大聖法，　　自歎譽其行，</p>
+                            <p>　智慧不可限，　　欲分別深法。</p>
+                            <p>　今鄙等懷疑，　　說道諸漏盡，</p>
+                            <p>　其求無為者，　　皆聞佛所讚。</p>
+                            <p>　其求緣覺者，　　比丘比丘尼，</p>
+                            <p>　諸天龍鬼神，　　揵沓摩休勒，</p>
+                            <p>　及餘諸等類，　　心各懷猶豫，</p>
+                            <p>　請問兩足尊，　　大德願解說。</p>
+                            <p>　一切諸聲聞，　　安住所教化，</p>
+                            <p>　大聖見歎譽，　　我獨度無極，</p>
+                            <p>　鄙意在沈吟，　　不能自決了，</p>
+                            <p>　究竟至泥洹。　　今復聞此說，</p>
+                            <p>　唯願演分別，　　雷震音現說。</p>
+                            <p>　如今所發教，　　猶若師子吼，</p>
+                            <p>　最勝諸子等，　　歸命皆叉手，</p>
+                            <p>　欲聞正是時，　　願為分別說。</p>
+                            <p>　諸天龍眾，　　鬼神真陀，　　無數百千，</p>
+                            <p>　如江河沙，　　而悉僉曰，　　供養世尊。</p>
+                            <p>　咸欲發問，　　於尊佛道。　　國主帝王，</p>
+                            <p>　轉輪聖王，　　悉共同心，　　億百千姟，</p>
+                            <p>　一切恭敬，　　叉手而立，　　德何因盛，</p>
+                            <p>　眾行具足。」</p>
+                            <p>爾時世尊，告舍利弗：「且止且止用問此誼。所以者何？諸天世人聞斯說者，悉當恐怖。」</p>
+                            <p>時舍利弗，復重啟曰：「唯願大聖，如是誼者，加哀說之。所以者何？於此眾會有無央數億百千載蚑行喘息、蜎蜚蠕動群生之類，曾見過佛知殖眾德，聞佛所說，悉當信樂受持奉行。」時舍利弗以偈頌曰：</p>
+                            <p>「願人中王，　　哀恣意說。　　此出家者，</p>
+                            <p>　眾庶億千，　　恭肅安住，　　欽信慧誼，</p>
+                            <p>　斯之等類，　　必皆欣樂。」</p>
+                            <p>於時世尊歎舍利弗，如是至三，告曰勿重，諸天世人悉懷慢恣，比丘、比丘尼墜大艱難。世尊以偈告舍利弗：</p>
+                            <p>「且止且止，　　用此為問，　　斯慧微妙，</p>
+                            <p>　眾所不了。　　假使吾說，　　易得之誼，</p>
+                            <p>　愚癡闇塞，　　至懷慢恣。」</p>
+                            <p>賢者舍利弗復白佛言：「唯願大聖以時哀說，無央數眾，昔過世時曾受佛教，以故今者思聞聖音，聞者則信多所安隱，冀不疑慢。」</p>
+                            <p>時舍利弗以偈頌曰：</p>
+                            <p>「我佛長子，　　今故啟勸，　　願兩足尊，</p>
+                            <p>　哀為解說。　　今有眾生，　　無數億千，</p>
+                            <p>　悉當信樂，　　聖尊所詔，　　會致本德，</p>
+                            <p>　決諸疑網。　　往古長夜，　　曾被訓誨，</p>
+                            <p>　是等叉手，　　恭肅側立，　　必當欽樂，</p>
+                            <p>　於斯法誼。　　我之等類，　　千二百人，</p>
+                            <p>　及餘眾黨，　　求尊佛道。　　假令見聞，</p>
+                            <p>　安住言教，　　尋當歡喜，　　興發大意。」</p>
+                            <p>于時世尊見舍利弗三反勸助，而告之曰：「爾今慇懃所啟至三，安得不說？諦聽諦聽！善思念之！吾當解說。」世尊適發此言，比丘、比丘尼、清信士、清信女五千人等，至懷甚慢，即從坐起，稽首佛足捨眾而退。所以者何？慢無巧便，未得想得、未成謂成，收屏蓋藏衣服臥具摩何而去。世尊默然，亦不制止。</p>
+                            <p>「又舍利弗！眾會辟易有竊去者，離廣大誼聲味所拘。又舍利弗！斯甚慢者退亦佳矣。如來云何說此法乎？譬靈瑞華時時可見，佛歎斯法久久希有，爾等當信如來誠諦所說深經，誼甚微妙言輒無虛，若干音聲現諸章句，各各殊別人所不念，本所未思如來悉知。所以者何？正覺所興世嗟歎一事，為大示現皆出一原，以用眾生望想果應，勸助此類出現于世，黎元望想希求佛慧出現于世，蒸庶望想如來寶決出現于世，以如來慧覺群生想出現于世，示寤民庶八正由路使除望想出現于世。以故當知，正覺所興悉為一誼，以無極慧而造大業，猶一空慧，以無蓋哀興出于世，如佛所行，所化利誼亦復如是。而為說法，教諸菩薩現真諦慧，以佛聖明而分別之。轉使增進唯大覺乘，無有二乘況三乘乎！十方世界諸佛世尊，去來現在亦復如是。以權方便若干種教，各各異音開化一切，而為說法皆興大乘，佛正覺乘諸通慧乘。</p>
+                            <p>「又舍利弗！斯眾生等悉更供養諸過去佛，亦曾聞法，隨其本行獲示現誼。吾見群生本行不同，佛觀其心所樂若干，善權方便造立報應，而講法誼，皆為平等正覺大乘，至諸通慧道德一定，無有二也，十方世界等無差特，安得三乘？</p>
+                            <p>「又舍利弗！設如來說眾生瑕穢一劫不竟。今吾興出於五濁世：一曰塵勞，二曰凶暴，三曰邪見，四曰壽命短，五曰劫穢濁。為此之黨本德淺薄慳貪多垢故，以善權現三乘教，勸化聲聞及緣覺者；若說佛乘，終不聽受、不入不解，無謂如來法有聲聞及緣覺道深遠諸難。若比丘、比丘尼，已得羅漢自已達足，而不肯受無上正真道教，定為誹謗於佛乘矣！雖有是意，佛平等訓，然後至于般泥洹時，諸甚慢者乃知之耳。所以者何？又諸比丘為羅漢者，無所志求，諸漏已盡，聞斯經典而不信樂。若滅度時，如來面現諸聲聞前，大聖滅度不以斯行，令受持說方等頌經，尋於異佛、至真、等正覺決其狐疑，然後於彼乃當篤信，如來言誠正有一乘，無有二也。」</p>
+                            <p>世尊頌曰：</p>
+                            <p>「比丘比丘尼，　　心懷甚慢恣，</p>
+                            <p>　諸清信士女，　　五千人不信。</p>
+                            <p>　不自見瑕穢，　　奉誡有缺漏，</p>
+                            <p>　多獲傾危事，　　而起愚騃意，</p>
+                            <p>　反行求雜糅，　　悉無巧方便。</p>
+                            <p>　諸佛最勝禪，　　緣此得聞法，</p>
+                            <p>　供養清淨慧，　　眾會儼然住，</p>
+                            <p>　一切受恩教，　　逮志立見要。</p>
+                            <p>　舍利弗聽此，　　佛為人中上，</p>
+                            <p>　諦覺了諸法，　　為說若干教。</p>
+                            <p>　善權方便，　　億百千姟，　　隨人心行，</p>
+                            <p>　而為說法。　　罪福之事，　　若干不同，</p>
+                            <p>　從其宿世，　　各得報應。　　此諸眾生，</p>
+                            <p>　心各各異，　　所造眾多，　　纏綿結縛。</p>
+                            <p>　因緣諸見，　　億百千姟，　　一切品類，</p>
+                            <p>　瑕穢如是。　　如來大聖，　　說此經典，</p>
+                            <p>　所言至誠，　　終無虛欺。　　從始引喻，</p>
+                            <p>　若干無數，　　如有所說，　　尋為分別。</p>
+                            <p>　其有不樂，　　正覺明者，　　於無數佛，</p>
+                            <p>　不造立行。　　愚癡生死，　　甚多苦患，</p>
+                            <p>　故為斯等，　　現說泥洹。　　大聖所興，</p>
+                            <p>　行權方便，　　因勸化之，　　使入佛慧。</p>
+                            <p>　如佛道教，　　興顯于世，　　吾始未曾，</p>
+                            <p>　為若等現。　　何故愚冥，　　覩於導師，</p>
+                            <p>　見自患厭，　　乃為分別。　　今乃得聞，</p>
+                            <p>　演于平等，　　以故得說，　　佛所決了。</p>
+                            <p>　於我法教，　　諸新學者，　　佛以聖慧，</p>
+                            <p>　行權方便，　　所可分別，　　為眾生故，</p>
+                            <p>　欲開化之，　　故示此誼。　　欲知佛道，</p>
+                            <p>　常調清淨，　　仁樂聖典，　　實為要妙，</p>
+                            <p>　在諸佛所，　　所作已辦，　　故為斯類，</p>
+                            <p>　說方等經。　　志性和順，　　行能具足，</p>
+                            <p>　是等勇猛，　　親近聖教，　　則為彼說，</p>
+                            <p>　德最弘衍，　　於當來世，　　慈愍哀傷。</p>
+                            <p>　一切聞之，　　欣然諮嗟，　　我等成佛，</p>
+                            <p>　亦當如是。　　緣是行故，　　世世端正，</p>
+                            <p>　而當翫習，　　是方等經。　　其有逮聞，</p>
+                            <p>　無極聖教，　　斯等乃為，　　佛之弟子。</p>
+                            <p>　假使得聽，　　佛一偈者，　　皆成正覺，</p>
+                            <p>　終無有疑。　　佛道有一，　　未曾有二，</p>
+                            <p>　何況一世，　　而當有三？　　除人中上，</p>
+                            <p>　行權方便，　　以用乘故，　　開化說法，</p>
+                            <p>　欲得講說，　　佛之深慧。　　善權方便，</p>
+                            <p>　導師光明，　　唯有一乘，　　豈寧有二？</p>
+                            <p>　下劣乘者，　　當求殊特，　　諸佛所覺，</p>
+                            <p>　常皆如應。　　至尊所在，　　莫敢能當，</p>
+                            <p>　其力一心，　　若順脫門。　　皆立眾生，</p>
+                            <p>　於此道教，　　諸佛最勝，　　無有瑕疵。</p>
+                            <p>　尊無等倫，　　現平等覺，　　如是示以，</p>
+                            <p>　眾生善法。　　世尊因而，　　勸立是乘，</p>
+                            <p>　所在安和，　　誘進稽首。　　諸境界名，</p>
+                            <p>　於此當行，　　斷除一切，　　諸兇暴法。</p>
+                            <p>　是故號佛，　　則大勇猛，　　今已造立，</p>
+                            <p>　若干種相，　　眷屬圍繞，　　演出法光，</p>
+                            <p>　無數眾生，　　億百千姟，　　為講說法，</p>
+                            <p>　自然之印。　　告舍利弗，　　我見如是，</p>
+                            <p>　今當奈此，　　群生類何？　　三十二相，</p>
+                            <p>　顏容殊妙，　　猶得自在，　　無所拘礙。</p>
+                            <p>　而吾所觀，　　若所思念，　　如往古時，</p>
+                            <p>　有可志願，　　皆具足成，　　深微妙事，</p>
+                            <p>　分別講說，　　得至佛位。　　語舍利弗，</p>
+                            <p>　佛言至誠，　　以何等事，　　寤覺眾生，</p>
+                            <p>　假使為說，　　不能解了，　　不肯啟受。</p>
+                            <p>　善言至誠，　　即時心念，　　如是之誼，</p>
+                            <p>　前往古世，　　行不可議，　　今日乃逮，</p>
+                            <p>　得本所願，　　已斷愛欲，　　除大陰雨。</p>
+                            <p>　眾庶坐欲，　　墜于惡趣，　　安住穢厭，</p>
+                            <p>　眾諸穢垢，　　黑冥之法，　　數數增長。</p>
+                            <p>　薄德之夫，　　患苦所惱，　　為諸邪見，</p>
+                            <p>　之所䩭繫。　　有此無異，　　不有不無，</p>
+                            <p>　具足依倚，　　六十二見。　　當住於斯，</p>
+                            <p>　根著所有，　　勢力薄少，　　而懷恐懼。</p>
+                            <p>　未曾得聞，　　佛之音聲，　　恒當墮落，</p>
+                            <p>　不離三處，　　億百千生，　　不能解法。</p>
+                            <p>　佛了善權，　　卓然難及，　　為說勤苦，</p>
+                            <p>　斷其根原。　　眾生之類，　　諸見所惱，</p>
+                            <p>　佛故導示，　　便至泥洹。　　吾所以故，</p>
+                            <p>　常解滅度，　　令一切法，　　皆至寂然。</p>
+                            <p>　又復過去，　　諸佛之子，　　當來之世，</p>
+                            <p>　得成最勝。　　今我如是，　　行權方便，</p>
+                            <p>　各令休息，　　說三乘教。　　其乘有一，</p>
+                            <p>　亦不非一，　　大聖世尊，　　故復說一。</p>
+                            <p>　諸有蒸民，　　興發沈吟，　　意慮憒亂，</p>
+                            <p>　狐疑猶豫。　　如來所說，　　終無有異，</p>
+                            <p>　慧乘有一，　　未曾有二。　　其有往古，</p>
+                            <p>　世雄導師，　　億百千佛，　　諸滅度者。</p>
+                            <p>　或有過去，　　無央數劫，　　計其限量，</p>
+                            <p>　不可稱度。　　謂此一切，　　人中之上，</p>
+                            <p>　講說經法，　　無數清淨，　　所可作為，</p>
+                            <p>　報應譬喻，　　行權方便，　　億百千姟，</p>
+                            <p>　普為眾生，　　示現一乘，　　是故說道，</p>
+                            <p>　度未度者。　　常為人說，　　平等道慧，</p>
+                            <p>　開化眾庶，　　億百千姟。　　又復見異，</p>
+                            <p>　若干大聖，　　為講分別，　　是大尊法。</p>
+                            <p>　本性清淨，　　乃信解之。　　若在天上，</p>
+                            <p>　世間亦然，　　其有聞經，　　若聽省者，</p>
+                            <p>　彼諸眾生，　　所獲安隱，　　常行布施，</p>
+                            <p>　其戒具足，　　忍辱無乏，　　斯行平等，</p>
+                            <p>　精進一心，　　修善勇猛。　　於此經典，</p>
+                            <p>　遵奉智慧，　　或有建立，　　若干種德，</p>
+                            <p>　斯等皆當，　　成得佛道。　　其有滅度，</p>
+                            <p>　諸所如來，　　彼時所有，　　一切眾生，</p>
+                            <p>　忍辱調意，　　得至大安，　　斯等皆當，</p>
+                            <p>　成得佛道。　　假使供養，　　諸佛舍利，</p>
+                            <p>　大聖最勝，　　及滅度者。　　興立佛廟，</p>
+                            <p>　眾億百千，　　黃金白銀，　　水精琉璃，</p>
+                            <p>　若以馬瑙，　　造作塔寺，　　車𤦲異寶，</p>
+                            <p>　及明月珠，　　若以墼泥，　　立作形像，</p>
+                            <p>　斯等皆當，　　成得佛道。　　假使以石，</p>
+                            <p>　用作佛廟，　　或以栴檀，　　若木蜜香，</p>
+                            <p>　設令塔寺，　　立天尊像，　　材木刻鏤，</p>
+                            <p>　彩畫眾飾，　　或有奉戒，　　口言至誠，</p>
+                            <p>　若復竪立，　　最勝廟寺，　　在於居室，</p>
+                            <p>　諷誦經典，　　處于曠野，　　深谷中立，</p>
+                            <p>　為數億人，　　而師子吼。　　現有十方，</p>
+                            <p>　諸佛廟寺，　　中有舍利，　　童子對舞。</p>
+                            <p>　斯等皆當，　　成得佛道。　　若為如來，</p>
+                            <p>　作寶模像，　　三十二相，　　執持殊最。</p>
+                            <p>　假使復有，　　誦經說誼，　　斯等皆當，</p>
+                            <p>　成得佛道。　　設為安住，　　興立彩像，</p>
+                            <p>　後致七寶，　　覺意道路，　　其光遍照，</p>
+                            <p>　通徹眾行，　　斯等皆當，　　成得佛道。</p>
+                            <p>　若復以銅，　　刻鏤碧玉，　　為大聖尊，</p>
+                            <p>　立殊特形，　　設以經字，　　載妙素帛，</p>
+                            <p>　斯等皆當，　　成得佛道。　　若繕壞寺，</p>
+                            <p>　修立形像，　　功德志性，　　有百福相，</p>
+                            <p>　出家學法，　　書佛經卷，　　斯等皆當，</p>
+                            <p>　成得佛道。　　設使各各，　　作奇異行，</p>
+                            <p>　除棄一切，　　所樂調戲，　　正士童子，</p>
+                            <p>　聰達解誼，　　而不謿話，　　言不虛誕，</p>
+                            <p>　悉亦自致，　　為大慈哀，　　一切皆當，</p>
+                            <p>　逮得佛道。　　即使得度，　　億千群萌，</p>
+                            <p>　無數菩薩，　　神通三昧。　　設為是等，</p>
+                            <p>　安住舍利，　　興立塔寺，　　彩畫形像，</p>
+                            <p>　塗治堊飾，　　書經著壁，　　供上華香，</p>
+                            <p>　勳散塔像，　　假令伎樂，　　歌誦佛德，</p>
+                            <p>　簫成鼓舞，　　節奏哀和，　　讚美嬉笑，</p>
+                            <p>　又加肅敬，　　以若干事，　　遵修供奉，</p>
+                            <p>　彈琴箜篌，　　鐃鏡應弦，　　箏笛吹笙，</p>
+                            <p>　激發妙音，　　皆以一心，　　不為眾吏，</p>
+                            <p>　緣是悉致，　　寂然悅豫。　　若以挹灑，</p>
+                            <p>　淨掃塔寺，　　用柔軟水，　　蜜漿飲施，</p>
+                            <p>　雜香堊塗，　　理作樂器，　　歸命安住，</p>
+                            <p>　供養最勝，　　以若干物，　　供上舍利，</p>
+                            <p>　如來滅度，　　少多肅敬，　　假使一反，</p>
+                            <p>　鼓伎拊弄，　　一切皆當，　　得成佛道。</p>
+                            <p>　設令得見，　　安住畫像，　　執持一華，</p>
+                            <p>　進上靈模，　　以恭敬意，　　篤信無疑，</p>
+                            <p>　當稍稍見，　　無數億佛。　　其有人眾，</p>
+                            <p>　叉手佛廟，　　具足一反，　　繞旋自歸，</p>
+                            <p>　禮拜大聖，　　嗟歎稽首，　　所行如是，</p>
+                            <p>　身無垢染，　　當漸漸覲，　　無數億佛。</p>
+                            <p>　於諸導師，　　多造利誼，　　假使有持，</p>
+                            <p>　舍利供養，　　口宣音言，　　南摸佛尊，</p>
+                            <p>　其亂心者，　　若說此言，　　斯等皆當，</p>
+                            <p>　逮尊佛道。　　滅度因緣，　　盡除毒火，</p>
+                            <p>　此等皆當，　　逮成佛道。　　於眾會中，</p>
+                            <p>　建立信者，　　爾時安住，　　當濟此倫，</p>
+                            <p>　假使有人，　　聞此法名，　　斯等皆當，</p>
+                            <p>　逮成佛道。　　若復當來，　　無數億佛，</p>
+                            <p>　不可思議，　　無能限量，　　是等上勝，</p>
+                            <p>　世雄導師，　　當為講說，　　善權慧事，</p>
+                            <p>　是等大人，　　行權方便，　　當得成佛。</p>
+                            <p>　導世聖雄，　　所以開化，　　億數眾生，</p>
+                            <p>　禪定智慧，　　以消諸漏，　　得聞此法，</p>
+                            <p>　未有一人，　　群萌品類，　　豈弘了覺。</p>
+                            <p>　諸大聖法，　　皆本所願，　　行佛道時，</p>
+                            <p>　最後究竟，　　無量法門，　　億千姟數，</p>
+                            <p>　當來最勝，　　之所講說。　　諸如來尊，</p>
+                            <p>　常宣布法，　　是則得見，　　諸佛正教。</p>
+                            <p>　諸佛本淨，　　常行自然，　　此諸誼者，</p>
+                            <p>　佛所開化，　　如兩足尊，　　乃分別道，</p>
+                            <p>　故暢斯教，　　一乘之誼。　　諸法定意，</p>
+                            <p>　志懷律防，　　常處于世，　　演斯讚頌，</p>
+                            <p>　每同讚說，　　善權方便，　　諸最勝尊，</p>
+                            <p>　志意弘大。　　其有供養，　　天人所歸，</p>
+                            <p>　今現在佛，　　如江河沙，　　欲利安隱，</p>
+                            <p>　一切群黎，　　斯等正覺，　　亦說佛尊，</p>
+                            <p>　所可演說，　　善權方便。　　以若干教，</p>
+                            <p>　開化令入，　　皆共諮嗟，　　是一乘道，</p>
+                            <p>　寂然之地，　　無有二上。　　欲知眾生，</p>
+                            <p>　本際之行，　　從其過去，　　志性所猗，</p>
+                            <p>　料簡精進，　　而觀本原，　　諸未脫者，</p>
+                            <p>　為分別說。　　眾導師力，　　若干因緣，</p>
+                            <p>　攀喻引譬，　　而為示現，　　探覩群生，</p>
+                            <p>　種種所樂，　　若干部音，　　而開化之。</p>
+                            <p>　今我如是，　　為人中王，　　興發黎庶，</p>
+                            <p>　安隱利誼，　　種種音聲，　　億百千姟，</p>
+                            <p>　故為示現，　　斯佛大道。　　吾所說法，</p>
+                            <p>　若干種變，　　知諸萌類，　　心所好樂，</p>
+                            <p>　若干色像，　　尋令悅豫，　　緣其智慧，</p>
+                            <p>　訓以道力。　　吾為法王，　　而遍觀見，</p>
+                            <p>　諸愚冥者，　　離智慧德，　　崩墜生死，</p>
+                            <p>　坑壙險谷，　　不得解脫，　　來世艱難，</p>
+                            <p>　愛欲所繫，　　馳如流沙，　　諸塵勞垢，</p>
+                            <p>　今日自在。　　大聖威神，　　覺無所來，</p>
+                            <p>　諸法未曾，　　致眾患苦，　　群萌之類，</p>
+                            <p>　默在六塹，　　堅住邪見，　　不可動轉，</p>
+                            <p>　在於苦惱，　　處危嶮徑。　　吾發大哀，</p>
+                            <p>　愍此愚癡，　　安隱求至，　　處于道場，</p>
+                            <p>　具足七日，　　坐於草蓐，　　即思惟誼，</p>
+                            <p>　當何所興？　　尋時即斷，　　彼世慢恣，</p>
+                            <p>　觀察尊樹，　　目未曾眴。　　吾又經行，</p>
+                            <p>　於斯樹下，　　因奇特慧，　　得未曾有，</p>
+                            <p>　眾生輪轉，　　於大無明。　　於時梵天，</p>
+                            <p>　則知佛意，　　帝釋四天，　　諸護世者，</p>
+                            <p>　大神妙天，　　及善天子，　　無數億千，</p>
+                            <p>　皆共覺知，　　一切叉手，　　儼然恭肅。</p>
+                            <p>　我時自念，　　當奈之何？　　假令吾歎，</p>
+                            <p>　佛之道德，　　群黎品類，　　莫肯受化，</p>
+                            <p>　諸闇冥者，　　便當謗毀，　　適毀此已，</p>
+                            <p>　趣非法地。　　吾初未曾，　　說奇妙法，</p>
+                            <p>　常樂餘事，　　當何興立？　　等觀往古，</p>
+                            <p>　諸佛所為，　　彼時聖眾，　　行權方便。</p>
+                            <p>　吾今寧可，　　以此佛道，　　分為三乘，</p>
+                            <p>　而開化之。　　初成佛時，　　作此思惟，</p>
+                            <p>　又有十方，　　諸佛世尊，　　其大聖眾，</p>
+                            <p>　悉各自現，　　音讚善哉，　　我等欣豫。</p>
+                            <p>　快哉能仁，　　世雄導師，　　斯為正法，</p>
+                            <p>　執御當然，　　乃能思惟，　　善權方便。</p>
+                            <p>　諸大聖典，　　亦學救世，　　吾等為佛，</p>
+                            <p>　履上跡時，　　分為三乘，　　而開化之。</p>
+                            <p>　下劣不肖，　　志懷羸弱，　　觀諸佛興，</p>
+                            <p>　卒不肯信，　　吾等猶此，　　興立攝濟，</p>
+                            <p>　以權方便，　　而為示現。　　嗟歎稱美，</p>
+                            <p>　獲果之證，　　又復勸助，　　無數菩薩。</p>
+                            <p>　爾時佛身，　　聽諸尊歎，　　尋則解了，</p>
+                            <p>　諸大聖音。　　弘妙之士，　　心欣悅豫，</p>
+                            <p>　今大神通，　　分別名色。　　於時余等，</p>
+                            <p>　當遵其行，　　如諸導師，　　之所言說。</p>
+                            <p>　我時比丘，　　亦持斯法，　　出生於人，</p>
+                            <p>　黎庶之間。　　告舍利弗，　　吾聽省彼，</p>
+                            <p>　尋時往詣，　　波羅奈國，　　便即合集，</p>
+                            <p>　諸比丘眾。　　身子欲知，　　佛善權法，</p>
+                            <p>　大聖應時，　　便轉法輪，　　興發宣暢，</p>
+                            <p>　滅度寂然，　　歎羅漢音，</p>
+                            <p>　讚譽法聲。　　於是歌頌，　　聖眾之德，</p>
+                            <p>　其聞最勝，　　說彼經典。　　一切皆來，</p>
+                            <p>　歸於世尊，　　僉共叉手，　　恭肅而住。</p>
+                            <p>　善權方便，　　為若干種。　　爾時世尊，</p>
+                            <p>　復更思惟，　　吾說尊法，　　今正是時。</p>
+                            <p>　我所以故，　　於世最勝，　　應當講說，</p>
+                            <p>　斯尊佛道。　　志懷愚癡，　　起於妄想，</p>
+                            <p>　設吾說法，　　少有信者，　　憍慢自大，</p>
+                            <p>　不肯啟受。　　如斯法者，　　菩薩乃聽。</p>
+                            <p>　佛時悅豫，　　秉修勇猛，　　應時解斷，</p>
+                            <p>　一切諸結。　　今日當說，　　最勝自由，</p>
+                            <p>　或以勸助，　　使入佛道。　　諸佛之子，</p>
+                            <p>　得觀覩此，　　因從獲信，　　順行法律。</p>
+                            <p>　時千二百，　　諸漏盡者，　　皆當於世，</p>
+                            <p>　成為佛道。　　亦如往古，　　諸佛大聖，</p>
+                            <p>　亦如當來，　　最勝之法。　　吾復如是，</p>
+                            <p>　蠲棄眾想，　　然後爾乃，　　講天尊法。</p>
+                            <p>　久久時時，　　世間有佛，　　大仙慧士，</p>
+                            <p>　興發聖道，　　無極明目，　　既現於世，</p>
+                            <p>　選擇希有，　　時講斯法。　　於億百千，</p>
+                            <p>　無量劫數，　　乃得值遇，　　如此像法。</p>
+                            <p>　假使菩薩，　　獲斯比經，　　若復逮聞，</p>
+                            <p>　是尊佛道。　　若靈瑞華，　　時時可見，</p>
+                            <p>　欲見慕值，　　莫能覩者。　　最勝容貌，</p>
+                            <p>　和悅難遭，　　天上世間，　　無上聖賢，</p>
+                            <p>　今此大尊，　　乃謂琦珍。　　假使有人，</p>
+                            <p>　而說斯經，　　一反舉聲，　　歡喜勸助，</p>
+                            <p>　則為供養，　　一切佛已。　　其去亂心，</p>
+                            <p>　不懷狐疑。　　吾為法王，　　悉普告勅，</p>
+                            <p>　吾之法中，　　一切聲聞，　　則便勸助，</p>
+                            <p>　以尊佛道。　　卿舍利弗，　　及諸聲聞，</p>
+                            <p>　今現在者，　　且皆默然。　　其諸菩薩，</p>
+                            <p>　意勇智慧，　　密持斯法，　　勿得忘宣。</p>
+                            <p>　何故說世，　　而有五事？　　或有眾生，</p>
+                            <p>　懷毒求短，　　貪欲愚聵，　　而好誹謗，</p>
+                            <p>　如是倫品，　　不尚至道。　　若當來人，</p>
+                            <p>　而說此法，　　聽察如來，　　一乘之教，</p>
+                            <p>　設復覩見，　　諸最勝名，　　誹謗斯經，</p>
+                            <p>　便墮地獄。　　假使有人，　　慚愧清淨，</p>
+                            <p>　發心志願，　　求尊佛道，　　聞大覺乘，</p>
+                            <p>　無量之德，　　諸佛聖明，　　則現目前，</p>
+                            <p>　眾猛尊導，　　講法如是，　　善權方便，</p>
+                            <p>　億百千姟，　　分別無數，　　無復想念，</p>
+                            <p>　其不學者，　　不能曉了。　　由是之故，</p>
+                            <p>　了正真言，　　正覺出世，　　順修明哲，</p>
+                            <p>　斷諸狐疑，　　蠲除猶豫，　　能仁欣勇，</p>
+                            <p>　咸至佛道。」</p>
+                            <p>正法華經卷第一</p>
 
-                            </div>
                         </div>
                     </div>
+                </div>
 
-				</div>
-			</div>
-		</div>
-
-        <!--鼠标移入关键字时，弹出的对话框-->
-        <div id="mouse_over_dlg">
-            <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
-            <div><b>聼【大正】=听【开宝】【元官】【永北】【毗卢】</b></div>
-            <div class="m-btn-group">
-                <div class="m-btn"><a href=""><i class="ion-ios7-copy-outline"></i>复制</a></div>
-                <div class="m-btn"><a href="javascript:showList()"><i class="ion-navicon"></i>查看列图</a></div>
             </div>
         </div>
+    </div>
 
-        <!--鼠标选中文字时，弹出的对话框-->
-        <div id="text_selected_dlg">
-            <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
-            <ul>
-                <li><img src="{{ static_url('imgs/icon9_1.png') }}"/><span>复制文字</span></li>
-                <li><img src="{{ static_url('imgs/icon10.png') }}"/><span>引用复制</span></li>
-                <li><img src="{{ static_url('imgs/icon11.png') }}"/><span>查词典</span></li>
-                <li><img src="{{ static_url('imgs/icon12.png') }}"/><span>查字典</span></li>
-                <li><img src="{{ static_url('imgs/icon13.png') }}"/><span>检索</span></li>
-            </ul>
+    <!--鼠标移入关键字时，弹出的对话框-->
+    <div id="mouse_over_dlg">
+        <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+        <div class="dlg_txt"><b>得【大正】＝保【思溪】【普寧】【徑山】【宮本】</b></div>
+        <div class="m-btn-group">
+            <div class="m-btn"><a href=""><i class="ion-ios7-copy-outline"></i>复制</a></div>
+            <div class="m-btn"><a href="javascript:showList()"><i class="ion-navicon"></i>查看列图</a></div>
         </div>
+    </div>
 
-        <!-- Modify Modals -->
-			<!-- modal content -->
-			<div id="jk_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-				<div class="modal-dialog modal-lg ">
-					<div class="modal-content black_bg">
+    <!--鼠标选中文字时，弹出的对话框-->
+    <div id="text_selected_dlg">
+        <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+        <ul>
+            <li><img src="{{ static_url('imgs/icon9_1.png') }}" /><span>复制文字</span></li>
+            <li><img src="{{ static_url('imgs/icon10.png') }}" /><span>引用复制</span></li>
+            <li><img src="{{ static_url('imgs/icon11.png') }}" /><span>查词典</span></li>
+            <li><img src="{{ static_url('imgs/icon12.png') }}" /><span>查字典</span></li>
+            <li><img src="{{ static_url('imgs/icon13.png') }}" /><span>检索</span></li>
+        </ul>
+    </div>
 
-						<div class="modal-body">
-							<ul class="jk_list_ul">
-                                <li>
-                                    <h5>赵城</h5>
-                                    <ul class="jk_list_char_ul">
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                    </ul>
-                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-                                </li>
-                                <li>
-                                    <h5>赵城</h5>
-                                    <ul class="jk_list_char_ul">
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                    </ul>
-                                    <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
-                                </li>
-                                <li>
-                                    <h5>赵城</h5>
-                                    <ul class="jk_list_char_ul">
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                    </ul>
-                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-                                </li>
-                                <li>
-                                    <h5>赵城</h5>
-                                    <ul class="jk_list_char_ul">
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                    </ul>
-                                    <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
-                                </li>
-                                <li>
-                                    <h5>赵城</h5>
-                                    <ul class="jk_list_char_ul">
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                        <li><span>幢</span></li>
-                                    </ul>
-                                    <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-                                </li>
+    <!-- Modify Modals -->
+    <!-- modal content -->
+    <div id="jk_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg ">
+            <div class="modal-content black_bg">
 
+                <div class="modal-body">
+                    <ul class="jk_list_ul">
+                        <li>
+                            <h5>赵城</h5>
+                            <ul class="jk_list_char_ul">
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
                             </ul>
-						</div>
+                            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                        </li>
+                        <li>
+                            <h5>赵城</h5>
+                            <ul class="jk_list_char_ul">
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                            </ul>
+                            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+                        </li>
+                        <li>
+                            <h5>赵城</h5>
+                            <ul class="jk_list_char_ul">
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                            </ul>
+                            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                        </li>
+                        <li>
+                            <h5>赵城</h5>
+                            <ul class="jk_list_char_ul">
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                            </ul>
+                            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+                        </li>
+                        <li>
+                            <h5>赵城</h5>
+                            <ul class="jk_list_char_ul">
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                                <li><span>幢</span></li>
+                            </ul>
+                            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+                        </li>
 
-					</div>
-					<!-- /.modal-content -->
-				</div>
-				<!-- /.modal-dialog -->
-			</div>
-			<!-- /.modal -->
+                    </ul>
+                </div>
 
-		<!-- End BootStrap Modal -->
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
 
-		{% include _base_js.html %}
+    <!-- End BootStrap Modal -->
 
-		<!-- CUSTOM JS -->
-		<script type="text/javascript">
-			$('.modal-dialog1').click(function() {
-				var width = $(document).width();
-				var height = $(document).height();
-				$("#modal-1").show();
-				$("#modal-1").css("top", height / 4);
-				$("#modal-1").css("left", width / 2 - 235);
-			});
-			$("#modal-1-close").click(function() {
-				$("#modal-1").hide();
-				$('.dialog-content-row4').hide();
-				$("#modal-1-confirm").hide();
-				$("#modal-1-select").show();
-			});
-			$("#modal-1-confirm").click(function() {
-				$("#modal-1").hide();
-				$('.dialog-content-row4').hide();
-				$("#modal-1-confirm").hide();
-				$("#modal-1-select").show();
-			});
-			$("#modal-1-select").click(function() {
-				$('.dialog-content-row4').show();
-				$("#modal-1-confirm").show();
-				$("#modal-1-select").hide();
-			});
+    {% include _base_js.html %}
 
-			$('.modal-dialog2').click(function() {
-				var width = $(document).width();
-				var height = $(document).height();
-				$("#modal-2").show();
-				$("#modal-2").css("top", height / 4);
-				$("#modal-2").css("left", width / 2 - 235);
-			});
-			$("#modal-2-close").click(function() {
-				$("#modal-2").hide();
-			});
-			$("#modal-2-confirm").click(function() {
-				$("#modal-2").hide();
-			});
+    <!-- CUSTOM JS -->
+    <script type="text/javascript">
+        $('.modal-dialog1').click(function () {
+            var width = $(document).width();
+            var height = $(document).height();
+            $("#modal-1").show();
+            $("#modal-1").css("top", height / 4);
+            $("#modal-1").css("left", width / 2 - 235);
+        });
+        $("#modal-1-close").click(function () {
+            $("#modal-1").hide();
+            $('.dialog-content-row4').hide();
+            $("#modal-1-confirm").hide();
+            $("#modal-1-select").show();
+        });
+        $("#modal-1-confirm").click(function () {
+            $("#modal-1").hide();
+            $('.dialog-content-row4').hide();
+            $("#modal-1-confirm").hide();
+            $("#modal-1-select").show();
+        });
+        $("#modal-1-select").click(function () {
+            $('.dialog-content-row4').show();
+            $("#modal-1-confirm").show();
+            $("#modal-1-select").hide();
+        });
 
-			<!--左侧菜单栏-->
-			$('.submenu-title').click(function() {
-				$('.sub-ul').slideUp(300);
-				$(".submenu-title-icon").removeClass('active');
+        $('.modal-dialog2').click(function () {
+            var width = $(document).width();
+            var height = $(document).height();
+            $("#modal-2").show();
+            $("#modal-2").css("top", height / 4);
+            $("#modal-2").css("left", width / 2 - 235);
+        });
+        $("#modal-2-close").click(function () {
+            $("#modal-2").hide();
+        });
+        $("#modal-2-confirm").click(function () {
+            $("#modal-2").hide();
+        });
 
-				if($(this).hasClass('active')) {
-					$(this).removeClass('active');
-				} else {
-					$(this).children(".submenu-title-icon").addClass('active');
-					$('.submenu-title').removeClass('active');
-					$(this).addClass('active');
-					$(this).next().slideDown(300);
+        <!--左侧菜单栏-->
+        $('.submenu-title').click(function () {
+            $('.sub-ul').slideUp(300);
+            $(".submenu-title-icon").removeClass('active');
 
-				}
-			});
+            if ($(this).hasClass('active')) {
+                $(this).removeClass('active');
+            } else {
+                $(this).children(".submenu-title-icon").addClass('active');
+                $('.submenu-title').removeClass('active');
+                $(this).addClass('active');
+                $(this).next().slideDown(300);
 
-			<!--收起左侧菜单栏-->
-			var num = 0;
-			$('.fold_btn').click(function(){
+            }
+        });
 
-				if(num%2==0){
-					$('.main-left').hide();
-					num++;
-				}else{
-					$('.main-left').show();
-					num++;
-				}
-			});
+        <!--收起左侧菜单栏-->
+        var num = 0;
+        $('.fold_btn').click(function () {
 
-            <!--点击搜索按钮显示搜索视图-->
-            $('#search_btn').click(function(){
-               $("#side-menu").hide();
-               $("#menu-search").show();
-            });
+            if (num % 2 == 0) {
+                $('.main-left').hide();
+                num++;
+            } else {
+                $('.main-left').show();
+                num++;
+            }
+        });
 
-            <!--鼠标移过关键字时，显示弹框-->
-            $('.kw').mouseover(function(e){
-                var positionX=$(this).offset().left;
-                var positionY=$(this).offset().top;
+        <!--点击搜索按钮显示搜索视图-->
+        $('#search_input').focus(function () {
+            $("#main-left").width("40%");
+            $("#side-menu").hide();
+            $("#menu-search").show();
+        });
+
+        <!--点击搜索按钮显示搜索视图-->
+        $('#sutra-nav').click(function () {
+            $("#main-left").width("276px");
+            $("#side-menu").show();
+            $("#menu-search").hide();
+        });
+
+        <!--鼠标点击关键字时，显示弹框-->
+        $('.kw').click(function (e) {
+            var positionX = $(this).offset().left;
+            var positionY = $(this).offset().top;
+            var height = $('.main-right-content').height();
+            $('#mouse_over_dlg').css('left', positionX + 30);
+            if (positionY + 90 > height) {
+                $('#mouse_over_dlg').css('top', positionY - 90);
+            } else {
+                $('#mouse_over_dlg').css('top', positionY + 30);
+            }
+            $('#mouse_over_dlg').show();
+        });
+
+        $('.main-right-content p').mouseup(function (e) {
+            var txt = window.getSelection ? window.getSelection() : document.selection.createRange().text; //选中的文本
+            if (txt.toString().length > 0) {
+                var positionX = e.originalEvent.x || e.originalEvent.layerX || 0;
+                var positionY = e.originalEvent.y || e.originalEvent.layerY || 0;
                 var height = $('.main-right-content').height();
-                $('#mouse_over_dlg').css('left',positionX+30);
-                if(positionY+90>height){
-                    $('#mouse_over_dlg').css('top',positionY-90);
-                }else{
-                    $('#mouse_over_dlg').css('top',positionY+30);
+                if (positionY + 170 > height) {
+                    $('#text_selected_dlg').css('top', positionY - 150);
+                } else {
+                    $('#text_selected_dlg').css('top', positionY + 10);
                 }
-                $('#mouse_over_dlg').show();
-            });
-
-            $('.main-right-content p').mouseup(function(e){
-                var txt = window.getSelection?window.getSelection():document.selection.createRange().text;//选中的文本
-                if(txt.toString().length>0){
-                    var positionX=e.originalEvent.x ||e.originalEvent.layerX || 0;
-                    var positionY=e.originalEvent.y ||e.originalEvent.layerY || 0;
-                    var height = $('.main-right-content').height();
-                    if(positionY+170>height){
-                        $('#text_selected_dlg').css('top',positionY-150);
-                    }else{
-                        $('#text_selected_dlg').css('top',positionY+10);
-                    }
-                    $('#text_selected_dlg').css('left',positionX+10);
-                    $('#text_selected_dlg').show();
-                }
+                $('#text_selected_dlg').css('left', positionX + 10);
+                $('#text_selected_dlg').show();
+            }
 
 
-            });
-            $("#mouse_over_dlg .dlg_close_btn").click(function(){
-                $('#mouse_over_dlg').hide();
-            });
-            $("#text_selected_dlg .dlg_close_btn").click(function(){
-                $('#text_selected_dlg').hide();
-            });
+        });
+        $("#mouse_over_dlg .dlg_close_btn").click(function () {
+            $('#mouse_over_dlg').hide();
+        });
+        $("#text_selected_dlg .dlg_close_btn").click(function () {
+            $('#text_selected_dlg').hide();
+        });
 
-            <!--遮罩层弹出框-->
-            function showList() {
-				$('#jk_modal').modal();
-			}
+        <!--遮罩层弹出框-->
+        function showList() {
+            $('#jk_modal').modal();
+        }
+    </script>
 
-		</script>
 
-
-	</body>
+</body>
 
 </html>
