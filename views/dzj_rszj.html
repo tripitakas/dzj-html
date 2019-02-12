@@ -378,7 +378,7 @@
                             <p>於是彌勒菩薩心自念言：「今者世尊，如來、至真、等正覺，三昧正受，現大感變，多所降伏，覩未曾有，天上世間諸佛廟寺，恢闊彰顯，將何所興而有此瑞？從昔暨今未曾見也。欲問其歸，孰堪發遣解斯誼乎？」尋改思曰：「今者大士溥首童真，所作已辦靡所不達，供養過去無數諸佛，曾當瞻覲如來、至真、等正覺，如此瑞應欲請問之。」</p>
                             <p>時四部眾比丘、比丘尼、清信士、清信女，諸天、龍、神、揵沓惒、阿須倫、迦留羅、真陀羅、摩休勒，志懷猶豫得未曾有，見斯大聖無極威曜神足變化，各各發意，欲問世尊決散疑網。慈氏大士見眾會心，便問溥首曰：「仁者惟說，今何因緣有此瑞應，大聖神足放大光明，照于東方萬八千土，諸佛世界自然為現，所說經法皆遙聞之？」</p>
                             <p>於是慈氏以頌而問溥首曰：</p>
-                            <p>「文殊師利！　　今何以故，　　導利眾庶，</p>
+                            <p>「文殊師利！　　今何<b class="kw">以</b>故，　　導利眾庶，</p>
                             <p>　放演光明？　　甚大威曜，　　出于面門，</p>
                             <p>　神變遍照，　　十方㸌然；　　天雨眾華，</p>
                             <p>　紛紛如降，　　意華大意，　　柔軟音華，</p>
@@ -1227,10 +1227,16 @@
 
         <!--鼠标点击关键字时，显示弹框-->
         $('.kw').click(function (e) {
-            var positionX = $(this).offset().left;
-            var positionY = $(this).offset().top;
+            var positionX = e.pageX;
+            var positionY = e.pageY;
+            var width = $('.main-right-content').width();
             var height = $('.main-right-content').height();
-            $('#mouse_over_dlg').css('left', positionX + 30);
+
+            if(positionX+300>width){
+                $('#mouse_over_dlg').css('left', positionX - 300);
+            }else{
+                $('#mouse_over_dlg').css('left', positionX + 30);
+            }
             if (positionY + 90 > height) {
                 $('#mouse_over_dlg').css('top', positionY - 90);
             } else {
@@ -1240,18 +1246,32 @@
         });
 
         $('.main-right-content p').mouseup(function (e) {
+
             var txt = window.getSelection ? window.getSelection() : document.selection.createRange().text; //选中的文本
             if (txt.toString().length > 0) {
-                var positionX = e.originalEvent.x || e.originalEvent.layerX || 0;
-                var positionY = e.originalEvent.y || e.originalEvent.layerY || 0;
+                var positionX = e.pageX;
+                var positionY = e.pageY;
+                var width = $('.main-right-content').width();
                 var height = $('.main-right-content').height();
+                if(positionX + 50>width){
+
+                    $('#text_selected_dlg').css('left', positionX - 160);
+                }else{
+                    $('#text_selected_dlg').css('left', positionX + 10);
+                }
                 if (positionY + 170 > height) {
+
                     $('#text_selected_dlg').css('top', positionY - 150);
                 } else {
+
                     $('#text_selected_dlg').css('top', positionY + 10);
                 }
-                $('#text_selected_dlg').css('left', positionX + 10);
+
                 $('#text_selected_dlg').show();
+            }else{
+                //点击空白处，取消弹框
+                $('#text_selected_dlg').hide();
+                $('#mouse_over_dlg').hide();
             }
 
 
