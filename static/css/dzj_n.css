@@ -1341,12 +1341,12 @@ span.active a {
     border-right:1px dotted var(--Color_Grey_Middle);
 }
 .m-header-page-btn.to input{
-    width:18px;
+    width:46px;
     height:18px;
     background:var(--Color_Grey_Middle);
     border:none;
     text-align:center;
-    margin:0 2px;
+	margin:0 2px;
 }
 .m-header-page-btn.last{
     border:0px;
@@ -1608,10 +1608,8 @@ span.active a {
     border-radius:2px;
     padding:5px;
 }
-.search_item:hover{
-	background:var(--Color_Brown);
-}
 .search_result_text:hover{
+	background:var(--Color_Brown);
 	overflow-y: scroll
 }
 .main-right-content .kw{
