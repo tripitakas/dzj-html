@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>如是藏经</title>
+    <title>如是藏經</title>
 
     <!-- Plugins css -->
     <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -35,10 +35,10 @@
                 <header class="m-header">
                     <div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
 
-                    <div class="m-header-title">如是藏经</div>
+                    <div class="m-header-title">如是藏經</div>
                     <div class="m-header-page">
                         <div class="m-header-page-info">
-                            当前第<span> 1 </span>卷，共<span> 80 </span>卷
+                            第<span> 1 </span>/ 80 </span>卷
                         </div>
                         <div class="m-header-page-btn first"><a href="">首卷</a></div>
                         <div class="m-header-page-btn prev"><a href="">上一卷</a></div>
@@ -1201,7 +1201,6 @@
         <!--收起左侧菜单栏-->
         var num = 0;
         $('.fold_btn').click(function () {
-
             if (num % 2 == 0) {
                 $('.main-left').hide();
                 num++;
@@ -1211,47 +1210,69 @@
             }
         });
 
-        <!--点击搜索按钮显示搜索视图-->
+        <!--点击搜索输入框，显示搜索视图-->
         $('#search_input').focus(function () {
             $("#main-left").width("40%");
             $("#side-menu").hide();
             $("#menu-search").show();
         });
 
-        <!--点击搜索按钮显示搜索视图-->
+        <!--点击导航按钮，显示导航视图-->
         $('#sutra-nav').click(function () {
             $("#main-left").width("276px");
             $("#side-menu").show();
             $("#menu-search").hide();
         });
 
-        <!--鼠标点击关键字时，显示弹框-->
+        <!--鼠标点击校勘文本关键字时，显示弹框-->
         $('.kw').click(function (e) {
-            var positionX = $(this).offset().left;
-            var positionY = $(this).offset().top;
+            var positionX = e.pageX;
+            var positionY = e.pageY;
+            var width = $('.main-right-content').width();
             var height = $('.main-right-content').height();
-            $('#mouse_over_dlg').css('left', positionX);
+
+            if(positionX+300>width){
+                $('#mouse_over_dlg').css('left', positionX - 300);
+            }else{
+                $('#mouse_over_dlg').css('left', positionX + 30);
+            }
             if (positionY + 90 > height) {
                 $('#mouse_over_dlg').css('top', positionY - 90);
             } else {
-                $('#mouse_over_dlg').css('top', positionY + 25);
+                $('#mouse_over_dlg').css('top', positionY + 30);
             }
             $('#mouse_over_dlg').show();
         });
 
+        <!--鼠标选中文字时，显示弹框-->
         $('.main-right-content p').mouseup(function (e) {
+
             var txt = window.getSelection ? window.getSelection() : document.selection.createRange().text; //选中的文本
             if (txt.toString().length > 0) {
-                var positionX = e.originalEvent.x || e.originalEvent.layerX || 0;
-                var positionY = e.originalEvent.y || e.originalEvent.layerY || 0;
+                var positionX = e.pageX;
+                var positionY = e.pageY;
+                var width = $('.main-right-content').width();
                 var height = $('.main-right-content').height();
+                if(positionX + 50>width){
+
+                    $('#text_selected_dlg').css('left', positionX - 160);
+                }else{
+                    $('#text_selected_dlg').css('left', positionX + 10);
+                }
                 if (positionY + 170 > height) {
+
                     $('#text_selected_dlg').css('top', positionY - 150);
                 } else {
-                    $('#text_selected_dlg').css('top', positionY + 15);
+
+                    $('#text_selected_dlg').css('top', positionY + 10);
                 }
-                $('#text_selected_dlg').css('left', positionX - 15);
+
                 $('#text_selected_dlg').show();
+                $('#mouse_over_dlg').hide();
+            }else{
+                //点击空白处，取消弹框
+                $('#text_selected_dlg').hide();
+                $('#mouse_over_dlg').hide();
             }
 
 
