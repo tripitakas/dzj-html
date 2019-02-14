@@ -3,7 +3,11 @@
 		<div class="ivu-row-flex">
 			<div class="main-header-left">
 				<div class="title">
-					<span class="toggle"><img src="{{ static_url('imgs/frame/toggle.png') }}" alt="收起左侧菜单栏" title="收起左侧菜单栏"></span>
+					<div class="trigger">
+						<span ></span>
+						<span ></span>
+						<span ></span>
+					</div>
 					<span class="platform"><img src="{{ static_url('imgs/frame/platform.png') }}" alt=""></span>
 				</div>
 				<div class="line"></div>
@@ -22,10 +26,11 @@
 </div>
 <script type="text/javascript">
 	$(function(){
-		$('.toggle').click(function(){
+		$('.trigger').click(function(){
 			$('.single-page-con').toggleClass('enlarge');
 			$('.main-header-con').toggleClass('enlarge');
 			$('.sidebar-menu-con').toggleClass('collapse');
+			$(this).toggleClass('trigger-open');
 		})
 	})
 </script>
