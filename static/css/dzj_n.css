@@ -1327,7 +1327,7 @@ span.active a {
     margin-top:10px;
 }
 .m-header-page-info{
-    margin-right:60px;
+    margin-right:10px;
 }
 .m-header-page-info span{
     color:var(--Color_Brown_Dark);
@@ -1351,6 +1351,15 @@ span.active a {
 .m-header-page-btn.last{
     border:0px;
 }
+
+.m-header-image{
+	margin-left: 40px;
+}
+
+.m-header-txt{
+	margin-left: 40px;
+}
+
 .m-header-font{
     margin-top:6px;
     margin-left:60px;
@@ -1483,7 +1492,7 @@ span.active a {
     margin-top:14px;
     margin-right:14px;
     background:var(--Color_White);
-    padding:14px;
+    padding:10px;
 }
 .main-right.no-bg{
     background:none;
@@ -1721,9 +1730,9 @@ span.active a {
     border:0px;
 }
 .main-right-img{
-    float:left;
-    width:60%;
-    height:100%;
+	float:left;
+	padding-right:5px;
+    width:55%;
 }
 .main-right-img img{
     width:100%;
@@ -1734,11 +1743,10 @@ span.active a {
     height:auto;
 }
 .main-right-content.w-40{
-    width:40%;
-    height:100%;
-    overflow:scroll;
+    width:45%;
+    overflow:auto;
 }
-.m-header-edit-btn{
+.m-header-img-btn{
     margin-right:20px;
 }
 .checkbox-grey input[type="checkbox"]:checked+label::before {

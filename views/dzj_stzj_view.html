@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>大藏经古籍数字化平台-实体藏经</title>
+		<title>高麗藏</title>
 
 		<!-- Plugins css -->
 		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -34,36 +34,40 @@
 					<header class="m-header">
 						<div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
 
-						<div class="m-header-title">法华经</div>
-                        <div class="m-header-edit-btn">
-                            <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
-                        </div>
+						<div class="m-header-title">高麗藏</div>
 						<div class="m-header-page">
 							<div class="m-header-page-info">
-								当前第<span> 1 </span>卷,共<span> 80 </span>卷
-							</div>
-							<div class="m-header-page-btn first"><a href="" >首卷</a></div>
-							<div class="m-header-page-btn prev"><a href="" >上一卷</a></div>
-							<div class="m-header-page-btn to">跳至<span><input type="text"/></span>卷</div>
-							<div class="m-header-page-btn next"><a href="" >下一卷</a></div>
-                            <div class="m-header-page-btn last"><a href="" >末卷</a></div>
-						</div>
-                        <div class="checkbox checkbox-grey custom">
-                            <input id="checkbox6" type="checkbox" checked="">
-                            <label for="checkbox6">
-                                显示图片
-                            </label>
+                                第<span> 1 </span>/ 80 </span>页
+                            </div>
+							<div class="m-header-page-btn first"><a href="" >首页</a></div>
+							<div class="m-header-page-btn prev"><a href="" >上一页</a></div>
+							<div class="m-header-page-btn to">跳至<span><input type="text"/></span>页</div>
+							<div class="m-header-page-btn next"><a href="" >下一页</a></div>
+                            <div class="m-header-page-btn last"><a href="" >末页</a></div>
                         </div>
-						<div class="m-header-font">
-							<div class="m-header-font-reduce"><a href="" >A-</a></div>
-							<div class="m-header-font-current">20</div>
-							<div class="m-header-font-enlarge"><a href="" >A+</a></div>
-						</div>
-						<div class="m-header-togglebtn">
-							<img src="{{ static_url('imgs/icon_toggle.png') }}" class="m-header-img"/>
-						</div>
+                        <div class="m-header-image">
+                            <div class="checkbox checkbox-grey custom">
+                                <input id="checkbox6" type="checkbox" checked="">
+                                <label for="checkbox6">
+                                    显示图片
+                                </label>
+                            </div>
+                            <div class="m-header-img-btn">
+                                <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
+                            </div>
+                        </div>
+                        <div class="m-header-txt">
+                            <div class="m-header-font">
+                                <div class="m-header-font-reduce"><a href="" >A-</a></div>
+                                <div class="m-header-font-current">20</div>
+                                <div class="m-header-font-enlarge"><a href="" >A+</a></div>
+                            </div>
+                            <div class="m-header-togglebtn">
+                                <img src="{{ static_url('imgs/icon_toggle.png') }}" class="m-header-img"/>
+                            </div>
+                        </div>
 						<div class="m-header-help"><a href=""><img src="{{ static_url('imgs/icon_help.png') }}" class="m-header-img" /></a></div>
 					</header>
 					<div class="flex-content">
@@ -71,7 +75,7 @@
                             <div class="main-left-tab">
                                 <div class="main-left-tab1 active">函-册</div>
                                 <div class="main-left-tab1">经-卷</div>
-                                <div class="main-left-search">
+                                <div class="main-left-search1">
                                     <input type="text" placeholder="检索">
                                     <img src="{{ static_url('imgs/icon13.png') }}" id="search_btn">
                                 </div>
@@ -81,77 +85,243 @@
                                     <li>
                                         <div class="submenu-title">
                                             <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-
+                                            <span>大般若波羅蜜多經(600)</span>
+                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
                                         </div>
+                                        <ul class="sub-ul sub-ul-hidden">
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第1卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第2卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第3卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">......</a></span>
+                                            </li>
+                                        </ul>
                                     </li>
                                     <li>
                                         <div class="submenu-title">
                                             <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                                            <span>放光般若波羅蜜經(20)</span>
+                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
                                         </div>
                                         <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第1卷</a></span>
                                             </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第2卷</a></span>
                                             </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第3卷</a></span>
                                             </li>
-
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第4卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第5卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第6卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第7卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第8卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第9卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第10卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第11卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第12卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第13卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第14卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第15卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第16卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第17卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第18卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第19卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第20卷</a></span>
+                                            </li>
                                         </ul>
                                     </li>
                                     <li>
                                         <div class="submenu-title">
                                             <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                                            <span>摩訶般若鈔經(5))</span>
+                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}" /></i>
                                         </div>
                                         <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第1卷</a></span>
                                             </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第2卷</a></span>
                                             </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第3卷</a></span>
                                             </li>
-
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第4卷</a></span>
+                                            </li>
+                                            <li>
+                                                <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img" /></i>
+                                                <span><a href="">第5卷</a></span>
+                                            </li>
                                         </ul>
                                     </li>
                                     <li>
                                         <div class="submenu-title">
                                             <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
-                                            <span>如是藏经</span>
-                                            <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                                            <span>道行般若經(10)</span>
                                         </div>
-                                        <ul class="sub-ul sub-ul-hidden">
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第一卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第二卷</a></span>
-                                            </li>
-                                            <li >
-                                                <i><img src="{{ static_url('imgs/icon15.png') }}" alt="" class="sub-img"/></i>
-                                                <span><a href="">第三卷</a></span>
-                                            </li>
-
-                                        </ul>
                                     </li>
-
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>小品般若波羅蜜經(10)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>勝天王般若波羅蜜經(7)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>大明度經(6)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>般若波羅蜜多心經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>金剛般若波羅蜜經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>大寶積經(120)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說無量淸淨平等覺經(4)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說無量壽經(2)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說普門品經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>法鏡經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說決定毗尼經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說幻士仁賢經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說離垢施女經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>佛說太子和休經(1)</span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="submenu-title">
+                                            <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                                            <span>大方等大集經(60)</span>
+                                        </div>
+                                    </li>
+    
                                 </ul>
 
                                 <div class="menu-search" id="menu-search">
@@ -207,17 +377,30 @@
                                 <img src="{{ static_url('imgs/examImg1.png') }}">
                             </div>
                             <div class="main-right-content w-40">
-                                <p>如是我闻：</p>
-                                <p>一时，佛在摩竭提国阿兰若法菩提场中，</p>
-                                <p>始成正觉。其地坚固，金刚所成；</p>
-                                <p>上妙宝轮，及众宝华、清净摩尼，以为严饰；</p>
-                                <p>诸色相海，无边显现；</p>
-                                <p>摩尼为幢，常放光明，恒出妙音，</p>
-                                <p>众宝罗网，妙香华<b class="kw">缨</b>，周匝垂布；</p>
-                                <p>摩尼宝王，变现自在，雨无尽宝及众妙华分散于地；</p>
-                                <p>宝树行列，枝叶光茂。</p>
-                                <p>佛神力故，令此道场一切庄严于中影现。</p>
-
+                                <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
+                                <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
+                                <p>壽八萬四千歲從惡念遮迦越殺一</p>
+                                <p>牛祠祀害命失金輪得銀輪主三天</p>
+                                <p>下壽萬歲堅念王作鎧壽五千歲得</p>
+                                <p>銅輪主二天下主西南喜殺王壽二</p>
+                                <p>千五百歲得鐵輪王主南天下其王有</p>
+                                <p>太子行五百歲得惡殺一減壽千歲</p>
+                                <p>古人有九病寒熱飢渴生老病死婆</p>
+                                <p>羅門殺生祠祀從是生四百四病從</p>
+                                <p>師子念王人壽轉減壽百二十歲從師</p>
+                                <p>子念王後師子意王有八十四王人壽</p>
+                                <p>轉減或壽八十七十五十三十二十</p>
+                                <p>十歲者於後師子合車王師子合車王卽師子</p>
+                                <p>頰王也子名白淨是菩薩父計菩薩身</p>
+                                <p>終始幷前後八萬四千遮迦越王</p>
+                                <p>遮迦越齊言飛行皇帝卽轉輪王也</p>
+                                <p>長阿含及曇無德律序轉輪世數甚</p>
+                                <p>明已顯於前此記抄撮難尋若依全</p>
+                                <p>經宜以阿含爲正大瞿曇氏純淑之姓</p>
+                                <p>大方便經云白淨劫初以來嫡嫡相</p>
+                                <p>承作轉輪王近來三世不作轉輪而</p>
+                                <p>作閻浮提王</p>
+                                <p>祐觀十二遊經不稱我聞復無佛言蓋</p>
                             </div>
                         </div>
                     </div>
