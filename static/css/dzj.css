@@ -1632,6 +1632,8 @@ span.active a {
     padding:20px 20px 10px 20px;
     border-radius:5px;
     background:var(--Color_Grey_Light);
+    max-width:360px;
+    min-width:300px;
 }
 .m-btn-group{
     width:160px;
