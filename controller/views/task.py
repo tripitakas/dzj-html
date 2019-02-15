@@ -10,6 +10,29 @@ from controller.base import BaseHandler, DbError, convert_bson
 import random
 
 
+class ChooseCutProofHandler(BaseHandler):
+    URL = ['/dzj_slice.html', '/dzj_cut']
+
+    @authenticated
+    def get(self):
+        """ 任务大厅-切分校对 """
+        try:
+            # 查找未领取或自己未完成的页面，自己未完成的页面显示在前面
+            pages = list(self.db.cutpage.find({
+                '$or': [{'cut_lock_user': None}, {'cut_lock_user': self.current_user.id}],
+                'text_status': None  # 未完成，后续应改为待领取状态
+            }))
+            random.shuffle(pages)
+            pages = [p for p in pages if p.get('cut_lock_user')] + [p for p in pages if not p.get('cut_lock_user')]
+
+            tasks = [dict(name=p['name'], kind='字切分', priority='高',
+                          status='待继续' if p.get('cut_lock_user') else '待领取')
+                     for p in pages[: int(self.get_argument('count', 12))]]
+            self.render('dzj_slice.html', tasks=tasks, remain=len(pages))
+        except DbError as e:
+            return self.send_db_error(e)
+
+
 class ChooseCharProofHandler(BaseHandler):
     URL = ['/dzj_char.html', '/dzj_chars']
 
