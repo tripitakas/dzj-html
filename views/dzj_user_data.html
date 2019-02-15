@@ -58,73 +58,21 @@
 													</tr>
 												</thead>
 												<tbody>
-													<tr>
+												  {% for r in users %}
+													<tr id="{{r['id']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>1000</td>
-														<td>2000</td>
-														<td>3000</td>
-														<td>4000</td>
-														<td>5000</td>
-														<td>6000</td>
-														<td>7000</td>
-														<td>8000</td>
+														<td>{{r['name']}}</td>
+														<td>{{r.get('phone', '')}}</td>
+														<td>{{r['cut_proof_count']}}</td>
+														<td>{{r['cut_review_count']}}</td>
+														<td>{{r['text_proof_count']}}</td>
+														<td>{{r['text_review_count']}}</td>
+														<td>{{r['text_difficult_count']}}</td>
+														<td>{{r['text_feedback_count']}}</td>
+														<td>{{r['fmt_proof_count']}}</td>
+														<td>{{r['fmt_review_count']}}</td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>1000</td>
-														<td>2000</td>
-														<td>3000</td>
-														<td>4000</td>
-														<td>5000</td>
-														<td>6000</td>
-														<td>7000</td>
-														<td>8000</td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>1000</td>
-														<td>2000</td>
-														<td>3000</td>
-														<td>4000</td>
-														<td>5000</td>
-														<td>6000</td>
-														<td>7000</td>
-														<td>8000</td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>1000</td>
-														<td>2000</td>
-														<td>3000</td>
-														<td>4000</td>
-														<td>5000</td>
-														<td>6000</td>
-														<td>7000</td>
-														<td>8000</td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>肖亚文</td>
-														<td>15977889999</td>
-														<td>1000</td>
-														<td>2000</td>
-														<td>3000</td>
-														<td>4000</td>
-														<td>5000</td>
-														<td>6000</td>
-														<td>7000</td>
-														<td>8000</td>
-													</tr>
-													
-													
+													{% end %}
 												</tbody>
 											</table>
 										</div>

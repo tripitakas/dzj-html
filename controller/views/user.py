@@ -59,7 +59,7 @@ class UserRolesHandler(BaseHandler):
     @authenticated
     def get(self):
         """ 角色管理页面 """
-        fields = ['a.id', 'name', 'phone', 'email'] + list(u.authority_map.keys())
+        fields = ['id', 'name', 'phone'] + list(u.authority_map.keys())
         try:
             self.update_login()
             cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
@@ -73,3 +73,30 @@ class UserRolesHandler(BaseHandler):
             return self.send_db_error(e)
 
         self.render('dzj_user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
+
+
+class UsersDataHandler(BaseHandler):
+    URL = '/dzj_user_data.html'
+
+    @authenticated
+    def get(self):
+        """ 人员管理-数据管理页面 """
+        fields = ['id', 'name', 'phone']
+        try:
+            self.update_login()
+            users = self.db.user.find({})
+            users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
+            users.sort(key=lambda a: a.name)
+            users = self.convert_for_send(users)
+            for r in users:
+                # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
+                r.update(dict(cut_proof_count=0, cut_review_count=0,
+                              text_proof_count=0, text_review_count=0,
+                              text_difficult_count=0, text_feedback_count=0,
+                              fmt_proof_count=0, fmt_review_count=0))
+            self.add_op_log('get_users_completed')
+
+        except DbError as e:
+            return self.send_db_error(e)
+
+        self.render('dzj_user_data.html', users=users)
