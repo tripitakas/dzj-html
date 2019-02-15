@@ -5,7 +5,9 @@
 from . import modules, home, user, task
 
 handlers = [home.HomeHandler,
-            user.LoginHandler, user.RegisterHandler, user.UsersHandler, user.UserRolesHandler,
-            task.ChooseCharProofHandler, task.MyCharProofHandler, task.CharProofDetailHandler]
+            user.LoginHandler, user.RegisterHandler,
+            user.UsersHandler, user.UserRolesHandler, user.UsersDataHandler,
+            task.ChooseCharProofHandler, task.MyCharProofHandler, task.CharProofDetailHandler,
+            task.ChooseCutProofHandler]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead}
