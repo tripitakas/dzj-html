@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>如是藏經</title>
+    <title>如是藏经</title>
 
     <!-- Plugins css -->
     <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -35,7 +35,7 @@
                 <header class="m-header">
                     <div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
 
-                    <div class="m-header-title">如是藏經</div>
+                    <div class="m-header-title">如是藏经</div>
                     <div class="m-header-page">
                         <div class="m-header-page-info">
                             第<span> 1 </span>/ 80 </span>卷
@@ -1230,21 +1230,23 @@
             var positionY = e.pageY;
             var screenY = e.screenY;
             var width = $('.main-right-content').width();
+            var left_distance = $('.main-right-content').offset().left;
             var height = window.screen.availHeight;
             var dlg_width = $('#mouse_over_dlg').width();
             var dlg_height = $('#mouse_over_dlg').height();
 
-            if(positionX+dlg_width>width){
-                $('#mouse_over_dlg').css('left', positionX - dlg_width);
+            if(positionX + dlg_width > width + left_distance){
+                $('#mouse_over_dlg').css('left', positionX - dlg_width - 30);
             }else{
-                $('#mouse_over_dlg').css('left', positionX + 30);
+                $('#mouse_over_dlg').css('left', positionX);
             }
             if (screenY + dlg_height > height) {
-                $('#mouse_over_dlg').css('top', positionY - dlg_height);
+                $('#mouse_over_dlg').css('top', positionY - dlg_height - 30);
             } else {
-                $('#mouse_over_dlg').css('top', positionY + 15);
+                $('#mouse_over_dlg').css('top', positionY + 10);
             }
             $('#mouse_over_dlg').show();
+            $('#text_selected_dlg').hide();
         });
 
         <!--鼠标选中文字时，显示弹框-->
@@ -1257,19 +1259,20 @@
                 var positionY = e.pageY;
                 var screenY = e.screenY;
                 var width = $('.main-right-content').width();
+                var left_distance = $('.main-right-content').offset().left;
                 var height = window.screen.availHeight;
+                var dlg_width = $('#text_selected_dlg').width();
+                var dlg_height = $('#text_selected_dlg').height();
 
-                if(positionX + 50>width){
-
-                    $('#text_selected_dlg').css('left', positionX - 160);
+                if(positionX + dlg_width > width + left_distance){
+                    // alert(positionX + '|' + dlg_width + '|' +  width + '|' +  left_distance);
+                    $('#text_selected_dlg').css('left', positionX - dlg_width - 30);
                 }else{
-                    $('#text_selected_dlg').css('left', positionX + 10);
+                    $('#text_selected_dlg').css('left', positionX);
                 }
-                if (screenY + 170 > height) {
-
-                    $('#text_selected_dlg').css('top', positionY - 150);
+                if (screenY + dlg_height > height) {
+                    $('#text_selected_dlg').css('top', positionY - dlg_height - 30);
                 } else {
-
                     $('#text_selected_dlg').css('top', positionY + 10);
                 }
 
