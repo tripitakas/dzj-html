@@ -1618,9 +1618,12 @@ span.active a {
     border-radius:2px;
     padding:5px;
 }
+.search_result_text {
+	max-height: 100px;
+	overflow-y: auto;
+}
 .search_result_text:hover{
 	background:var(--Color_Brown);
-	overflow-y: scroll
 }
 .main-right-content .kw{
 	color:var(--Color_Brown_Darker);
