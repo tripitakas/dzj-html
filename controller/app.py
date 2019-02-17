@@ -19,7 +19,7 @@ import shutil
 from tornado.log import access_log
 
 
-__version__ = '0.0.2.90217'
+__version__ = '0.0.3.90217'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
