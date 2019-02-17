@@ -57,12 +57,13 @@ class ChooseCharProofHandler(BaseHandler):
 
 
 class MyCharProofHandler(BaseHandler):
-    URL = '/dzj_char_history.html'
+    URL = '/dzj_([a-z_]+)_history.html'
 
     @authenticated
-    def get(self):
-        """ 我的任务-文字校对 """
-        self.render('dzj_char_history.html')
+    def get(self, kind):
+        """ 我的任务 """
+        assert kind in ['char', 'char_check', 'hard', 'slice', 'slice_check']
+        self.render('dzj_{}_history.html'.format(kind))
 
 
 class CharProofDetailHandler(BaseHandler):
