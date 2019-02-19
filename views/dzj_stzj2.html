@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>如是我闻古籍数字化平台</title>
-    {% include _base_css.html %}
-</head>
 
-<body>
-   <div class="app-main">
-       <div class="main">
-           <!--模拟出左边菜单，方便写样式-->
-           {% module CommonLeft(title="index") %}
-           <div class="main-content">
-                {% module CommonHead() %}
-               <div class="single-page-con">
-                   <div class="layout">
-                       <div class="layout-content">
-                           <!-- 中间内容 -->
-                           <div class="home">
-                           	
-                             <div class="flex-content">
+	<head>
+		<meta charset="UTF-8">
+		<title>实体藏经</title>
+		{% include _base_css.html %}
+		<link rel="stylesheet" href="{{ static_url('css/dzj_n.css') }}">
+	</head>
+	<style>
+
+	</style>
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+				<div class="main-content">
+					<header class="m-header">
+						<div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
+
+						<div class="m-header-title">实体藏经</div>
+					</header>
+					<div class="flex-content">
 						<div class="main-right no-bg no-pm">
 							<div class="tripitaka-list">
 								<div class="wrapper">
@@ -131,15 +132,11 @@
 							</div>
 						</div>
 					</div>
-                           </div>
-                           <!-- ./中间内容 -->
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </div>
-   </div>
-   {% include _base_js.html %}
-</body>
+
+				</div>
+			</div>
+		</div>
+		{% include _base_js.html %}
+	</body>
 
 </html>
