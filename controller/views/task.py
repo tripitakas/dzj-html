@@ -73,7 +73,8 @@ class CharProofDetailHandler(BaseHandler):
     def get(self, name=''):
         """ 进入文字校对 """
         try:
-            page = convert_bson(self.db.cutpage.find_one(dict(name=name)))
+            # page = convert_bson(self.db.cutpage.find_one(dict(name=name)))
+            page = convert_bson(self.db.cutpage.find_one(dict(name=name))) or dict(name='?')
             if not page:
                 return self.render('_404.html')
             self.render('dzj_char_detail.html', page=page,
