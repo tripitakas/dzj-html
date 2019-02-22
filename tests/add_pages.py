@@ -57,7 +57,7 @@ def scan_dir(src_path, kind, db, ret):
 
 
 def add_page(name, info, db):
-    if not db.cutpage.find_one(dict(name=name)):
+    if not db.page.find_one(dict(name=name)):
         meta = dict(name=name,
                     kind=name[:2],
                     width=int(info['imgsize']['width']),
@@ -70,7 +70,7 @@ def add_page(name, info, db):
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
-        db.cutpage.insert_one(meta)
+        db.page.insert_one(meta)
 
 
 def add_texts(src_path, pages, db):
@@ -83,9 +83,9 @@ def add_texts(src_path, pages, db):
         elif fn.endswith('.txt') and fn[:-4] in pages:
             with open_file(filename) as f:
                 txt = f.read().strip().replace('\n', '|')
-            r = db.cutpage.find_one(dict(name=fn[:-4]))
+            r = db.page.find_one(dict(name=fn[:-4]))
             if r and not r.get('txt'):
-                db.cutpage.update_one(dict(name=fn[:-4]), {'$set': {'txt': txt}})
+                db.page.update_one(dict(name=fn[:-4]), {'$set': {'txt': txt}})
 
 
 def copy_img_files(src_path, pages):
