@@ -1,3 +1,3 @@
 from . import text
 
-handlers = [text.PickTextTaskApi]
+handlers = [text.GetTextApi, text.PickTextTaskApi]

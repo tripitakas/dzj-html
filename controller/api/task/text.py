@@ -6,11 +6,29 @@
 """
 
 from tornado.web import authenticated
+from tornado.options import options
 from controller.base import BaseHandler, DbError, convert_bson
 from datetime import datetime
 
 import model.user as u
 from controller import errors
+
+
+class GetTextApi(BaseHandler):
+    URL = r'/api/get/text/([A-Za-z0-9_]+)'
+
+    def get(self, name):
+        """ 获取页面数据 """
+        try:
+            if not options.testing and (not self.update_login() or u.ACCESS_TEXT_PROOF not in self.authority):
+                return self.send_error(errors.unauthorized)
+
+            page = self.db.cutpage.find_one(dict(name=name))
+            if not page:
+                return self.send_error(errors.no_object)
+            self.send_response(convert_bson(page))
+        except DbError as e:
+            return self.send_db_error(e)
 
 
 class PickTextTaskApi(BaseHandler):
