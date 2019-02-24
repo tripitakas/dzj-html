@@ -1,6 +1,6 @@
 ## 在 Mac 上的安装说明
 
-1. 安装 Python 3.6+/2.7 和 pip3
+1. 安装 Python 3.6+ 和 pip3
 
 2. 安装 Python 依赖包（选择其一）：
 

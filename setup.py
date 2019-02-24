@@ -18,7 +18,6 @@ setup(name='tripitaka',
           'Operating System :: OS Independent',
           'Natural Language :: Chinese (Simplified)',
           'Programming Language :: Python',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.6',
           'Topic :: Text Processing',
           'Topic :: Text Processing :: Linguistic'

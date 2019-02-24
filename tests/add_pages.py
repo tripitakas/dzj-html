@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
+# 本脚本的执行结果相当于在“数据管理-实体页”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
 # python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 from tornado.util import PY3
@@ -38,7 +39,7 @@ def scan_dir(src_path, kind, db, ret):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
-    for fn in listdir(src_path):
+    for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
             scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret)
@@ -52,8 +53,6 @@ def scan_dir(src_path, kind, db, ret):
                         continue
                     add_page(name, info, db)
                     ret.add(name)
-            elif fn.endswith('.txt'):
-                pass
 
 
 def add_page(name, info, db):
@@ -106,7 +105,7 @@ def copy_img_files(src_path, pages):
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost'):
     if not json_path:
-        txt_path = json_path = path.join(path.dirname(__file__), 'data')
+        txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     pages = set()
