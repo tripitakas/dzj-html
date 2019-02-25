@@ -1,3 +1,3 @@
-from . import text
+from . import task
 
-handlers = [text.GetPageApi, text.StartTasksApi, text.PickTaskApi, text.UnlockTasksApi]
+handlers = [task.GetPageApi, task.StartTasksApi, task.PickTaskApi, task.UnlockTasksApi]

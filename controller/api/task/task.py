@@ -30,24 +30,24 @@ class GetPageApi(BaseHandler):
                 return self.send_error(errors.no_object)
             self.send_response(convert_bson(page))
         except DbError as e:
-            return self.send_db_error(e)
+            self.send_db_error(e)
 
 
 class UnlockTasksApi(BaseHandler):
-    URL = r'/api/unlock/(%s)/([A-Z]{2})?' % u.re_task_type
+    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)' % u.re_task_type
 
-    def get(self, task_type, kind=None):
+    def get(self, task_type, prefix=None):
         """ 退回全部任务 """
         try:
             if not options.testing and (not self.update_login() or u.ACCESS_TASK_MGR not in self.authority):
                 return self.send_error(errors.unauthorized, reason=u.ACCESS_TASK_MGR)
 
-            pages = self.db.page.find(dict(kind=kind) if kind else {})
+            pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
             ret = []
             for page in pages:
                 info = {}
                 for field in page:
-                    if re.match(u.re_task_type, field):
+                    if re.match(u.re_task_type, field) and task_type in field:
                         info[field] = None
                 if info:
                     name = page['name']
@@ -57,7 +57,7 @@ class UnlockTasksApi(BaseHandler):
                         ret.append(name)
             self.send_response(ret)
         except DbError as e:
-            return self.send_db_error(e)
+            self.send_db_error(e)
 
 
 class StartTask(object):
@@ -76,24 +76,21 @@ class StartTasksApi(BaseHandler):
                                 key=cmp_to_key(lambda t: u.task_types.index(t)))
             assert task_types
 
-            # 检查是否有任务权限
-            self.update_login()
-            if u.ACCESS_TASK_MGR not in self.authority:
+            # 检查任务管理权限
+            if not self.update_login() or u.ACCESS_TASK_MGR not in self.authority:
                 return self.send_error(errors.unauthorized, reason=u.ACCESS_TASK_MGR)
 
-            pages = self.db.page.find(dict(name=re.compile('^' + prefix)))
+            # 得到待发布的页面
+            pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
             names = set()
             for page in pages:
                 for i, task_type in enumerate(task_types):
                     task_status = task_type + '_status'
-                    if page.get(task_status) == u.STATUS_LOCKED:
+                    # 不重复发布任务
+                    if page.get(task_status):
                         continue
-                    reset = {task_type + '_user': None}
-                    for field in page:
-                        if field.startswith(task_type) and field != task_status:
-                            reset[field] = None
+                    # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
                     r = self.db.page.update_one(dict(name=page['name']), {
-                        '$unset': reset,
                         '$set': {task_status: u.STATUS_PENDING if i else u.STATUS_OPENED}
                     })
                     if r.modified_count:
@@ -102,7 +99,7 @@ class StartTasksApi(BaseHandler):
 
             self.send_response(dict(names=list(names), task_types=task_types))
         except DbError as e:
-            return self.send_db_error(e)
+            self.send_db_error(e)
 
 
 class PickTaskApi(BaseHandler):
@@ -134,6 +131,7 @@ class PickTaskApi(BaseHandler):
             }
             lock = {
                 task_user: self.current_user.id,
+                task_type + '_nickname': self.current_user.name,
                 task_status: u.STATUS_LOCKED,
                 task_type + '_start_time': datetime.now()
             }
@@ -151,4 +149,4 @@ class PickTaskApi(BaseHandler):
             assert page.get(task_status) == u.STATUS_LOCKED
             self.send_response(dict(name=page['name']))
         except DbError as e:
-            return self.send_db_error(e)
+            self.send_db_error(e)
