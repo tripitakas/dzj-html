@@ -50,21 +50,22 @@ def get_my_tasks(self, task_type, cond=None):
 
 
 class ChooseCutProofHandler(BaseHandler):
-    URL = ['/dzj_slice.html', '/dzj_cut']
+    URL = '/dzj_slice.html'
 
     @authenticated
-    def get(self, task_type='char_cut_proof'):
-        """ 任务大厅-切分校对或审定 """
+    def get(self):
+        """ 任务大厅-切分校对 """
         try:
-            assert 'cut' in task_type and task_type in u.task_types
-            pages, tasks = get_my_or_free_tasks(self, task_type)
-            task_name = task_type.split('_')
-            stage = '校对' if 'proof' == task_name[2] else '审定'
-            task_name = '%s切分%s' % (dict(block='栏', column='列', char='字')[task_name[0]], stage)
-            tasks = [dict(name=p['name'], priority='高',
-                          status='待继续' if p.get(task_type + '_user') else
-                          u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
-            self.render('dzj_slice.html', tasks=tasks, task_name=task_name, stage=stage, remain=len(pages))
+            all_pages, all_tasks = [], []
+            for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof']:
+                pages, tasks = get_my_or_free_tasks(self, task_type)
+                task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
+                tasks = [dict(name=p['name'], priority='高', kind=task_name,
+                              status='待继续' if p.get(task_type + '_user') else
+                              u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
+                all_pages.extend(pages)
+                all_tasks.extend(tasks)
+            self.render('dzj_slice.html', tasks=all_tasks, remain=len(all_pages))
         except DbError as e:
             return self.send_db_error(e)
 

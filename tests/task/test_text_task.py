@@ -9,18 +9,22 @@ import model.user as u
 
 user1 = 'text1@test.com', 't12345'
 user2 = 'text2@test.com', 't12312'
+user3 = 'cut_text@test.com', 't12312'
 
 
 class TestTextTask(APITestCase):
     def setUp(self):
         super(APITestCase, self).setUp()
         self.add_users([dict(email=user1[0], name='文字测试', password=user1[1]),
+                        dict(email=user3[0], name='切分文字', password=user3[1],
+                             auth=','.join([u.ACCESS_TEXT_PROOF + u.ACCESS_CUT_PROOF])),
                         dict(email=user2[0], name='测试文字', password=user2[1])], u.ACCESS_TEXT_PROOF)
 
     def tearDown(self):
         
         # 退回所有任务
         self.login_as_admin()
+        self.fetch('/api/unlock/char_cut_proof/')
         self.fetch('/api/unlock/text1_proof/')
         
         super(APITestCase, self).setUp()
@@ -77,3 +81,26 @@ class TestTextTask(APITestCase):
             r = self.parse_response(self.fetch('/dzj_chars?_raw=1&count=99999'))
             self.assertEqual(r.get('remain'), len(r['tasks']))
             self.assertNotIn(name, [t['name'] for t in r['tasks']])
+
+    def test_multi_stages(self):
+        """ 测试校、审任务的状态转换 """
+
+        # 同时发布一个藏别的切分校对任务和文字校对任务
+        self.login_as_admin()
+        r = self.fetch('/api/start/JX', body=dict(data=dict(types='text1_proof,char_cut_proof')))
+        r = self.parse_response(r)
+        self.assertGreater(len(r['names']), 1)
+        self.assertEqual(len(r['names']) * 2, len(r['items']))
+        self.assertEqual(r['items'][0]['status'], u.STATUS_OPENED)
+        self.assertEqual(r['items'][1]['status'], u.STATUS_PENDING)
+        name = r['items'][0]['name']
+
+        # 依赖前面任务的任务不能领取，要具有相应权限
+        self.login(user1[0], user1[1])
+        self.assert_code(e.task_locked, self.fetch('/api/pick/text1_proof/' + name))
+        self.assert_code(e.unauthorized, self.fetch('/api/pick/char_cut_proof/' + name))
+        self.login(user3[0], user3[1])
+        self.assert_code(200, self.fetch('/api/pick/char_cut_proof/' + name))
+
+        # 任务提交后自动流转到下一校次
+        # TODO

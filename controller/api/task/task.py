@@ -73,7 +73,7 @@ class StartTasksApi(BaseHandler):
         try:
             data = self.get_body_obj(StartTask)
             task_types = sorted(list(set([t for t in data.types.split(',') if t in u.task_types])),
-                                key=cmp_to_key(lambda t: u.task_types.index(t)))
+                                key=cmp_to_key(lambda a, b: u.task_types.index(a) - u.task_types.index(b)))
             assert task_types
 
             # 检查任务管理权限
@@ -82,7 +82,7 @@ class StartTasksApi(BaseHandler):
 
             # 得到待发布的页面
             pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
-            names = set()
+            names, items = set(), []
             for page in pages:
                 for i, task_type in enumerate(task_types):
                     task_status = task_type + '_status'
@@ -90,14 +90,14 @@ class StartTasksApi(BaseHandler):
                     if page.get(task_status):
                         continue
                     # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
-                    r = self.db.page.update_one(dict(name=page['name']), {
-                        '$set': {task_status: u.STATUS_PENDING if i else u.STATUS_OPENED}
-                    })
+                    status = u.STATUS_PENDING if i else u.STATUS_OPENED
+                    r = self.db.page.update_one(dict(name=page['name']), {'$set': {task_status: status}})
                     if r.modified_count:
                         self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=page['name'])
                         names.add(page['name'])
+                        items.append(dict(name=page['name'], task_type=task_type, status=status))
 
-            self.send_response(dict(names=list(names), task_types=task_types))
+            self.send_response(dict(names=list(names), items=items, task_types=task_types))
         except DbError as e:
             self.send_db_error(e)
 

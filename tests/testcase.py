@@ -93,7 +93,7 @@ class APITestCase(AsyncHTTPSTestCase):
             self.fetch('/api/user/register', body={'data': r})
         self.add_admin_user()
         for r in users:
-            self.fetch('/api/user/change', body={'data': dict(email=r['email'], authority=r.get('authority', auth))})
+            self.fetch('/api/user/change', body={'data': dict(email=r['email'], authority=r.get('auth', auth))})
 
     def login_as_admin(self):
         return self.login('admin@test.com', 'test123')
