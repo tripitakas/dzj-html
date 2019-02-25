@@ -10,7 +10,6 @@ install:
     - pip install codecov
 
 before_script:
-    - mongo --version
     - python tests/add_pages.py --db_name=tripitaka_test
     - find . -name "*.pyc" | xargs rm -rf
 
