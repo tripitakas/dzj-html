@@ -6,12 +6,14 @@
 
 from tornado.web import authenticated
 from tornado.options import options
+from tornado.escape import to_basestring
 from controller.base import BaseHandler, DbError, convert_bson
 from datetime import datetime
 
 import model.user as u
 from controller import errors
 import re
+from functools import cmp_to_key
 
 
 class GetPageApi(BaseHandler):
@@ -49,11 +51,56 @@ class UnlockTasksApi(BaseHandler):
                         info[field] = None
                 if info:
                     name = page['name']
-                    r = self.db.page.update_one(dict(name=name), {'$set': info})
+                    r = self.db.page.update_one(dict(name=name), {'$unset': info})
                     if r.modified_count:
                         self.add_op_log('unlock_' + task_type, file_id=str(page['_id']), context=name)
                         ret.append(name)
             self.send_response(ret)
+        except DbError as e:
+            return self.send_db_error(e)
+
+
+class StartTask(object):
+    types = str
+
+
+class StartTasksApi(BaseHandler):
+    URL = r'/api/start/([A-Za-z0-9_]*)'
+
+    @authenticated
+    def post(self, prefix=''):
+        """ 发布审校任务 """
+        try:
+            data = self.get_body_obj(StartTask)
+            task_types = sorted(list(set([t for t in data.types.split(',') if t in u.task_types])),
+                                key=cmp_to_key(lambda t: u.task_types.index(t)))
+            assert task_types
+
+            # 检查是否有任务权限
+            self.update_login()
+            if u.ACCESS_TASK_MGR not in self.authority:
+                return self.send_error(errors.unauthorized, reason=u.ACCESS_TASK_MGR)
+
+            pages = self.db.page.find(dict(name=re.compile('^' + prefix)))
+            names = set()
+            for page in pages:
+                for i, task_type in enumerate(task_types):
+                    task_status = task_type + '_status'
+                    if page.get(task_status) == u.STATUS_LOCKED:
+                        continue
+                    reset = {task_type + '_user': None}
+                    for field in page:
+                        if field.startswith(task_type) and field != task_status:
+                            reset[field] = None
+                    r = self.db.page.update_one(dict(name=page['name']), {
+                        '$unset': reset,
+                        '$set': {task_status: u.STATUS_PENDING if i else u.STATUS_OPENED}
+                    })
+                    if r.modified_count:
+                        self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=page['name'])
+                        names.add(page['name'])
+
+            self.send_response(dict(names=list(names), task_types=task_types))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -67,31 +114,41 @@ class PickTaskApi(BaseHandler):
         try:
             # 检查是否有校对权限
             self.update_login()
-            if u.authority_map[task_type] not in self.authority:
-                return self.send_error(errors.unauthorized, reason=u.authority_map[task_type])
+            authority = u.authority_map[u.task_type_authority.get(task_type, task_type)]
+            if authority not in self.authority:
+                return self.send_error(errors.unauthorized, reason=authority)
 
             # 有未完成的任务则不能继续
             task_user = task_type + '_user'
-            names = list(self.db.page.find({task_user: self.current_user.id, task_type + '_status': None}))
+            task_status = task_type + '_status'
+            names = list(self.db.page.find({task_user: self.current_user.id, task_status: u.STATUS_LOCKED}))
             names = [p['name'] for p in names]
             if names and name not in names:
                 return self.send_error(errors.task_uncompleted, reason=','.join(names))
 
-            # 领取新任务或继续原任务
-            lock = {task_user: self.current_user.id, task_type + '_time': datetime.now()}
-            r = self.db.page.update_one({task_user: None, 'name': name}, {'$set': lock})
+            # 领取新任务(待领取或已退回时)或继续原任务
+            can_lock = {
+                task_user: None,
+                'name': name,
+                '$or': [{task_status: u.STATUS_OPENED}, {task_status: u.STATUS_RETURNED}]
+            }
+            lock = {
+                task_user: self.current_user.id,
+                task_status: u.STATUS_LOCKED,
+                task_type + '_start_time': datetime.now()
+            }
+            r = self.db.page.update_one(can_lock, {'$set': lock})
             page = convert_bson(self.db.page.find_one(dict(name=name)))
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['id'], context=name)
-            else:
-                if not page:
-                    return self.send_error(errors.no_object)
-                if page.get(task_user) != self.current_user.id:
-                    return self.send_error(errors.task_locked)
+            elif page and page.get(task_user) == self.current_user.id and page.get(task_status) == u.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['id'], context=name)
+            else:
+                return self.send_error(errors.task_locked if page else errors.no_object)
 
             # 反馈领取成功
+            assert page.get(task_status) == u.STATUS_LOCKED
             self.send_response(dict(name=page['name']))
         except DbError as e:
             return self.send_db_error(e)

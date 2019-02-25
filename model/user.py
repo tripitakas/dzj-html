@@ -45,4 +45,22 @@ authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW,
                      text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,
                      task_mgr=ACCESS_TASK_MGR, data_mgr=ACCESS_DATA_MGR)
 
-re_task_type = 'cut_proof|cut_review|text_proof|text_review|fmt_proof|fmt_review|hard_proof'
+
+# 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀
+task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
+              'block_cut_review', 'column_cut_review', 'char_cut_review',
+              'text1_proof', 'text2_proof', 'text3_proof', 'text_review',
+              'fmt_proof', 'fmt_review', 'hard_proof']
+re_task_type = '|'.join(task_types)
+task_type_authority = dict(block_cut_proof='cut_proof', column_cut_proof='cut_proof', char_cut_proof='cut_proof',
+                           block_cut_review='cut_review', column_cut_review='cut_review', char_cut_review='cut_review',
+                           text1_proof='text_proof', text2_proof='text_proof', text3_proof='text_proof')
+
+# 下列任务状态中，发布任务后为opened，如果依赖其他任务条件则为pending，提交任务后为ended，自动触发后续任务为opened
+STATUS_OPENED = 'opened'
+STATUS_PENDING = 'pending'
+STATUS_LOCKED = 'locked'
+STATUS_RETURNED = 'returned'
+STATUS_ENDED = 'ended'
+task_statuses = dict(STATUS_OPENED='待领取', STATUS_PENDING='待就绪', STATUS_LOCKED='已领取',
+                     STATUS_RETURNED='已退回', STATUS_ENDED='已完成')
