@@ -86,3 +86,17 @@ class APITestCase(AsyncHTTPSTestCase):
         """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
         return self.fetch('/api/user/register', body={'data': dict(
             email='admin@test.com', name='管理', password='test123')})
+
+    def add_users(self, users, auth=None):
+        self.add_admin_user()
+        for r in users:
+            self.fetch('/api/user/register', body={'data': r})
+        self.add_admin_user()
+        for r in users:
+            self.fetch('/api/user/change', body={'data': dict(email=r['email'], authority=r.get('authority', auth))})
+
+    def login_as_admin(self):
+        return self.login('admin@test.com', 'test123')
+
+    def login(self, email, password):
+        return self.fetch('/api/user/login', body={'data': dict(email=email, password=password)})
