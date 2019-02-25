@@ -102,5 +102,11 @@ class TestTextTask(APITestCase):
         self.login(user3[0], user3[1])
         self.assert_code(200, self.fetch('/api/pick/char_cut_proof/' + name))
 
+        # 进入切分校对页面
+        r = self.fetch('/dzj_char_cut_proof/%s?_raw=1' % name)
+        self.assert_code(200, r)
+        page = self.parse_response(r)['page']
+        self.assertEqual(page['name'], name)
+
         # 任务提交后自动流转到下一校次
         # TODO

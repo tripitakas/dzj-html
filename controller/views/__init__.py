@@ -8,6 +8,6 @@ handlers = [home.HomeHandler,
             user.LoginHandler, user.RegisterHandler,
             user.UsersHandler, user.UserRolesHandler, user.UsersDataHandler,
             task.ChooseCharProofHandler, task.ChooseCharReviewHandler, task.MyTasksHandler,
-            task.ChooseCutProofHandler, task.CharProofDetailHandler,]
+            task.ChooseCutProofHandler, task.CharProofDetailHandler, task.CutProofDetailHandler]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead}

@@ -127,6 +127,25 @@ class MyTasksHandler(BaseHandler):
             return self.send_db_error(e)
 
 
+class CutProofDetailHandler(BaseHandler):
+    URL = '/dzj_(block|column|char)_cut_(proof|review)/([A-Za-z0-9_]+)'
+
+    @authenticated
+    def get(self, box_type, stage, name):
+        """ 进入切分校对 """
+        try:
+            task_type = '%s_cut_%s' % (box_type, stage)
+            page = convert_bson(self.db.page.find_one(dict(name=name)))
+            if not page:
+                return self.render('_404.html')
+            status_r = page.get(task_type + '_status') != u.STATUS_LOCKED
+            user_r = page.get(task_type + '_user') != self.current_user.id
+            self.render('dzj_slice_{}detail.html'.format('' if stage == 'proof' else 'check_'),
+                        page=page, readonly=status_r or user_r)
+        except DbError as e:
+            return self.send_db_error(e)
+
+
 class CharProofDetailHandler(BaseHandler):
     URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9_]+)']
 
