@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@author: Zhang Yungui
 @time: 2018/12/27
 """
 from tests.testcase import APITestCase

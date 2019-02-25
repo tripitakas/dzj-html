@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc 定义后端API的错误码和数据库常用函数
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 from datetime import datetime, timedelta

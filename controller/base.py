@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 后端API响应的基础函数和类
-@author: Zhang Yungui
 @time: 2018/6/23
 """
 
