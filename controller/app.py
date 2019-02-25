@@ -44,6 +44,8 @@ class Application(web.Application):
         for cls in self.handlers:
             if isinstance(cls.URL, list):
                 handlers.extend((url, cls) for url in cls.URL)
+            elif isinstance(cls.URL, tuple):
+                handlers.append((cls.URL[0] % cls.URL[1], cls))
             else:
                 handlers.append((cls.URL, cls))
         handlers = sorted(handlers, key=itemgetter(0))

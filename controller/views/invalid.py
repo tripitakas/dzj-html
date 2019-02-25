@@ -36,6 +36,8 @@ class ApiTable(BaseHandler):
                     if isinstance(cls.URL, list):
                         for i, url in enumerate(cls.URL):
                             handlers.append((url, method, func.__doc__))
+                    elif isinstance(cls.URL, tuple):
+                        handlers.append((cls.URL[0], method, func.__doc__))
                     else:
                         handlers.append((cls.URL, method, func.__doc__))
         handlers.sort(key=itemgetter(0))

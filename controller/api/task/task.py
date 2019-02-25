@@ -34,7 +34,7 @@ class GetPageApi(BaseHandler):
 
 
 class UnlockTasksApi(BaseHandler):
-    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)' % u.re_task_type
+    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
@@ -103,7 +103,7 @@ class StartTasksApi(BaseHandler):
 
 
 class PickTaskApi(BaseHandler):
-    URL = r'/api/pick/(%s)/([A-Za-z0-9_]+)' % u.re_task_type
+    URL = r'/api/pick/(%s)/([A-Za-z0-9_]+)', u.re_task_type
 
     @authenticated
     def get(self, task_type, name):
