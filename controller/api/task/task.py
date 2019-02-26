@@ -6,7 +6,6 @@
 
 from tornado.web import authenticated
 from tornado.options import options
-from tornado.escape import to_basestring
 from controller.base import BaseHandler, DbError, convert_bson
 from datetime import datetime
 
@@ -22,13 +21,48 @@ class GetPageApi(BaseHandler):
     def get(self, name):
         """ 获取页面数据 """
         try:
-            if not options.testing and (not self.update_login() or u.ACCESS_DATA_MGR not in self.authority):
+            if not options.testing and (not self.update_login() or not self.authority):
                 return self.send_error(errors.unauthorized)
 
             page = self.db.page.find_one(dict(name=name))
             if not page:
                 return self.send_error(errors.no_object)
             self.send_response(convert_bson(page))
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class GetPagesApi(BaseHandler):
+    URL = r'/api/pages/([a-z_]+)'
+
+    def post(self, kind):
+        """ 为任务管理获取页面列表 """
+        try:
+            if not options.testing and (not self.update_login() or (
+                            u.ACCESS_DATA_MGR not in self.authority and u.ACCESS_TASK_MGR not in self.authority)):
+                return self.send_error(errors.unauthorized)
+
+            assert 'cut_' in kind or 'text_' in kind
+            if 'cut_' in kind:
+                all_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
+                             'block_cut_review', 'column_cut_review', 'char_cut_review']
+            else:
+                all_types = ['text1_proof', 'text2_proof', 'text3_proof', 'text_review']
+
+            if kind == 'cut_start' or kind == 'text_start':
+                data = self.get_body_obj(StartTask)
+                task_types = [t for t in (data.types or '').split(',') if t in all_types]
+                task_types = task_types or all_types
+
+                pages = self.db.page.find({'$or': [{t + '_status': None} for t in task_types]})
+                self.send_response([p['name'] for p in pages])
+            else:
+                pages = [convert_bson(p) for p in self.db.page.find({}) if [t for t in all_types if p.get(t)]]
+                for p in pages:
+                    for field, value in list(p.items()):
+                        if isinstance(value, list):
+                            del p[field]
+                self.send_response(pages)
         except DbError as e:
             self.send_db_error(e)
 

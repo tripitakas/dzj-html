@@ -169,7 +169,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return convert2obj(param_type, text)
 
         if 'data' not in self.request.body_arguments:
-            body = json_decode(self.request.body)['data']
+            body = json_decode(self.request.body).get('data')
         else:
             body = self.get_body_argument('data')
         if param_type == str:

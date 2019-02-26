@@ -68,15 +68,16 @@ class APITestCase(AsyncHTTPSTestCase):
         response = self.wait()
         headers = response.headers
         try:
-            sc = headers._dict['Set-Cookie'] if hasattr(headers, '_dict') else headers['Set-Cookie']
-            text = native_str(sc)
-            text = re.sub(r'Path=/(,)?', '', text)
-            cookie.update(Cookie.SimpleCookie(text))
-            while True:
+            sc = headers._dict.get('Set-Cookie') if hasattr(headers, '_dict') else headers.get('Set-Cookie')
+            if sc:
+                text = native_str(sc)
+                text = re.sub(r'Path=/(,)?', '', text)
                 cookie.update(Cookie.SimpleCookie(text))
-                if ',' not in text:
-                    break
-                text = text[text.find(',') + 1:]
+                while True:
+                    cookie.update(Cookie.SimpleCookie(text))
+                    if ',' not in text:
+                        break
+                    text = text[text.find(',') + 1:]
         except KeyError:
             pass
 
