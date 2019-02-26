@@ -160,3 +160,15 @@ class CharProofDetailHandler(BaseHandler):
                         readonly=page.get('text_proof_user') != self.current_user.id)
         except DbError as e:
             return self.send_db_error(e)
+
+
+class CutStatusHandler(BaseHandler):
+    URL = '/dzj_mission_slice_status.html'
+
+    @authenticated
+    def get(self):
+        """ 任务管理-切分状态 """
+        def handle_response(body):
+            self.render('dzj_mission_slice_status.html', **body)
+
+        self.call_back_api('/api/pages/cut_status', handle_response)

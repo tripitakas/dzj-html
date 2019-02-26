@@ -35,8 +35,15 @@ class GetPageApi(BaseHandler):
 class GetPagesApi(BaseHandler):
     URL = r'/api/pages/([a-z_]+)'
 
+    def get(self, kind):
+        """ 为任务管理获取页面列表 """
+        self.process(kind)
+
     def post(self, kind):
         """ 为任务管理获取页面列表 """
+        self.process(kind)
+
+    def process(self, kind):
         try:
             if not options.testing and (not self.update_login() or (
                             u.ACCESS_DATA_MGR not in self.authority and u.ACCESS_TASK_MGR not in self.authority)):
@@ -57,10 +64,11 @@ class GetPagesApi(BaseHandler):
                 pages = self.db.page.find({'$or': [{t + '_status': None} for t in task_types]})
                 self.send_response([p['name'] for p in pages])
             else:
-                pages = [convert_bson(p) for p in self.db.page.find({}) if [t for t in all_types if p.get(t)]]
+                pages = [convert_bson(p) for p in self.db.page.find({})
+                         if [t for t in all_types if p.get(t + '_status')]]
                 for p in pages:
                     for field, value in list(p.items()):
-                        if isinstance(value, list):
+                        if isinstance(value, list) or field == 'txt':
                             del p[field]
                 self.send_response(pages)
         except DbError as e:
@@ -96,6 +104,7 @@ class UnlockTasksApi(BaseHandler):
 
 class StartTask(object):
     types = str
+    pages = str
 
 
 class StartTasksApi(BaseHandler):
@@ -108,7 +117,7 @@ class StartTasksApi(BaseHandler):
             data = self.get_body_obj(StartTask)
             task_types = sorted(list(set([t for t in data.types.split(',') if t in u.task_types])),
                                 key=cmp_to_key(lambda a, b: u.task_types.index(a) - u.task_types.index(b)))
-            assert task_types
+            data.pages = data.pages and data.pages.split(',')
 
             # 检查任务管理权限
             if not self.update_login() or u.ACCESS_TASK_MGR not in self.authority:
@@ -118,6 +127,9 @@ class StartTasksApi(BaseHandler):
             pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
             names, items = set(), []
             for page in pages:
+                name = page['name']
+                if data.pages and name not in data.pages:
+                    continue
                 for i, task_type in enumerate(task_types):
                     task_status = task_type + '_status'
                     # 不重复发布任务
@@ -125,11 +137,11 @@ class StartTasksApi(BaseHandler):
                         continue
                     # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
                     status = u.STATUS_PENDING if i else u.STATUS_OPENED
-                    r = self.db.page.update_one(dict(name=page['name']), {'$set': {task_status: status}})
+                    r = self.db.page.update_one(dict(name=name), {'$set': {task_status: status}})
                     if r.modified_count:
-                        self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=page['name'])
-                        names.add(page['name'])
-                        items.append(dict(name=page['name'], task_type=task_type, status=status))
+                        self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=name)
+                        names.add(name)
+                        items.append(dict(name=name, task_type=task_type, status=status))
 
             self.send_response(dict(names=list(names), items=items, task_types=task_types))
         except DbError as e:

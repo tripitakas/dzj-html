@@ -18,6 +18,9 @@ from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
+from tornado import gen
+from tornado.httpclient import AsyncHTTPClient
+
 from controller import errors
 from model.user import User, authority_map, ACCESS_ALL
 
@@ -126,6 +129,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         else:
             self.current_user.authority = ''
+            self.send_error(errors.auth_changed)
             raise Warning(1, '需要重新登录或注册')
         self.authority = self.current_user.authority
         return True
@@ -303,3 +307,53 @@ class BaseHandler(CorsMixin, RequestHandler):
                                     context=context and context[:80],
                                     create_time=errors.get_date_time(),
                                     ip=self.get_ip()))
+
+    @gen.coroutine
+    def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+        self._auto_finish = False
+        client = AsyncHTTPClient()
+        url = re.sub('[\'"]', '', url)
+        if not re.match(r'http(s)?://', url):
+            url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
+            r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
+        else:
+            r = yield client.fetch(url, validate_cert=False, **kwargs)
+        if r.error:
+            if handle_error:
+                handle_error(r.error)
+            else:
+                self.write('错误1: ' + r.error)
+                self.finish()
+        else:
+            try:
+                try:
+                    body = str(r.body, encoding='utf-8').strip()
+                except UnicodeDecodeError:
+                    body = str(r.body, encoding='gb18030').strip()
+                except TypeError:
+                    body = to_basestring(r.body).strip()
+                if re.match('(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+                    if 'var next' in body:
+                        body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.uri, body)
+                        body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.uri, body)
+                        self.write(body)
+                        self.finish()
+                    else:
+                        handle_response(body)
+                else:
+                    body = json_decode(body)
+                    if body.get('error'):
+                        if handle_error:
+                            handle_error(body['error'])
+                        else:
+                            self.write('错误3: ' + body['error'])
+                            self.finish()
+                    else:
+                        handle_response(body)
+            except Exception as e:
+                e = '错误(%s): %s' % (e.__class__.__name__, str(e))
+                if handle_error:
+                    handle_error(e)
+                else:
+                    self.write(e)
+                    self.finish()
