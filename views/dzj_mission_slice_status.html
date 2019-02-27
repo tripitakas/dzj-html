@@ -197,103 +197,86 @@
 														<th><span>页编码</span></th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'block_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'block_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'column_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'column_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'char_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'char_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 													</tr>
 												</thead>
 
 												<tbody>
-													<tr>
+												  {% for page in items %}
+													<tr id="{{page['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
+														<td>{{page['name']}}</td>
+														<td>{{status_desc(page, 'block_cut_proof')}}</td>
+														<td>{{status_desc(page, 'block_cut_review')}}</td>
+														<td>{{status_desc(page, 'column_cut_proof')}}</td>
+														<td>{{status_desc(page, 'column_cut_review')}}</td>
+														<td>{{status_desc(page, 'char_cut_proof')}}</td>
+														<td>{{status_desc(page, 'char_cut_review')}}</td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-													</tr>
-													
-													
-													
+													{% end %}
 												</tbody>
 											</table>
 										</div>

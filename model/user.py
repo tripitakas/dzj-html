@@ -62,5 +62,5 @@ STATUS_PENDING = 'pending'
 STATUS_LOCKED = 'locked'
 STATUS_RETURNED = 'returned'
 STATUS_ENDED = 'ended'
-task_statuses = dict(STATUS_OPENED='待领取', STATUS_PENDING='待就绪', STATUS_LOCKED='已领取',
-                     STATUS_RETURNED='已退回', STATUS_ENDED='已完成')
+task_statuses = {STATUS_OPENED: '未领取', STATUS_PENDING: '未就绪', STATUS_LOCKED: '进行中',
+                 STATUS_RETURNED: '已退回', STATUS_ENDED: '已完成', None: '未发布'}
