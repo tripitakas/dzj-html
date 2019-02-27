@@ -9,6 +9,6 @@ handlers = [home.HomeHandler,
             user.UsersHandler, user.UserRolesHandler, user.UsersDataHandler,
             task.ChooseCharProofHandler, task.ChooseCharReviewHandler, task.MyTasksHandler,
             task.ChooseCutProofHandler, task.CharProofDetailHandler, task.CutProofDetailHandler,
-            task.CutStatusHandler]
+            task.CutStatusHandler, task.TextStatusHandler]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead}

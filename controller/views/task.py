@@ -169,19 +169,44 @@ class CutStatusHandler(BaseHandler):
     def get(self):
         """ 任务管理-切分状态 """
 
-        def status_desc(page, prefix):
-            status = page.get(prefix + '_status')
-            return u.task_statuses.get(status)
-
-        def sum_status(pages, prefix):
-            values = []
-            for p in pages:
-                v = status_desc(p, prefix)
-                if v not in values:
-                    values.append(v)
-            return values
-
         def handle_response(body):
-            self.render('dzj_mission_slice_status.html', status_desc=status_desc, sum_status=sum_status, **body)
+            self.render('dzj_mission_slice_status.html',
+                        status_cls=CutStatusHandler.status_cls,
+                        status_desc=CutStatusHandler.status_desc,
+                        sum_status=CutStatusHandler.sum_status, **body)
 
         self.call_back_api('/api/pages/cut_status', handle_response)
+
+    @staticmethod
+    def status_desc(page, prefix):
+        status = page.get(prefix + '_status')
+        return u.task_statuses.get(status)
+
+    @staticmethod
+    def status_cls(page, prefix):
+        return 'status_' + page.get(prefix + '_status', 'none')
+
+    @staticmethod
+    def sum_status(pages, prefix):
+        values = []
+        for p in pages:
+            v = CutStatusHandler.status_desc(p, prefix)
+            if v not in values:
+                values.append(v)
+        return values
+
+
+class TextStatusHandler(BaseHandler):
+    URL = '/dzj_mission_char_status.html'
+
+    @authenticated
+    def get(self):
+        """ 任务管理-文字状态 """
+
+        def handle_response(body):
+            self.render('dzj_mission_char_status.html',
+                        status_cls=CutStatusHandler.status_cls,
+                        status_desc=CutStatusHandler.status_desc,
+                        sum_status=CutStatusHandler.sum_status, **body)
+
+        self.call_back_api('/api/pages/text_status', handle_response)

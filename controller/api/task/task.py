@@ -68,7 +68,9 @@ class GetPagesApi(BaseHandler):
                          if [t for t in all_types if p.get(t + '_status')]]
                 for p in pages:
                     for field, value in list(p.items()):
-                        if isinstance(value, list) or field == 'txt':
+                        if field == 'txt':
+                            p[field] = len(p[field])
+                        elif isinstance(value, list):
                             del p[field]
                 self.send_response(pages)
         except DbError as e:

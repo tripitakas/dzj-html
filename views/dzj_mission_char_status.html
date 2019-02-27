@@ -19,6 +19,21 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
         <![endif]-->
 
+		<style>
+			.collate-history .collate-list table tbody tr td.status_none {
+				color: #999;
+			}
+			.collate-history .collate-list table tbody tr td.status_pending {
+				color: #666;
+			}
+			.collate-history .collate-list table tbody tr td.status_ended {
+				color: #0f0;
+			}
+			.collate-history .collate-list table tbody tr td.status_opened {
+				color: #007;
+			}
+		</style>
+
 	</head>
 	<style>
 
@@ -101,16 +116,19 @@
 											<h4 class="modal-title" id="myModalLabel">勾选发布任务</h4>
 										</div>
 										<div class="modal-body">
-											<div class="">
+											<div class="task_types">
 												<h4>选择任务类型</h4>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 切栏校对审定
+												<label class="checkbox-inline">
+													<input type="checkbox" name="text1_proof" id="text1_proof" value="option1"> 校一
 												</label>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 切列校对审定
+												<label class="checkbox-inline">
+													<input type="checkbox" name="text2_proof" id="text2_proof" value="option2"> 校二
 												</label>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3"> 切字校对审定
+												<label class="checkbox-inline">
+													<input type="checkbox" name="text3_proof" id="text3_proof" value="option3"> 校三
+												</label>
+												<label class="checkbox-inline">
+													<input type="checkbox" name="text_review" id="text_review" value="option3"> 审定
 												</label>
 											</div>
 											<br />
@@ -177,7 +195,7 @@
 												<thead>
 													<tr>
 														<th><input type="checkbox" name="" id="" value="" /></th>
-														<th><span>数据是否就绪</span></th>
+														<th><span>页编码</span></th>
 														<th>
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">数据是否就绪</span><span class="ion-android-sort " ></span>
@@ -187,115 +205,33 @@
 					                                            </ul>
 					                                        </div>
 														</th>
+														{% for name, caption in [('text1_proof', '校一'), ('text2_proof', '校二'), ('text3_proof', '校三'), ('text_review', '审定')] %}
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">校一状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">{{caption}}状态</span><span class="ion-android-sort " ></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, name) %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">校二状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">校三状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">校四状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">审定状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
+														{% end %}
 													</tr>
 												</thead>
 
 												<tbody>
-													<tr>
+												  {% for page in items %}
+													<tr id="{{page['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
+														<td>{{page['name']}}</td>
+														<td>{{'是' if page.get('txt') else '否'}}</td>
+														<td class="{{status_cls(page, 'text1_proof')}}">{{status_desc(page, 'text1_proof')}}</td>
+														<td class="{{status_cls(page, 'text2_proof')}}">{{status_desc(page, 'text2_proof')}}</td>
+														<td class="{{status_cls(page, 'text3_proof')}}">{{status_desc(page, 'text3_proof')}}</td>
+														<td class="{{status_cls(page, 'text_review')}}">{{status_desc(page, 'text_review')}}</td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>已就绪未领取</td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>进行中</td>
-														<td>未领取</td>
-														<td>进行中</td>
-														<td>未领取</td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>进行中</td>
-														<td>未领取</td>
-														<td>进行中</td>
-														<td>未领取</td>
-														<td>已就绪未领取</td>
-													</tr>
-													
-													
+													{% end %}
 												</tbody>
 											</table>
 										</div>
@@ -331,6 +267,45 @@
 		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
         <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">
+
+			var pages = [];
+			var $modal = $('#selectModal');
+
+			// 勾选发布任务
+			$modal.on('shown.bs.modal', function () {
+				postApi('/pages/cut_start', {data: {}}, function (res) {
+					pages = res.items;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+				});
+			});
+
+			$modal.find('.btn-primary').click(function () {
+				var types = [];
+				$modal.find('.task_types input').each(function (i, input) {
+					input = $(input);
+					if (input.is(':checked')) {
+						types.push(input.attr('id'));
+					}
+				});
+				if (!types.length) {
+					return showError('未选任务类型', '请勾选一个或多个任务类型。')
+				}
+				postApi('/start/', {
+					data: {
+						types: types.join(','),
+						pages: pages.join(',')
+					}
+				}, function (res) {
+					showSuccess('已发布任务', res.names.length + ' 个页面、' + res.items.length + ' 个任务已发布。');
+					setTimeout(function () {
+						location.reload();
+					}, 1000);
+				});
+
+			});
+
 			$('#my_multi_select').multiSelect({
                     selectableHeader: "待选对象<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
                     selectionHeader: "已选对象<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",
