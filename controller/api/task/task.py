@@ -78,7 +78,7 @@ class GetPagesApi(BaseHandler):
 
 
 class UnlockTasksApi(BaseHandler):
-    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type
+    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type + '|cut_proof|cut_review'
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
@@ -138,7 +138,7 @@ class StartTasksApi(BaseHandler):
                     if page.get(task_status):
                         continue
                     # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
-                    status = u.STATUS_PENDING if i else u.STATUS_OPENED
+                    status = u.STATUS_PENDING if i or self.has_pre_task(page, task_type) else u.STATUS_OPENED
                     r = self.db.page.update_one(dict(name=name), {'$set': {task_status: status}})
                     if r.modified_count:
                         self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=name)
@@ -148,6 +148,14 @@ class StartTasksApi(BaseHandler):
             self.send_response(dict(names=list(names), items=items, task_types=task_types))
         except DbError as e:
             self.send_db_error(e)
+
+    @staticmethod
+    def has_pre_task(page, task_type):
+        idx = u.task_types.index(task_type)
+        for i in range(idx):
+            status = page.get(u.task_types[i] + '_status')
+            if status and status != u.STATUS_ENDED:
+                return True
 
 
 class PickTaskApi(BaseHandler):

@@ -24,7 +24,7 @@ class TestTextTask(APITestCase):
         
         # 退回所有任务
         self.login_as_admin()
-        self.fetch('/api/unlock/char_cut_proof/')
+        self.fetch('/api/unlock/cut_proof/')
         self.fetch('/api/unlock/text1_proof/')
         
         super(APITestCase, self).setUp()
@@ -38,12 +38,15 @@ class TestTextTask(APITestCase):
             self.assertIn('tasks', r)
             self.assertEqual(len(r['tasks']), 0)
 
+    def start_tasks(self, types, prefix=''):
+        return self.fetch('/api/start/' + prefix, body={'data': dict(types=types)})
+
     def test_get_tasks(self):
         """ 测试文字校对任务的发布、列表和领取 """
 
         # 发布任务
         self.login_as_admin()
-        r = self.fetch('/api/start/', body={'data': dict(types='text1_proof')})
+        r = self.start_tasks('text1_proof')
         self.assertIn('names', self.parse_response(r))
 
         r = self.login(user1[0], user1[1])
@@ -87,7 +90,8 @@ class TestTextTask(APITestCase):
 
         # 同时发布一个藏别的切分校对任务和文字校对任务
         self.login_as_admin()
-        r = self.fetch('/api/start/JX', body={'data': dict(types='text1_proof,char_cut_proof')})
+        self.fetch('/api/unlock/cut_proof/')
+        r = self.start_tasks('text1_proof,char_cut_proof', 'JX')
         r = self.parse_response(r)
         self.assertGreater(len(r['names']), 1)
         self.assertEqual(len(r['names']) * 2, len(r['items']))
@@ -122,7 +126,7 @@ class TestTextTask(APITestCase):
 
         # 先发布一种任务类型
         self.login_as_admin()
-        r = self.fetch('/api/start/', body={'data': dict(types='char_cut_proof')})
+        r = self.start_tasks('char_cut_proof')
         self.assert_code(200, r)
         for p in self.parse_response(r)['items']:
             self.assertEqual(p.get('task_type'), 'char_cut_proof')
@@ -136,10 +140,21 @@ class TestTextTask(APITestCase):
         r = self.parse_response(self.fetch('/api/pages/cut_start', body={'data': dict(types='char_cut_proof')}))
         self.assertEqual(len(r['items']), 0)
         # 也不能再发布同一类型的任务了
-        self.fetch('/api/start/', body={'data': dict(types='char_cut_proof')})
+        r = self.parse_response(self.start_tasks('char_cut_proof'))
         self.assertEqual(len(r['items']), 0)
 
         # 还可以发布其他类型的任务
         r = self.parse_response(self.fetch('/api/pages/cut_start', body={'data': dict(types='column_cut_proof')}))
         self.assertIn('items', r)
         self.assertEqual(len(r['items']), len(names))
+
+    def test_precondition_tasks(self):
+        """ 测试分批发布不同类型的任务时依依赖任务而为未就绪 """
+
+        r = self.parse_response(self.start_tasks('block_cut_proof,char_cut_proof'))
+        names, items = r['names'], r['items']
+        self.assertEqual(len(names) * 2, len(r['items']))
+
+        r = self.parse_response(self.start_tasks('column_cut_proof'))
+        self.assertEqual(len(names), len(r['names']))
+        self.assertEqual(r['items'][0].get('status'), u.STATUS_PENDING)
