@@ -52,6 +52,7 @@ task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
               'text1_proof', 'text2_proof', 'text3_proof', 'text_review',
               'fmt_proof', 'fmt_review', 'hard_proof']
 re_task_type = '|'.join(task_types)
+re_cut_type = '(block|column|char)_cut_(proof|review)'
 task_type_authority = dict(block_cut_proof='cut_proof', column_cut_proof='cut_proof', char_cut_proof='cut_proof',
                            block_cut_review='cut_review', column_cut_review='cut_review', char_cut_review='cut_review',
                            text1_proof='text_proof', text2_proof='text_proof', text3_proof='text_proof')

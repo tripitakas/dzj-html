@@ -65,48 +65,14 @@
 												</thead>
 
 												<tbody>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
+													{% for t in tasks %}
+													<tr id="{{t['name']}}">
+														<td>{{t['name']}}</td>
+														<td>{{t['kind']}}</td>
+														<td>{{t['priority']}}</td>
 														<td><a href="dzj_slice_check_detail.html" >领取</a></td>
 													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:void(0);" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>高</td>
-														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
-													</tr>
+													{% end %}
 												</tbody>
 											</table>
 										</div>

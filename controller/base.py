@@ -332,7 +332,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                     body = str(r.body, encoding='gb18030').strip()
                 except TypeError:
                     body = to_basestring(r.body).strip()
-                if re.match('(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+                if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
                     if 'var next' in body:
                         body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.uri, body)
                         body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.uri, body)

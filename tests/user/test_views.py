@@ -16,7 +16,7 @@ class TestViews(APITestCase):
     def _test_view(self, url):
         if '(' not in url:
             r = self.parse_response(self.fetch(url))
-            self.assertTrue('currentUserId' in r, url + re.sub(r'(\n|\s)+', '', r)[:120])
+            self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
@@ -25,7 +25,7 @@ class TestViews(APITestCase):
                 if isinstance(view.URL, list):
                     for url in view.URL:
                         self._test_view(url)
-                else:
+                elif isinstance(view.URL, str):
                     self._test_view(view.URL)
 
     def test_with_any_user(self):
@@ -35,7 +35,7 @@ class TestViews(APITestCase):
                 if isinstance(view.URL, list):
                     for url in view.URL:
                         self._test_view(url)
-                else:
+                elif isinstance(view.URL, str):
                     self._test_view(view.URL)
 
     def test_404(self):

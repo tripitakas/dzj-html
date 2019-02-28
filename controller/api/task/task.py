@@ -206,3 +206,66 @@ class PickTaskApi(BaseHandler):
             self.send_response(dict(name=page['name']))
         except DbError as e:
             self.send_db_error(e)
+
+
+class SaveTask(object):
+    name = str
+    task_type = str
+    submit = int
+
+
+class SaveCutApi(BaseHandler):
+    URL = r'/api/save_cut'
+
+    @authenticated
+    def post(self):
+        """ 保存或提交切分审校任务 """
+        try:
+            data = self.get_body_obj(SaveTask)
+            task_type = data.task_type
+            assert re.match(r'^[A-Za-z0-9_]+$', data.name)
+            assert re.match(u.re_cut_type, task_type)
+
+            self.update_login()
+            authority = u.authority_map[u.task_type_authority[task_type]]
+            if authority not in self.authority:
+                return self.send_error(errors.unauthorized, reason=authority)
+
+            page = convert_bson(self.db.page.find_one(dict(name=data.name)))
+            if not page:
+                return self.send_error(errors.no_object)
+
+            status = page.get(task_type + '_status')
+            if status != u.STATUS_LOCKED:
+                return self.send_error(errors.task_changed, reason=u.task_statuses.get(status))
+
+            task_user = task_type + '_user'
+            if page.get(task_user) != self.current_user.id:
+                return self.send_error(errors.task_locked)
+
+            result = dict(name=data.name)
+            if data.submit:
+                self.submit_task(result, data, page, task_type, task_user)
+
+            self.send_response(convert_bson(page))
+        except DbError as e:
+            self.send_db_error(e)
+
+    def submit_task(self, result, data, page, task_type, task_user):
+        end_info = {task_type + '_status': u.STATUS_ENDED, task_type + '_end_time': datetime.now()}
+        r = self.db.page.update_one({'name': data.name, task_user: self.current_user.id}, {'$set': end_info})
+        if r.modified_count:
+            result['submit'] = True
+            self.add_op_log('submit_' + task_type, file_id=page['id'], context=data.name)
+
+            idx = u.task_types.index(task_type)
+            for i in range(idx, len(u.task_types)):
+                next_status = u.task_types[i] + '_status'
+                status = page.get(next_status)
+                if status:
+                    r = self.db.page.update_one({'name': data.name, next_status: u.STATUS_PENDING},
+                                                {'$set': {next_status: u.STATUS_OPENED}})
+                    if r.modified_count:
+                        self.add_op_log('resume_' + task_type, file_id=page['id'], context=data.name)
+                        result['resume_next'] = True
+                    break

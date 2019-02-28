@@ -60,12 +60,33 @@ class ChooseCutProofHandler(BaseHandler):
             for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof']:
                 pages, tasks = get_my_or_free_tasks(self, task_type)
                 task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
-                tasks = [dict(name=p['name'], priority='高', kind=task_name,
+                tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
                               status='待继续' if p.get(task_type + '_user') else
                               u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
             self.render('dzj_slice.html', tasks=all_tasks, remain=len(all_pages))
+        except DbError as e:
+            return self.send_db_error(e)
+
+
+class ChooseCutReviewHandler(BaseHandler):
+    URL = '/dzj_slice_check.html'
+
+    @authenticated
+    def get(self):
+        """ 任务大厅-切分审定 """
+        try:
+            all_pages, all_tasks = [], []
+            for task_type in ['block_cut_review', 'column_cut_review', 'char_cut_review']:
+                pages, tasks = get_my_or_free_tasks(self, task_type)
+                task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
+                tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
+                              status='待继续' if p.get(task_type + '_user') else
+                              u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
+                all_pages.extend(pages)
+                all_tasks.extend(tasks)
+            self.render('dzj_slice_check.html', tasks=all_tasks, remain=len(all_pages))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -107,7 +128,6 @@ class ChooseCharReviewHandler(BaseHandler):
             return self.send_db_error(e)
 
 
-
 class MyTasksHandler(BaseHandler):
     URL = '/dzj_([a-z_]+)_history.html'
 
@@ -128,22 +148,28 @@ class MyTasksHandler(BaseHandler):
 
 
 class CutProofDetailHandler(BaseHandler):
-    URL = '/dzj_(block|column|char)_cut_(proof|review)/([A-Za-z0-9_]+)'
+    URL = '/dzj_%s/([A-Za-z0-9_]+)', u.re_cut_type
 
     @authenticated
     def get(self, box_type, stage, name):
         """ 进入切分校对 """
-        try:
-            task_type = '%s_cut_%s' % (box_type, stage)
-            page = convert_bson(self.db.page.find_one(dict(name=name)))
-            if not page:
-                return self.render('_404.html')
-            status_r = page.get(task_type + '_status') != u.STATUS_LOCKED
-            user_r = page.get(task_type + '_user') != self.current_user.id
-            self.render('dzj_slice_{}detail.html'.format('' if stage == 'proof' else 'check_'),
-                        page=page, readonly=status_r or user_r)
-        except DbError as e:
-            return self.send_db_error(e)
+
+        def handle_response(body):
+            try:
+                page = convert_bson(self.db.page.find_one(dict(name=name)))
+                if not page:
+                    return self.render('_404.html')
+
+                self.render('dzj_slice_detail.html', page=page,
+                            readonly=body.get('name') != name,
+                            title='切分校对' if stage == 'proof' else '切分审定',
+                            box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
+            except DbError as e:
+                self.send_db_error(e)
+
+        task_type = '%s_cut_%s' % (box_type, stage)
+        task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
+        self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
 
 
 class CharProofDetailHandler(BaseHandler):
