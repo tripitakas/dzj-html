@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% include _base_css.html %}
+    <link rel="stylesheet" type="text/css" href="{{ static_url('css/login.css') }}">
+    <title>登录</title>
+</head>
+<body>
+    <div class="app-main">
+        <div class="main">
+            <div class="login clearfix">
+
+                <div class="right fl">
+                    <div class="right-in">
+                        <h3 class="logo"></h3>
+                        <div class="log">
+                            <div class="item">
+                                <input type="text" placeholder='请输入邮件账号' id="email">
+                                <i class="user-icon"></i>
+                            </div>
+                            <div class="item">
+                                <input type="password" placeholder='请输入密码' id="password">
+                                <i class="pass-icon"></i>
+                                <span class="forget">忘记密码？</span>
+                            </div>
+                            <div class="other clearfix">
+                                <div class="select fl">
+                                    <label class="keep">
+                                        <input class="inp" type="checkbox"/>
+                                        <span></span>
+                                        <em>保持登录状态7天</em>
+                                    </label>
+                                </div>
+                                <div class="fr desc">
+                                    还没账号？点我&nbsp;<em><a href="dzj_register.html" class="login_a">注册</a></em>
+                                </div>
+                            </div>
+                            <div class="log-btn"><a href="#">登&nbsp;&nbsp;&nbsp;&nbsp;录</a></div>
+                            <p class="ajax-error" style="display: none"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include _base_js.html %}
+<script>
+    $('.log-btn > a').click(function () {
+      postApi('/user/login', {data: {
+        email: $('#email').val(),
+        password: $('#password').val()
+      }}, function () {
+        window.location = '{{next}}';
+      });
+    });
+</script>
+</body>
+</html>

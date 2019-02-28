@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>个人中心</title>
+
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+	</head>
+	<style>
+
+	</style>
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+				<!--模拟出左边菜单，方便写样式-->
+				{% module CommonLeft() %}
+				<div class="main-content">
+					{% module CommonHead() %}
+					<div class="single-page-con">
+						<div class="layout">
+							<div class="layout-content">
+								<div class="collate-history">
+									<div class="wrapper">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<h3 class="panel-title">个人中心</h3>
+											</div>
+											<div class="panel-body">
+												<form class="form-horizontal" role="form">
+													<br />
+													<div class="form-group">
+														<label class="col-sm-2 control-label"></label>
+														<div class="profile-info-name">
+						                                    <img src="{{ static_url('imgs/ava3.png') }}" class="thumb-lg img-circle img-thumbnail" alt="profile-image">
+						                                    <a href="" style="vertical-align: bottom;">上传头像</a>
+						                                </div>
+						                                
+													</div>
+													
+													<div class="form-group">
+														<label class="col-sm-2 control-label">姓名</label>
+														<div class="col-sm-3">
+															<input type="text" class="form-control" readonly="" value="罗辑">
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="col-sm-2 control-label">邮箱</label>
+														<div class="col-sm-3">
+															<input type="text" class="form-control" readonly="" value="email@example.com">
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="col-sm-2 control-label">手机号</label>
+														<div class="col-sm-3">
+															<input type="text" class="form-control" readonly="" value="15988997777">
+														</div>
+													</div>
+
+													<div class="form-group">
+														<label class="col-sm-2 control-label">性别</label>
+														<div class="col-sm-3">
+															<select class="form-control" id="gender">
+																<option>男</option>
+																<option>女</option>
+															</select>
+														</div>
+														<div class="clearfix" id="save_wrap" style="display: none">
+															<button class="btn btn-success">保存</button>
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="col-sm-2 control-label"></label>
+														<div class="col-sm-3">
+															<button class="btn btn-block btn-warning" onclick="modify(1)">修改密码</button>
+														</div>
+													</div>
+													<div class="form-group">
+														<label class="col-sm-2 control-label"></label>
+														<div class="col-sm-3">
+															<button class="btn btn-danger btn-block" onclick="delUser('aaa')">注销帐号</button>
+														</div>
+													</div>
+
+												</form>
+											</div>
+											<!-- panel-body -->
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Modify Modals -->
+		<div class="panel-body" style="padding: 0;">
+			<!-- modal content -->
+			<div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h4 class="modal-title" id="myModalLabel">修改密码</h4>
+						</div>
+						<div class="modal-body">
+							<form class="form-horizontal">
+								<div class="form-group">
+									<label class="col-sm-2 control-label">原密码</label>
+									<div class="col-md-10">
+										<input type="password" class="form-control" value="123456" id="dlg_name" >
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-2 control-label">新密码</label>
+									<div class="col-md-10">
+										<input type="password" class="form-control" value="" id="dlg_short_name">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-md-2 control-label">确认密码</label>
+									<div class="col-md-10">
+										<input type="password" class="form-control" value="" id="dlg_code">
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+							<button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+			</div>
+			<!-- /.modal -->
+
+		</div>
+		<!-- End BootStrap Modal -->
+
+		{% include _base_js.html %}
+
+		<!--<script type="text/javascript" src="{{ static_url('assets/bootstrap3-editable/demo-xeditable.js') }}"></script>-->
+		<script type="text/javascript">
+			$("#gender").change(function() {
+				$("#save_wrap").show();
+			});
+			/**
+			 * 删除记录
+			 * @param {Object} name 删除行的标记名
+			 */
+			function delUser(name) {
+				swal({
+						title: "确定删除" + name + "的记录吗？",
+						text: "帐号删除后无法恢复！",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#b8906f",
+						confirmButtonText: "确定删除",
+						cancelButtonText: "取消",
+						closeOnConfirm: false
+					},
+					function() {
+						//此处调用后台删除逻辑(ajax)
+
+						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
+						swal({
+							title: "删除！",
+							text: name + "的记录已经被删除。",
+							type: "success",
+							confirmButtonColor: "#b8906f",
+							confirmButtonText: "确定"
+						});
+					});
+			}
+			function modify(name) {
+				$('#modifyModal').modal();
+
+			}
+			//编辑框的确定按钮
+			$("#modal_confirm").click(function() {
+				$('#modifyModal').modal('hide');
+				console.log('modify confirm');
+			});
+		</script>
+
+	</body>
+
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>大藏经古籍数字化平台-实体页</title>
+
+		<!-- DataTables -->
+		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+	</head>
+	<style>
+
+	</style>
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+				<!--模拟出左边菜单，方便写样式-->
+				{% module CommonLeft(title="data-management", sub="data-management-sty" ) %}
+				<div class="main-content">
+					{% module CommonHead() %}
+					<div class="single-page-con">
+						<!-- UPLOAD OCR-->
+						<div class="panel-body" style="padding-bottom: 2px;">
+							<!-- modal content -->
+							<div id="singleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="myModalLabel">上传OCR数据</h4>
+										</div>
+										<div class="modal-body">
+											<i>请上传该页面对应的TXT文件</i>
+											<input type="file" class="form-control" />
+											<div class="progress progress-lg">
+												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
+													96%
+												</div>
+											</div>
+											
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+						</div>
+						<!-- End BootStrap Modal -->
+						<!-- Add Modals BAT UPLOAD-->
+						<div class="panel-body" style="padding-bottom: 2px;">
+							<!-- modal content -->
+							<div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="myModalLabel">批量上传OCR数据</h4>
+										</div>
+										<div class="modal-body">
+											<i>支持批量上传TXT格式文件，一次最多上传1000个TXT文件</i>
+											<input type="file" class="form-control" />
+											<div class="progress progress-lg">
+												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
+													96%
+												</div>
+											</div>
+											
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+						</div>
+						<!-- End BootStrap Modal -->
+						<!-- PREVIEW MODAL-->
+						<div class="panel-body" style="padding-bottom: 2px;">
+							<!-- modal content -->
+							<div id="previewModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog modal-lg">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="myModalLabel">高丽再雕 / 大方广佛严经 / 第48卷 / 第1页</h4>
+										</div>
+										<div class="modal-body clearfix">
+											<div class="preview_img">
+												<img src="{{ static_url('imgs/examImg1.png') }}"/>
+											</div>
+											<div class="preview_text">
+												<p>尔时，普贤菩萨摩诃萨，称赞如来胜功德已</p>
+												<p>告诸菩萨及善财言：“善男子！如来功德，假使十方一切诸佛</p>
+												<p>经不可说不可说佛刹极微尘数劫，相续演说，不可穷尽！</p>
+												<p>若欲成就此功德门，应修十种广大行愿。何等为十？</p>
+												<p>一者、礼敬诸佛。二者、称赞如来。</p>
+												<p>三者、广修供养。四者、忏悔业障。</p>
+												<p>五者、随喜功德。六者、请转法轮。</p>
+												<p>七者、请佛住世。八者、常随佛学。九者、恒顺众生。</p>
+												<p>十者、普皆回向、善财白言：‘大圣！云何礼敬乃至回向？’</p>
+												<p>普贤菩萨告善财言：‘善男子！言礼敬诸佛者，所有尽法界、虚空界，十方三世一切佛刹，极微尘数诸佛世尊，我以普贤行愿力故，深心信解，如对目前，悉以清净身语意业，常修礼敬。</p>
+											</div>
+										</div>
+										<div class="modal-footer">
+											<div class="pagers">
+												<ul>
+													<li><a href="">首页</a></li>
+													<li><a href="">上一页</a></li>
+													<li class="active"><a href="">1</a></li>
+													<li><a href="">2</a></li>
+													<li><a href="">3</a></li>
+													<li><a href="">4</a></li>
+													<li><a href="">5</a></li>
+													<li><a href="">下一页</a></li>
+													<li><a href="">末页</a></li>
+													<li>跳至&nbsp;<input type="text">&nbsp;页</li>
+												</ul>
+											</div>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+						</div>
+						<!-- End BootStrap Modal -->
+						<div class="layout">
+							<div class="layout-content">
+								<div class="collate-history">
+									<div class="wrapper">
+										<div class="collate-list">
+											<div class="operation bat-upload">
+												<span  data-toggle="modal" data-target="#batModal">批量上传OCR数据</span>
+											</div>
+											<div class="search fr">
+												<input type="text" placeholder="搜索">
+												<i class="ser-btn"></i>
+											</div>
+											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+												<thead>
+													<tr>
+														<th><span>页编码</span></th>
+														<th><span>逻辑编码</span></th>
+														<th><span class="sort">图片</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切栏</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切栏</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切字</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切字</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定文本</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">OCR切列</span><span class="ion-arrow-down-b"></th>
+														<th><span class="sort">审定切列</span><span class="ion-arrow-down-b"></th>
+														<th><span>创建时间</span></th>
+														<th><span>创建人</span></th>
+														<th><span>操作</span></th>
+													</tr>
+												</thead>
+
+												<tbody>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>无</td>
+														<td>无</td>
+														<td>无</td>
+														<td>无</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>112</td>
+														<td>无</td>
+														<td>无</td>
+														<td>无</td>
+														<td>无</td>
+														<td>有</td>
+														<td>有</td>
+														<td>无</td>
+														<td>无</td>
+														<td>有</td>
+														<td>有</td>
+														<td class="datetime">2018/06/23 15:52:37</td>
+														<td>张三</td>
+														<td><a href="javascript:void(0);" data-toggle="modal" data-target="#singleModal">上传OCR</a><a href="javascript:void(0);" data-toggle="modal" data-target="#previewModal">预览</a></td>
+													</tr>
+													
+												</tbody>
+											</table>
+										</div>
+										<div class="pagers">
+											<!--<img src="{{ static_url('imgs/cloud1.png') }}" alt="" class="hidden-md hidden-sm">-->
+											<ul>
+												<li><a href="">首页</a></li>
+												<li><a href="">上一页</a></li>
+												<li class="active"><a href="">1</a></li>
+												<li><a href="">2</a></li>
+												<li><a href="">3</a></li>
+												<li><a href="">4</a></li>
+												<li><a href="">5</a></li>
+												<li><a href="">6</a></li>
+												<li><a href="">7</a></li>
+												<li><a href="">8</a></li>
+												<li><a href="">9</a></li>
+												<li><a href="">下一页</a></li>
+												<li><a href="">末页</a></li>
+												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
+											</ul>
+											<!--<img src="{{ static_url('imgs/cloud2.png') }}" alt="" class="hidden-md hidden-sm">-->
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% include _base_js.html %}
+
+		<script type="text/javascript">
+			//排序图标
+			$(".sort").click(function(){
+				$(this).toggleClass('toggle');
+				$(this).next().toggleClass('toggle');
+			});
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>任务大厅-难字处理</title>
+
+		<!-- DataTables -->
+		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+	</head>
+	
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+				<!--公共左侧导航栏 -->
+				{% module CommonLeft(title="mission-lobby", sub="mission-lobby-char-hard") %}
+				<div class="main-content">
+					<!--公共头部 -->
+					{% module CommonHead() %}
+					<div class="single-page-con">
+						<div class="layout">
+							<div class="layout-content">
+								<div class="collate-history">
+									<div class="wrapper">
+										<div class="collate-list">
+											
+											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+												<thead>
+													<tr>
+														<th><span>页编码</span></th>
+														<th><span>发布时间</span></th>
+														<th><span>操作</span></th>
+													</tr>
+												</thead>
+
+												<tbody>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>2018-10-02 19:09:29</td>
+														<td><a href="dzj_hard_detail.html" >领取</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-1</td>
+														<td>2018-10-02 19:09:29</td>
+														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-2</td>
+														<td>2018-10-02 19:09:29</td>
+														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
+													</tr>
+													<tr>
+														<td>GL-1-1-3</td>
+														<td>2018-10-02 19:09:29</td>
+														<td><a href="javascript:swal('有未完成的任务','您还有一个已领取的任务未完成，请完成并提交后再领取新的任务','info');" >领取</a></td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+										<div class="pagers">
+											<ul>
+												<li><a href="">首页</a></li>
+												<li><a href="">上一页</a></li>
+												<li class="active"><a href="">1</a></li>
+												<li><a href="">2</a></li>
+												<li><a href="">3</a></li>
+												<li><a href="">4</a></li>
+												<li><a href="">5</a></li>
+												<li><a href="">6</a></li>
+												<li><a href="">7</a></li>
+												<li><a href="">8</a></li>
+												<li><a href="">9</a></li>
+												<li><a href="">下一页</a></li>
+												<li><a href="">末页</a></li>
+												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% include _base_js.html %}
+		
+	</body>
+
+</html>

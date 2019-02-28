@@ -1,0 +1,20 @@
+language: python
+python:
+  - "3.6"
+
+services:
+  - mongodb
+
+install:
+    - pip install -r tests/requirements.txt
+    - pip install codecov
+
+before_script:
+    - python tests/add_pages.py --db_name=tripitaka_test
+    - find . -name "*.pyc" | xargs rm -rf
+
+script:
+    - ./run_tests.py --cov=controller --cov-report=term tests
+
+after_success:
+    - codecov

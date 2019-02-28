@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>切分校对</title>
+
+		<!-- DataTables -->
+		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+		<link rel="stylesheet" type="text/css" href="{{ static_url('css/labelformat.css') }}">
+		<style>
+			/*内容*/
+			
+			.wrapper {
+				margin: 10px;
+				height: 100%;
+				padding-bottom: 50px;
+			}
+			
+			.head_home {
+				display: inline-block;
+				width: 30px;
+				height: 30px;
+				font-size: 30px;
+				float: left;
+				margin-right: 5px;
+			}
+			
+			.wrapper {
+				margin: 0px;
+				padding-bottom: 0px;
+			}
+			
+			.layout-content {
+				margin: 0px;
+			}
+			
+			.tripitaka-volume .volume-right {
+				top: 0px;
+				margin: 0px;
+			}
+			
+			.tripitaka-volume .volume-right .full .full-hd {
+				height: 55px;
+				padding-top: 10px;
+			}
+			
+			.tripitaka-volume .volume-right .full-bd {
+				height: 100%;
+			}
+			
+			.slice_title {
+				display: inline-block;
+				float: left;
+				line-height: 37px;
+				height: 37px;
+				vertical-align: middle;
+				padding: 0px 10px;
+				background: #843534;
+				color: #FFFFFF;
+				margin-right: 12px;
+			}
+			
+			.slice_btn_group {
+				display: inline-block;
+				float: left;
+				margin-right: 10px;
+			}
+			.slice_info{
+				display: inline-block;
+				float: left;
+				padding: 0 10px;
+			}
+			.s_h_count{
+				font-size: 75%;
+			}
+			.slice_title a:hover{
+				color: #FFFFFF;
+			}
+			
+		</style>
+	</head>
+
+	<body>
+		<div class="app-main">
+			<div class="single-page-con enlarge">
+				<div class="layout">
+					<div class="layout-content">
+						<!-- 中间内容 -->
+						<!--<div class="single-page-con">-->
+						<div class="layout">
+							<div class="layout-content">
+								<div class="tripitaka-volume">
+									<div class="wrapper">
+										<div class="main-volume">
+											<div class="volume-right">
+												<!--根据接口返回数据情况--右侧没有文本数据时-->
+												<div class="full">
+													<div class="full-hd clearfix">
+														<div class="left fl">
+															<a href="dzj_home.html"><span class="head_home ion-home"></span></a>
+															<span class="slice_title">
+																<a href="dzj_slice_history.html">切分校对</a>
+															</span>
+															<span class="slice_info">页编码：GL-1-1-1</span>
+															<span class="slice_info">任务类型：字切分</span>
+															<div class="slice_btn_group">
+																<div class="btn-group m-b-10">
+																	<button type="button" class="btn btn-default waves-effect">所有</button>
+																	<button type="button" class="btn btn-default waves-effect">大框<sup class="s_h_count">256</sup></button>
+																	<button type="button" class="btn btn-default waves-effect">小框</button>
+																	<button type="button" class="btn btn-default waves-effect">窄框</button>
+																	<button type="button" class="btn btn-default waves-effect">扁框</button>
+																	<button type="button" class="btn btn-default waves-effect">重叠</button>
+																</div>
+																<div class="btn-group m-b-10">
+																	<button type="button" class="btn btn-default disabled">撤销</button>
+																	<button type="button" class="btn btn-default">重做</button>
+																</div>
+															</div>
+															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-ios7-bookmarks"></i> <span>保存</span> </button>
+															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-upload"></i> <span>提交</span> </button>
+														</div>
+														<div class="right fr">
+
+														</div>
+													</div>
+													<div class="full-bd">
+														<img src="{{ static_url('imgs/examImg.png') }}" alt="">
+													</div>
+
+												</div>
+												<!--./右侧没有文本数据时-->
+												<!--根据接口返回数据情况--右侧有文本数据时-->
+
+												<!--./右侧有文本数据时-->
+												<!--弹窗-->
+
+												<!--./弹窗-->
+											</div>
+										</div>
+
+									</div>
+								</div>
+							</div>
+						</div>
+						<!--</div>-->
+						<!-- ./中间内容 -->
+					</div>
+				</div>
+			</div>
+		</div>
+		{% include _base_js.html %}
+
+	</body>
+
+</html>

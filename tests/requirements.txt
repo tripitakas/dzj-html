@@ -1,0 +1,6 @@
+-r ../requirements.txt
+nose
+pytest>=3.6
+pytest-cov
+tox
+flake8

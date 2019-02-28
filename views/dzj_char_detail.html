@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>文字校对</title>
+
+		<!-- Plugins css -->
+		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+		{% include _base_css.html %}
+
+	</head>
+	<style>
+
+	</style>
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+
+				<div class="main-content">
+
+					<header class="m-header">
+						<div><a href="dzj_home.html"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
+
+						<div class="m-header-title">文字校对</div>
+                        <div class="m-header-edit-btn">
+                            <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img"/>
+                            <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img"/>
+                        </div>
+                        <div class="m-header-right">
+                            <div class="m-header-txt">
+                                <div class="m-header-font">
+                                    <div class="m-header-font-reduce"><a href="" >A-</a></div>
+                                    <div class="m-header-font-current">20</div>
+                                    <div class="m-header-font-enlarge"><a href="" >A+</a></div>
+                                </div>
+                            </div>
+                            <div class="m-header-edit-btn">
+                                <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img"/>
+                                <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img"/>
+                            </div>
+                        </div>
+
+
+					</header>
+					<div class="flex-content">
+
+                        <div class="main-right m-l-14">
+                            <div class="main-right-img flex-1">
+                                <img src="{{ static_url('imgs/examImg1.png') }}">
+                            </div>
+                            <div class="main-right-content w-500px">
+                                <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
+                                <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
+                                <p>壽八萬四千歲從惡念遮迦越殺一</p>
+                                <p>牛祠祀害命失金輪得銀輪主三天</p>
+                                <p>下壽萬歲堅念王作鎧壽五千歲得</p>
+                                <p>銅輪主二天下主西南喜殺王壽二</p>
+                                <p>千五百歲得鐵輪王主南天下其王有</p>
+                                <p>太子行五百歲得惡殺一減壽千歲</p>
+                                <p>古人有九病寒熱飢渴生老病死婆</p>
+                                <p>羅門殺生祠祀從是生四百四病從</p>
+                                <p>師子念王人壽轉減壽百二十歲從師</p>
+                                <p>子念王後師子意王有八十四王人壽</p>
+                                <p>轉減或壽八十七十五十三十二十</p>
+                                <p>十歲者於後師子合車王師子合車王卽師子</p>
+                                <p>頰王也子名白淨是菩薩父計菩薩身</p>
+                                <p>終始幷前後八萬四千遮迦越王</p>
+                                <p>遮迦越齊言飛行皇帝卽轉輪王也</p>
+                                <p>長阿含及曇無德律序轉輪世數甚</p>
+                                <p>明已顯於前此記抄撮難尋若依全</p>
+                                <p>經宜以阿含爲正大瞿曇氏純淑之姓</p>
+                                <p>大方便經云白淨劫初以來嫡嫡相</p>
+                                <p>承作轉輪王近來三世不作轉輪而</p>
+                                <p>作閻浮提王</p>
+                                <p>祐觀十二遊經不稱我聞復無佛言蓋</p>
+                                <div class="char-list">
+                                    <div class="char-list-tab">
+                                        <div class="char-list-tab-item active">存疑列表</div>
+                                        <div class="char-list-tab-arrow" id="table_toggle_btn"><img src="{{ static_url('imgs/up_arrow.png') }}"> </div>
+                                    </div>
+                                    <table class="char-list-table">
+                                        <tr>
+                                            <td>行号</td>
+                                            <td>存疑文本</td>
+                                            <td>存疑理由</td>
+                                            <td>操作</td>
+                                        </tr>
+                                        <tr class="tr-odd">
+                                            <td>1</td>
+                                            <td>鍀</td>
+                                            <td>存疑理由</td>
+                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>鍀</td>
+                                            <td>存疑理由</td>
+                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                        </tr>
+                                        <tr class="tr-odd">
+                                            <td>3</td>
+                                            <td>鍀</td>
+                                            <td>存疑理由</td>
+                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>鍀</td>
+                                            <td>存疑理由</td>
+                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+				</div>
+			</div>
+		</div>
+
+
+
+
+
+		{% include _base_js.html %}
+
+		<!-- CUSTOM JS -->
+		<script type="text/javascript">
+            $('#table_toggle_btn').click(function(){
+                $(this).toggleClass('active');
+                $('.char-list-table').toggleClass('hidden');
+            });
+		</script>
+
+
+	</body>
+
+</html>
