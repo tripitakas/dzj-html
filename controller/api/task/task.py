@@ -247,7 +247,7 @@ class SaveCutApi(BaseHandler):
             if data.submit:
                 self.submit_task(result, data, page, task_type, task_user)
 
-            self.send_response(convert_bson(page))
+            self.send_response(result)
         except DbError as e:
             self.send_db_error(e)
 
@@ -259,7 +259,7 @@ class SaveCutApi(BaseHandler):
             self.add_op_log('submit_' + task_type, file_id=page['id'], context=data.name)
 
             idx = u.task_types.index(task_type)
-            for i in range(idx, len(u.task_types)):
+            for i in range(idx + 1, len(u.task_types)):
                 next_status = u.task_types[i] + '_status'
                 status = page.get(next_status)
                 if status:

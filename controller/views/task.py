@@ -17,7 +17,7 @@ def get_my_or_free_tasks(self, task_type, max_count=12):
     assert re.match(u.re_task_type, task_type)
     task_user = task_type + '_user'
     task_status = task_type + '_status'
-    pages = list(self.db.page.find({
+    org_pages = pages = list(self.db.page.find({
         '$or': [
             {task_user: None, '$or': [{task_status: u.STATUS_OPENED}, {task_status: u.STATUS_RETURNED}]},
             {task_user: self.current_user.id, task_status: u.STATUS_LOCKED}],
@@ -38,7 +38,7 @@ def get_my_or_free_tasks(self, task_type, max_count=12):
 
     random.shuffle(pages)
     pages = [p for p in pages if p.get(task_user)] + [p for p in pages if not p.get(task_user)]
-    return pages, pages[: int(self.get_argument('count', max_count))]
+    return pages, pages[: int(self.get_argument('count', max_count))], [p for p in org_pages if p not in pages]
 
 
 def get_my_tasks(self, task_type, cond=None):
@@ -56,16 +56,17 @@ class ChooseCutProofHandler(BaseHandler):
     def get(self):
         """ 任务大厅-切分校对 """
         try:
-            all_pages, all_tasks = [], []
+            all_pages, all_tasks, all_excludes = [], [], []
             for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof']:
-                pages, tasks = get_my_or_free_tasks(self, task_type)
+                pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
                 task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
                 tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
                               status='待继续' if p.get(task_type + '_user') else
                               u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
-            self.render('dzj_slice.html', tasks=all_tasks, remain=len(all_pages))
+                all_excludes.extend(excludes)
+            self.render('dzj_slice.html', tasks=all_tasks, remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -77,16 +78,17 @@ class ChooseCutReviewHandler(BaseHandler):
     def get(self):
         """ 任务大厅-切分审定 """
         try:
-            all_pages, all_tasks = [], []
+            all_pages, all_tasks, all_excludes = [], [], []
             for task_type in ['block_cut_review', 'column_cut_review', 'char_cut_review']:
-                pages, tasks = get_my_or_free_tasks(self, task_type)
+                pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
                 task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
                 tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
                               status='待继续' if p.get(task_type + '_user') else
                               u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
-            self.render('dzj_slice_check.html', tasks=all_tasks, remain=len(all_pages))
+                all_excludes.extend(excludes)
+            self.render('dzj_slice_check.html', tasks=all_tasks, remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -99,16 +101,16 @@ class ChooseCharProofHandler(BaseHandler):
         """ 任务大厅-文字校对 """
         try:
             stage, field = '校一', 'text1'
-            pages, tasks = get_my_or_free_tasks(self, 'text1_proof')
+            pages, tasks, excludes = get_my_or_free_tasks(self, 'text1_proof')
             if not tasks:
-                pages, tasks = get_my_or_free_tasks(self, 'text2_proof')
+                pages, tasks, excludes = get_my_or_free_tasks(self, 'text2_proof')
                 stage, field = '校二', 'text2'
             if not tasks:
-                pages, tasks = get_my_or_free_tasks(self, 'text3_proof')
+                pages, tasks, excludes = get_my_or_free_tasks(self, 'text3_proof')
                 stage, field = '校三', 'text3'
             tasks = [dict(name=p['name'], stage=stage, priority='高', proof_field=field,
                           status='待继续' if p.get(field + '_proof_user') else '待领取') for p in tasks]
-            self.render('dzj_char.html', tasks=tasks, remain=len(pages))
+            self.render('dzj_char.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -120,10 +122,10 @@ class ChooseCharReviewHandler(BaseHandler):
     def get(self):
         """ 任务大厅-文字校对审定 """
         try:
-            pages, tasks = get_my_or_free_tasks(self, 'text_review')
+            pages, tasks, excludes = get_my_or_free_tasks(self, 'text_review')
             tasks = [dict(name=p['name'], priority='高',
                           status='待继续' if p.get('text_review_user') else '待领取') for p in tasks]
-            self.render('dzj_char_check.html', tasks=tasks, remain=len(pages))
+            self.render('dzj_char_check.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
         except DbError as e:
             return self.send_db_error(e)
 
