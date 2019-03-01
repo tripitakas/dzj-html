@@ -132,7 +132,7 @@
 												</label>
 											</div>
 											<br />
-											<div class="">
+											<div class="priority-list">
 												<h4 class="control-label">优先级</h4>
 												<select class="form-control">
                                                     <option>高</option>
@@ -294,6 +294,7 @@
 				}
 				postApi('/start/', {
 					data: {
+						priority: $('.priority-list select').val(),
 						types: types.join(','),
 						pages: pages.join(',')
 					}

@@ -60,7 +60,8 @@ class ChooseCutProofHandler(BaseHandler):
             for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof']:
                 pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
                 task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
-                tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
+                tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
+                              priority=p.get(task_type + '_priority', '高'),
                               status='待继续' if p.get(task_type + '_user') else
                               u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
                 all_pages.extend(pages)
@@ -82,7 +83,8 @@ class ChooseCutReviewHandler(BaseHandler):
             for task_type in ['block_cut_review', 'column_cut_review', 'char_cut_review']:
                 pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
                 task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
-                tasks = [dict(name=p['name'], priority='高', kind=task_name, task_type=task_type,
+                tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
+                              priority=p.get(task_type + '_priority', '高'),
                               status='待继续' if p.get(task_type + '_user') else
                               u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
                 all_pages.extend(pages)
@@ -108,7 +110,8 @@ class ChooseCharProofHandler(BaseHandler):
             if not tasks:
                 pages, tasks, excludes = get_my_or_free_tasks(self, 'text3_proof')
                 stage, field = '校三', 'text3'
-            tasks = [dict(name=p['name'], stage=stage, priority='高', proof_field=field,
+            tasks = [dict(name=p['name'], stage=stage, proof_field=field,
+                          priority=p.get(field + '_proof_priority', '高'),
                           status='待继续' if p.get(field + '_proof_user') else '待领取') for p in tasks]
             self.render('dzj_char.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
         except DbError as e:
@@ -123,7 +126,8 @@ class ChooseCharReviewHandler(BaseHandler):
         """ 任务大厅-文字校对审定 """
         try:
             pages, tasks, excludes = get_my_or_free_tasks(self, 'text_review')
-            tasks = [dict(name=p['name'], priority='高',
+            tasks = [dict(name=p['name'],
+                          priority=p.get('text_review_priority', '高'),
                           status='待继续' if p.get('text_review_user') else '待领取') for p in tasks]
             self.render('dzj_char_check.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
         except DbError as e:

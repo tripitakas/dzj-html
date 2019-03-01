@@ -107,6 +107,7 @@ class UnlockTasksApi(BaseHandler):
 class StartTask(object):
     types = str
     pages = str
+    priority = str
 
 
 class StartTasksApi(BaseHandler):
@@ -139,7 +140,8 @@ class StartTasksApi(BaseHandler):
                         continue
                     # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
                     status = u.STATUS_PENDING if i or self.has_pre_task(page, task_type) else u.STATUS_OPENED
-                    r = self.db.page.update_one(dict(name=name), {'$set': {task_status: status}})
+                    new_value = {task_status: status, task_type + '_priority': data.priority}
+                    r = self.db.page.update_one(dict(name=name), {'$set': new_value})
                     if r.modified_count:
                         self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=name)
                         names.add(name)

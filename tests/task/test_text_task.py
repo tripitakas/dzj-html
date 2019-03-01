@@ -38,8 +38,8 @@ class TestTextTask(APITestCase):
             self.assertIn('tasks', r)
             self.assertEqual(len(r['tasks']), 0)
 
-    def start_tasks(self, types, prefix=''):
-        return self.fetch('/api/start/' + prefix, body={'data': dict(types=types)})
+    def start_tasks(self, types, prefix='', priority='高'):
+        return self.fetch('/api/start/' + prefix, body={'data': dict(types=types, priority=priority)})
 
     def test_get_tasks(self):
         """ 测试文字校对任务的发布、列表和领取 """
@@ -151,9 +151,12 @@ class TestTextTask(APITestCase):
     def test_precondition_tasks(self):
         """ 测试分批发布不同类型的任务时依依赖任务而为未就绪 """
 
-        r = self.parse_response(self.start_tasks('block_cut_proof,char_cut_proof'))
+        r = self.parse_response(self.start_tasks('block_cut_proof,char_cut_proof', priority='中'))
         names, items = r['names'], r['items']
         self.assertEqual(len(names) * 2, len(r['items']))
+
+        r = self.parse_response(self.fetch('/api/page/' + names[0]))
+        self.assertEqual(r.get('char_cut_proof_priority'), '中')
 
         r = self.parse_response(self.start_tasks('column_cut_proof'))
         self.assertEqual(len(names), len(r['names']))
