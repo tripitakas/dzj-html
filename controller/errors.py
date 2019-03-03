@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc 定义后端API的错误码和数据库常用函数
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 from datetime import datetime, timedelta
@@ -28,6 +27,7 @@ no_object = 1014, '对象不存在或已删除'
 
 task_locked = 2000, '本任务已被领走，请领取新的任务'
 task_uncompleted = 2001, '您还有未完成的任务，请继续完成后再领取新的任务'
+task_changed = 2002, '本任务的状态已改变'
 
 
 def get_date_time(fmt=None, diff_seconds=None):

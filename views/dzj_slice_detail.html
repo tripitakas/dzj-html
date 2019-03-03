@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>切分校对</title>
+		<title>{{title}}</title>
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -110,10 +110,10 @@
 														<div class="left fl">
 															<a href="dzj_home.html"><span class="head_home ion-home"></span></a>
 															<span class="slice_title">
-																<a href="dzj_slice_history.html">切分校对</a>
+																<a href="dzj_slice_history.html">{{title}}</a>
 															</span>
-															<span class="slice_info">页编码：GL-1-1-1</span>
-															<span class="slice_info">任务类型：字切分</span>
+															<span class="slice_info">{{page['name']}}</span>
+															<span class="slice_info">{{task_name}}</span>
 															<div class="slice_btn_group">
 																<div class="btn-group m-b-10">
 																	<button type="button" class="btn btn-default waves-effect">所有</button>
@@ -124,12 +124,14 @@
 																	<button type="button" class="btn btn-default waves-effect">重叠</button>
 																</div>
 																<div class="btn-group m-b-10">
-																	<button type="button" class="btn btn-default disabled">撤销</button>
-																	<button type="button" class="btn btn-default">重做</button>
+																	<button type="button" class="btn btn-default disabled" id="undo">撤销</button>
+																	<button type="button" class="btn btn-default" id="redo">重做</button>
 																</div>
 															</div>
-															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-ios7-bookmarks"></i> <span>保存</span> </button>
-															<button class="btn btn-warning waves-effect waves-light m-b-5"> <i class="ion-upload"></i> <span>提交</span> </button>
+															{% if not readonly %}
+															<button class="btn btn-warning waves-effect waves-light m-b-5" id="save"> <i class="ion-ios7-bookmarks"></i> <span>保存</span> </button>
+															<button class="btn btn-warning waves-effect waves-light m-b-5" id="submit"> <i class="ion-upload"></i> <span>提交</span> </button>
+															{% end %}
 														</div>
 														<div class="right fr">
 
@@ -162,6 +164,17 @@
 		</div>
 		{% include _base_js.html %}
 
+		<script>
+			$('#submit').click(function () {
+				postApi('/save_cut', {data: {
+					name: '{{page["name"]}}',
+					task_type: '{{task_type}}',
+					submit: 1
+				}}, function (res) {
+
+				});
+			});
+		</script>
 	</body>
 
 </html>

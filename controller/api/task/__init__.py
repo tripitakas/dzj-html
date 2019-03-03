@@ -1,3 +1,4 @@
-from . import text
+from . import task
 
-handlers = [text.PickTextTaskApi]
+handlers = [task.GetPageApi, task.GetPagesApi, task.StartTasksApi, task.PickTaskApi, task.UnlockTasksApi,
+            task.SaveCutApi]

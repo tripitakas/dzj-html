@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 
@@ -129,7 +128,7 @@ class RegisterApi(BaseHandler):
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=errors.gen_id(user.password),
-                    manager=int(mgr),
+                    manager=int(mgr), task_mgr=int(mgr), data_mgr=int(mgr),
                     create_time=user.create_time))
 
                 user.authority = u.ACCESS_MANAGER if mgr else ''

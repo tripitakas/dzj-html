@@ -20,6 +20,20 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
         <![endif]-->
 
+		<style>
+			.collate-history .collate-list table tbody tr td.status_none {
+				color: #999;
+			}
+			.collate-history .collate-list table tbody tr td.status_pending {
+				color: #666;
+			}
+			.collate-history .collate-list table tbody tr td.status_ended {
+				color: #0f0;
+			}
+			.collate-history .collate-list table tbody tr td.status_opened {
+				color: #007;
+			}
+		</style>
 	</head>
 	<style>
 
@@ -47,16 +61,16 @@
 										<div class="modal-body">
 											<div class="">
 												<h4>选择任务类型</h4>
-												<div class="radio radio-info radio-inline">
-		                                            <input type="radio" id="inlineRadio1" value="option1" name="radioInline" checked="">
+												<div class="checkbox checkbox-info checkbox-inline">
+		                                            <input type="checkbox" id="inlineRadio1" value="option1" name="checkboxInline" checked="">
 		                                            <label for="inlineRadio1">切栏校对审定</label>
 		                                        </div>
-		                                        <div class="radio radio-info radio-inline">
-		                                            <input type="radio" id="inlineRadio2" value="option2" name="radioInline" >
+		                                        <div class="checkbox checkbox-info checkbox-inline">
+		                                            <input type="checkbox" id="inlineRadio2" value="option2" name="checkboxInline" >
 		                                            <label for="inlineRadio2">切列校对审定</label>
 		                                        </div>
-		                                        <div class="radio radio-info radio-inline">
-		                                            <input type="radio" id="inlineRadio3" value="option3" name="radioInline" >
+		                                        <div class="checkbox checkbox-info checkbox-inline">
+		                                            <input type="checkbox" id="inlineRadio3" value="option3" name="checkboxInline" >
 		                                            <label for="inlineRadio3">切字校对审定</label>
 		                                        </div>
 											</div>
@@ -105,20 +119,33 @@
 											<h4 class="modal-title" id="myModalLabel">勾选发布任务</h4>
 										</div>
 										<div class="modal-body">
-											<div class="">
+											<div class="task_types">
 												<h4>选择任务类型</h4>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1"> 切栏校对审定
-												</label>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2"> 切列校对审定
-												</label>
-												<label class="radio-inline">
-												  <input type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3"> 切字校对审定
-												</label>
+												<div>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="block_cut_proof" id="block_cut_proof" value="option1"> 切栏校对
+													</label>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="column_cut_proof" id="column_cut_proof" value="option2"> 切列校对
+													</label>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="char_cut_proof" id="char_cut_proof" value="option3"> 切字校对
+													</label>
+												</div>
+												<div>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="block_cut_review" id="block_cut_review" value="option1"> 切栏审定
+													</label>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="column_cut_review" id="column_cut_review" value="option2"> 切列审定
+													</label>
+													<label class="checkbox-inline">
+														<input type="checkbox" name="char_cut_review" id="char_cut_review" value="option3"> 切字审定
+													</label>
+												</div>
 											</div>
 											<br />
-											<div class="">
+											<div class="priority-list">
 												<h4 class="control-label">优先级</h4>
 												<select class="form-control">
                                                     <option>高</option>
@@ -184,103 +211,86 @@
 														<th><span>页编码</span></th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'block_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切栏审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'block_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'column_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切列审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'column_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字校对</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未发布</a></li>
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字校对</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'char_cut_proof') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 														<th>
 															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字审定</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">未就绪</a></li>
-					                                                <li><a href="#">已就绪未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
-					                                        </div>
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">切字审定</span>
+																<span class="ion-android-sort "></span>
+																<ul class="dropdown-menu" role="menu">
+																	{% for s in sum_status(items, 'char_cut_review') %}
+																	<li><a href="#">{{s}}</a></li>
+																	{% end %}
+																</ul>
+															</div>
 														</th>
 													</tr>
 												</thead>
 
 												<tbody>
-													<tr>
+												  {% for page in items %}
+													<tr id="{{page['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
+														<td>{{page['name']}}</td>
+														<td class="{{status_cls(page, 'block_cut_proof')}}">{{status_desc(page, 'block_cut_proof')}}</td>
+														<td class="{{status_cls(page, 'block_cut_review')}}">{{status_desc(page, 'block_cut_review')}}</td>
+														<td class="{{status_cls(page, 'column_cut_proof')}}">{{status_desc(page, 'column_cut_proof')}}</td>
+														<td class="{{status_cls(page, 'column_cut_review')}}">{{status_desc(page, 'column_cut_review')}}</td>
+														<td class="{{status_cls(page, 'char_cut_proof')}}">{{status_desc(page, 'char_cut_proof')}}</td>
+														<td class="{{status_cls(page, 'char_cut_review')}}">{{status_desc(page, 'char_cut_review')}}</td>
 													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GL-1-1-1</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-														<td>未领取</td>
-													</tr>
-													
-													
-													
+													{% end %}
 												</tbody>
 											</table>
 										</div>
@@ -312,11 +322,52 @@
 				</div>
 			</div>
 		</div>
+
 		{% include _base_js.html %}
 		<script src="{{ static_url('assets/select2/select2.min.js') }}" type="text/javascript"></script>
 		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
         <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">
+
+			var pages = [];
+			var $modal = $('#selectModal');
+
+			// 勾选发布任务
+			$modal.on('shown.bs.modal', function () {
+				postApi('/pages/cut_start', {data: {}}, function (res) {
+					pages = res.items;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+				});
+			});
+
+			$modal.find('.btn-primary').click(function () {
+				var types = [];
+				$modal.find('.task_types input').each(function (i, input) {
+					input = $(input);
+					if (input.is(':checked')) {
+						types.push(input.attr('id'));
+					}
+				});
+				if (!types.length) {
+					return showError('未选任务类型', '请勾选一个或多个任务类型。')
+				}
+				postApi('/start/', {
+					data: {
+						priority: $('.priority-list select').val(),
+						types: types.join(','),
+						pages: pages.join(',')
+					}
+				}, function (res) {
+					showSuccess('已发布任务', res.names.length + ' 个页面、' + res.items.length + ' 个任务已发布。');
+					setTimeout(function () {
+						location.reload();
+					}, 1000);
+				});
+
+			});
+
 			$('#my_multi_select').multiSelect({
                     selectableHeader: "待选对象<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
                     selectionHeader: "已选对象<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",

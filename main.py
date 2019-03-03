@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 网站服务的主文件
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 

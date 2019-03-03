@@ -8,6 +8,7 @@
 - 参考[前端模板语法][templates]修改网页代码，主要使用`{% if/for %}`、`{{ py_expr }}`。
   
   常用变量见 `controller/base.py render()` 和相应的响应Handler中的参数。
+  在网页中可使用`{{dumps(your_obj)}}` 或 `{{your_obj}}`显示数据结构辅助编码。
 
 - 使用 `{% include %}` 提取公共网页部分，例如 `_base_css.html`、`_base_js.html`、`_base_meta.html`。
 
@@ -17,7 +18,7 @@
 
 ## 安装
 
-本平台需要 Python 3.6+/2.7、MongoDB(可用远程数据库)，请参考下面的说明安装和部署。
+本平台需要 Python 3.6+、MongoDB(可用远程数据库)，请参考下面的说明安装和部署。
 
 - [INSTALL-linux.md](doc/INSTALL-linux.md)
 - [INSTALL-mac.md](doc/INSTALL-mac.md)

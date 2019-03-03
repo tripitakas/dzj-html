@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 import sys
@@ -45,3 +44,24 @@ authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW,
                      fmt_proof=ACCESS_FMT_PROOF, fmt_review=ACCESS_FMT_REVIEW,
                      text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,
                      task_mgr=ACCESS_TASK_MGR, data_mgr=ACCESS_DATA_MGR)
+
+
+# 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀
+task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
+              'block_cut_review', 'column_cut_review', 'char_cut_review',
+              'text1_proof', 'text2_proof', 'text3_proof', 'text_review',
+              'fmt_proof', 'fmt_review', 'hard_proof']
+re_task_type = '|'.join(task_types)
+re_cut_type = '(block|column|char)_cut_(proof|review)'
+task_type_authority = dict(block_cut_proof='cut_proof', column_cut_proof='cut_proof', char_cut_proof='cut_proof',
+                           block_cut_review='cut_review', column_cut_review='cut_review', char_cut_review='cut_review',
+                           text1_proof='text_proof', text2_proof='text_proof', text3_proof='text_proof')
+
+# 下列任务状态中，发布任务后为opened，如果依赖其他任务条件则为pending，提交任务后为ended，自动触发后续任务为opened
+STATUS_OPENED = 'opened'
+STATUS_PENDING = 'pending'
+STATUS_LOCKED = 'locked'
+STATUS_RETURNED = 'returned'
+STATUS_ENDED = 'ended'
+task_statuses = {STATUS_OPENED: '未领取', STATUS_PENDING: '未就绪', STATUS_LOCKED: '进行中',
+                 STATUS_RETURNED: '已退回', STATUS_ENDED: '已完成', None: '未发布'}

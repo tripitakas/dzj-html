@@ -77,6 +77,10 @@
 													</tr>
 												</tbody>
 											</table>
+
+											{% if excludes %}
+											<p class="text-center">有 {{excludes}} 个页面任务需要其他用户审定。</p>
+											{% end %}
 										</div>
 										<div class="pagers">
 											<ul>

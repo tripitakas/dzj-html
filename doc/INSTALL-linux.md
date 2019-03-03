@@ -1,6 +1,6 @@
 ## 在 Linux 上的安装说明
 
-### 1. 安装 Python 3.6+/2.7 和 pip3
+### 1. 安装 Python 3.6+ 和 pip3
 
 ```
 sudo yum install -y gcc zlib*
@@ -14,7 +14,7 @@ sudo ln -s /usr/local/python3/bin/python3 /usr/bin/python3
 sudo ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
 ```
 
-如果提示 `wget` 工具不存在，可换为 `curl -O ` 或安装 wget。如果是 Python 2.7 也行。
+如果提示 `wget` 工具不存在，可换为 `curl -O ` 或安装 wget。
 
 ### 2. 安装 Python 依赖包
 

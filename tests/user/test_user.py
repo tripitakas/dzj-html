@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@author: Zhang Yungui
 @time: 2018/6/12
 """
 import controller.errors as e
@@ -14,9 +13,6 @@ class TestUserApi(APITestCase):
 
     def test_login_invalid(self):
         """ 测试接口可工作 """
-        response = self.fetch('/api/user/login', body={})
-        self.assert_code(500, response)
-
         response = self.fetch('/api/user/login', body={'data': dict(email='')})
         self.assert_code(e.need_email, response)
 

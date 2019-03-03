@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 网站应用类
-@author: Zhang Yungui
 @time: 2018/10/23
 """
 
@@ -19,7 +18,7 @@ import shutil
 from tornado.log import access_log
 
 
-__version__ = '0.0.4.90217'
+__version__ = '0.0.5.90228'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -45,6 +44,8 @@ class Application(web.Application):
         for cls in self.handlers:
             if isinstance(cls.URL, list):
                 handlers.extend((url, cls) for url in cls.URL)
+            elif isinstance(cls.URL, tuple):
+                handlers.append((cls.URL[0] % cls.URL[1], cls))
             else:
                 handlers.append((cls.URL, cls))
         handlers = sorted(handlers, key=itemgetter(0))
