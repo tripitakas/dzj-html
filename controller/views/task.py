@@ -67,7 +67,8 @@ class ChooseCutProofHandler(BaseHandler):
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
                 all_excludes.extend(excludes)
-            self.render('dzj_slice.html', tasks=all_tasks, remain=len(all_pages), excludes=len(all_excludes))
+            self.render('dzj_slice.html', stage='proof', tasks=all_tasks,
+                        remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -90,7 +91,8 @@ class ChooseCutReviewHandler(BaseHandler):
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
                 all_excludes.extend(excludes)
-            self.render('dzj_slice_check.html', tasks=all_tasks, remain=len(all_pages), excludes=len(all_excludes))
+            self.render('dzj_slice.html', stage='review', tasks=all_tasks,
+                        remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -141,14 +143,47 @@ class MyTasksHandler(BaseHandler):
     def get(self, kind):
         """ 我的任务 """
         try:
+            def fetch(a_type, kind_name):
+                items = get_my_tasks(self, a_type, {})
+                for r in items:
+                    r['kind_name'] = kind_name  # 用于过滤列表项
+                    r['current_task'] = a_type  # 用于拼字段名
+                kinds.append(kind_name)
+                return items
+
+            def get_time(page, field):
+                t = page.get(field)
+                return t.strftime('%Y-%m-%d %H:%M:%S') if t else ''
+
             task_types = dict(char='text_proof', char_check='text_review',
                               hard='hard_proof', hard_check='hard_review',
                               slice='cut_proof', slice_check='cut_review',
                               fmt='fmt_proof', fmt_check='fmt_review')
             assert kind in task_types
             task_type = task_types[kind]
-            pages = get_my_tasks(self, task_type, {})
-            self.render('dzj_{}_history.html'.format(kind), pages=pages, task_type=task_type)
+
+            title = dict(char='文字校对', char_check='文字审定',
+                         hard='难字校对', hard_check='难字审定',
+                         slice='切分校对', slice_check='切分审定',
+                         fmt='格式校对', fmt_check='格式审定')[kind]
+
+            kinds = []
+            if task_type == 'text_proof':
+                pages = fetch('text3_proof', '校三') +\
+                        fetch('text2_proof', '校二') +\
+                        fetch('text1_proof', '校一')
+            elif task_type == 'cut_proof':
+                pages = fetch('block_cut_proof', '切栏') +\
+                        fetch('column_cut_proof', '切列') +\
+                        fetch('char_cut_proof', '切字')
+            elif task_type == 'cut_review':
+                pages = fetch('block_cut_review', '切栏') +\
+                        fetch('column_cut_review', '切列') +\
+                        fetch('char_cut_review', '切字')
+            else:
+                pages = fetch(task_type, title)
+            self.render('dzj_slice_history.html'.format(kind), pages=pages, task_type=task_type,
+                        kind=kind, kinds=kinds, title=title, get_time=get_time)
         except DbError as e:
             return self.send_db_error(e)
 

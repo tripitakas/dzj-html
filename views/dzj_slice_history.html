@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>我的任务-切分校对</title>
+		<title>我的任务-{{title}}</title>
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -44,9 +44,9 @@
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">类型</span><span class="ion-funnel" ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">切字</a></li>
-					                                                <li><a href="#">切列</a></li>
-					                                                <li><a href="#">切栏</a></li>
+																												{% for k in kinds %}
+																												<li><a href="#">{{k}}</a></li>
+																												{% end %}
 					                                            </ul>
 					                                        </div>
 														</th>
@@ -57,48 +57,15 @@
 												</thead>
 
 												<tbody>
+													{% for p in pages %}
 													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
+														<td>{{p['name']}}</td>
+														<td>{{p['kind_name']}}</td>
+														<td>{{get_time(p, p['current_task'] + '_start_time')}}</td>
+														<td>{{get_time(p, p['current_task'] + '_end_time')}}</td>
 														<td><a href="dzj_slice_detail.html" >继续</a></td>
 													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
-														<td><a href="dzj_slice_detail.html" >查看</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
-														<td><a href="dzj_slice_detail.html" >查看</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
-														<td><a href="dzj_slice_detail.html" >查看</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
-														<td><a href="dzj_slice_detail.html" >查看</a></td>
-													</tr>
-													<tr>
-														<td>GL-1-1-1</td>
-														<td>字切分</td>
-														<td>2018/10/19 10:20:30</td>
-														<td>2018/10/19 18:20:30</td>
-														<td><a href="dzj_slice_detail.html" >查看</a></td>
-													</tr>
+													{% end %}
 												</tbody>
 											</table>
 										</div>
