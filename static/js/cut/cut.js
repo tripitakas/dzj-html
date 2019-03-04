@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2018-10-29
+ * Date: 2019-03-05
  */
 (function() {
   'use strict';
@@ -87,17 +87,13 @@
       var x = Math.min(pt1.x, pt2.x), y = Math.min(pt1.y, pt2.y);
       return data.paper.rect(x, y, width, height)
         .initZoom().setAttr({
-          stroke: rgb_a(data.changedColor, data.boxOpacity),
+          stroke: data.changedColor,
+          'stroke-opacity': data.boxOpacity,
           'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-          , fill: (data.blockMode || data.columnMode) && rgb_a(data.hoverFill, 0.1)
+          , fill: (data.blockMode || data.columnMode) && data.hoverFill
+          , 'fill-opacity': 0.1
         });
     }
-  }
-
-  // 将RGB颜色串(例如 #00ff00)与透明度合并为rgba颜色串
-  function rgb_a(rgb, a) {
-    var c = Raphael.color(rgb);
-    return 'rgba(' + [c.r, c.g, c.b, a].join(',') + ')';
   }
 
   function findCharById(id) {
@@ -234,7 +230,6 @@
     data: data,
     state: state,
     getDistance: getDistance,
-    rgb_a: rgb_a,
 
     decodeJSON: function (text) {
       return JSON.parse(decodeHtml(text));
@@ -255,8 +250,8 @@
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
             .attr({
               stroke: i === handle.index ? data.activeHandleColor : data.hoverColor,
-              fill: i === handle.index ? rgb_a(data.activeHandleFill, 0.8) :
-                  rgb_a(data.handleFill, data.activeFillOpacity),
+              fill: i === handle.index ? data.activeHandleFill : data.handleFill,
+              'fill-opacity': i === handle.index ? 0.8 : data.activeFillOpacity,
               'stroke-width': 1.2   // 控制点显示不需要放缩自适应，所以不需要调用 initZoom()
             });
           handle.handles.push(r);
@@ -287,7 +282,8 @@
         state.hoverHandle.fill = box.attr('fill');
         state.hoverHandle.hidden = box.node.style.display === 'none';
         box.attr({
-          stroke: rgb_a(data.hoverColor, data.boxOpacity)
+          stroke: data.hoverColor,
+          'stroke-opacity': data.boxOpacity
         });
       }
     },
@@ -381,8 +377,10 @@
         state.editHandle.fill = el.attr('fill');
         state.editHandle.hidden = el.node && el.node.style.display === 'none';
         el.attr({
-          stroke: rgb_a(data.changedColor, data.boxOpacity),
-          fill: rgb_a(data.hoverFill, data.activeFillOpacity)
+          stroke: data.changedColor,
+          fill: data.hoverFill,
+          'stroke-opacity': data.boxOpacity,
+          'fill-opacity': data.activeFillOpacity
         });
         el.show();
         this.scrollToVisible(el);
@@ -623,16 +621,18 @@
         }
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
           .setAttr({
-            stroke: rgb_a(data.normalColor, data.boxOpacity),
+            stroke: data.normalColor,
+            'stroke-opacity': data.boxOpacity,
             'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-            , fill: (data.blockMode || data.columnMode) && rgb_a(data.hoverFill, 0.1)
+            , fill: (data.blockMode || data.columnMode) && data.hoverFill
+            , 'fill-opacity': 0.1
           })
           .data('cid', b.char_id)
           .data('char', b.ch);
 
         if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
           setTimeout(function () {
-            c.shape.attr({fill: rgb_a(data.hoverFill, 0.8)});
+            c.shape.attr({fill: data.hoverFill, 'fill-opacity': 0.8});
             c.shape.show();
           }, 100);
         }

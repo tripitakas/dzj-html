@@ -1,3 +1,8 @@
+/*
+ * cut_adv.js
+ *
+ * Date: 2019-03-05
+ */
 (function() {
   'use strict';
 
@@ -97,14 +102,15 @@
               }
             }
           }
+          var alpha = degree >= 1.05 ? 0.8 :
+                degree >= 0.90 ? 0.65 :
+                degree >= 0.75 ? 0.5 :
+                degree >= 0.60 ? 0.35 : 0.25;
           return test ? [c.char_id, degree] : data.paper.rect(r.x, r.y, r.width, r.height)
             .initZoom().setAttr({
               stroke: 'transparent',
-              fill: kind === 'all' && allHide ? '#fff' : $.cut.rgb_a(fillColor,
-                degree >= 1.05 ? 0.8 :
-                degree >= 0.90 ? 0.65 :
-                degree >= 0.75 ? 0.5 :
-                degree >= 0.60 ? 0.35 : 0.25)
+              fill: kind === 'all' && allHide ? '#fff' : fillColor,
+              'fill-opacity': kind === 'all' && allHide ? 1 : alpha
             })
             .data('highlight', c.char_id);
         }

@@ -112,13 +112,15 @@
 															<span class="slice_info">{{page['name']}}</span>
 															<span class="slice_info">{{task_name}}</span>
 															<div class="slice_btn_group">
-																<div class="btn-group m-b-10">
-																	<button type="button" class="btn btn-default waves-effect">所有</button>
-																	<button type="button" class="btn btn-default waves-effect">大框<sup class="s_h_count">256</sup></button>
-																	<button type="button" class="btn btn-default waves-effect">小框</button>
-																	<button type="button" class="btn btn-default waves-effect">窄框</button>
-																	<button type="button" class="btn btn-default waves-effect">扁框</button>
-																	<button type="button" class="btn btn-default waves-effect">重叠</button>
+																<div class="btn-group m-b-10 hl-btn">
+																	<button type="button" class="btn btn-default waves-effect" id="hl-all">所有<sup class="s_h_count"></sup></button>
+																	<button type="button" class="btn btn-default waves-effect" id="hl-large">大框<sup class="s_h_count"></sup></button>
+																	<button type="button" class="btn btn-default waves-effect" id="hl-small">小框<sup class="s_h_count"></sup></button>
+																	{% if box_type == 'char' %}
+																	<button type="button" class="btn btn-default waves-effect" id="hl-narrow">窄框<sup class="s_h_count"></sup></button>
+																	<button type="button" class="btn btn-default waves-effect" id="hl-flat">扁框<sup class="s_h_count"></sup></button>
+																	{% end %}
+																	<button type="button" class="btn btn-default waves-effect" id="hl-overlap">重叠<sup class="s_h_count"></sup></button>
 																</div>
 																<div class="btn-group m-b-10">
 																	<button type="button" class="btn btn-default disabled" id="undo">撤销</button>
@@ -167,6 +169,7 @@
 		<script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 
 		<script>
+			// 显示页面图和切分框
 			$.cut.create({
 				removeSmallBoxes: {{int(page['kind'] in ['JX'])}},
 				name: '{{task_type}}_{{page["name"]}}',
@@ -177,6 +180,51 @@
 				holder: 'holder',
 				image: "{{get_img(page['name'])}}",
 				chars: '{{page[box_type + "s"]}}'
+			});
+			// 应用切分框框编辑的快捷键
+			$.cut.bindKeys();
+
+			// 启用Undo/Redo
+			function updateUndo() {
+				$('#undo').toggleClass('disabled', !$.cut.canUndo());
+				$('#redo').toggleClass('disabled', !$.cut.canRedo());
+			}
+			$('#undo').click(function () {
+				$.cut.undo();
+				updateUndo();
+			});
+			$('#redo').click(function () {
+				$.cut.redo();
+				updateUndo();
+			});
+			updateUndo();
+
+			// 字框高亮
+			function showHighLightCount() {
+				$('.hl-btn > button').each(function(i, btn) {
+					var type = btn.getAttribute('id').replace(/^.*-/, '');
+					var boxes = $.cut.highlightBoxes(type, true);
+					$(btn).find('.s_h_count').text(boxes.length);
+				});
+			}
+			showHighLightCount();
+
+			$('.hl-btn > button').click(function() {
+				var type = this.getAttribute('id').replace(/^.*-/, '');
+				$.cut.switchHighlightBoxes(type);
+			});
+
+			// 响应切分框形状改变的通知
+			$.cut.onBoxChanged(function (char, box, reason) {
+				if (reason === 'removed' || reason === 'added' || reason === 'changed') {
+					var type = $.cut.data.hlType;
+					if (type) {
+						$.cut.clearHighlight();
+						$.cut.highlightBoxes(type, false, true);
+					}
+				}
+				showHighLightCount();
+				updateUndo();
 			});
 
 			$('#submit').click(function () {
