@@ -201,7 +201,7 @@ class PickTaskApi(BaseHandler):
             elif page and page.get(task_user) == self.current_user.id and page.get(task_status) == u.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['id'], context=name)
             else:
-                # 被别人领取或还未就绪，就将只读打开
+                # 被别人领取或还未就绪，就将只读打开(没有name)
                 return self.send_response() if page else self.send_error(errors.no_object)
 
             # 反馈领取成功

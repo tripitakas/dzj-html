@@ -141,6 +141,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
+            kwargs = dict(kwargs)
+            for k, v in list(kwargs.items()):
+                if hasattr(v, '__call__'):
+                    del kwargs[k]
             return self.send_response(kwargs)
         super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
 

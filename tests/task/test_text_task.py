@@ -78,7 +78,7 @@ class TestTextTask(APITestCase):
 
             # 其他人不能领取相同任务
             r = self.fetch('/api/pick/text1_proof/' + name)
-            self.assert_code(e.task_locked, r)
+            self.assertNotIn('name', self.parse_response(r))
 
             # 其他人在下次任务列表中看不到此页面
             r = self.parse_response(self.fetch('/dzj_chars?_raw=1&count=99999'))
@@ -101,7 +101,7 @@ class TestTextTask(APITestCase):
 
         # 依赖前面任务的任务不能领取，要具有相应权限
         self.login(user1[0], user1[1])
-        self.assert_code(e.task_locked, self.fetch('/api/pick/text1_proof/' + name))
+        self.assertNotIn('name', self.parse_response(self.fetch('/api/pick/text1_proof/' + name)))
         self.assert_code(e.unauthorized, self.fetch('/api/pick/char_cut_proof/' + name))
         self.login(user3[0], user3[1])
         self.assert_code(200, self.fetch('/api/pick/char_cut_proof/' + name))
