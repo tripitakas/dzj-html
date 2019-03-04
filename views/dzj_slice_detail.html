@@ -4,8 +4,6 @@
 		<meta charset="UTF-8">
 		<title>{{title}}</title>
 
-		<!-- DataTables -->
-		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
 		<!-- Custom Files -->
 		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
@@ -97,7 +95,6 @@
 				<div class="layout">
 					<div class="layout-content">
 						<!-- 中间内容 -->
-						<!--<div class="single-page-con">-->
 						<div class="layout">
 							<div class="layout-content">
 								<div class="tripitaka-volume">
@@ -137,8 +134,7 @@
 
 														</div>
 													</div>
-													<div class="full-bd">
-														<img src="{{ static_url('imgs/examImg.png') }}" alt="">
+													<div class="full-bd" id="holder">
 													</div>
 
 												</div>
@@ -163,8 +159,26 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
+		<script src="{{ static_url('js/cut/raphael.js') }}"></script>
+		<script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
+		<script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
+		<script src="{{ static_url('js/cut/cut.js') }}"></script>
+		<script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+		<script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 
 		<script>
+			$.cut.create({
+				removeSmallBoxes: {{int(page['kind'] in ['JX'])}},
+				name: '{{task_type}}_{{page["name"]}}',
+				blockMode: {{int(box_type == 'block')}},
+			  columnMode: {{int(box_type == 'column')}},
+				width: {{page['width']}},
+				height: {{page['height']}},
+				holder: 'holder',
+				image: "{{get_img(page['name'])}}",
+				chars: '{{page[box_type + "s"]}}'
+			});
+
 			$('#submit').click(function () {
 				postApi('/save_cut', {data: {
 					name: '{{page["name"]}}',

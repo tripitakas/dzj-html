@@ -9,6 +9,8 @@ from tornado.web import authenticated
 from controller.base import BaseHandler, DbError, convert_bson
 import random
 import re
+import json
+from os import path
 import model.user as u
 
 
@@ -204,6 +206,7 @@ class CutProofDetailHandler(BaseHandler):
                 self.render('dzj_slice_detail.html', page=page,
                             readonly=body.get('name') != name,
                             title='切分校对' if stage == 'proof' else '切分审定',
+                            get_img=self.get_img,
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
             except DbError as e:
                 self.send_db_error(e)
@@ -211,6 +214,21 @@ class CutProofDetailHandler(BaseHandler):
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
         self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
+
+    def get_img(self, name):
+        cfg = self.application.config
+        if 'page_codes' not in cfg:
+            try:
+                cfg['page_codes'] = json.load(open(path.join(self.application.BASE_DIR, 'page_codes.json')))
+            except OSError:
+                cfg['page_codes'] = {}
+        code = cfg['page_codes'].get(name)
+        if code:
+            base_url = 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com/page'
+            url = '/'.join([base_url, *name.split('_')[:-1], name + '_' + code + '.jpg'])
+            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300'
+
+        return '/static/img/{0}/{1}.jpg'.format(name[:2], name)
 
 
 class CharProofDetailHandler(BaseHandler):
