@@ -91,6 +91,11 @@ class TestUserApi(APITestCase):
         result = self.parse_response(r)
         self.assertIn('password', result)
 
+        # 修改用户信息
+        r = self.fetch('/api/user/change', body={'data': dict(email=user['email'], gender='男')})
+        result = self.parse_response(r)
+        self.assertTrue(result.get('info'))
+
         # 删除用户后不能再登录
         r = self.fetch('/api/user/logout', body={'data': dict(email='t2@test.com', name='测试')})
         self.assert_code(200, r)

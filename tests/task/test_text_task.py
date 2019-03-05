@@ -17,29 +17,32 @@ class TestTextTask(APITestCase):
         super(APITestCase, self).setUp()
         self.add_users([dict(email=user1[0], name='文字测试', password=user1[1]),
                         dict(email=user3[0], name='切分文字', password=user3[1],
-                             auth=','.join([u.ACCESS_TEXT_PROOF + u.ACCESS_CUT_PROOF])),
-                        dict(email=user2[0], name='测试文字', password=user2[1])], u.ACCESS_TEXT_PROOF)
+                             auth=','.join([u.ACCESS_TEXT_PROOF, u.ACCESS_CUT_PROOF])),
+                        dict(email=user2[0], name='测试文字', password=user2[1])],
+                       auth=u.ACCESS_TEXT_PROOF + ',' + u.ACCESS_TEXT_REVIEW)
+        self.fetch('/api/unlock/cut/')
+        self.fetch('/api/unlock/text/')
 
     def tearDown(self):
         
         # 退回所有任务
         self.login_as_admin()
-        self.fetch('/api/unlock/cut_proof/')
-        self.fetch('/api/unlock/text1_proof/')
-        
+        self.fetch('/api/unlock/cut/')
+        self.fetch('/api/unlock/text/')
+
         super(APITestCase, self).setUp()
 
     def test_get_tasks_no_open(self):
         """ 测试默认未发布任务时文字校对任务取不到 """
-        
+
         r = self.login(user1[0], user1[1])
         if self.get_code(r) == 200:
             r = self.parse_response(self.fetch('/dzj_chars?_raw=1&count=1'))
             self.assertIn('tasks', r)
             self.assertEqual(len(r['tasks']), 0)
 
-    def start_tasks(self, types, prefix='', priority='高'):
-        return self.fetch('/api/start/' + prefix, body={'data': dict(types=types, priority=priority)})
+    def start_tasks(self, types, prefix='', priority='高', **params):
+        return self.fetch('/api/start/' + prefix, body={'data': dict(types=types, priority=priority, **params)})
 
     def test_get_tasks(self):
         """ 测试文字校对任务的发布、列表和领取 """
@@ -91,10 +94,10 @@ class TestTextTask(APITestCase):
         # 同时发布一个藏别的切分校对任务和文字校对任务
         self.login_as_admin()
         self.fetch('/api/unlock/cut_proof/')
-        r = self.start_tasks('text1_proof,char_cut_proof', 'JX')
+        r = self.start_tasks('text1_proof,char_cut_proof,char_cut_review', 'JX')
         r = self.parse_response(r)
         self.assertGreater(len(r['names']), 1)
-        self.assertEqual(len(r['names']) * 2, len(r['items']))
+        self.assertEqual(len(r['names']) * 3, len(r['items']))
         self.assertEqual(r['items'][0]['status'], u.STATUS_OPENED)
         self.assertEqual(r['items'][1]['status'], u.STATUS_PENDING)
         name = r['items'][0]['name']
@@ -113,7 +116,23 @@ class TestTextTask(APITestCase):
         self.assertEqual(page['name'], name)
 
         # 任务提交后自动流转到下一校次
-        # TODO
+        page = self.parse_response(self.fetch('/api/page/%s?_raw=1' % name))
+        self.assertEqual(page.get('char_cut_proof_status'), u.STATUS_LOCKED)
+        self.assertEqual(page.get('char_cut_review_status'), u.STATUS_PENDING)
+        self.assert_code(200, self.fetch('/api/save_cut', body={'data': dict(name=name, task_type='char_cut_proof')}))
+        self.assertEqual(page.get('char_cut_review_status'), u.STATUS_PENDING)
+
+        self.assert_code(200, self.fetch('/api/save_cut', body={'data': dict(
+            name=name, task_type='char_cut_proof', submit=True)}))
+        page = self.parse_response(self.fetch('/api/page/%s?_raw=1' % name))
+        self.assertEqual(page.get('char_cut_review_status'), u.STATUS_OPENED)
+
+        # 查看自己完成的页面
+        r = self.parse_response(self.fetch('/dzj_slice_history.html?_raw=1'))
+        self.assertIn('pages', r)
+        self.assertIn(name, [p['name'] for p in r['pages']])
+        r = self.parse_response(self.fetch('/dzj_slice_check_history.html?_raw=1'))
+        self.assertEqual(len(r['pages']), 0)
 
     def test_pages_start_fetch(self):
         """ 测试任务发布和获取页名 """
@@ -132,6 +151,9 @@ class TestTextTask(APITestCase):
             self.assertEqual(p.get('task_type'), 'char_cut_proof')
             self.assertEqual(p.get('status'), u.STATUS_OPENED)
 
+        r = self.parse_response(self.fetch('/api/pages/cut_status'))
+        self.assertEqual(r['items'][0].get('char_cut_proof_status'), u.STATUS_OPENED)
+
         # 因为还有其他任务类型，所以得到的页名没少
         r = self.parse_response(self.fetch('/api/pages/cut_start', body={}))
         self.assertEqual(len(r['items']), len(names))
@@ -140,7 +162,7 @@ class TestTextTask(APITestCase):
         r = self.parse_response(self.fetch('/api/pages/cut_start', body={'data': dict(types='char_cut_proof')}))
         self.assertEqual(len(r['items']), 0)
         # 也不能再发布同一类型的任务了
-        r = self.parse_response(self.start_tasks('char_cut_proof'))
+        r = self.parse_response(self.start_tasks('char_cut_proof', pages=','.join(names[:2])))
         self.assertEqual(len(r['items']), 0)
 
         # 还可以发布其他类型的任务

@@ -48,7 +48,7 @@ def get_my_tasks(self, task_type, cond=None):
     assert re.match(u.re_task_type, task_type)
     cond = {task_type + '_status': u.STATUS_OPENED} if cond is None else cond
     cond[task_type + '_user'] = self.current_user.id
-    return list(self.db.page.find(cond))
+    return [convert_bson(p) for p in self.db.page.find(cond)]
 
 
 class ChooseCutProofHandler(BaseHandler):

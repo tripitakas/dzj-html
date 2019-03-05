@@ -78,7 +78,7 @@ class GetPagesApi(BaseHandler):
 
 
 class UnlockTasksApi(BaseHandler):
-    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type + '|cut_proof|cut_review'
+    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type + '|cut_proof|cut_review|cut|text'
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
