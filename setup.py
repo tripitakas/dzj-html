@@ -6,7 +6,7 @@ import controller.app as meta
 
 setup(name='tripitaka',
       version=meta.__version__,
-      description='大藏经古籍数字化平台',
+      description='如是我闻古籍数字化平台',
       keywords="大藏经,古籍数字化,tripitaka",
       platforms='any',
       packages=find_packages() + ['controller'],
