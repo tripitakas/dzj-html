@@ -26,15 +26,15 @@ def get_my_or_free_tasks(self, task_type, max_count=12):
     }))
 
     # 交叉审核、背靠背校对
-    if task_type == 'text2_proof':
-        pages = [p for p in pages if p.get('text1_proof_user') != self.current_user.id]
-    elif task_type == 'text3_proof':
-        pages = [p for p in pages if p.get('text1_proof_user') != self.current_user.id and
-                 p.get('text2_proof_user') != self.current_user.id]
+    if task_type == 'text_proof_2':
+        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id]
+    elif task_type == 'text_proof_3':
+        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id and
+                 p.get('text_proof_2_user') != self.current_user.id]
     elif task_type == 'text_review':
-        pages = [p for p in pages if p.get('text1_proof_user') != self.current_user.id and
-                 p.get('text2_proof_user') != self.current_user.id and
-                 p.get('text3_proof_user') != self.current_user.id]
+        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id and
+                 p.get('text_proof_2_user') != self.current_user.id and
+                 p.get('text_proof_3_user') != self.current_user.id]
     elif 'review' in task_type:
         pages = [p for p in pages if p.get(task_user.replace('review', 'proof')) != self.current_user.id]
 
@@ -52,7 +52,7 @@ def get_my_tasks(self, task_type, cond=None):
 
 
 class ChooseCutProofHandler(BaseHandler):
-    URL = '/dzj_slice.html'
+    URL = '/dzj_cut.html'
 
     @authenticated
     def get(self):
@@ -69,14 +69,14 @@ class ChooseCutProofHandler(BaseHandler):
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
                 all_excludes.extend(excludes)
-            self.render('dzj_slice.html', stage='proof', tasks=all_tasks,
+            self.render('dzj_cut.html', stage='proof', tasks=all_tasks,
                         remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
 
 
 class ChooseCutReviewHandler(BaseHandler):
-    URL = '/dzj_slice_check.html'
+    URL = '/dzj_cut_check.html'
 
     @authenticated
     def get(self):
@@ -93,7 +93,7 @@ class ChooseCutReviewHandler(BaseHandler):
                 all_pages.extend(pages)
                 all_tasks.extend(tasks)
                 all_excludes.extend(excludes)
-            self.render('dzj_slice.html', stage='review', tasks=all_tasks,
+            self.render('dzj_cut.html', stage='review', tasks=all_tasks,
                         remain=len(all_pages), excludes=len(all_excludes))
         except DbError as e:
             return self.send_db_error(e)
@@ -107,12 +107,12 @@ class ChooseCharProofHandler(BaseHandler):
         """ 任务大厅-文字校对 """
         try:
             stage, field = '校一', 'text1'
-            pages, tasks, excludes = get_my_or_free_tasks(self, 'text1_proof')
+            pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_1')
             if not tasks:
-                pages, tasks, excludes = get_my_or_free_tasks(self, 'text2_proof')
+                pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_2')
                 stage, field = '校二', 'text2'
             if not tasks:
-                pages, tasks, excludes = get_my_or_free_tasks(self, 'text3_proof')
+                pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_3')
                 stage, field = '校三', 'text3'
             tasks = [dict(name=p['name'], stage=stage, proof_field=field,
                           priority=p.get(field + '_proof_priority', '高'),
@@ -159,21 +159,21 @@ class MyTasksHandler(BaseHandler):
 
             task_types = dict(char='text_proof', char_check='text_review',
                               hard='hard_proof', hard_check='hard_review',
-                              slice='cut_proof', slice_check='cut_review',
+                              cut='cut_proof', cut_check='cut_review',
                               fmt='fmt_proof', fmt_check='fmt_review')
             assert kind in task_types
             task_type = task_types[kind]
 
             title = dict(char='文字校对', char_check='文字审定',
                          hard='难字校对', hard_check='难字审定',
-                         slice='切分校对', slice_check='切分审定',
+                         cut='切分校对', cut_check='切分审定',
                          fmt='格式校对', fmt_check='格式审定')[kind]
 
             kinds = []
             if task_type == 'text_proof':
-                pages = fetch('text3_proof', '校三') +\
-                        fetch('text2_proof', '校二') +\
-                        fetch('text1_proof', '校一')
+                pages = fetch('text_proof_3', '校三') +\
+                        fetch('text_proof_2', '校二') +\
+                        fetch('text_proof_1', '校一')
             elif task_type == 'cut_proof':
                 pages = fetch('block_cut_proof', '切栏') +\
                         fetch('column_cut_proof', '切列') +\
@@ -184,7 +184,7 @@ class MyTasksHandler(BaseHandler):
                         fetch('char_cut_review', '切字')
             else:
                 pages = fetch(task_type, title)
-            self.render('dzj_slice_history.html'.format(kind), pages=pages, task_type=task_type,
+            self.render('dzj_cut_history.html'.format(kind), pages=pages, task_type=task_type,
                         kind=kind, kinds=kinds, title=title, get_time=get_time)
         except DbError as e:
             return self.send_db_error(e)
@@ -203,7 +203,7 @@ class CutProofDetailHandler(BaseHandler):
                 if not page:
                     return self.render('_404.html')
 
-                self.render('dzj_slice_detail.html', page=page,
+                self.render('dzj_cut_detail.html', page=page,
                             readonly=body.get('name') != name,
                             title='切分校对' if stage == 'proof' else '切分审定',
                             get_img=self.get_img,
@@ -248,14 +248,14 @@ class CharProofDetailHandler(BaseHandler):
 
 
 class CutStatusHandler(BaseHandler):
-    URL = '/dzj_mission_slice_status.html'
+    URL = '/dzj_task_cut_status.html'
 
     @authenticated
     def get(self):
         """ 任务管理-切分状态 """
 
         def handle_response(body):
-            self.render('dzj_mission_slice_status.html',
+            self.render('dzj_task_cut_status.html',
                         status_cls=CutStatusHandler.status_cls,
                         status_desc=CutStatusHandler.status_desc,
                         sum_status=CutStatusHandler.sum_status, **body)
@@ -282,14 +282,14 @@ class CutStatusHandler(BaseHandler):
 
 
 class TextStatusHandler(BaseHandler):
-    URL = '/dzj_mission_char_status.html'
+    URL = '/dzj_task_char_status.html'
 
     @authenticated
     def get(self):
         """ 任务管理-文字状态 """
 
         def handle_response(body):
-            self.render('dzj_mission_char_status.html',
+            self.render('dzj_task_char_status.html',
                         status_cls=CutStatusHandler.status_cls,
                         status_desc=CutStatusHandler.status_desc,
                         sum_status=CutStatusHandler.sum_status, **body)

@@ -10,9 +10,9 @@ from controller.base import BaseHandler
 
 
 class HomeHandler(BaseHandler):
-    URL = ['/', '/dzj_home.html']
+    URL = ['/', '/home.html']
 
     @authenticated
     def get(self):
         """ 首页 """
-        self.render('dzj_home.html')
+        self.render('home.html')

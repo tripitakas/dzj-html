@@ -47,7 +47,7 @@ class GetPagesApi(BaseHandler):
                 all_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
                              'block_cut_review', 'column_cut_review', 'char_cut_review']
             else:
-                all_types = ['text1_proof', 'text2_proof', 'text3_proof', 'text_review']
+                all_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
 
             if kind == 'cut_start' or kind == 'text_start':
                 data = self.get_body_obj(StartTask)

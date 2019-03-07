@@ -2,9 +2,8 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>任务管理-文字校对</title>
+		<title>任务管理-文字难字</title>
 
-		
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
 		<!-- Custom Files -->
@@ -28,7 +27,7 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				{% module CommonLeft(title="mission-manage", sub="mission-manage-char" ) %}
+				{% module CommonLeft(title="task-manage", sub="task-manage-char-hard" ) %}
 				<div class="main-content">
 					{% module CommonHead() %}
 					<div class="single-page-con">
@@ -49,24 +48,13 @@
 													<tr>
 														<th><input type="checkbox" name="" id="" value="" /></th>
 														<th>页编码</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">类型</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">二校一审</a></li>
-					                                                <li><a href="#">三校一审</a></li>
-					                                                <li><a href="#">四校一审</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
-														<th>阶段</th>
+														<th>类型</th>
 														<th>
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span><span class="ion-android-sort " ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">已发布未领取</a></li>
+					                                                <li><a href="#">未领取</a></li>
 					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
 					                                                <li><a href="#">已完成</a></li>
 					                                            </ul>
 					                                        </div>
@@ -81,7 +69,6 @@
 					                                            </ul>
 					                                        </div>
 														</th>
-														<th>退回理由</th>
 														<th>备注</th>
 														<th>领取人</th>
 														<th>领取时间</th>
@@ -93,13 +80,11 @@
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>GY1-1-1</td>
-														<td>二校一审</td>
-														<td>校二</td>
+														<td>文字难字</td>
 														<td>已领取</td>
 														<td>高</td>
-														<td>退回理由</td>
 														<td>备注</td>
-														<td>丁元英</td>
+														<td>楚风</td>
 														<td>2018/06/23 11:52:37</td>
 														<td>2018/06/23 15:52:37</td>
 														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
@@ -107,13 +92,11 @@
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>GY1-1-1</td>
-														<td>二校一审</td>
-														<td>校二</td>
+														<td>文字难字</td>
 														<td>已领取</td>
 														<td>高</td>
-														<td>退回理由</td>
 														<td>备注</td>
-														<td>丁元英</td>
+														<td>楚风</td>
 														<td>2018/06/23 11:52:37</td>
 														<td>2018/06/23 15:52:37</td>
 														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
@@ -121,13 +104,11 @@
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>GY1-1-1</td>
-														<td>二校一审</td>
-														<td>校二</td>
+														<td>文字难字</td>
 														<td>已领取</td>
 														<td>高</td>
-														<td>退回理由</td>
 														<td>备注</td>
-														<td>丁元英</td>
+														<td>楚风</td>
 														<td>2018/06/23 11:52:37</td>
 														<td>2018/06/23 15:52:37</td>
 														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
@@ -135,27 +116,11 @@
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>GY1-1-1</td>
-														<td>二校一审</td>
-														<td>校三</td>
+														<td>文字难字</td>
 														<td>已领取</td>
 														<td>高</td>
-														<td>退回理由</td>
 														<td>备注</td>
-														<td>丁元英</td>
-														<td>2018/06/23 11:52:37</td>
-														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span style="background: #CCCCCC;">下载结果</span></td>
-													</tr>
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>GY1-1-1</td>
-														<td>四校一审</td>
-														<td>校四</td>
-														<td>已领取</td>
-														<td>高</td>
-														<td>退回理由</td>
-														<td>备注</td>
-														<td>丁元英</td>
+														<td>楚风</td>
 														<td>2018/06/23 11:52:37</td>
 														<td>2018/06/23 15:52:37</td>
 														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
@@ -163,16 +128,14 @@
 													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>GY1-1-1</td>
-														<td>切栏</td>
-														<td>校对</td>
-														<td>高</td>
+														<td>文字难字</td>
 														<td>已领取</td>
-														<td>退回理由</td>
+														<td>高</td>
 														<td>备注</td>
-														<td>丁元英</td>
+														<td>楚风</td>
 														<td>2018/06/23 11:52:37</td>
 														<td>2018/06/23 15:52:37</td>
-														<td><span onclick="revoke(10)">撤回任务</span><span style="background: #CCCCCC;">下载结果</span></td>
+														<td><span onclick="revoke(10)">撤回任务</span><span>下载结果</span></td>
 													</tr>
 												</tbody>
 											</table>

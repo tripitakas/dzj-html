@@ -43,7 +43,7 @@
 		<div class="app-main">
 			<div class="main">
 				<!--模拟出左边菜单，方便写样式-->
-				{% module CommonLeft(title="mission-manage", sub="mission-manage-char-status" ) %}
+				{% module CommonLeft(title="task-manage", sub="task-manage-char-status" ) %}
 				<div class="main-content">
 					{% module CommonHead() %}
 					<div class="single-page-con">
@@ -119,13 +119,13 @@
 											<div class="task_types">
 												<h4>选择任务类型</h4>
 												<label class="checkbox-inline">
-													<input type="checkbox" name="text1_proof" id="text1_proof" value="option1"> 校一
+													<input type="checkbox" name="text_proof_1" id="text_proof_1" value="option1"> 校一
 												</label>
 												<label class="checkbox-inline">
-													<input type="checkbox" name="text2_proof" id="text2_proof" value="option2"> 校二
+													<input type="checkbox" name="text_proof_2" id="text_proof_2" value="option2"> 校二
 												</label>
 												<label class="checkbox-inline">
-													<input type="checkbox" name="text3_proof" id="text3_proof" value="option3"> 校三
+													<input type="checkbox" name="text_proof_3" id="text_proof_3" value="option3"> 校三
 												</label>
 												<label class="checkbox-inline">
 													<input type="checkbox" name="text_review" id="text_review" value="option3"> 审定
@@ -205,7 +205,7 @@
 					                                            </ul>
 					                                        </div>
 														</th>
-														{% for name, caption in [('text1_proof', '校一'), ('text2_proof', '校二'), ('text3_proof', '校三'), ('text_review', '审定')] %}
+														{% for name, caption in [('text_proof_1', '校一'), ('text_proof_2', '校二'), ('text_proof_3', '校三'), ('text_review', '审定')] %}
 														<th>
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">{{caption}}状态</span><span class="ion-android-sort " ></span>
@@ -226,9 +226,9 @@
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{page['name']}}</td>
 														<td>{{'是' if page.get('txt') else '否'}}</td>
-														<td class="{{status_cls(page, 'text1_proof')}}">{{status_desc(page, 'text1_proof')}}</td>
-														<td class="{{status_cls(page, 'text2_proof')}}">{{status_desc(page, 'text2_proof')}}</td>
-														<td class="{{status_cls(page, 'text3_proof')}}">{{status_desc(page, 'text3_proof')}}</td>
+														<td class="{{status_cls(page, 'text_proof_1')}}">{{status_desc(page, 'text_proof_1')}}</td>
+														<td class="{{status_cls(page, 'text_proof_2')}}">{{status_desc(page, 'text_proof_2')}}</td>
+														<td class="{{status_cls(page, 'text_proof_3')}}">{{status_desc(page, 'text_proof_3')}}</td>
 														<td class="{{status_cls(page, 'text_review')}}">{{status_desc(page, 'text_review')}}</td>
 													</tr>
 													{% end %}

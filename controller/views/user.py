@@ -11,19 +11,19 @@ import model.user as u
 
 
 class LoginHandler(BaseHandler):
-    URL = ['/login', '/dzj_login.html']
+    URL = ['/login', '/login.html']
 
     def get(self):
         """ 登录页面 """
-        self.render('dzj_login.html', next=self.get_query_argument('next', '/'))
+        self.render('login.html', next=self.get_query_argument('next', '/'))
 
 
 class RegisterHandler(BaseHandler):
-    URL = '/dzj_register.html'
+    URL = '/user_register.html'
 
     def get(self):
         """ 注册页面 """
-        self.render('dzj_register.html', next=self.get_query_argument('next', '/'))
+        self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
 class UsersHandler(BaseHandler):

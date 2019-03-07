@@ -49,7 +49,7 @@ class TestTextTask(APITestCase):
 
         # 发布任务
         self.login_as_admin()
-        r = self.start_tasks('text1_proof')
+        r = self.start_tasks('text_proof_1')
         self.assertIn('names', self.parse_response(r))
 
         r = self.login(user1[0], user1[1])
@@ -62,7 +62,7 @@ class TestTextTask(APITestCase):
             self.assertTrue(r['tasks'][0].get('name'))
 
             # 领取任务
-            r = self.fetch('/api/pick/text1_proof/' + name)
+            r = self.fetch('/api/pick/text_proof_1/' + name)
             self.assertIn('name', self.parse_response(r))
 
             # 在下次任务列表中未提交的页面将显示在上面
@@ -71,16 +71,16 @@ class TestTextTask(APITestCase):
             self.assertNotEqual(r['tasks'][-1]['name'], name)
 
             # 可以继续上次未完成的任务
-            self.assertIn('name', self.parse_response(self.fetch('/api/pick/text1_proof/' + name)))
+            self.assertIn('name', self.parse_response(self.fetch('/api/pick/text_proof_1/' + name)))
 
             # 未完成时不能领取新的任务
-            r = self.fetch('/api/pick/text1_proof/' + r['tasks'][-1].get('name'))
+            r = self.fetch('/api/pick/text_proof_1/' + r['tasks'][-1].get('name'))
             self.assert_code(e.task_uncompleted, r)
 
             self.login(user2[0], user2[1])
 
             # 其他人不能领取相同任务
-            r = self.fetch('/api/pick/text1_proof/' + name)
+            r = self.fetch('/api/pick/text_proof_1/' + name)
             self.assertNotIn('name', self.parse_response(r))
 
             # 其他人在下次任务列表中看不到此页面
@@ -94,7 +94,7 @@ class TestTextTask(APITestCase):
         # 同时发布一个藏别的切分校对任务和文字校对任务
         self.login_as_admin()
         self.fetch('/api/unlock/cut_proof/')
-        r = self.start_tasks('text1_proof,char_cut_proof,char_cut_review', 'JX')
+        r = self.start_tasks('text_proof_1,char_cut_proof,char_cut_review', 'JX')
         r = self.parse_response(r)
         self.assertGreater(len(r['names']), 1)
         self.assertEqual(len(r['names']) * 3, len(r['items']))
@@ -104,7 +104,7 @@ class TestTextTask(APITestCase):
 
         # 依赖前面任务的任务不能领取，要具有相应权限
         self.login(user1[0], user1[1])
-        self.assertNotIn('name', self.parse_response(self.fetch('/api/pick/text1_proof/' + name)))
+        self.assertNotIn('name', self.parse_response(self.fetch('/api/pick/text_proof_1/' + name)))
         self.assert_code(e.unauthorized, self.fetch('/api/pick/char_cut_proof/' + name))
         self.login(user3[0], user3[1])
         self.assert_code(200, self.fetch('/api/pick/char_cut_proof/' + name))
@@ -127,10 +127,10 @@ class TestTextTask(APITestCase):
         self.assertEqual(page.get('char_cut_review_status'), u.STATUS_OPENED)
 
         # 查看自己完成的页面
-        r = self.parse_response(self.fetch('/dzj_slice_history.html?_raw=1'))
+        r = self.parse_response(self.fetch('/dzj_cut_history.html?_raw=1'))
         self.assertIn('pages', r)
         self.assertIn(name, [p['name'] for p in r['pages']])
-        r = self.parse_response(self.fetch('/dzj_slice_check_history.html?_raw=1'))
+        r = self.parse_response(self.fetch('/dzj_cut_check_history.html?_raw=1'))
         self.assertEqual(len(r['pages']), 0)
 
     def test_pages_start_fetch(self):

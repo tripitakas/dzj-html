@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>我的任务-{{title}}</title>
+		<title>任务大厅-切分{{'审定' if stage=='review' else '校对'}}</title>
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -25,7 +25,7 @@
 		<div class="app-main">
 			<div class="main">
 				<!--公共左侧导航栏 -->
-				{% module CommonLeft(title="mission_history", sub="mission-slice") %}
+				{% module CommonLeft(title="task-lobby", sub="task-lobby-cut") %}
 				<div class="main-content">
 					<!--公共头部 -->
 					{% module CommonHead() %}
@@ -44,30 +44,41 @@
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">类型</span><span class="ion-funnel" ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-																												{% for k in kinds %}
-																												<li><a href="#">{{k}}</a></li>
-																												{% end %}
+					                                                <li><a href="#">切字</a></li>
+					                                                <li><a href="#">切列</a></li>
+					                                                <li><a href="#">切栏</a></li>
 					                                            </ul>
 					                                        </div>
 														</th>
-														<th><span>领取时间</span></th>
-														<th><span>完成时间</span></th>
+														<th>
+															<div class="btn-group">
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel" ></span>
+					                                            <ul class="dropdown-menu" role="menu">
+					                                                <li><a href="#">高</a></li>
+					                                                <li><a href="#">中</a></li>
+					                                                <li><a href="#">低</a></li>
+					                                            </ul>
+					                                        </div>
+														</th>
 														<th><span>操作</span></th>
 													</tr>
 												</thead>
 
 												<tbody>
-													{% for p in pages %}
-													<tr>
-														<td>{{p['name']}}</td>
-														<td>{{p['kind_name']}}</td>
-														<td>{{get_time(p, p['current_task'] + '_start_time')}}</td>
-														<td>{{get_time(p, p['current_task'] + '_end_time')}}</td>
-														<td><a href="dzj_slice_detail.html" >继续</a></td>
+												  {% for t in tasks %}
+													<tr id="{{t['name']}}">
+														<td>{{t['name']}}</td>
+														<td>{{t['kind']}}</td>
+														<td>{{t['priority']}}</td>
+														<td><a href="/dzj_{{t['task_type']}}/{{t['name']}}">领取</a></td>
 													</tr>
 													{% end %}
 												</tbody>
 											</table>
+
+											{% if excludes %}
+											<p class="text-center">有 {{excludes}} 个切分任务需要其他用户校对。</p>
+											{% end %}
 										</div>
 										<div class="pagers">
 											<ul>
