@@ -106,17 +106,17 @@ class ChooseCharProofHandler(BaseHandler):
     def get(self):
         """ 任务大厅-文字校对 """
         try:
-            stage, field = '校一', 'text1'
+            stage, field = '校一', 'text_proof_1'
             pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_1')
             if not tasks:
                 pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_2')
-                stage, field = '校二', 'text2'
+                stage, field = '校二', 'text_proof_2'
             if not tasks:
                 pages, tasks, excludes = get_my_or_free_tasks(self, 'text_proof_3')
-                stage, field = '校三', 'text3'
+                stage, field = '校三', 'text_proof_3'
             tasks = [dict(name=p['name'], stage=stage, proof_field=field,
-                          priority=p.get(field + '_proof_priority', '高'),
-                          status='待继续' if p.get(field + '_proof_user') else '待领取') for p in tasks]
+                          priority=p.get(field + '_priority', '高'),
+                          status='待继续' if p.get(field + '_user') else '待领取') for p in tasks]
             self.render('dzj_char.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
         except DbError as e:
             return self.send_db_error(e)

@@ -208,12 +208,12 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/text(1|2|3)_proof/([A-Za-z0-9_]+)'
+    URL = r'/api/pick/text_proof_(1|2|3)/([A-Za-z0-9_]+)'
     AUTHORITY = u.ACCESS_TEXT_PROOF
 
     def get(self, kind, name):
         """ 取文字校对任务 """
-        self.pick('text%s_proof' % kind, name)
+        self.pick('text_proof_%s' % kind, name)
 
 
 class PickTextReviewTaskApi(PickTaskApi):
