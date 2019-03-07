@@ -4165,12 +4165,11 @@ div.dataTables_info {
 
 .dzj_wrapper {
 	padding: 0px 0 0 80px;
-	/*background: url(../imgs/lqdzj_bg.png) repeat;*/
 }
 
 .dzj_wrapper1 {
 	padding: 0px 0 0 80px;
-	background: url(../imgs/lqdzj_bg.png) repeat;
+	background: url(../imgs/dzj_bg.png) repeat;
 }
 
 .dialog-h3 {
