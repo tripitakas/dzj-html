@@ -23,13 +23,15 @@
     <th>接口地址</th>
     <th>类型</th>
     <th>接口说明</th>
+    <th>权限</th>
   </tr>
-  {% for i, (path, method, func) in enumerate(handlers) %}
+  {% for i, (path, method, func, auth) in enumerate(handlers) %}
   <tr>
     <td>{{1 + i}}</td>
     <td>{{path}}</td>
     <td>{{method}}</td>
     <td>{{func}}</td>
+    <td>{{auth}}</td>
   </tr>
   {% end %}
 </table>

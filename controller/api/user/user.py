@@ -150,6 +150,7 @@ class RegisterApi(BaseHandler):
 
 class ChangeUserApi(BaseHandler):
     URL = '/api/user/change'
+    AUTHORITY = 'any'
 
     def check(self):
         self.current_user = self.get_current_user()
@@ -170,8 +171,6 @@ class ChangeUserApi(BaseHandler):
         if not info:
             return
 
-        if not self.update_login():
-            return self.send_error(errors.auth_changed)
         try:
             fields = base_fields + list(u.authority_map.keys())
             old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)),
@@ -235,6 +234,11 @@ class LogoutApi(BaseHandler):
             self.clear_cookie('user')
             self.send_response({'result': 'ok'})
 
+
+class RemoveUserApi(BaseHandler):
+    URL = '/api/user/remove'
+    AUTHORITY = u.ACCESS_MANAGER
+
     def post(self):
         """ 删除用户 """
         self.current_user = self.get_current_user()
@@ -248,10 +252,6 @@ class LogoutApi(BaseHandler):
             return self.send_error(errors.unauthorized, reason='不能删除自己')
 
         try:
-            self.update_login()
-            if u.ACCESS_MANAGER not in self.authority:
-                return self.send_error(errors.unauthorized, reason=u.ACCESS_MANAGER)
-
             r = self.db.user.delete_one(dict(name=info.name, email=info.email))
             if not r.deleted_count:
                 return self.send_error(errors.no_user)
@@ -265,6 +265,7 @@ class LogoutApi(BaseHandler):
 
 class GetUsersApi(BaseHandler):
     URL = '/api/user/list'
+    AUTHORITY = 'any'
 
     def get(self):
         """ 得到全部用户 """
@@ -274,7 +275,6 @@ class GetUsersApi(BaseHandler):
 
         fields = base_fields + list(u.authority_map.keys())
         try:
-            self.update_login()
             cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
@@ -302,6 +302,7 @@ class GetOptionsApi(BaseHandler):
 
 class ResetPasswordApi(BaseHandler):
     URL = r'/api/pwd/reset/(\w+)'
+    AUTHORITY = u.ACCESS_MANAGER
 
     def post(self, rid):
         """ 重置一个用户的密码 """
@@ -311,10 +312,6 @@ class ResetPasswordApi(BaseHandler):
 
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
-            self.update_login()
-            if u.ACCESS_MANAGER not in self.authority:
-                return self.send_error(errors.unauthorized)
-
             r = self.db.user.update_one(dict(id=rid), {'$set': dict(password=errors.gen_id(pwd))})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
@@ -337,6 +334,7 @@ class ResetPasswordApi(BaseHandler):
 
 class ChangePasswordApi(BaseHandler):
     URL = '/api/pwd/change'
+    AUTHORITY = 'any'
 
     def post(self):
         """ 修改当前用户的密码 """
@@ -356,7 +354,6 @@ class ChangePasswordApi(BaseHandler):
             return self.send_response()
 
         try:
-            self.update_login()
             r = self.db.user.update_one(dict(id=self.current_user.id, password=errors.gen_id(info.old_password)),
                                         {'$set': dict(password=errors.gen_id(info.password))})
             if not r.matched_count:

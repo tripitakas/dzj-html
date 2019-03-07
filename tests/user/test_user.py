@@ -71,7 +71,7 @@ class TestUserApi(APITestCase):
         """ 测试修改密码、重置密码、删除用户 """
 
         self.add_admin_user()
-        self.fetch('/api/user/logout', body={'data': dict(email='t2@test.com', name='测试')})
+        self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
         r = self._register_login(dict(email='t2@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)
 
@@ -97,7 +97,7 @@ class TestUserApi(APITestCase):
         self.assertTrue(result.get('info'))
 
         # 删除用户后不能再登录
-        r = self.fetch('/api/user/logout', body={'data': dict(email='t2@test.com', name='测试')})
+        r = self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
         self.assert_code(200, r)
         r = self.fetch('/api/user/login', body={'data': dict(email='t2@test.com', password='t12345')})
         self.assert_code(e.no_user, r)

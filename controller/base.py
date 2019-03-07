@@ -99,6 +99,18 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.authority = ''
         self.db = self.application.db
 
+    def prepare(self):
+        if hasattr(self, 'AUTHORITY'):
+            auths = list(self.AUTHORITY) if isinstance(self.AUTHORITY, tuple) else [self.AUTHORITY]
+            if 'testing' in auths and options.testing:
+                return
+            if not self.update_login():
+                return self.send_error(errors.unauthorized)
+            if 'any' in auths:
+                return
+            if not [r for r in auths if r in self.authority]:
+                return self.send_error(errors.unauthorized, reason='|'.join(auths))
+
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
             self.write({'code': 403, 'error': 'Forbidden'})

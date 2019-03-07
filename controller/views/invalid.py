@@ -29,16 +29,18 @@ class ApiTable(BaseHandler):
         handlers = []
         for cls in self.application.handlers:
             handler = cls(self.application, self.request)
+            auth = (','.join(list(cls.AUTHORITY)) if isinstance(cls.AUTHORITY, tuple) else cls.AUTHORITY)\
+                if hasattr(cls, 'AUTHORITY') else ''
             for method in handler._get_methods().split(','):
                 method = method.strip()
                 if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
                     if isinstance(cls.URL, list):
                         for i, url in enumerate(cls.URL):
-                            handlers.append((url, method, func.__doc__))
+                            handlers.append((url, method, func.__doc__, auth))
                     elif isinstance(cls.URL, tuple):
-                        handlers.append((cls.URL[0], method, func.__doc__))
+                        handlers.append((cls.URL[0], method, func.__doc__, auth))
                     else:
-                        handlers.append((cls.URL, method, func.__doc__))
+                        handlers.append((cls.URL, method, func.__doc__, auth))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)

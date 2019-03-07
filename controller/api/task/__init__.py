@@ -1,4 +1,5 @@
-from . import task
+from . import task as t
 
-handlers = [task.GetPageApi, task.GetPagesApi, task.StartTasksApi, task.PickTaskApi, task.UnlockTasksApi,
-            task.SaveCutApi]
+handlers = [t.GetPageApi, t.GetPagesApi, t.StartTasksApi, t.UnlockTasksApi,
+            t.PickCutProofTaskApi, t.PickCutReviewTaskApi, t.PickTextProofTaskApi, t.PickTextReviewTaskApi,
+            t.SaveCutProofApi, t.SaveCutReviewApi]

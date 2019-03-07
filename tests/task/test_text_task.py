@@ -119,11 +119,10 @@ class TestTextTask(APITestCase):
         page = self.parse_response(self.fetch('/api/page/%s?_raw=1' % name))
         self.assertEqual(page.get('char_cut_proof_status'), u.STATUS_LOCKED)
         self.assertEqual(page.get('char_cut_review_status'), u.STATUS_PENDING)
-        self.assert_code(200, self.fetch('/api/save_cut', body={'data': dict(name=name, task_type='char_cut_proof')}))
+        self.assert_code(200, self.fetch('/api/save/char_cut_proof', body={'data': dict(name=name)}))
         self.assertEqual(page.get('char_cut_review_status'), u.STATUS_PENDING)
 
-        self.assert_code(200, self.fetch('/api/save_cut', body={'data': dict(
-            name=name, task_type='char_cut_proof', submit=True)}))
+        self.assert_code(200, self.fetch('/api/save/char_cut_proof', body={'data': dict(name=name, submit=True)}))
         page = self.parse_response(self.fetch('/api/page/%s?_raw=1' % name))
         self.assertEqual(page.get('char_cut_review_status'), u.STATUS_OPENED)
 

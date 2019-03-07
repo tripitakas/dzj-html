@@ -228,9 +228,8 @@
 			});
 
 			$('#submit').click(function () {
-				postApi('/save_cut', {data: {
+				postApi('/save/{{task_type}}', {data: {
 					name: '{{page["name"]}}',
-					task_type: '{{task_type}}',
 					submit: 1
 				}}, function (res) {
 
