@@ -46,5 +46,7 @@ class TestViews(APITestCase):
         self.assert_code(404, r)
 
     def test_show_api(self):
-        r = self.parse_response(self.fetch('/api'))
-        self.assertNotIn('None', r)
+        r = self.parse_response(self.fetch('/api?_raw=1'))
+        self.assertIn('handlers', r)
+        for url, method, comment, auth in r['handlers']:
+            self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, method))
