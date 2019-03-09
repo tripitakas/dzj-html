@@ -256,6 +256,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
+        if kwargs.get('render'):
+            return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
         self.write_error(status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
@@ -268,13 +270,14 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.write({'code': status_code, 'error': reason})
             self.finish()
 
-    def send_db_error(self, e):
+    def send_db_error(self, e, render=False):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
         reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
         if not code and '[Errno' in reason and isinstance(e, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             return self.send_error(errors.mongo_error[0] + code,
+                                   render=render,
                                    reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
                                        errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
         if code:
@@ -285,6 +288,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             traceback.print_exc()
         default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
         self.send_error(default_error[0] + code, for_yield=True,
+                        render=render,
                         reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
@@ -338,8 +342,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             if handle_error:
                 handle_error(r.error)
             else:
-                self.write('错误1: ' + r.error)
-                self.finish()
+                self.render('_error.html', code=500, error='错误1: ' + r.error)
         else:
             try:
                 try:
@@ -362,8 +365,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                         if handle_error:
                             handle_error(body['error'])
                         else:
-                            self.write('错误3: ' + body['error'])
-                            self.finish()
+                            self.render('_error.html', code=500, error='错误3: ' + body['error'])
                     else:
                         handle_response(body)
             except Exception as e:
@@ -371,5 +373,4 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if handle_error:
                     handle_error(e)
                 else:
-                    self.write(e)
-                    self.finish()
+                    self.render('_error.html', code=500, error=e)

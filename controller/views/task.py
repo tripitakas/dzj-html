@@ -71,8 +71,8 @@ class ChooseCutProofHandler(BaseHandler):
                 all_excludes.extend(excludes)
             self.render('dzj_cut.html', stage='proof', tasks=all_tasks,
                         remain=len(all_pages), excludes=len(all_excludes))
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class ChooseCutReviewHandler(BaseHandler):
@@ -95,8 +95,8 @@ class ChooseCutReviewHandler(BaseHandler):
                 all_excludes.extend(excludes)
             self.render('dzj_cut.html', stage='review', tasks=all_tasks,
                         remain=len(all_pages), excludes=len(all_excludes))
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class ChooseCharProofHandler(BaseHandler):
@@ -118,8 +118,8 @@ class ChooseCharProofHandler(BaseHandler):
                           priority=p.get(field + '_priority', '高'),
                           status='待继续' if p.get(field + '_user') else '待领取') for p in tasks]
             self.render('dzj_char.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class ChooseCharReviewHandler(BaseHandler):
@@ -134,8 +134,8 @@ class ChooseCharReviewHandler(BaseHandler):
                           priority=p.get('text_review_priority', '高'),
                           status='待继续' if p.get('text_review_user') else '待领取') for p in tasks]
             self.render('dzj_char_check.html', tasks=tasks, remain=len(pages), excludes=len(excludes))
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class MyTasksHandler(BaseHandler):
@@ -186,8 +186,8 @@ class MyTasksHandler(BaseHandler):
                 pages = fetch(task_type, title)
             self.render('dzj_cut_history.html'.format(kind), pages=pages, task_type=task_type,
                         kind=kind, kinds=kinds, title=title, get_time=get_time)
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class CutProofDetailHandler(BaseHandler):
@@ -208,8 +208,8 @@ class CutProofDetailHandler(BaseHandler):
                             title='切分校对' if stage == 'proof' else '切分审定',
                             get_img=self.get_img,
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
-            except DbError as e:
-                self.send_db_error(e)
+            except Exception as e:
+                self.send_db_error(e, render=True)
 
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
@@ -243,8 +243,8 @@ class CharProofDetailHandler(BaseHandler):
                 return self.render('_404.html')
             self.render('dzj_char_detail.html', page=page,
                         readonly=page.get('text_proof_user') != self.current_user.id)
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class CutStatusHandler(BaseHandler):
