@@ -153,10 +153,6 @@ class MyTasksHandler(BaseHandler):
                 kinds.append(kind_name)
                 return items
 
-            def get_time(page, field):
-                t = page.get(field)
-                return t.strftime('%Y-%m-%d %H:%M:%S') if t else ''
-
             task_types = dict(char='text_proof', char_check='text_review',
                               hard='hard_proof', hard_check='hard_review',
                               cut='cut_proof', cut_check='cut_review',
@@ -185,7 +181,7 @@ class MyTasksHandler(BaseHandler):
             else:
                 pages = fetch(task_type, title)
             self.render('dzj_cut_history.html'.format(kind), pages=pages, task_type=task_type,
-                        kind=kind, kinds=kinds, title=title, get_time=get_time)
+                        kind=kind, kinds=kinds, title=title)
         except Exception as e:
             self.send_db_error(e, render=True)
 

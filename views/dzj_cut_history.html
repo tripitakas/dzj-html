@@ -61,9 +61,9 @@
 													<tr>
 														<td>{{p['name']}}</td>
 														<td>{{p['kind_name']}}</td>
-														<td>{{get_time(p, p['current_task'] + '_start_time')}}</td>
-														<td>{{get_time(p, p['current_task'] + '_end_time')}}</td>
-														<td><a href="dzj_cut_detail.html" >继续</a></td>
+														<td>{{p.get(p['current_task'] + '_start_time', '')}}</td>
+														<td>{{p.get(p['current_task'] + '_end_time', '')}}</td>
+														<td><a href="/dzj_cut_detail.html" >继续</a></td>
 													</tr>
 													{% end %}
 												</tbody>

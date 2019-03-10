@@ -68,7 +68,9 @@
 														<td>{{t['name']}}</td>
 														<td>{{t['stage']}}</td>
 														<td>{{t['priority']}}</td>
-														<td><a href="#" class="pick-task" id="{{t['name']}}">领取</a></td>
+														<td><a href="#" class="pick-task" id="{{t['name']}}">
+															{{'继续' if t['status'] == '待继续' else '领取'}}
+														</a></td>
 													</tr>
 													{% end %}
 												</tbody>

@@ -70,7 +70,9 @@
 														<td>{{t['name']}}</td>
 														<td>{{t['kind']}}</td>
 														<td>{{t['priority']}}</td>
-														<td><a href="/dzj_{{t['task_type']}}/{{t['name']}}">领取</a></td>
+														<td><a href="/dzj_{{t['task_type']}}/{{t['name']}}">
+															{{'继续' if t['status'] == '待继续' else '领取'}}
+														</a></td>
 													</tr>
 													{% end %}
 												</tbody>
