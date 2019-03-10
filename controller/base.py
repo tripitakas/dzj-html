@@ -22,23 +22,11 @@ from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
 from controller import errors
-from controller.help import fetch_authority, convert2obj
+from controller.help import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
 
 
-def my_framer():
-    f0 = f = old_framer()
-    if f is not None:
-        f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
-
-
-old_framer = logging.currentframe
 logging.currentframe = my_framer
-
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
 
