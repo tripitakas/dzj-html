@@ -13,7 +13,8 @@ from tornado.util import unicode_type
 
 import model.user as u
 from controller import errors
-from controller.base import BaseHandler, DbError, fetch_authority
+from controller.base import BaseHandler, DbError
+from controller.help import fetch_authority
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))

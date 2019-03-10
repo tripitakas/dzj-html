@@ -6,7 +6,8 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler, convert_bson
+from controller.base import BaseHandler
+from controller.help import convert_bson
 import random
 import re
 import json

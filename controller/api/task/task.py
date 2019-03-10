@@ -4,7 +4,8 @@
 @time: 2018/12/27
 """
 
-from controller.base import BaseHandler, DbError, convert_bson
+from controller.base import BaseHandler, DbError
+from controller.help import convert_bson
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
 

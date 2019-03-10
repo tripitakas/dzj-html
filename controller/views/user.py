@@ -6,7 +6,8 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler, fetch_authority
+from controller.base import BaseHandler
+from controller.help import fetch_authority
 import model.user as u
 
 
@@ -108,6 +109,7 @@ class UsersProfileHandler(BaseHandler):
 
     @authenticated
     def get(self):
+        """ 个人中心 """
         user = self.current_user
         user = self.convert2dict(user)
         self.render('user_profile.html', user=user)
