@@ -17,6 +17,7 @@ class TestViews(APITestCase):
         if '(' not in url:
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
+            self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})

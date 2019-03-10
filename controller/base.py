@@ -158,7 +158,10 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if hasattr(v, '__call__'):
                     del kwargs[k]
             return self.send_response(kwargs)
-        super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+        try:
+            super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+        except Exception as e:
+            self.render('_error.html', code=500, error='网页生成出错: %s' % (str(e),))
 
     @staticmethod
     def _trim_obj(obj, param_type):
