@@ -100,3 +100,14 @@ class UsersDataHandler(BaseHandler):
             return self.send_db_error(e)
 
         self.render('dzj_user_data.html', users=users)
+
+
+
+class UsersProfileHandler(BaseHandler):
+    URL = '/user/profile'
+
+    @authenticated
+    def get(self):
+        user = self.current_user
+        user = self.convert2dict(user)
+        self.render('user_profile.html', user=user)

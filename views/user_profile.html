@@ -52,19 +52,19 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label">姓名</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="罗辑">
+															<input type="text" class="form-control" readonly="" value="{{user.get('name', '')}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">邮箱</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="email@example.com">
+															<input type="text" class="form-control" readonly="" value="{{user.get('email', '')}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">手机号</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="15988997777">
+															<input type="text" class="form-control" readonly="" value="{{user.get('phone', '')}}">
 														</div>
 													</div>
 
@@ -89,7 +89,7 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label"></label>
 														<div class="col-sm-3">
-															<button class="btn btn-danger btn-block" onclick="delUser('aaa')">注销帐号</button>
+															<button class="btn btn-danger btn-block" onclick="delUser()">注销帐号</button>
 														</div>
 													</div>
 
