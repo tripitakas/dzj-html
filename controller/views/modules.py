@@ -16,3 +16,8 @@ class CommonLeft(UIModule):
 class CommonHead(UIModule):
     def render(self):
         return self.render_string('common_head.html')
+
+
+class Pager(UIModule):
+    def render(self, pager):
+        return self.render_string('_pager.html', pager=pager)

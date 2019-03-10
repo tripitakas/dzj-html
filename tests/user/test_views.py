@@ -17,6 +17,7 @@ class TestViews(APITestCase):
         if '(' not in url:
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
+            self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
@@ -46,8 +47,10 @@ class TestViews(APITestCase):
         self.assert_code(404, r)
 
     def test_show_api(self):
-        r = self.parse_response(self.fetch('/api'))
-        self.assertNotIn('None', r)
+        r = self.parse_response(self.fetch('/api?_raw=1'))
+        self.assertIn('handlers', r)
+        for url, method, comment, auth in r['handlers']:
+            self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, method))
 
     def test_profile(self):
         self.login('text1@test.com', 't12345')

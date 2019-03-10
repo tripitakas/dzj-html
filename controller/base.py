@@ -13,7 +13,7 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
 from pymongo.errors import PyMongoError
-from tornado.escape import json_decode, json_encode
+from tornado.escape import json_decode, json_encode, to_basestring
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
@@ -158,7 +158,10 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if hasattr(v, '__call__'):
                     del kwargs[k]
             return self.send_response(kwargs)
-        super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+        try:
+            super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+        except Exception as e:
+            self.render('_error.html', code=500, error='网页生成出错: %s' % (str(e),))
 
     @staticmethod
     def _trim_obj(obj, param_type):
@@ -256,6 +259,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
+        if kwargs.get('render'):
+            return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
         self.write_error(status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
@@ -268,13 +273,14 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.write({'code': status_code, 'error': reason})
             self.finish()
 
-    def send_db_error(self, e):
+    def send_db_error(self, e, render=False):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
         reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
         if not code and '[Errno' in reason and isinstance(e, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             return self.send_error(errors.mongo_error[0] + code,
+                                   render=render,
                                    reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
                                        errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
         if code:
@@ -285,6 +291,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             traceback.print_exc()
         default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
         self.send_error(default_error[0] + code, for_yield=True,
+                        render=render,
                         reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
@@ -338,8 +345,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             if handle_error:
                 handle_error(r.error)
             else:
-                self.write('错误1: ' + r.error)
-                self.finish()
+                self.render('_error.html', code=500, error='错误1: ' + r.error)
         else:
             try:
                 try:
@@ -362,8 +368,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                         if handle_error:
                             handle_error(body['error'])
                         else:
-                            self.write('错误3: ' + body['error'])
-                            self.finish()
+                            self.render('_error.html', code=500, error='错误3: ' + body['error'])
                     else:
                         handle_response(body)
             except Exception as e:
@@ -371,5 +376,4 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if handle_error:
                     handle_error(e)
                 else:
-                    self.write(e)
-                    self.finish()
+                    self.render('_error.html', code=500, error=e)

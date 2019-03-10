@@ -12,4 +12,5 @@ handlers = [home.HomeHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler,
             task.CutStatusHandler, task.TextStatusHandler]
 
-modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead}
+modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead,
+           'Pager': modules.Pager}

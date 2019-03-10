@@ -58,7 +58,7 @@
 													<tr>
 														<td>GL-1-1-1</td>
 														<td>高</td>
-														<td><a href="dzj_char_check_detail.html" >领取</a></td>
+														<td><a href="/dzj_char_check_detail.html" >领取</a></td>
 													</tr>
 													<tr>
 														<td>GL-1-1-1</td>
@@ -82,24 +82,7 @@
 											<p class="text-center">有 {{excludes}} 个页面任务需要其他用户审定。</p>
 											{% end %}
 										</div>
-										<div class="pagers">
-											<ul>
-												<li><a href="">首页</a></li>
-												<li><a href="">上一页</a></li>
-												<li class="active"><a href="">1</a></li>
-												<li><a href="">2</a></li>
-												<li><a href="">3</a></li>
-												<li><a href="">4</a></li>
-												<li><a href="">5</a></li>
-												<li><a href="">6</a></li>
-												<li><a href="">7</a></li>
-												<li><a href="">8</a></li>
-												<li><a href="">9</a></li>
-												<li><a href="">下一页</a></li>
-												<li><a href="">末页</a></li>
-												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
-											</ul>
-										</div>
+										{% module Pager(pager='TODO') %}
 									</div>
 								</div>
 							</div>

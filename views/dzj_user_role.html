@@ -211,52 +211,7 @@
 												</table>
 											</div>
 										</div>
-										<div class="pagers">
-											<!--<img src="{{ static_url('imgs/cloud1.png') }}" alt="" class="hidden-md hidden-sm">-->
-											<ul>
-												<li>
-													<a href="">首页</a>
-												</li>
-												<li>
-													<a href="">上一页</a>
-												</li>
-												<li class="active">
-													<a href="">1</a>
-												</li>
-												<li>
-													<a href="">2</a>
-												</li>
-												<li>
-													<a href="">3</a>
-												</li>
-												<li>
-													<a href="">4</a>
-												</li>
-												<li>
-													<a href="">5</a>
-												</li>
-												<li>
-													<a href="">6</a>
-												</li>
-												<li>
-													<a href="">7</a>
-												</li>
-												<li>
-													<a href="">8</a>
-												</li>
-												<li>
-													<a href="">9</a>
-												</li>
-												<li>
-													<a href="">下一页</a>
-												</li>
-												<li>
-													<a href="">末页</a>
-												</li>
-												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
-											</ul>
-											<!--<img src="{{ static_url('imgs/cloud2.png') }}" alt="" class="hidden-md hidden-sm">-->
-										</div>
+										{% module Pager(pager='TODO') %}
 									</div>
 								</div>
 							</div>

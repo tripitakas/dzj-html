@@ -6,7 +6,7 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler, fetch_authority, DbError
+from controller.base import BaseHandler, fetch_authority
 import model.user as u
 
 
@@ -42,8 +42,8 @@ class UsersHandler(BaseHandler):
             users = self.convert_for_send(users, trim=self.trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
         self.render('dzj_user_manage.html', users=users)
 
@@ -69,8 +69,8 @@ class UserRolesHandler(BaseHandler):
             users = self.convert_for_send(users)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
         self.render('dzj_user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
@@ -96,8 +96,8 @@ class UsersDataHandler(BaseHandler):
                               fmt_proof_count=0, fmt_review_count=0))
             self.add_op_log('get_users_completed')
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
         self.render('dzj_user_data.html', users=users)
 

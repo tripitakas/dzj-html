@@ -61,32 +61,15 @@
 													<tr>
 														<td>{{p['name']}}</td>
 														<td>{{p['kind_name']}}</td>
-														<td>{{get_time(p, p['current_task'] + '_start_time')}}</td>
-														<td>{{get_time(p, p['current_task'] + '_end_time')}}</td>
-														<td><a href="dzj_cut_detail.html" >继续</a></td>
+														<td>{{p.get(p['current_task'] + '_start_time', '')}}</td>
+														<td>{{p.get(p['current_task'] + '_end_time', '')}}</td>
+														<td><a href="/dzj_cut_detail.html" >继续</a></td>
 													</tr>
 													{% end %}
 												</tbody>
 											</table>
 										</div>
-										<div class="pagers">
-											<ul>
-												<li><a href="">首页</a></li>
-												<li><a href="">上一页</a></li>
-												<li class="active"><a href="">1</a></li>
-												<li><a href="">2</a></li>
-												<li><a href="">3</a></li>
-												<li><a href="">4</a></li>
-												<li><a href="">5</a></li>
-												<li><a href="">6</a></li>
-												<li><a href="">7</a></li>
-												<li><a href="">8</a></li>
-												<li><a href="">9</a></li>
-												<li><a href="">下一页</a></li>
-												<li><a href="">末页</a></li>
-												<li>跳至&nbsp;<input type="text">&nbsp;页</li>
-											</ul>
-										</div>
+										{% module Pager(pager='TODO') %}
 									</div>
 								</div>
 							</div>
