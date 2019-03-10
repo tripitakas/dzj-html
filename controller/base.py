@@ -13,7 +13,7 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
 from pymongo.errors import PyMongoError
-from tornado.escape import json_decode, json_encode
+from tornado.escape import json_decode, json_encode, to_basestring
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin

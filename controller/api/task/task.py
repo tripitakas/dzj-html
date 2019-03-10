@@ -6,6 +6,7 @@
 
 from controller.base import BaseHandler, DbError, convert_bson
 from datetime import datetime
+from tornado.escape import json_decode, to_basestring
 
 import model.user as u
 from controller import errors
@@ -250,12 +251,26 @@ class SaveCutApi(BaseHandler):
                 return self.send_error(errors.task_locked)
 
             result = dict(name=data.name)
+            self.change_box(result, page, data.name, task_type)
             if data.submit:
                 self.submit_task(result, data, page, task_type, task_user)
 
             self.send_response(result)
         except DbError as e:
             self.send_db_error(e)
+
+    def change_box(self, result, page, name, task_type):
+        boxes = json_decode(self.get_body_argument('boxes', '[]'))
+        box_type = to_basestring(self.get_body_argument('box_type', ''))
+        field = box_type and box_type + 's'
+        assert not boxes or box_type and field in page
+
+        if boxes and boxes != page[field]:
+            page[field] = boxes
+            r = self.db.page.update_one({'name': name}, {'$set': {field: boxes}})
+            if r.modified_count:
+                self.add_op_log('save_' + task_type, file_id=page['id'], context=name)
+                result['box_changed'] = True
 
     def submit_task(self, result, data, page, task_type, task_user):
         end_info = {task_type + '_status': u.STATUS_ENDED, task_type + '_end_time': datetime.now()}

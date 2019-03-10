@@ -227,12 +227,23 @@
 				updateUndo();
 			});
 
-			$('#submit').click(function () {
+			function save(submit, success) {
 				postApi('/save/{{task_type}}', {data: {
 					name: '{{page["name"]}}',
-					submit: 1
-				}}, function (res) {
+					submit: submit,
+					box_type: '{{box_type}}',
+					boxes: JSON.stringify($.cut.exportBoxes())
+				}}, success);
+			}
 
+			$('#save').click(function () {
+				save(false, function () {
+					showSuccess('保存成功', '{{page["name"]}} 已保存成功。');
+				});
+			});
+			$('#submit').click(function () {
+				save(true, function () {
+					showSuccess('提交成功', '{{page["name"]}} 已提交成功。');
 				});
 			});
 		</script>
