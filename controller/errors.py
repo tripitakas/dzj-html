@@ -4,8 +4,6 @@
 @desc 定义后端API的错误码和数据库常用函数
 @time: 2018/10/23
 """
-from datetime import datetime, timedelta
-from hashids import Hashids
 
 need_login = 403, '还未登录'
 db_error = 10000, '数据库访问出错'
@@ -30,25 +28,3 @@ task_uncompleted = 2001, '您还有未完成的任务，请继续完成后再领
 task_changed = 2002, '本任务的状态已改变'
 
 
-def get_date_time(fmt=None, diff_seconds=None):
-    time = datetime.now()
-    if diff_seconds:
-        time += timedelta(seconds=diff_seconds)
-    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
-
-
-def gen_id(value, salt='', rand=False, length=16):
-    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
-    if isinstance(value, bytes):
-        return coder.encode(*value)[:length]
-    return coder.encode(*[ord(c) for c in list(value)])[:length]
-
-
-def create_object(cls, value, salt='', rand=False, length=16):
-    fields = [f for f in cls.__dict__.keys() if f[0] != '_']
-    obj = cls()
-    for f in fields:
-        if f not in obj.__dict__:
-            obj.__dict__[f] = None
-    obj.id = gen_id(value, salt, rand=rand, length=length)
-    return obj

@@ -7,7 +7,9 @@
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
 
 from model.user import authority_map, ACCESS_ALL
@@ -53,14 +55,28 @@ def convert2obj(cls, json_obj):
     return obj
 
 
-old_framer = logging.currentframe
 
 
-def my_framer():
-    f0 = f = old_framer()
-    if f is not None:
-        f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
+
+def get_date_time(fmt=None, diff_seconds=None):
+    time = datetime.now()
+    if diff_seconds:
+        time += timedelta(seconds=diff_seconds)
+    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
+
+
+def gen_id(value, salt='', rand=False, length=16):
+    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
+    if isinstance(value, bytes):
+        return coder.encode(*value)[:length]
+    return coder.encode(*[ord(c) for c in list(value)])[:length]
+
+
+def create_object(cls, value, salt='', rand=False, length=16):
+    fields = [f for f in cls.__dict__.keys() if f[0] != '_']
+    obj = cls()
+    for f in fields:
+        if f not in obj.__dict__:
+            obj.__dict__[f] = None
+    obj.id = gen_id(value, salt, rand=rand, length=length)
+    return obj
