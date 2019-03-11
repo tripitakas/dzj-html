@@ -52,19 +52,19 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label">姓名</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="{{user.get('name', '')}}">
+															<input type="text" class="form-control" readonly="" value="{{current_user.name}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">邮箱</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="{{user.get('email', '')}}">
+															<input type="text" class="form-control" readonly="" value="{{current_user.email}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">手机号</label>
 														<div class="col-sm-3">
-															<input type="text" class="form-control" readonly="" value="{{user.get('phone', '')}}">
+															<input type="text" class="form-control" readonly="" value="{{current_user.phone or ''}}">
 														</div>
 													</div>
 

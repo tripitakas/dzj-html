@@ -6,12 +6,12 @@
 """
 
 from tornado.web import authenticated
-from controller.handler.task import TaskHandler
-from controller.help import fetch_authority
+from controller.handler.base import BaseHandler
+from controller.helper import fetch_authority
 import model.user as u
 
 
-class LoginHandler(TaskHandler):
+class LoginHandler(BaseHandler):
     URL = ['/login', '/login.html']
 
     def get(self):
@@ -19,7 +19,7 @@ class LoginHandler(TaskHandler):
         self.render('login.html', next=self.get_query_argument('next', '/'))
 
 
-class RegisterHandler(TaskHandler):
+class RegisterHandler(BaseHandler):
     URL = '/user_register.html'
 
     def get(self):
@@ -27,7 +27,7 @@ class RegisterHandler(TaskHandler):
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
-class UsersHandler(TaskHandler):
+class UsersHandler(BaseHandler):
     URL = '/dzj_user_manage.html'
 
     @authenticated
@@ -54,7 +54,7 @@ class UsersHandler(TaskHandler):
         return r
 
 
-class UserRolesHandler(TaskHandler):
+class UserRolesHandler(BaseHandler):
     URL = '/dzj_user_role.html'
 
     @authenticated
@@ -76,7 +76,7 @@ class UserRolesHandler(TaskHandler):
         self.render('dzj_user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
 
-class UsersDataHandler(TaskHandler):
+class UsersDataHandler(BaseHandler):
     URL = '/dzj_user_data.html'
 
     @authenticated
@@ -104,12 +104,10 @@ class UsersDataHandler(TaskHandler):
 
 
 
-class UsersProfileHandler(TaskHandler):
+class UsersProfileHandler(BaseHandler):
     URL = '/user/profile'
 
     @authenticated
     def get(self):
         """ 个人中心 """
-        user = self.current_user
-        user = self.convert2dict(user)
-        self.render('user_profile.html', user=user)
+        self.render('user_profile.html')

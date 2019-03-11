@@ -14,7 +14,7 @@ from tornado.util import unicode_type
 import controller.help
 from controller import errors
 from controller.handler.base import BaseHandler, DbError
-from controller.help import fetch_authority
+from controller.helper import fetch_authority
 
 import model.user as u
 

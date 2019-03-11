@@ -16,16 +16,6 @@ from model.user import authority_map, ACCESS_ALL
 
 
 
-def my_framer():
-    old_framer = logging.currentframe
-    f0 = f = old_framer()
-    if f is not None:
-        f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
-
 def fetch_authority(user, record):
     """ 从记录中读取权限字段值 """
     authority = None
@@ -38,6 +28,7 @@ def fetch_authority(user, record):
 
 
 def convert_bson(r):
+    """ 将从文档库读取到的记录转为可JSON序列化的对象 """
     if not r:
         return r
     for k, v in (r.items() if isinstance(r, dict) else enumerate(r)):
@@ -89,3 +80,16 @@ def create_object(cls, value, salt='', rand=False, length=16):
             obj.__dict__[f] = None
     obj.id = gen_id(value, salt, rand=rand, length=length)
     return obj
+
+
+def my_framer():
+    """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
+
+    old_framer = logging.currentframe
+    f0 = f = old_framer()
+    if f is not None:
+        f = f.f_back
+        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
+            f0 = f
+            f = f.f_back
+    return f0

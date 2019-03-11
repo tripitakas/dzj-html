@@ -54,6 +54,5 @@ class TestViews(APITestCase):
 
     def test_profile(self):
         self.login('text1@test.com', 't12345')
-        r = self.parse_response(self.fetch('/user/profile?_raw=1'))
-        self.assertIn('user', r)
-        self.assertIn('name', r['user'])
+        r = self.parse_response(self.fetch('/user/profile'))
+        self.assertIn('text1@test.com', r)
