@@ -7,10 +7,10 @@
 
 from operator import itemgetter
 from os import path
-from controller.base import BaseHandler
+from controller.handler.task import TaskHandler
 
 
-class InvalidPageHandler(BaseHandler):
+class InvalidPageHandler(TaskHandler):
     def get(self):
         if '/api/' in self.request.path:
             self.set_status(404, reason='Not found')
@@ -21,7 +21,7 @@ class InvalidPageHandler(BaseHandler):
         self.render('_404.html')
 
 
-class ApiTable(BaseHandler):
+class ApiTable(TaskHandler):
     URL = '/api'
 
     def get(self):

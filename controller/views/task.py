@@ -6,7 +6,7 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler
+from controller.handler.task import TaskHandler
 from controller.help import convert_bson
 import random
 import re
@@ -52,7 +52,7 @@ def get_my_tasks(self, task_type, cond=None):
     return [convert_bson(p) for p in self.db.page.find(cond)]
 
 
-class ChooseCutProofHandler(BaseHandler):
+class ChooseCutProofHandler(TaskHandler):
     URL = '/dzj_cut.html'
 
     @authenticated
@@ -76,7 +76,7 @@ class ChooseCutProofHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class ChooseCutReviewHandler(BaseHandler):
+class ChooseCutReviewHandler(TaskHandler):
     URL = '/dzj_cut_check.html'
 
     @authenticated
@@ -100,7 +100,7 @@ class ChooseCutReviewHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class ChooseCharProofHandler(BaseHandler):
+class ChooseCharProofHandler(TaskHandler):
     URL = ['/dzj_char.html', '/dzj_chars']
 
     @authenticated
@@ -123,7 +123,7 @@ class ChooseCharProofHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class ChooseCharReviewHandler(BaseHandler):
+class ChooseCharReviewHandler(TaskHandler):
     URL = '/dzj_char_check.html'
 
     @authenticated
@@ -139,7 +139,7 @@ class ChooseCharReviewHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class MyTasksHandler(BaseHandler):
+class MyTasksHandler(TaskHandler):
     URL = '/dzj_([a-z_]+)_history.html'
 
     @authenticated
@@ -187,7 +187,7 @@ class MyTasksHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class CutProofDetailHandler(BaseHandler):
+class CutProofDetailHandler(TaskHandler):
     URL = '/dzj_%s/([A-Za-z0-9_]+)' % u.re_cut_type
 
     @authenticated
@@ -228,7 +228,7 @@ class CutProofDetailHandler(BaseHandler):
         return '/static/img/{0}/{1}.jpg'.format(name[:2], name)
 
 
-class CharProofDetailHandler(BaseHandler):
+class CharProofDetailHandler(TaskHandler):
     URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9_]+)']
 
     @authenticated
@@ -244,7 +244,7 @@ class CharProofDetailHandler(BaseHandler):
             self.send_db_error(e, render=True)
 
 
-class CutStatusHandler(BaseHandler):
+class CutStatusHandler(TaskHandler):
     URL = '/dzj_task_cut_status.html'
 
     @authenticated
@@ -278,7 +278,7 @@ class CutStatusHandler(BaseHandler):
         return values
 
 
-class TextStatusHandler(BaseHandler):
+class TextStatusHandler(TaskHandler):
     URL = '/dzj_task_char_status.html'
 
     @authenticated

@@ -6,12 +6,12 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler
+from controller.handler.task import TaskHandler
 from controller.help import fetch_authority
 import model.user as u
 
 
-class LoginHandler(BaseHandler):
+class LoginHandler(TaskHandler):
     URL = ['/login', '/login.html']
 
     def get(self):
@@ -19,7 +19,7 @@ class LoginHandler(BaseHandler):
         self.render('login.html', next=self.get_query_argument('next', '/'))
 
 
-class RegisterHandler(BaseHandler):
+class RegisterHandler(TaskHandler):
     URL = '/user_register.html'
 
     def get(self):
@@ -27,7 +27,7 @@ class RegisterHandler(BaseHandler):
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
-class UsersHandler(BaseHandler):
+class UsersHandler(TaskHandler):
     URL = '/dzj_user_manage.html'
 
     @authenticated
@@ -54,7 +54,7 @@ class UsersHandler(BaseHandler):
         return r
 
 
-class UserRolesHandler(BaseHandler):
+class UserRolesHandler(TaskHandler):
     URL = '/dzj_user_role.html'
 
     @authenticated
@@ -76,7 +76,7 @@ class UserRolesHandler(BaseHandler):
         self.render('dzj_user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
 
-class UsersDataHandler(BaseHandler):
+class UsersDataHandler(TaskHandler):
     URL = '/dzj_user_data.html'
 
     @authenticated
@@ -104,7 +104,7 @@ class UsersDataHandler(BaseHandler):
 
 
 
-class UsersProfileHandler(BaseHandler):
+class UsersProfileHandler(TaskHandler):
     URL = '/user/profile'
 
     @authenticated

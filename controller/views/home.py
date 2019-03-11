@@ -6,10 +6,10 @@
 """
 
 from tornado.web import authenticated
-from controller.base import BaseHandler
+from controller.handler.task import TaskHandler
 
 
-class HomeHandler(BaseHandler):
+class HomeHandler(TaskHandler):
     URL = ['/', '/home.html']
 
     @authenticated

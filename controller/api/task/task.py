@@ -4,7 +4,7 @@
 @time: 2018/12/27
 """
 
-from controller.base import BaseHandler, DbError
+from controller.handler.task import TaskHandler, DbError
 from controller.help import convert_bson
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
@@ -15,8 +15,122 @@ import re
 from functools import cmp_to_key
 
 
-class GetPageApi(BaseHandler):
-    URL = r'/api/page/(@task_id)'
+class PublishTasksApi(TaskHandler):
+    URL = r'/api/task/publish/(@task_type)'
+    AUTHORITY = u.ACCESS_TASK_MGR
+
+    def post(self, task_type):
+        """
+        发布任务。
+        post提交的参数包括task_types/pages/priority。
+        如果task_type包含“.”，表示任务的二级结构task_type.sub_task_type，如text_proof.1表示文字校对/校一
+        """
+
+        try:
+            data = self.get_body_obj(PublishTask)
+            task_types = list(set([t for t in data.types.split(',') if t in self.flat_types()]))
+            task_pages = data.pages and data.pages.split(',')
+
+            pages = self.db.page.find({'name': {"$in": task_pages}})
+            publish_log = []
+            for page in pages:
+                update_value = {}
+                for task_type in task_types:
+                    assert isinstance(task_type, str)
+                    status = self.STATUS_UNREADY
+                    if '.' in task_type:
+                        types = task_type.split('.')
+                        if page.get(types[1], {}).get(types[2], {}).get('status') == self.STATUS_READY:
+                            status = self.STATUS_OPENED if not self.has_pre_task(page['name'], task_type) \
+                                else self.STATUS_PENDING
+                            update_value.update({
+                                r'%s.%s.status' % (types[1], types[2]): status,
+                                r'%s.%s.priority' % (types[1], types[2]): data.priority,
+                            })
+
+                    else:
+                        if page.get(task_type, {}).get('status') == self.STATUS_READY:
+                            status = self.STATUS_OPENED if not self.has_pre_task(page['name'], task_type) \
+                                else self.STATUS_PENDING
+                            update_value.update({
+                                r'%s.status' % task_type: status,
+                                r'%s.priority' % task_type: data.priority,
+                            })
+
+                    publish_log.append({
+                        'name': page['name'],
+                        'task_type': task_type,
+                        'status': status
+                    })
+
+                r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
+                if r.modified_count:
+                    self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
+
+            self.send_response(dict(publish_log=publish_log))
+        except DbError as e:
+            self.send_db_error(e)
+
+    @staticmethod
+    def has_pre_task(task_id, task_type):
+        '''
+        检查任务是否包含前置任务
+        :param task_id: 对应page表的name字段
+        :param task_type:
+        :return: True/False
+        '''
+        pass
+
+
+class GetTaskApi(TaskHandler):
+    URL = r'/api/(@task_type)/(@task_id)'
+    AUTHORITY = 'testing', 'any'
+
+    def get(self, task_type, task_id):
+        """ 获取单页数据 """
+        try:
+            page = self.db.page.find_one(dict(name=task_id))
+            if not page:
+                return self.send_error(errors.no_object)
+            self.send_response(convert_bson(page))
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class GetLobbyTasksApi(TaskHandler):
+    URL = r'/api/task/lobby/(@task_type)'
+    AUTHORITY = 'testing', u.ACCESS_TASK_MGR
+
+    def get(self, task_type):
+        """ 任务大厅任务列表 """
+
+        assert task_type in self.task_types.keys()
+        try:
+            page_no = self.get_query_argument('page_no', 1)
+            page_size = self.get_query_argument('page_size', self.default_page_size)
+
+            if 'sub_task_types' in self.task_types[task_type]:
+                sub_types = self.task_types[task_type]['sub_task_types'].keys()
+                conditions = {
+                    '$or': [{'%s.%s.status' % (task_type, t): self.STATUS_PUBLISHED} for t in sub_types]
+                }
+                fields = {'name': 1}
+                fields.update({'%s.%s.status' % (task_type, t): 1 for t in sub_types})
+                fields.update({'%s.%s.priority' % (task_type, t): 1 for t in sub_types})
+            else:
+                conditions = {'%s.status' % task_type: self.STATUS_PUBLISHED}
+                fields = {'name': 1}
+                fields.update({'%s.status' % task_type: 1})
+                fields.update({'%s.priority' % task_type: 1})
+
+            pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
+            self.send_response(pages)
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class GetPageApi(TaskHandler):
+    URL = r'/api/page/([A-Za-z0-9_]+)'
     AUTHORITY = 'testing', 'any'
 
     def get(self, name):
@@ -30,7 +144,7 @@ class GetPageApi(BaseHandler):
             self.send_db_error(e)
 
 
-class GetPagesApi(BaseHandler):
+class GetPagesApi(TaskHandler):
     URL = r'/api/pages/([a-z_]+)'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
@@ -52,7 +166,7 @@ class GetPagesApi(BaseHandler):
                 all_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
 
             if kind == 'cut_start' or kind == 'text_start':
-                data = self.get_body_obj(StartTask)
+                data = self.get_body_obj(PublishTask)
                 task_types = [t for t in (data.types or '').split(',') if t in all_types]
                 task_types = task_types or all_types
 
@@ -72,7 +186,7 @@ class GetPagesApi(BaseHandler):
             self.send_db_error(e)
 
 
-class UnlockTasksApi(BaseHandler):
+class UnlockTasksApi(TaskHandler):
     URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)' % u.re_task_type + '|cut_proof|cut_review|cut|text'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
@@ -97,20 +211,21 @@ class UnlockTasksApi(BaseHandler):
             self.send_db_error(e)
 
 
-class StartTask(object):
+class PublishTask(object):
+    # 任务模型类，用于数据格式定义与转换
     types = str
     pages = str
     priority = str
 
 
-class StartTasksApi(BaseHandler):
+class StartTasksApi(TaskHandler):
     URL = r'/api/start/([A-Za-z0-9_]*)'
     AUTHORITY = u.ACCESS_TASK_MGR
 
     def post(self, prefix=''):
         """ 发布审校任务 """
         try:
-            data = self.get_body_obj(StartTask)
+            data = self.get_body_obj(PublishTask)
             task_types = sorted(list(set([t for t in data.types.split(',') if t in u.task_types])),
                                 key=cmp_to_key(lambda a, b: u.task_types.index(a) - u.task_types.index(b)))
             data.pages = data.pages and data.pages.split(',')
@@ -149,7 +264,7 @@ class StartTasksApi(BaseHandler):
                 return True
 
 
-class PickTaskApi(BaseHandler):
+class PickTaskApi(TaskHandler):
     def pick(self, task_type, name):
         """ 取审校任务 """
         try:
@@ -232,7 +347,7 @@ class SaveTask(object):
     submit = int
 
 
-class SaveCutApi(BaseHandler):
+class SaveCutApi(TaskHandler):
     def save(self, task_type):
         try:
             data = self.get_body_obj(SaveTask)
