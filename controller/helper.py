@@ -5,15 +5,12 @@
 @time: 2019/3/10
 """
 
-import logging
 import re
+import logging
 from datetime import datetime, timedelta
-
 from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
-
 from model.user import authority_map, ACCESS_ALL
-
 
 
 def fetch_authority(user, record):
