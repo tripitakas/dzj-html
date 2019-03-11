@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 后端API响应的基础函数和类
+@desc: Handler基类
 @time: 2018/6/23
 """
 
@@ -21,15 +21,31 @@ from tornado_cors import CorsMixin
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
+import controller.help
 from controller import errors
-from controller.help import fetch_authority, convert2obj, my_framer
+from controller.help import fetch_authority, convert2obj
 from model.user import User, authority_map
 
 
-logging.currentframe = my_framer
+
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
 
+
+
+old_framer = logging.currentframe
+
+def my_framer():
+    f0 = f = old_framer()
+    if f is not None:
+        f = f.f_back
+        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
+            f0 = f
+            f = f.f_back
+    return f0
+
+
+logging.currentframe = my_framer
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
@@ -277,7 +293,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                                     user_id=self.current_user and self.current_user.id,
                                     file_id=file_id or None,
                                     context=context and context[:80],
-                                    create_time=errors.get_date_time(),
+                                    create_time=controller.help.get_date_time(),
                                     ip=self.get_ip()))
 
     @gen.coroutine
