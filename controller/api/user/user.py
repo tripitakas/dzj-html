@@ -11,7 +11,7 @@ import re
 from tornado.escape import json_encode
 from tornado.util import unicode_type
 
-import controller.help
+import controller.helper
 from controller import errors
 from controller.handler.base import BaseHandler, DbError
 from controller.helper import fetch_authority

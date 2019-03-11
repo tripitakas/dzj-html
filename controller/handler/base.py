@@ -21,7 +21,7 @@ from tornado_cors import CorsMixin
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
-import controller.help
+import controller.helper
 from controller import errors
 from controller.helper import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map

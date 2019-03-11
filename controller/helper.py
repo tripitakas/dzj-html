@@ -79,10 +79,10 @@ def create_object(cls, value, salt='', rand=False, length=16):
     return obj
 
 
+old_framer = logging.currentframe
+
 def my_framer():
     """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
-
-    old_framer = logging.currentframe
     f0 = f = old_framer()
     if f is not None:
         f = f.f_back
