@@ -7,7 +7,7 @@
 
 from tornado.web import authenticated
 from controller.base import BaseHandler
-from controller.help import convert_bson
+from controller.helper import convert_bson
 import random
 import re
 import json
@@ -222,7 +222,8 @@ class CutProofDetailHandler(BaseHandler):
         code = cfg['page_codes'].get(name)
         if code:
             base_url = 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com/page'
-            url = '/'.join([base_url, *name.split('_')[:-1], name + '_' + code + '.jpg'])
+            sub_dirs = '/'.join(name.split('_')[:-1])
+            url = '/'.join([base_url, sub_dirs, name + '_' + code + '.jpg'])
             return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300'
 
         return '/static/img/{0}/{1}.jpg'.format(name[:2], name)

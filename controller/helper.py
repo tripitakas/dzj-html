@@ -25,6 +25,7 @@ def fetch_authority(user, record):
 
 
 def convert_bson(r):
+    """ 将从文档库读取到的记录转为可JSON序列化的对象 """
     if not r:
         return r
     for k, v in (r.items() if isinstance(r, dict) else enumerate(r)):
@@ -57,6 +58,7 @@ old_framer = logging.currentframe
 
 
 def my_framer():
+    """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
     f0 = f = old_framer()
     if f is not None:
         f = f.f_back

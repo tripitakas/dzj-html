@@ -22,7 +22,7 @@ from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
 from controller import errors
-from controller.help import fetch_authority, convert2obj, my_framer
+from controller.helper import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
 
 

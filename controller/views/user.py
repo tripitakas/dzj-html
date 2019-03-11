@@ -7,7 +7,7 @@
 
 from tornado.web import authenticated
 from controller.base import BaseHandler
-from controller.help import fetch_authority
+from controller.helper import fetch_authority
 import model.user as u
 
 
@@ -103,13 +103,10 @@ class UsersDataHandler(BaseHandler):
         self.render('dzj_user_data.html', users=users)
 
 
-
 class UsersProfileHandler(BaseHandler):
     URL = '/user/profile'
 
     @authenticated
     def get(self):
         """ 个人中心 """
-        user = self.current_user
-        user = self.convert2dict(user)
-        self.render('user_profile.html', user=user)
+        self.render('user_profile.html')
