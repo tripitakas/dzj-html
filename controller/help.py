@@ -15,6 +15,17 @@ from pyconvert.pyconv import convertJSON2OBJ
 from model.user import authority_map, ACCESS_ALL
 
 
+
+def my_framer():
+    old_framer = logging.currentframe
+    f0 = f = old_framer()
+    if f is not None:
+        f = f.f_back
+        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
+            f0 = f
+            f = f.f_back
+    return f0
+
 def fetch_authority(user, record):
     """ 从记录中读取权限字段值 """
     authority = None
@@ -53,8 +64,6 @@ def convert2obj(cls, json_obj):
         if f not in obj.__dict__:
             obj.__dict__[f] = None
     return obj
-
-
 
 
 

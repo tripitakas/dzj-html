@@ -13,39 +13,25 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convert2JSON
 from pymongo.errors import PyMongoError
+
 from tornado.escape import json_decode, json_encode, to_basestring
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-
 from tornado import gen
 from tornado.httpclient import AsyncHTTPClient
 
 import controller.help
 from controller import errors
-from controller.help import fetch_authority, convert2obj
+from controller.help import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
 
 
 
+logging.currentframe = my_framer
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
 
-
-
-old_framer = logging.currentframe
-
-def my_framer():
-    f0 = f = old_framer()
-    if f is not None:
-        f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
-
-
-logging.currentframe = my_framer
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
