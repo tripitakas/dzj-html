@@ -16,7 +16,7 @@ from functools import cmp_to_key
 
 
 class GetPageApi(BaseHandler):
-    URL = r'/api/page/([A-Za-z0-9_]+)'
+    URL = r'/api/page/(@task_id)'
     AUTHORITY = 'testing', 'any'
 
     def get(self, name):
@@ -73,7 +73,7 @@ class GetPagesApi(BaseHandler):
 
 
 class UnlockTasksApi(BaseHandler):
-    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)', u.re_task_type + '|cut_proof|cut_review|cut|text'
+    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)' % u.re_task_type + '|cut_proof|cut_review|cut|text'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, task_type, prefix=None):

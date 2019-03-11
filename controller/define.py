@@ -45,3 +45,10 @@ task_types = {
         'description': '文字审定',
     },
 }
+
+url_placeholder = {
+    'user_id': r'[A-Za-z0-9_]+',
+    'task_id': r'[A-Za-z0-9_]+',
+    'sutra_id': r'[a-zA-Z]{2}',
+    'num': r'\d+',
+}

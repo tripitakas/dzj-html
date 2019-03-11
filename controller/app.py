@@ -16,6 +16,7 @@ import os
 import re
 import shutil
 from tornado.log import access_log
+from controller.define import url_placeholder
 
 
 __version__ = '0.0.6.90307'
@@ -43,11 +44,10 @@ class Application(web.Application):
 
         for cls in self.handlers:
             if isinstance(cls.URL, list):
-                handlers.extend((url, cls) for url in cls.URL)
-            elif isinstance(cls.URL, tuple):
-                handlers.append((cls.URL[0] % cls.URL[1], cls))
+                handlers.extend((self.url_replace(url), cls) for url in cls.URL)
             else:
-                handlers.append((cls.URL, cls))
+                handlers.append((self.url_replace(cls.URL), cls))
+
         handlers = sorted(handlers, key=itemgetter(0))
         web.Application.__init__(self, handlers, debug=options.debug,
                                  login_url='/login',
@@ -57,6 +57,11 @@ class Application(web.Application):
                                  cookie_secret=self.config['cookie_secret'],
                                  log_function=self.log_function,
                                  **settings)
+    @staticmethod
+    def url_replace(url):
+        for k, v in url_placeholder.items():
+            url = url.replace('@'+k, v)
+        return url
 
     def log_function(self, handler):
         summary = handler._request_summary()

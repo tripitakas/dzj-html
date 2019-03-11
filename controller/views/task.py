@@ -188,7 +188,7 @@ class MyTasksHandler(BaseHandler):
 
 
 class CutProofDetailHandler(BaseHandler):
-    URL = '/dzj_%s/([A-Za-z0-9_]+)', u.re_cut_type
+    URL = '/dzj_%s/([A-Za-z0-9_]+)' % u.re_cut_type
 
     @authenticated
     def get(self, box_type, stage, name):
