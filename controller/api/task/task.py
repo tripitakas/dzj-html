@@ -131,7 +131,7 @@ class GetLobbyTasksApi(TaskHandler):
 
 
 class GetPageApi(TaskHandler):
-    URL = r'/api/page/([A-Za-z0-9_]+)'
+    URL = r'/api/page/@task_id'
     AUTHORITY = 'testing', 'any'
 
     def get(self, name):
@@ -146,7 +146,7 @@ class GetPageApi(TaskHandler):
 
 
 class GetPagesApi(TaskHandler):
-    URL = r'/api/pages/([a-z_]+)'
+    URL = r'/api/pages/@page_kind'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, kind):
@@ -188,7 +188,7 @@ class GetPagesApi(TaskHandler):
 
 
 class UnlockTasksApi(TaskHandler):
-    URL = r'/api/unlock/(%s)/([A-Za-z0-9_]*)' % u.re_task_type + '|cut_proof|cut_review|cut|text'
+    URL = r'/api/unlock/@task_type_ex/@page_prefix'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, task_type, prefix=None):
@@ -220,7 +220,7 @@ class PublishTask(object):
 
 
 class StartTasksApi(TaskHandler):
-    URL = r'/api/start/([A-Za-z0-9_]*)'
+    URL = r'/api/start/@page_prefix'
     AUTHORITY = u.ACCESS_TASK_MGR
 
     def post(self, prefix=''):
@@ -308,7 +308,7 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/(block|column|char)_cut_proof/([A-Za-z0-9_]+)'
+    URL = r'/api/pick/(block|column|char)_cut_proof/@task_id'
     AUTHORITY = u.ACCESS_CUT_PROOF
 
     def get(self, kind, name):
@@ -317,7 +317,7 @@ class PickCutProofTaskApi(PickTaskApi):
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = r'/api/pick/(block|column|char)_cut_review/([A-Za-z0-9_]+)'
+    URL = r'/api/pick/(block|column|char)_cut_review/@task_id'
     AUTHORITY = u.ACCESS_CUT_REVIEW
 
     def get(self, kind, name):
@@ -326,7 +326,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/text_proof_(1|2|3)/([A-Za-z0-9_]+)'
+    URL = r'/api/pick/text_proof_(1|2|3)/@task_id'
     AUTHORITY = u.ACCESS_TEXT_PROOF
 
     def get(self, kind, name):
@@ -335,7 +335,7 @@ class PickTextProofTaskApi(PickTaskApi):
 
 
 class PickTextReviewTaskApi(PickTaskApi):
-    URL = r'/api/pick/text_review/([A-Za-z0-9_]+)'
+    URL = r'/api/pick/text_review/@task_id'
     AUTHORITY = u.ACCESS_TEXT_REVIEW
 
     def get(self, name):

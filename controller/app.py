@@ -17,8 +17,7 @@ from tornado import web
 from tornado.options import define, options
 from tornado.util import PY3
 from tornado.log import access_log
-from controller.handler.base import url_placeholder
-
+from controller.define import url_placeholder
 
 __version__ = '0.0.6.90307'
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -46,6 +45,8 @@ class Application(web.Application):
         for cls in self.handlers:
             if isinstance(cls.URL, list):
                 handlers.extend((self.url_replace(url), cls) for url in cls.URL)
+            elif isinstance(cls.URL, tuple):
+                handlers.append((self.url_replace(cls.URL[0] % cls.URL[1]), cls))
             else:
                 handlers.append((self.url_replace(cls.URL), cls))
 
@@ -61,7 +62,7 @@ class Application(web.Application):
     @staticmethod
     def url_replace(url):
         for k, v in url_placeholder.items():
-            url = url.replace('@'+k, v)
+            url = url.replace('@'+k, '(%s)' % v)
         return url
 
     def log_function(self, handler):

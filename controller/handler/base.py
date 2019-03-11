@@ -13,13 +13,12 @@ from datetime import datetime
 from bson.errors import BSONError
 from pyconvert.pyconv import convert2JSON
 from pymongo.errors import PyMongoError
-
+from tornado import gen
 from tornado.escape import json_decode, json_encode, to_basestring
+from tornado.httpclient import AsyncHTTPClient
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-from tornado import gen
-from tornado.httpclient import AsyncHTTPClient
 
 import controller.helper
 from controller import errors
@@ -30,13 +29,6 @@ logging.currentframe = my_framer
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
-
-url_placeholder = {
-    'user_id': r'[A-Za-z0-9_]+',
-    'task_id': r'[A-Za-z0-9_]+',
-    'sutra_id': r'[a-zA-Z]{2}',
-    'num': r'\d+',
-}
 
 
 class BaseHandler(CorsMixin, RequestHandler):

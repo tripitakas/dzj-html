@@ -140,7 +140,7 @@ class ChooseCharReviewHandler(TaskHandler):
 
 
 class MyTasksHandler(TaskHandler):
-    URL = '/dzj_([a-z_]+)_history.html'
+    URL = '/dzj_@task_kind_history.html'
 
     @authenticated
     def get(self, kind):
@@ -188,7 +188,7 @@ class MyTasksHandler(TaskHandler):
 
 
 class CutProofDetailHandler(TaskHandler):
-    URL = '/dzj_%s/([A-Za-z0-9_]+)' % u.re_cut_type
+    URL = '/dzj_%s/@task_id' % u.re_cut_type
 
     @authenticated
     def get(self, box_type, stage, name):
@@ -230,7 +230,7 @@ class CutProofDetailHandler(TaskHandler):
 
 
 class CharProofDetailHandler(TaskHandler):
-    URL = ['/dzj_char_detail.html', '/dzj_char/([A-Za-z0-9_]+)']
+    URL = ['/dzj_char_detail.html', '/dzj_char/@task_id']
 
     @authenticated
     def get(self, name=''):
