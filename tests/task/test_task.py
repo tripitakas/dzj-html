@@ -12,7 +12,7 @@ user2 = 'text2@test.com', 't12312'
 user3 = 'cut_text@test.com', 't12312'
 
 
-class TestTextTask(APITestCase):
+class TestTask(APITestCase):
     def setUp(self):
         super(APITestCase, self).setUp()
         self.add_users([dict(email=user1[0], name='文字测试', password=user1[1]),
@@ -24,7 +24,7 @@ class TestTextTask(APITestCase):
         self.fetch('/api/unlock/text/')
 
     def tearDown(self):
-        
+
         # 退回所有任务
         self.login_as_admin()
         self.fetch('/api/unlock/cut/')
