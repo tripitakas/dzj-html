@@ -26,11 +26,17 @@ from controller import errors
 from controller.helper import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
 
-
-
 logging.currentframe = my_framer
+
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
+
+url_placeholder = {
+    'user_id': r'[A-Za-z0-9_]+',
+    'task_id': r'[A-Za-z0-9_]+',
+    'sutra_id': r'[a-zA-Z]{2}',
+    'num': r'\d+',
+}
 
 
 class BaseHandler(CorsMixin, RequestHandler):
@@ -38,17 +44,17 @@ class BaseHandler(CorsMixin, RequestHandler):
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
+    def __init__(self, application, request, **kwargs):
+        super(BaseHandler, self).__init__(application, request, **kwargs)
+        self.authority = ''
+        self.db = self.application.db
+
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
         self.set_header('Cache-Control', 'no-cache')
         self.set_header('Access-Control-Allow-Headers', self.CORS_HEADERS)
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
-
-    def __init__(self, application, request, **kwargs):
-        super(BaseHandler, self).__init__(application, request, **kwargs)
-        self.authority = ''
-        self.db = self.application.db
 
     def prepare(self):
         if hasattr(self, 'AUTHORITY'):
