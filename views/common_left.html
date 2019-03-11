@@ -7,15 +7,15 @@
 		<ul class="menu" id="side-menu">
 			<li class="menu-item" >
 				<i ><img src="{{ static_url('imgs/frame/icon_home.png') }}" alt="" style="margin-top:10px;"></i>
-				<span id="index"><a href="/home.html">首页</a></span>
+				<span id="index"><a href="/home">首页</a></span>
 			</li>
 			<li class="menu-item">
 				<i><img src="{{ static_url('imgs/frame/icon_temple.png') }}" alt="" style="margin-top:11px;margin-left:-2px;"></i>
-				<span id="rszj" style="margin-left:-3px;"><a href="/dzj_rszj.html">如是藏经</a></span>
+				<span id="rszj" style="margin-left:-3px;"><a href="/rssutra">如是藏经</a></span>
 			</li>
 			<li class="menu-item">
 				<i><img src="{{ static_url('imgs/frame/icon_book.png') }}" alt="" style="margin-top:12px;"></i>
-				<span id="stzj"><a href="/dzj_stzj.html">实体藏经</a></span>
+				<span id="stzj"><a href="/sutra/list">实体藏经</a></span>
 			</li>
 			<li>
 				<div class="submenu-title" id="task-lobby">
@@ -24,25 +24,42 @@
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="task-lobby-cut">
+
+					<li id="task-lobby-cut-block-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_cut.html">切分校对</a></span>
+						<span><a href="/task/lobby/cut_block_proof">切栏校对</a></span>
 					</li>
-					<li id="task-lobby-cut-check">
+					<li id="task-lobby-cut-block-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_cut_check.html">切分审定</a></span>
+						<span><a href="/task/lobby/cut_block_review">切栏审定</a></span>
 					</li>
-					<li id="task-lobby-char">
+					<li id="task-lobby-cut-column-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_char.html">文字校对</a></span>
+						<span><a href="/task/lobby/cut_column_proof">切列校对</a></span>
 					</li>
-					<li id="task-lobby-char-check">
+					<li id="task-lobby-cut-column-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_char_check.html">文字审定</a></span>
+						<span><a href="/task/lobby/cut_column_review">切列审定</a></span>
 					</li>
-					<li id="task-lobby-char-hard">
+					<li id="task-lobby-cut-char-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_hard.html">难字处理</a></span>
+						<span><a href="/task/lobby/cut_char_proof">切字校对</a></span>
+					</li>
+					<li id="task-lobby-cut-char-review">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/lobby/cut_char_review">切字审定</a></span>
+					</li>
+					<li id="task-lobby-text-proof">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_proof">文字校对</a></span>
+					</li>
+					<li id="task-lobby-text-review">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_review">文字审定</a></span>
+					</li>
+					<li id="task-lobby-text-hard">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_hard">难字处理</a></span>
 					</li>
 
 				</ul>
@@ -54,31 +71,47 @@
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="task-cut">
+					<li id="task-my-cut-block-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_cut_history.html">切分校对</a></span>
+						<span><a href="/task/my/cut_block_proof">切栏校对</a></span>
 					</li>
-					<li id="task-cut-check">
+					<li id="task-my-cut-block-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_cut_check_history.html">切分审定</a></span>
+						<span><a href="/task/my/cut_block_review">切栏审定</a></span>
 					</li>
-					<li id="task-char">
+					<li id="task-my-cut-column-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_char_history.html">文字校对</a></span>
+						<span><a href="/task/my/cut_column_proof">切列校对</a></span>
 					</li>
-					<li id="task-char-check">
+					<li id="task-my-cut-column-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_char_check_history.html">文字审定</a></span>
+						<span><a href="/task/my/cut_column_review">切列审定</a></span>
 					</li>
-					<li id="task-char-hard">
+					<li id="task-my-cut-char-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_hard_history.html">难字处理</a></span>
+						<span><a href="/task/my/cut_char_proof">切字校对</a></span>
+					</li>
+					<li id="task-my-cut-char-review">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/my/cut_char_review">切字审定</a></span>
+					</li>
+					<li id="task-my-text-proof">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/my/text_proof">文字校对</a></span>
+					</li>
+					<li id="task-my-text-review">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/my/text_review">文字审定</a></span>
+					</li>
+					<li id="task-my-text-hard">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/my/text_hard">难字处理</a></span>
 					</li>
 				</ul>
 			</li>
 			<li class="menu-item">
 				<i><img src="{{ static_url('imgs/frame/icon_msg.png') }}" alt="" style="margin-top:12px;"></i>
-				<span id="stzj"><a href="/dzj_stzj.html">我的反馈</a></span>
+				<span id="feedback"><a href="/my/feedback">我的反馈</a></span>
 			</li>
 			<li>
 				<div class="submenu-title" id="task-manage">
@@ -87,33 +120,50 @@
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="task-manage-cut-status">
+					<li id="task-admin-cut-status">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_cut_status.html">切分状态</a></span>
+						<span><a href="/task/admin/cut/status">切分状态</a></span>
 					</li>
-					<li id="task-manage-cut">
+					<li id="task-admin-cut-block-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_cut.html">切分校对</a></span>
+						<span><a href="/task/admin/cut_block_proof">切栏校对</a></span>
 					</li>
-					<li id="task-manage-cut-check">
+					<li id="task-admin-cut-block-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_cut_check.html">切分审定</a></span>
+						<span><a href="/task/admin/cut_block_review">切栏审定</a></span>
 					</li>
-					<li id="task-manage-char-status">
+					<li id="task-admin-cut-column-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_char_status.html">文字状态</a></span>
+						<span><a href="/task/admin/cut_block_proof">切列校对</a></span>
 					</li>
-					<li id="task-manage-char">
+					<li id="task-admin-cut-column-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_char.html">文字校对</a></span>
+						<span><a href="/task/admin/cut_block_review">切列审定</a></span>
 					</li>
-					<li id="task-manage-char-check">
+					<li id="task-admin-cut-char-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_char_check.html">文字审定</a></span>
+						<span><a href="/task/admin/cut_char_proof">切字校对</a></span>
 					</li>
-					<li id="task-manage-char-hard">
+					<li id="task-admin-cut-char-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_task_char_hard.html">文字难字</a></span>
+						<span><a href="/task/admin/cut_char_review">切字审定</a></span>
+					</li>
+
+					<li id="task-manage-text-status">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/admin/text/status">文字状态</a></span>
+					</li>
+					<li id="task-manage-text-proof">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/admin/text_proof">文字校对</a></span>
+					</li>
+					<li id="task-manage-text-review">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/admin/text_review">文字审定</a></span>
+					</li>
+					<li id="task-manage-text-hard">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
+						<span><a href="/task/admin/text_hard">文字难字</a></span>
 					</li>
 
 				</ul>
@@ -127,15 +177,15 @@
 				<ul class="sub-ul sub-ul-hidden">
 					<li id="user-management-user">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_user_manage.html">用户管理</a></span>
+						<span><a href="/user/list">用户管理</a></span>
 					</li>
 					<li id="user-management-role">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_user_role.html">角色管理</a></span>
+						<span><a href="/user/role">授权管理</a></span>
 					</li>
-					<li id="user-management-data">
+					<li id="user-management-statistic">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_user_data.html">数据统计</a></span>
+						<span><a href="/user/statistic">数据统计</a></span>
 					</li>
 				</ul>
 			</li>
@@ -146,35 +196,35 @@
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="data-management-stz">
+					<li id="data-management-tripitaka">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_stz.html">实体藏</a></span>
+						<span><a href="/data/tripitaka">实体藏</a></span>
 					</li>
-					<li id="data-management-sth">
+					<li id="data-management-envelop">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_sth.html">实体函</a></span>
+						<span><a href="/data/envelop">实体函</a></span>
 					</li>
-					<li id="data-management-stc">
+					<li id="data-management-volume">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_stc.html">实体册</a></span>
+						<span><a href="/data/volume">实体册</a></span>
 					</li>
-					<li id="data-management-stjing">
+					<li id="data-management-sutra">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_stjing.html">实体经</a></span>
+						<span><a href="/data/sutra">实体经</a></span>
 					</li>
-					<li id="data-management-stjuan">
+					<li id="data-management-reel">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_stjuan.html">实体卷</a></span>
+						<span><a href="/data/reel">实体卷</a></span>
 					</li>
-					<li id="data-management-sty">
+					<li id="data-management-page">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/dzj_sty.html">实体页</a></span>
+						<span><a href="/data/page">实体页</a></span>
 					</li>
 				</ul>
 			</li>
 			<li class="menu-item">
 				<i><img src="{{ static_url('imgs/frame/icon_info.png') }}" alt="" style="margin-top:12px;"></i>
-				<span id="stzj"><a href="/dzj_stzj.html">系统说明</a></span>
+				<span id="help"><a href="/help">帮助文档</a></span>
 			</li>
 		</ul>
 		<!--<img class="budda" src="{{ static_url('imgs/frame/budda.png') }}" alt="">-->
