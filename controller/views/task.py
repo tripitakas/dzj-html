@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 任务大厅和我的任务
+@desc: 任务管理、任务大厅和我的任务
 @time: 2018/12/26
 """
 
@@ -32,14 +32,32 @@ class TaskLobbyHandler(TaskHandler):
                 for k, v in t.get(task_type, {}).items():
                     if v.get('status') == self.STATUS_OPENED:
                         t['priority'] = v.get('priority')
-                        t['pick_url'] = '/task/pick/%s/%s/%s' % (task_type, k, t['name'])
+                        t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
                         continue
 
         try:
-            tasks = list(self.get_tasks(task_type, self.STATUS_OPENED))
+            tasks = list(self.get_tasks_info(task_type, self.STATUS_OPENED))
             pack(tasks, task_type)
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+class TaskAdminHandler(TaskHandler):
+    URL = '/task/admin/@task_type'
+
+    @authenticated
+    def get(self, task_type):
+        """ 任务管理 """
+
+        try:
+            tasks = list(self.get_tasks_info(task_type))
+            task_name = self.task_types[task_type]['name']
+            has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
+
+            self.render('task_admin.html',
+                        tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
+                        task_type_names=self.task_types, task_status_names=self.task_statuses)
         except Exception as e:
             self.send_db_error(e, render=True)
 

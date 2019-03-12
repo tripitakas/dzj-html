@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>任务管理-{{task_name}}</title>
+
+		<!-- DataTables -->
+		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
+		<!-- Custom Files -->
+		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
+
+		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+		<!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+	</head>
+	<style>
+
+	</style>
+
+	<body>
+		<div class="app-main">
+			<div class="main">
+				<!--模拟出左边菜单，方便写样式-->
+				{% module CommonLeft(title="data-management", sub="data-management-sty" ) %}
+				<div class="main-content">
+					{% module CommonHead() %}
+					<div class="single-page-con">
+						<div class="layout">
+							<div class="layout-content">
+								<div class="collate-history">
+									<div class="wrapper">
+										<div class="collate-list">
+											<div class="operation bat-upload">
+												<span onclick="publish()">发布任务</span>
+												<span onclick="revoke(100)">批量撤销任务</span>
+											</div>
+											<div class="search fr">
+												<input type="text" placeholder="搜索">
+												<i class="ser-btn"></i>
+											</div>
+											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+												<thead>
+													<tr>
+                                                        <th><span><input type="checkbox" name="" id="check" value="" /></span></th>
+														<th><span>页编码</span></th>
+														<th><span>类型</span></th>
+														<th><span>
+															<div class="btn-group">
+																<span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span><span class="ion-android-sort " ></span>
+					                                            <ul class="dropdown-menu" role="menu">
+					                                                <li><a href="#">已发布未领取</a></li>
+					                                                <li><a href="#">进行中</a></li>
+					                                                <li><a href="#">已退回</a></li>
+					                                                <li><a href="#">已完成</a></li>
+					                                            </ul>
+					                                        </div>
+														</span></th>
+														<th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
+                                                        <th><span>发布时间</span></th>
+														<th><span>更新时间</span></th>
+														<th><span>领取人</span></th>
+                                                        <th><span>领取时间</span></th>
+														<th><span>完成时间</span></th>
+														<th><span>操作</span></th>
+													</tr>
+												</thead>
+												<tbody>
+												{% if not has_sub_tasks %}
+													{% for t in tasks %}
+														<tr id="{{t['name']}}">
+															<th><span><input type="checkbox" name="{{t['name']}}" value="" /></span></th>
+															<td>{{t['name']}}</td>
+															<td>{{task_type_names.get(task_type, {}).get('name')}}</td>
+															<td>{{task_status_names.get(t[task_type].get('status',''))}}</td>
+															<td>{{t[task_type].get('priority','')}}</td>
+															<td>{{t[task_type].get('publish_time','')}}</td>
+															<td>{{t[task_type].get('last_updated_time','')}}</td>
+															<td>{{t[task_type].get('picked_by','')}}</td>
+															<td>{{t[task_type].get('picked_time','')}}</td>
+															<td>{{t[task_type].get('finished_time','')}}</td>
+															<td>
+																<a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
+																<a class="withdraw">撤回</a>
+															</td>
+															</tr>
+													{% end %}
+												{% else %}
+													{% for t in tasks %}
+                                                        {% for k, st in t[task_type].items() %}
+                                                            <tr id="{{t['name']+'-'+k}}">
+																<th><span><input type="checkbox" name="" value="" /></span></th>
+																<td>{{t['name']}}</td>
+																<td>{{task_type_names.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
+																<td>{{task_status_names.get(st.get('status',''))}}</td>
+																<td>{{st.get('priority','')}}</td>
+																<td>{{st.get('publish_time','')}}</td>
+																<td>{{st.get('last_updated_time','')}}</td>
+																<td>{{st.get('picked_by','')}}</td>
+																<td>{{st.get('picked_time','')}}</td>
+																<td>{{st.get('finished_time','')}}</td>
+																<td>
+																	<a class="view" href="/task/{{task_type}}/{{k}}/{{t['name']}}">查看</a>
+																    <a class="withdraw">撤回</a>
+																</td>
+                                                            </tr>
+                                                        {% end %}
+													{% end %}
+												{% end %}
+
+
+												</tbody>
+											</table>
+										</div>
+										{% module Pager(pager='TODO') %}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{% include _base_js.html %}
+
+		<script type="text/javascript">
+			//排序图标
+			$(".sort").click(function(){
+				$(this).toggleClass('toggle');
+				$(this).next().toggleClass('toggle');
+			});
+
+			/**
+			 * 撤销任务
+			 * @param {Object} name 任务的标记名
+			 */
+			function revoke(name) {
+				swal({
+						title: "确定撤回" + name + "任务吗？",
+						text: "撤回后无法恢复！",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#b8906f",
+						confirmButtonText: "确定撤回",
+						cancelButtonText: "取消",
+						closeOnConfirm: false
+					},
+					function() {
+						//此处调用后台删除逻辑(ajax)
+
+						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
+						swal({
+							title: "撤回任务！",
+							text: name + "的任务已经被撤回。",
+							type: "success",
+							confirmButtonColor: "#b8906f",
+							confirmButtonText: "确定"
+						});
+					});
+			}
+
+		</script>
+
+	</body>
+
+</html>

@@ -136,57 +136,30 @@ class TaskHandler(BaseHandler):
     }
 
     def get_next_task_todo(self, task_type):
-        """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有未完成的任务，则从任务大厅中自动分配。 """
+        """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
         pass
 
-    def get_tasks(self, task_type, task_status, page_size=default_page_size, page_no=1):
+    def get_tasks_info(self, task_type, task_status='', fields=[], page_size=default_page_size, page_no=1):
         """
         获取指定类型、状态的任务列表
-        :param task_status: 可以是str或者list
+        :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
         """
         assert task_type in self.task_types.keys()
         assert type(task_status) in [str, list]
-        task_status = {"$in": task_status} if type(task_status) == list else task_status
+
+        task_status = {"$in": task_status} if type(task_status) == list \
+            else {"$exists": True} if task_status == '' else task_status
 
         if 'sub_task_types' in self.task_types[task_type]:
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
             conditions = {
                 '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
             }
-            fields = {'name': 1}
-            fields.update({'%s.%s.status' % (task_type, t): 1 for t in sub_types})
-            fields.update({'%s.%s.priority' % (task_type, t): 1 for t in sub_types})
         else:
             conditions = {'%s.status' % task_type: task_status}
-            fields = {'name': 1}
-            fields.update({'%s.status' % task_type: 1})
-            fields.update({'%s.priority' % task_type: 1})
+
+        fields = {'name': 1, task_type: 1}
 
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return pages
 
-    def get_my_tasks(self, task_type, task_status, page_size=default_page_size, page_no=1):
-        """
-        获取指定类型、状态的任务列表
-        :param task_status: 可以是str或者list
-        """
-        assert task_type in self.task_types.keys()
-        assert type(task_status) in [str, list]
-        task_status = {"$in": task_status} if type(task_status) == list else task_status
-
-        if 'sub_task_types' in self.task_types[task_type]:
-            sub_types = self.task_types[task_type]['sub_task_types'].keys()
-            conditions = {
-                '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
-            }
-            fields = {'name': 1}
-            fields.update({'%s.%s.status' % (task_type, t): 1 for t in sub_types})
-            fields.update({'%s.%s.priority' % (task_type, t): 1 for t in sub_types})
-        else:
-            conditions = {'%s.status' % task_type: task_status}
-            fields = {'name': 1}
-            fields.update({'%s.status' % task_type: 1})
-            fields.update({'%s.priority' % task_type: 1})
-
-        pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages

@@ -63,7 +63,7 @@
 				</ul>
 			</li>
 			<li>
-				<div class="submenu-title" id="task_history">
+				<div class="submenu-title" id="task-my">
 					<i><img src="{{ static_url('imgs/frame/icon_task.png') }}" alt="" style="margin-top:9px;"></i>
 					<span>我的任务</span>
 					<i></i>
@@ -132,11 +132,11 @@
 					</li>
 					<li id="task-admin-cut-column-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/task/admin/cut_block_proof">切列校对</a></span>
+						<span><a href="/task/admin/cut_column_proof">切列校对</a></span>
 					</li>
 					<li id="task-admin-cut-column-review">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
-						<span><a href="/task/admin/cut_block_review">切列审定</a></span>
+						<span><a href="/task/admin/cut_column_review">切列审定</a></span>
 					</li>
 					<li id="task-admin-cut-char-proof">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
@@ -167,54 +167,54 @@
 				</ul>
 			</li>
 			<li>
-				<div class="submenu-title" id="user-admin">
+				<div class="submenu-title" id="user">
 					<i><img src="{{ static_url('imgs/user_icon.png') }}" alt="" style="margin-top:9px;"></i>
 					<span>人员管理</span>
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="user-admin-user">
+					<li id="user-list">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/user/list">用户管理</a></span>
 					</li>
-					<li id="user-admin-role">
+					<li id="user-role">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/user/role">授权管理</a></span>
 					</li>
-					<li id="user-admin-statistic">
+					<li id="user-statistic">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/user/statistic">数据统计</a></span>
 					</li>
 				</ul>
 			</li>
 			<li>
-				<div class="submenu-title" id="data-admin">
+				<div class="submenu-title" id="data">
 					<i><img src="{{ static_url('imgs/data_icon.png') }}" alt="" style="margin-top:9px;"></i>
 					<span>数据管理</span>
 					<i></i>
 				</div>
 				<ul class="sub-ul sub-ul-hidden">
-					<li id="data-admin-tripitaka">
+					<li id="data-tripitaka">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/tripitaka">实体藏</a></span>
 					</li>
-					<li id="data-admin-envelop">
+					<li id="data-envelop">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/envelop">实体函</a></span>
 					</li>
-					<li id="data-admin-volume">
+					<li id="data-volume">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/volume">实体册</a></span>
 					</li>
-					<li id="data-admin-sutra">
+					<li id="data-sutra">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/sutra">实体经</a></span>
 					</li>
-					<li id="data-admin-reel">
+					<li id="data-reel">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/reel">实体卷</a></span>
 					</li>
-					<li id="data-admin-page">
+					<li id="data-page">
 						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" alt="" class="sub-img"/></i>
 						<span><a href="/data/page">实体页</a></span>
 					</li>
@@ -244,11 +244,16 @@
 			} else {
 				$(this).addClass('active');
 				$(this).next().slideDown(300);
-
 			}
 		});
-		$("#{{title}}").addClass("active");
+
+		var paths = location.pathname.replace(/^\//, '').split('/')
+		paths.pop()
+		var current_item = '#' + paths.slice(0,2).join('-')
+		$(current_item).addClass("active");
 		$('.active').next().slideDown(300);
-		$("#{{sub}}").addClass("sub-active");
+
+		var current_sub_item = '#' + location.pathname.replace(/^\//, '').replace(/[\/_]/g, '-')
+		$(current_sub_item).addClass("sub-active");
 	});
 </script>
