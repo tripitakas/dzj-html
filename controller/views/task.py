@@ -5,14 +5,43 @@
 @time: 2018/12/26
 """
 
+import re
+import json
+import random
+from os import path
 from tornado.web import authenticated
 from controller.handler.task import TaskHandler
 from controller.helper import convert_bson
-import random
-import re
-import json
-from os import path
 import model.user as u
+
+
+
+class TaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/(@task_type)'
+
+    @authenticated
+    def get(self, task_type):
+        """ 任务大厅 """
+
+        def pack(tasks, task_type):
+            for t in tasks:
+                if t.get(task_type, {}).get('priority'):
+                    t['priority'] = t.get(task_type, {}).get('priority')
+                    t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
+                    continue
+                for k, v in t.get(task_type, {}).items():
+                    if v.get('status') == self.STATUS_OPENED:
+                        t['priority'] =  v.get('priority')
+                        t['pick_url'] = '/task/pick/%s/%s/%s' % (task_type, k, t['name'])
+                        continue
+
+        try:
+            tasks = list(self.get_tasks(task_type, self.STATUS_OPENED))
+            pack(tasks, task_type)
+            task_name = self.task_types[task_type]['name']
+            self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 def get_my_or_free_tasks(self, task_type, max_count=12):
@@ -74,7 +103,6 @@ class ChooseCutProofHandler(TaskHandler):
                         remain=len(all_pages), excludes=len(all_excludes))
         except Exception as e:
             self.send_db_error(e, render=True)
-
 
 class ChooseCutReviewHandler(TaskHandler):
     URL = '/dzj_cut_check.html'

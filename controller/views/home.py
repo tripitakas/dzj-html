@@ -10,7 +10,7 @@ from controller.handler.task import TaskHandler
 
 
 class HomeHandler(TaskHandler):
-    URL = ['/', '/home.html']
+    URL = ['/', '/home']
 
     @authenticated
     def get(self):

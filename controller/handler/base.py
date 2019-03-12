@@ -277,7 +277,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                                     user_id=self.current_user and self.current_user.id,
                                     file_id=file_id or None,
                                     context=context and context[:80],
-                                    create_time=controller.help.get_date_time(),
+                                    create_time=controller.helper.get_date_time(),
                                     ip=self.get_ip()))
 
     @gen.coroutine

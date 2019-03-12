@@ -5,7 +5,7 @@
 @time: 2019/3/11
 """
 
-from controller.handler.base import BaseHandler
+from controller.handler.base import BaseHandler, DbError
 
 
 class TaskHandler(BaseHandler):
@@ -85,8 +85,9 @@ class TaskHandler(BaseHandler):
     将任务类型扁平化后，返回任务类型列表。
     如果是二级任务，则表示为task_type.sub_task_type。
     """
+
     @property
-    def flat_types(self):
+    def flat_task_types(self):
         types = []
         for k, v in self.task_types.items():
             if 'sub_task_types' not in v:
@@ -99,6 +100,7 @@ class TaskHandler(BaseHandler):
     """
     后置任务
     """
+
     @property
     def post_tasks(self):
         post_types = {}
@@ -132,3 +134,59 @@ class TaskHandler(BaseHandler):
         STATUS_RETURNED: '已退回',
         STATUS_FINISHED: '已完成',
     }
+
+    def get_next_task_todo(self, task_type):
+        """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有未完成的任务，则从任务大厅中自动分配。 """
+        pass
+
+    def get_tasks(self, task_type, task_status, page_size=default_page_size, page_no=1):
+        """
+        获取指定类型、状态的任务列表
+        :param task_status: 可以是str或者list
+        """
+        assert task_type in self.task_types.keys()
+        assert type(task_status) in [str, list]
+        task_status = {"$in": task_status} if type(task_status) == list else task_status
+
+        if 'sub_task_types' in self.task_types[task_type]:
+            sub_types = self.task_types[task_type]['sub_task_types'].keys()
+            conditions = {
+                '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
+            }
+            fields = {'name': 1}
+            fields.update({'%s.%s.status' % (task_type, t): 1 for t in sub_types})
+            fields.update({'%s.%s.priority' % (task_type, t): 1 for t in sub_types})
+        else:
+            conditions = {'%s.status' % task_type: task_status}
+            fields = {'name': 1}
+            fields.update({'%s.status' % task_type: 1})
+            fields.update({'%s.priority' % task_type: 1})
+
+        pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
+        return pages
+
+    def get_my_tasks(self, task_type, task_status, page_size=default_page_size, page_no=1):
+        """
+        获取指定类型、状态的任务列表
+        :param task_status: 可以是str或者list
+        """
+        assert task_type in self.task_types.keys()
+        assert type(task_status) in [str, list]
+        task_status = {"$in": task_status} if type(task_status) == list else task_status
+
+        if 'sub_task_types' in self.task_types[task_type]:
+            sub_types = self.task_types[task_type]['sub_task_types'].keys()
+            conditions = {
+                '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
+            }
+            fields = {'name': 1}
+            fields.update({'%s.%s.status' % (task_type, t): 1 for t in sub_types})
+            fields.update({'%s.%s.priority' % (task_type, t): 1 for t in sub_types})
+        else:
+            conditions = {'%s.status' % task_type: task_status}
+            fields = {'name': 1}
+            fields.update({'%s.status' % task_type: 1})
+            fields.update({'%s.priority' % task_type: 1})
+
+        pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
+        return pages

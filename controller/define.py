@@ -8,7 +8,8 @@ import model.user as u
 
 url_placeholder = {
     'user_id': r'[A-Za-z0-9_]+',
-    'task_id': r'[A-Za-z0-9_]+',
+    'task_type': r'[a-z0-9_.]+',
+    'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
     'sutra_id': r'[a-zA-Z]{2}',
     'num': r'\d+',
     'task_kind': r'[a-z_]+',

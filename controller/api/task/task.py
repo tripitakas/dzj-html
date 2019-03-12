@@ -18,69 +18,69 @@ import model.user as u
 
 class PublishTasksApi(TaskHandler):
     URL = r'/api/task/publish/(@task_type)'
-    AUTHORITY = u.ACCESS_TASK_MGR
+    AUTHORITY = 'testing', 'any'
 
     def post(self, task_type):
         """
-        发布任务。
-        post提交的参数包括task_types/pages/priority。
+        发布某个任务类型的任务。
         如果task_type包含“.”，表示任务的二级结构task_type.sub_task_type，如text_proof.1表示文字校对/校一
         """
 
+        assert task_type in self.flat_task_types
         try:
             data = self.get_body_obj(PublishTask)
-            task_types = list(set([t for t in data.types.split(',') if t in self.flat_types()]))
-            task_pages = data.pages and data.pages.split(',')
-
+            priority, task_pages = data.priority, data.pages.split(',') if data.pages else []
             pages = self.db.page.find({'name': {"$in": task_pages}})
-            publish_log = []
+            log = []
             for page in pages:
-                update_value = {}
-                for task_type in task_types:
-                    assert isinstance(task_type, str)
-                    status = self.STATUS_UNREADY
-                    if '.' in task_type:
-                        types = task_type.split('.')
-                        if page.get(types[1], {}).get(types[2], {}).get('status') == self.STATUS_READY:
-                            status = self.STATUS_OPENED if not self.has_pre_task(page['name'], task_type) \
-                                else self.STATUS_PENDING
-                            update_value.update({
-                                r'%s.%s.status' % (types[1], types[2]): status,
-                                r'%s.%s.priority' % (types[1], types[2]): data.priority,
-                            })
+                status = self.STATUS_UNREADY
+                if '.' in task_type:
+                    types = task_type.split('.')
+                    if page.get(types[0], {}).get(types[1], {}).get('status') == self.STATUS_READY:
+                        status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
+                            else self.STATUS_OPENED
+                        update_value = {
+                            r'%s.%s.status' % (types[0], types[1]): status,
+                            r'%s.%s.priority' % (types[0], types[1]): priority,
+                        }
 
-                    else:
-                        if page.get(task_type, {}).get('status') == self.STATUS_READY:
-                            status = self.STATUS_OPENED if not self.has_pre_task(page['name'], task_type) \
-                                else self.STATUS_PENDING
-                            update_value.update({
-                                r'%s.status' % task_type: status,
-                                r'%s.priority' % task_type: data.priority,
-                            })
+                else:
+                    if page.get(task_type, {}).get('status') == self.STATUS_READY:
+                        status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
+                            else self.STATUS_OPENED
+                        update_value = {
+                            r'%s.status' % task_type: status,
+                            r'%s.priority' % task_type: priority,
+                        }
 
-                    publish_log.append({
-                        'name': page['name'],
-                        'task_type': task_type,
-                        'status': status
-                    })
+                log.append({'name': page['name'], 'status': status})
 
-                r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
-                if r.modified_count:
-                    self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
+                if status != self.STATUS_UNREADY:
+                    r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
+                    if r.modified_count:
+                        self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
 
-            self.send_response(dict(publish_log=publish_log))
+            self.send_response(dict(log=log))
+
         except DbError as e:
             self.send_db_error(e)
 
-    @staticmethod
-    def has_pre_task(task_id, task_type):
+
+    def has_pre_task(self, task_id, task_type):
         '''
         检查任务是否包含前置任务
         :param task_id: 对应page表的name字段
         :param task_type:
         :return: True/False
         '''
-        pass
+        try:
+            page = self.db.page.find_one({'name': task_id})
+            types = task_type.split('.')
+            return page.get(task_type, {}).get('pre_tasks') or \
+                   page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
+
+        except DbError as e:
+            self.send_db_error(e)
 
 
 class GetTaskApi(TaskHandler):

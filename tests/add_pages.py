@@ -12,6 +12,7 @@ import re
 import shutil
 import pymongo
 from datetime import datetime
+from controller.handler.task import TaskHandler as task
 
 IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 data = dict(count=0)
@@ -66,6 +67,15 @@ def add_page(name, info, db):
                     chars=info.get('chars', []),
                     txt='',
                     create_time=datetime.now())
+        # initialize task
+        meta.update({
+            'cut_block_proof': {'status': task.STATUS_READY},
+            'cut_block_review': {'status': task.STATUS_READY},
+            'cut_column_proof': {'status': task.STATUS_READY},
+            'cut_column_review': {'status': task.STATUS_READY},
+            'cut_char_proof': {'status': task.STATUS_READY},
+            'cut_char_review': {'status': task.STATUS_READY},
+        })
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
@@ -84,7 +94,16 @@ def add_texts(src_path, pages, db):
                 txt = f.read().strip().replace('\n', '|')
             r = db.page.find_one(dict(name=fn[:-4]))
             if r and not r.get('txt'):
-                db.page.update_one(dict(name=fn[:-4]), {'$set': {'txt': txt}})
+                meta = {
+                    'txt': txt,
+                    'text_proof': {
+                        '1': {'status': task.STATUS_READY},
+                        '2': {'status': task.STATUS_READY},
+                        '3': {'status': task.STATUS_READY},
+                    },
+                    'text_review': {'status': task.STATUS_READY},
+                }
+                db.page.update_one(dict(name=fn[:-4]), {'$set': meta})
 
 
 def copy_img_files(src_path, pages):
