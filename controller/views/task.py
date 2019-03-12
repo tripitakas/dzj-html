@@ -17,7 +17,7 @@ import model.user as u
 
 
 class TaskLobbyHandler(TaskHandler):
-    URL = '/task/lobby/(@task_type)'
+    URL = '/task/lobby/@task_type'
 
     @authenticated
     def get(self, task_type):
@@ -31,7 +31,7 @@ class TaskLobbyHandler(TaskHandler):
                     continue
                 for k, v in t.get(task_type, {}).items():
                     if v.get('status') == self.STATUS_OPENED:
-                        t['priority'] =  v.get('priority')
+                        t['priority'] = v.get('priority')
                         t['pick_url'] = '/task/pick/%s/%s/%s' % (task_type, k, t['name'])
                         continue
 
