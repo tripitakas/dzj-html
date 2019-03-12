@@ -10,7 +10,8 @@ handlers = [home.HomeHandler,
             task.ChooseCharProofHandler, task.ChooseCharReviewHandler, task.MyTasksHandler,
             task.ChooseCutProofHandler, task.ChooseCutReviewHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler,
-            task.CutStatusHandler, task.TextStatusHandler]
+            task.CutStatusHandler, task.TextStatusHandler,
+            task.TaskLobbyHandler,]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead,
            'Pager': modules.Pager}
