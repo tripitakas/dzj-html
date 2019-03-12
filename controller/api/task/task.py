@@ -17,7 +17,7 @@ import model.user as u
 
 
 class PublishTasksApi(TaskHandler):
-    URL = r'/api/task/publish/(@task_type)'
+    URL = r'/api/task/publish/@task_type'
     AUTHORITY = 'testing', 'any'
 
     def post(self, task_type):
@@ -84,7 +84,7 @@ class PublishTasksApi(TaskHandler):
 
 
 class GetTaskApi(TaskHandler):
-    URL = r'/api/(@task_type)/(@task_id)'
+    URL = r'/api/@task_type/@task_id'
     AUTHORITY = 'testing', 'any'
 
     def get(self, task_type, task_id):
@@ -99,7 +99,7 @@ class GetTaskApi(TaskHandler):
 
 
 class GetLobbyTasksApi(TaskHandler):
-    URL = r'/api/task/lobby/(@task_type)'
+    URL = r'/api/task/lobby/@task_type'
     AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, task_type):
@@ -308,7 +308,7 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/(block|column|char)_cut_proof/@task_id'
+    URL = r'/api/pick/@box-type_cut_proof/@task_id'
     AUTHORITY = u.ACCESS_CUT_PROOF
 
     def get(self, kind, name):
@@ -317,7 +317,7 @@ class PickCutProofTaskApi(PickTaskApi):
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = r'/api/pick/(block|column|char)_cut_review/@task_id'
+    URL = r'/api/pick/@box-type_cut_review/@task_id'
     AUTHORITY = u.ACCESS_CUT_REVIEW
 
     def get(self, kind, name):
@@ -410,7 +410,7 @@ class SaveCutApi(TaskHandler):
 
 
 class SaveCutProofApi(SaveCutApi):
-    URL = r'/api/save/(block|column|char)_cut_proof'
+    URL = r'/api/save/@box-type_cut_proof'
     AUTHORITY = u.ACCESS_CUT_PROOF
 
     def post(self, kind):
@@ -419,7 +419,7 @@ class SaveCutProofApi(SaveCutApi):
 
 
 class SaveCutReviewApi(SaveCutApi):
-    URL = r'/api/save/(block|column|char)_cut_review'
+    URL = r'/api/save/@box-type_cut_review'
     AUTHORITY = u.ACCESS_CUT_REVIEW
 
     def post(self, kind):

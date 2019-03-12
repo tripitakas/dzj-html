@@ -12,8 +12,9 @@ url_placeholder = {
     'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
     'sutra_id': r'[a-zA-Z]{2}',
     'num': r'\d+',
-    'task_kind': r'[a-z_]+',
+    'task-kind': r'[a-z_]+',
     'task_type_ex': u.re_task_type + '|cut_proof|cut_review|cut|text',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
+    'box-type': 'block|column|char',
 }
