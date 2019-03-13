@@ -57,7 +57,7 @@ class TaskAdminHandler(TaskHandler):
 
             self.render('task_admin.html',
                         tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
-                        task_type_names=self.task_types, task_status_names=self.task_statuses)
+                        task_types=self.task_types, task_statuses=self.task_statuses)
         except Exception as e:
             self.send_db_error(e, render=True)
 

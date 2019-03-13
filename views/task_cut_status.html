@@ -84,7 +84,7 @@
 														<td>{{t['name']}}</td>
 														{% for item in ['cut_block_proof','cut_block_review','cut_column_proof', \
 														                'cut_column_review','cut_char_proof','cut_char_review'] %}
-														<td class="">{{task_statuses.get(t.get(item).get('status'), '')}}</td>
+														<td class="">{{task_statuses.get(t.get(item, {}).get('status'), '')}}</td>
 														{% end %}
 													</tr>
 												  {% end %}
