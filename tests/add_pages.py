@@ -7,11 +7,14 @@
 from tornado.util import PY3
 from os import path, listdir, mkdir
 import sys
+import os
 import json
 import re
 import shutil
 import pymongo
 from datetime import datetime
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from controller.handler.task import TaskHandler as task
 
 IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')

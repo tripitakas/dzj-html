@@ -34,6 +34,7 @@ class TestUserApi(APITestCase):
             self.assert_code(e.invalid_password, r)
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
             self.assert_code(200, r)
+            self.assertIn('管理员', self.parse_response(r).get('authority'))
 
     def test_assign_authority(self):
         """ 测试为新用户设置权限 """

@@ -16,6 +16,7 @@ from model.user import authority_map, ACCESS_ALL
 def fetch_authority(user, record):
     """ 从记录中读取权限字段值 """
     authority = None
+    record = record and record.get('roles')
     if record:
         items = [authority_map[f] for f in list(authority_map.keys()) if record.get(f)]
         authority = ','.join(sorted(items, key=lambda a: ACCESS_ALL.index(a) if a in ACCESS_ALL else -1))
