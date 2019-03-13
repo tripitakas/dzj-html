@@ -11,7 +11,7 @@ import re
 from tornado.escape import json_encode
 from tornado.util import unicode_type
 
-import controller.helper
+import controller.helper as hlp
 from controller import errors
 from controller.handler.base import BaseHandler, DbError
 from controller.helper import fetch_authority
@@ -52,14 +52,14 @@ class LoginApi(BaseHandler):
             # 检查是否多次登录失败
             login_fail = {
                 'type': 'login-fail',
-                'create_time': {'$gt': controller.help.get_date_time(diff_seconds=-1800)},
+                'create_time': {'$gt': hlp.get_date_time(diff_seconds=-1800)},
                 'context': email
             }
             times = self.db.log.count_documents(login_fail)
 
             if times >= 20:
                 return self.send_error(errors.unauthorized, reason='请半小时后重试，或者申请重置密码')
-            login_fail['create_time']['$gt'] = controller.help.get_date_time(diff_seconds=-60)
+            login_fail['create_time']['$gt'] = hlp.get_date_time(diff_seconds=-60)
             times = self.db.log.count_documents(login_fail)
             if times >= 5:
                 return self.send_error(errors.unauthorized, reason='请一分钟后重试')
@@ -69,13 +69,13 @@ class LoginApi(BaseHandler):
             if not user:
                 self.add_op_log('login-no', context=email)
                 return self.send_error(errors.no_user, reason=email)
-            if user.password != controller.help.gen_id(password):
+            if user.password != hlp.gen_id(password):
                 self.add_op_log('login-fail', context=email)
                 return self.send_error(errors.invalid_password)
             self.current_user = user
             self.add_op_log('login-ok', context=email + ': ' + user.name)
             ResetPasswordApi.remove_login_fails(self, email)
-            user.login_md5 = controller.help.gen_id(user.authority)
+            user.login_md5 = hlp.gen_id(user.authority)
         except DbError as e:
             return self.send_db_error(e)
 
@@ -111,8 +111,8 @@ class RegisterApi(BaseHandler):
         if not re_name.match(unicode_type(user.name)):
             return self.send_error(errors.invalid_name, reason=user.name)
 
-        user.id = controller.help.gen_id(user.email, 'user')
-        user.create_time = controller.help.get_date_time()
+        user.id = hlp.gen_id(user.email, 'user')
+        user.create_time = hlp.get_date_time()
         self.authority = user.authority = ''
 
         return True
@@ -131,7 +131,7 @@ class RegisterApi(BaseHandler):
                 # 创建用户，分配权限，设置为当前用户
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
-                    password=controller.help.gen_id(user.password),
+                    password=hlp.gen_id(user.password),
                     manager=int(mgr), task_mgr=int(mgr), data_mgr=int(mgr),
                     create_time=user.create_time))
 
@@ -141,7 +141,7 @@ class RegisterApi(BaseHandler):
             except DbError as e:
                 return self.send_db_error(e)
 
-            user.login_md5 = controller.help.gen_id(user.authority)
+            user.login_md5 = hlp.gen_id(user.authority)
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
@@ -289,7 +289,7 @@ class GetUsersApi(BaseHandler):
         except DbError as e:
             return self.send_db_error(e)
 
-        response = dict(items=users, authority=self.authority, time=controller.help.get_date_time())
+        response = dict(items=users, authority=self.authority, time=hlp.get_date_time())
         self.send_response(response)
 
 
@@ -316,7 +316,7 @@ class ResetPasswordApi(BaseHandler):
 
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
-            r = self.db.user.update_one(dict(id=rid), {'$set': dict(password=controller.help.gen_id(pwd))})
+            r = self.db.user.update_one(dict(id=rid), {'$set': dict(password=hlp.gen_id(pwd))})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
 
@@ -331,7 +331,7 @@ class ResetPasswordApi(BaseHandler):
     def remove_login_fails(self, email):
         self.db.log.delete_many({
             'type': 'login-fail',
-            'create_time': {'$gt': controller.help.get_date_time(diff_seconds=-3600)},
+            'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
             'context': email
         })
 
@@ -358,8 +358,8 @@ class ChangePasswordApi(BaseHandler):
             return self.send_response()
 
         try:
-            r = self.db.user.update_one(dict(id=self.current_user.id, password=controller.help.gen_id(info.old_password)),
-                                        {'$set': dict(password=controller.help.gen_id(info.password))})
+            r = self.db.user.update_one(dict(id=self.current_user.id, password=hlp.gen_id(info.old_password)),
+                                        {'$set': dict(password=hlp.gen_id(info.password))})
             if not r.matched_count:
                 r = self.db.user.find_one(dict(id=self.current_user.id))
                 return self.send_error(errors.invalid_password if r else errors.no_user)
