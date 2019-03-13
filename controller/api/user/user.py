@@ -65,7 +65,9 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.unauthorized, reason='请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
-            user = self.fetch2obj(self.db.user.find_one(dict(email=email)), u.User, fetch_authority, fields=fields)
+            user = self.db.user.find_one(dict(email=email))
+            self.current_roles = [k for k, v in user.get('roles', {}).items() if v]
+            user = self.fetch2obj(user, u.User, fetch_authority, fields=fields)
             if not user:
                 self.add_op_log('login-no', context=email)
                 return self.send_error(errors.no_user, reason=email)

@@ -20,10 +20,12 @@ from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
-import controller.helper
 from controller import errors
+from controller.role import get_role_routes
+import controller.helper
 from controller.helper import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
+
 
 logging.currentframe = my_framer
 
@@ -48,6 +50,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
+
     def prepare(self):
         if hasattr(self, 'AUTHORITY'):
             auths = list(self.AUTHORITY) if isinstance(self.AUTHORITY, tuple) else [self.AUTHORITY]
@@ -59,6 +62,14 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return
             if not [r for r in auths if r in self.authority]:
                 return self.send_error(errors.unauthorized, reason='|'.join(auths))
+
+
+    def check_auth(self):
+        route = self.URL
+        method = self.request.method
+        routes = get_role_routes(self.current_roles)
+        return route in routes and method in routes[route]
+
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
