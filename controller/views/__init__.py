@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # 在 controller.views 包实现页面响应类，生成前端页面，modules 为重用网页片段的渲染类
 
-from . import modules, home, user, task
+from . import modules, home, user, task, tripitaka as t
 
 handlers = [home.HomeHandler,
             user.UserLoginHandler, user.UserRegisterHandler,
@@ -11,7 +11,9 @@ handlers = [home.HomeHandler,
             task.ChooseCutProofHandler, task.ChooseCutReviewHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler,
             task.CutStatusHandler, task.TextStatusHandler,
-            task.TaskLobbyHandler, task.TaskAdminHandler, task.TaskCutStatusHandler, task.TaskTextStatusHandler, ]
+            task.TaskLobbyHandler, task.TaskAdminHandler, task.TaskCutStatusHandler, task.TaskTextStatusHandler,
+            t.RsTripitakaHandler, t.TripitakaListHandler, t.TripitakaHandler, t.DataTripitakaHandler,
+            t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead,
            'Pager': modules.Pager}
