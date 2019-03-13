@@ -5,8 +5,8 @@
 from . import modules, home, user, task
 
 handlers = [home.HomeHandler,
-            user.LoginHandler, user.RegisterHandler,
-            user.UsersHandler, user.UserRolesHandler, user.UsersDataHandler, user.UsersProfileHandler,
+            user.UserLoginHandler, user.UserRegisterHandler,
+            user.UsersAdminHandler, user.UserRolesHandler, user.UserStatisticHandler, user.UserProfileHandler,
             task.ChooseCharProofHandler, task.ChooseCharReviewHandler, task.MyTasksHandler,
             task.ChooseCutProofHandler, task.ChooseCutReviewHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler,

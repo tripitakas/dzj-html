@@ -11,7 +11,7 @@ from controller.helper import fetch_authority
 import model.user as u
 
 
-class LoginHandler(BaseHandler):
+class UserLoginHandler(BaseHandler):
     URL = '/login'
 
     def get(self):
@@ -19,7 +19,7 @@ class LoginHandler(BaseHandler):
         self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
-class RegisterHandler(BaseHandler):
+class UserRegisterHandler(BaseHandler):
     URL = '/user/register'
 
     def get(self):
@@ -27,7 +27,7 @@ class RegisterHandler(BaseHandler):
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
-class UsersHandler(BaseHandler):
+class UsersAdminHandler(BaseHandler):
     URL = '/user/admin'
 
     @authenticated
@@ -76,7 +76,7 @@ class UserRolesHandler(BaseHandler):
         self.render('user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
 
-class UsersDataHandler(BaseHandler):
+class UserStatisticHandler(BaseHandler):
     URL = '/user/statistic'
 
     @authenticated
@@ -104,7 +104,7 @@ class UsersDataHandler(BaseHandler):
 
 
 
-class UsersProfileHandler(BaseHandler):
+class UserProfileHandler(BaseHandler):
     URL = '/user/profile'
 
     @authenticated
