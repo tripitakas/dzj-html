@@ -6,10 +6,11 @@
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css" />
+		{% include _base_css.html %}
 		<!-- Custom Files -->
 		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
-		{% include _base_css.html %}
 
 		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -18,10 +19,33 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
         <![endif]-->
 
-	</head>
-	<style>
+		<style>
+			.collate-history .collate-list table tbody tr td.status_none {
+				color: #999;
+			}
+			.collate-history .collate-list table tbody tr td.status_pending {
+				color: #666;
+			}
+			.collate-history .collate-list table tbody tr td.status_ended {
+				color: #0f0;
+			}
+			.collate-history .collate-list table tbody tr td.status_opened {
+				color: #007;
+			}
+			.modal-dialog a {
+				color: #E4C3A8;
+				text-decoration:none;
+			}
+			.modal-dialog a:hover {
+				color: #b33c2b;
+				text-decoration:none;
+			}
+			.ms-container {
+				width: 100%;
+			}
 
-	</style>
+		</style>
+	</head>
 
 	<body>
 		<div class="app-main">
@@ -31,13 +55,115 @@
 				<div class="main-content">
 					{% module CommonHead() %}
 					<div class="single-page-con">
+						<!-- Add Modals BAT UPLOAD-->
+						<div class="panel-body" style="padding-bottom: 2px;">
+							<!-- modal content -->
+							<div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="upload-pages">上传页编码</h4>
+										</div>
+										<div class="modal-body">
+											<div class="">
+												<h4 class="control-label">优先级</h4>
+												<select class="form-control">
+                                                    <option>高</option>
+                                                    <option>中</option>
+                                                    <option>低</option>
+                                                </select>
+											</div>
+											<br />
+											<i>支持上传CSV或TXT格式文件，一次上传1个，大小不超过10M</i>
+											<input type="file" class="form-control" />
+											<div class="progress progress-lg">
+												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
+													86%
+												</div>
+											</div>
+											<div class="">
+												<h4>备注</h4>
+												<input type="text" class="form-control" placeholder="填写备注">
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+						</div>
+						<!-- End BootStrap Modal -->
+						<!-- SELECT Modals -->
+						<div class="panel-body" style="padding-bottom: 2px;">
+							<!-- modal content -->
+							<div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+								<div class="modal-dialog">
+									<div class="modal-content">
+										<div class="modal-header">
+											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+											<h4 class="modal-title" id="choose-pages">选择页编码</h4>
+										</div>
+										<div class="modal-body">
+											<div class="priority-list">
+												<h4 class="control-label">优先级</h4>
+												<select class="form-control">
+                                                    <option>高</option>
+                                                    <option>中</option>
+                                                    <option>低</option>
+                                                </select>
+											</div>
+											<br />
+											<div class="form-group">
+			                                    <div class="">
+		                                            <select name="country" style="width: 500px;" class="multi-select" multiple="" id="my_multi_select" >
+		                                                <option value="Afghanistan">Afghanistan</option>
+		                                                <option value="Algeria">Algeria</option>
+		                                                <option value="Andorra">Andorra</option>
+		                                                <option value="Bahamas">Bahamas</option>
+		                                                <option value="Belarus">Belarus</option>
+		                                                <option value="Bclize">Belize</option>
+		                                            </select>
+		                                        </div>
+		                                    </div>
+											<div class="">
+												<h4>备注</h4>
+												<input type="text" class="form-control" placeholder="填写备注">
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+											<button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
+										</div>
+									</div>
+									<!-- /.modal-content -->
+								</div>
+								<!-- /.modal-dialog -->
+							</div>
+							<!-- /.modal -->
+						</div>
+						<!-- End BootStrap Modal -->
+
 						<div class="layout">
 							<div class="layout-content">
 								<div class="collate-history">
 									<div class="wrapper">
 										<div class="collate-list">
 											<div class="operation bat-upload">
-												<span onclick="publish()">发布任务</span>
+												<div class="btn-group dropdown">
+		                                            <button type="button" class="btn btn-default waves-effect">发布任务</button>
+		                                            <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+		                                            <ul class="dropdown-menu" role="menu">
+		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
+		                                                <li class="divider"></li>
+		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">上传页编码</a></li>
+		                                            </ul>
+		                                        </div>
 												<span onclick="revoke(100)">批量撤销任务</span>
 											</div>
 											<div class="search fr">
@@ -54,11 +180,10 @@
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span><span class="ion-android-sort " ></span>
 					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">已发布未领取</a></li>
-					                                                <li><a href="#">进行中</a></li>
-					                                                <li><a href="#">已退回</a></li>
-					                                                <li><a href="#">已完成</a></li>
-					                                            </ul>
+																	{% for k, v in task_statuses.items() %}
+																	<li><a href="{{k}}">{{v}}</a></li>
+																	{% end %}
+																</ul>
 					                                        </div>
 														</span></th>
 														<th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
@@ -76,14 +201,14 @@
 														<tr id="{{t['name']}}">
 															<th><span><input type="checkbox" name="{{t['name']}}" value="" /></span></th>
 															<td>{{t['name']}}</td>
-															<td>{{task_type_names.get(task_type, {}).get('name')}}</td>
-															<td>{{task_status_names.get(t[task_type].get('status',''))}}</td>
-															<td>{{t[task_type].get('priority','')}}</td>
-															<td>{{t[task_type].get('publish_time','')}}</td>
-															<td>{{t[task_type].get('last_updated_time','')}}</td>
-															<td>{{t[task_type].get('picked_by','')}}</td>
-															<td>{{t[task_type].get('picked_time','')}}</td>
-															<td>{{t[task_type].get('finished_time','')}}</td>
+															<td>{{task_types.get(task_type, {}).get('name','')}}</td>
+															<td>{{task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
+															<td>{{t.get(task_type, {}).get('priority','')}}</td>
+															<td>{{t.get(task_type, {}).get('publish_time','')}}</td>
+															<td>{{t.get(task_type, {}).get('last_updated_time','')}}</td>
+															<td>{{t.get(task_type, {}).get('picked_by','')}}</td>
+															<td>{{t.get(task_type, {}).get('picked_time','')}}</td>
+															<td>{{t.get(task_type, {}).get('finished_time','')}}</td>
 															<td>
 																<a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
 																<a class="withdraw">撤回</a>
@@ -96,8 +221,8 @@
                                                             <tr id="{{t['name']+'-'+k}}">
 																<th><span><input type="checkbox" name="" value="" /></span></th>
 																<td>{{t['name']}}</td>
-																<td>{{task_type_names.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
-																<td>{{task_status_names.get(st.get('status',''))}}</td>
+																<td>{{task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
+																<td>{{task_statuses.get(st.get('status',''))}}</td>
 																<td>{{st.get('priority','')}}</td>
 																<td>{{st.get('publish_time','')}}</td>
 																<td>{{st.get('last_updated_time','')}}</td>
@@ -113,7 +238,6 @@
 													{% end %}
 												{% end %}
 
-
 												</tbody>
 											</table>
 										</div>
@@ -127,8 +251,112 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
-
+		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
+        <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">
+
+			var pages = [];
+			var $modal = $('#selectModal');
+
+			// 勾选发布任务
+			$modal.on('shown.bs.modal', function () {
+				postApi('/pages/cut_start', {data: {}}, function (res) {
+					pages = res.items;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+				});
+			});
+
+			$modal.find('.btn-primary').click(function () {
+				postApi('/task/publish/{{task_type}}', {
+					data: {
+						priority: $('.priority-list select').val(),
+						pages: pages.join(',')
+					}
+				}, function (res) {
+					showSuccess('已发布任务', res.log.length + ' 个页面已发布。');
+					setTimeout(function () {
+						location.reload();
+					}, 1000);
+				});
+
+			});
+
+			$('#my_multi_select').multiSelect({
+            	selectableHeader: "待选对象<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
+            	selectionHeader: "已选对象<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",
+            	selectableFooter: "<a href='javascript:void(0);' class='left_btn' id='select_all_btn'>全选</a><a href='javascript:void(0);' class='right_btn' id='select_all_search_btn'>全选所有搜索结果</a>",
+            	selectionFooter: "<a href='javascript:void(0);' class='left_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a>",
+            	selectableOptgroup:true,
+            	afterSelect:function(val){
+                	console.log(val);
+                }
+            });
+
+            var selectableArr = [];
+            var deSelectableArr = [];
+            $("#selectable_input").on('input propertychange',function(){
+            	var inputval = $(this).val().trim();
+            	var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selectable li.ms-elem-selectable');
+            	selectableArr = [];
+            	selections.each(function(){
+            		var item_value = $(this).text();
+            		if(item_value.match(inputval)){
+            			$(this).show();
+            			selectableArr.push(item_value);
+            		}else{
+            			$(this).hide();
+            		}
+            	});
+            	$(".ms-elem-selectable.ms-selected").hide();
+            	console.log(selectableArr);
+            });
+            $("#selected_input").on('input propertychange',function(){
+            	var inputval = $(this).val().trim();
+            	var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+            	deSelectableArr = [];
+            	selections.each(function(){
+            		var item_value = $(this).text();
+            		if(item_value.match(inputval)){
+            			$(this).show();
+            			deSelectableArr.push(item_value);
+            		}else{
+            			$(this).hide();
+            		}
+            	})
+            	console.log(deSelectableArr);
+            });
+			$('#select_all_search_btn').click(function(){
+				if(selectableArr.length>0){
+					$('#my_multi_select').multiSelect('select',selectableArr);
+				}else{
+					alert("没有搜索结果");
+				}
+			});
+			$('#deselect_all_search_btn').click(function(){
+				if(deSelectableArr.length>0){
+					$('#my_multi_select').multiSelect('deselect',deSelectableArr);
+				}else{
+					alert("没有搜索结果");
+				}
+			});
+			$("#select_all_btn").click(function(){
+				$('#my_multi_select').multiSelect('select_all');
+			});
+			$("#deselect_all_btn").click(function(){
+				$('#my_multi_select').multiSelect('deselect_all');
+			});
+			$("#select_modal_btn").click(function(){
+				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+            	deSelectableArr = [];
+            	selections.each(function(){
+            		var item_value = $(this).text();
+            		deSelectableArr.push(item_value);
+            	})
+            	console.log(deSelectableArr);
+			})
+
 			//排序图标
 			$(".sort").click(function(){
 				$(this).toggleClass('toggle');
@@ -161,7 +389,8 @@
 							confirmButtonColor: "#b8906f",
 							confirmButtonText: "确定"
 						});
-					});
+					}
+				);
 			}
 
 		</script>
