@@ -193,6 +193,29 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return pages
 
+    def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):
+        """
+        获取我的任务列表
+        """
+        assert task_type in self.task_types.keys()
+
+        user_id = self.current_user.id
+
+        if 'sub_task_types' in self.task_types[task_type]:
+            sub_types = self.task_types[task_type]['sub_task_types'].keys()
+            conditions = {
+                '$or': [{'%s.%s.picked_by' % (task_type, t): user_id} for t in sub_types]
+            }
+        else:
+            conditions = {'%s.picked_by' % task_type: user_id}
+
+        fields = {'name': 1, task_type: 1}
+
+        page_size = self.default_page_size if page_size == '' else page_size
+        pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
+        return pages
+
+
     def get_tasks_info(self, page_size='', page_no=1):
         """
         获取所有任务的状态
