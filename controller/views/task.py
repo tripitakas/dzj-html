@@ -10,7 +10,7 @@ import json
 import random
 from os import path
 from tornado.web import authenticated
-from controller.handler.task import TaskHandler
+from controller.base.task import TaskHandler
 from controller.helper import convert_bson
 import model.user as u
 

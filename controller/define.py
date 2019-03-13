@@ -18,3 +18,6 @@ url_placeholder = {
     'page_kind': r'[a-z_]+',
     'box-type': 'block|column|char',
 }
+
+# 角色权限对应表
+

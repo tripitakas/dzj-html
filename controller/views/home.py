@@ -6,7 +6,7 @@
 """
 
 from tornado.web import authenticated
-from controller.handler.task import TaskHandler
+from controller.base.task import TaskHandler
 
 
 class HomeHandler(TaskHandler):

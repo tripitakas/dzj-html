@@ -6,7 +6,7 @@
 """
 
 from tornado.web import authenticated
-from controller.handler.base import BaseHandler
+from controller.base.base import BaseHandler
 from controller.helper import fetch_authority
 import model.user as u
 

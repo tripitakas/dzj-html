@@ -7,7 +7,7 @@
 
 from operator import itemgetter
 from os import path
-from controller.handler.task import TaskHandler
+from controller.base.task import TaskHandler
 
 
 class InvalidPageHandler(TaskHandler):

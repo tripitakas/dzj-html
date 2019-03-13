@@ -5,7 +5,7 @@
 @time: 2019/3/11
 """
 
-from controller.handler.base import BaseHandler
+from controller.base.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
