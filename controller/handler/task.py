@@ -5,7 +5,7 @@
 @time: 2019/3/11
 """
 
-from controller.handler.base import BaseHandler, DbError
+from controller.handler.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
@@ -81,13 +81,12 @@ class TaskHandler(BaseHandler):
         },
     }
 
-    """
-    将任务类型扁平化后，返回任务类型列表。
-    如果是二级任务，则表示为task_type.sub_task_type。
-    """
-
     @property
     def flat_task_types(self):
+        """
+        将任务类型扁平化后，返回任务类型列表。
+        如果是二级任务，则表示为task_type.sub_task_type。
+        """
         types = []
         for k, v in self.task_types.items():
             if 'sub_task_types' not in v:
@@ -97,12 +96,41 @@ class TaskHandler(BaseHandler):
                     types.append('%s.%s' % (k, t))
         return types
 
-    """
-    后置任务
-    """
+    @property
+    def task_type_names(self):
+        type_names = {}
+        for k, v in self.task_types.items():
+            type_names[k] = v['name']
+            if 'sub_task_types' in v:
+                for k1, v1 in v['sub_task_types'].items():
+                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
+        return type_names
+
+    @property
+    def text_task_names(self):
+        return {
+            'cut_block_proof': '切栏校对',
+            'cut_block_review': '切栏审定',
+            'cut_column_proof': '切列校对',
+            'cut_column_review': '切列审定',
+            'cut_char_proof': '切字校对',
+            'cut_char_review': '切字审定'
+        }
+
+    @property
+    def cut_task_names(self):
+        return {
+            'text_proof.1': '文字校一',
+            'text_proof.2': '文字校二',
+            'text_proof.3': '文字校三',
+            'text_review': '文字审定'
+        }
 
     @property
     def post_tasks(self):
+        """
+        后置任务
+        """
         post_types = {}
         for k, v in self.task_types.items():
             if 'pre_tasks' in v:
@@ -115,9 +143,7 @@ class TaskHandler(BaseHandler):
                         post_types.update({t: k + '.' + n for t in m['pre_tasks']})
         return post_types
 
-    """
-    任务状态表
-    """
+    # 任务状态表
     STATUS_UNREADY = 'unready'
     STATUS_READY = 'ready'
     STATUS_OPENED = 'opened'
@@ -128,7 +154,7 @@ class TaskHandler(BaseHandler):
     task_statuses = {
         STATUS_UNREADY: '数据未就绪',
         STATUS_READY: '数据已就绪',
-        STATUS_OPENED: '未领取',
+        STATUS_OPENED: '已发布未领取',
         STATUS_PENDING: '等待前置任务',
         STATUS_LOCKED: '进行中',
         STATUS_RETURNED: '已退回',
@@ -139,16 +165,16 @@ class TaskHandler(BaseHandler):
         """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
         pass
 
-    def get_tasks_info(self, task_type, task_status='', fields=[], page_size=default_page_size, page_no=1):
+    def get_tasks_info_by_type(self, task_type, task_status=None, page_size='', page_no=1):
         """
         获取指定类型、状态的任务列表
-        :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
+        :param task_status: 可以是str或者list。如果为空，则查询所有记录。
         """
         assert task_type in self.task_types.keys()
-        assert type(task_status) in [str, list]
+        assert task_status is None or type(task_status) in [str, list]
 
-        task_status = {"$in": task_status} if type(task_status) == list \
-            else {"$exists": True} if task_status == '' else task_status
+        if type(task_status) == list:
+            task_status = {"$in": task_status}
 
         if 'sub_task_types' in self.task_types[task_type]:
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
@@ -158,8 +184,23 @@ class TaskHandler(BaseHandler):
         else:
             conditions = {'%s.status' % task_type: task_status}
 
+        if task_status is None:
+            conditions = {}
+
         fields = {'name': 1, task_type: 1}
 
+        page_size = self.default_page_size if page_size == '' else page_size
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return pages
 
+    def get_tasks_info(self, page_size='', page_no=1):
+        """
+        获取所有任务的状态
+        :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
+        """
+
+        fields = {'name': 1}
+        fields.update({k: 1 for k in self.task_types.keys()})
+        page_size = self.default_page_size if page_size == '' else page_size
+        pages = self.db.page.find({}, fields).limit(page_size).skip(page_size * (page_no - 1))
+        return pages

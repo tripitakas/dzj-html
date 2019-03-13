@@ -15,7 +15,6 @@ from controller.helper import convert_bson
 import model.user as u
 
 
-
 class TaskLobbyHandler(TaskHandler):
     URL = '/task/lobby/@task_type'
 
@@ -36,12 +35,13 @@ class TaskLobbyHandler(TaskHandler):
                         continue
 
         try:
-            tasks = list(self.get_tasks_info(task_type, self.STATUS_OPENED))
+            tasks = list(self.get_tasks_info_by_type(task_type, self.STATUS_OPENED))
             pack(tasks, task_type)
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
         except Exception as e:
             self.send_db_error(e, render=True)
+
 
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
@@ -51,13 +51,41 @@ class TaskAdminHandler(TaskHandler):
         """ 任务管理 """
 
         try:
-            tasks = list(self.get_tasks_info(task_type))
+            tasks = list(self.get_tasks_info_by_type(task_type))
             task_name = self.task_types[task_type]['name']
             has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
 
             self.render('task_admin.html',
                         tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
                         task_type_names=self.task_types, task_status_names=self.task_statuses)
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+
+class TaskCutStatusHandler(TaskHandler):
+    URL = '/task/admin/cut/status'
+
+    @authenticated
+    def get(self):
+        """ 切分任务状态 """
+
+        try:
+            tasks = list(self.get_tasks_info())
+            self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses, task_names=self.text_task_names)
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+
+class TaskTextStatusHandler(TaskHandler):
+    URL = '/task/admin/text/status'
+
+    @authenticated
+    def get(self):
+        """ 文字任务状态 """
+
+        try:
+            tasks = list(self.get_tasks_info())
+            self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses, task_names=self.cut_task_names)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -121,6 +149,7 @@ class ChooseCutProofHandler(TaskHandler):
                         remain=len(all_pages), excludes=len(all_excludes))
         except Exception as e:
             self.send_db_error(e, render=True)
+
 
 class ChooseCutReviewHandler(TaskHandler):
     URL = '/dzj_cut_check.html'
@@ -214,16 +243,16 @@ class MyTasksHandler(TaskHandler):
 
             kinds = []
             if task_type == 'text_proof':
-                pages = fetch('text_proof_3', '校三') +\
-                        fetch('text_proof_2', '校二') +\
+                pages = fetch('text_proof_3', '校三') + \
+                        fetch('text_proof_2', '校二') + \
                         fetch('text_proof_1', '校一')
             elif task_type == 'cut_proof':
-                pages = fetch('block_cut_proof', '切栏') +\
-                        fetch('column_cut_proof', '切列') +\
+                pages = fetch('block_cut_proof', '切栏') + \
+                        fetch('column_cut_proof', '切列') + \
                         fetch('char_cut_proof', '切字')
             elif task_type == 'cut_review':
-                pages = fetch('block_cut_review', '切栏') +\
-                        fetch('column_cut_review', '切列') +\
+                pages = fetch('block_cut_review', '切栏') + \
+                        fetch('column_cut_review', '切列') + \
                         fetch('char_cut_review', '切字')
             else:
                 pages = fetch(task_type, title)
