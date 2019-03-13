@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>人员管理-角色管理</title>
+		<title>人员管理-授权管理</title>
 		<!-- Responsive-table -->
 		<link href="{{ static_url('assets/responsive-table/rwd-table.min.css') }}" rel="stylesheet" type="text/css" media="screen" />
 
@@ -203,7 +203,7 @@
 															<td>{{r if r in p['authority'] else '否'}}</td>
 															{% end %}
 															<td>
-																<a href='javascript:modify("{{p}}")'>编辑</a>
+																<a href='javascript:modify("{{p}}")'>修改</a>
 															</td>
 														</tr>
 														{% end %}
@@ -228,14 +228,14 @@
 					<div class="modal-content">
 						<div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-							<h4 class="modal-title" id="myModalLabel">编辑用户信息</h4>
+							<h4 class="modal-title" id="myModalLabel">修改用户角色</h4>
 						</div>
 						<div class="modal-body">
 							<form class="form-horizontal">
 								<div class="form-group">
 									<label class="col-sm-2 control-label">姓名</label>
 									<div class="col-md-10">
-										<input type="text" class="form-control" value="罗辑" id="name">
+                                        <p class="form-control-static" id="name"></p>
 									</div>
 								</div>
 								<div class="form-group">
@@ -290,61 +290,64 @@
 				</div>
 				<!-- /.modal-dialog -->
 			</div>
-			<!-- /.modal -->
+			<!-- /.panel-body -->
+		</div>
+		<!-- /.modal -->
 
-			{% include _base_js.html %}
+        {% include _base_js.html %}
 
-			<!-- responsive-table-->
-			<script src="{{ static_url('assets/responsive-table/rwd-table.min.js') }}" type="text/javascript"></script>
-			<script type="text/javascript">
-				$('.table-responsive').responsiveTable({
-					addFocusBtn: false,
-					addDisplayAllBtn: true
+		<!-- responsive-table-->
+		<script src="{{ static_url('assets/responsive-table/rwd-table.min.js') }}" type="text/javascript"></script>
+		<script type="text/javascript">
+			$('.table-responsive').responsiveTable({
+				addFocusBtn: false,
+				addDisplayAllBtn: true
 
+			});
+
+			function modify(user) {
+				var $dlg = $('#modifyModal');
+				var $name = $dlg.find('#name');
+				var $account = $dlg.find('#account');
+				var $list = $dlg.find('.authority-list');
+
+				user = decodeJSON(user);
+				$dlg.modal();
+				$name.text(user.name);
+				$account.text((user.phone ? user.phone + ' ' : '') + user.email);
+
+				$list.find('label').each(function (i, el) {
+					var label = $(el).text().replace(/\s/g, '');
+					$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
 				});
 
-				function modify(user) {
-					var $dlg = $('#modifyModal');
-					var $name = $dlg.find('#name');
-					var $account = $dlg.find('#account');
-					var $list = $dlg.find('.authority-list');
-
-					user = decodeJSON(user);
-					$dlg.modal();
-					$name.val(user.name);
-					$account.text((user.phone ? user.phone + ' ' : '') + user.email);
-
+				$dlg.find("#modal_confirm").unbind('click').click(function () {
+					var info = {email: user.email, name: $name.val()};
+					var authority = [];
 					$list.find('label').each(function (i, el) {
 						var label = $(el).text().replace(/\s/g, '');
-						$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
+						if ($(el).find('input').is(':checked')) {
+							authority.push(label);
+						}
 					});
+					info.authority = authority.join(',');
 
-					$dlg.find("#modal_confirm").unbind('click').click(function () {
-						var info = {email: user.email, name: $name.val()};
-						var authority = [];
-						$list.find('label').each(function (i, el) {
-							var label = $(el).text().replace(/\s/g, '');
-							if ($(el).find('input').is(':checked')) {
-								authority.push(label);
-							}
-						});
-						info.authority = authority.join(',');
-
-						postApi('/user/change', {data: info}, function () {
-							showSuccess('修改成功', user.name + ' 的信息已修改。');
-							setTimeout(function () {
-								window.location.reload();
-							}, 1500);
-						}, function (msg, code) {
-							if (code === 1009) {
-								showSuccess('修改成功', '用户信息没有发生改变。');
-								return $dlg.modal('hide');
-							}
-							showError('修改失败', msg);
-						});
+					postApi('/user/change', {data: info}, function () {
+						showSuccess('修改成功', user.name + ' 的信息已修改。');
+						setTimeout(function () {
+							window.location.reload();
+						}, 1500);
+					}, function (msg, code) {
+						if (code === 1009) {
+							showSuccess('修改成功', '用户信息没有发生改变。');
+							return $dlg.modal('hide');
+						}
+						showError('修改失败', msg);
 					});
-				}
-			</script>
+				});
+			}
+		</script>
+
 	</body>
 
 </html>

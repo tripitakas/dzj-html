@@ -36,10 +36,6 @@
 								<div class="collate-history">
 									<div class="wrapper">
 										<div class="collate-list">
-											<div class="operation">
-												<span onclick="del(100)">批量删除</span>
-												<span>下载数据</span>
-											</div>
 											<div class="search fr">
 												<input type="text" placeholder="搜索">
 												<i class="ser-btn"></i>
@@ -67,9 +63,8 @@
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">用户状态</span><span class="ion-android-sort " ></span>
 					                                            <ul class="dropdown-menu" role="menu">
 					                                                <li><a href="#">全部</a></li>
-					                                                <li><a href="#">已生效</a></li>
-					                                                <li><a href="#">已注销</a></li>
-					                                                <li><a href="#">已删除</a></li>
+					                                                <li><a href="#">未激活</a></li>
+					                                                <li><a href="#">已激活</a></li>
 					                                            </ul>
 					                                        </div>
 														</th>
@@ -88,9 +83,12 @@
 														<td>{{p.get('phone') or ''}}</td>
 														<td>{{p['email']}}</td>
 														<td>{{p.get('gender', '')}}</td>
-														<td>已生效</td>
+														<td>已激活</td>
 														<td>{{p['create_time']}}</td>
-														<td><span onclick="del(10)">删除</span><span onclick="reset(10)">重置密码</span></td>
+														<td>
+															<span onclick='update("{{p}}")'>修改</span>
+															<span onclick="reset(10)">重置密码</span>
+														</td>
 													</tr>
 													{% end %}
 												</tbody>
@@ -105,37 +103,94 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Modify Modals -->
+		<div class="panel-body" style="padding: 0;">
+			<!-- modal content -->
+			<div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+							<h4 class="modal-title" id="myModalLabel">修改用户信息</h4>
+						</div>
+						<div class="modal-body">
+							<form class="form-horizontal">
+								<div class="form-group">
+									<label class="col-sm-2 control-label">姓名</label>
+									<div class="col-md-10">
+										<input type="text" class="form-control" value="" id="name">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-2 control-label">联系方式</label>
+									<div class="col-md-10">
+										<p class="form-control-static" id="account"></p>
+									</div>
+								</div>
+
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+							<button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+						</div>
+					</div>
+					<!-- /.modal-content -->
+				</div>
+				<!-- /.modal-dialog -->
+			</div>
+			<!-- /.panel-body -->
+		</div>
+		<!-- /.modal -->
+
 		{% include _base_js.html %}
 
 		<script type="text/javascript">
-			
-			/**
-			 * 删除用户
-			 * @param {Object} name 用户名
+			 /**
+			 * 修改用户
+			 * @param {Object} user 用户名
 			 */
-			function del(name) {
-				swal({
-						title: "确定删除" + name + "吗？",
-						text: "删除后无法恢复！",
-						type: "warning",
-						showCancelButton: true,
-						confirmButtonColor: "#b8906f",
-						confirmButtonText: "确定删除",
-						cancelButtonText: "取消",
-						closeOnConfirm: false
-					},
-					function() {
-						//此处调用后台删除逻辑(ajax)
-						
-						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-						swal({
-							title: "删除！",
-							text: name + "已经被删除。",
-							type: "success",
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定"
-						});
+			function update(user) {
+				var $dlg = $('#modifyModal');
+				var $name = $dlg.find('#name');
+				var $account = $dlg.find('#account');
+				var $list = $dlg.find('.authority-list');
+
+				user = decodeJSON(user);
+				$dlg.modal();
+				$name.val(user.name);
+				$account.text((user.phone ? user.phone + ' ' : '') + user.email);
+
+				$list.find('label').each(function (i, el) {
+					var label = $(el).text().replace(/\s/g, '');
+					$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
+				});
+
+				$dlg.find("#modal_confirm").unbind('click').click(function () {
+					var info = {email: user.email, name: $name.val()};
+					var authority = [];
+					$list.find('label').each(function (i, el) {
+						var label = $(el).text().replace(/\s/g, '');
+						if ($(el).find('input').is(':checked')) {
+							authority.push(label);
+						}
 					});
+					info.authority = authority.join(',');
+
+					postApi('/user/change', {data: info}, function () {
+						showSuccess('修改成功', user.name + ' 的信息已修改。');
+						setTimeout(function () {
+							window.location.reload();
+						}, 1500);
+					}, function (msg, code) {
+						if (code === 1009) {
+							showSuccess('修改成功', '用户信息没有发生改变。');
+							return $dlg.modal('hide');
+						}
+						showError('修改失败', msg);
+					});
+				});
 			}
 			
 			/**
