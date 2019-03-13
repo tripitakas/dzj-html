@@ -12,15 +12,15 @@ import model.user as u
 
 
 class LoginHandler(BaseHandler):
-    URL = ['/login', '/login.html']
+    URL = '/login'
 
     def get(self):
         """ 登录页面 """
-        self.render('login.html', next=self.get_query_argument('next', '/'))
+        self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
 class RegisterHandler(BaseHandler):
-    URL = '/user_register.html'
+    URL = '/user/register'
 
     def get(self):
         """ 注册页面 """
@@ -28,7 +28,7 @@ class RegisterHandler(BaseHandler):
 
 
 class UsersHandler(BaseHandler):
-    URL = '/dzj_user_manage.html'
+    URL = '/user/admin'
 
     @authenticated
     def get(self):
@@ -46,7 +46,7 @@ class UsersHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('dzj_user_manage.html', users=users)
+        self.render('user_admin.html', users=users)
 
     @staticmethod
     def trim_user(r):
@@ -55,7 +55,7 @@ class UsersHandler(BaseHandler):
 
 
 class UserRolesHandler(BaseHandler):
-    URL = '/dzj_user_role.html'
+    URL = '/user/role'
 
     @authenticated
     def get(self):
@@ -73,11 +73,11 @@ class UserRolesHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('dzj_user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
+        self.render('user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
 
 class UsersDataHandler(BaseHandler):
-    URL = '/dzj_user_data.html'
+    URL = '/user/statistic'
 
     @authenticated
     def get(self):
@@ -100,7 +100,7 @@ class UsersDataHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('dzj_user_data.html', users=users)
+        self.render('user_statistic.html', users=users)
 
 
 
