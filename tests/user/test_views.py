@@ -5,7 +5,7 @@
 """
 from tests.testcase import APITestCase
 from controller.views import handlers
-from controller.role import get_role_routes, role_route_maps
+from controller.role import role_route_maps
 from itertools import chain
 import re
 
@@ -14,16 +14,17 @@ user1 = 't1@test.com', 't12345'
 
 
 class TestViews(APITestCase):
+    ROUTES = list(chain(*(list(v.get('routes', {}).keys()) for v in role_route_maps.values())))
 
-    def _test_view(self, url):
+    def _test_view(self, url, errors=None):
         if '(' not in url:
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
             self.assertFalse('访问出错' in r, msg=url)
 
         # 确保每个前端路由都设置了角色
-        routes = list(chain(*(list(v.get('routes', {}).keys()) for v in role_route_maps.values())))
-        self.assertIn(url, routes, msg=url + ' no role')
+        if errors is not None and url not in self.ROUTES:
+            errors.append(url + ' no role')
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
@@ -38,12 +39,14 @@ class TestViews(APITestCase):
     def test_with_any_user(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
+            errors = []
             for view in handlers:
                 if isinstance(view.URL, list):
                     for url in view.URL:
-                        self._test_view(url)
+                        self._test_view(url, errors)
                 elif isinstance(view.URL, str):
-                    self._test_view(view.URL)
+                    self._test_view(view.URL, errors)
+            self.assertFalse(errors)
 
     def test_404(self):
         r = self.parse_response(self.fetch('/xyz'))

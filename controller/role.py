@@ -142,7 +142,10 @@ role_route_maps = {
             '/task/admin/cut_char_review': ['GET'],
             '/task/admin/text_proof': ['GET'],
             '/task/admin/text_review': ['GET'],
-
+            '/dzj_task_cut_status.html': ['GET'],
+            '/dzj_task_char_status.html': ['GET'],
+            '/task/admin/cut/status': ['GET'],
+            '/task/admin/text/status': ['GET'],
             '/api/start/@page_prefix': ['POST'],
         }
     },
