@@ -48,6 +48,7 @@ role_route_maps = {
     },
     'cut_block_proof': {
         'name': '切栏校对员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_block_proof': ['GET'],
             '/task/my/cut_block_proof': ['GET'],
@@ -58,6 +59,7 @@ role_route_maps = {
     },
     'cut_block_review': {
         'name': '切栏审定员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_block_review': ['GET'],
             '/task/my/cut_block_review': ['GET'],
@@ -68,6 +70,7 @@ role_route_maps = {
     },
     'cut_column_proof': {
         'name': '切列校对员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_column_proof': ['GET'],
             '/task/my/cut_column_proof': ['GET'],
@@ -76,6 +79,7 @@ role_route_maps = {
     },
     'cut_column_review': {
         'name': '切列审定员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_column_review': ['GET'],
             '/task/my/cut_column_review': ['GET'],
@@ -84,6 +88,7 @@ role_route_maps = {
     },
     'cut_char_proof': {
         'name': '切字校对员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_char_proof': ['GET'],
             '/task/my/cut_char_proof': ['GET'],
@@ -92,6 +97,7 @@ role_route_maps = {
     },
     'cut_char_review': {
         'name': '切字审定员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/cut_char_review': ['GET'],
             '/task/my/cut_char_review': ['GET'],
@@ -101,6 +107,7 @@ role_route_maps = {
     'cut_expert': {
         'name': '切分专家',
         'roles': [
+            'user',
             'cut_block_proof', 'cut_block_review',
             'cut_column_proof', 'cut_column_review',
             'cut_char_proof', 'cut_char_review',
@@ -108,6 +115,7 @@ role_route_maps = {
     },
     'text_proof': {
         'name': '文字校对员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
@@ -119,6 +127,7 @@ role_route_maps = {
     },
     'text_review': {
         'name': '文字审定员',
+        'roles': ['user'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -129,10 +138,11 @@ role_route_maps = {
     },
     'text_expert': {
         'name': '文字专家',
-        'roles': ['text_proof', 'text_review', ],
+        'roles': ['user', 'text_proof', 'text_review', ],
     },
     'task_admin': {
         'name': '任务管理员',
+        'roles': ['user'],
         'routes': {
             '/task/admin/cut_block_proof': ['GET'],
             '/task/admin/cut_block_review': ['GET'],
@@ -151,6 +161,7 @@ role_route_maps = {
     },
     'data_admin': {
         'name': '数据管理员',
+        'roles': ['user'],
         'routes': {
             '/data/tripitaka': ['GET'],
             '/data/envelop': ['GET'],
@@ -163,6 +174,7 @@ role_route_maps = {
     },
     'manager': {
         'name': '超级管理员',
+        'roles': ['user'],
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
@@ -187,5 +199,5 @@ def get_role_routes(role, routes=None):
 
 
 if __name__ == '__main__':
-    for k, v in get_role_routes(['cut_expert', 'data_admin', 'task_admin']).items():
+    for k, v in get_role_routes(['cut_expert']).items():
         print(k, v)  # TODO: 这段测试可移到单元测试中，校验 role_route_maps

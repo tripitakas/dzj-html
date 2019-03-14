@@ -19,5 +19,3 @@ url_placeholder = {
     'box-type': 'block|column|char',
 }
 
-# 角色权限对应表
-

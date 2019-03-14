@@ -73,7 +73,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error(errors.unauthorized, reason='需要登录')
 
         # 检查哪种角色可访问这些URL
-        get_role_routes(['user'] + self.roles, allow_routes)
+        get_role_routes(self.roles, allow_routes)
         if in_routes():
             return
 
