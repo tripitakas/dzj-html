@@ -39,8 +39,10 @@ class BaseHandler(CorsMixin, RequestHandler):
     CORS_CREDENTIALS = True
 
     def __init__(self, application, request, **kwargs):
+        """ 请求响应的初始化，在此指定额外属性的默认值 """
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.authority = ''
+        self.roles = []
         self.db = self.application.db
 
     def set_default_headers(self):
@@ -50,26 +52,32 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
-
     def prepare(self):
-        if hasattr(self, 'AUTHORITY'):
-            auths = list(self.AUTHORITY) if isinstance(self.AUTHORITY, tuple) else [self.AUTHORITY]
-            if 'testing' in auths and options.testing:
-                return
-            if not self.update_login():
-                return self.send_error(errors.unauthorized)
-            if 'any' in auths:
-                return
-            if not [r for r in auths if r in self.authority]:
-                return self.send_error(errors.unauthorized, reason='|'.join(auths))
+        """ 调用 get/set 前的准备 """
 
+        def in_routes():
+            uri = re.sub(r'\?.+$', '', self.request.uri)
+            for route, methods in allow_routes.items():
+                route = self.application.decode_handler_routes(route)[0]
+                if re.match(route, uri):
+                    if self.request.method in methods:
+                        return True
 
-    def check_auth(self):
-        route = self.URL
-        method = self.request.method
-        routes = get_role_routes(self.current_roles)
-        return route in routes and method in routes[route]
+        # 先检查单元测试用途、访客能否访问
+        allow_routes = get_role_routes(['testing', 'anonymous'] if options.testing else 'anonymous')
+        if allow_routes and in_routes():
+            return
 
+        # 更新登录信息和self.roles
+        if not self.update_login():
+            return self.send_error(errors.unauthorized, reason='需要登录')
+
+        # 检查哪种角色可访问这些URL
+        get_role_routes(['user'] + self.roles, allow_routes)
+        if in_routes():
+            return
+
+        return self.send_error(errors.unauthorized, reason=','.join(self.roles) if options.debug else '')
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -80,6 +88,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             user = user and convert2obj(User, json_decode(user))
             self.authority = user and user.authority or ''
+            self._update_roles()
             return user or None
         except TypeError as e:
             print(user, str(e))
@@ -104,7 +113,12 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.send_error(errors.auth_changed)
             raise Warning(1, '需要重新登录或注册')
         self.authority = self.current_user.authority
+        self._update_roles()
+
         return True
+
+    def _update_roles(self):
+        self.roles = [role for role, role_desc in authority_map.items() if role_desc in self.authority]
 
     def render(self, template_name, **kwargs):
         kwargs['authority'] = self.current_user.authority if self.current_user else ''

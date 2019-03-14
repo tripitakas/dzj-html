@@ -43,7 +43,7 @@ authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW,
                      text_proof=ACCESS_TEXT_PROOF, text_review=ACCESS_TEXT_REVIEW,
                      fmt_proof=ACCESS_FMT_PROOF, fmt_review=ACCESS_FMT_REVIEW,
                      text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,
-                     task_mgr=ACCESS_TASK_MGR, data_mgr=ACCESS_DATA_MGR)
+                     task_admin=ACCESS_TASK_MGR, data_admin=ACCESS_DATA_MGR)
 
 
 # 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀

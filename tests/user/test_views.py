@@ -53,6 +53,6 @@ class TestViews(APITestCase):
             self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, method))
 
     def test_profile(self):
-        self.login('text1@test.com', 't12345')
+        self.assert_code(200, self.login('text1@test.com', 't12345'))
         r = self.parse_response(self.fetch('/user/profile'))
         self.assertIn('text1@test.com', r)

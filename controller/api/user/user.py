@@ -66,7 +66,7 @@ class LoginApi(BaseHandler):
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             user = self.db.user.find_one(dict(email=email))
-            self.current_roles = [k for k, v in user.get('roles', {}).items() if v]
+            self.roles = [k for k, v in user.get('roles', {}).items() if v]
             user = self.fetch2obj(user, u.User, fetch_authority, fields=fields)
             if not user:
                 self.add_op_log('login-no', context=email)
@@ -131,12 +131,13 @@ class RegisterApi(BaseHandler):
                     return self.send_error(errors.user_exists, reason=user.email)
 
                 # 创建用户，分配权限，设置为当前用户
+                roles = dict(manager=int(mgr), task_admin=int(mgr), data_admin=int(mgr))
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=hlp.gen_id(user.password),
-                    roles=dict(manager=int(mgr), task_mgr=int(mgr), data_mgr=int(mgr)),
-                    create_time=user.create_time))
+                    roles=roles, create_time=user.create_time))
 
+                self.roles = [k for k, v in roles.items() if v]
                 user.authority = u.ACCESS_MANAGER if mgr else ''
                 self.current_user = user
                 self.add_op_log('register', context=user.email + ': ' + user.name)

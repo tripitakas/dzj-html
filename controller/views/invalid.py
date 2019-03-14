@@ -11,6 +11,9 @@ from controller.base.task import TaskHandler
 
 
 class InvalidPageHandler(TaskHandler):
+    def prepare(self):
+        pass  # ignore roles
+
     def get(self):
         if '/api/' in self.request.path:
             self.set_status(404, reason='Not found')

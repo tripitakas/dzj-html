@@ -15,7 +15,7 @@ import pymongo
 from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from controller.handler.task import TaskHandler as task
+from controller.base.task import TaskHandler as task
 
 IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 data = dict(count=0)
