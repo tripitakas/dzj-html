@@ -12,7 +12,7 @@ import model.user as u
 
 
 class UserLoginHandler(BaseHandler):
-    URL = '/login'
+    URL = '/user/login'
 
     def get(self):
         """ 登录页面 """

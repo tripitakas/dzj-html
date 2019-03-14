@@ -5,6 +5,8 @@
 """
 from tests.testcase import APITestCase
 from controller.views import handlers
+from controller.role import get_role_routes, role_route_maps
+from itertools import chain
 import re
 
 admin = 'admin@test.com', 'test123'
@@ -18,6 +20,10 @@ class TestViews(APITestCase):
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
             self.assertFalse('访问出错' in r, msg=url)
+
+        # 确保每个前端路由都设置了角色
+        routes = list(chain(*(list(v.get('routes', {}).keys()) for v in role_route_maps.values())))
+        self.assertIn(url, routes, msg=url + ' no role')
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})

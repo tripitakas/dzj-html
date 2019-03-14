@@ -38,9 +38,12 @@ role_route_maps = {
     'user': {
         'name': '普通用户',
         'routes': {
+            '/': ['GET'],
+            '/home': ['GET'],
             '/user/logout': ['GET'],
             '/user/profile': ['GET'],
             '/api/user/change': ['POST'],
+            '/dzj_@task-kind_history.html': ['GET'],
         }
     },
     'cut_block_proof': {
@@ -49,6 +52,8 @@ role_route_maps = {
             '/task/lobby/cut_block_proof': ['GET'],
             '/task/my/cut_block_proof': ['GET'],
             '/task/do/cut_block_proof/@task_id': ['GET', 'POST'],
+            '/dzj_cut.html': ['GET'],
+            '/dzj_@box-type_cut_proof/@task_id': ['GET'],
         }
     },
     'cut_block_review': {
@@ -57,6 +62,8 @@ role_route_maps = {
             '/task/lobby/cut_block_review': ['GET'],
             '/task/my/cut_block_review': ['GET'],
             '/task/do/cut_block_review/@task_id': ['GET', 'POST'],
+            '/dzj_cut_check.html': ['GET'],
+            '/dzj_@box-type_cut_review/@task_id': ['GET'],
         }
     },
     'cut_column_proof': {
@@ -105,6 +112,8 @@ role_route_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
+            '/dzj_chars': ['GET'],
+            '/dzj_char/@task_id': ['GET'],
         }
 
     },
@@ -114,6 +123,8 @@ role_route_maps = {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
             '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
+            '/dzj_char_check.html': ['GET'],
+            '/dzj_char/@task_id': ['GET'],
         }
     },
     'text_expert': {
@@ -144,6 +155,15 @@ role_route_maps = {
             '/data/sutra': ['GET'],
             '/data/reel': ['GET'],
             '/data/page': ['GET'],
+            '/user/statistic': ['GET'],
+        }
+    },
+    'manager': {
+        'name': '超级管理员',
+        'routes': {
+            '/user/admin': ['GET'],
+            '/user/role': ['GET'],
+            '/user/statistic': ['GET'],
         }
     },
 }

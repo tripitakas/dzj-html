@@ -195,7 +195,7 @@ class ChooseCutReviewHandler(TaskHandler):
 
 
 class ChooseCharProofHandler(TaskHandler):
-    URL = ['/dzj_char.html', '/dzj_chars']
+    URL = '/dzj_chars'
 
     @authenticated
     def get(self):
@@ -281,11 +281,8 @@ class MyTasksHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
 
-class CutProofDetailHandler(TaskHandler):
-    URL = '/dzj_@box-type_cut_(proof|review)/@task_id'
-
-    @authenticated
-    def get(self, box_type, stage, name):
+class CutDetailBaseHandler(TaskHandler):
+    def enter(self, box_type, stage, name):
         """ 进入切分校对 """
 
         def handle_response(body):
@@ -323,8 +320,22 @@ class CutProofDetailHandler(TaskHandler):
         return '/static/img/{0}/{1}.jpg'.format(name[:2], name)
 
 
+class CutProofDetailHandler(TaskHandler):
+    URL = '/dzj_@box-type_cut_proof/@task_id'
+
+    def get(self, box_type, name):
+        self.enter(box_type, 'proof', name)
+
+
+class CutReviewDetailHandler(TaskHandler):
+    URL = '/dzj_@box-type_cut_review/@task_id'
+
+    def get(self, box_type, name):
+        self.enter(box_type, 'review', name)
+
+
 class CharProofDetailHandler(TaskHandler):
-    URL = ['/dzj_char_detail.html', '/dzj_char/@task_id']
+    URL = '/dzj_char/@task_id'
 
     @authenticated
     def get(self, name=''):

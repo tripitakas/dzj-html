@@ -77,7 +77,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         if in_routes():
             return
 
-        return self.send_error(errors.unauthorized, reason=','.join(self.roles) if options.debug else '')
+        return self.send_error(errors.unauthorized,
+                               render='/api/' not in self.request.uri,
+                               reason=','.join(self.roles) if options.debug else '')
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
