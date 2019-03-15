@@ -42,23 +42,7 @@ class TaskLobbyHandler(TaskHandler):
         return list(self.get_tasks_info_by_type(task_type, self.STATUS_OPENED))
 
 
-class CutProofTaskLobbyHandler(TaskHandler):
-    URL = '/task/lobby/@box-type_cut_proof'
-
-    def get(self, kind):
-        """ 切分校对任务大厅 """
-        self.show_tasks(kind + '_cut_proof')
-
-
-class CutReviewTaskLobbyHandler(TaskHandler):
-    URL = '/task/lobby/@box-type_cut_review'
-
-    def get(self, kind):
-        """ 切分审定任务大厅 """
-        self.show_tasks(kind + '_cut_review')
-
-
-class TextProofTaskLobbyHandler(TaskHandler):
+class TextProofTaskLobbyHandler(TaskLobbyHandler):
     URL = '/task/lobby/text_proof'
 
     def get(self):
@@ -72,7 +56,7 @@ class TextProofTaskLobbyHandler(TaskHandler):
         return tasks
 
 
-class TextReviewTaskLobbyHandler(TaskHandler):
+class TextReviewTaskLobbyHandler(TaskLobbyHandler):
     URL = '/task/lobby/text_review'
 
     def get(self):
@@ -179,50 +163,85 @@ def get_my_tasks(self, task_type, cond=None):
     return [convert_bson(p) for p in self.db.page.find(cond)]
 
 
+# TODO: ChooseCutProofHandler 和 TaskLobbyHandler 重复了，需要合并去重
 class ChooseCutProofHandler(TaskHandler):
-    URL = '/dzj_cut.html'
-
-    def get(self):
+    def choose(self, task_type):
         """ 任务大厅-切分校对 """
         try:
-            all_pages, all_tasks, all_excludes = [], [], []
-            for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof']:
-                pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
-                task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
-                tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
-                              priority=p.get(task_type + '_priority', '高'),
-                              status='待继续' if p.get(task_type + '_user') else
-                              u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
-                all_pages.extend(pages)
-                all_tasks.extend(tasks)
-                all_excludes.extend(excludes)
-            self.render('dzj_cut.html', stage='proof', tasks=all_tasks,
-                        remain=len(all_pages), excludes=len(all_excludes))
+            pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
+            task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
+            tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
+                          priority=p.get(task_type + '_priority', '高'),
+                          status='待继续' if p.get(task_type + '_user') else
+                          u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
+            self.render('dzj_cut.html', stage='proof', tasks=tasks,
+                        remain=len(pages), excludes=len(excludes))
         except Exception as e:
             self.send_db_error(e, render=True)
+
+
+class LobbyBlockCutProofHandler(ChooseCutProofHandler):
+    URL = '/task/lobby/block_cut_proof'
+
+    def get(self):
+        """ 任务大厅-栏切分校对 """
+        self.choose('block_cut_proof')
+
+
+class LobbyColumnCutProofHandler(ChooseCutProofHandler):
+    URL = '/task/lobby/column_cut_proof'
+
+    def get(self):
+        """ 任务大厅-列切分校对 """
+        self.choose('column_cut_proof')
+
+
+class LobbyCharCutProofHandler(ChooseCutProofHandler):
+    URL = '/task/lobby/char_cut_proof'
+
+    def get(self):
+        """ 任务大厅-字切分校对 """
+        self.choose('char_cut_proof')
 
 
 class ChooseCutReviewHandler(TaskHandler):
-    URL = '/dzj_cut_check.html'
-
-    def get(self):
+    def choose(self, task_type):
         """ 任务大厅-切分审定 """
         try:
-            all_pages, all_tasks, all_excludes = [], [], []
-            for task_type in ['block_cut_review', 'column_cut_review', 'char_cut_review']:
-                pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
-                task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
-                tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
-                              priority=p.get(task_type + '_priority', '高'),
-                              status='待继续' if p.get(task_type + '_user') else
-                              u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
-                all_pages.extend(pages)
-                all_tasks.extend(tasks)
-                all_excludes.extend(excludes)
-            self.render('dzj_cut.html', stage='review', tasks=all_tasks,
-                        remain=len(all_pages), excludes=len(all_excludes))
+            pages, tasks, excludes = get_my_or_free_tasks(self, task_type)
+            task_name = '切%s' % (dict(block='栏', column='列', char='字')[task_type.split('_')[0]],)
+            tasks = [dict(name=p['name'], kind=task_name, task_type=task_type,
+                          priority=p.get(task_type + '_priority', '高'),
+                          status='待继续' if p.get(task_type + '_user') else
+                          u.task_statuses.get(p.get(task_type + '_status')) or '待领取') for p in tasks]
+            self.render('dzj_cut.html', stage='review', tasks=tasks,
+                        remain=len(pages), excludes=len(excludes))
         except Exception as e:
             self.send_db_error(e, render=True)
+
+
+class LobbyBlockCutReviewHandler(ChooseCutReviewHandler):
+    URL = '/task/lobby/block_cut_review'
+
+    def get(self):
+        """ 任务大厅-栏切分审定 """
+        self.choose('block_cut_review')
+
+
+class LobbyColumnCutReviewHandler(ChooseCutReviewHandler):
+    URL = '/task/lobby/column_cut_review'
+
+    def get(self):
+        """ 任务大厅-列切分审定 """
+        self.choose('column_cut_review')
+
+
+class LobbyCharCutReviewHandler(ChooseCutReviewHandler):
+    URL = '/task/lobby/char_cut_review'
+
+    def get(self):
+        """ 任务大厅-字切分审定 """
+        self.choose('char_cut_review')
 
 
 class ChooseCharProofHandler(TaskHandler):

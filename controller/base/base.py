@@ -75,7 +75,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if in_routes():
             return
 
-        need_roles = get_route_roles(self.URL, self.request.method)
+        need_roles = [authority_map[r] for r in get_route_roles(self.URL, self.request.method)]
         return options.debug and self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
 
     def get_current_user(self):
@@ -103,9 +103,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         if old_user:
             user = self.current_user
             user.authority = old_user.authority
-            for k, v in list(user.__dict__.items()):
-                if v is None or v == str:
-                    user.__dict__.pop(k)
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         else:
             self.current_user.authority = ''
@@ -200,7 +197,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         data = dict()
         for v in filter_attr:
             d = getattr(obj, v)
-            data[v] = d
+            if d not in [None, str, int]:
+                data[v] = d
         return data
 
     def convert_for_send(self, response, trim=None):

@@ -82,8 +82,8 @@
 													<tr id="{{t['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{t['name']}}</td>
-														{% for item in ['cut_block_proof','cut_block_review','cut_column_proof', \
-														                'cut_column_review','cut_char_proof','cut_char_review'] %}
+														{% for item in ['block_cut_proof','block_cut_review','column_cut_proof', \
+														                'column_cut_review','char_cut_proof','char_cut_review'] %}
 														<td class="">{{task_statuses.get(t.get(item, {}).get('status'), '')}}</td>
 														{% end %}
 													</tr>

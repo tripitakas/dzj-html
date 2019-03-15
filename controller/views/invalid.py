@@ -32,7 +32,7 @@ class ApiTable(TaskHandler):
     URL = '/api'
 
     def get(self):
-        """ 显示网站所有API和路由的响应类 """
+        """ 显示后端API和前端路由 """
 
         def get_doc():
             assert func.__doc__, str(func) + ' no comment'

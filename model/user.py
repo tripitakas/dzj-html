@@ -47,9 +47,9 @@ ACCESS_ALL = [ACCESS_CUT_PROOF, ACCESS_CUT_REVIEW, ACCESS_TEXT_PROOF, ACCESS_TEX
               ACCESS_FMT_PROOF, ACCESS_FMT_REVIEW, ACCESS_TASK_MGR, ACCESS_DATA_MGR, ACCESS_MANAGER]
 
 authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW, cut_expert=ACCESS_CUT_EXPERT,
-                     cut_block_proof=ACCESS_CUT_BLOCK_PROOF, cut_block_review=ACCESS_CUT_BLOCK_REVIEW,
-                     cut_column_proof=ACCESS_CUT_COLUMN_PROOF, cut_column_review=ACCESS_CUT_COLUMN_REVIEW,
-                     cut_char_proof=ACCESS_CUT_CHAR_PROOF, cut_char_review=ACCESS_CUT_CHAR_REVIEW,
+                     block_cut_proof=ACCESS_CUT_BLOCK_PROOF, block_cut_review=ACCESS_CUT_BLOCK_REVIEW,
+                     column_cut_proof=ACCESS_CUT_COLUMN_PROOF, column_cut_review=ACCESS_CUT_COLUMN_REVIEW,
+                     char_cut_proof=ACCESS_CUT_CHAR_PROOF, char_cut_review=ACCESS_CUT_CHAR_REVIEW,
                      text_proof=ACCESS_TEXT_PROOF, text_review=ACCESS_TEXT_REVIEW,
                      fmt_proof=ACCESS_FMT_PROOF, fmt_review=ACCESS_FMT_REVIEW,
                      text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,

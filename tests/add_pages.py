@@ -72,12 +72,12 @@ def add_page(name, info, db):
                     create_time=datetime.now())
         # initialize task
         meta.update({
-            'cut_block_proof': {'status': task.STATUS_READY},
-            'cut_block_review': {'status': task.STATUS_READY},
-            'cut_column_proof': {'status': task.STATUS_READY},
-            'cut_column_review': {'status': task.STATUS_READY},
-            'cut_char_proof': {'status': task.STATUS_READY},
-            'cut_char_review': {'status': task.STATUS_READY},
+            'block_cut_proof': {'status': task.STATUS_READY},
+            'block_cut_review': {'status': task.STATUS_READY},
+            'column_cut_proof': {'status': task.STATUS_READY},
+            'column_cut_review': {'status': task.STATUS_READY},
+            'char_cut_proof': {'status': task.STATUS_READY},
+            'char_cut_review': {'status': task.STATUS_READY},
         })
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (

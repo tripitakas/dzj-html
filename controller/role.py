@@ -47,6 +47,9 @@ role_route_maps = {
             '/dzj_@task-kind_history.html': ['GET'],
             '/api/pwd/change': ['POST'],
             '/task/my/@task_type': ['GET'],
+            '/tripitaka': ['GET'],
+            '/tripitaka/@tripitaka_id': ['GET'],
+            '/tripitaka/rs': ['GET'],
         }
     },
     'cut_proof': {
@@ -56,7 +59,6 @@ role_route_maps = {
             '/api/pick/@box-type_cut_proof/@task_id': ['GET'],
             '/dzj_@box-type_cut_proof/@task_id': ['GET'],
             '/api/save/@box-type_cut_proof': ['POST'],
-            '/task/lobby/@box-type_cut_proof': ['GET'],
         }
     },
     'cut_review': {
@@ -66,63 +68,60 @@ role_route_maps = {
             '/api/pick/@box-type_cut_review/@task_id': ['GET'],
             '/dzj_@box-type_cut_review/@task_id': ['GET'],
             '/api/save/@box-type_cut_review': ['POST'],
-            '/task/lobby/@box-type_cut_review': ['GET'],
         }
     },
-    'cut_block_proof': {
+    'block_cut_proof': {
         'name': '切栏校对员',
         'roles': ['cut_proof'],
         'routes': {
-            '/task/lobby/cut_block_proof': ['GET'],
-            '/task/my/cut_block_proof': ['GET'],
-            '/task/do/cut_block_proof/@task_id': ['GET', 'POST'],
-            '/dzj_cut.html': ['GET'],
+            '/task/lobby/block_cut_proof': ['GET'],
+            '/task/my/block_cut_proof': ['GET'],
+            '/task/do/block_cut_proof/@task_id': ['GET', 'POST'],
         }
     },
-    'cut_block_review': {
+    'block_cut_review': {
         'name': '切栏审定员',
         'roles': ['cut_review'],
         'routes': {
-            '/task/lobby/cut_block_review': ['GET'],
-            '/task/my/cut_block_review': ['GET'],
-            '/task/do/cut_block_review/@task_id': ['GET', 'POST'],
-            '/dzj_cut_check.html': ['GET'],
+            '/task/lobby/block_cut_review': ['GET'],
+            '/task/my/block_cut_review': ['GET'],
+            '/task/do/block_cut_review/@task_id': ['GET', 'POST'],
         }
     },
-    'cut_column_proof': {
+    'column_cut_proof': {
         'name': '切列校对员',
         'roles': ['cut_proof'],
         'routes': {
-            '/task/lobby/cut_column_proof': ['GET'],
-            '/task/my/cut_column_proof': ['GET'],
-            '/task/do/cut_column_proof/@task_id': ['GET', 'POST'],
+            '/task/lobby/column_cut_proof': ['GET'],
+            '/task/my/column_cut_proof': ['GET'],
+            '/task/do/column_cut_proof/@task_id': ['GET', 'POST'],
         }
     },
-    'cut_column_review': {
+    'column_cut_review': {
         'name': '切列审定员',
         'roles': ['cut_review'],
         'routes': {
-            '/task/lobby/cut_column_review': ['GET'],
-            '/task/my/cut_column_review': ['GET'],
-            '/task/do/cut_column_review/@task_id': ['GET', 'POST'],
+            '/task/lobby/column_cut_review': ['GET'],
+            '/task/my/column_cut_review': ['GET'],
+            '/task/do/column_cut_review/@task_id': ['GET', 'POST'],
         }
     },
-    'cut_char_proof': {
+    'char_cut_proof': {
         'name': '切字校对员',
         'roles': ['cut_proof'],
         'routes': {
-            '/task/lobby/cut_char_proof': ['GET'],
-            '/task/my/cut_char_proof': ['GET'],
-            '/task/do/cut_char_proof/@task_id': ['GET', 'POST'],
+            '/task/lobby/char_cut_proof': ['GET'],
+            '/task/my/char_cut_proof': ['GET'],
+            '/task/do/char_cut_proof/@task_id': ['GET', 'POST'],
         }
     },
-    'cut_char_review': {
+    'char_cut_review': {
         'name': '切字审定员',
         'roles': ['cut_review'],
         'routes': {
-            '/task/lobby/cut_char_review': ['GET'],
-            '/task/my/cut_char_review': ['GET'],
-            '/task/do/cut_char_review/@task_id': ['GET', 'POST'],
+            '/task/lobby/char_cut_review': ['GET'],
+            '/task/my/char_cut_review': ['GET'],
+            '/task/do/char_cut_review/@task_id': ['GET', 'POST'],
         }
     },
     'cut_expert': {

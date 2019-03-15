@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>大藏经平台API</title>
+  <title>{{site['description']}}接口</title>
   <link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
   <style>
     body {
@@ -15,7 +15,7 @@
   </style>
 </head>
 <body>
-<h3>大藏经平台API</h3>
+<h3>{{site['description']}}接口</h3>
 <p>版本：{{version}}</p>
 <table align="center">
   <tr>
@@ -23,7 +23,7 @@
     <th>接口地址</th>
     <th>类型</th>
     <th>接口说明</th>
-    <th>权限</th>
+    <th>角色</th>
   </tr>
   {% for i, (path, method, func, auth) in enumerate(handlers) %}
   <tr>

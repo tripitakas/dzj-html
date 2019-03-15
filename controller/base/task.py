@@ -32,30 +32,30 @@ class TaskHandler(BaseHandler):
     @sub_task_types 子任务列表
     """
     task_types = {
-        'cut_block_proof': {
+        'block_cut_proof': {
             'name': '切栏校对',
         },
-        'cut_block_review': {
+        'block_cut_review': {
             'name': '切栏审定',
-            'pre_tasks': ['cut_block_proof'],
+            'pre_tasks': ['block_cut_proof'],
         },
-        'cut_column_proof': {
+        'column_cut_proof': {
             'name': '切列校对',
         },
-        'cut_column_review': {
+        'column_cut_review': {
             'name': '切列审定',
-            'pre_tasks': ['cut_column_proof'],
+            'pre_tasks': ['column_cut_proof'],
         },
-        'cut_char_proof': {
+        'char_cut_proof': {
             'name': '切字校对',
         },
-        'cut_char_review': {
+        'char_cut_review': {
             'name': '切字审定',
-            'pre_tasks': ['cut_char_proof'],
+            'pre_tasks': ['char_cut_proof'],
         },
         'char_order_proof': {
             'name': '字序校对',
-            'pre_tasks': ['cut_char_review'],
+            'pre_tasks': ['char_cut_review'],
         },
         'char_order_review': {
             'name': '字序审定',
@@ -78,6 +78,10 @@ class TaskHandler(BaseHandler):
         'text_review': {
             'name': '文字审定',
             'pre_tasks': ['text_proof.1', 'text_proof.2', 'text_proof.3'],
+        },
+        'text_hard': {
+            'name': '难字处理',
+            'pre_tasks': [],
         },
     }
 
@@ -109,12 +113,12 @@ class TaskHandler(BaseHandler):
     @property
     def text_task_names(self):
         return {
-            'cut_block_proof': '切栏校对',
-            'cut_block_review': '切栏审定',
-            'cut_column_proof': '切列校对',
-            'cut_column_review': '切列审定',
-            'cut_char_proof': '切字校对',
-            'cut_char_review': '切字审定'
+            'block_cut_proof': '切栏校对',
+            'block_cut_review': '切栏审定',
+            'column_cut_proof': '切列校对',
+            'column_cut_review': '切列审定',
+            'char_cut_proof': '切字校对',
+            'char_cut_review': '切字审定'
         }
 
     @property
@@ -197,11 +201,11 @@ class TaskHandler(BaseHandler):
         """
         获取我的任务列表
         """
-        assert task_type in self.task_types.keys()
+        assert task_type in self.task_types
 
         user_id = self.current_user.id
 
-        if 'sub_task_types' in self.task_types[task_type]:
+        if 'sub_task_types' in self.task_types.get(task_type, {}):
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
             conditions = {
                 '$or': [{'%s.%s.picked_by' % (task_type, t): user_id} for t in sub_types]

@@ -45,7 +45,7 @@ def convert2obj(cls, json_obj):
     """ 将JSON对象转换为指定模型类的对象 """
     if isinstance(json_obj, dict):
         for k, v in list(json_obj.items()):
-            if v is None or v == str:
+            if v is None or v == str or v == int:
                 json_obj.pop(k)
     obj = convertJSON2OBJ(cls, json_obj)
     fields = [f for f in cls.__dict__.keys() if f[0] != '_']
