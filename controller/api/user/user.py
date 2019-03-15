@@ -66,7 +66,7 @@ class LoginApi(BaseHandler):
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             user = self.db.user.find_one(dict(email=email))
-            self.roles = [k for k, v in user.get('roles', {}).items() if v]
+            self.roles = [k for k, v in user.get('roles', {}).items() if v] if user else []
             user = self.fetch2obj(user, u.User, fetch_authority, fields=fields)
             if not user:
                 self.add_op_log('login-no', context=email)

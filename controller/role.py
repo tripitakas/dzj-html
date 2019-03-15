@@ -3,7 +3,6 @@
 """
 @desc: 角色和权限
 @time: 2019/3/13
-
 """
 
 """
@@ -38,11 +37,11 @@ role_route_maps = {
     'user': {
         'name': '普通用户',
         'routes': {
-            '/': ['GET'],
             '/home': ['GET'],
             '/user/logout': ['GET'],
             '/user/profile': ['GET'],
             '/api/user/change': ['POST'],
+            '/api/page/@task_id': ['GET'],
             '/dzj_@task-kind_history.html': ['GET'],
         }
     },
@@ -157,6 +156,7 @@ role_route_maps = {
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
             '/api/start/@page_prefix': ['POST'],
+            '/api/pages/@page_kind': ['GET'],
         }
     },
     'data_admin': {
@@ -184,18 +184,28 @@ role_route_maps = {
 }
 
 
-def get_role_routes(role, routes=None):
+def get_role_routes(role, routes=None, expand_user=True):
     """获取指定角色对应的route集合"""
     assert type(role) in [str, list]
-    roles = [role] if type(role) == str else role
+    roles = (role_route_maps.keys() if role == 'any' else [role]) if type(role) == str else role
     routes = dict() if routes is None else routes
     for r in roles:
         for url, m in role_route_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
         for r0 in role_route_maps.get(r, {}).get('roles', []):
-            get_role_routes(r0, routes)
+            if expand_user or r0 != 'user':
+                get_role_routes(r0, routes)
     return routes
+
+
+def get_route_roles(route, method):
+    roles = []
+    for role in role_route_maps.keys():
+        if method in get_role_routes(role, expand_user=False).get(route, []):
+            if role not in roles:
+                roles.append(role)
+    return roles
 
 
 if __name__ == '__main__':

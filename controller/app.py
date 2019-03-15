@@ -43,7 +43,7 @@ class Application(web.Application):
         handlers = [(r'/php/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler, dict(path=self.IMAGE_PATH))]
 
         for cls in self.handlers:
-            handlers.extend((url, cls) for url in self.decode_handler_routes(cls.URL))
+            handlers.append((self.url_replace(cls.URL), cls))
 
         handlers = sorted(handlers, key=itemgetter(0))
         web.Application.__init__(self, handlers, debug=options.debug,
@@ -54,14 +54,6 @@ class Application(web.Application):
                                  cookie_secret=self.config['cookie_secret'],
                                  log_function=self.log_function,
                                  **settings)
-
-    def decode_handler_routes(self, url):
-        if isinstance(url, list):
-            return url
-        elif isinstance(url, tuple):
-            return [self.url_replace(url[0] % url[1])]
-        else:
-            return [self.url_replace(url)]
 
     @staticmethod
     def url_replace(url):

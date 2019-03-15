@@ -21,7 +21,7 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.role import get_role_routes
+from controller.role import get_role_routes, get_route_roles
 import controller.helper
 from controller.helper import fetch_authority, convert2obj, my_framer
 from model.user import User, authority_map
@@ -56,12 +56,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         """ 调用 get/set 前的准备 """
 
         def in_routes():
-            uri = re.sub(r'\?.+$', '', self.request.uri)
-            for route, methods in allow_routes.items():
-                route = self.application.decode_handler_routes(route)[0]
-                if re.match(route, uri):
-                    if self.request.method in methods:
-                        return True
+            methods = allow_routes.get(self.URL, [])
+            if self.request.method in methods:
+                return True
 
         # 先检查单元测试用途、访客能否访问
         allow_routes = get_role_routes(['testing', 'anonymous'] if options.testing else 'anonymous')
@@ -69,7 +66,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
 
         # 更新登录信息和self.roles
-        if not self.update_login():
+        render = '/api/' not in self.request.uri
+        if not self.update_login(render):
             return self.send_error(errors.unauthorized, reason='需要登录')
 
         # 检查哪种角色可访问这些URL
@@ -77,9 +75,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         if in_routes():
             return
 
-        return self.send_error(errors.unauthorized,
-                               render='/api/' not in self.request.uri,
-                               reason=','.join(self.roles) if options.debug else '')
+        need_roles = get_route_roles(self.URL, self.request.method)
+        return self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -95,7 +92,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         except TypeError as e:
             print(user, str(e))
 
-    def update_login(self):
+    def update_login(self, auto_login=False):
         """ 更新内存中的当前用户及其权限信息 """
         if not self.current_user:
             return False
@@ -112,6 +109,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         else:
             self.current_user.authority = ''
+            if auto_login:
+                return self.redirect(self.get_login_url())
             self.send_error(errors.auth_changed)
             raise Warning(1, '需要重新登录或注册')
         self.authority = self.current_user.authority

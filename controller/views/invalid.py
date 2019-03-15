@@ -8,6 +8,8 @@
 from operator import itemgetter
 from os import path
 from controller.base.task import TaskHandler
+from controller.role import get_route_roles
+from model.user import authority_map
 
 
 class InvalidPageHandler(TaskHandler):
@@ -15,6 +17,8 @@ class InvalidPageHandler(TaskHandler):
         pass  # ignore roles
 
     def get(self):
+        if self.request.path == '/':
+            return self.redirect('/home')
         if '/api/' in self.request.path:
             self.set_status(404, reason='Not found')
             return self.finish()
@@ -31,6 +35,7 @@ class ApiTable(TaskHandler):
         """ 显示网站所有API和路由的响应类 """
 
         def get_doc():
+            assert func.__doc__, str(func) + ' no comment'
             return func.__doc__.strip().split('\n')[0]
 
         handlers = []
@@ -42,12 +47,7 @@ class ApiTable(TaskHandler):
                 method = method.strip()
                 if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
-                    if isinstance(cls.URL, list):
-                        for i, url in enumerate(cls.URL):
-                            handlers.append((url, method, get_doc(), auth))
-                    elif isinstance(cls.URL, tuple):
-                        handlers.append((cls.URL[0], method, get_doc(), auth))
-                    else:
-                        handlers.append((cls.URL, method, get_doc(), auth))
+                    roles = [authority_map[r] for r in get_route_roles(cls.URL, method)]
+                    handlers.append((cls.URL, method, get_doc(), auth + '|' + ','.join(roles)))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)

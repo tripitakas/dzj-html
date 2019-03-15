@@ -28,6 +28,13 @@ class User(object):
 
 ACCESS_CUT_PROOF = '切分校对员'
 ACCESS_CUT_REVIEW = '切分审定员'
+ACCESS_CUT_BLOCK_PROOF = '栏切分校对员'
+ACCESS_CUT_BLOCK_REVIEW = '栏切分审定员'
+ACCESS_CUT_COLUMN_PROOF = '列切分校对员'
+ACCESS_CUT_COLUMN_REVIEW = '列切分审定员'
+ACCESS_CUT_CHAR_PROOF = '字切分校对员'
+ACCESS_CUT_CHAR_REVIEW = '字切分审定员'
+ACCESS_CUT_EXPERT = '切分专家'
 ACCESS_TEXT_PROOF = '文字校对员'
 ACCESS_TEXT_REVIEW = '文字审定员'
 ACCESS_TEXT_EXPERT = '文字专家'
@@ -39,11 +46,15 @@ ACCESS_MANAGER = '超级管理员'
 ACCESS_ALL = [ACCESS_CUT_PROOF, ACCESS_CUT_REVIEW, ACCESS_TEXT_PROOF, ACCESS_TEXT_REVIEW, ACCESS_TEXT_EXPERT,
               ACCESS_FMT_PROOF, ACCESS_FMT_REVIEW, ACCESS_TASK_MGR, ACCESS_DATA_MGR, ACCESS_MANAGER]
 
-authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW,
+authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW, cut_expert=ACCESS_CUT_EXPERT,
+                     cut_block_proof=ACCESS_CUT_BLOCK_PROOF, cut_block_review=ACCESS_CUT_BLOCK_REVIEW,
+                     cut_column_proof=ACCESS_CUT_COLUMN_PROOF, cut_column_review=ACCESS_CUT_COLUMN_REVIEW,
+                     cut_char_proof=ACCESS_CUT_CHAR_PROOF, cut_char_review=ACCESS_CUT_CHAR_REVIEW,
                      text_proof=ACCESS_TEXT_PROOF, text_review=ACCESS_TEXT_REVIEW,
                      fmt_proof=ACCESS_FMT_PROOF, fmt_review=ACCESS_FMT_REVIEW,
                      text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,
-                     task_admin=ACCESS_TASK_MGR, data_admin=ACCESS_DATA_MGR)
+                     task_admin=ACCESS_TASK_MGR, data_admin=ACCESS_DATA_MGR,
+                     testing='单元测试', anonymous='访客', user='用户')
 
 
 # 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀

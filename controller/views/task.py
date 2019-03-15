@@ -283,8 +283,6 @@ class MyTasksHandler(TaskHandler):
 
 class CutDetailBaseHandler(TaskHandler):
     def enter(self, box_type, stage, name):
-        """ 进入切分校对 """
-
         def handle_response(body):
             try:
                 page = convert_bson(self.db.page.find_one(dict(name=name)))
@@ -324,6 +322,7 @@ class CutProofDetailHandler(TaskHandler):
     URL = '/dzj_@box-type_cut_proof/@task_id'
 
     def get(self, box_type, name):
+        """ 进入切分校对页面 """
         self.enter(box_type, 'proof', name)
 
 
@@ -331,6 +330,7 @@ class CutReviewDetailHandler(TaskHandler):
     URL = '/dzj_@box-type_cut_review/@task_id'
 
     def get(self, box_type, name):
+        """ 进入切分审定页面 """
         self.enter(box_type, 'review', name)
 
 
