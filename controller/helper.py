@@ -7,6 +7,7 @@
 
 import re
 import logging
+import inspect
 from datetime import datetime, timedelta
 from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
@@ -55,7 +56,6 @@ def convert2obj(cls, json_obj):
     return obj
 
 
-
 def get_date_time(fmt=None, diff_seconds=None):
     time = datetime.now()
     if diff_seconds:
@@ -82,10 +82,17 @@ def create_object(cls, value, salt='', rand=False, length=16):
 
 old_framer = logging.currentframe
 
+
 def my_framer():
     """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
     f0 = f = old_framer()
     if f is not None:
+        until = [s[1] for s in inspect.stack() if re.search(r'controller/(view|api)', s[1])]
+        if until:
+            while f.f_code.co_filename != until[0]:
+                f0 = f
+                f = f.f_back
+            return f0
         f = f.f_back
         while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
             f0 = f

@@ -16,7 +16,8 @@ handlers = [home.HomeHandler,
             task.TextProofTaskLobbyHandler, task.TextReviewTaskLobbyHandler,
             task.TaskAdminHandler, task.MyTaskHandler,
             t.RsTripitakaHandler, t.TripitakaListHandler, t.TripitakaHandler, t.DataTripitakaHandler,
-            t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,]
+            t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,
+            ]
 
 modules = {'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead,
            'Pager': modules.Pager}

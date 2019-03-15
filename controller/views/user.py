@@ -99,7 +99,6 @@ class UserStatisticHandler(BaseHandler):
         self.render('user_statistic.html', users=users)
 
 
-
 class UserProfileHandler(BaseHandler):
     URL = '/user/profile'
 

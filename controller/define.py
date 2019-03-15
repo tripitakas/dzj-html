@@ -18,4 +18,3 @@ url_placeholder = {
     'page_kind': r'[a-z_]+',
     'box-type': 'block|column|char',
 }
-

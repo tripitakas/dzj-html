@@ -219,7 +219,6 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return pages
 
-
     def get_tasks_info(self, page_size='', page_no=1):
         """
         获取所有任务的状态

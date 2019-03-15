@@ -5,9 +5,7 @@
 @time: 2019/3/13
 """
 
-from tornado.web import authenticated
 from controller.base.base import BaseHandler
-from controller.helper import fetch_authority
 
 
 class RsTripitakaHandler(BaseHandler):
@@ -25,13 +23,13 @@ class TripitakaListHandler(BaseHandler):
         """ 藏经列表 """
         self.render('tripitaka_list.html')
 
+
 class TripitakaHandler(BaseHandler):
     URL = '/tripitaka/@tripitaka_id'
 
     def get(self):
         """ 单个实体藏经 """
         self.render('tripitaka.html')
-
 
 
 class DataTripitakaHandler(BaseHandler):
@@ -48,6 +46,7 @@ class DataEnvelopHandler(BaseHandler):
     def get(self):
         """ 数据管理-实体函 """
         self.render('data_envelop.html')
+
 
 class DataVolumeHandler(BaseHandler):
     URL = '/data/volume'
@@ -71,6 +70,7 @@ class DataReelHandler(BaseHandler):
     def get(self):
         """ 数据管理-实体卷 """
         self.render('data_reel.html')
+
 
 class DataPageHandler(BaseHandler):
     URL = '/data/page'

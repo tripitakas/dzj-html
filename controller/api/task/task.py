@@ -64,7 +64,6 @@ class PublishTasksApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
-
     def has_pre_task(self, task_id, task_type):
         '''
         检查任务是否包含前置任务
@@ -75,8 +74,8 @@ class PublishTasksApi(TaskHandler):
         try:
             page = self.db.page.find_one({'name': task_id})
             types = task_type.split('.')
-            return page.get(task_type, {}).get('pre_tasks') or \
-                   page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
+            return page.get(task_type, {}).get('pre_tasks') or page.get(
+                types[0], {}).get(types[1], {}).get('pre_tasks') or False
 
         except DbError as e:
             self.send_db_error(e)

@@ -108,7 +108,8 @@ class TaskCutStatusHandler(TaskHandler):
 
         try:
             tasks = list(self.get_tasks_info())
-            self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses, task_names=self.text_task_names)
+            self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses,
+                        task_names=self.text_task_names)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -121,7 +122,8 @@ class TaskTextStatusHandler(TaskHandler):
 
         try:
             tasks = list(self.get_tasks_info())
-            self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses, task_names=self.cut_task_names)
+            self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses,
+                        task_names=self.cut_task_names)
         except Exception as e:
             self.send_db_error(e, render=True)
 
