@@ -136,7 +136,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
         except Exception as e:
-            self.render('_error.html', code=500, error='网页生成出错: %s' % (str(e),))
+            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
+            super(BaseHandler, self).render('_error.html', **kwargs)
 
     @staticmethod
     def _trim_obj(obj, param_type):
