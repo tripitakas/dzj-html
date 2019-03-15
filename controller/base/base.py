@@ -95,7 +95,7 @@ class BaseHandler(CorsMixin, RequestHandler):
     def update_login(self, auto_login=False):
         """ 更新内存中的当前用户及其权限信息 """
         if not self.current_user:
-            return False
+            return auto_login and self.redirect(self.get_login_url())
 
         fields = ['email'] + list(authority_map.keys())
         old_user = self.fetch2obj(self.db.user.find_one(dict(email=self.current_user.email)),
