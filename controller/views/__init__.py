@@ -12,7 +12,9 @@ handlers = [home.HomeHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler, task.CutReviewDetailHandler,
             task.CutStatusHandler, task.TextStatusHandler,
             task.TaskCutStatusHandler, task.TaskTextStatusHandler,
-            task.TaskLobbyHandler, task.TaskAdminHandler, task.MyTaskHandler,
+            task.CutProofTaskLobbyHandler, task.CutReviewTaskLobbyHandler,
+            task.TextProofTaskLobbyHandler, task.TextReviewTaskLobbyHandler,
+            task.TaskAdminHandler, task.MyTaskHandler,
             t.RsTripitakaHandler, t.TripitakaListHandler, t.TripitakaHandler, t.DataTripitakaHandler,
             t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,]
 

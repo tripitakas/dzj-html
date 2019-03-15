@@ -18,14 +18,16 @@ role_route_maps = {
         'routes': {
             '/api/@task_type/@task_id': ['GET'],
             '/api/page/@task_id': ['GET'],
-            '/api/pages/@page_kind': ['GET'],
+            '/api/pages/@page_kind': ['GET', 'POST'],
             '/api/unlock/@task_type_ex/@page_prefix': ['GET'],
+            '/api/user/list': ['GET'],
         }
     },
     'anonymous': {
         'name': '访客',
         'routes': {
             '/api': ['GET'],
+            '/api/options/(\w+)': ['GET'],
             '/user/login': ['GET'],
             '/user/register': ['GET'],
 
@@ -43,33 +45,53 @@ role_route_maps = {
             '/api/user/change': ['POST'],
             '/api/page/@task_id': ['GET'],
             '/dzj_@task-kind_history.html': ['GET'],
+            '/api/pwd/change': ['POST'],
+            '/task/my/@task_type': ['GET'],
+        }
+    },
+    'cut_proof': {
+        'name': '切分校对员',
+        'roles': ['user'],
+        'routes': {
+            '/api/pick/@box-type_cut_proof/@task_id': ['GET'],
+            '/dzj_@box-type_cut_proof/@task_id': ['GET'],
+            '/api/save/@box-type_cut_proof': ['POST'],
+            '/task/lobby/@box-type_cut_proof': ['GET'],
+        }
+    },
+    'cut_review': {
+        'name': '切分审定员',
+        'roles': ['user'],
+        'routes': {
+            '/api/pick/@box-type_cut_review/@task_id': ['GET'],
+            '/dzj_@box-type_cut_review/@task_id': ['GET'],
+            '/api/save/@box-type_cut_review': ['POST'],
+            '/task/lobby/@box-type_cut_review': ['GET'],
         }
     },
     'cut_block_proof': {
         'name': '切栏校对员',
-        'roles': ['user'],
+        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/cut_block_proof': ['GET'],
             '/task/my/cut_block_proof': ['GET'],
             '/task/do/cut_block_proof/@task_id': ['GET', 'POST'],
             '/dzj_cut.html': ['GET'],
-            '/dzj_@box-type_cut_proof/@task_id': ['GET'],
         }
     },
     'cut_block_review': {
         'name': '切栏审定员',
-        'roles': ['user'],
+        'roles': ['cut_review'],
         'routes': {
             '/task/lobby/cut_block_review': ['GET'],
             '/task/my/cut_block_review': ['GET'],
             '/task/do/cut_block_review/@task_id': ['GET', 'POST'],
             '/dzj_cut_check.html': ['GET'],
-            '/dzj_@box-type_cut_review/@task_id': ['GET'],
         }
     },
     'cut_column_proof': {
         'name': '切列校对员',
-        'roles': ['user'],
+        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/cut_column_proof': ['GET'],
             '/task/my/cut_column_proof': ['GET'],
@@ -78,7 +100,7 @@ role_route_maps = {
     },
     'cut_column_review': {
         'name': '切列审定员',
-        'roles': ['user'],
+        'roles': ['cut_review'],
         'routes': {
             '/task/lobby/cut_column_review': ['GET'],
             '/task/my/cut_column_review': ['GET'],
@@ -87,7 +109,7 @@ role_route_maps = {
     },
     'cut_char_proof': {
         'name': '切字校对员',
-        'roles': ['user'],
+        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/cut_char_proof': ['GET'],
             '/task/my/cut_char_proof': ['GET'],
@@ -96,7 +118,7 @@ role_route_maps = {
     },
     'cut_char_review': {
         'name': '切字审定员',
-        'roles': ['user'],
+        'roles': ['cut_review'],
         'routes': {
             '/task/lobby/cut_char_review': ['GET'],
             '/task/my/cut_char_review': ['GET'],
@@ -105,12 +127,7 @@ role_route_maps = {
     },
     'cut_expert': {
         'name': '切分专家',
-        'roles': [
-            'user',
-            'cut_block_proof', 'cut_block_review',
-            'cut_column_proof', 'cut_column_review',
-            'cut_char_proof', 'cut_char_review',
-        ],
+        'roles': ['cut_proof', 'cut_review'],
     },
     'text_proof': {
         'name': '文字校对员',
@@ -121,6 +138,7 @@ role_route_maps = {
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
             '/dzj_chars': ['GET'],
             '/dzj_char/@task_id': ['GET'],
+            '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
         }
 
     },
@@ -133,6 +151,7 @@ role_route_maps = {
             '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
             '/dzj_char_check.html': ['GET'],
             '/dzj_char/@task_id': ['GET'],
+            '/api/pick/text_review/@task_id': ['GET'],
         }
     },
     'text_expert': {
@@ -143,20 +162,15 @@ role_route_maps = {
         'name': '任务管理员',
         'roles': ['user'],
         'routes': {
-            '/task/admin/cut_block_proof': ['GET'],
-            '/task/admin/cut_block_review': ['GET'],
-            '/task/admin/cut_column_proof': ['GET'],
-            '/task/admin/cut_column_review': ['GET'],
-            '/task/admin/cut_char_proof': ['GET'],
-            '/task/admin/cut_char_review': ['GET'],
-            '/task/admin/text_proof': ['GET'],
-            '/task/admin/text_review': ['GET'],
+            '/task/admin/@task_type': ['GET'],
             '/dzj_task_cut_status.html': ['GET'],
             '/dzj_task_char_status.html': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
             '/api/start/@page_prefix': ['POST'],
-            '/api/pages/@page_kind': ['GET'],
+            '/api/pages/@page_kind': ['GET', 'POST'],
+            '/api/task/publish/@task_type': ['POST'],
+            '/api/unlock/@task_type_ex/@page_prefix': ['GET'],
         }
     },
     'data_admin': {
@@ -174,17 +188,19 @@ role_route_maps = {
     },
     'manager': {
         'name': '超级管理员',
-        'roles': ['user'],
+        'roles': ['user', 'data_admin', 'task_admin'],
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
-            '/user/statistic': ['GET'],
+            '/api/pwd/reset/@user_id': ['POST'],
+            '/api/user/list': ['GET'],
+            '/api/user/remove': ['POST'],
         }
     },
 }
 
 
-def get_role_routes(role, routes=None, expand_user=True):
+def get_role_routes(role, routes=None, exclude_roles=None):
     """获取指定角色对应的route集合"""
     assert type(role) in [str, list]
     roles = (role_route_maps.keys() if role == 'any' else [role]) if type(role) == str else role
@@ -194,17 +210,19 @@ def get_role_routes(role, routes=None, expand_user=True):
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
         for r0 in role_route_maps.get(r, {}).get('roles', []):
-            if expand_user or r0 != 'user':
-                get_role_routes(r0, routes)
+            if not exclude_roles or r0 not in exclude_roles:
+                get_role_routes(r0, routes, exclude_roles=exclude_roles)
     return routes
 
 
 def get_route_roles(route, method):
     roles = []
-    for role in role_route_maps.keys():
-        if method in get_role_routes(role, expand_user=False).get(route, []):
+    roles_used = []
+    for role in (['user', 'cut_proof', 'cut_review'] + list(role_route_maps.keys())):
+        if method in get_role_routes(role, exclude_roles=roles_used).get(route, []):
             if role not in roles:
                 roles.append(role)
+        roles_used.append(role)
     return roles
 
 

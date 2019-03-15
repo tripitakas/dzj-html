@@ -9,20 +9,16 @@ import re
 import json
 import random
 from os import path
-from tornado.web import authenticated
 from controller.base.task import TaskHandler
 from controller.helper import convert_bson
 import model.user as u
 
 
 class TaskLobbyHandler(TaskHandler):
-    URL = '/task/lobby/@task_type'
-
-    @authenticated
-    def get(self, task_type):
+    def show_tasks(self, task_type):
         """ 任务大厅 """
 
-        def pack(tasks, task_type):
+        def pack():
             for t in tasks:
                 if t.get(task_type, {}).get('priority'):
                     t['priority'] = t.get(task_type, {}).get('priority')
@@ -35,18 +31,58 @@ class TaskLobbyHandler(TaskHandler):
                         continue
 
         try:
-            tasks = list(self.get_tasks_info_by_type(task_type, self.STATUS_OPENED))
-            pack(tasks, task_type)
+            tasks = self.get_tasks(task_type)
+            pack()
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
         except Exception as e:
             self.send_db_error(e, render=True)
 
+    def get_tasks(self, task_type):
+        return list(self.get_tasks_info_by_type(task_type, self.STATUS_OPENED))
+
+
+class CutProofTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/@box-type_cut_proof'
+
+    def get(self, kind):
+        """ 切分校对任务大厅 """
+        self.show_tasks(kind + '_cut_proof')
+
+
+class CutReviewTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/@box-type_cut_review'
+
+    def get(self, kind):
+        """ 切分审定任务大厅 """
+        self.show_tasks(kind + '_cut_review')
+
+
+class TextProofTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/text_proof'
+
+    def get(self):
+        """ 文字校对任务大厅 """
+        self.show_tasks('text_proof')
+
+    def get_tasks(self, task_type):
+        tasks = list(self.get_tasks_info_by_type(task_type))
+        # TODO: 同一个页面的校一、校二、校三任务最多领取一个
+        # TODO: 返回状态为 STATUS_OPENED 的任务
+        return tasks
+
+
+class TextReviewTaskLobbyHandler(TaskHandler):
+    URL = '/task/lobby/text_review'
+
+    def get(self):
+        """ 文字审定任务大厅 """
+        self.show_tasks('text_review')
+
 
 class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
-    @authenticated
     def get(self, task_type):
         """ 我的任务 """
 
@@ -65,7 +101,6 @@ class MyTaskHandler(TaskHandler):
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
-    @authenticated
     def get(self, task_type):
         """ 任务管理 """
 
@@ -84,7 +119,6 @@ class TaskAdminHandler(TaskHandler):
 class TaskCutStatusHandler(TaskHandler):
     URL = '/task/admin/cut/status'
 
-    @authenticated
     def get(self):
         """ 切分任务状态 """
 
@@ -98,7 +132,6 @@ class TaskCutStatusHandler(TaskHandler):
 class TaskTextStatusHandler(TaskHandler):
     URL = '/task/admin/text/status'
 
-    @authenticated
     def get(self):
         """ 文字任务状态 """
 
@@ -149,7 +182,6 @@ def get_my_tasks(self, task_type, cond=None):
 class ChooseCutProofHandler(TaskHandler):
     URL = '/dzj_cut.html'
 
-    @authenticated
     def get(self):
         """ 任务大厅-切分校对 """
         try:
@@ -173,7 +205,6 @@ class ChooseCutProofHandler(TaskHandler):
 class ChooseCutReviewHandler(TaskHandler):
     URL = '/dzj_cut_check.html'
 
-    @authenticated
     def get(self):
         """ 任务大厅-切分审定 """
         try:
@@ -197,7 +228,6 @@ class ChooseCutReviewHandler(TaskHandler):
 class ChooseCharProofHandler(TaskHandler):
     URL = '/dzj_chars'
 
-    @authenticated
     def get(self):
         """ 任务大厅-文字校对 """
         try:
@@ -220,7 +250,6 @@ class ChooseCharProofHandler(TaskHandler):
 class ChooseCharReviewHandler(TaskHandler):
     URL = '/dzj_char_check.html'
 
-    @authenticated
     def get(self):
         """ 任务大厅-文字校对审定 """
         try:
@@ -236,7 +265,6 @@ class ChooseCharReviewHandler(TaskHandler):
 class MyTasksHandler(TaskHandler):
     URL = '/dzj_@task-kind_history.html'
 
-    @authenticated
     def get(self, kind):
         """ 我的任务 """
         try:
@@ -337,7 +365,6 @@ class CutReviewDetailHandler(TaskHandler):
 class CharProofDetailHandler(TaskHandler):
     URL = '/dzj_char/@task_id'
 
-    @authenticated
     def get(self, name=''):
         """ 进入文字校对 """
         try:
@@ -353,7 +380,6 @@ class CharProofDetailHandler(TaskHandler):
 class CutStatusHandler(TaskHandler):
     URL = '/dzj_task_cut_status.html'
 
-    @authenticated
     def get(self):
         """ 任务管理-切分状态 """
 
@@ -387,7 +413,6 @@ class CutStatusHandler(TaskHandler):
 class TextStatusHandler(TaskHandler):
     URL = '/dzj_task_char_status.html'
 
-    @authenticated
     def get(self):
         """ 任务管理-文字状态 """
 

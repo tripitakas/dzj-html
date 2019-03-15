@@ -18,7 +18,6 @@ import model.user as u
 
 class PublishTasksApi(TaskHandler):
     URL = r'/api/task/publish/@task_type'
-    AUTHORITY = 'testing', 'any'
 
     def post(self, task_type):
         """
@@ -85,7 +84,6 @@ class PublishTasksApi(TaskHandler):
 
 class GetTaskApi(TaskHandler):
     URL = r'/api/@task_type/@task_id'
-    AUTHORITY = 'testing', 'any'
 
     def get(self, task_type, task_id):
         """ 获取单页数据 """
@@ -100,7 +98,6 @@ class GetTaskApi(TaskHandler):
 
 class GetLobbyTasksApi(TaskHandler):
     URL = r'/api/task/lobby/@task_type'
-    AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, task_type):
         """ 任务大厅任务列表 """
@@ -132,7 +129,6 @@ class GetLobbyTasksApi(TaskHandler):
 
 class GetPageApi(TaskHandler):
     URL = r'/api/page/@task_id'
-    AUTHORITY = 'testing', 'any'
 
     def get(self, name):
         """ 获取页面数据 """
@@ -147,7 +143,6 @@ class GetPageApi(TaskHandler):
 
 class GetPagesApi(TaskHandler):
     URL = r'/api/pages/@page_kind'
-    AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, kind):
         """ 为任务管理获取页面列表 """
@@ -189,7 +184,6 @@ class GetPagesApi(TaskHandler):
 
 class UnlockTasksApi(TaskHandler):
     URL = r'/api/unlock/@task_type_ex/@page_prefix'
-    AUTHORITY = 'testing', u.ACCESS_TASK_MGR
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
@@ -221,7 +215,6 @@ class PublishTask(object):
 
 class StartTasksApi(TaskHandler):
     URL = r'/api/start/@page_prefix'
-    AUTHORITY = u.ACCESS_TASK_MGR
 
     def post(self, prefix=''):
         """ 发布审校任务 """
@@ -309,7 +302,6 @@ class PickTaskApi(TaskHandler):
 
 class PickCutProofTaskApi(PickTaskApi):
     URL = r'/api/pick/@box-type_cut_proof/@task_id'
-    AUTHORITY = u.ACCESS_CUT_PROOF
 
     def get(self, kind, name):
         """ 取切分校对任务 """
@@ -318,7 +310,6 @@ class PickCutProofTaskApi(PickTaskApi):
 
 class PickCutReviewTaskApi(PickTaskApi):
     URL = r'/api/pick/@box-type_cut_review/@task_id'
-    AUTHORITY = u.ACCESS_CUT_REVIEW
 
     def get(self, kind, name):
         """ 取切分审定任务 """
@@ -327,7 +318,6 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 class PickTextProofTaskApi(PickTaskApi):
     URL = r'/api/pick/text_proof_(1|2|3)/@task_id'
-    AUTHORITY = u.ACCESS_TEXT_PROOF
 
     def get(self, kind, name):
         """ 取文字校对任务 """
@@ -336,7 +326,6 @@ class PickTextProofTaskApi(PickTaskApi):
 
 class PickTextReviewTaskApi(PickTaskApi):
     URL = r'/api/pick/text_review/@task_id'
-    AUTHORITY = u.ACCESS_TEXT_REVIEW
 
     def get(self, name):
         """ 取文字审定任务 """
@@ -411,7 +400,6 @@ class SaveCutApi(TaskHandler):
 
 class SaveCutProofApi(SaveCutApi):
     URL = r'/api/save/@box-type_cut_proof'
-    AUTHORITY = u.ACCESS_CUT_PROOF
 
     def post(self, kind):
         """ 保存或提交切分校对任务 """
@@ -420,7 +408,6 @@ class SaveCutProofApi(SaveCutApi):
 
 class SaveCutReviewApi(SaveCutApi):
     URL = r'/api/save/@box-type_cut_review'
-    AUTHORITY = u.ACCESS_CUT_REVIEW
 
     def post(self, kind):
         """ 保存或提交切分审定任务 """

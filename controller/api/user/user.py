@@ -157,7 +157,6 @@ class RegisterApi(BaseHandler):
 
 class ChangeUserApi(BaseHandler):
     URL = '/api/user/change'
-    AUTHORITY = 'any'
 
     def check(self):
         self.current_user = self.get_current_user()
@@ -244,7 +243,6 @@ class LogoutApi(BaseHandler):
 
 class RemoveUserApi(BaseHandler):
     URL = '/api/user/remove'
-    AUTHORITY = u.ACCESS_MANAGER
 
     def post(self):
         """ 删除用户 """
@@ -272,7 +270,6 @@ class RemoveUserApi(BaseHandler):
 
 class GetUsersApi(BaseHandler):
     URL = '/api/user/list'
-    AUTHORITY = 'any'
 
     def get(self):
         """ 得到全部用户 """
@@ -308,8 +305,7 @@ class GetOptionsApi(BaseHandler):
 
 
 class ResetPasswordApi(BaseHandler):
-    URL = r'/api/pwd/reset/(\w+)'
-    AUTHORITY = u.ACCESS_MANAGER
+    URL = r'/api/pwd/reset/@user_id'
 
     def post(self, rid):
         """ 重置一个用户的密码 """
@@ -341,7 +337,6 @@ class ResetPasswordApi(BaseHandler):
 
 class ChangePasswordApi(BaseHandler):
     URL = '/api/pwd/change'
-    AUTHORITY = 'any'
 
     def post(self):
         """ 修改当前用户的密码 """

@@ -5,7 +5,6 @@
 @time: 2018/6/23
 """
 
-from tornado.web import authenticated
 from controller.base.base import BaseHandler
 from controller.helper import fetch_authority
 import model.user as u
@@ -30,7 +29,6 @@ class UserRegisterHandler(BaseHandler):
 class UsersAdminHandler(BaseHandler):
     URL = '/user/admin'
 
-    @authenticated
     def get(self):
         """ 用户管理页面 """
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
@@ -57,7 +55,6 @@ class UsersAdminHandler(BaseHandler):
 class UserRolesHandler(BaseHandler):
     URL = '/user/role'
 
-    @authenticated
     def get(self):
         """ 角色管理页面 """
         fields = ['id', 'name', 'phone'] + list(u.authority_map.keys())
@@ -79,7 +76,6 @@ class UserRolesHandler(BaseHandler):
 class UserStatisticHandler(BaseHandler):
     URL = '/user/statistic'
 
-    @authenticated
     def get(self):
         """ 人员管理-数据管理页面 """
         fields = ['id', 'name', 'phone']
@@ -107,7 +103,6 @@ class UserStatisticHandler(BaseHandler):
 class UserProfileHandler(BaseHandler):
     URL = '/user/profile'
 
-    @authenticated
     def get(self):
         """ 个人中心 """
         self.render('user_profile.html')
