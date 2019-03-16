@@ -27,6 +27,7 @@ role_route_maps = {
         'name': '访客',
         'routes': {
             '/api': ['GET'],
+            '/api/(.+)': ['GET'],
             '/api/options/(\w+)': ['GET'],
             '/user/login': ['GET'],
             '/user/register': ['GET'],

@@ -10,6 +10,8 @@ from os import path
 from controller.base.task import TaskHandler
 from controller.role import get_route_roles
 from model.user import authority_map
+import re
+import inspect
 
 
 class InvalidPageHandler(TaskHandler):
@@ -45,7 +47,27 @@ class ApiTable(TaskHandler):
                 method = method.strip()
                 if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
+                    func_name = re.sub(r'<|function |at .+$', '', str(func))
                     roles = [authority_map[r] for r in get_route_roles(cls.URL, method)]
-                    handlers.append((cls.URL, method, get_doc(), ','.join(roles)))
+                    handlers.append((cls.URL, func_name, get_doc(), ','.join(roles)))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
+
+
+class ApiSourceHandler(TaskHandler):
+    URL = '/api/(.+)'
+
+    def get(self, name):
+        """ 显示后端API的源码 """
+        for cls in self.application.handlers:
+            handler = cls(self.application, self.request)
+            for method in handler._get_methods().split(','):
+                method = method.strip()
+                if method != 'OPTIONS':
+                    func = cls.__dict__[method.lower()]
+                    func_name = re.sub(r'<|function |at .+$', '', str(func)).strip()
+                    if func_name == name:
+                        file = 'controller' + re.sub(r'^.+controller', '', inspect.getsourcefile(cls))
+                        src = inspect.getsource(cls).strip()
+                        return self.render('_api_src.html', name=name, file=file, src=src)
+        self.render('_error.html', code=404, error=name + '不存在')

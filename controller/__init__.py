@@ -6,6 +6,6 @@
 from controller import api, views
 from controller.views import invalid
 
-handlers = api.handlers + views.handlers + [invalid.ApiTable]
+handlers = api.handlers + views.handlers + [invalid.ApiTable, invalid.ApiSourceHandler]
 modules = views.modules
 InvalidPageHandler = invalid.InvalidPageHandler
