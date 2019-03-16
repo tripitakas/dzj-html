@@ -56,9 +56,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         """ 调用 get/set 前的准备 """
 
         def in_routes():
-            methods = allow_routes.get(self.URL, [])
+            methods = allow_routes.get(route, [])
             if self.request.method in methods:
                 return True
+
+        # 得到当前路由对应的 URL，可能有占位符
+        route = [self.application.url_replace(url) for url in self.URL] if isinstance(self.URL, list) else self.URL
+        route = [url for url in route if re.match(url, self.request.uri)][0] if isinstance(route, list) else route
 
         # 先检查单元测试用途、访客能否访问
         allow_routes = get_role_routes(['testing', 'anonymous'] if options.testing else 'anonymous')
@@ -75,7 +79,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if in_routes():
             return
 
-        need_roles = [authority_map[r] for r in get_route_roles(self.URL, self.request.method)]
+        need_roles = [authority_map[r] for r in get_route_roles(route, self.request.method)]
         return options.debug and self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
 
     def get_current_user(self):
@@ -239,7 +243,9 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def write_error(self, status_code, **kwargs):
         reason = kwargs.get('reason') or self._reason
-        reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错'
+        reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
+            str(self).split('.')[-1].split(' ')[0],
+            str(kwargs.get('exc_info', (0, '', 0))[1]))
         logging.error('%d %s [%s %s]' % (status_code, reason,
                                          self.current_user and self.current_user.name, self.get_ip()))
         if not self._finished:

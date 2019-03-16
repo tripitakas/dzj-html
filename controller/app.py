@@ -43,7 +43,10 @@ class Application(web.Application):
         handlers = [(r'/php/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler, dict(path=self.IMAGE_PATH))]
 
         for cls in self.handlers:
-            handlers.append((self.url_replace(cls.URL), cls))
+            if isinstance(cls.URL, list):
+                handlers.extend((self.url_replace(url), cls) for url in cls.URL)
+            else:
+                handlers.append((self.url_replace(cls.URL), cls))
 
         handlers = sorted(handlers, key=itemgetter(0))
         web.Application.__init__(self, handlers, debug=options.debug,

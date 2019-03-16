@@ -49,17 +49,22 @@ class TestViews(APITestCase):
             self.assertFalse(errors)
 
     def test_404(self):
+        # 访问不存在的前端网页将显示404页面
         r = self.parse_response(self.fetch('/xyz'))
         self.assertIn('404', r)
+
+        # 访问不存在的API接口将返回404的空结果而不是网页
         r = self.fetch('/api/xyz')
-        self.assertNotIn('404', self.parse_response(r))
+        rs = self.parse_response(r)
         self.assert_code(404, r)
+        self.assertFalse(rs)
 
     def test_show_api(self):
         r = self.parse_response(self.fetch('/api?_raw=1'))
         self.assertIn('handlers', r)
-        for url, method, comment, auth in r['handlers']:
-            self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, method))
+        for url, func, comment, auth in r['handlers']:
+            self.assertTrue(auth, '%s %s need roles' % (url, func))
+            self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, func))
 
     def test_profile(self):
         self.assert_code(200, self.login('text1@test.com', 't12345'))

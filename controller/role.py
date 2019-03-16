@@ -27,7 +27,7 @@ role_route_maps = {
         'name': '访客',
         'routes': {
             '/api': ['GET'],
-            '/api/(.+)': ['GET'],
+            '/api/code/(.+)': ['GET'],
             '/api/options/(\w+)': ['GET'],
             '/user/login': ['GET'],
             '/user/register': ['GET'],
@@ -40,6 +40,7 @@ role_route_maps = {
     'user': {
         'name': '普通用户',
         'routes': {
+            '/': ['GET'],
             '/home': ['GET'],
             '/user/logout': ['GET'],
             '/user/profile': ['GET'],

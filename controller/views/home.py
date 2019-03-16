@@ -9,7 +9,7 @@ from controller.base.task import TaskHandler
 
 
 class HomeHandler(TaskHandler):
-    URL = '/home'
+    URL = ['/', '/home']
 
     def get(self):
         """ 首页 """

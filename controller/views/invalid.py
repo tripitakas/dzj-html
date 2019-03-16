@@ -19,8 +19,6 @@ class InvalidPageHandler(TaskHandler):
         pass  # ignore roles
 
     def get(self):
-        if self.request.path == '/':
-            return self.redirect('/home')
         if '/api/' in self.request.path:
             self.set_status(404, reason='Not found')
             return self.finish()
@@ -48,14 +46,19 @@ class ApiTable(TaskHandler):
                 if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
                     func_name = re.sub(r'<|function |at .+$', '', str(func))
-                    roles = [authority_map[r] for r in get_route_roles(cls.URL, method)]
-                    handlers.append((cls.URL, func_name, get_doc(), ','.join(roles)))
+                    if isinstance(cls.URL, list):
+                        for url in cls.URL:
+                            roles = [authority_map[r] for r in get_route_roles(url, method)]
+                            handlers.append((url, func_name, get_doc(), ','.join(roles)))
+                    else:
+                        roles = [authority_map[r] for r in get_route_roles(cls.URL, method)]
+                        handlers.append((cls.URL, func_name, get_doc(), ','.join(roles)))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
 
 
 class ApiSourceHandler(TaskHandler):
-    URL = '/api/(.+)'
+    URL = '/api/code/(.+)'
 
     def get(self, name):
         """ 显示后端API的源码 """
