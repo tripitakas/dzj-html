@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>任务大厅-{{task_name}}</title>
+		{% include _base_meta.html %}
 
 		<!-- DataTables -->
 		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
@@ -58,8 +59,8 @@
 												  {% for t in tasks %}
 													<tr id="{{t['name']}}">
 														<td>{{t['name']}}</td>
-														<td>{{t['priority']}}</td>
-														<td><a href="{{t['pick_url']}}">领取</a></td>
+														<td>{{t.get('priority', '')}}</td>
+														<td><a href="{{t.get('pick_url', '#')}}">领取</a></td>
 													</tr>
 													{% end %}
 												</tbody>

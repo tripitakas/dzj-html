@@ -5,7 +5,7 @@
 """
 from tornado.escape import json_decode, json_encode, to_basestring, native_str
 from tornado.options import options
-from tornado.testing import AsyncHTTPSTestCase
+from tornado.testing import AsyncHTTPTestCase
 from tornado.httpclient import HTTPRequest
 from tornado.util import PY3
 import re
@@ -20,7 +20,7 @@ else:
 cookie = Cookie.SimpleCookie()
 
 
-class APITestCase(AsyncHTTPSTestCase):
+class APITestCase(AsyncHTTPTestCase):
 
     def get_app(self):
         options.testing = True

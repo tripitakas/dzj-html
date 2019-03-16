@@ -128,7 +128,8 @@ role_route_maps = {
     },
     'cut_expert': {
         'name': '切分专家',
-        'roles': ['cut_proof', 'cut_review'],
+        'roles': ['block_cut_proof', 'char_cut_proof', 'column_cut_proof',
+                  'block_cut_review', 'char_cut_review', 'column_cut_review'],
     },
     'text_proof': {
         'name': '文字校对员',
@@ -141,7 +142,6 @@ role_route_maps = {
             '/dzj_char/@task_id': ['GET'],
             '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
         }
-
     },
     'text_review': {
         'name': '文字审定员',
@@ -158,6 +158,9 @@ role_route_maps = {
     'text_expert': {
         'name': '文字专家',
         'roles': ['user', 'text_proof', 'text_review', ],
+        'routes': {
+            '/task/lobby/text_hard': ['GET'],
+        }
     },
     'task_admin': {
         'name': '任务管理员',
@@ -189,7 +192,7 @@ role_route_maps = {
     },
     'manager': {
         'name': '超级管理员',
-        'roles': ['user', 'data_admin', 'task_admin'],
+        'roles': ['user', 'data_admin', 'task_admin', 'text_expert', 'cut_expert'],
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],

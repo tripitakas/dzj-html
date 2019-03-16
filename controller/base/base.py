@@ -80,7 +80,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
 
         need_roles = [authority_map[r] for r in get_route_roles(route, self.request.method)]
-        return options.debug and self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
+        if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
+            self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:

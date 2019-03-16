@@ -14,17 +14,12 @@ user1 = 't1@test.com', 't12345'
 
 
 class TestViews(APITestCase):
-    ROUTES = list(chain(*(list(v.get('routes', {}).keys()) for v in role_route_maps.values())))
-
-    def _test_view(self, url, errors=None):
-        if '(' not in url:
+    def _test_view(self, url, check_role):
+        if '(' not in url:  # URL不需要动态参数
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
-            self.assertFalse('访问出错' in r, msg=url)
-
-        # 确保每个前端路由都设置了角色
-        if errors is not None and url not in self.ROUTES:
-            errors.append(url + ' no role')
+            if check_role:
+                self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
@@ -32,21 +27,19 @@ class TestViews(APITestCase):
             for view in handlers:
                 if isinstance(view.URL, list):
                     for url in view.URL:
-                        self._test_view(url)
+                        self._test_view(url, True)
                 elif isinstance(view.URL, str):
-                    self._test_view(view.URL)
+                    self._test_view(view.URL, True)
 
     def test_with_any_user(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
-            errors = []
             for view in handlers:
                 if isinstance(view.URL, list):
                     for url in view.URL:
-                        self._test_view(url, errors)
+                        self._test_view(url, False)
                 elif isinstance(view.URL, str):
-                    self._test_view(view.URL, errors)
-            self.assertFalse(errors)
+                    self._test_view(view.URL, False)
 
     def test_404(self):
         # 访问不存在的前端网页将显示404页面
@@ -63,7 +56,9 @@ class TestViews(APITestCase):
         r = self.parse_response(self.fetch('/api?_raw=1'))
         self.assertIn('handlers', r)
         for url, func, comment, auth in r['handlers']:
+            # 要求URL已登记到角色路由映射表中
             self.assertTrue(auth, '%s %s need roles' % (url, func))
+            # 控制器类的get/post方法需要写简要的文档字符串
             self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, func))
 
     def test_profile(self):

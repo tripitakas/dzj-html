@@ -64,6 +64,14 @@ class TextReviewTaskLobbyHandler(TaskLobbyHandler):
         self.show_tasks('text_review')
 
 
+class TextHardTaskLobbyHandler(TaskLobbyHandler):
+    URL = '/task/lobby/text_hard'
+
+    def get(self):
+        """ 难字处理任务大厅 """
+        self.show_tasks('text_hard')
+
+
 class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
