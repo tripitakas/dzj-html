@@ -28,9 +28,9 @@ class PublishTasksApi(TaskHandler):
         assert task_type in self.flat_task_types
         try:
             data = self.get_body_obj(PublishTask)
-            priority, task_pages = data.priority, data.pages.split(',') if data.pages else []
+            priority, task_pages = data.priority or '高', data.pages.split(',') if data.pages else []
             pages = self.db.page.find({'name': {"$in": task_pages}})
-            log = []
+            result = []
             for page in pages:
                 status = self.STATUS_UNREADY
                 if '.' in task_type:
@@ -52,30 +52,30 @@ class PublishTasksApi(TaskHandler):
                             r'%s.priority' % task_type: priority,
                         }
 
-                log.append({'name': page['name'], 'status': status})
+                result.append({'name': page['name'], 'status': status})
 
                 if status != self.STATUS_UNREADY:
                     r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
                     if r.modified_count:
                         self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
 
-            self.send_response(dict(log=log))
+            self.send_response(dict(result=result))
 
         except DbError as e:
             self.send_db_error(e)
 
     def has_pre_task(self, task_id, task_type):
-        '''
+        """
         检查任务是否包含前置任务
         :param task_id: 对应page表的name字段
         :param task_type:
         :return: True/False
-        '''
+        """
         try:
             page = self.db.page.find_one({'name': task_id})
             types = task_type.split('.')
-            return page.get(task_type, {}).get('pre_tasks') or page.get(
-                types[0], {}).get(types[1], {}).get('pre_tasks') or False
+            return page.get(task_type, {}).get('pre_tasks') or \
+                len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
 
         except DbError as e:
             self.send_db_error(e)

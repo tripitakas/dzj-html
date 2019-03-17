@@ -131,7 +131,7 @@ class RegisterApi(BaseHandler):
                     return self.send_error(errors.user_exists, reason=user.email)
 
                 # 创建用户，分配权限，设置为当前用户
-                roles = dict(manager=int(mgr), task_admin=int(mgr), data_admin=int(mgr))
+                roles = dict(manager=1) if mgr else {}
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=hlp.gen_id(user.password),
@@ -215,7 +215,7 @@ class ChangeUserApi(BaseHandler):
     def change_auth(self, info, old_auth):
         c2 = 1
         sets = {'roles.' + role: int(role_desc in info.authority) for role, role_desc in u.authority_map.items()
-                if (role_desc in info.authority) != (role_desc in old_auth)}
+                if role not in 'user' and (role_desc in info.authority) != (role_desc in old_auth)}
         if sets:
             if u.ACCESS_MANAGER not in self.authority:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
