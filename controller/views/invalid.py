@@ -41,6 +41,8 @@ class ApiTable(TaskHandler):
         handlers = []
         for cls in self.application.handlers:
             handler = cls(self.application, self.request)
+            file = 'controller' + re.sub(r'^.+controller', '', inspect.getsourcefile(cls))
+            file += '\n' + inspect.getsource(cls).split('\n')[0][:-1]
             for method in handler._get_methods().split(','):
                 method = method.strip()
                 if method != 'OPTIONS':
@@ -49,10 +51,10 @@ class ApiTable(TaskHandler):
                     if isinstance(cls.URL, list):
                         for url in cls.URL:
                             roles = [authority_map[r] for r in get_route_roles(url, method)]
-                            handlers.append((url, func_name, get_doc(), ','.join(roles)))
+                            handlers.append((url, func_name, file, get_doc(), ','.join(roles)))
                     else:
                         roles = [authority_map[r] for r in get_route_roles(cls.URL, method)]
-                        handlers.append((cls.URL, func_name, get_doc(), ','.join(roles)))
+                        handlers.append((cls.URL, func_name, file, get_doc(), ','.join(roles)))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
 

@@ -55,7 +55,7 @@ class TestViews(APITestCase):
     def test_show_api(self):
         r = self.parse_response(self.fetch('/api?_raw=1'))
         self.assertIn('handlers', r)
-        for url, func, comment, auth in r['handlers']:
+        for url, func, file, comment, auth in r['handlers']:
             # 要求URL已登记到角色路由映射表中
             self.assertTrue(auth, '%s %s need roles' % (url, func))
             # 控制器类的get/post方法需要写简要的文档字符串
