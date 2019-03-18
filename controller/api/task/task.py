@@ -6,7 +6,6 @@
 
 import re
 from datetime import datetime
-from functools import cmp_to_key
 from tornado.escape import json_decode, to_basestring
 from controller.base.task import TaskHandler
 from controller.base.base import DbError
@@ -28,8 +27,7 @@ class PublishTasksApi(TaskHandler):
         assert task_type in self.flat_task_types
         try:
             data = self.get_body_obj(PublishTask)
-            priority = data.priority or '高'
-            task_pages = data.pages if isinstance(data.pages, list) else (data.pages or '').split(',')
+            priority, task_pages = data.priority or '高', data.pages.split(',')
             pages = self.db.page.find({'name': {"$in": task_pages}})
             result = []
             for page in pages:
@@ -41,7 +39,7 @@ class PublishTasksApi(TaskHandler):
 
                 status = self.STATUS_UNREADY
                 if old_status == self.STATUS_READY:
-                    status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
+                    status = self.STATUS_PENDING if self.has_pre_task(page, task_type) \
                         else self.STATUS_OPENED
                 result.append({'name': page['name'], 'status': status})
 
@@ -59,17 +57,16 @@ class PublishTasksApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
-    def has_pre_task(self, task_id, task_type):
+    def has_pre_task(self, page, task_type):
         """
         检查任务是否包含前置任务
-        :param task_id: 对应page表的name字段
-        :param task_type:
-        :return: True/False
         """
-        page = self.db.page.find_one({'name': task_id})
         types = task_type.split('.')
-        return page.get(task_type, {}).get('pre_tasks') or \
-            len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
+        if page.get(task_type, {}).get('pre_tasks'):
+            return True
+        if len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks'):
+            return True
+        # TODO: 检查前置任务的状态
 
 
 class GetTaskApi(TaskHandler):
@@ -207,54 +204,9 @@ class UnlockTasksApi(TaskHandler):
 
 class PublishTask(object):
     # 任务模型类，用于数据格式定义与转换
-    types = str
     pages = str
     priority = str
-
-
-class StartTasksApi(TaskHandler):
-    URL = r'/api/start/@page_prefix'
-
-    def post(self, prefix=''):
-        """ 发布审校任务 """
-        try:
-            data = self.get_body_obj(PublishTask)
-            task_types = sorted(list(set([t for t in data.types.split(',') if t in u.task_types])),
-                                key=cmp_to_key(lambda a, b: u.task_types.index(a) - u.task_types.index(b)))
-            data.pages = data.pages and data.pages.split(',')
-
-            # 得到待发布的页面
-            pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
-            names, items = set(), []
-            for page in pages:
-                name = page['name']
-                if data.pages and name not in data.pages:
-                    continue
-                for i, task_type in enumerate(task_types):
-                    task_status = task_type + '_status'
-                    # 不重复发布任务
-                    if page.get(task_status):
-                        continue
-                    # 是第一轮任务就为待领取，否则要等前一轮完成才能继续
-                    status = u.STATUS_PENDING if i or self.has_pre_task(page, task_type) else u.STATUS_OPENED
-                    new_value = {task_status: status, task_type + '_priority': data.priority}
-                    r = self.db.page.update_one(dict(name=name), {'$set': new_value})
-                    if r.modified_count:
-                        self.add_op_log('start_' + task_type, file_id=str(page['_id']), context=name)
-                        names.add(name)
-                        items.append(dict(name=name, task_type=task_type, status=status))
-
-            self.send_response(dict(names=list(names), items=items, task_types=task_types))
-        except DbError as e:
-            self.send_db_error(e)
-
-    @staticmethod
-    def has_pre_task(page, task_type):
-        idx = u.task_types.index(task_type)
-        for i in range(idx):
-            status = page.get(u.task_types[i] + '_status')
-            if status and status != u.STATUS_ENDED:
-                return True
+    comment = str
 
 
 class PickTaskApi(TaskHandler):

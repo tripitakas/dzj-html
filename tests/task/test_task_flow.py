@@ -40,5 +40,11 @@ class TestTaskFlow(APITestCase):
         self.assertEqual(r['items'], [])
         r = self.parse_response(self.publish('block_cut_proof',
                                              dict(pages='GL_1056_5_6,JX_165_7_12', priority='高')))
-        self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['items']]))
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r['items']])
         self.assertEqual({'opened'}, set([t['status'] for t in r['items']]))
+
+        # 再发布有前置任务的栏切分审定任务，将跳过不存在的页面
+        r = self.parse_response(self.publish('block_cut_review',
+                                             dict(pages='GL_1056_5_6,JX_165_7_30,JX_err', priority='中')))
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['items']])
+        self.assertEqual(['pending', 'opened'], [t['status'] for t in r['items']])
