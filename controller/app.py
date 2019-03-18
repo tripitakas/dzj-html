@@ -8,7 +8,7 @@
 
 import re
 import os
-import yaml
+from yaml import load as load_yml, SafeLoader
 import shutil
 import pymongo
 from os import path
@@ -100,7 +100,7 @@ class Application(web.Application):
         if not os.path.exists(cfg_file):
             shutil.copy(path.join(BASE_DIR, '_app.yml'), cfg_file)
         with open(cfg_file, **param) as f:
-            self.config = yaml.load(f)
+            self.config = load_yml(f, Loader=SafeLoader)
             self.site = self.config['site']
             self.site['url'] = 'localhost:{0}'.format(options.port)
             if db_name_ext and not self.config['database']['name'].endswith('_test'):

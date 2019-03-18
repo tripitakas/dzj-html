@@ -28,7 +28,7 @@ role_route_maps = {
         'routes': {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
-            '/api/options/(\w+)': ['GET'],
+            '/api/options/([a-z_]+)': ['GET'],
             '/user/login': ['GET'],
             '/user/register': ['GET'],
 

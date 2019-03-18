@@ -294,7 +294,7 @@ class GetUsersApi(BaseHandler):
 
 
 class GetOptionsApi(BaseHandler):
-    URL = r'/api/options/(\w+)'
+    URL = r'/api/options/([a-z_]+)'
 
     def get(self, kind):
         """ 得到配置项列表 """
