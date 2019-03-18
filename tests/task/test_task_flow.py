@@ -22,8 +22,8 @@ class TestTaskFlow(APITestCase):
     def tearDown(self):
         # 退回所有任务，还原改动
         self.login_as_admin()
-        self.fetch('/api/unlock/cut/')
-        self.fetch('/api/unlock/text/')
+        self.assert_code(200, self.fetch('/api/unlock/cut/'))
+        self.assert_code(200, self.fetch('/api/unlock/text/'))
 
         super(APITestCase, self).setUp()
 
@@ -35,10 +35,10 @@ class TestTaskFlow(APITestCase):
 
         # 通过API发布栏切分校对任务（栏切分没有前置任务，简单）
         self.login_as_admin()
-        r = self.parse_response(self.publish('block_cut_proof', dict(pages=[], priority='高')))
-        self.assertIsInstance(r.get('result'), list)
-        self.assertEqual(r['result'], [])
+        r = self.parse_response(self.publish('block_cut_proof', dict(pages=[])))
+        self.assertIsInstance(r.get('items'), list)
+        self.assertEqual(r['items'], [])
         r = self.parse_response(self.publish('block_cut_proof',
                                              dict(pages='GL_1056_5_6,JX_165_7_12', priority='高')))
-        self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['result']]))
-        self.assertEqual({'opened'}, set([t['status'] for t in r['result']]))
+        self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['items']]))
+        self.assertEqual({'opened'}, set([t['status'] for t in r['items']]))

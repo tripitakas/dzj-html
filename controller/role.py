@@ -19,7 +19,7 @@ role_route_maps = {
             '/api/@task_type/@task_id': ['GET'],
             '/api/page/@task_id': ['GET'],
             '/api/pages/@page_kind': ['GET', 'POST'],
-            '/api/unlock/@task_type_ex/@page_prefix': ['GET'],
+            '/api/unlock/@task_ex_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
     },
@@ -174,7 +174,7 @@ role_route_maps = {
             '/api/start/@page_prefix': ['POST'],
             '/api/pages/@page_kind': ['GET', 'POST'],
             '/api/task/publish/@task_type': ['POST'],
-            '/api/unlock/@task_type_ex/@page_prefix': ['GET'],
+            '/api/unlock/@task_ex_type/@page_prefix': ['GET'],
         }
     },
     'data_admin': {

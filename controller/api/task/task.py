@@ -28,38 +28,33 @@ class PublishTasksApi(TaskHandler):
         assert task_type in self.flat_task_types
         try:
             data = self.get_body_obj(PublishTask)
-            priority, task_pages = data.priority or '高', data.pages.split(',') if data.pages else []
+            priority = data.priority or '高'
+            task_pages = data.pages if isinstance(data.pages, list) else (data.pages or '').split(',')
             pages = self.db.page.find({'name': {"$in": task_pages}})
             result = []
             for page in pages:
-                status = self.STATUS_UNREADY
                 if '.' in task_type:
                     types = task_type.split('.')
-                    if page.get(types[0], {}).get(types[1], {}).get('status') == self.STATUS_READY:
-                        status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
-                            else self.STATUS_OPENED
-                        update_value = {
-                            r'%s.%s.status' % (types[0], types[1]): status,
-                            r'%s.%s.priority' % (types[0], types[1]): priority,
-                        }
-
+                    old_status = page.get(types[0], {}).get(types[1], {}).get('status')
                 else:
-                    if page.get(task_type, {}).get('status') == self.STATUS_READY:
-                        status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
-                            else self.STATUS_OPENED
-                        update_value = {
-                            r'%s.status' % task_type: status,
-                            r'%s.priority' % task_type: priority,
-                        }
+                    old_status = page.get(task_type, {}).get('status')
 
+                status = self.STATUS_UNREADY
+                if old_status == self.STATUS_READY:
+                    status = self.STATUS_PENDING if self.has_pre_task(page['name'], task_type) \
+                        else self.STATUS_OPENED
                 result.append({'name': page['name'], 'status': status})
 
                 if status != self.STATUS_UNREADY:
+                    update_value = {
+                        '%s.status' % task_type: status,
+                        '%s.priority' % task_type: priority,
+                    }
                     r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
                     if r.modified_count:
                         self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
 
-            self.send_response(dict(result=result))
+            self.send_response(result)
 
         except DbError as e:
             self.send_db_error(e)
@@ -71,14 +66,10 @@ class PublishTasksApi(TaskHandler):
         :param task_type:
         :return: True/False
         """
-        try:
-            page = self.db.page.find_one({'name': task_id})
-            types = task_type.split('.')
-            return page.get(task_type, {}).get('pre_tasks') or \
-                len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
-
-        except DbError as e:
-            self.send_db_error(e)
+        page = self.db.page.find_one({'name': task_id})
+        types = task_type.split('.')
+        return page.get(task_type, {}).get('pre_tasks') or \
+            len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks') or False
 
 
 class GetTaskApi(TaskHandler):
@@ -182,21 +173,30 @@ class GetPagesApi(TaskHandler):
 
 
 class UnlockTasksApi(TaskHandler):
-    URL = r'/api/unlock/@task_type_ex/@page_prefix'
+    URL = r'/api/unlock/@task_ex_type/@page_prefix'
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
+        types = task_type.split('.')
         try:
             pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
             ret = []
             for page in pages:
-                info = {}
+                info, unset = {}, {}
+                name = page['name']
                 for field in page:
-                    if re.match(u.re_task_type, field) and task_type in field:
-                        info[field] = None
+                    if re.match(u.re_task_type, field) and types[0] in field:
+                        for sub_task, v in page[field].get('sub_task_types', {}).items():
+                            if len(types) > 1 and types[1] != sub_task:
+                                continue
+                            if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
+                                info[field + '.' + sub_task + '.status'] = self.STATUS_READY
+                                unset[field + '.' + sub_task + '.user'] = None
+                        if page[field].get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
+                            info[field + '.status'] = self.STATUS_READY
+                            unset[field + '.user'] = None
                 if info:
-                    name = page['name']
-                    r = self.db.page.update_one(dict(name=name), {'$unset': info})
+                    r = self.db.page.update_one(dict(name=name), {'$set': info, '$unset': unset})
                     if r.modified_count:
                         self.add_op_log('unlock_' + task_type, file_id=str(page['_id']), context=name)
                         ret.append(name)

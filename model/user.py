@@ -60,9 +60,9 @@ authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW, c
 # 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀
 task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
               'block_cut_review', 'column_cut_review', 'char_cut_review',
-              'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review',
+              'text_proof.1', 'text_proof.2', 'text_proof.3', 'text_review',
               'fmt_proof', 'fmt_review', 'hard_proof']
-re_task_type = '|'.join(task_types)
+re_task_type = '|'.join(task_types).replace('.', r'\.')
 re_cut_type = '(block|column|char)_cut_(proof|review)'
 task_type_authority = dict(block_cut_proof='cut_proof', column_cut_proof='cut_proof', char_cut_proof='cut_proof',
                            block_cut_review='cut_review', column_cut_review='cut_review', char_cut_review='cut_review',
