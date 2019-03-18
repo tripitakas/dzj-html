@@ -48,3 +48,14 @@ class TestTaskFlow(APITestCase):
                                              dict(pages='GL_1056_5_6,JX_165_7_30,JX_err', priority='中')))
         self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['items']])
         self.assertEqual(['pending', 'pending'], [t['status'] for t in r['items']])
+
+        # 测试有子任务类型的情况
+        r = self.parse_response(self.publish('text_proof.1', dict(pages='GL_1056_5_6,JX_165_7_30')))
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['items']])
+        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['items']])
+        r = self.parse_response(self.publish('text_proof.2', dict(pages='GL_1056_5_6,JX_165_7_30')))
+        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['items']])
+
+        r = self.parse_response(self.publish('text_review', dict(pages='GL_1056_5_6')))
+        self.assertEqual(['GL_1056_5_6'], [t['name'] for t in r['items']])
+        self.assertEqual(['pending'], [t['status'] for t in r['items']])

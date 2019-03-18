@@ -182,13 +182,14 @@ class UnlockTasksApi(TaskHandler):
                 info, unset = {}, {}
                 name = page['name']
                 for field in page:
-                    if re.match(u.re_task_type, field) and types[0] in field:
-                        for sub_task, v in page[field].get('sub_task_types', {}).items():
-                            if len(types) > 1 and types[1] != sub_task:
-                                continue
-                            if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
-                                info[field + '.' + sub_task + '.status'] = self.STATUS_READY
-                                unset[field + '.' + sub_task + '.user'] = None
+                    if field in self.task_types and types[0] in field:
+                        if self.task_types[field].get('sub_task_types'):
+                            for sub_task, v in page[field].items():
+                                if len(types) > 1 and types[1] != sub_task:
+                                    continue
+                                if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
+                                    info[field + '.' + sub_task + '.status'] = self.STATUS_READY
+                                    unset[field + '.' + sub_task + '.user'] = None
                         if page[field].get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
                             info[field + '.status'] = self.STATUS_READY
                             unset[field + '.user'] = None
