@@ -46,7 +46,6 @@ role_route_maps = {
             '/user/profile': ['GET'],
             '/api/user/change': ['POST'],
             '/api/page/@task_id': ['GET'],
-            '/dzj_@task-kind_history.html': ['GET'],
             '/api/pwd/change': ['POST'],
             '/task/my/@task_type': ['GET'],
             '/tripitaka': ['GET'],
@@ -138,7 +137,6 @@ role_route_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/dzj_chars': ['GET'],
             '/dzj_char/@task_id': ['GET'],
             '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
         }

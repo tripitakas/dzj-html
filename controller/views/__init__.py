@@ -7,7 +7,6 @@ from . import modules, home, user, task, tripitaka as t
 handlers = [home.HomeHandler,
             user.UserLoginHandler, user.UserRegisterHandler,
             user.UsersAdminHandler, user.UserRolesHandler, user.UserStatisticHandler, user.UserProfileHandler,
-            task.ChooseCharProofHandler, task.ChooseCharReviewHandler, task.MyTasksHandler,
             task.LobbyBlockCutProofHandler, task.LobbyColumnCutProofHandler, task.LobbyCharCutProofHandler,
             task.LobbyBlockCutReviewHandler, task.LobbyColumnCutReviewHandler, task.LobbyCharCutReviewHandler,
             task.CharProofDetailHandler, task.CutProofDetailHandler, task.CutReviewDetailHandler,

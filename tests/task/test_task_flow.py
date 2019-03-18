@@ -35,7 +35,7 @@ class TestTaskFlow(APITestCase):
 
         # 通过API发布栏切分校对任务（栏切分没有前置任务，简单）
         self.login_as_admin()
-        r = self.parse_response(self.publish('block_cut_proof', dict(pages=[])))
+        r = self.parse_response(self.publish('block_cut_proof', dict(pages='')))
         self.assertIsInstance(r.get('items'), list)
         self.assertEqual(r['items'], [])
         r = self.parse_response(self.publish('block_cut_proof',
