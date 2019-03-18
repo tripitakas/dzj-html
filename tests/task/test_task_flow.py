@@ -47,4 +47,4 @@ class TestTaskFlow(APITestCase):
         r = self.parse_response(self.publish('block_cut_review',
                                              dict(pages='GL_1056_5_6,JX_165_7_30,JX_err', priority='中')))
         self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['items']])
-        self.assertEqual(['pending', 'opened'], [t['status'] for t in r['items']])
+        self.assertEqual(['pending', 'pending'], [t['status'] for t in r['items']])

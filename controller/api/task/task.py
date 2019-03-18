@@ -59,14 +59,14 @@ class PublishTasksApi(TaskHandler):
 
     def has_pre_task(self, page, task_type):
         """
-        检查任务是否包含前置任务
+        检查任务是否包含待完成的前置任务
         """
-        types = task_type.split('.')
-        if page.get(task_type, {}).get('pre_tasks'):
-            return True
-        if len(types) > 1 and page.get(types[0], {}).get(types[1], {}).get('pre_tasks'):
-            return True
-        # TODO: 检查前置任务的状态
+        pre = self.pre_tasks.get(task_type, [])
+        for t in pre:
+            types = t.split('.')
+            node = page.get(types[0], {}).get(types[1], {}) if len(types) > 1 else page.get(t, {})
+            if node.get('status') not in [None, self.STATUS_FINISHED]:
+                return True
 
 
 class GetTaskApi(TaskHandler):

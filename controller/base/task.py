@@ -133,19 +133,41 @@ class TaskHandler(BaseHandler):
     @property
     def post_tasks(self):
         """
-        后置任务
+        后置任务类型
         """
         post_types = {}
-        for k, v in self.task_types.items():
+        for task_type, v in self.task_types.items():
             if 'pre_tasks' in v:
-                assert isinstance(v, list)
-                post_types.update({t: k for t in v['pre_tasks']})
+                post_types.update({t: task_type for t in v['pre_tasks']})
             elif 'sub_task_types' in v:
-                for n, m in v['sub_task_types']:
-                    if 'pre_tasks' in m:
-                        assert isinstance(m, list)
-                        post_types.update({t: k + '.' + n for t in m['pre_tasks']})
+                for sub_type, sub_v in v['sub_task_types'].items():
+                    if 'pre_tasks' in sub_v:
+                        post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
         return post_types
+
+    @property
+    def pre_tasks(self):
+        """
+        前置任务类型
+        """
+
+        def recursion(cur):
+            """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
+            for k in pre_types.get(cur, [])[:]:
+                pre_types[cur].extend(recursion(k))
+            return pre_types.get(cur, [])
+
+        pre_types = {}
+        for task_type, v in self.task_types.items():
+            if 'pre_tasks' in v:
+                pre_types[task_type] = v['pre_tasks']
+            elif 'sub_task_types' in v:
+                for sub_type, sub_v in v['sub_task_types'].items():
+                    if 'pre_tasks' in sub_v:
+                        pre_types[task_type + '.' + sub_type] = v['pre_tasks']
+        for task_type in pre_types:
+            recursion(task_type)
+        return pre_types
 
     # 任务状态表
     STATUS_UNREADY = 'unready'
