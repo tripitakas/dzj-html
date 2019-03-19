@@ -6,6 +6,7 @@
 """
 
 from controller.base.base import BaseHandler
+from controller.helper import convert_bson
 
 
 class TaskHandler(BaseHandler):
@@ -217,7 +218,7 @@ class TaskHandler(BaseHandler):
 
         page_size = self.default_page_size if page_size == '' else page_size
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages
+        return [convert_bson(p) for p in pages]
 
     def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):
         """

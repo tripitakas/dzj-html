@@ -39,7 +39,7 @@ class TaskLobbyHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
     def get_tasks(self, task_type):
-        return list(self.get_tasks_info_by_type(task_type, self.STATUS_OPENED))
+        return self.get_tasks_info_by_type(task_type, self.STATUS_OPENED)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -50,7 +50,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
         self.show_tasks('text_proof')
 
     def get_tasks(self, task_type):
-        tasks = list(self.get_tasks_info_by_type(task_type))
+        tasks = self.get_tasks_info_by_type(task_type)
         # TODO: 同一个页面的校一、校二、校三任务最多领取一个
         # TODO: 返回状态为 STATUS_OPENED 的任务
         return tasks
@@ -97,7 +97,7 @@ class TaskAdminHandler(TaskHandler):
         """ 任务管理 """
 
         try:
-            tasks = list(self.get_tasks_info_by_type(task_type))
+            tasks = self.get_tasks_info_by_type(task_type)
             task_name = self.task_types[task_type]['name']
             has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
 

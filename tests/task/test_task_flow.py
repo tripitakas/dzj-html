@@ -21,7 +21,6 @@ class TestTaskFlow(APITestCase):
 
     def tearDown(self):
         # 退回所有任务，还原改动
-        self.login_as_admin()
         self.assert_code(200, self.fetch('/api/unlock/cut/'))
         self.assert_code(200, self.fetch('/api/unlock/text/'))
 
@@ -59,3 +58,17 @@ class TestTaskFlow(APITestCase):
         r = self.parse_response(self.publish('text_review', dict(pages='GL_1056_5_6')))
         self.assertEqual(['GL_1056_5_6'], [t['name'] for t in r['items']])
         self.assertEqual(['pending'], [t['status'] for t in r['items']])
+
+    def test_task_lobby(self):
+        """ 测试任务大厅 """
+
+        self.login_as_admin()
+        for task_type in ['block_cut_proof', 'column_cut_proof', 'char_cut_proof', 'block_cut_review',
+                          'column_cut_review', 'char_cut_review', 'text_proof', 'text_review']:
+            self.assert_code(200, self.publish('block_cut_proof', dict(pages='GL_1056_5_6,JX_165_7_12')))
+            r = self.fetch('/task/lobby/%s?_raw=1' % task_type)
+            self.assert_code(200, r, msg=task_type)
+            r = self.parse_response(r)
+            # self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r['tasks']], msg=task_type)
+            self.assert_code(200, self.fetch('/api/unlock/cut/'))
+            self.assert_code(200, self.fetch('/api/unlock/text/'))

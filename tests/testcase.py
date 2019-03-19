@@ -43,14 +43,17 @@ class APITestCase(AsyncHTTPTestCase):
         response = self.parse_response(response)
         return response.get('code', 200)
 
-    def assert_code(self, code, response):
+    def assert_code(self, code, response, msg=None):
         code = code[0] if isinstance(code, tuple) else code
-        r2 = self.parse_response(response)
-        r_code = r2.get('code', response.code)
+        try:
+            r2 = self.parse_response(response)
+            r_code, error = r2.get('code', response.code), r2.get('error')
+        except (AttributeError, KeyError):
+            r_code, error = response.code, response.error
         if isinstance(code, list):
-            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code])
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)
         else:
-            self.assertEqual(code, r_code, r2.get('error'))
+            self.assertEqual(code, r_code, msg=msg or error)
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
