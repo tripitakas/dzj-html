@@ -53,5 +53,6 @@ python3 run_tests.py 或选中测试用例文件调试
 - [Introduction to Tornado 中文版](http://demo.pythoner.com/itt2zh/)
 - [MongoDB 数据库开发](http://demo.pythoner.com/itt2zh/ch4.html)
 - [MongoDB 官方文档](http://api.mongodb.com/python/current/index.html)
+- [MongoDB 查询操作符](https://docs.mongodb.com/manual/reference/operator/query/)
 
 [templates]: https://tornado-zh.readthedocs.io/zh/latest/guide/templates.html

@@ -192,18 +192,25 @@ class TaskHandler(BaseHandler):
         """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
         pass
 
-    def get_tasks_info_by_type(self, task_type, task_status=None, page_size='', page_no=1):
+    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1, set_conditions=None):
         """
         获取指定类型、状态的任务列表
-        :param task_status: 可以是str或者list。如果为空，则查询所有记录。
+        :param task_type: 任务类型串
+        :param task_status: 任务状态串，或多个任务状态的列表
+        :param page_size: 分页大小
+        :param page_no: 取第几页，首页为1
+        :param set_conditions: 搜索条件的额外处理
+        :return: 页面列表
         """
         assert task_type in self.task_types.keys()
-        assert task_status is None or type(task_status) in [str, list]
+        assert not task_status or type(task_status) in [str, list]
 
         if type(task_status) == list:
             task_status = {"$in": task_status}
 
-        if 'sub_task_types' in self.task_types[task_type]:
+        if not task_status:
+            conditions = {}
+        elif 'sub_task_types' in self.task_types[task_type]:
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
             conditions = {
                 '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
@@ -211,9 +218,7 @@ class TaskHandler(BaseHandler):
         else:
             conditions = {'%s.status' % task_type: task_status}
 
-        if task_status is None:
-            conditions = {}
-
+        set_conditions and set_conditions(conditions)
         fields = {'name': 1, task_type: 1}
 
         page_size = self.default_page_size if page_size == '' else page_size

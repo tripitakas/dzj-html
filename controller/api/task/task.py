@@ -65,7 +65,7 @@ class PublishTasksApi(TaskHandler):
         for t in pre:
             types = t.split('.')
             node = page.get(types[0], {}).get(types[1], {}) if len(types) > 1 else page.get(t, {})
-            if node.get('status') not in [None, self.STATUS_FINISHED]:
+            if node.get('status') not in [None, self.STATUS_READY, self.STATUS_FINISHED]:
                 return True
 
 
