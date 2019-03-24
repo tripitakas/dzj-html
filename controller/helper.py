@@ -94,7 +94,7 @@ def my_framer():
                 f = f.f_back
             return f0
         f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
+        while re.search(r'web\.py|logging', f.f_code.co_filename):
             f0 = f
             f = f.f_back
     return f0

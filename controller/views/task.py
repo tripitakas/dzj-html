@@ -116,7 +116,7 @@ class TaskCutStatusHandler(TaskHandler):
         """ 切分任务状态 """
 
         try:
-            tasks = list(self.get_tasks_info())
+            tasks = self.get_tasks_info()
             self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses,
                         task_names=self.text_task_names)
         except Exception as e:
@@ -130,7 +130,7 @@ class TaskTextStatusHandler(TaskHandler):
         """ 文字任务状态 """
 
         try:
-            tasks = list(self.get_tasks_info())
+            tasks = self.get_tasks_info()
             self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses,
                         task_names=self.cut_task_names)
         except Exception as e:

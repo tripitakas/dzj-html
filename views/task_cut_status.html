@@ -62,14 +62,14 @@
 													<tr>
 														<th><input type="checkbox" name="" id=" " value="" /></th>
 														<th><span>页编码</span></th>
-														{% for item in ['切栏校对','切栏审定','切列校对','切列审定','切字校对','切字审定'] %}
+														{% for i, item in enumerate(['切栏校对','切栏审定','切列校对','切列审定','切字校对','切字审定']) %}
 														<th>
 															<div class="btn-group">
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
 																<span class="ion-android-sort "></span>
 																<ul class="dropdown-menu" role="menu">
 																	{% for k, v in task_statuses.items() %}
-																	<li><a href="{{k}}">{{v}}</a></li>
+																	<li><a href="{{current_url}}?status={{k}}&t={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}">{{v}}</a></li>
 																	{% end %}
 																</ul>
 															</div>

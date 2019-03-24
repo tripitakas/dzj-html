@@ -205,6 +205,8 @@ class TaskHandler(BaseHandler):
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
 
+        if not task_status and self.get_query_argument('status', None):
+            task_status = self.get_query_argument('status')
         if type(task_status) == list:
             task_status = {"$in": task_status}
 
@@ -245,16 +247,18 @@ class TaskHandler(BaseHandler):
 
         page_size = self.default_page_size if page_size == '' else page_size
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages
+        return [convert_bson(p) for p in pages]
 
     def get_tasks_info(self, page_size='', page_no=1):
         """
         获取所有任务的状态
         :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
         """
-
+        query = {}
+        if self.get_query_argument('status', None) and self.get_query_argument('t', None):
+            query[self.get_query_argument('t') + '.status'] = self.get_query_argument('status')
         fields = {'name': 1}
         fields.update({k: 1 for k in self.task_types.keys()})
         page_size = self.default_page_size if page_size == '' else page_size
-        pages = self.db.page.find({}, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages
+        pages = self.db.page.find(query, fields).limit(page_size).skip(page_size * (page_no - 1))
+        return [convert_bson(p) for p in pages]

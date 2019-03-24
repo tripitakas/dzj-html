@@ -129,12 +129,15 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
+        kwargs['current_url'] = re.sub('#?(\?.+)$', '', self.request.uri)
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
                 if hasattr(v, '__call__'):
                     del kwargs[k]
             return self.send_response(kwargs)
+
+        logging.info(template_name + ' by class ' + self.__class__.__name__)
         try:
             super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
         except Exception as e:
