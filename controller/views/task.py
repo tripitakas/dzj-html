@@ -259,16 +259,16 @@ class CutDetailBaseHandler(TaskHandler):
         return '/static/img/{0}/{1}.jpg'.format(name[:2], name)
 
 
-class CutProofDetailHandler(TaskHandler):
-    URL = '/dzj_@box-type_cut_proof/@task_id'
+class CutProofDetailHandler(CutDetailBaseHandler):
+    URL = '/task/do/@box-type_cut_proof/@task_id'
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
         self.enter(box_type, 'proof', name)
 
 
-class CutReviewDetailHandler(TaskHandler):
-    URL = '/dzj_@box-type_cut_review/@task_id'
+class CutReviewDetailHandler(CutDetailBaseHandler):
+    URL = '/task/do/@box-type_cut_review/@task_id'
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
@@ -276,7 +276,7 @@ class CutReviewDetailHandler(TaskHandler):
 
 
 class CharProofDetailHandler(TaskHandler):
-    URL = '/dzj_char/@task_id'
+    URL = '/task/do/text_proof/@num/@task_id'
 
     def get(self, name=''):
         """ 进入文字校对 """
@@ -290,49 +290,16 @@ class CharProofDetailHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
 
-class CutStatusHandler(TaskHandler):
-    URL = '/dzj_task_cut_status.html'
+class CharReviewDetailHandler(TaskHandler):
+    URL = '/task/do/text_review/@num/@task_id'
 
-    def get(self):
-        """ 任务管理-切分状态 """
-
-        def handle_response(body):
-            self.render('dzj_task_cut_status.html',
-                        status_cls=CutStatusHandler.status_cls,
-                        status_desc=CutStatusHandler.status_desc,
-                        sum_status=CutStatusHandler.sum_status, **body)
-
-        self.call_back_api('/api/pages/cut_status', handle_response)
-
-    @staticmethod
-    def status_desc(page, prefix):
-        status = page.get(prefix + '_status')
-        return u.task_statuses.get(status)
-
-    @staticmethod
-    def status_cls(page, prefix):
-        return 'status_' + page.get(prefix + '_status', 'none')
-
-    @staticmethod
-    def sum_status(pages, prefix):
-        values = []
-        for p in pages:
-            v = CutStatusHandler.status_desc(p, prefix)
-            if v not in values:
-                values.append(v)
-        return values
-
-
-class TextStatusHandler(TaskHandler):
-    URL = '/dzj_task_char_status.html'
-
-    def get(self):
-        """ 任务管理-文字状态 """
-
-        def handle_response(body):
-            self.render('dzj_task_char_status.html',
-                        status_cls=CutStatusHandler.status_cls,
-                        status_desc=CutStatusHandler.status_desc,
-                        sum_status=CutStatusHandler.sum_status, **body)
-
-        self.call_back_api('/api/pages/text_status', handle_response)
+    def get(self, name=''):
+        """ 进入文字校对 """
+        try:
+            page = convert_bson(self.db.page.find_one(dict(name=name))) or dict(name='?')
+            if not page:
+                return self.render('_404.html')
+            self.render('dzj_char_detail.html', page=page,
+                        readonly=page.get('text_proof_user') != self.current_user.id)
+        except Exception as e:
+            self.send_db_error(e, render=True)

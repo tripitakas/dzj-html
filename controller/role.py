@@ -58,7 +58,7 @@ role_route_maps = {
         'roles': ['user'],
         'routes': {
             '/api/pick/@box-type_cut_proof/@task_id': ['GET'],
-            '/dzj_@box-type_cut_proof/@task_id': ['GET'],
+            '/task/do/@box-type_cut_proof/@task_id': ['GET'],
             '/api/save/@box-type_cut_proof': ['POST'],
         }
     },
@@ -67,7 +67,7 @@ role_route_maps = {
         'roles': ['user'],
         'routes': {
             '/api/pick/@box-type_cut_review/@task_id': ['GET'],
-            '/dzj_@box-type_cut_review/@task_id': ['GET'],
+            '/task/do/@box-type_cut_review/@task_id': ['GET'],
             '/api/save/@box-type_cut_review': ['POST'],
         }
     },
@@ -137,7 +137,6 @@ role_route_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/dzj_char/@task_id': ['GET'],
             '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
         }
     },
@@ -148,8 +147,6 @@ role_route_maps = {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
             '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
-            '/dzj_char_check.html': ['GET'],
-            '/dzj_char/@task_id': ['GET'],
             '/api/pick/text_review/@task_id': ['GET'],
         }
     },
@@ -165,8 +162,6 @@ role_route_maps = {
         'roles': ['user'],
         'routes': {
             '/task/admin/@task_type': ['GET'],
-            '/dzj_task_cut_status.html': ['GET'],
-            '/dzj_task_char_status.html': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
             '/api/start/@page_prefix': ['POST'],
