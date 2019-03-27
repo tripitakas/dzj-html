@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 # 在 controller.views 包实现页面响应类，生成前端页面，modules 为重用网页片段的渲染类
 
-from . import modules, home, user, task, tripitaka as t
+from . import modules, home, user, tripitaka as t
+from controller.task import view
 
 handlers = [home.HomeHandler,
             user.UserLoginHandler, user.UserRegisterHandler,
             user.UsersAdminHandler, user.UserRolesHandler, user.UserStatisticHandler, user.UserProfileHandler,
-            task.LobbyBlockCutProofHandler, task.LobbyColumnCutProofHandler, task.LobbyCharCutProofHandler,
-            task.LobbyBlockCutReviewHandler, task.LobbyColumnCutReviewHandler, task.LobbyCharCutReviewHandler,
-            task.CharProofDetailHandler, task.CutProofDetailHandler, task.CutReviewDetailHandler,
-            task.CharReviewDetailHandler,
-            task.TaskCutStatusHandler, task.TaskTextStatusHandler,
-            task.TextProofTaskLobbyHandler, task.TextReviewTaskLobbyHandler, task.TextHardTaskLobbyHandler,
-            task.TaskAdminHandler, task.MyTaskHandler,
+            view.LobbyBlockCutProofHandler, view.LobbyColumnCutProofHandler, view.LobbyCharCutProofHandler,
+            view.LobbyBlockCutReviewHandler, view.LobbyColumnCutReviewHandler, view.LobbyCharCutReviewHandler,
+            view.CharProofDetailHandler, view.CutProofDetailHandler, view.CutReviewDetailHandler,
+            view.CharReviewDetailHandler,
+            view.TaskCutStatusHandler, view.TaskTextStatusHandler,
+            view.TextProofTaskLobbyHandler, view.TextReviewTaskLobbyHandler, view.TextHardTaskLobbyHandler,
+            view.TaskAdminHandler, view.MyTaskHandler,
             t.RsTripitakaHandler, t.TripitakaListHandler, t.TripitakaHandler, t.DataTripitakaHandler,
             t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,
             ]

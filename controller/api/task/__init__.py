@@ -1,4 +1,4 @@
-from . import task as t
+from controller.task import api as t
 
 handlers = [t.GetPageApi, t.GetPagesApi, t.UnlockTasksApi,
             t.PickCutProofTaskApi, t.PickCutReviewTaskApi, t.PickTextProofTaskApi, t.PickTextReviewTaskApi,
