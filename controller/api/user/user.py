@@ -13,7 +13,7 @@ from tornado.util import unicode_type
 
 import controller.helper as hlp
 from controller import errors
-from controller.base import BaseHandler, DbError
+from controller.task import BaseHandler, DbError
 from controller.helper import fetch_authority
 
 import model.user as u

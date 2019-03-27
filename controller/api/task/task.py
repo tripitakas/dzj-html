@@ -7,8 +7,8 @@
 import re
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
-from controller.base.task import TaskHandler
-from controller.base import DbError
+from controller.task.base import TaskHandler
+from controller.task import DbError
 from controller.helper import convert_bson
 from controller import errors
 

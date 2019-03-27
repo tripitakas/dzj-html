@@ -5,7 +5,7 @@
 @time: 2018/6/23
 """
 
-from controller.base.task import TaskHandler
+from controller.task.base import TaskHandler
 
 
 class HomeHandler(TaskHandler):

@@ -7,7 +7,7 @@
 
 from operator import itemgetter
 from os import path
-from controller.base.task import TaskHandler
+from controller.task.base import TaskHandler
 from controller.role import get_route_roles
 from model.user import authority_map
 import re
