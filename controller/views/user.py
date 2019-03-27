@@ -5,7 +5,7 @@
 @time: 2018/6/23
 """
 
-from controller.base.base import BaseHandler
+from controller.base import BaseHandler
 from controller.helper import fetch_authority
 import model.user as u
 
