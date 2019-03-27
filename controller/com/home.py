@@ -5,10 +5,10 @@
 @time: 2018/6/23
 """
 
-from controller.task.base import TaskHandler
+from controller.base import BaseHandler
 
 
-class HomeHandler(TaskHandler):
+class HomeHandler(BaseHandler):
     URL = ['/', '/home']
 
     def get(self):

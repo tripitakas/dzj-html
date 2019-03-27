@@ -1,7 +1,0 @@
-from controller.task import api as t
-
-handlers = [t.GetPageApi, t.GetPagesApi, t.UnlockTasksApi,
-            t.PickCutProofTaskApi, t.PickCutReviewTaskApi, t.PickTextProofTaskApi, t.PickTextReviewTaskApi,
-            t.SaveCutProofApi, t.SaveCutReviewApi,
-            t.PublishTasksApi,
-            ]

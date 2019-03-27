@@ -5,13 +5,10 @@
 @time: 2018/12/26
 """
 
-import re
 import json
-import random
 from os import path
 from controller.task.base import TaskHandler
 from controller.helper import convert_bson
-import model.user as u
 
 
 class TaskLobbyHandler(TaskHandler):

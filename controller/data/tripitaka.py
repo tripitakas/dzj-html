@@ -5,7 +5,7 @@
 @time: 2019/3/13
 """
 
-from controller.task import BaseHandler
+from controller.base import BaseHandler
 
 
 class RsTripitakaHandler(BaseHandler):

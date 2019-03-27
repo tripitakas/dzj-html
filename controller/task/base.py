@@ -5,7 +5,7 @@
 @time: 2019/3/11
 """
 
-from controller.task import BaseHandler
+from controller.base import BaseHandler
 from controller.helper import convert_bson
 
 
