@@ -4,10 +4,11 @@
 
 from . import modules, home
 
-handlers = [
+views = [
     home.HomeHandler,
 ]
-
+handlers = [
+]
 modules = {
     'CommonLeft': modules.CommonLeft, 'CommonHead': modules.CommonHead, 'Pager': modules.Pager
 }

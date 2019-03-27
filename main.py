@@ -23,7 +23,7 @@ define('num_processes', default=4, help='sub-processes count', type=int)
 if __name__ == '__main__':
     opt.parse_command_line()
     opt.debug = opt.debug and opt.port not in [80, 443]
-    app = Application(c.handlers,
+    app = Application(c.handlers + c.views,
                       default_handler_class=c.InvalidPageHandler,
                       ui_modules=c.modules,
                       xsrf_cookies=True)
