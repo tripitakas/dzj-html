@@ -1,4 +1,4 @@
-from . import user
+from controller.user import api
 
-handlers = [user.LoginApi, user.RegisterApi, user.LogoutApi, user.ChangeUserApi, user.GetUsersApi,
-            user.ResetPasswordApi, user.ChangePasswordApi, user.GetOptionsApi, user.RemoveUserApi]
+handlers = [api.LoginApi, api.RegisterApi, api.LogoutApi, api.ChangeUserApi, api.GetUsersApi,
+            api.ResetPasswordApi, api.ChangePasswordApi, api.GetOptionsApi, api.RemoveUserApi]
