@@ -108,45 +108,6 @@
         <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">
 
-			var pages = [];
-			var $modal = $('#selectModal');
-
-			// 勾选发布任务
-			$modal.on('shown.bs.modal', function () {
-				postApi('/pages/cut_start', {data: {}}, function (res) {
-					pages = res.items;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-				});
-			});
-
-			$modal.find('.btn-primary').click(function () {
-				var types = [];
-				$modal.find('.task_types input').each(function (i, input) {
-					input = $(input);
-					if (input.is(':checked')) {
-						types.push(input.attr('id'));
-					}
-				});
-				if (!types.length) {
-					return showError('未选任务类型', '请勾选一个或多个任务类型。')
-				}
-				postApi('/start/', {
-					data: {
-						priority: $('.priority-list select').val(),
-						types: types.join(','),
-						pages: pages.join(',')
-					}
-				}, function (res) {
-					showSuccess('已发布任务', res.names.length + ' 个页面、' + res.items.length + ' 个任务已发布。');
-					setTimeout(function () {
-						location.reload();
-					}, 1000);
-				});
-
-			});
-
 			$('#my_multi_select').multiSelect({
                     selectableHeader: "待选对象<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
                     selectionHeader: "已选对象<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",

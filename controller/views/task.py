@@ -137,43 +137,6 @@ class TaskTextStatusHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
 
-def get_my_or_free_tasks(self, task_type, max_count=12):
-    """ 查找未领取或自己未完成的任务 """
-    assert re.match(u.re_task_type, task_type)
-    task_user = task_type + '_user'
-    task_status = task_type + '_status'
-    org_pages = pages = list(self.db.page.find({
-        '$or': [
-            {task_user: None, '$or': [{task_status: u.STATUS_OPENED}, {task_status: u.STATUS_RETURNED}]},
-            {task_user: self.current_user.id, task_status: u.STATUS_LOCKED}],
-    }))
-
-    # 交叉审核、背靠背校对
-    if task_type == 'text_proof_2':
-        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id]
-    elif task_type == 'text_proof_3':
-        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id and
-                 p.get('text_proof_2_user') != self.current_user.id]
-    elif task_type == 'text_review':
-        pages = [p for p in pages if p.get('text_proof_1_user') != self.current_user.id and
-                 p.get('text_proof_2_user') != self.current_user.id and
-                 p.get('text_proof_3_user') != self.current_user.id]
-    elif 'review' in task_type:
-        pages = [p for p in pages if p.get(task_user.replace('review', 'proof')) != self.current_user.id]
-
-    random.shuffle(pages)
-    pages = [p for p in pages if p.get(task_user)] + [p for p in pages if not p.get(task_user)]
-    return pages, pages[: int(self.get_argument('count', max_count))], [p for p in org_pages if p not in pages]
-
-
-def get_my_tasks(self, task_type, cond=None):
-    """ 查找自己领取的任务 """
-    assert re.match(u.re_task_type, task_type)
-    cond = {task_type + '_status': u.STATUS_OPENED} if cond is None else cond
-    cond[task_type + '_user'] = self.current_user.id
-    return [convert_bson(p) for p in self.db.page.find(cond)]
-
-
 class LobbyBlockCutProofHandler(TaskLobbyHandler):
     URL = '/task/lobby/block_cut_proof'
 
@@ -230,7 +193,7 @@ class CutDetailBaseHandler(TaskHandler):
                 if not page:
                     return self.render('_404.html')
 
-                self.render('dzj_cut_detail.html', page=page,
+                self.render('text_proof.html', page=page,
                             readonly=body.get('name') != name,
                             title='切分校对' if stage == 'proof' else '切分审定',
                             get_img=self.get_img,
@@ -284,7 +247,7 @@ class CharProofDetailHandler(TaskHandler):
             page = convert_bson(self.db.page.find_one(dict(name=name))) or dict(name='?')
             if not page:
                 return self.render('_404.html')
-            self.render('dzj_char_detail.html', page=page,
+            self.render('text_proof.html', page=page,
                         readonly=page.get('text_proof_user') != self.current_user.id)
         except Exception as e:
             self.send_db_error(e, render=True)
@@ -299,7 +262,7 @@ class CharReviewDetailHandler(TaskHandler):
             page = convert_bson(self.db.page.find_one(dict(name=name))) or dict(name='?')
             if not page:
                 return self.render('_404.html')
-            self.render('dzj_char_detail.html', page=page,
+            self.render('text_review.html', page=page,
                         readonly=page.get('text_proof_user') != self.current_user.id)
         except Exception as e:
             self.send_db_error(e, render=True)

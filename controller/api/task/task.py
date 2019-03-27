@@ -150,14 +150,13 @@ class GetPagesApi(TaskHandler):
 
             if kind == 'cut_start' or kind == 'text_start':
                 data = self.get_body_obj(PublishTask)
-                task_types = [t for t in (data.types or '').split(',') if t in all_types]
-                task_types = task_types or all_types
+                assert data.task_type in all_types
 
-                pages = self.db.page.find({'$or': [{t + '_status': None} for t in task_types]})
+                pages = self.db.page.find({data.task_type + '.status': self.STATUS_READY})
                 self.send_response([p['name'] for p in pages])
             else:
                 pages = [convert_bson(p) for p in self.db.page.find({})
-                         if [t for t in all_types if p.get(t + '_status')]]
+                         if [t for t in all_types if p.get(t + '.status')]]
                 for p in pages:
                     for field, value in list(p.items()):
                         if field == 'txt':
@@ -208,6 +207,7 @@ class PublishTask(object):
     pages = str
     priority = str
     comment = str
+    task_type = str
 
 
 class PickTaskApi(TaskHandler):
@@ -215,8 +215,8 @@ class PickTaskApi(TaskHandler):
         """ 取审校任务 """
         try:
             # 有未完成的任务则不能继续
-            task_user = task_type + '_user'
-            task_status = task_type + '_status'
+            task_user = task_type + '.user'
+            task_status = task_type + '.status'
             names = list(self.db.page.find({task_user: self.current_user.id, task_status: u.STATUS_LOCKED}))
             names = [p['name'] for p in names]
             if names and name not in names:
@@ -230,9 +230,9 @@ class PickTaskApi(TaskHandler):
             }
             lock = {
                 task_user: self.current_user.id,
-                task_type + '_nickname': self.current_user.name,
+                task_type + '.nickname': self.current_user.name,
                 task_status: u.STATUS_LOCKED,
-                task_type + '_start_time': datetime.now()
+                task_type + '.start_time': datetime.now()
             }
             r = self.db.page.update_one(can_lock, {'$set': lock})
             page = convert_bson(self.db.page.find_one(dict(name=name)))
@@ -300,11 +300,11 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error(errors.no_object)
 
-            status = page.get(task_type + '_status')
+            status = page.get(task_type + '.status')
             if status != u.STATUS_LOCKED:
                 return self.send_error(errors.task_changed, reason=u.task_statuses.get(status))
 
-            task_user = task_type + '_user'
+            task_user = task_type + '.user'
             if page.get(task_user) != self.current_user.id:
                 return self.send_error(errors.task_locked)
 
@@ -331,7 +331,7 @@ class SaveCutApi(TaskHandler):
                 result['box_changed'] = True
 
     def submit_task(self, result, data, page, task_type, task_user):
-        end_info = {task_type + '_status': u.STATUS_ENDED, task_type + '_end_time': datetime.now()}
+        end_info = {task_type + '.status': u.STATUS_ENDED, task_type + '.end_time': datetime.now()}
         r = self.db.page.update_one({'name': data.name, task_user: self.current_user.id}, {'$set': end_info})
         if r.modified_count:
             result['submit'] = True
@@ -339,7 +339,7 @@ class SaveCutApi(TaskHandler):
 
             idx = u.task_types.index(task_type)
             for i in range(idx + 1, len(u.task_types)):
-                next_status = u.task_types[i] + '_status'
+                next_status = u.task_types[i] + '.status'
                 status = page.get(next_status)
                 if status:
                     r = self.db.page.update_one({'name': data.name, next_status: u.STATUS_PENDING},

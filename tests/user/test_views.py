@@ -18,7 +18,7 @@ class TestViews(APITestCase):
         if '(' not in url:  # URL不需要动态参数
             r = self.parse_response(self.fetch(url))
             self.assertTrue('currentUserId' in r, msg=url + re.sub(r'(\n|\s)+', '', r)[:120])
-            if check_role:
+            if check_role and '访问出错' in r:
                 self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):

@@ -261,7 +261,7 @@
 
 			// 勾选发布任务
 			$modal.on('shown.bs.modal', function () {
-				postApi('/pages/cut_start', {data: {}}, function (res) {
+				postApi('/pages/cut_start', {data: {task_type: '{{task_type}}' }}, function (res) {
 					pages = res.items;
 					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
 						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
