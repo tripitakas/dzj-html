@@ -11,7 +11,7 @@ import inspect
 from datetime import datetime, timedelta
 from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
-from model.user import authority_map, ACCESS_ALL
+from controller.user.base import authority_map, ACCESS_ALL
 
 
 def fetch_authority(user, record):

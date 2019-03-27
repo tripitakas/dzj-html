@@ -16,7 +16,7 @@ from controller import errors
 from controller.base import BaseHandler, DbError
 from controller.helper import fetch_authority
 
-import model.user as u
+import controller.user.base as u
 
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
@@ -30,7 +30,7 @@ def trim_user(r):
     return r
 
 
-class LoginApi(BaseHandler):
+class LoginApi(UserHandler):
     URL = '/api/user/login'
 
     def post(self):
@@ -91,7 +91,7 @@ class LoginApi(BaseHandler):
         self.send_response(user, trim=trim_user)
 
 
-class RegisterApi(BaseHandler):
+class RegisterApi(UserHandler):
     URL = '/api/user/register'
 
     def check_info(self, user):
@@ -155,7 +155,7 @@ class RegisterApi(BaseHandler):
             self.send_response(user, trim=trim_user)
 
 
-class ChangeUserApi(BaseHandler):
+class ChangeUserApi(UserHandler):
     URL = '/api/user/change'
 
     def check(self):
@@ -230,7 +230,7 @@ class ChangeUserApi(BaseHandler):
         return c2
 
 
-class LogoutApi(BaseHandler):
+class LogoutApi(UserHandler):
     URL = '/api/user/logout'
 
     def get(self):
@@ -241,7 +241,7 @@ class LogoutApi(BaseHandler):
             self.send_response({'result': 'ok'})
 
 
-class RemoveUserApi(BaseHandler):
+class RemoveUserApi(UserHandler):
     URL = '/api/user/remove'
 
     def post(self):
@@ -268,7 +268,7 @@ class RemoveUserApi(BaseHandler):
         self.send_response()
 
 
-class GetUsersApi(BaseHandler):
+class GetUsersApi(UserHandler):
     URL = '/api/user/list'
 
     def get(self):
@@ -293,7 +293,7 @@ class GetUsersApi(BaseHandler):
         self.send_response(response)
 
 
-class GetOptionsApi(BaseHandler):
+class GetOptionsApi(UserHandler):
     URL = r'/api/options/([a-z_]+)'
 
     def get(self, kind):
@@ -304,7 +304,7 @@ class GetOptionsApi(BaseHandler):
         self.send_response(ret)
 
 
-class ResetPasswordApi(BaseHandler):
+class ResetPasswordApi(UserHandler):
     URL = r'/api/pwd/reset/@user_id'
 
     def post(self, rid):
@@ -335,7 +335,7 @@ class ResetPasswordApi(BaseHandler):
         })
 
 
-class ChangePasswordApi(BaseHandler):
+class ChangePasswordApi(UserHandler):
     URL = '/api/pwd/change'
 
     def post(self):

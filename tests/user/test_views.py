@@ -4,9 +4,7 @@
 @time: 2018/6/12
 """
 from tests.testcase import APITestCase
-from controller.views import handlers
-from controller.role import role_route_maps
-from itertools import chain
+from controller.com import handlers
 import re
 
 admin = 'admin@test.com', 'test123'

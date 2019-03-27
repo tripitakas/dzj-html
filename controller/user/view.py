@@ -5,12 +5,12 @@
 @time: 2018/6/23
 """
 
-from controller.base import BaseHandler
+from controller.base import UserHandler
 from controller.helper import fetch_authority
-import model.user as u
+import controller.user.base as u
 
 
-class UserLoginHandler(BaseHandler):
+class UserLoginHandler(UserHandler):
     URL = '/user/login'
 
     def get(self):
@@ -18,7 +18,7 @@ class UserLoginHandler(BaseHandler):
         self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
-class UserRegisterHandler(BaseHandler):
+class UserRegisterHandler(UserHandler):
     URL = '/user/register'
 
     def get(self):
@@ -26,7 +26,7 @@ class UserRegisterHandler(BaseHandler):
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
-class UsersAdminHandler(BaseHandler):
+class UsersAdminHandler(UserHandler):
     URL = '/user/admin'
 
     def get(self):
@@ -52,7 +52,7 @@ class UsersAdminHandler(BaseHandler):
         return r
 
 
-class UserRolesHandler(BaseHandler):
+class UserRolesHandler(UserHandler):
     URL = '/user/role'
 
     def get(self):
@@ -73,7 +73,7 @@ class UserRolesHandler(BaseHandler):
         self.render('user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
 
 
-class UserStatisticHandler(BaseHandler):
+class UserStatisticHandler(UserHandler):
     URL = '/user/statistic'
 
     def get(self):
@@ -99,7 +99,7 @@ class UserStatisticHandler(BaseHandler):
         self.render('user_statistic.html', users=users)
 
 
-class UserProfileHandler(BaseHandler):
+class UserProfileHandler(UserHandler):
     URL = '/user/profile'
 
     def get(self):

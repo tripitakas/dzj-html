@@ -3,11 +3,12 @@
 """
 @time: 2018/10/23
 """
-import sys
 
-if sys.version_info < (3, 0):
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
+from controller.base import BaseHandler
+
+
+class UserHandler(BaseHandler):
+    pass
 
 
 class User(object):
@@ -24,6 +25,10 @@ class User(object):
     last_time = str
     old_password = str  # 修改密码临时用
     login_md5 = str  # 密码和权限的MD5码
+
+
+
+
 
 
 ACCESS_CUT_PROOF = '切分校对员'

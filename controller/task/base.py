@@ -262,3 +262,16 @@ class TaskHandler(BaseHandler):
         page_size = self.default_page_size if page_size == '' else page_size
         pages = self.db.page.find(query, fields).limit(page_size).skip(page_size * (page_no - 1))
         return [convert_bson(p) for p in pages]
+
+
+class PublishTask(object):
+    # 任务模型类，用于数据格式定义与转换
+    pages = str
+    priority = str
+    comment = str
+    task_type = str
+
+
+class SaveTask(object):
+    name = str
+    submit = int

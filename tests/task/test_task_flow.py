@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-import controller.errors as e
-import model.user as u
+import controller.user.base as u
 
 user1 = 'expert1@test.com', 't12345'
 user2 = 'expert2@test.com', 't12312'

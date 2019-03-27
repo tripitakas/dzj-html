@@ -7,12 +7,12 @@
 import re
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
-from controller.task.base import TaskHandler
+from controller.task.base import TaskHandler, PublishTask, SaveTask
 from controller.base import DbError
 from controller.helper import convert_bson
 from controller import errors
 
-import model.user as u
+import controller.user.base as u
 
 
 class PublishTasksApi(TaskHandler):
@@ -202,14 +202,6 @@ class UnlockTasksApi(TaskHandler):
             self.send_db_error(e)
 
 
-class PublishTask(object):
-    # 任务模型类，用于数据格式定义与转换
-    pages = str
-    priority = str
-    comment = str
-    task_type = str
-
-
 class PickTaskApi(TaskHandler):
     def pick(self, task_type, name):
         """ 取审校任务 """
@@ -282,11 +274,6 @@ class PickTextReviewTaskApi(PickTaskApi):
     def get(self, name):
         """ 取文字审定任务 """
         self.pick('text_review', name)
-
-
-class SaveTask(object):
-    name = str
-    submit = int
 
 
 class SaveCutApi(TaskHandler):

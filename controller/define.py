@@ -4,7 +4,6 @@
 @desc: 后端公共定义类
 @time: 2019/3/10
 """
-import model.user as u
 
 url_placeholder = {
     'user_id': r'[A-Za-z0-9_]+',
@@ -13,7 +12,7 @@ url_placeholder = {
     'sutra_id': r'[a-zA-Z]{2}',
     'num': r'\d+',
     'task-kind': r'[a-z_]+',
-    'task_ex_type': u.re_task_type + '|cut_proof|cut_review|cut|text',
+    'task_ex_type': r'[a-z0-9_.]+',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
     'box-type': 'block|column|char',
