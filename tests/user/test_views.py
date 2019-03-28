@@ -4,7 +4,9 @@
 @time: 2018/6/12
 """
 from tests.testcase import APITestCase
-from controller.com import handlers
+from controller import views
+from controller.user.role import role_route_maps
+from itertools import chain
 import re
 
 admin = 'admin@test.com', 'test123'
@@ -22,7 +24,7 @@ class TestViews(APITestCase):
     def test_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
         if self.get_code(r) == 200:
-            for view in handlers:
+            for view in views:
                 if isinstance(view.URL, list):
                     for url in view.URL:
                         self._test_view(url, True)
@@ -32,7 +34,7 @@ class TestViews(APITestCase):
     def test_with_any_user(self):
         r = self.fetch('/api/user/login', body={'data': dict(email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
-            for view in handlers:
+            for view in views:
                 if isinstance(view.URL, list):
                     for url in view.URL:
                         self._test_view(url, False)
