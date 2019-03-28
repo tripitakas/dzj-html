@@ -11,13 +11,13 @@ import re
 from tornado.escape import json_encode
 from tornado.util import unicode_type
 
+import controller.model
 from controller import errors
 from controller.base import DbError
 from controller.helper import fetch_authority
 import controller.helper as hlp
 from controller.user.base import UserHandler
-import controller.user.base as u
-from controller.user.role import role_name_maps
+from controller.role import role_name_maps
 
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
@@ -36,7 +36,7 @@ class LoginApi(UserHandler):
 
     def post(self):
         """ 登录 """
-        user = self.get_body_obj(u.User)
+        user = self.get_body_obj(controller.model.User)
         email = user.email
         password = user.password
 
@@ -68,7 +68,7 @@ class LoginApi(UserHandler):
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             user = self.db.user.find_one(dict(email=email))
             self.roles = [k for k, v in user.get('roles', {}).items() if v] if user else []
-            user = self.fetch2obj(user, u.User, fetch_authority, fields=fields)
+            user = self.fetch2obj(user, controller.model.User, fetch_authority, fields=fields)
             if not user:
                 self.add_op_log('login-no', context=email)
                 return self.send_error(errors.no_user, reason=email)
@@ -122,7 +122,7 @@ class RegisterApi(UserHandler):
 
     def post(self):
         """ 注册 """
-        user = self.get_body_obj(u.User)
+        user = self.get_body_obj(controller.model.User)
         if self.check_info(user):
             try:
                 # 如果是第一个用户则设置为管理员
@@ -164,7 +164,7 @@ class ChangeUserApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        info = self.get_body_obj(u.User)
+        info = self.get_body_obj(controller.model.User)
         if not info or not info.email:
             return self.send_error(errors.incomplete)
         if info.name and not re_name.match(unicode_type(info.name)):
@@ -181,7 +181,7 @@ class ChangeUserApi(UserHandler):
         try:
             fields = base_fields + list(role_name_maps.keys())
             old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)),
-                                      u.User, fetch_authority, fields=fields)
+                                      controller.model.User, fetch_authority, fields=fields)
             if not old_user:
                 return self.send_error(errors.no_user, reason=info.email)
             old_auth = old_user.authority
@@ -251,7 +251,7 @@ class RemoveUserApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        info = self.get_body_obj(u.User)
+        info = self.get_body_obj(controller.model.User)
         if not info or not info.email or not info.name:
             return self.send_error(errors.incomplete)
         if info.email == self.current_user.email:
@@ -282,7 +282,7 @@ class GetUsersApi(UserHandler):
         try:
             cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
+            users = [self.fetch2obj(r, controller.model.User, fetch_authority, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users, trim=trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -344,7 +344,7 @@ class ChangePasswordApi(UserHandler):
         self.current_user = self.get_current_user()
         if not self.current_user:
             return self.send_error(errors.need_login)
-        info = self.get_body_obj(u.User)
+        info = self.get_body_obj(controller.model.User)
         if not info:
             return self.send_error(errors.incomplete)
         if not info.password:

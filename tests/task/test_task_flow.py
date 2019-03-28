@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.user.role import role_name_maps
+from controller.role import role_name_maps
 
 user1 = 'expert1@test.com', 't12345'
 user2 = 'expert2@test.com', 't12312'

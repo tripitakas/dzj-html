@@ -11,22 +11,6 @@ class UserHandler(BaseHandler):
     pass
 
 
-class User(object):
-    id = str
-    name = str
-    email = str
-    password = str
-    phone = int
-    authority = str  # ACCESS_ALL 组合而成，逗号分隔
-    gender = str
-    image = str
-    status = int
-    create_time = str
-    last_time = str
-    old_password = str  # 修改密码临时用
-    login_md5 = str  # 密码和权限的MD5码
-
-
 # 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀
 task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
               'block_cut_review', 'column_cut_review', 'char_cut_review',

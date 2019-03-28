@@ -21,10 +21,10 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.user.role import get_role_routes, get_route_roles, role_name_maps
+from controller.role import get_role_routes, get_route_roles, role_name_maps
 import controller.helper
 from controller.helper import fetch_authority, convert2obj, my_framer
-from controller.user.base import User
+from controller.model import User
 
 logging.currentframe = my_framer
 

@@ -5,8 +5,6 @@
 """
 from tests.testcase import APITestCase
 from controller import views
-from controller.user.role import role_maps
-from itertools import chain
 import re
 
 admin = 'admin@test.com', 'test123'

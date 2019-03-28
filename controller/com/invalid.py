@@ -8,7 +8,7 @@
 from operator import itemgetter
 from os import path
 from controller.task.base import TaskHandler
-from controller.user.role import get_route_roles, role_name_maps
+from controller.role import get_route_roles, role_name_maps
 import re
 import inspect
 
