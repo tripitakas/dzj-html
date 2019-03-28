@@ -197,7 +197,7 @@ role_maps = {
 }
 
 # 获取指定角色对应的名称
-role_name_maps = {k: v['name'] for k, v in role_maps}
+role_name_maps = {k: v['name'] for k, v in role_maps.items()}
 
 
 def get_role_routes(role, routes=None, exclude_roles=None):
