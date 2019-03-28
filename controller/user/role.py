@@ -12,9 +12,9 @@
 角色可以嵌套定义，如下表中的切分专家和文字专家。
 访客的路由适用于普通用户，普通用户的路由适用于任何用户。
 """
-role_route_maps = {
+role_maps = {
     'testing': {
-        'name': '自动测试免登录',
+        'name': '单元测试用户',
         'routes': {
             '/api/@task_type/@task_id': ['GET'],
             '/api/page/@task_id': ['GET'],
@@ -196,17 +196,20 @@ role_route_maps = {
     },
 }
 
+# 获取指定角色对应的名称
+role_name_maps = {k: v['name'] for k, v in role_maps}
+
 
 def get_role_routes(role, routes=None, exclude_roles=None):
     """获取指定角色对应的route集合"""
     assert type(role) in [str, list]
-    roles = (role_route_maps.keys() if role == 'any' else [role]) if type(role) == str else role
+    roles = (role_maps.keys() if role == 'any' else [role]) if type(role) == str else role
     routes = dict() if routes is None else routes
     for r in roles:
-        for url, m in role_route_maps.get(r, {}).get('routes', {}).items():
+        for url, m in role_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
-        for r0 in role_route_maps.get(r, {}).get('roles', []):
+        for r0 in role_maps.get(r, {}).get('roles', []):
             if not exclude_roles or r0 not in exclude_roles:
                 get_role_routes(r0, routes, exclude_roles=exclude_roles)
     return routes
@@ -215,7 +218,7 @@ def get_role_routes(role, routes=None, exclude_roles=None):
 def get_route_roles(route, method):
     roles = []
     roles_used = []
-    for role in (['user', 'cut_proof', 'cut_review'] + list(role_route_maps.keys())):
+    for role in (['user', 'cut_proof', 'cut_review'] + list(role_maps.keys())):
         if method in get_role_routes(role, exclude_roles=roles_used).get(route, []):
             if role not in roles:
                 roles.append(role)
@@ -225,4 +228,4 @@ def get_route_roles(route, method):
 
 if __name__ == '__main__':
     for k, v in get_role_routes(['cut_expert']).items():
-        print(k, v)  # TODO: 这段测试可移到单元测试中，校验 role_route_maps
+        print(k, v)  # TODO: 这段测试可移到单元测试中，校验 role_maps

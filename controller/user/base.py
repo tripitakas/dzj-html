@@ -27,41 +27,6 @@ class User(object):
     login_md5 = str  # 密码和权限的MD5码
 
 
-
-
-
-
-ACCESS_CUT_PROOF = '切分校对员'
-ACCESS_CUT_REVIEW = '切分审定员'
-ACCESS_CUT_BLOCK_PROOF = '栏切分校对员'
-ACCESS_CUT_BLOCK_REVIEW = '栏切分审定员'
-ACCESS_CUT_COLUMN_PROOF = '列切分校对员'
-ACCESS_CUT_COLUMN_REVIEW = '列切分审定员'
-ACCESS_CUT_CHAR_PROOF = '字切分校对员'
-ACCESS_CUT_CHAR_REVIEW = '字切分审定员'
-ACCESS_CUT_EXPERT = '切分专家'
-ACCESS_TEXT_PROOF = '文字校对员'
-ACCESS_TEXT_REVIEW = '文字审定员'
-ACCESS_TEXT_EXPERT = '文字专家'
-ACCESS_FMT_PROOF = '格式标注员'
-ACCESS_FMT_REVIEW = '格式审定员'
-ACCESS_TASK_MGR = '任务管理员'
-ACCESS_DATA_MGR = '数据管理员'
-ACCESS_MANAGER = '超级管理员'
-ACCESS_ALL = [ACCESS_CUT_PROOF, ACCESS_CUT_REVIEW, ACCESS_TEXT_PROOF, ACCESS_TEXT_REVIEW, ACCESS_TEXT_EXPERT,
-              ACCESS_FMT_PROOF, ACCESS_FMT_REVIEW, ACCESS_TASK_MGR, ACCESS_DATA_MGR, ACCESS_MANAGER]
-
-authority_map = dict(cut_proof=ACCESS_CUT_PROOF, cut_review=ACCESS_CUT_REVIEW, cut_expert=ACCESS_CUT_EXPERT,
-                     block_cut_proof=ACCESS_CUT_BLOCK_PROOF, block_cut_review=ACCESS_CUT_BLOCK_REVIEW,
-                     column_cut_proof=ACCESS_CUT_COLUMN_PROOF, column_cut_review=ACCESS_CUT_COLUMN_REVIEW,
-                     char_cut_proof=ACCESS_CUT_CHAR_PROOF, char_cut_review=ACCESS_CUT_CHAR_REVIEW,
-                     text_proof=ACCESS_TEXT_PROOF, text_review=ACCESS_TEXT_REVIEW,
-                     fmt_proof=ACCESS_FMT_PROOF, fmt_review=ACCESS_FMT_REVIEW,
-                     text_expert=ACCESS_TEXT_EXPERT, manager=ACCESS_MANAGER,
-                     task_admin=ACCESS_TASK_MGR, data_admin=ACCESS_DATA_MGR,
-                     testing='单元测试', anonymous='访客', user='用户')
-
-
 # 下列每种任务类型(按依赖顺序列出任务类型)对应一个任务池，相关状态和用户等字段名以此为前缀
 task_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
               'block_cut_review', 'column_cut_review', 'char_cut_review',

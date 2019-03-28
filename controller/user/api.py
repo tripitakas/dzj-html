@@ -11,12 +11,13 @@ import re
 from tornado.escape import json_encode
 from tornado.util import unicode_type
 
-import controller.helper as hlp
 from controller import errors
-from controller.base import BaseHandler, DbError
+from controller.base import DbError
 from controller.helper import fetch_authority
-
+import controller.helper as hlp
+from controller.user.base import UserHandler
 import controller.user.base as u
+from controller.user.role import role_name_maps
 
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
@@ -47,7 +48,7 @@ class LoginApi(UserHandler):
         if not re_email.match(email):
             return self.send_error(errors.invalid_email)
 
-        fields = base_fields + ['password'] + list(u.authority_map.keys())
+        fields = base_fields + ['password'] + list(role_name_maps.keys())
         try:
             # 检查是否多次登录失败
             login_fail = {
@@ -138,7 +139,7 @@ class RegisterApi(UserHandler):
                     roles=roles, create_time=user.create_time))
 
                 self.roles = [k for k, v in roles.items() if v]
-                user.authority = u.ACCESS_MANAGER if mgr else ''
+                user.authority = role_name_maps['manager'] if mgr else ''
                 self.current_user = user
                 self.add_op_log('register', context=user.email + ': ' + user.name)
             except DbError as e:
@@ -178,7 +179,7 @@ class ChangeUserApi(UserHandler):
             return
 
         try:
-            fields = base_fields + list(u.authority_map.keys())
+            fields = base_fields + list(role_name_maps.keys())
             old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)),
                                       u.User, fetch_authority, fields=fields)
             if not old_user:
@@ -200,7 +201,7 @@ class ChangeUserApi(UserHandler):
         sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
-            if self.current_user.id != info.id and u.ACCESS_MANAGER not in self.authority:
+            if self.current_user.id != info.id and role_name_maps['manager'] not in self.authority:
                 return self.send_error(errors.unauthorized)
 
             if info.name and not re_name.match(unicode_type(info.name)):
@@ -214,12 +215,12 @@ class ChangeUserApi(UserHandler):
 
     def change_auth(self, info, old_auth):
         c2 = 1
-        sets = {'roles.' + role: int(role_desc in info.authority) for role, role_desc in u.authority_map.items()
+        sets = {'roles.' + role: int(role_desc in info.authority) for role, role_desc in role_name_maps.items()
                 if role not in 'user' and (role_desc in info.authority) != (role_desc in old_auth)}
         if sets:
-            if u.ACCESS_MANAGER not in self.authority:
+            if role_name_maps['manager'] not in self.authority:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
-            if u.ACCESS_MANAGER not in info.authority and u.ACCESS_MANAGER in old_auth \
+            if role_name_maps['manager'] not in info.authority and role_name_maps['manager'] in old_auth \
                     and info.id == self.current_user.id:
                 return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
@@ -277,9 +278,9 @@ class GetUsersApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        fields = base_fields + list(u.authority_map.keys())
+        fields = base_fields + list(role_name_maps.keys())
         try:
-            cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)

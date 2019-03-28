@@ -21,11 +21,10 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.user.role import get_role_routes, get_route_roles
+from controller.user.role import get_role_routes, get_route_roles, role_name_maps
 import controller.helper
 from controller.helper import fetch_authority, convert2obj, my_framer
-from controller.user.base import User, authority_map
-
+from controller.user.base import User
 
 logging.currentframe = my_framer
 
@@ -79,7 +78,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if in_routes():
             return
 
-        need_roles = [authority_map[r] for r in get_route_roles(route, self.request.method)]
+        need_roles = [role_name_maps[r] for r in get_route_roles(route, self.request.method)]
         if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
             self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
 
@@ -102,7 +101,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not self.current_user:
             return auto_login and self.redirect(self.get_login_url())
 
-        fields = ['email'] + list(authority_map.keys())
+        fields = ['email'] + list(role_name_maps.keys())
         old_user = self.fetch2obj(self.db.user.find_one(dict(email=self.current_user.email)),
                                   User, fetch_authority, fields=fields)
         if old_user:
@@ -121,7 +120,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         return True
 
     def _update_roles(self):
-        self.roles = [role for role, role_desc in authority_map.items() if role_desc in self.authority]
+        self.roles = [role for role, role_desc in role_name_maps.items() if role_desc in self.authority]
 
     def render(self, template_name, **kwargs):
         kwargs['authority'] = self.current_user.authority if self.current_user else ''

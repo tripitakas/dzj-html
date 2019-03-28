@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-import controller.user.base as u
+from controller.user.role import role_name_maps
 
 user1 = 'expert1@test.com', 't12345'
 user2 = 'expert2@test.com', 't12312'
@@ -16,7 +16,7 @@ class TestTaskFlow(APITestCase):
         # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_users([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
                         for i, r in enumerate([user1, user2, user3])],
-                       ','.join([u.ACCESS_CUT_EXPERT, u.ACCESS_TEXT_EXPERT]))
+                       ','.join([role_name_maps['cut_expert'], role_name_maps['text_expert']]))
 
     def tearDown(self):
         # 退回所有任务，还原改动

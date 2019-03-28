@@ -11,7 +11,7 @@ import inspect
 from datetime import datetime, timedelta
 from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
-from controller.user.base import authority_map, ACCESS_ALL
+from controller.user.role import role_name_maps
 
 
 def fetch_authority(user, record):
@@ -19,8 +19,8 @@ def fetch_authority(user, record):
     authority = None
     record = record and record.get('roles')
     if record:
-        items = [authority_map[f] for f in list(authority_map.keys()) if record.get(f)]
-        authority = ','.join(sorted(items, key=lambda a: ACCESS_ALL.index(a) if a in ACCESS_ALL else -1))
+        items = [role_name_maps[f] for f in list(role_name_maps.keys()) if record.get(f)]
+        authority = ','.join(items)
     if user:
         user.authority = authority or '普通用户'
     return authority

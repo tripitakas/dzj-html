@@ -4,10 +4,11 @@
 @desc: 登录和注册
 @time: 2018/6/23
 """
-
-from controller.base import UserHandler
+import controller.user.role
 from controller.helper import fetch_authority
 import controller.user.base as u
+from controller.user.base import UserHandler
+from controller.user.role import role_name_maps
 
 
 class UserLoginHandler(UserHandler):
@@ -34,7 +35,7 @@ class UsersAdminHandler(UserHandler):
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
             self.update_login()
-            cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, u.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
@@ -57,10 +58,10 @@ class UserRolesHandler(UserHandler):
 
     def get(self):
         """ 角色管理页面 """
-        fields = ['id', 'name', 'phone'] + list(u.authority_map.keys())
+        fields = ['id', 'name', 'phone'] + list(role_name_maps().keys())
         try:
             self.update_login()
-            cond = {} if u.ACCESS_MANAGER in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, u.User, fetch_authority, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
@@ -70,7 +71,7 @@ class UserRolesHandler(UserHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('user_role.html', users=users, roles=['普通用户'] + u.ACCESS_ALL)
+        self.render('user_role.html', users=users, roles=role_name_maps.values())
 
 
 class UserStatisticHandler(UserHandler):
