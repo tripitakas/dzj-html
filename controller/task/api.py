@@ -169,7 +169,7 @@ class GetPagesApi(TaskHandler):
 
 
 class UnlockTasksApi(TaskHandler):
-    URL = r'/api/unlock/@task_ex_type/@page_prefix'
+    URL = r'/api/unlock/@task_type/@page_prefix'
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
