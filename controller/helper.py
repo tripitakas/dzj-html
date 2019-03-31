@@ -14,18 +14,6 @@ from pyconvert.pyconv import convertJSON2OBJ
 from controller.role import role_name_maps
 
 
-def fetch_authority(user, record):
-    """ 从记录中读取权限字段值 """
-    authority = None
-    record = record and record.get('roles')
-    if record:
-        items = [role_name_maps[f] for f in list(role_name_maps.keys()) if record.get(f)]
-        authority = ','.join(items)
-    if user:
-        user.authority = authority or '普通用户'
-    return authority
-
-
 def convert_bson(r):
     """ 将从文档库读取到的记录转为可JSON序列化的对象 """
     if not r:

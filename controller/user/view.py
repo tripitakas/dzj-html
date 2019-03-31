@@ -5,7 +5,6 @@
 @time: 2018/6/23
 """
 import controller.model
-from controller.helper import fetch_authority
 from controller.user.base import UserHandler
 from controller.role import role_name_maps
 
@@ -33,8 +32,7 @@ class UsersAdminHandler(UserHandler):
         """ 用户管理页面 """
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
-            self.update_login()
-            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
@@ -59,10 +57,9 @@ class UserRolesHandler(UserHandler):
         """ 角色管理页面 """
         fields = ['id', 'name', 'phone'] + list(role_name_maps().keys())
         try:
-            self.update_login()
-            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, controller.model.User, fetch_authority, fields=fields) for r in users]
+            users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -80,9 +77,8 @@ class UserStatisticHandler(UserHandler):
         """ 人员管理-数据管理页面 """
         fields = ['id', 'name', 'phone']
         try:
-            self.update_login()
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, controller.model.User, fetch_authority, fields=fields) for r in users]
+            users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users)
             for r in users:

@@ -28,15 +28,15 @@ class TestUserApi(APITestCase):
         r = self.add_admin_user()
         r = self.parse_response(r)
         if 'error' not in r:
-            self.assertIn('超级管理员', r['authority'])
+            self.assertIn('超级管理员', r['roles'])
         else:
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password='test')})
             self.assert_code(e.invalid_password, r)
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
             self.assert_code(200, r)
-            self.assertIn('管理员', self.parse_response(r).get('authority'))
+            self.assertIn('管理员', self.parse_response(r).get('roles'))
 
-    def test_assign_authority(self):
+    def test_assign_roles(self):
         """ 测试为新用户设置权限 """
 
         # 注册一个新用户
@@ -47,7 +47,7 @@ class TestUserApi(APITestCase):
 
         # 普通用户无权设置权限
         r = self.fetch('/api/user/change', body={'data': dict(
-            id=user['id'], email=user['email'], authority='切分校对员')})
+            id=user['id'], email=user['email'], roles='切分校对员')})
         self.assert_code([e.unauthorized, e.no_change], r)
 
         # 可以修改自己的基本信息
@@ -64,9 +64,9 @@ class TestUserApi(APITestCase):
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
         self.assert_code(200, r)
         r = self.fetch('/api/user/change', body={'data': dict(
-            id=user['id'], email=user['email'], authority='切分校对员')})
+            id=user['id'], email=user['email'], roles='切分校对员')})
         self.assert_code([200, e.no_change], r)
-        self.fetch('/api/user/change', body={'data': dict(id=user['id'], email=user['email'], authority='')})
+        self.fetch('/api/user/change', body={'data': dict(id=user['id'], email=user['email'], roles='')})
 
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """

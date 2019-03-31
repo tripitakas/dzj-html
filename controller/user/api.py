@@ -11,10 +11,9 @@ import re
 from tornado.escape import json_encode
 from tornado.util import unicode_type
 
-import controller.model
 from controller import errors
 from controller.base import DbError
-from controller.helper import fetch_authority
+from controller.model import  User
 import controller.helper as hlp
 from controller.user.base import UserHandler
 from controller.role import role_name_maps
@@ -23,7 +22,7 @@ from controller.role import role_name_maps
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
 re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
-base_fields = ['id', 'name', 'email', 'phone', 'gender', 'create_time']
+base_fields = ['id', 'name', 'email', 'phone', 'gender', 'create_time', 'roles']
 
 
 def trim_user(r):
@@ -36,7 +35,7 @@ class LoginApi(UserHandler):
 
     def post(self):
         """ 登录 """
-        user = self.get_body_obj(controller.model.User)
+        user = self.get_body_obj(User)
         email = user.email
         password = user.password
 
@@ -67,8 +66,7 @@ class LoginApi(UserHandler):
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             user = self.db.user.find_one(dict(email=email))
-            self.roles = [k for k, v in user.get('roles', {}).items() if v] if user else []
-            user = self.fetch2obj(user, controller.model.User, fetch_authority, fields=fields)
+            user = self.fetch2obj(user, User, fields=fields)
             if not user:
                 self.add_op_log('login-no', context=email)
                 return self.send_error(errors.no_user, reason=email)
@@ -78,16 +76,16 @@ class LoginApi(UserHandler):
             self.current_user = user
             self.add_op_log('login-ok', context=email + ': ' + user.name)
             ResetPasswordApi.remove_login_fails(self, email)
-            user.login_md5 = hlp.gen_id(user.authority)
+            user.login_md5 = hlp.gen_id(user.roles)
         except DbError as e:
             return self.send_db_error(e)
 
         user.__dict__.pop('old_password', 0)
         user.__dict__.pop('password', 0)
         user.__dict__.pop('last_time', 0)
-        self.authority = user.authority
+        user.__dict__.pop('roles', 0)
         self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
-        logging.info('login id=%s, name=%s, email=%s, auth=%s' % (user.id, user.name, user.email, user.authority))
+        logging.info('login id=%s, name=%s, email=%s, roles=%s' % (user.id, user.name, user.email, user.roles))
 
         self.send_response(user, trim=trim_user)
 
@@ -116,40 +114,37 @@ class RegisterApi(UserHandler):
 
         user.id = hlp.gen_id(user.email, 'user')
         user.create_time = hlp.get_date_time()
-        self.authority = user.authority = ''
 
         return True
 
     def post(self):
         """ 注册 """
-        user = self.get_body_obj(controller.model.User)
+        user = self.get_body_obj(User)
         if self.check_info(user):
             try:
                 # 如果是第一个用户则设置为管理员
-                mgr = not self.db.user.find_one({})
+                first_user = not self.db.user.find_one({})
 
                 if self.db.user.find_one(dict(email=user.email)):
                     return self.send_error(errors.user_exists, reason=user.email)
 
                 # 创建用户，分配权限，设置为当前用户
-                roles = dict(manager=1) if mgr else {}
+                user.roles = 'manager' if first_user else ''
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=hlp.gen_id(user.password),
-                    roles=roles, create_time=user.create_time))
+                    roles=user.roles, create_time=user.create_time))
 
-                self.roles = [k for k, v in roles.items() if v]
-                user.authority = role_name_maps['manager'] if mgr else ''
                 self.current_user = user
                 self.add_op_log('register', context=user.email + ': ' + user.name)
             except DbError as e:
                 return self.send_db_error(e)
 
-            user.login_md5 = hlp.gen_id(user.authority)
+            user.login_md5 = hlp.gen_id(user.roles)
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
-            self.authority = user.authority
+            user.__dict__.pop('roles', 0)
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
 
@@ -164,7 +159,7 @@ class ChangeUserApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        info = self.get_body_obj(controller.model.User)
+        info = self.get_body_obj(User)
         if not info or not info.email:
             return self.send_error(errors.incomplete)
         if info.name and not re_name.match(unicode_type(info.name)):
@@ -179,29 +174,27 @@ class ChangeUserApi(UserHandler):
             return
 
         try:
-            fields = base_fields + list(role_name_maps.keys())
-            old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)),
-                                      controller.model.User, fetch_authority, fields=fields)
+            old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)), User)
             if not old_user:
                 return self.send_error(errors.no_user, reason=info.email)
-            old_auth = old_user.authority
+            old_roles = old_user.roles
             info.id = old_user.id
 
-            c1 = self.change_info(info, old_user, old_auth)
-            c2 = c1 is not None and info.authority is not None and self.change_auth(info, old_auth)
+            c1 = self.change_info(info, old_user, old_roles)
+            c2 = c1 is not None and info.roles is not None and self.change_roles(info, old_roles)
             if c1 is not None and c2 is not None:
                 if not c1 and c2 == 1:
                     return self.send_error(errors.no_change)
-                self.send_response(dict(info=c1, auth=c2))
+                self.send_response(dict(info=c1, roles=c2))
 
         except DbError as e:
             return self.send_db_error(e)
 
-    def change_info(self, info, old_user, old_auth):
+    def change_info(self, info, old_user, old_roles):
         sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
-            if self.current_user.id != info.id and role_name_maps['manager'] not in self.authority:
+            if self.current_user.id != info.id and role_name_maps['manager'] not in self.current_user.roles:
                 return self.send_error(errors.unauthorized)
 
             if info.name and not re_name.match(unicode_type(info.name)):
@@ -215,12 +208,12 @@ class ChangeUserApi(UserHandler):
 
     def change_auth(self, info, old_auth):
         c2 = 1
-        sets = {'roles.' + role: int(role_desc in info.authority) for role, role_desc in role_name_maps.items()
-                if role not in 'user' and (role_desc in info.authority) != (role_desc in old_auth)}
+        sets = {'roles.' + role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
+                if role not in 'user' and (role_desc in info.roles) != (role_desc in old_auth)}
         if sets:
-            if role_name_maps['manager'] not in self.authority:
+            if role_name_maps['manager'] not in self.current_user.roles:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
-            if role_name_maps['manager'] not in info.authority and role_name_maps['manager'] in old_auth \
+            if role_name_maps['manager'] not in info.roles and role_name_maps['manager'] in old_auth \
                     and info.id == self.current_user.id:
                 return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
@@ -251,7 +244,7 @@ class RemoveUserApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        info = self.get_body_obj(controller.model.User)
+        info = self.get_body_obj(User)
         if not info or not info.email or not info.name:
             return self.send_error(errors.incomplete)
         if info.email == self.current_user.email:
@@ -280,9 +273,9 @@ class GetUsersApi(UserHandler):
 
         fields = base_fields + list(role_name_maps.keys())
         try:
-            cond = {} if role_name_maps['manager'] in self.authority else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, controller.model.User, fetch_authority, fields=fields) for r in users]
+            users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users, trim=trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -290,7 +283,7 @@ class GetUsersApi(UserHandler):
         except DbError as e:
             return self.send_db_error(e)
 
-        response = dict(items=users, authority=self.authority, time=hlp.get_date_time())
+        response = dict(items=users, roles=self.current_user.roles, time=hlp.get_date_time())
         self.send_response(response)
 
 
@@ -344,7 +337,7 @@ class ChangePasswordApi(UserHandler):
         self.current_user = self.get_current_user()
         if not self.current_user:
             return self.send_error(errors.need_login)
-        info = self.get_body_obj(controller.model.User)
+        info = self.get_body_obj(User)
         if not info:
             return self.send_error(errors.incomplete)
         if not info.password:

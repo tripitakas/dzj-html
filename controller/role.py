@@ -3,15 +3,25 @@
 """
 @desc: 角色和权限
 @time: 2019/3/13
-"""
-
-"""
 角色权限对应表，定义系统中的所有角色、名称以及对应的route权限。
 系统中每一个url请求，无论是来自浏览器路径栏的，还是来自js发起的Ajax请求，都对应一个访问路径route。
 将属于同一类业务的route集合分配给同一个角色，系统中所有的route分配给不同的的角色。用户通过拥有角色来拥有对应的route权限。
 角色可以嵌套定义，如下表中的切分专家和文字专家。
 访客的路由适用于普通用户，普通用户的路由适用于任何用户。
 """
+
+import re
+
+url_placeholder = {
+    'user_id': r'[A-Za-z0-9_]+',
+    'task_type': r'[a-z0-9_.]+',
+    'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
+    'sutra_id': r'[a-zA-Z]{2}',
+    'num': r'\d+',
+    'page_prefix': r'[A-Za-z0-9_]*',
+    'page_kind': r'[a-z_]+',
+}
+
 role_maps = {
     'testing': {
         'name': '单元测试用户',
@@ -19,7 +29,7 @@ role_maps = {
             '/api/@task_type/@task_id': ['GET'],
             '/api/page/@task_id': ['GET'],
             '/api/pages/@page_kind': ['GET', 'POST'],
-            '/api/unlock/@task_ex_type/@page_prefix': ['GET'],
+            '/api/unlock/@task_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
     },
@@ -31,7 +41,6 @@ role_maps = {
             '/api/options/([a-z_]+)': ['GET'],
             '/user/login': ['GET'],
             '/user/register': ['GET'],
-
             '/api/user/login': ['POST'],
             '/api/user/register': ['POST'],
             '/api/user/logout': ['GET'],
@@ -45,84 +54,73 @@ role_maps = {
             '/user/logout': ['GET'],
             '/user/profile': ['GET'],
             '/api/user/change': ['POST'],
-            '/api/page/@task_id': ['GET'],
             '/api/pwd/change': ['POST'],
-            '/task/my/@task_type': ['GET'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
         }
     },
-    'cut_proof': {
-        'name': '切分校对员',
-        'roles': ['user'],
-        'routes': {
-            '/api/pick/@box-type_cut_proof/@task_id': ['GET'],
-            '/task/do/@box-type_cut_proof/@task_id': ['GET'],
-            '/api/save/@box-type_cut_proof': ['POST'],
-        }
-    },
-    'cut_review': {
-        'name': '切分审定员',
-        'roles': ['user'],
-        'routes': {
-            '/api/pick/@box-type_cut_review/@task_id': ['GET'],
-            '/task/do/@box-type_cut_review/@task_id': ['GET'],
-            '/api/save/@box-type_cut_review': ['POST'],
-        }
-    },
     'block_cut_proof': {
         'name': '切栏校对员',
-        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
             '/task/my/block_cut_proof': ['GET'],
             '/task/do/block_cut_proof/@task_id': ['GET', 'POST'],
+            '/api/pick/block_cut_proof/@task_id': ['GET'],
+            '/api/save/block_cut_proof': ['POST'],
         }
     },
     'block_cut_review': {
         'name': '切栏审定员',
-        'roles': ['cut_review'],
+        'roles': ['block_cut_proof'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
             '/task/do/block_cut_review/@task_id': ['GET', 'POST'],
+            '/api/pick/block_cut_review/@task_id': ['GET'],
+            '/api/save/block_cut_review': ['POST'],
         }
     },
     'column_cut_proof': {
         'name': '切列校对员',
-        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
             '/task/my/column_cut_proof': ['GET'],
             '/task/do/column_cut_proof/@task_id': ['GET', 'POST'],
+            '/api/pick/column_cut_proof/@task_id': ['GET'],
+            '/api/save/column_cut_proof': ['POST'],
         }
     },
     'column_cut_review': {
         'name': '切列审定员',
-        'roles': ['cut_review'],
+        'roles': ['column_cut_proof'],
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
             '/task/do/column_cut_review/@task_id': ['GET', 'POST'],
+            '/api/pick/column_cut_review/@task_id': ['GET'],
+            '/api/save/column_cut_review': ['POST'],
         }
     },
     'char_cut_proof': {
         'name': '切字校对员',
-        'roles': ['cut_proof'],
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
             '/task/my/char_cut_proof': ['GET'],
             '/task/do/char_cut_proof/@task_id': ['GET', 'POST'],
+            '/api/pick/char_cut_proof/@task_id': ['GET'],
+            '/api/save/char_cut_proof': ['POST'],
         }
     },
     'char_cut_review': {
         'name': '切字审定员',
-        'roles': ['cut_review'],
+        'roles': ['char_cut_proof'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
             '/task/do/char_cut_review/@task_id': ['GET', 'POST'],
+            '/api/pick/char_cut_review/@task_id': ['GET'],
+            '/api/save/char_cut_review': ['POST'],
         }
     },
     'cut_expert': {
@@ -132,7 +130,6 @@ role_maps = {
     },
     'text_proof': {
         'name': '文字校对员',
-        'roles': ['user'],
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
@@ -142,7 +139,7 @@ role_maps = {
     },
     'text_review': {
         'name': '文字审定员',
-        'roles': ['user'],
+        'roles': ['text_proof'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -152,14 +149,13 @@ role_maps = {
     },
     'text_expert': {
         'name': '文字专家',
-        'roles': ['user', 'text_proof', 'text_review', ],
+        'roles': ['text_proof', 'text_review', ],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
         }
     },
     'task_admin': {
         'name': '任务管理员',
-        'roles': ['user'],
         'routes': {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
@@ -167,12 +163,11 @@ role_maps = {
             '/api/start/@page_prefix': ['POST'],
             '/api/pages/@page_kind': ['GET', 'POST'],
             '/api/task/publish/@task_type': ['POST'],
-            '/api/unlock/@task_ex_type/@page_prefix': ['GET'],
+            '/api/unlock/@task_type/@page_prefix': ['GET'],
         }
     },
     'data_admin': {
         'name': '数据管理员',
-        'roles': ['user'],
         'routes': {
             '/data/tripitaka': ['GET'],
             '/data/envelop': ['GET'],
@@ -183,9 +178,8 @@ role_maps = {
             '/user/statistic': ['GET'],
         }
     },
-    'manager': {
-        'name': '超级管理员',
-        'roles': ['user', 'data_admin', 'task_admin', 'text_expert', 'cut_expert'],
+    'user_admin': {
+        'name': '用户管理员',
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
@@ -203,9 +197,10 @@ role_name_maps = {k: v['name'] for k, v in role_maps.items()}
 def get_role_routes(role, routes=None, exclude_roles=None):
     """获取指定角色对应的route集合"""
     assert type(role) in [str, list]
-    roles = (role_maps.keys() if role == 'any' else [role]) if type(role) == str else role
+    roles = [role] if type(role) == str else role
     routes = dict() if routes is None else routes
     for r in roles:
+        r = r.strip()
         for url, m in role_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
@@ -214,18 +209,31 @@ def get_role_routes(role, routes=None, exclude_roles=None):
                 get_role_routes(r0, routes, exclude_roles=exclude_roles)
     return routes
 
+def can_access(role, uri, method):
+    route_accessible = get_role_routes(role)
+    for _uri, _method in route_accessible.items():
+        for holder, regex in url_placeholder.items():
+            _uri = _uri.replace('@' + holder, regex)
+        if re.match('^%s$' % _uri, uri) and method in _method:
+            return True
+    return False
 
-def get_route_roles(route, method):
+def get_route_roles(uri, method):
     roles = []
-    roles_used = []
-    for role in (['user', 'cut_proof', 'cut_review'] + list(role_maps.keys())):
-        if method in get_role_routes(role, exclude_roles=roles_used).get(route, []):
-            if role not in roles:
-                roles.append(role)
-        roles_used.append(role)
+    for role in role_maps:
+        if can_access(role, uri, method) and role not in roles:
+            roles.append(role)
     return roles
 
 
 if __name__ == '__main__':
-    for k, v in get_role_routes(['cut_expert']).items():
-        print(k, v)  # TODO: 这段测试可移到单元测试中，校验 role_maps
+    # TODO: 这段测试可移到单元测试中，校验 role_maps
+    # if can_access('block_cut_proof', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
+    #     print('can access')
+    # else:
+    #     print('can not access')
+
+    print(get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'))
+
+    # for k, v in get_role_routes(['cut_expert']).items():
+    #     print(k, v)

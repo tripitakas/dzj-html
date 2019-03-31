@@ -156,7 +156,7 @@
 				var $dlg = $('#modifyModal');
 				var $name = $dlg.find('#name');
 				var $account = $dlg.find('#account');
-				var $list = $dlg.find('.authority-list');
+				var $list = $dlg.find('.roles-list');
 
 				user = decodeJSON(user);
 				$dlg.modal();
@@ -165,19 +165,19 @@
 
 				$list.find('label').each(function (i, el) {
 					var label = $(el).text().replace(/\s/g, '');
-					$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
+					$(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
 				});
 
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
 					var info = {email: user.email, name: $name.val()};
-					var authority = [];
+					var roles = [];
 					$list.find('label').each(function (i, el) {
 						var label = $(el).text().replace(/\s/g, '');
 						if ($(el).find('input').is(':checked')) {
-							authority.push(label);
+							roles.push(label);
 						}
 					});
-					info.authority = authority.join(',');
+					info.roles = roles.join(',');
 
 					postApi('/user/change', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');

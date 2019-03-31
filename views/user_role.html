@@ -202,7 +202,7 @@
 															<th>{{p['name']}}</th>
 															<td>{{p.get('phone') or ''}}</td>
 															{% for r in roles %}
-															<td>{{r if r in p['authority'] else '否'}}</td>
+															<td>{{r if r in p['roles'] else '否'}}</td>
 															{% end %}
 															<td>
 																<a href='javascript:modify("{{p}}")'>修改</a>
@@ -248,7 +248,7 @@
 								</div>
 								<div class="form-group">
 									<label class="col-md-2 control-label">角色选择</label>
-									<div class="col-md-10 authority-list">
+									<div class="col-md-10 roles-list">
 										<label class="checkbox-inline">
 										  <input type="checkbox"  value="option2">栏切分校对员
 										</label>
@@ -323,7 +323,7 @@
 				var $dlg = $('#modifyModal');
 				var $name = $dlg.find('#name');
 				var $account = $dlg.find('#account');
-				var $list = $dlg.find('.authority-list');
+				var $list = $dlg.find('.roles-list');
 
 				user = decodeJSON(user);
 				$dlg.modal();
@@ -332,19 +332,19 @@
 
 				$list.find('label').each(function (i, el) {
 					var label = $(el).text().replace(/\s/g, '');
-					$(el).find('input').prop('checked', user.authority.indexOf(label) >= 0);
+					$(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
 				});
 
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
 					var info = {email: user.email, name: $name.val()};
-					var authority = [];
+					var roles = [];
 					$list.find('label').each(function (i, el) {
 						var label = $(el).text().replace(/\s/g, '');
 						if ($(el).find('input').is(':checked')) {
-							authority.push(label);
+							roles.push(label);
 						}
 					});
-					info.authority = authority.join(',');
+					info.roles = roles.join(',');
 
 					postApi('/user/change', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');
