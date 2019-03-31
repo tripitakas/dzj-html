@@ -21,9 +21,9 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.role import get_role_routes, get_route_roles, role_name_maps
+from controller.role import get_route_roles, role_name_maps, can_access
 import controller.helper
-from controller.helper import fetch_authority, convert2obj, my_framer
+from controller.helper import convert2obj, my_framer
 from controller.model import User
 
 logging.currentframe = my_framer
@@ -40,8 +40,6 @@ class BaseHandler(CorsMixin, RequestHandler):
     def __init__(self, application, request, **kwargs):
         """ 请求响应的初始化，在此指定额外属性的默认值 """
         super(BaseHandler, self).__init__(application, request, **kwargs)
-        self.authority = ''
-        self.roles = []
         self.db = self.application.db
 
     def set_default_headers(self):
@@ -54,33 +52,29 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/set 前的准备 """
 
-        def in_routes():
-            methods = allow_routes.get(route, [])
-            if self.request.method in methods:
-                return True
-
-        # 得到当前路由对应的 URL，可能有占位符
-        route = [self.application.url_replace(url) for url in self.URL] if isinstance(self.URL, list) else self.URL
-        route = [url for url in route if re.match(url, self.request.uri)][0] if isinstance(route, list) else route
-
         # 先检查单元测试用途、访客能否访问
-        allow_routes = get_role_routes(['testing', 'anonymous'] if options.testing else 'anonymous')
-        if allow_routes and in_routes():
+        open_roles = ['testing', 'anonymous'] if options.testing else 'anonymous'
+        if can_access(open_roles, self.request.uri, self.request.method):
             return
 
-        # 更新登录信息和self.roles
-        render = '/api/' not in self.request.uri
-        if not self.update_login(render):
-            return self.send_error(errors.unauthorized, reason='需要登录')
+        # 检查数据库中是否有该用户，用户是否已登录
+        is_api = '/api/' in self.request.uri
+        current_user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
+        if not self.current_user or not current_user_in_db:
+            return self.send_error(errors.unauthorized, reason='需要重新登录或注册') if is_api \
+                else self.redirect(self.get_login_url())
 
-        # 检查哪种角色可访问这些URL
-        get_role_routes(self.roles, allow_routes)
-        if in_routes():
+        # 更新current_user.roles
+        self.current_user.roles = current_user_in_db.get('roles', '')
+        self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
+
+        # 检查访问权限
+        if can_access(self.current_user.roles.split(','), self.request.uri, self.request.method):
             return
-
-        need_roles = [role_name_maps[r] for r in get_route_roles(route, self.request.method)]
-        if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
-            self.send_error(errors.unauthorized, render=render, reason=','.join(need_roles))
+        else:
+            need_roles = [role_name_maps[r] for r in get_route_roles(self.request.uri, self.request.method)]
+            if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
+                self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -90,40 +84,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         user = self.get_secure_cookie('user')
         try:
             user = user and convert2obj(User, json_decode(user))
-            self.authority = user and user.authority or ''
-            self._update_roles()
             return user or None
         except TypeError as e:
             print(user, str(e))
 
-    def update_login(self, auto_login=False):
-        """ 更新内存中的当前用户及其权限信息 """
-        if not self.current_user:
-            return auto_login and self.redirect(self.get_login_url())
-
-        fields = ['email'] + list(role_name_maps.keys())
-        old_user = self.fetch2obj(self.db.user.find_one(dict(email=self.current_user.email)),
-                                  User, fetch_authority, fields=fields)
-        if old_user:
-            user = self.current_user
-            user.authority = old_user.authority
-            self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
-        else:
-            self.current_user.authority = ''
-            if auto_login:
-                return self.redirect(self.get_login_url())
-            self.send_error(errors.auth_changed)
-            raise Warning(1, '需要重新登录或注册')
-        self.authority = self.current_user.authority
-        self._update_roles()
-
-        return True
-
-    def _update_roles(self):
-        self.roles = [role for role, role_desc in role_name_maps.items() if role_desc in self.authority]
 
     def render(self, template_name, **kwargs):
-        kwargs['authority'] = self.current_user.authority if self.current_user else ''
+        kwargs['roles'] = self.current_user.roles if self.current_user else ''
         kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
@@ -279,12 +246,11 @@ class BaseHandler(CorsMixin, RequestHandler):
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
     @staticmethod
-    def fetch2obj(record, cls, extra=None, fields=None):
+    def fetch2obj(record, cls, fields=None):
         """
         将从数据库取到(fetchall、fetchone)的记录字典对象转为模型对象
         :param record: 数据库记录，字典对象
         :param cls: 模型对象的类
-        :param extra: 额外字段的读取函数
         :return: 模型对象
         """
         if record:
@@ -297,8 +263,6 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if value is not None and (not fields or f in fields):
                     obj[f] = value
             obj = convert2obj(cls, obj)
-            if obj and extra:
-                extra(obj, record)
             return obj
 
     def get_ip(self):
