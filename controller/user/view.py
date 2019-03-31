@@ -32,7 +32,7 @@ class UsersAdminHandler(UserHandler):
         """ 用户管理页面 """
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
-            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
@@ -57,7 +57,7 @@ class UserRolesHandler(UserHandler):
         """ 角色管理页面 """
         fields = ['id', 'name', 'phone'] + list(role_name_maps().keys())
         try:
-            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)

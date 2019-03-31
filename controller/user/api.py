@@ -129,7 +129,7 @@ class RegisterApi(UserHandler):
                     return self.send_error(errors.user_exists, reason=user.email)
 
                 # 创建用户，分配权限，设置为当前用户
-                user.roles = 'manager' if first_user else ''
+                user.roles = 'user_admin' if first_user else ''
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=hlp.gen_id(user.password),
@@ -194,7 +194,7 @@ class ChangeUserApi(UserHandler):
         sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
-            if self.current_user.id != info.id and role_name_maps['manager'] not in self.current_user.roles:
+            if self.current_user.id != info.id and role_name_maps['user_admin'] not in self.current_user.roles:
                 return self.send_error(errors.unauthorized)
 
             if info.name and not re_name.match(unicode_type(info.name)):
@@ -211,9 +211,9 @@ class ChangeUserApi(UserHandler):
         sets = {'roles.' + role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
                 if role not in 'user' and (role_desc in info.roles) != (role_desc in old_auth)}
         if sets:
-            if role_name_maps['manager'] not in self.current_user.roles:
+            if role_name_maps['user_admin'] not in self.current_user.roles:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
-            if role_name_maps['manager'] not in info.roles and role_name_maps['manager'] in old_auth \
+            if role_name_maps['user_admin'] not in info.roles and role_name_maps['user_admin'] in old_auth \
                     and info.id == self.current_user.id:
                 return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
@@ -273,7 +273,7 @@ class GetUsersApi(UserHandler):
 
         fields = base_fields + list(role_name_maps.keys())
         try:
-            cond = {} if role_name_maps['manager'] in self.current_user.roles else dict(id=self.current_user.id)
+            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
             users = self.db.user.find(cond)
             users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)

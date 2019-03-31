@@ -209,6 +209,7 @@ def get_role_routes(role, routes=None, exclude_roles=None):
                 get_role_routes(r0, routes, exclude_roles=exclude_roles)
     return routes
 
+
 def can_access(role, uri, method):
     route_accessible = get_role_routes(role)
     for _uri, _method in route_accessible.items():
@@ -217,6 +218,7 @@ def can_access(role, uri, method):
         if re.match('^%s$' % _uri, uri) and method in _method:
             return True
     return False
+
 
 def get_route_roles(uri, method):
     roles = []

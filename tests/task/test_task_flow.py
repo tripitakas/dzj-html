@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.role import role_name_maps
+from controller.role import role_name_maps, role_maps
 
 user1 = 'expert1@test.com', 't12345'
 user2 = 'expert2@test.com', 't12312'
@@ -17,11 +17,12 @@ class TestTaskFlow(APITestCase):
         self.add_users([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
                         for i, r in enumerate([user1, user2, user3])],
                        ','.join([role_name_maps['cut_expert'], role_name_maps['text_expert']]))
+        self.fetch('/api/user/change', body={'data': dict(email='admin@test.com', roles='任务管理员')})
 
     def tearDown(self):
         # 退回所有任务，还原改动
-        self.assert_code(200, self.fetch('/api/unlock/cut/'))
-        self.assert_code(200, self.fetch('/api/unlock/text/'))
+        for task_type in role_maps.keys():
+            self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
 
         super(APITestCase, self).setUp()
 
