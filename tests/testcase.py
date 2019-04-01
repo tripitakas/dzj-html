@@ -86,10 +86,13 @@ class APITestCase(AsyncHTTPTestCase):
 
         return response
 
-    def add_admin_user(self):
+    def add_admin_user(self, auto_login=True):
         """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
-        return self.fetch('/api/user/register', body={'data': dict(
+        r = self.fetch('/api/user/register', body={'data': dict(
             email='admin@test.com', name='管理', password='test123')})
+        if self.get_code(r) != 200 and auto_login:
+            r = self.login_as_admin()
+        return r
 
     def add_users(self, users, auth=None):
         self.add_admin_user()
@@ -97,7 +100,8 @@ class APITestCase(AsyncHTTPTestCase):
             self.fetch('/api/user/register', body={'data': r})
         self.login_as_admin()
         for r in users:
-            self.fetch('/api/user/change', body={'data': dict(email=r['email'], roles=r.get('auth', auth))})
+            r = self.fetch('/api/user/change', body={'data': dict(email=r['email'], roles=r.get('auth', auth))})
+            self.assert_code(200, r)
 
     def login_as_admin(self):
         return self.login('admin@test.com', 'test123')

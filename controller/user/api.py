@@ -83,8 +83,9 @@ class LoginApi(UserHandler):
         user.__dict__.pop('old_password', 0)
         user.__dict__.pop('password', 0)
         user.__dict__.pop('last_time', 0)
-        user.__dict__.pop('roles', 0)
-        self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
+        user_save = self.convert2dict(user)
+        user_save.pop('roles', 0)
+        self.set_secure_cookie('user', json_encode(user_save))
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (user.id, user.name, user.email, user.roles))
 
         self.send_response(user, trim=trim_user)
@@ -144,8 +145,9 @@ class RegisterApi(UserHandler):
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
-            user.__dict__.pop('roles', 0)
-            self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
+            user_save = self.convert2dict(user)
+            user_save.pop('roles', 0)
+            self.set_secure_cookie('user', json_encode(user_save))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
 
             self.send_response(user, trim=trim_user)
@@ -206,7 +208,7 @@ class ChangeUserApi(UserHandler):
                 return list(sets.keys())
         return []
 
-    def change_auth(self, info, old_auth):
+    def change_roles(self, info, old_auth):
         c2 = 1
         sets = {'roles.' + role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
                 if role not in 'user' and (role_desc in info.roles) != (role_desc in old_auth)}

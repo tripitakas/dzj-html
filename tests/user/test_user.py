@@ -25,16 +25,16 @@ class TestUserApi(APITestCase):
 
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
-        r = self.add_admin_user()
+        r = self.add_admin_user(auto_login=False)
         r = self.parse_response(r)
         if 'error' not in r:
-            self.assertIn('超级管理员', r['roles'])
+            self.assertIn('user_admin', r['roles'])
         else:
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password='test')})
             self.assert_code(e.invalid_password, r)
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
             self.assert_code(200, r)
-            self.assertIn('管理员', self.parse_response(r).get('roles'))
+            self.assertIn('user_admin', self.parse_response(r).get('roles'))
 
     def test_assign_roles(self):
         """ 测试为新用户设置权限 """
@@ -71,7 +71,7 @@ class TestUserApi(APITestCase):
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """
 
-        self.add_admin_user()
+        self.assert_code(200, self.add_admin_user())
         self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
         r = self._register_login(dict(email='t2@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)

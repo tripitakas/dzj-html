@@ -180,6 +180,7 @@ role_maps = {
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
+            '/api/user/change': ['POST'],
             '/api/pwd/reset/@user_id': ['POST'],
             '/api/user/list': ['GET'],
             '/api/user/remove': ['POST'],

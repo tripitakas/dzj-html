@@ -93,6 +93,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         user = self.get_secure_cookie('user')
         try:
             user = user and convert2obj(User, json_decode(user))
+            if user:
+                user.roles = user.roles or ''
             return user or None
         except TypeError as e:
             print(user, str(e))
