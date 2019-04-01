@@ -53,12 +53,6 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/set 前的准备 """
 
-        # 先从数据库中取用户，确保角色总能更新，角色读进来转为中文的
-        if self.current_user:
-            user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
-            self.current_user.roles = role_name_maps.get(user_in_db.get('roles')) or ''
-            self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
-
         # 检查是否单元测试用户、访客可以访问
         open_roles = '单元测试用户, 访客' if options.testing else '访客'
         if can_access(open_roles, self.request.path, self.request.method):
