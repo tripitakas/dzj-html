@@ -52,6 +52,12 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/set 前的准备 """
 
+        # 先从数据库中取用户，确保角色总能更新，角色读进来转为中文的
+        if self.current_user:
+            user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
+            self.current_user.roles = role_name_maps.get(user_in_db.get('roles')) or ''
+            self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
+
         # 检查单元测试用户、访客能否访问
         open_roles = 'testing, anonymous' if options.testing else 'anonymous'
         if can_access(open_roles, self.request.uri, self.request.method):
@@ -64,7 +70,6 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
         if not self.current_user or not user_in_db:
             return self.send_error(errors.unauthorized, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
@@ -72,10 +77,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查登录用户是否不需授权
         if can_access('default_user', self.request.uri, self.request.method):
             return
-
-        # 更新current_user.roles
-        self.current_user.roles = user_in_db.get('roles', '')
-        self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
 
         # 检查用户当前角色是否可以访问本请求
         if can_access(self.current_user.roles, self.request.uri, self.request.method):
@@ -94,7 +95,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             user = user and convert2obj(User, json_decode(user))
             if user:
-                user.roles = user.roles or ''
+                user.roles = role_name_maps.get(user.roles, user.roles) or ''
             return user or None
         except TypeError as e:
             print(user, str(e))

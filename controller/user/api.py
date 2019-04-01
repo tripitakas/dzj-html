@@ -80,12 +80,11 @@ class LoginApi(UserHandler):
         except DbError as e:
             return self.send_db_error(e)
 
+        user.roles = role_name_maps.get(user.roles, user.roles) or ''
         user.__dict__.pop('old_password', 0)
         user.__dict__.pop('password', 0)
         user.__dict__.pop('last_time', 0)
-        user_save = self.convert2dict(user)
-        user_save.pop('roles', 0)
-        self.set_secure_cookie('user', json_encode(user_save))
+        self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (user.id, user.name, user.email, user.roles))
 
         self.send_response(user, trim=trim_user)
@@ -142,12 +141,11 @@ class RegisterApi(UserHandler):
                 return self.send_db_error(e)
 
             user.login_md5 = hlp.gen_id(user.roles)
+            user.roles = role_name_maps.get(user.roles, user.roles) or ''
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
-            user_save = self.convert2dict(user)
-            user_save.pop('roles', 0)
-            self.set_secure_cookie('user', json_encode(user_save))
+            self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
 
             self.send_response(user, trim=trim_user)
@@ -197,7 +195,7 @@ class ChangeUserApi(UserHandler):
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
             if self.current_user.id != info.id and role_name_maps['user_admin'] not in self.current_user.roles:
-                return self.send_error(errors.unauthorized)
+                return self.send_error(errors.unauthorized, reason=role_name_maps['user_admin'])
 
             if info.name and not re_name.match(unicode_type(info.name)):
                 return self.send_error(errors.invalid_name, reason=info.name) or -1
@@ -210,19 +208,20 @@ class ChangeUserApi(UserHandler):
 
     def change_roles(self, info, old_auth):
         c2 = 1
-        sets = {'roles.' + role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
-                if role not in 'user' and (role_desc in info.roles) != (role_desc in old_auth)}
+        sets = {role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
+                if role not in ['user'] and (role_desc in info.roles) != (role_desc in old_auth)}
         if sets:
+            sets = [role for role, v in sets.items() if v]
             if role_name_maps['user_admin'] not in self.current_user.roles:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
             if role_name_maps['user_admin'] not in info.roles and role_name_maps['user_admin'] in old_auth \
                     and info.id == self.current_user.id:
                 return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
-            r = self.db.user.update_one(dict(email=info.email), {'$set': sets})
+            r = self.db.user.update_one(dict(email=info.email), {'$set': dict(roles=','.join(sets))})
             if r.modified_count:
                 c2 = 2
-                self.add_op_log('change_user', context=','.join([info.email] + list(sets.keys())))
+                self.add_op_log('change_user', context=','.join([info.email] + sets))
         return c2
 
 

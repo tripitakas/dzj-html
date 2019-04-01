@@ -44,6 +44,7 @@ role_maps = {
             '/api/user/login': ['POST'],
             '/api/user/register': ['POST'],
             '/api/user/logout': ['GET'],
+            '/api/user/change': ['POST'],
         }
     },
     'default_user': {
@@ -209,11 +210,12 @@ def get_role_routes(role, routes={}):
 
 
 def can_access(role, uri, method):
+    uri = re.sub(r'\?.+$', '', uri)
     route_accessible = get_role_routes(role)
     for _uri, _method in route_accessible.items():
         for holder, regex in url_placeholder.items():
             _uri = _uri.replace('@' + holder, regex)
-        if re.match('^%s$' % _uri, uri) and method in _method:
+        if (_uri == uri or re.match('^%s$' % _uri, uri)) and method in _method:
             return True
     return False
 
