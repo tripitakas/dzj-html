@@ -21,10 +21,11 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.role import get_route_roles, role_name_maps, can_access
-import controller.helper
-from controller.helper import convert2obj, my_framer
 from controller.model import User
+from controller.role import get_route_roles, can_access
+from controller.helper import convert2obj, my_framer, get_date_time
+
+
 
 logging.currentframe = my_framer
 
@@ -58,31 +59,34 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.current_user.roles = role_name_maps.get(user_in_db.get('roles')) or ''
             self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
 
-        # 检查单元测试用户、访客能否访问
-        open_roles = 'testing, anonymous' if options.testing else 'anonymous'
-        if can_access(open_roles, self.request.uri, self.request.method):
+        # 检查是否单元测试用户、访客可以访问
+        open_roles = '单元测试用户, 访客' if options.testing else '访客'
+        if can_access(open_roles, self.request.path, self.request.method):
             return
 
         # 检查用户是否已登录
-        is_api = '/api/' in self.request.uri
+        is_api = '/api/' in self.request.path
         if not self.current_user:
             return self.send_error(errors.need_login, reason='需要重新登录') if is_api \
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        if not self.current_user or not user_in_db:
+        user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
+        if not user_in_db:
             return self.send_error(errors.unauthorized, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
 
-        # 检查登录用户是否不需授权
-        if can_access('default_user', self.request.uri, self.request.method):
+        # 检查是否不需授权（即普通用户可访问）
+        if can_access('普通用户', self.request.path, self.request.method):
             return
 
-        # 检查用户当前角色是否可以访问本请求
-        if can_access(self.current_user.roles, self.request.uri, self.request.method):
+        # 检查当前用户是否可以访问本请求（检查前更新self.current_user.roles）
+        self.current_user.roles = user_in_db.get('roles', '')
+        self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
+        if can_access(self.current_user.roles, self.request.path, self.request.method):
             return
         else:
-            need_roles = [role_name_maps[r] for r in get_route_roles(self.request.uri, self.request.method)]
+            need_roles = get_route_roles(self.request.path, self.request.method)
             if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
                 self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
 
@@ -94,8 +98,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         user = self.get_secure_cookie('user')
         try:
             user = user and convert2obj(User, json_decode(user))
-            if user:
-                user.roles = role_name_maps.get(user.roles, user.roles) or ''
             return user or None
         except TypeError as e:
             print(user, str(e))
@@ -106,7 +108,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
-        kwargs['current_url'] = re.sub('#?(\?.+)$', '', self.request.uri)
+        kwargs['current_url'] =  self.request.path
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
@@ -286,7 +288,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                                     user_id=self.current_user and self.current_user.id,
                                     file_id=file_id or None,
                                     context=context and context[:80],
-                                    create_time=controller.helper.get_date_time(),
+                                    create_time=get_date_time(),
                                     ip=self.get_ip()))
 
     @gen.coroutine
@@ -314,8 +316,8 @@ class BaseHandler(CorsMixin, RequestHandler):
                     body = to_basestring(r.body).strip()
                 if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
                     if 'var next' in body:
-                        body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.uri, body)
-                        body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.uri, body)
+                        body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
+                        body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
                         self.write(body)
                         self.finish()
                     else:

@@ -23,8 +23,7 @@ url_placeholder = {
 }
 
 role_maps = {
-    'testing': {
-        'name': '单元测试用户',
+    '单元测试用户': {
         'routes': {
             '/api/@task_type/@task_id': ['GET'],
             '/api/page/@task_id': ['GET'],
@@ -33,8 +32,7 @@ role_maps = {
             '/api/user/list': ['GET'],
         }
     },
-    'anonymous': {
-        'name': '访客',
+    '访客': {
         'routes': {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
@@ -47,8 +45,7 @@ role_maps = {
             '/api/user/change': ['POST'],
         }
     },
-    'default_user': {
-        'name': '普通用户',
+    '普通用户': {
         'remark': '注册用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
@@ -62,8 +59,7 @@ role_maps = {
             '/tripitaka/rs': ['GET'],
         }
     },
-    'block_cut_proof': {
-        'name': '切栏校对员',
+    '切栏校对员': {
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
             '/task/my/block_cut_proof': ['GET'],
@@ -72,8 +68,7 @@ role_maps = {
             '/api/save/block_cut_proof': ['POST'],
         }
     },
-    'block_cut_review': {
-        'name': '切栏审定员',
+    '切栏审定员': {
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
@@ -82,8 +77,7 @@ role_maps = {
             '/api/save/block_cut_review': ['POST'],
         }
     },
-    'column_cut_proof': {
-        'name': '切列校对员',
+    '切列校对员': {
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
             '/task/my/column_cut_proof': ['GET'],
@@ -92,8 +86,7 @@ role_maps = {
             '/api/save/column_cut_proof': ['POST'],
         }
     },
-    'column_cut_review': {
-        'name': '切列审定员',
+    '切列审定员': {
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
@@ -102,8 +95,7 @@ role_maps = {
             '/api/save/column_cut_review': ['POST'],
         }
     },
-    'char_cut_proof': {
-        'name': '切字校对员',
+    '切字校对员': {
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
             '/task/my/char_cut_proof': ['GET'],
@@ -112,8 +104,7 @@ role_maps = {
             '/api/save/char_cut_proof': ['POST'],
         }
     },
-    'char_cut_review': {
-        'name': '切字审定员',
+    '切字审定员': {
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
@@ -122,13 +113,10 @@ role_maps = {
             '/api/save/char_cut_review': ['POST'],
         }
     },
-    'cut_expert': {
-        'name': '切分专家',
-        'roles': ['block_cut_proof', 'char_cut_proof', 'column_cut_proof',
-                  'block_cut_review', 'char_cut_review', 'column_cut_review'],
+    '切分专家': {
+        'roles': ['切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
     },
-    'text_proof': {
-        'name': '文字校对员',
+    '文字校对员': {
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
@@ -136,8 +124,7 @@ role_maps = {
             '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
         }
     },
-    'text_review': {
-        'name': '文字审定员',
+    '文字审定员': {
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -145,15 +132,13 @@ role_maps = {
             '/api/pick/text_review/@task_id': ['GET'],
         }
     },
-    'text_expert': {
-        'name': '文字专家',
-        'roles': ['text_proof', 'text_review', ],
+    '文字专家': {
+        'roles': ['文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
         }
     },
-    'task_admin': {
-        'name': '任务管理员',
+    '任务管理员': {
         'routes': {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
@@ -164,8 +149,7 @@ role_maps = {
             '/api/unlock/@task_type/@page_prefix': ['GET'],
         }
     },
-    'data_admin': {
-        'name': '数据管理员',
+    '数据管理员': {
         'routes': {
             '/data/tripitaka': ['GET'],
             '/data/envelop': ['GET'],
@@ -176,8 +160,7 @@ role_maps = {
             '/user/statistic': ['GET'],
         }
     },
-    'user_admin': {
-        'name': '用户管理员',
+    '用户管理员': {
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
@@ -189,33 +172,36 @@ role_maps = {
     },
 }
 
-# 获取指定角色对应的名称
-role_name_maps = {k: v['name'] for k, v in role_maps.items()}
 
-
-def get_role_routes(role, routes={}):
+def get_role_routes(role, routes=None):
     """
     获取指定角色对应的route集合
     :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
     """
     assert type(role) == str
+    routes = dict() if routes is None else routes
     roles = [r.strip() for r in role.split(',')]
     for r in roles:
         for url, m in role_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
-        for r0 in role_maps.get(r, {}).get('roles', ''):
+        for r0 in role_maps.get(r, {}).get('roles', []):
             get_role_routes(r0, routes)
     return routes
 
 
-def can_access(role, uri, method):
-    uri = re.sub(r'\?.+$', '', uri)
+def can_access(role, path, method):
+    """
+    检查角色是否可以访问某个请求
+    :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
+    :param path: 浏览器请求path
+    :param method: http请求方法，如GET/POST
+    """
     route_accessible = get_role_routes(role)
-    for _uri, _method in route_accessible.items():
+    for _path, _method in route_accessible.items():
         for holder, regex in url_placeholder.items():
-            _uri = _uri.replace('@' + holder, regex)
-        if (_uri == uri or re.match('^%s$' % _uri, uri)) and method in _method:
+            _path = _path.replace('@' + holder, regex)
+        if re.match('^%s$' % _path, path) and method in _method:
             return True
     return False
 
@@ -230,12 +216,12 @@ def get_route_roles(uri, method):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中，校验 role_maps
-    if can_access('block_cut_proof', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
+    if can_access('切分专家', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
         print('can access')
     else:
         print('can not access')
 
     print(get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'))
 
-    for k, v in get_role_routes('cut_expert').items():
+    for k, v in get_role_routes('切分专家, 数据管理员').items():
         print(k, v)
