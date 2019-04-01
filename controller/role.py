@@ -46,8 +46,9 @@ role_maps = {
             '/api/user/logout': ['GET'],
         }
     },
-    'user': {
+    'default_user': {
         'name': '普通用户',
+        'remark': '注册用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
             '/home': ['GET'],
@@ -72,7 +73,6 @@ role_maps = {
     },
     'block_cut_review': {
         'name': '切栏审定员',
-        'roles': ['block_cut_proof'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
@@ -93,7 +93,6 @@ role_maps = {
     },
     'column_cut_review': {
         'name': '切列审定员',
-        'roles': ['column_cut_proof'],
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
@@ -114,7 +113,6 @@ role_maps = {
     },
     'char_cut_review': {
         'name': '切字审定员',
-        'roles': ['char_cut_proof'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
@@ -139,7 +137,6 @@ role_maps = {
     },
     'text_review': {
         'name': '文字审定员',
-        'roles': ['text_proof'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -194,19 +191,19 @@ role_maps = {
 role_name_maps = {k: v['name'] for k, v in role_maps.items()}
 
 
-def get_role_routes(role, routes=None, exclude_roles=None):
-    """获取指定角色对应的route集合"""
-    assert type(role) in [str, list]
-    roles = [role] if type(role) == str else role
-    routes = dict() if routes is None else routes
+def get_role_routes(role, routes={}):
+    """
+    获取指定角色对应的route集合
+    :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
+    """
+    assert type(role) == str
+    roles = [r.strip() for r in role.split(',')]
     for r in roles:
-        r = r.strip()
         for url, m in role_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))
         # 进一步查找嵌套角色
-        for r0 in role_maps.get(r, {}).get('roles', []):
-            if not exclude_roles or r0 not in exclude_roles:
-                get_role_routes(r0, routes, exclude_roles=exclude_roles)
+        for r0 in role_maps.get(r, {}).get('roles', ''):
+            get_role_routes(r0, routes)
     return routes
 
 
@@ -230,12 +227,12 @@ def get_route_roles(uri, method):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中，校验 role_maps
-    # if can_access('block_cut_proof', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
-    #     print('can access')
-    # else:
-    #     print('can not access')
+    if can_access('block_cut_proof', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
+        print('can access')
+    else:
+        print('can not access')
 
     print(get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'))
 
-    # for k, v in get_role_routes(['cut_expert']).items():
-    #     print(k, v)
+    for k, v in get_role_routes('cut_expert').items():
+        print(k, v)
