@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.role import role_name_maps, role_maps
+from controller.role import role_maps
 import controller.errors as e
 
 user1 = 'expert1@test.com', 't12345'
@@ -17,7 +17,7 @@ class TestTaskFlow(APITestCase):
         # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_users([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
                         for i, r in enumerate([user1, user2, user3])],
-                       ','.join([role_name_maps['cut_expert'], role_name_maps['text_expert']]))
+                       ','.join(['切分专家', '文字专家']))
         self.assert_code([200, e.no_change],
                          self.fetch('/api/user/change', body={'data': dict(email='admin@test.com', roles='任务管理员')}))
 

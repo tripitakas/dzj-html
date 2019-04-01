@@ -7,13 +7,11 @@
 import re
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
-from controller.task.base import TaskHandler, PublishTask, SaveTask
 from controller.base import DbError
 from controller.helper import convert_bson
 from controller import errors
-
-import controller.user.base as u
-
+from controller.task.base import TaskHandler, PublishTask, SaveTask
+import controller.task.base as u
 
 class PublishTasksApi(TaskHandler):
     URL = r'/api/task/publish/@task_type'

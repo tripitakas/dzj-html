@@ -8,7 +8,7 @@
 from operator import itemgetter
 from os import path
 from controller.task.base import TaskHandler
-from controller.role import get_route_roles, role_name_maps
+from controller.role import get_route_roles
 import re
 import inspect
 
@@ -49,10 +49,10 @@ class ApiTable(TaskHandler):
                     func_name = re.sub(r'<|function |at .+$', '', str(func))
                     if isinstance(cls.URL, list):
                         for url in cls.URL:
-                            roles = [role_name_maps[r] for r in get_route_roles(url, method)]
+                            roles = get_route_roles(url, method)
                             handlers.append((url, func_name, file, get_doc(), ','.join(roles)))
                     else:
-                        roles = [role_name_maps[r] for r in get_route_roles(cls.URL, method)]
+                        roles = get_route_roles(cls.URL, method)
                         handlers.append((cls.URL, func_name, file, get_doc(), ','.join(roles)))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)

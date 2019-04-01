@@ -4,12 +4,12 @@
 @desc: 登录和注册
 @time: 2018/6/23
 """
-import controller.model
-from controller.user.base import UserHandler
-from controller.role import role_name_maps
+from controller.model import User
+from controller.base import BaseHandler
+from controller.role import role_maps
 
 
-class UserLoginHandler(UserHandler):
+class UserLoginHandler(BaseHandler):
     URL = '/user/login'
 
     def get(self):
@@ -17,7 +17,7 @@ class UserLoginHandler(UserHandler):
         self.render('user_login.html', next=self.get_query_argument('next', '/'))
 
 
-class UserRegisterHandler(UserHandler):
+class UserRegisterHandler(BaseHandler):
     URL = '/user/register'
 
     def get(self):
@@ -25,16 +25,23 @@ class UserRegisterHandler(UserHandler):
         self.render('user_register.html', next=self.get_query_argument('next', '/'))
 
 
-class UsersAdminHandler(UserHandler):
+class UserProfileHandler(BaseHandler):
+    URL = '/my/profile'
+
+    def get(self):
+        """ 个人中心 """
+        self.render('my_profile.html')
+
+
+class UsersAdminHandler(BaseHandler):
     URL = '/user/admin'
 
     def get(self):
         """ 用户管理页面 """
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
-            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
-            users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
+            users = self.db.user.find({})
+            users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users, trim=self.trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -50,16 +57,15 @@ class UsersAdminHandler(UserHandler):
         return r
 
 
-class UserRolesHandler(UserHandler):
+class UserRolesHandler(BaseHandler):
     URL = '/user/role'
 
     def get(self):
         """ 角色管理页面 """
-        fields = ['id', 'name', 'phone'] + list(role_name_maps.keys())
+        fields = ['id', 'name', 'phone', 'roles']
         try:
-            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
-            users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
+            users = self.db.user.find({})
+            users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -67,10 +73,10 @@ class UserRolesHandler(UserHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('user_role.html', users=users, roles=role_name_maps.values())
+        self.render('user_role.html', users=users, roles=role_maps.keys())
 
 
-class UserStatisticHandler(UserHandler):
+class UserStatisticHandler(BaseHandler):
     URL = '/user/statistic'
 
     def get(self):
@@ -78,7 +84,7 @@ class UserStatisticHandler(UserHandler):
         fields = ['id', 'name', 'phone']
         try:
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, controller.model.User, fields=fields) for r in users]
+            users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users)
             for r in users:
@@ -95,9 +101,3 @@ class UserStatisticHandler(UserHandler):
         self.render('user_statistic.html', users=users)
 
 
-class UserProfileHandler(UserHandler):
-    URL = '/user/profile'
-
-    def get(self):
-        """ 个人中心 """
-        self.render('user_profile.html')

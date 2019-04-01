@@ -11,7 +11,6 @@ import inspect
 from datetime import datetime, timedelta
 from hashids import Hashids
 from pyconvert.pyconv import convertJSON2OBJ
-from controller.role import role_name_maps
 
 
 def convert_bson(r):

@@ -12,17 +12,16 @@ from tornado.escape import json_encode
 from tornado.util import unicode_type
 
 from controller import errors
-from controller.base import DbError
-from controller.model import  User
+from controller.base import BaseHandler, DbError
+from controller.model import User
+from controller.role import role_maps
 import controller.helper as hlp
-from controller.user.base import UserHandler
-from controller.role import role_name_maps
 
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
 re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
-base_fields = ['id', 'name', 'email', 'phone', 'gender', 'create_time', 'roles']
+base_fields = ['id', 'name', 'email', 'phone', 'gender', 'roles', 'create_time']
 
 
 def trim_user(r):
@@ -30,7 +29,7 @@ def trim_user(r):
     return r
 
 
-class LoginApi(UserHandler):
+class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
     def post(self):
@@ -47,7 +46,7 @@ class LoginApi(UserHandler):
         if not re_email.match(email):
             return self.send_error(errors.invalid_email)
 
-        fields = base_fields + ['password'] + list(role_name_maps.keys())
+        fields = base_fields + ['password']
         try:
             # 检查是否多次登录失败
             login_fail = {
@@ -75,22 +74,33 @@ class LoginApi(UserHandler):
                 return self.send_error(errors.invalid_password)
             self.current_user = user
             self.add_op_log('login-ok', context=email + ': ' + user.name)
-            ResetPasswordApi.remove_login_fails(self, email)
+            ChangeMyPasswordApi.remove_login_fails(self, email)
             user.login_md5 = hlp.gen_id(user.roles)
         except DbError as e:
             return self.send_db_error(e)
 
-        user.roles = role_name_maps.get(user.roles, user.roles) or ''
         user.__dict__.pop('old_password', 0)
         user.__dict__.pop('password', 0)
         user.__dict__.pop('last_time', 0)
+        user.roles = user.roles or ''
         self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (user.id, user.name, user.email, user.roles))
 
         self.send_response(user, trim=trim_user)
 
 
-class RegisterApi(UserHandler):
+class LogoutApi(BaseHandler):
+    URL = '/api/user/logout'
+
+    def get(self):
+        """ 注销 """
+        if self.current_user:
+            self.add_op_log('logout')
+            self.clear_cookie('user')
+            self.send_response({'result': 'ok'})
+
+
+class RegisterApi(BaseHandler):
     URL = '/api/user/register'
 
     def check_info(self, user):
@@ -122,37 +132,37 @@ class RegisterApi(UserHandler):
         user = self.get_body_obj(User)
         if self.check_info(user):
             try:
-                # 如果是第一个用户则设置为管理员
-                first_user = not self.db.user.find_one({})
-
                 if self.db.user.find_one(dict(email=user.email)):
                     return self.send_error(errors.user_exists, reason=user.email)
 
+                # 如果是第一个用户则设置为用户管理员
+                first_user = not self.db.user.find_one({})
+                user.roles = '用户管理员' if first_user else ''
+
                 # 创建用户，分配权限，设置为当前用户
-                user.roles = 'user_admin' if first_user else ''
                 self.db.user.insert_one(dict(
                     id=user.id, name=user.name, email=user.email,
                     password=hlp.gen_id(user.password),
                     roles=user.roles, create_time=user.create_time))
 
-                self.current_user = user
                 self.add_op_log('register', context=user.email + ': ' + user.name)
             except DbError as e:
                 return self.send_db_error(e)
 
             user.login_md5 = hlp.gen_id(user.roles)
-            user.roles = role_name_maps.get(user.roles, user.roles) or ''
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
+            user = self.fetch2obj(user, User)
+            self.current_user = user
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
 
             self.send_response(user, trim=trim_user)
 
 
-class ChangeUserApi(UserHandler):
-    URL = '/api/user/change'
+class ChangeUserProfileApi(BaseHandler):
+    URL = r'/api/user/profile/@user_id'
 
     def check(self):
         self.current_user = self.get_current_user()
@@ -167,8 +177,8 @@ class ChangeUserApi(UserHandler):
 
         return info
 
-    def post(self):
-        """ 改变用户的姓名等属性 """
+    def post(self, uid):
+        """ 修改用户基本信息 """
         info = self.check()
         if not info:
             return
@@ -194,8 +204,8 @@ class ChangeUserApi(UserHandler):
         sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
-            if self.current_user.id != info.id and role_name_maps['user_admin'] not in self.current_user.roles:
-                return self.send_error(errors.unauthorized, reason=role_name_maps['user_admin'])
+            if self.current_user.id != info.id and '用户管理员' not in self.current_user.roles:
+                return self.send_error(errors.unauthorized, reason='用户管理员')
 
             if info.name and not re_name.match(unicode_type(info.name)):
                 return self.send_error(errors.invalid_name, reason=info.name) or -1
@@ -208,13 +218,13 @@ class ChangeUserApi(UserHandler):
 
     def change_roles(self, info, old_auth):
         c2 = 1
-        sets = {role: int(role_desc in info.roles) for role, role_desc in role_name_maps.items()
+        sets = {role: int(role_desc in info.roles) for role, role_desc in role_maps.items()
                 if role not in ['user'] and (role_desc in info.roles) != (role_desc in old_auth)}
         if sets:
             sets = [role for role, v in sets.items() if v]
-            if role_name_maps['user_admin'] not in self.current_user.roles:
+            if '用户管理员' not in self.current_user.roles:
                 return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
-            if role_name_maps['user_admin'] not in info.roles and role_name_maps['user_admin'] in old_auth \
+            if '用户管理员' not in info.roles and '用户管理员' in old_auth \
                     and info.id == self.current_user.id:
                 return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
 
@@ -225,18 +235,45 @@ class ChangeUserApi(UserHandler):
         return c2
 
 
-class LogoutApi(UserHandler):
-    URL = '/api/user/logout'
+class ChangeUserRoleApi(BaseHandler):
+    URL = r'/api/user/role/@user_id'
 
-    def get(self):
-        """ 注销 """
-        if self.current_user:
-            self.add_op_log('logout')
-            self.clear_cookie('user')
-            self.send_response({'result': 'ok'})
+    def post(self, uid):
+        """ 修改用户角色 """
+        pass
+
+class ChangeUserPasswordApi(BaseHandler):
+    URL = r'/api/user/pwd/@user_id'
+
+    def post(self, uid):
+        """ 重置用户密码 """
+        self.current_user = self.get_current_user()
+        if not self.current_user:
+            return self.send_error(errors.need_login)
+
+        pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
+        try:
+            r = self.db.user.update_one(dict(id=uid), {'$set': dict(password=hlp.gen_id(pwd))})
+            if not r.matched_count:
+                return self.send_error(errors.no_user)
+
+            user = self.db.user.find_one(dict(id=uid))
+            self.remove_login_fails(self, user['email'])
+            self.add_op_log('reset_pwd', context=': '.join(user))
+        except DbError as e:
+            return self.send_db_error(e)
+        self.send_response({'password': pwd})
+
+    @staticmethod
+    def remove_login_fails(self, email):
+        self.db.log.delete_many({
+            'type': 'login-fail',
+            'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
+            'context': email
+        })
 
 
-class RemoveUserApi(UserHandler):
+class RemoveUserApi(BaseHandler):
     URL = '/api/user/remove'
 
     def post(self):
@@ -263,7 +300,7 @@ class RemoveUserApi(UserHandler):
         self.send_response()
 
 
-class GetUsersApi(UserHandler):
+class GetUsersApi(BaseHandler):
     URL = '/api/user/list'
 
     def get(self):
@@ -272,11 +309,9 @@ class GetUsersApi(UserHandler):
         if not self.current_user:
             return self.send_error(errors.need_login)
 
-        fields = base_fields + list(role_name_maps.keys())
         try:
-            cond = {} if role_name_maps['user_admin'] in self.current_user.roles else dict(id=self.current_user.id)
-            users = self.db.user.find(cond)
-            users = [self.fetch2obj(r, User, fields=fields) for r in users]
+            users = self.db.user.find({})
+            users = [self.fetch2obj(r, User, fields=base_fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users, trim=trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
@@ -288,53 +323,11 @@ class GetUsersApi(UserHandler):
         self.send_response(response)
 
 
-class GetOptionsApi(UserHandler):
-    URL = r'/api/options/([a-z_]+)'
-
-    def get(self, kind):
-        """ 得到配置项列表 """
-        ret = self.application.config.get(kind)
-        if not ret:
-            return self.send_error(errors.invalid_parameter)
-        self.send_response(ret)
-
-
-class ResetPasswordApi(UserHandler):
-    URL = r'/api/pwd/reset/@user_id'
-
-    def post(self, rid):
-        """ 重置一个用户的密码 """
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
-
-        pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
-        try:
-            r = self.db.user.update_one(dict(id=rid), {'$set': dict(password=hlp.gen_id(pwd))})
-            if not r.matched_count:
-                return self.send_error(errors.no_user)
-
-            user = self.db.user.find_one(dict(id=rid))
-            self.remove_login_fails(self, user['email'])
-            self.add_op_log('reset_pwd', context=': '.join(user))
-        except DbError as e:
-            return self.send_db_error(e)
-        self.send_response({'password': pwd})
-
-    @staticmethod
-    def remove_login_fails(self, email):
-        self.db.log.delete_many({
-            'type': 'login-fail',
-            'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
-            'context': email
-        })
-
-
-class ChangePasswordApi(UserHandler):
-    URL = '/api/pwd/change'
+class ChangeMyPasswordApi(BaseHandler):
+    URL = '/api/my/pwd'
 
     def post(self):
-        """ 修改当前用户的密码 """
+        """ 修改我的密码 """
         self.current_user = self.get_current_user()
         if not self.current_user:
             return self.send_error(errors.need_login)
@@ -362,3 +355,11 @@ class ChangePasswordApi(UserHandler):
 
         logging.info('change password %s %s' % (info.id, info.name))
         self.send_response()
+
+
+class ChangeMyProfileApi(BaseHandler):
+    URL = '/api/my/profile'
+
+    def post(self):
+        """ 修改我的个人信息 """
+        pass

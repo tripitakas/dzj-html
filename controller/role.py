@@ -3,11 +3,9 @@
 """
 @desc: 角色和权限
 @time: 2019/3/13
-角色权限对应表，定义系统中的所有角色、名称以及对应的route权限。
-系统中每一个url请求，无论是来自浏览器路径栏的，还是来自js发起的Ajax请求，都对应一个访问路径route。
-将属于同一类业务的route集合分配给同一个角色，系统中所有的route分配给不同的的角色。用户通过拥有角色来拥有对应的route权限。
+角色权限对应表，定义系统中的所有角色以及对应的route权限。
+将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
 角色可以嵌套定义，如下表中的切分专家和文字专家。
-访客的路由适用于普通用户，普通用户的路由适用于任何用户。
 """
 
 import re
@@ -33,27 +31,25 @@ role_maps = {
         }
     },
     '访客': {
+        'remark': '任何人都可访问，无需登录',
         'routes': {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
-            '/api/options/([a-z_]+)': ['GET'],
             '/user/login': ['GET'],
-            '/user/register': ['GET'],
             '/api/user/login': ['POST'],
-            '/api/user/register': ['POST'],
             '/api/user/logout': ['GET'],
-            '/api/user/change': ['POST'],
+            '/user/register': ['GET'],
+            '/api/user/register': ['POST'],
         }
     },
     '普通用户': {
-        'remark': '注册用户均可访问，无需授权',
+        'remark': '登录用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
             '/home': ['GET'],
-            '/user/logout': ['GET'],
-            '/user/profile': ['GET'],
-            '/api/user/change': ['POST'],
-            '/api/pwd/change': ['POST'],
+            '/my/profile': ['GET'],
+            '/api/my/profile': ['POST'],
+            '/api/my/pwd': ['POST'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
@@ -164,10 +160,11 @@ role_maps = {
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
-            '/api/user/change': ['POST'],
-            '/api/pwd/reset/@user_id': ['POST'],
             '/api/user/list': ['GET'],
             '/api/user/remove': ['POST'],
+            '/api/user/profile/@user_id': ['POST'],
+            '/api/user/role/@user_id': ['POST'],
+            '/api/user/pwd/@user_id': ['POST'],
         }
     },
 }

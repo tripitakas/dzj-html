@@ -1,10 +1,11 @@
 from . import api, view
 
 views = [
-    view.UserLoginHandler, view.UserRegisterHandler,
-    view.UsersAdminHandler, view.UserRolesHandler, view.UserStatisticHandler, view.UserProfileHandler,
+    view.UserLoginHandler, view.UserRegisterHandler, view.UserProfileHandler,
+    view.UsersAdminHandler, view.UserRolesHandler, view.UserStatisticHandler,
 ]
 handlers = [
-    api.LoginApi, api.RegisterApi, api.LogoutApi, api.ChangeUserApi, api.GetUsersApi,
-    api.ResetPasswordApi, api.ChangePasswordApi, api.GetOptionsApi, api.RemoveUserApi,
+    api.LoginApi, api.LogoutApi, api.RegisterApi,
+    api.ChangeUserProfileApi, api.ChangeUserRoleApi, api.ChangeUserPasswordApi, api.GetUsersApi, api.RemoveUserApi,
+    api.ChangeMyProfileApi, api.ChangeMyPasswordApi,
 ]
