@@ -52,24 +52,33 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/set 前的准备 """
 
-        # 先检查单元测试用途、访客能否访问
-        open_roles = ['testing', 'anonymous'] if options.testing else 'anonymous'
+        # 检查单元测试用户、访客能否访问
+        open_roles = 'testing, anonymous' if options.testing else 'anonymous'
         if can_access(open_roles, self.request.uri, self.request.method):
             return
 
-        # 检查数据库中是否有该用户，用户是否已登录
+        # 检查用户是否已登录
         is_api = '/api/' in self.request.uri
-        current_user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
-        if not self.current_user or not current_user_in_db:
-            return self.send_error(errors.unauthorized, reason='需要重新登录或注册') if is_api \
+        if not self.current_user:
+            return self.send_error(errors.need_login, reason='需要重新登录') if is_api \
                 else self.redirect(self.get_login_url())
 
+        # 检查数据库中是否有该用户
+        user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
+        if not self.current_user or not user_in_db:
+            return self.send_error(errors.unauthorized, reason='需要重新注册') if is_api \
+                else self.redirect(self.get_login_url())
+
+        # 检查登录用户是否不需授权
+        if can_access('default_user', self.request.uri, self.request.method):
+            return
+
         # 更新current_user.roles
-        self.current_user.roles = current_user_in_db.get('roles', '')
+        self.current_user.roles = user_in_db.get('roles', '')
         self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
 
-        # 检查访问权限
-        if can_access(self.current_user.roles.split(','), self.request.uri, self.request.method):
+        # 检查用户当前角色是否可以访问本请求
+        if can_access(self.current_user.roles, self.request.uri, self.request.method):
             return
         else:
             need_roles = [role_name_maps[r] for r in get_route_roles(self.request.uri, self.request.method)]
