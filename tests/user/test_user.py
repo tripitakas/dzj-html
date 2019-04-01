@@ -46,12 +46,12 @@ class TestUserApi(APITestCase):
         self.assertIn('id', user)
 
         # 普通用户无权设置权限
-        r = self.fetch('/api/user/change', body={'data': dict(
+        r = self.fetch('/api/user/role', body={'data': dict(
             id=user['id'], email=user['email'], roles='切分校对员')})
         self.assert_code([e.unauthorized, e.no_change], r)
 
         # 可以修改自己的基本信息
-        r = self.fetch('/api/user/change', body={'data': dict(
+        r = self.fetch('/api/user/role', body={'data': dict(
             id=user['id'], email=user['email'], name='教师甲')})
         self.assert_code(200, r)
 
@@ -63,10 +63,10 @@ class TestUserApi(APITestCase):
         # 管理员可设置或取消权限
         r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
         self.assert_code(200, r)
-        r = self.fetch('/api/user/change', body={'data': dict(
+        r = self.fetch('/api/user/role', body={'data': dict(
             id=user['id'], email=user['email'], roles='切分校对员')})
         self.assert_code([200, e.no_change], r)
-        self.fetch('/api/user/change', body={'data': dict(id=user['id'], email=user['email'], roles='')})
+        self.fetch('/api/user/role', body={'data': dict(id=user['id'], email=user['email'], roles='')})
 
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """
@@ -77,9 +77,9 @@ class TestUserApi(APITestCase):
         user = self.parse_response(r)
 
         # 修改密码
-        r = self.fetch('/api/pwd/change', body={'data': dict(old_password='err123', password='test123')})
+        r = self.fetch('/api/my/pwd', body={'data': dict(old_password='err123', password='test123')})
         self.assert_code(e.invalid_password, r)
-        r = self.fetch('/api/pwd/change', body={'data': dict(old_password='t12345', password='test123')})
+        r = self.fetch('/api/my/pwd', body={'data': dict(old_password='t12345', password='test123')})
         self.assert_code(200, r)
 
         r = self.fetch('/api/user/logout')
@@ -93,7 +93,7 @@ class TestUserApi(APITestCase):
         self.assertIn('password', result)
 
         # 修改用户信息
-        r = self.fetch('/api/user/change', body={'data': dict(email=user['email'], gender='男')})
+        r = self.fetch('/api/user/profile', body={'data': dict(email=user['email'], gender='男')})
         result = self.parse_response(r)
         self.assertTrue(result.get('info'))
 

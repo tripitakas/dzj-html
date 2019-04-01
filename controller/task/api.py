@@ -11,7 +11,8 @@ from controller.base import DbError
 from controller.helper import convert_bson
 from controller import errors
 from controller.task.base import TaskHandler, PublishTask, SaveTask
-import controller.task.base as u
+from . import base as u
+
 
 class PublishTasksApi(TaskHandler):
     URL = r'/api/task/publish/@task_type'

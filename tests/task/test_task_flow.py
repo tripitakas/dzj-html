@@ -19,7 +19,7 @@ class TestTaskFlow(APITestCase):
                         for i, r in enumerate([user1, user2, user3])],
                        ','.join(['切分专家', '文字专家']))
         self.assert_code([200, e.no_change],
-                         self.fetch('/api/user/change', body={'data': dict(email='admin@test.com', roles='任务管理员')}))
+                         self.fetch('/api/user/role', body={'data': dict(email='admin@test.com', roles='任务管理员')}))
 
     def tearDown(self):
         # 退回所有任务，还原改动

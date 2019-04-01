@@ -162,8 +162,8 @@ role_maps = {
             '/user/role': ['GET'],
             '/api/user/list': ['GET'],
             '/api/user/remove': ['POST'],
-            '/api/user/profile/@user_id': ['POST'],
-            '/api/user/role/@user_id': ['POST'],
+            '/api/user/profile': ['POST'],
+            '/api/user/role': ['POST'],
             '/api/user/pwd/@user_id': ['POST'],
         }
     },

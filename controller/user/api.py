@@ -74,7 +74,7 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.invalid_password)
             self.current_user = user
             self.add_op_log('login-ok', context=email + ': ' + user.name)
-            ChangeMyPasswordApi.remove_login_fails(self, email)
+            ChangeUserPasswordApi.remove_login_fails(self, email)
             user.login_md5 = hlp.gen_id(user.roles)
         except DbError as e:
             return self.send_db_error(e)
@@ -162,7 +162,7 @@ class RegisterApi(BaseHandler):
 
 
 class ChangeUserProfileApi(BaseHandler):
-    URL = r'/api/user/profile/@user_id'
+    URL = r'/api/user/profile'
 
     def check(self):
         self.current_user = self.get_current_user()
@@ -177,7 +177,7 @@ class ChangeUserProfileApi(BaseHandler):
 
         return info
 
-    def post(self, uid):
+    def post(self):
         """ 修改用户基本信息 """
         info = self.check()
         if not info:
@@ -187,20 +187,18 @@ class ChangeUserProfileApi(BaseHandler):
             old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)), User)
             if not old_user:
                 return self.send_error(errors.no_user, reason=info.email)
-            old_roles = old_user.roles
             info.id = old_user.id
 
-            c1 = self.change_info(info, old_user, old_roles)
-            c2 = c1 is not None and info.roles is not None and self.change_roles(info, old_roles)
-            if c1 is not None and c2 is not None:
-                if not c1 and c2 == 1:
+            c1 = self.change_info(info, old_user)
+            if c1 is not None:
+                if not c1:
                     return self.send_error(errors.no_change)
-                self.send_response(dict(info=c1, roles=c2))
+                self.send_response(dict(info=c1))
 
         except DbError as e:
             return self.send_db_error(e)
 
-    def change_info(self, info, old_user, old_roles):
+    def change_info(self, info, old_user):
         sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
                 if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
         if sets:
@@ -215,6 +213,43 @@ class ChangeUserProfileApi(BaseHandler):
                 self.add_op_log('change_user', context=','.join([info.email] + list(sets.keys())))
                 return list(sets.keys())
         return []
+
+
+class ChangeUserRoleApi(BaseHandler):
+    URL = r'/api/user/role'
+
+    def check(self):
+        self.current_user = self.get_current_user()
+        if not self.current_user:
+            return self.send_error(errors.need_login)
+
+        info = self.get_body_obj(User)
+        if not info or not info.email:
+            return self.send_error(errors.incomplete)
+
+        return info
+
+    def post(self):
+        """ 修改用户角色 """
+        info = self.check()
+        if not info:
+            return
+
+        try:
+            old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)), User)
+            if not old_user:
+                return self.send_error(errors.no_user, reason=info.email)
+            old_roles = old_user.roles
+            info.id = old_user.id
+
+            c2 = info.roles is not None and self.change_roles(info, old_roles)
+            if c2 is not None:
+                if c2 == 1:
+                    return self.send_error(errors.no_change)
+                self.send_response(dict(roles=c2))
+
+        except DbError as e:
+            return self.send_db_error(e)
 
     def change_roles(self, info, old_auth):
         c2 = 1
@@ -234,13 +269,6 @@ class ChangeUserProfileApi(BaseHandler):
                 self.add_op_log('change_user', context=','.join([info.email] + sets))
         return c2
 
-
-class ChangeUserRoleApi(BaseHandler):
-    URL = r'/api/user/role/@user_id'
-
-    def post(self, uid):
-        """ 修改用户角色 """
-        pass
 
 class ChangeUserPasswordApi(BaseHandler):
     URL = r'/api/user/pwd/@user_id'
