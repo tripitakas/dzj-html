@@ -153,7 +153,6 @@ class RegisterApi(BaseHandler):
             user.__dict__.pop('old_password', 0)
             user.__dict__.pop('password', 0)
             user.__dict__.pop('last_time', 0)
-            user = self.fetch2obj(user, User)
             self.current_user = user
             self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
             logging.info('register id=%s, name=%s, email=%s' % (user.id, user.name, user.email))
