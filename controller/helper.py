@@ -84,4 +84,4 @@ def my_framer():
     return f0
 
 old_framer = logging.currentframe
-logging.currentframe = my_framer()
+logging.currentframe = my_framer

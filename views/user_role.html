@@ -50,9 +50,10 @@
 														<tr>
 															<th data-priority="2">姓名</th>
 															<th data-priority="0">手机</th>
-															<th data-priority="0">
+															{% for r in roles %}
+															<th data-priority="1">
 																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">普通用户</span><span class="ion-android-sort "></span>
+																	<span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
 																	<ul class="dropdown-menu" role="menu">
 																		<li>
 																			<a href="#">是</a>
@@ -63,136 +64,7 @@
 																	</ul>
 																</div>
 															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">切分校对员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">切分审定员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字校对员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字审定员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">文字专家</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">格式标注员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">格式审定员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">任务管理员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="2">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">数据管理员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
-															<th data-priority="0">
-																<div class="btn-group">
-																	<span class="sort" data-toggle="dropdown" aria-expanded="false">超级管理员</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
-																</div>
-															</th>
+															{% end %}
 															<th data-priority="2">操作</th>
 														</tr>
 													</thead>
@@ -202,7 +74,7 @@
 															<th>{{p['name']}}</th>
 															<td>{{p.get('phone') or ''}}</td>
 															{% for r in roles %}
-															<td>{{r if r in p['roles'] else '否'}}</td>
+															<td>{{r if r in p['roles'].split(',') else '否'}}</td>
 															{% end %}
 															<td>
 																<a href='javascript:modify("{{p}}")'>修改</a>

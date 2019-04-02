@@ -73,7 +73,10 @@ class UserRolesHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('user_role.html', users=users, roles=role_maps.keys())
+        roles = dict(role_maps)
+        roles.pop('单元测试用户')
+        roles.pop('访客')
+        self.render('user_role.html', users=users, roles=list(roles.keys()))
 
 
 class UserStatisticHandler(BaseHandler):

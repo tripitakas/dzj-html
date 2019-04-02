@@ -94,7 +94,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             print(user, str(e))
 
     def render(self, template_name, **kwargs):
-        kwargs['roles'] = self.current_user.roles if self.current_user else ''
+        kwargs['currentRoles'] = self.current_user.roles if self.current_user else ''
         kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
