@@ -5,8 +5,8 @@
 @time: 2018/6/23
 """
 
-import logging
 import re
+import logging
 import traceback
 from datetime import datetime
 
@@ -23,11 +23,7 @@ from tornado_cors import CorsMixin
 from controller import errors
 from controller.model import User
 from controller.role import get_route_roles, can_access
-from controller.helper import convert2obj, my_framer, get_date_time
-
-
-
-logging.currentframe = my_framer
+from controller.helper import convert2obj, get_date_time
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
@@ -42,6 +38,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         """ 请求响应的初始化，在此指定额外属性的默认值 """
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db
+
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -102,7 +99,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
-        kwargs['current_url'] =  self.request.path
+        kwargs['current_url'] = self.request.path
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
