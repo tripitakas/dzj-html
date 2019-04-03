@@ -54,14 +54,6 @@
 															<th data-priority="1">
 																<div class="btn-group">
 																	<span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
-																	<ul class="dropdown-menu" role="menu">
-																		<li>
-																			<a href="#">是</a>
-																		</li>
-																		<li>
-																			<a href="#">否</a>
-																		</li>
-																	</ul>
 																</div>
 															</th>
 															{% end %}
@@ -74,7 +66,7 @@
 															<th>{{p['name']}}</th>
 															<td>{{p.get('phone') or ''}}</td>
 															{% for r in roles %}
-															<td>{{r if r in p['roles'].split(',') else '否'}}</td>
+															<td>{{r if r+',' in p['roles'] else '否'}}</td>
 															{% end %}
 															<td>
 																<a href='javascript:modify("{{p}}")'>修改</a>
@@ -121,48 +113,11 @@
 								<div class="form-group">
 									<label class="col-md-2 control-label">角色选择</label>
 									<div class="col-md-10 roles-list">
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option2">栏切分校对员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option2">列切分校对员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option2">字切分校对员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option3">栏切分审定员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option3">列切分审定员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox"  value="option3">字切分审定员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">文字校对员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">文字审定员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">文字专家
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">格式标注员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">格式审定员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">数据管理员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">任务管理员
-										</label>
-										<label class="checkbox-inline">
-										  <input type="checkbox" value="option3">超级管理员
-										</label>
+										{% for r in roles %}
+											<label class="checkbox-inline">
+												<input type="checkbox">{{r}}
+											</label>
+										{% end %}
 									</div>
 								</div>
 							</form>
@@ -218,7 +173,7 @@
 					});
 					info.roles = roles.join(',');
 
-					postApi('/user/change', {data: info}, function () {
+					postApi('/user/role', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');
 						setTimeout(function () {
 							window.location.reload();

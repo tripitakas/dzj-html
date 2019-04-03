@@ -73,7 +73,7 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.invalid_password)
             self.current_user = user
             self.add_op_log('login-ok', context=email + ': ' + user.name)
-            ChangeUserPasswordApi.remove_login_fails(self, email)
+            ResetUserPasswordApi.remove_login_fails(self, email)
             user.login_md5 = hlp.gen_id(user.roles)
         except DbError as e:
             return self.send_db_error(e)
@@ -268,14 +268,11 @@ class ChangeUserRoleApi(BaseHandler):
         return c2
 
 
-class ChangeUserPasswordApi(BaseHandler):
-    URL = r'/api/user/pwd/@user_id'
+class ResetUserPasswordApi(BaseHandler):
+    URL = r'/api/user/reset_pwd/@user_id'
 
-    def post(self, uid):
+    def get(self, uid):
         """ 重置用户密码 """
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
 
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
@@ -304,10 +301,6 @@ class RemoveUserApi(BaseHandler):
 
     def post(self):
         """ 删除用户 """
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
-
         info = self.get_body_obj(User)
         if not info or not info.email or not info.name:
             return self.send_error(errors.incomplete)
@@ -331,12 +324,8 @@ class GetUsersApi(BaseHandler):
 
     def get(self):
         """ 得到全部用户 """
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
-
         try:
-            users = self.db.user.find({})
+            users = self.db.user.find({})  # Todo 这里要按分页来取
             users = [self.fetch2obj(r, User, fields=base_fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users, trim=trim_user)
@@ -395,6 +384,9 @@ class ChangeMyProfileApi(BaseHandler):
                 dict(id=self.current_user.id),
                 {'$set': dict(name=info.name, gender=info.gender)}
             )
+            self.current_user.name = info.name
+            self.current_user.gender = info.gender
+            self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
             self.add_op_log('change_profile')
         except DbError as e:
             return self.send_db_error(e)

@@ -73,8 +73,9 @@
 														<label class="col-sm-2 control-label">性别</label>
 														<div class="col-sm-3">
 															<select id="gender" class="form-control">
-																<option>男</option>
-																<option>女</option>
+																<option {{"selected=selected" if not current_user.gender else '' }}></option>
+																<option {{"selected=selected" if current_user.gender=='男' else '' }}>男</option>
+																<option {{"selected=selected" if current_user.gender=='女' else '' }}>女</option>
 															</select>
 														</div>
 													</div>

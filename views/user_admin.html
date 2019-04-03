@@ -88,7 +88,7 @@
 														<td>{{p['create_time']}}</td>
 														<td>
 															<span onclick='update("{{p}}")'>修改</span>
-															<span onclick="reset(10)">重置密码</span>
+															<span onclick=reset_pwd("{{p['id']}}")>重置密码</span>
 														</td>
 													</tr>
 													{% end %}
@@ -179,7 +179,7 @@
 					});
 					info.roles = roles.join(',');
 
-					postApi('/user/change', {data: info}, function () {
+					postApi('/user/profile', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');
 						setTimeout(function () {
 							window.location.reload();
@@ -196,9 +196,9 @@
 			
 			/**
 			 * 重置密码
-			 * @param {Object} name 用户名
+			 * @param user_id 用户id
 			 */
-			function reset(name) {
+			function reset_pwd(uid) {
 				swal({
 						title: "确定重置" + name + "吗？",
 						text: "重置后无法恢复！",
@@ -210,15 +210,13 @@
 						closeOnConfirm: false
 					},
 					function() {
-						//此处调用后台删除逻辑(ajax)
-						
-						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-						swal({
-							title: "重置密码！",
-							text: name + "的密码已经被重置。",
-							type: "success",
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定"
+						getApi('/user/reset_pwd/'+uid, function () {
+							showSuccess('密码重置成功', '');
+							setTimeout(function(){
+								window.location = '/user/login';
+							},1000)
+						}, function (msg, code) {
+							showError('修改失败', msg);
 						});
 					});
 			}

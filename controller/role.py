@@ -177,7 +177,7 @@ role_maps = {
             '/api/user/remove': ['POST'],
             '/api/user/profile': ['POST'],
             '/api/user/role': ['POST'],
-            '/api/user/pwd/@user_id': ['POST'],
+            '/api/user/reset_pwd/@user_id': ['GET'],
         }
     },
 }

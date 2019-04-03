@@ -6,7 +6,7 @@
 """
 from controller.model import User
 from controller.base import BaseHandler
-from controller.role import role_maps
+from controller.role import assignable_roles
 
 
 class UserLoginHandler(BaseHandler):
@@ -64,7 +64,7 @@ class UserRolesHandler(BaseHandler):
         """ 角色管理页面 """
         fields = ['id', 'name', 'phone', 'roles']
         try:
-            users = self.db.user.find({})
+            users = self.db.user.find({}) # Todo 分页
             users = [self.fetch2obj(r, User, fields=fields) for r in users]
             users.sort(key=lambda a: a.name)
             users = self.convert_for_send(users)
@@ -73,10 +73,7 @@ class UserRolesHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        roles = dict(role_maps)
-        roles.pop('单元测试用户')
-        roles.pop('访客')
-        self.render('user_role.html', users=users, roles=list(roles.keys()))
+        self.render('user_role.html', users=users, roles=assignable_roles)
 
 
 class UserStatisticHandler(BaseHandler):
