@@ -17,7 +17,6 @@ from controller.model import User
 from controller.role import role_maps
 import controller.helper as hlp
 
-
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
 re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
@@ -355,9 +354,6 @@ class ChangeMyPasswordApi(BaseHandler):
 
     def post(self):
         """ 修改我的密码 """
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
         info = self.get_body_obj(User)
         if not info:
             return self.send_error(errors.incomplete)
@@ -365,17 +361,21 @@ class ChangeMyPasswordApi(BaseHandler):
             return self.send_error(errors.need_password)
         if not info.old_password:
             return self.send_error(errors.incomplete, reason="缺原密码")
-        if not re_password.match(info.password) or re.match(r'^(\d+|[A-Z]+|[a-z]+)$', info.password):
+        if not re_password.match(info.password) or re.match(r'^(\d+|[A-Za-z]+)$', info.password):
             return self.send_error(errors.invalid_psw_format)
         if info.password == info.old_password:
             return self.send_response()
 
         try:
-            r = self.db.user.update_one(dict(id=self.current_user.id, password=hlp.gen_id(info.old_password)),
-                                        {'$set': dict(password=hlp.gen_id(info.password))})
-            if not r.matched_count:
-                r = self.db.user.find_one(dict(id=self.current_user.id))
-                return self.send_error(errors.invalid_password if r else errors.no_user)
+            r = self.db.user.find_one(dict(id=self.current_user.id))
+            if not r:
+                return self.send_error(errors.no_user)
+            if r.get('password') != hlp.gen_id(info.old_password):
+                return self.send_error(errors.invalid_password)
+            self.db.user.update_one(
+                dict(id=self.current_user.id, password=hlp.gen_id(info.old_password)),
+                {'$set': dict(password=hlp.gen_id(info.password))}
+            )
             self.add_op_log('change_pwd')
         except DbError as e:
             return self.send_db_error(e)
@@ -388,5 +388,16 @@ class ChangeMyProfileApi(BaseHandler):
     URL = '/api/my/profile'
 
     def post(self):
-        """ 修改我的个人信息 """
-        pass
+        """ 修改我的个人信息，包括姓名、性别等 """
+        info = self.get_body_obj(User)
+        try:
+            self.db.user.update_one(
+                dict(id=self.current_user.id),
+                {'$set': dict(name=info.name, gender=info.gender)}
+            )
+            self.add_op_log('change_profile')
+        except DbError as e:
+            return self.send_db_error(e)
+
+        logging.info('change profile %s %s' % (info.id, info.name))
+        self.send_response()

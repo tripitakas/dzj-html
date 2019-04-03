@@ -53,7 +53,7 @@ class UsersAdminHandler(BaseHandler):
 
     @staticmethod
     def trim_user(r):
-        r.image = 'imgs/' + {'': 'ava3.png', '女': 'ava.png', '男': 'ava2.png'}[r.gender or '']
+        r.image = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.gender or '']
         return r
 
 

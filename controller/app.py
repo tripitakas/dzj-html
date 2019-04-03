@@ -8,10 +8,10 @@
 
 import re
 import os
-from yaml import load as load_yml, SafeLoader
 import shutil
 import pymongo
 from os import path
+from yaml import load as load_yml, SafeLoader
 from operator import itemgetter
 from tornado import web
 from tornado.options import define, options

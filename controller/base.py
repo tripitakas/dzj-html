@@ -64,7 +64,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查数据库中是否有该用户
         user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
         if not user_in_db:
-            return self.send_error(errors.unauthorized, reason='需要重新注册') if is_api \
+            return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
 
         # 检查是否不需授权（即普通用户可访问）
@@ -137,35 +137,34 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         def str2obj(text):
             if type(text) == dict:
-                for k, v in list(text.items()):
-                    if v is None:
-                        text.pop(k)
+                text = {k: v for k, v in text.items() if v is not None}
             return convert2obj(param_type, text)
 
         if 'data' not in self.request.body_arguments:
             body = json_decode(self.request.body).get('data')
         else:
             body = self.get_body_argument('data')
+
         if param_type == str:
-            param_obj = body
+            return body
         elif param_type == dict:
-            param_obj = json_decode(body or '{}')
-            return param_obj
-        else:
-            try:
-                body = json_decode(body or '{}')
-                if type(body) == list:
-                    param_obj = [str2obj(p) for p in body]
-                else:
-                    param_obj = str2obj(body)
-            except ValueError:
-                logging.error(body)
-                return
+            return json_decode(body or '{}')
+
+        try:
+            body = json_decode(body or '{}')
+            if type(body) == list:
+                param_obj = [str2obj(p) for p in body]
+            else:
+                param_obj = str2obj(body)
+        except ValueError:
+            logging.error(body)
+            return
 
         if type(param_obj) == list:
             [self._trim_obj(p, param_type) for p in param_obj]
         else:
             self._trim_obj(param_obj, param_type)
+
         return param_obj
 
     @staticmethod
