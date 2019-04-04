@@ -8,7 +8,7 @@ import logging
 import random
 import re
 
-from tornado.escape import json_encode
+from tornado.escape import json_encode, json_decode
 from tornado.util import unicode_type
 
 from controller import errors
@@ -269,11 +269,12 @@ class ChangeUserRoleApi(BaseHandler):
 
 
 class ResetUserPasswordApi(BaseHandler):
-    URL = r'/api/user/reset_pwd/@user_id'
+    URL = r'/api/user/reset_pwd'
 
-    def get(self, uid):
+    def post(self):
         """ 重置用户密码 """
 
+        uid = json_decode(self.get_body_argument('data'))['user_id']
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
             r = self.db.user.update_one(dict(id=uid), {'$set': dict(password=hlp.gen_id(pwd))})

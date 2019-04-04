@@ -210,7 +210,7 @@
 						closeOnConfirm: false
 					},
 					function() {
-						getApi('/user/reset_pwd/'+uid, function () {
+						postApi('/user/reset_pwd', {data:{user_id: uid}}, function(){
 							showSuccess('密码重置成功', '');
 							setTimeout(function(){
 								window.location = '/user/login';
