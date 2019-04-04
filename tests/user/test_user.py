@@ -14,7 +14,7 @@ class TestUserApi(APITestCase):
     def test_login_invalid(self):
         """ 测试接口可工作 """
         response = self.fetch('/api/user/login', body={'data': dict(email='')})
-        self.assert_code(e.need_email, response)
+        self.assert_code(e.need_phone_or_email, response)
 
         response = self.fetch('/api/user/login', body={'data': dict(email='test')})
         self.assert_code(e.need_password, response)

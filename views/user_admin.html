@@ -59,16 +59,6 @@
 					                                            </ul>
 					                                        </div>
 														</th>
-														<th>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">用户状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-					                                                <li><a href="#">全部</a></li>
-					                                                <li><a href="#">未激活</a></li>
-					                                                <li><a href="#">已激活</a></li>
-					                                            </ul>
-					                                        </div>
-														</th>
 														<th>注册时间</th>
 														<th>操作</th>
 													</tr>
@@ -84,7 +74,6 @@
 														<td>{{p.get('phone') or ''}}</td>
 														<td>{{p['email']}}</td>
 														<td>{{p.get('gender', '')}}</td>
-														<td>已激活</td>
 														<td>{{p['create_time']}}</td>
 														<td>
 															<span onclick='update("{{p}}")'>修改</span>
@@ -124,12 +113,27 @@
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-sm-2 control-label">联系方式</label>
+									<label class="col-sm-2 control-label">手机</label>
 									<div class="col-md-10">
-										<p class="form-control-static" id="account"></p>
+										<input type="text" class="form-control" value="" id="phone">
 									</div>
 								</div>
-
+								<div class="form-group">
+									<label class="col-sm-2 control-label">邮箱</label>
+									<div class="col-md-10">
+										<input type="text" class="form-control" value="" id="email">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-2 control-label">性别</label>
+									<div class="col-md-10">
+										<select id="gender" class="form-control">
+											<option></option>
+											<option>男</option>
+											<option>女</option>
+										</select>
+									</div>
+								</div>
 							</form>
 						</div>
 						<div class="modal-footer">
@@ -153,31 +157,32 @@
 			 * @param {Object} user 用户名
 			 */
 			function update(user) {
-				var $dlg = $('#modifyModal');
-				var $name = $dlg.find('#name');
-				var $account = $dlg.find('#account');
-				var $list = $dlg.find('.roles-list');
-
 				user = decodeJSON(user);
+
+				var $dlg = $('#modifyModal');
+				$dlg.find('#name').val(user.name);
+				$dlg.find('#phone').val(user.phone);
+				$dlg.find('#email').val(user.email);
+				$dlg.find('#gender').val(user.gender);
+
 				$dlg.modal();
-				$name.val(user.name);
-				$account.text((user.phone ? user.phone + ' ' : '') + user.email);
-
-				$list.find('label').each(function (i, el) {
-					var label = $(el).text().replace(/\s/g, '');
-					$(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
-				});
-
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
-					var info = {email: user.email, name: $name.val()};
-					var roles = [];
-					$list.find('label').each(function (i, el) {
-						var label = $(el).text().replace(/\s/g, '');
-						if ($(el).find('input').is(':checked')) {
-							roles.push(label);
-						}
-					});
-					info.roles = roles.join(',');
+					var info = {
+						id: user.id, name: $dlg.find('#name').val().trim(),
+						phone: $dlg.find('#phone').val().trim(), email: $dlg.find('#email').val().trim(),
+						gender: $dlg.find('#gender').val().trim()
+					};
+
+					if (info.name == user.name && info.phone == user.phone &&
+						info.email == user.email &&info.gender == user.gender) {
+						showError('请重新输入', '用户信息没有发生改变。');
+						return;
+					}
+
+					if(info.phone == '' && info.email == '') {
+						showError('请重新输入', '手机和邮箱不能同时为空。');
+						return;
+					}
 
 					postApi('/user/profile', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');
@@ -210,11 +215,8 @@
 						closeOnConfirm: false
 					},
 					function() {
-						postApi('/user/reset_pwd', {data:{user_id: uid}}, function(){
+						postApi('/user/reset_pwd', {data:{uid: uid}}, function(){
 							showSuccess('密码重置成功', '');
-							setTimeout(function(){
-								window.location = '/user/login';
-							},1000)
 						}, function (msg, code) {
 							showError('修改失败', msg);
 						});

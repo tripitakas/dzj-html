@@ -11,7 +11,6 @@ class User(object):
     roles = str  # 用户角色
     gender = str
     image = str
-    status = int
     create_time = str
     last_time = str
     old_password = str  # 修改密码临时用

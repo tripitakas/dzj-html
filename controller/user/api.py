@@ -38,7 +38,7 @@ class LoginApi(BaseHandler):
         password = user.password
 
         if not email:
-            return self.send_error(errors.need_email)
+            return self.send_error(errors.need_phone_or_email)
         if not password:
             return self.send_error(errors.need_password)
         email = email.lower()
@@ -105,23 +105,25 @@ class RegisterApi(BaseHandler):
     def check_info(self, user):
         if not user:
             return self.send_error(errors.incomplete)
-        if not user.email:
-            return self.send_error(errors.need_email)
         if not user.name:
             return self.send_error(errors.incomplete, reason='姓名')
         if not user.password:
             return self.send_error(errors.need_password)
+        if not user.phone and not user.email:
+            return self.send_error(errors.need_phone_or_email)
 
-        user.email = user.email.lower()
-        if not re_email.match(user.email):
-            return self.send_error(errors.invalid_email)
+        if user.email:
+            user.email = user.email.lower()
+            if not re_email.match(user.email):
+                return self.send_error(errors.invalid_email)
+
         if not re_password.match(user.password) or re.match(r'^(\d+|[A-Z]+|[a-z]+)$', user.password):
             return self.send_error(errors.invalid_psw_format)
 
         if not re_name.match(unicode_type(user.name)):
             return self.send_error(errors.invalid_name, reason=user.name)
 
-        user.id = hlp.gen_id(user.email, 'user')
+        user.id = hlp.gen_id(str(user.phone) + user.email, 'user')
         user.create_time = hlp.get_date_time()
 
         return True
@@ -140,8 +142,8 @@ class RegisterApi(BaseHandler):
 
                 # 创建用户，分配权限，设置为当前用户
                 self.db.user.insert_one(dict(
-                    id=user.id, name=user.name, email=user.email,
-                    password=hlp.gen_id(user.password),
+                    id=user.id, name=user.name, email=user.email, phone=user.phone,
+                    gender=user.gender, password=hlp.gen_id(user.password),
                     roles=user.roles, create_time=user.create_time))
 
                 self.add_op_log('register', context=user.email + ': ' + user.name)
@@ -162,110 +164,47 @@ class RegisterApi(BaseHandler):
 class ChangeUserProfileApi(BaseHandler):
     URL = r'/api/user/profile'
 
-    def check(self):
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
-
-        info = self.get_body_obj(User)
-        if not info or not info.email:
-            return self.send_error(errors.incomplete)
-        if info.name and not re_name.match(unicode_type(info.name)):
-            return self.send_error(errors.invalid_name)
-
-        return info
-
     def post(self):
         """ 修改用户基本信息 """
-        info = self.check()
-        if not info:
-            return
+        info = self.get_body_obj(User)
+        if info.name and not re_name.match(unicode_type(info.name)):
+            return self.send_error(errors.invalid_name, reason=info.name) or -1
 
         try:
-            old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)), User)
+            old_user = self.fetch2obj(self.db.user.find_one(dict(id=info.id)), User)
             if not old_user:
-                return self.send_error(errors.no_user, reason=info.email)
-            info.id = old_user.id
+                return self.send_error(errors.no_user, reason=info.id)
 
-            c1 = self.change_info(info, old_user)
-            if c1 is not None:
-                if not c1:
-                    return self.send_error(errors.no_change)
-                self.send_response(dict(info=c1))
+            sets = {f: info.__dict__[f] for f in ['name', 'phone', 'email', 'gender']
+                    if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
+            if not sets:
+                return self.send_error(errors.no_change)
+
+            r = self.db.user.update_one(dict(id=info.id), {'$set': sets})
+            if r.modified_count:
+                self.add_op_log('change_user_profile', context=','.join([info.id] + list(sets.keys())))
+
+            self.send_response(dict(info=sets))
 
         except DbError as e:
             return self.send_db_error(e)
-
-    def change_info(self, info, old_user):
-        sets = {f: info.__dict__[f] for f in ['name', 'phone', 'gender']
-                if info.__dict__.get(f) and info.__dict__[f] != old_user.__dict__[f]}
-        if sets:
-            if self.current_user.id != info.id and '用户管理员' not in self.current_user.roles:
-                return self.send_error(errors.unauthorized, reason='用户管理员')
-
-            if info.name and not re_name.match(unicode_type(info.name)):
-                return self.send_error(errors.invalid_name, reason=info.name) or -1
-
-            r = self.db.user.update_one(dict(email=info.email), {'$set': sets})
-            if r.modified_count:
-                self.add_op_log('change_user', context=','.join([info.email] + list(sets.keys())))
-                return list(sets.keys())
-        return []
 
 
 class ChangeUserRoleApi(BaseHandler):
     URL = r'/api/user/role'
 
-    def check(self):
-        self.current_user = self.get_current_user()
-        if not self.current_user:
-            return self.send_error(errors.need_login)
-
-        info = self.get_body_obj(User)
-        if not info or not info.email:
-            return self.send_error(errors.incomplete)
-
-        return info
-
     def post(self):
         """ 修改用户角色 """
-        info = self.check()
-        if not info:
-            return
 
+        info = self.get_body_obj(User)
         try:
-            old_user = self.fetch2obj(self.db.user.find_one(dict(email=info.email)), User)
-            if not old_user:
-                return self.send_error(errors.no_user, reason=info.email)
-            old_roles = old_user.roles
-            info.id = old_user.id
-
-            c2 = info.roles is not None and self.change_roles(info, old_roles)
-            if c2 is not None:
-                if c2 == 1:
-                    return self.send_error(errors.no_change)
-                self.send_response(dict(roles=c2))
-
+            r = self.db.user.update_one(dict(id=info.id), {'$set': dict(roles=info.roles)})
+            if not r.matched_count:
+                return self.send_error(errors.no_user)
+            self.add_op_log('change_role', context=info.id + ': ' + info.roles)
         except DbError as e:
             return self.send_db_error(e)
-
-    def change_roles(self, info, old_auth):
-        c2 = 1
-        sets = {role: int(role_desc in info.roles) for role, role_desc in role_maps.items()
-                if role not in ['user'] and (role_desc in info.roles) != (role_desc in old_auth)}
-        if sets:
-            sets = [role for role, v in sets.items() if v]
-            if '用户管理员' not in self.current_user.roles:
-                return self.send_error(errors.unauthorized, reason='需要由管理员修改权限')
-            if '用户管理员' not in info.roles and '用户管理员' in old_auth \
-                    and info.id == self.current_user.id:
-                return self.send_error(errors.unauthorized, reason='不能取消自己的管理员权限')
-
-            r = self.db.user.update_one(dict(email=info.email), {'$set': dict(roles=','.join(sets))})
-            if r.modified_count:
-                c2 = 2
-                self.add_op_log('change_user', context=','.join([info.email] + sets))
-        return c2
+        self.send_response({'roles': info.roles})
 
 
 class ResetUserPasswordApi(BaseHandler):
@@ -274,7 +213,7 @@ class ResetUserPasswordApi(BaseHandler):
     def post(self):
         """ 重置用户密码 """
 
-        uid = json_decode(self.get_body_argument('data'))['user_id']
+        uid = json_decode(self.get_body_argument('data'))['uid']
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
             r = self.db.user.update_one(dict(id=uid), {'$set': dict(password=hlp.gen_id(pwd))})

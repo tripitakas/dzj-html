@@ -11,7 +11,7 @@
 }
 .register{
     width:880px;
-    height:550px;
+    height:630px;
     background: #fff;
     position: absolute;
     left:50%;
@@ -48,7 +48,7 @@
     justify-content: space-between;
 }
 .register .bd .item{
-    flex:50%;
+    width:50%;
     margin-bottom:25px;
     padding-right:48px;
     box-sizing: border-box;
@@ -57,7 +57,7 @@
 .register .bd .item:nth-child(2n+2){
     padding-right:0;
 }
-.register .bd .item input{
+.register .bd .item input, .register .bd .item select{
     line-height:56px;
     border:0 none;
     background: none;
@@ -68,6 +68,10 @@
     box-sizing: border-box;
     padding-left:40px;
     font-size:14px;
+}
+.register .bd .item select{
+    height:56px;
+    color: #B3B3B3;
 }
 .register .bd .item:last-child input{
     width:50%;

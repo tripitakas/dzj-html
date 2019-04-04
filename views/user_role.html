@@ -24,7 +24,6 @@
 
 	</head>
 	<style>
-
 	</style>
 
 	<body>
@@ -48,8 +47,10 @@
 												<table class="table table-small-font">
 													<thead>
 														<tr>
-															<th data-priority="2">姓名</th>
+															<th data-priority="1">操作</th>
+															<th data-priority="1">姓名</th>
 															<th data-priority="0">手机</th>
+															<th data-priority="0">邮箱</th>
 															{% for r in roles %}
 															<th data-priority="1">
 																<div class="btn-group">
@@ -57,20 +58,20 @@
 																</div>
 															</th>
 															{% end %}
-															<th data-priority="2">操作</th>
 														</tr>
 													</thead>
 													<tbody>
 													  {% for p in users %}
 														<tr id="{{p['id']}}">
-															<th>{{p['name']}}</th>
-															<td>{{p.get('phone') or ''}}</td>
+															<th>
+																<a href='javascript:modify("{{p}}")'>修改</a>
+															</th>
+															<td>{{p['name']}}</td>
+															<td>{{p.get('phone', '')}}</td>
+															<td>{{p.get('email', '') }}</td>
 															{% for r in roles %}
 															<td>{{r if r+',' in p['roles'] else '否'}}</td>
 															{% end %}
-															<td>
-																<a href='javascript:modify("{{p}}")'>修改</a>
-															</td>
 														</tr>
 														{% end %}
 													</tbody>
@@ -147,23 +148,23 @@
 			});
 
 			function modify(user) {
+				user = decodeJSON(user);
+
 				var $dlg = $('#modifyModal');
 				var $name = $dlg.find('#name');
 				var $account = $dlg.find('#account');
 				var $list = $dlg.find('.roles-list');
-
-				user = decodeJSON(user);
-				$dlg.modal();
 				$name.text(user.name);
-				$account.text((user.phone ? user.phone + ' ' : '') + user.email);
-
+				$account.text(user.phone + (user.email ? ' / '+user.email : ''));
 				$list.find('label').each(function (i, el) {
 					var label = $(el).text().replace(/\s/g, '');
 					$(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
 				});
 
+				$dlg.modal();
+
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
-					var info = {email: user.email, name: $name.val()};
+					var info = {id: user.id};
 					var roles = [];
 					$list.find('label').each(function (i, el) {
 						var label = $(el).text().replace(/\s/g, '');
@@ -171,7 +172,14 @@
 							roles.push(label);
 						}
 					});
-					info.roles = roles.join(',');
+					info.roles = roles.sort().join(',');
+
+					// 判断角色是否发生改变
+					old_roles = user.roles.replace(/\s/g, '').split(',').sort().join(',');
+					if(old_roles == info.roles) {
+						showError('修改失败', '所选角色与原有角色相同。');
+						return;
+					}
 
 					postApi('/user/role', {data: info}, function () {
 						showSuccess('修改成功', user.name + ' 的信息已修改。');
