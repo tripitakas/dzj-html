@@ -259,25 +259,6 @@ class RemoveUserApi(BaseHandler):
         self.send_response()
 
 
-class GetUsersApi(BaseHandler):
-    URL = '/api/user/list'
-
-    def get(self):
-        """ 得到全部用户 """
-        try:
-            users = self.db.user.find({})  # Todo 这里要按分页来取
-            users = [self.fetch2obj(r, User, fields=base_fields) for r in users]
-            users.sort(key=lambda a: a.name)
-            users = self.convert_for_send(users, trim=trim_user)
-            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
-
-        except DbError as e:
-            return self.send_db_error(e)
-
-        response = dict(items=users, roles=self.current_user.roles, time=hlp.get_date_time())
-        self.send_response(response)
-
-
 class ChangeMyPasswordApi(BaseHandler):
     URL = '/api/my/pwd'
 
