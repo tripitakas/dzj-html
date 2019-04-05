@@ -28,7 +28,7 @@ class TestUserApi(APITestCase):
         r = self.add_admin_user(auto_login=False)
         r = self.parse_response(r)
         if 'error' not in r:
-            self.assertIn('user_admin', r['roles'])
+            self.assertIn('用户管理员', r['roles'])
         else:
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password='test')})
             self.assert_code(e.invalid_password, r)

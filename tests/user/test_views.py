@@ -4,7 +4,7 @@
 @time: 2018/6/12
 """
 from tests.testcase import APITestCase
-from controller import views
+from controller.user import views
 import re
 
 admin = 'admin@test.com', 'test123'
