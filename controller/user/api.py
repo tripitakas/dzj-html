@@ -214,7 +214,7 @@ class ChangeUserRoleApi(BaseHandler):
                                         {'$set': dict(roles=info.roles)})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role', context=(info.id or info.email) + ': ' + info.roles)
+            self.add_op_log('change_role', context=(info.id or info.email) + ': ' + (info.roles or ''))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': info.roles})

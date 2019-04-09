@@ -54,7 +54,7 @@ def gen_id(value, salt='', rand=False, length=16):
     coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
     if isinstance(value, bytes):
         return coder.encode(*value)[:length]
-    return coder.encode(*[ord(c) for c in list(value)])[:length]
+    return coder.encode(*[ord(c) for c in list(value or [])])[:length]
 
 
 def create_object(cls, value, salt='', rand=False, length=16):

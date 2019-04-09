@@ -48,7 +48,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
     def prepare(self):
-        """ 调用 get/set 前的准备 """
+        """ 调用 get/post 前的准备 """
 
         # 检查是否单元测试用户、访客可以访问
         open_roles = '单元测试用户, 访客' if options.testing else '访客'

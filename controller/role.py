@@ -50,6 +50,7 @@ role_maps = {
             '/my/profile': ['GET'],
             '/api/my/profile': ['POST'],
             '/api/my/pwd': ['POST'],
+            '/api/page/@task_id': ['GET'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
