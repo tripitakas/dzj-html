@@ -67,13 +67,17 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
 
-        # 检查是否不需授权（即普通用户可访问）
-        if can_access('普通用户', self.request.path, self.request.method):
-            return
-
-        # 检查当前用户是否可以访问本请求（检查前更新self.current_user.roles）
+        # 检查前更新self.current_user.roles
         self.current_user.roles = user_in_db.get('roles', '')
         self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
+
+        # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
+        if can_access('普通用户', self.request.path, self.request.method):
+            return
+        if self.get_query_argument('_no_auth', 0) == '1' and options.testing:
+            return
+
+        # 检查当前用户是否可以访问本请求
         if can_access(self.current_user.roles, self.request.path, self.request.method):
             return
         else:
