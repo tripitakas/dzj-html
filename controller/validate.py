@@ -14,7 +14,7 @@ invalid_name = 1002, '姓名应为2~5个汉字，或3~20个英文字母（可含
 invalid_phone = 1003, '手机号码应为以1开头的11位数字'
 invalid_email = 1004, '邮箱格式有误'
 invalid_password = 1005, '密码应为6至18位由数字、字母和英文符号组成的字符串，不可以为纯数字或纯字母'
-invalid_range = 1006, r'数据范围为[%s, %s]'
+invalid_range = 1006, r'数据范围应为[%s, %s]'
 
 
 def validate(data, rules):
@@ -95,14 +95,15 @@ def between(value, min, max):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中
-    data = {'name': '', 'phone': '1234567890', 'email': 'user#rs.com', 'password': '123456'}
+    data = {'name': '', 'phone': '1234567890', 'email': 'user#rs.com', 'password': '123456', 'age': 8}
     rules = [
         (not_empty, 'name', 'password'),
         (not_both_empty, 'phone', 'email'),
         (is_name, 'name'),
         (is_phone, 'phone'),
         (is_email, 'email'),
-        (is_password, 'password')
+        (is_password, 'password'),
+        (between, 'age', 10, 100)
     ]
 
     errs = validate(data, rules)
