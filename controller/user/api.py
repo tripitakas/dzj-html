@@ -45,7 +45,6 @@ class LoginApi(BaseHandler):
         if not re_email.match(email):
             return self.send_error(errors.invalid_email)
 
-        fields = base_fields + ['password']
         try:
             # 检查是否多次登录失败
             login_fail = {
@@ -63,29 +62,39 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.unauthorized, reason='请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
-            user = self.db.user.find_one(dict(email=email))
-            user = self.fetch2obj(user, User, fields=fields)
-            if not user:
-                self.add_op_log('login-no', context=email)
-                return self.send_error(errors.no_user, reason=email)
-            if user.password != hlp.gen_id(password):
-                self.add_op_log('login-fail', context=email)
-                return self.send_error(errors.invalid_password)
-            self.current_user = user
-            self.add_op_log('login-ok', context=email + ': ' + user.name)
-            ResetUserPasswordApi.remove_login_fails(self, email)
-            user.login_md5 = hlp.gen_id(user.roles)
+            self.login(self, email, password)
         except DbError as e:
             return self.send_db_error(e)
+
+    @staticmethod
+    def login(self, email, password, report_error=True):
+        user = self.db.user.find_one(dict(email=email))
+        user = self.fetch2obj(user, User, fields=base_fields + ['password'])
+        if not user:
+            if report_error:
+                self.add_op_log('login-no', context=email)
+                return self.send_error(errors.no_user, reason=email)
+            return
+        if user.password != hlp.gen_id(password):
+            if report_error:
+                self.add_op_log('login-fail', context=email)
+                return self.send_error(errors.invalid_password)
+            return
+        self.current_user = user
+        self.add_op_log('login-ok', context=email + ': ' + user.name)
+        ResetUserPasswordApi.remove_login_fails(self, email)
+        user.login_md5 = hlp.gen_id(user.roles)
 
         user.__dict__.pop('old_password', 0)
         user.__dict__.pop('password', 0)
         user.__dict__.pop('last_time', 0)
         user.roles = user.roles or ''
+        self.current_user = user
         self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (user.id, user.name, user.email, user.roles))
 
         self.send_response(user, trim=trim_user)
+        return user
 
 
 class LogoutApi(BaseHandler):
@@ -133,8 +142,11 @@ class RegisterApi(BaseHandler):
         user = self.get_body_obj(User)
         if self.check_info(user):
             try:
-                if self.db.user.find_one(dict(email=user.email)):
-                    return self.send_error(errors.user_exists, reason=user.email)
+                exist_user = self.db.user.find_one(dict(email=user.email))
+                if exist_user:
+                    # 尝试自动登录，可用在自动测试上
+                    return None if LoginApi.login(self, user.email, user.password, report_error=False) \
+                        else self.send_error(errors.user_exists, reason=user.email)
 
                 # 如果是第一个用户则设置为用户管理员
                 first_user = not self.db.user.find_one({})
@@ -198,10 +210,11 @@ class ChangeUserRoleApi(BaseHandler):
 
         info = self.get_body_obj(User)
         try:
-            r = self.db.user.update_one(dict(id=info.id), {'$set': dict(roles=info.roles)})
+            r = self.db.user.update_one({'$or': [{'id': info.id}, {'email': info.email}]},
+                                        {'$set': dict(roles=info.roles)})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role', context=info.id + ': ' + info.roles)
+            self.add_op_log('change_role', context=(info.id or info.email) + ': ' + (info.roles or ''))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': info.roles})
@@ -213,7 +226,8 @@ class ResetUserPasswordApi(BaseHandler):
     def post(self):
         """ 重置用户密码 """
 
-        uid = json_decode(self.get_body_argument('data'))['uid']
+        info = self.get_body_obj(User)
+        uid = info.id
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
             r = self.db.user.update_one(dict(id=uid), {'$set': dict(password=hlp.gen_id(pwd))})
@@ -303,10 +317,11 @@ class ChangeMyProfileApi(BaseHandler):
         try:
             self.db.user.update_one(
                 dict(id=self.current_user.id),
-                {'$set': dict(name=info.name, gender=info.gender)}
+                {'$set': dict(name=info.name or self.current_user.name,
+                              gender=info.gender or self.current_user.gender)}
             )
-            self.current_user.name = info.name
-            self.current_user.gender = info.gender
+            self.current_user.name = info.name or self.current_user.name
+            self.current_user.gender = info.gender or self.current_user.gender
             self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
             self.add_op_log('change_profile')
         except DbError as e:

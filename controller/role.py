@@ -49,13 +49,14 @@ role_maps = {
             '/my/profile': ['GET'],
             '/api/my/profile': ['POST'],
             '/api/my/pwd': ['POST'],
+            '/api/page/@task_id': ['GET'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
         }
     },
     '切栏校对员': {
-        'is_assignable': True,
+        'is_assignable': 'block_cut_proof',
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
             '/task/my/block_cut_proof': ['GET'],
@@ -65,7 +66,7 @@ role_maps = {
         }
     },
     '切栏审定员': {
-        'is_assignable': True,
+        'is_assignable': 'block_cut_review',
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
@@ -75,7 +76,7 @@ role_maps = {
         }
     },
     '切列校对员': {
-        'is_assignable': True,
+        'is_assignable': 'column_cut_proof',
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
             '/task/my/column_cut_proof': ['GET'],
@@ -85,7 +86,7 @@ role_maps = {
         }
     },
     '切列审定员': {
-        'is_assignable': True,
+        'is_assignable': 'column_cut_review',
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
@@ -95,7 +96,7 @@ role_maps = {
         }
     },
     '切字校对员': {
-        'is_assignable': True,
+        'is_assignable': 'char_cut_proof',
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
             '/task/my/char_cut_proof': ['GET'],
@@ -105,7 +106,7 @@ role_maps = {
         }
     },
     '切字审定员': {
-        'is_assignable': True,
+        'is_assignable': 'char_cut_review',
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
@@ -119,7 +120,7 @@ role_maps = {
         'roles': ['切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
     },
     '文字校对员': {
-        'is_assignable': True,
+        'is_assignable': 'text_proof',
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
@@ -128,7 +129,7 @@ role_maps = {
         }
     },
     '文字审定员': {
-        'is_assignable': True,
+        'is_assignable': 'text_review',
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -137,7 +138,7 @@ role_maps = {
         }
     },
     '文字专家': {
-        'is_assignable': True,
+        'is_assignable': 'text_hard',
         'roles': ['文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
@@ -180,8 +181,10 @@ role_maps = {
     },
 }
 
-# 界面可分配的角色
+# 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
+assignable_do_roles = [v['is_assignable'] for role, v in role_maps.items() if isinstance(v.get('is_assignable'), str)]
+
 
 def get_role_routes(role, routes=None):
     """

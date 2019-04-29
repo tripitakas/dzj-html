@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.role import role_maps
+from controller.role import assignable_do_roles
 import controller.errors as e
 
 user1 = 'expert1@test.com', 't12345'
@@ -19,17 +19,18 @@ class TestTaskFlow(APITestCase):
                         for i, r in enumerate([user1, user2, user3])],
                        ','.join(['切分专家', '文字专家']))
         self.assert_code([200, e.no_change],
-                         self.fetch('/api/user/role', body={'data': dict(email='admin@test.com', roles='任务管理员')}))
+                         self.fetch('/api/user/role', body={'data': dict(email='admin@test.com',
+                                                                         roles='用户管理员,任务管理员')}))
 
     def tearDown(self):
         # 退回所有任务，还原改动
-        for task_type in role_maps.keys():
+        for task_type in assignable_do_roles:
             self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
 
         super(APITestCase, self).setUp()
 
     def publish(self, task_type, data):
-        return self.fetch('/api/task/publish/' + task_type, body={'data': data})
+        return self.fetch('/api/task/publish/%s?_no_auth=1' % task_type, body={'data': data})
 
     def test_publish_tasks(self):
         """ 在页面创建后，通过界面和接口发布审校任务 """
@@ -74,7 +75,7 @@ class TestTaskFlow(APITestCase):
                 r = self.parse_response(self.publish(task_type, dict(pages='GL_1056_5_6,JX_165_7_12')))
             self.assertEqual({'opened'}, set([t['status'] for t in r['items']]), msg=task_type)
 
-            r = self.fetch('/task/lobby/%s?_raw=1' % task_type)
+            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r['tasks']], msg=task_type)

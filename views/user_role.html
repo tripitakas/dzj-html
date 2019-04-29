@@ -70,7 +70,7 @@
 															<td>{{p.get('phone', '')}}</td>
 															<td>{{p.get('email', '') }}</td>
 															{% for r in roles %}
-															<td>{{r if r+',' in p['roles'] else '否'}}</td>
+															<td>{{r if r+',' in p.get('roles', '') else '否'}}</td>
 															{% end %}
 														</tr>
 														{% end %}
