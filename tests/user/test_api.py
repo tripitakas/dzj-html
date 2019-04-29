@@ -30,7 +30,7 @@ class TestUserApi(APITestCase):
             self.assertIn('用户管理员', r['roles'])
         else:
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password='test')})
-            self.assert_code(e.invalid_password, r)
+            self.assert_code(e.incorrect_password, r)
             r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
             self.assert_code(200, r)
             self.assertIn('user_admin', self.parse_response(r).get('roles'))
@@ -82,7 +82,7 @@ class TestUserApi(APITestCase):
 
         # 修改密码
         r = self.fetch('/api/my/pwd', body={'data': dict(old_password='err123', password='test123')})
-        self.assert_code(e.invalid_password, r)
+        self.assert_code(e.incorrect_password, r)
         r = self.fetch('/api/my/pwd', body={'data': dict(old_password='t12345', password='test123')})
         self.assert_code(200, r)
 
