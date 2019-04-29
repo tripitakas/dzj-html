@@ -24,7 +24,7 @@ def validate(data, rules):
     :param rules: 校验规则列表，每个rule是一个(func, para1, para2, ...)元组，其中，func是校验工具函数。关于para1、para2等参数：
                   1. 如果是字符串格式，则表示data的属性，将data[para1]数据作为参数传递给func函数
                   2. 如果不是字符串格式，则直接作为参数传递给func函数
-    :return: 如果校验有误，则返回校验错误(key, error_code, message)或错误列表。无误，则无返回值。
+    :return: 如果校验有误，则返回校验错误(key, error_code, message)或列表。其中，key为字符串或字符串列表。无误，则无返回值。
     """
     errs = []
     for rule in rules:
@@ -44,7 +44,7 @@ def not_empty(**kw):
         if not value:
             err_keys.append(key)
     if err_keys:
-        return err_keys, code, message
+        return err_keys[0] if len(err_keys) == 1 else err_keys, code, message
 
 
 def not_both_empty(**kw):
@@ -53,7 +53,7 @@ def not_both_empty(**kw):
     k1, k2 = kw.keys()
     v1, v2 = kw[k1], kw[k2]
     if not v1 and not v2:
-        return (k1, k2), code, message
+        return [k1, k2], code, message
 
 
 def is_name(**kw):
@@ -98,7 +98,7 @@ def between(min, max, **kw):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中
-    data = {'name': '', 'phone': '1234567890', 'email': 'user#rs.com', 'password': '123456', 'age': 8}
+    data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '123456', 'age': 8}
     rules = [
         (not_empty, 'name', 'password'),
         (not_both_empty, 'phone', 'email'),
