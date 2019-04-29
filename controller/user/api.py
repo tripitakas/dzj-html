@@ -8,13 +8,12 @@ import logging
 import random
 import re
 
-from tornado.escape import json_encode, json_decode
+from tornado.escape import json_encode
 from tornado.util import unicode_type
 
 from controller import errors
 from controller.base import BaseHandler, DbError
 from controller.model import User
-from controller.role import role_maps
 import controller.helper as hlp
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
@@ -78,7 +77,7 @@ class LoginApi(BaseHandler):
         if user.password != hlp.gen_id(password):
             if report_error:
                 self.add_op_log('login-fail', context=email)
-                return self.send_error(errors.invalid_password)
+                return self.send_error(errors.incorrect_password)
             return
         self.current_user = user
         self.add_op_log('login-ok', context=email + ': ' + user.name)
@@ -295,7 +294,7 @@ class ChangeMyPasswordApi(BaseHandler):
             if not r:
                 return self.send_error(errors.no_user)
             if r.get('password') != hlp.gen_id(info.old_password):
-                return self.send_error(errors.invalid_password)
+                return self.send_error(errors.incorrect_password)
             self.db.user.update_one(
                 dict(id=self.current_user.id, password=hlp.gen_id(info.old_password)),
                 {'$set': dict(password=hlp.gen_id(info.password))}
