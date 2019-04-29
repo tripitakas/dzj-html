@@ -11,13 +11,12 @@
 import re
 
 url_placeholder = {
-    'user_id': r'[A-Za-z0-9_]+',
     'task_type': r'[a-z0-9_.]+',
     'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
-    'sutra_id': r'[a-zA-Z]{2}',
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
+    'tripitaka_id': r'[a-z]{2,}'
 }
 
 role_maps = {
@@ -125,7 +124,7 @@ role_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/api/pick/text_proof_(1|2|3)/@task_id': ['GET'],
+            '/api/pick/text_proof/@task_id': ['GET'],
         }
     },
     '文字审定员': {
@@ -173,7 +172,6 @@ role_maps = {
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
-            '/api/user/list': ['GET'],
             '/api/user/remove': ['POST'],
             '/api/user/profile': ['POST'],
             '/api/user/role': ['POST'],
