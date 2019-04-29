@@ -11,7 +11,7 @@ import re
 not_allowed_empty = 1000, '不允许为空'
 not_allowed_both_empty = 1001, '不允许同时为空'
 invalid_name = 1002, '姓名应为2~5个汉字，或3~20个英文字母（可含空格和-）'
-invalid_phone = 1003, '手机号码应为以1开头的11位数字'
+invalid_phone = 1003, '手机号码格式有误'
 invalid_email = 1004, '邮箱格式有误'
 invalid_password = 1005, '密码应为6至18位由数字、字母和英文符号组成的字符串，不可以为纯数字或纯字母'
 invalid_range = 1006, '数据范围应为[%s, %s]'
@@ -38,59 +38,61 @@ def validate(data, rules):
 
 
 def not_empty(**kw):
+    empty_keys = [k for k, v in kw.items() if not v]
+    empty_keys = empty_keys[0] if len(empty_keys) == 1 else empty_keys
     code, message = not_allowed_empty
-    err_keys = []
-    for key, value in kw.items():
-        if not value:
-            err_keys.append(key)
-    if err_keys:
-        return err_keys[0] if len(err_keys) == 1 else err_keys, code, message
+    if empty_keys:
+        return empty_keys, code, message
 
 
 def not_both_empty(**kw):
     assert len(kw) == 2
-    code, message = not_allowed_both_empty
     k1, k2 = kw.keys()
     v1, v2 = kw[k1], kw[k2]
+    code, message = not_allowed_both_empty
     if not v1 and not v2:
         return [k1, k2], code, message
 
 
 def is_name(**kw):
     assert len(kw) == 1
-    k, v = list(kw.keys())[0], list(kw.values())[0]
+    k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
+    code, message = invalid_name
     if v and not re.match(regex, v):
-        return k, invalid_name[0], invalid_name[1]
+        return k, code, message
 
 
 def is_phone(**kw):
     assert len(kw) == 1
-    k, v = list(kw.keys())[0], list(kw.values())[0]
-    regex = r'^1\d{10}$'
+    k, v = list(kw.items())[0]
+    regex = r'^1[34578]\d{9}$'
+    code, message = invalid_phone
     if v and not re.match(regex, v):
-        return k, invalid_phone[0], invalid_phone[1]
+        return k, code, message
 
 
 def is_email(**kw):
     assert len(kw) == 1
-    k, v = list(kw.keys())[0], list(kw.values())[0]
+    k, v = list(kw.items())[0]
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
+    code, message = invalid_email
     if v and not re.match(regex, v):
-        return k, invalid_email[0], invalid_email[1]
+        return k, code, message
 
 
 def is_password(**kw):
     assert len(kw) == 1
-    k, v = list(kw.keys())[0], list(kw.values())[0]
+    k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
+    code, message = invalid_password
     if v and not re.match(regex, v):
-        return k, invalid_password[0], invalid_password[1]
+        return k, code, message
 
 
 def between(min, max, **kw):
     assert len(kw) == 1
-    k, v = list(kw.keys())[0], list(kw.values())[0]
+    k, v = list(kw.items())[0]
     code, message = invalid_range
     if v < min or v > max:
         return k, code, message % (min, max)
@@ -98,7 +100,7 @@ def between(min, max, **kw):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中
-    data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '123456', 'age': 8}
+    data = {'name': '', 'phone': '1234567890', 'email': '', 'password': '', 'age': 8}
     rules = [
         (not_empty, 'name', 'password'),
         (not_both_empty, 'phone', 'email'),
