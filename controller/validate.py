@@ -24,7 +24,7 @@ def validate(data, rules):
     :param rules: 校验规则列表，每个rule是一个(func, para1, para2, ...)元组，其中，func是校验工具函数。关于para1、para2等参数：
                   1. 如果是字符串格式，则表示data的属性，将data[para1]数据作为参数传递给func函数
                   2. 如果不是字符串格式，则直接作为参数传递给func函数
-    :return: 如果校验有误，则返回校验错误(key, error_code, message)或列表。其中，key为字符串或字符串列表。无误，则无返回值。
+    :return: 如果校验有误，则返回校验错误(key, error_code, message)，其中，key为字符串或字符串列表。无误，则无返回值。
     """
     errs = []
     for rule in rules:
