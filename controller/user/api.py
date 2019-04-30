@@ -65,8 +65,7 @@ class LoginApi(BaseHandler):
 
     @staticmethod
     def login(self, email, password, report_error=True):
-        user = self.db.user.find_one(dict(email=email))
-        user = self.fetch2obj(user, fields=base_fields + ['password'])
+        user = hlp.convert_bson(self.db.user.find_one(dict(email=email)))
         if not user:
             if report_error:
                 self.add_op_log('login-no', context=email)
@@ -182,7 +181,7 @@ class ChangeUserProfileApi(BaseHandler):
             return self.send_error(errors.invalid_name, reason=user['name']) or -1
 
         try:
-            old_user = self.fetch2obj(self.db.user.find_one(dict(id=user['id'])))
+            old_user = hlp.convert_bson(self.db.user.find_one(dict(id=user['id'])))
             if not old_user:
                 return self.send_error(errors.no_user, reason=user['id'])
 

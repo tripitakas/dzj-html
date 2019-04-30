@@ -229,7 +229,8 @@ class PickTaskApi(TaskHandler):
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['id'], context=name)
-            elif page and page.get(task_user) == self.current_user['id'] and page.get(task_status) == self.STATUS_LOCKED:
+            elif page and page.get(task_user) == self.current_user['id'] \
+                    and page.get(task_status) == self.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)

@@ -6,6 +6,7 @@
 """
 from controller.base import BaseHandler
 from controller.role import assignable_roles
+import controller.helper as hlp
 
 
 class UserLoginHandler(BaseHandler):
@@ -37,10 +38,9 @@ class UsersAdminHandler(BaseHandler):
 
     def get(self):
         """ 用户管理页面 """
-        fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
             users = self.db.user.find({})
-            users = [self.trim_user(self.fetch2obj(r, fields=fields)) for r in users]
+            users = [self.trim_user(hlp.convert_bson(r)) for r in users]
             users.sort(key=lambda a: a['name'])
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
@@ -60,10 +60,9 @@ class UserRolesHandler(BaseHandler):
 
     def get(self):
         """ 角色管理页面 """
-        fields = ['id', 'name', 'phone', 'roles']
         try:
             users = self.db.user.find({})  # Todo 分页
-            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users = [hlp.convert_bson(r) for r in users]
             users.sort(key=lambda a: a['name'])
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
@@ -78,10 +77,9 @@ class UserStatisticHandler(BaseHandler):
 
     def get(self):
         """ 人员管理-数据管理页面 """
-        fields = ['id', 'name', 'phone']
         try:
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users = [hlp.convert_bson(r) for r in users]
             users.sort(key=lambda a: a['name'])
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量

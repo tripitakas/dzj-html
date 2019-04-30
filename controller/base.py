@@ -8,7 +8,6 @@
 import re
 import logging
 import traceback
-from datetime import datetime
 
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
@@ -182,25 +181,6 @@ class BaseHandler(CorsMixin, RequestHandler):
                         render=render,
                         reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
-
-    @staticmethod
-    def fetch2obj(record, fields=None):
-        """
-        将从数据库取到(fetchall、fetchone)的记录字典对象转为模型对象
-        :param record: 数据库记录，字典对象
-        :param fields: 要保留的字段
-        :return: 模型数据对象，字典
-        """
-        if record:
-            obj = {}
-            fields = set(fields) & set(record.keys()) if fields else record.keys()
-            for f in fields:
-                value = record[f]
-                if type(value) == datetime:
-                    value = value.strftime('%Y-%m-%d %H:%M:%S')
-                if value is not None and (not fields or f in fields):
-                    obj[f] = value
-            return obj
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
