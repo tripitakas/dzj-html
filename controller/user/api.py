@@ -78,14 +78,11 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.incorrect_password)
             return
 
-        if isinstance(user.get('roles'), dict):
-            user['roles'] = '用户管理员' if user['roles'].get('manager') else ''  # 数据库结构变了，角色丢弃
-        user['roles'] = user.get('roles') or ''
-
         self.current_user = user
         self.add_op_log('login-ok', context=email + ': ' + user['name'])
         ResetUserPasswordApi.remove_login_fails(self, email)
         user['login_md5'] = hlp.gen_id(user.get('roles'))
+        user['roles'] = user.get('roles') or ''
 
         user.pop('old_password', 0)
         user.pop('password', 0)
@@ -95,7 +92,7 @@ class LoginApi(BaseHandler):
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (
             user['id'], user['name'], user['email'], user['roles']))
 
-        self.send_response(user, trim=trim_user)
+        self.send_response(trim_user(user))
         return user
 
 
@@ -172,7 +169,7 @@ class RegisterApi(BaseHandler):
             self.set_secure_cookie('user', json_encode(user))
             logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user['email']))
 
-            self.send_response(user, trim=trim_user)
+            self.send_response(trim_user(user))
 
 
 class ChangeUserProfileApi(BaseHandler):

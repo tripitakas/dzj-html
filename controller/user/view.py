@@ -40,9 +40,8 @@ class UsersAdminHandler(BaseHandler):
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users = [self.trim_user(self.fetch2obj(r, fields=fields)) for r in users]
             users.sort(key=lambda a: a['name'])
-            users = self.convert_for_send(users, trim=self.trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -66,10 +65,6 @@ class UserRolesHandler(BaseHandler):
             users = self.db.user.find({})  # Todo 分页
             users = [self.fetch2obj(r, fields=fields) for r in users]
             users.sort(key=lambda a: a['name'])
-            for r in users:
-                if isinstance(r['roles'], dict):  # 数据库结构变了，角色丢弃
-                    r['roles'] = '用户管理员' if r['roles'].get('manager') else ''
-            users = self.convert_for_send(users)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -88,7 +83,6 @@ class UserStatisticHandler(BaseHandler):
             users = self.db.user.find({})
             users = [self.fetch2obj(r, fields=fields) for r in users]
             users.sort(key=lambda a: a['name'])
-            users = self.convert_for_send(users)
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
                 r.update(dict(cut_proof_count=0, cut_review_count=0,
@@ -101,5 +95,3 @@ class UserStatisticHandler(BaseHandler):
             return self.send_db_error(e, render=True)
 
         self.render('user_statistic.html', users=users)
-
-

@@ -11,7 +11,6 @@ import traceback
 from datetime import datetime
 
 from bson.errors import BSONError
-from pyconvert.pyconv import convert2JSON
 from pymongo.errors import PyMongoError
 from tornado import gen
 from tornado.escape import json_decode, json_encode, to_basestring
@@ -67,8 +66,6 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         # 检查前更新roles
         self.current_user['roles'] = user_in_db.get('roles', '')
-        if isinstance(self.current_user['roles'], dict):  # 数据库结构变了，角色丢弃
-            self.current_user['roles'] = '用户管理员' if self.current_user['roles'].get('manager') else ''
         self.set_secure_cookie('user', json_encode(self.current_user))
 
         # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
@@ -134,19 +131,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         except ValueError:
             logging.error(body)
 
-    def convert_for_send(self, response, trim=None):
-        """ 将包含模型对象的API响应内容转换为原生对象(dict或list) """
-        if isinstance(response, list):
-            response = [self.convert_for_send(r, trim) for r in response]
-        elif isinstance(response, dict) and callable(trim):
-            response = dict(response)
-            trim(response)
-        return response
-
-    def send_response(self, response=None, trim=None):
+    def send_response(self, response=None):
         """ 发送并结束API响应内容 """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        response = self.convert_for_send({'code': 200} if response is None else response, trim)
+        response = {'code': 200} if response is None else response
         if not isinstance(response, dict):
             response = json_encode({'items': response} if isinstance(response, list) else response)
         self.write(response)

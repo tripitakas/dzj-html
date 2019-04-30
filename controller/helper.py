@@ -10,7 +10,6 @@ import logging
 import inspect
 from datetime import datetime, timedelta
 from hashids import Hashids
-from pyconvert.pyconv import convertJSON2OBJ
 
 
 def convert_bson(r):
@@ -68,6 +67,7 @@ def my_framer():
             f0 = f
             f = f.f_back
     return f0
+
 
 old_framer = logging.currentframe
 logging.currentframe = my_framer
