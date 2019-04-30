@@ -86,6 +86,24 @@ class TaskHandler(BaseHandler):
         },
     }
 
+    # 任务状态表
+    STATUS_UNREADY = 'unready'
+    STATUS_READY = 'ready'
+    STATUS_OPENED = 'opened'
+    STATUS_PENDING = 'pending'
+    STATUS_LOCKED = 'locked'
+    STATUS_RETURNED = 'returned'
+    STATUS_FINISHED = 'finished'
+    task_statuses = {
+        STATUS_UNREADY: '数据未就绪',
+        STATUS_READY: '数据已就绪',
+        STATUS_OPENED: '已发布未领取',
+        STATUS_PENDING: '等待前置任务',
+        STATUS_LOCKED: '进行中',
+        STATUS_RETURNED: '已退回',
+        STATUS_FINISHED: '已完成',
+    }
+
     @property
     def flat_task_types(self):
         """
@@ -169,24 +187,6 @@ class TaskHandler(BaseHandler):
         for task_type in pre_types:
             recursion(task_type)
         return pre_types
-
-    # 任务状态表
-    STATUS_UNREADY = 'unready'
-    STATUS_READY = 'ready'
-    STATUS_OPENED = 'opened'
-    STATUS_PENDING = 'pending'
-    STATUS_LOCKED = 'locked'
-    STATUS_RETURNED = 'returned'
-    STATUS_FINISHED = 'finished'
-    task_statuses = {
-        STATUS_UNREADY: '数据未就绪',
-        STATUS_READY: '数据已就绪',
-        STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务',
-        STATUS_LOCKED: '进行中',
-        STATUS_RETURNED: '已退回',
-        STATUS_FINISHED: '已完成',
-    }
 
     def get_next_task_todo(self, task_type):
         """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """

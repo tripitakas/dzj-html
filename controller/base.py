@@ -11,7 +11,6 @@ import traceback
 from datetime import datetime
 
 from bson.errors import BSONError
-from pyconvert.pyconv import convert2JSON
 from pymongo.errors import PyMongoError
 from tornado import gen
 from tornado.escape import json_decode, json_encode, to_basestring
@@ -67,8 +66,6 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         # 检查前更新roles
         self.current_user['roles'] = user_in_db.get('roles', '')
-        if isinstance(self.current_user['roles'], dict):  # 数据库结构变了，角色丢弃
-            self.current_user['roles'] = '用户管理员' if self.current_user['roles'].get('manager') else ''
         self.set_secure_cookie('user', json_encode(self.current_user))
 
         # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
@@ -103,6 +100,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
+
+
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
@@ -117,7 +116,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
-    def get_body_obj(self):
+    def get_request_data(self):
         """
         从请求内容的 data 属性解析出一个或多个模型对象.
         客户端的请求需要在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
