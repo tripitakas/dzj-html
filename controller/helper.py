@@ -42,16 +42,6 @@ def gen_id(value, salt='', rand=False, length=16):
     return coder.encode(*[ord(c) for c in list(value or [])])[:length]
 
 
-def create_object(cls, value, salt='', rand=False, length=16):
-    fields = [f for f in cls.__dict__.keys() if f[0] != '_']
-    obj = cls()
-    for f in fields:
-        if f not in obj.__dict__:
-            obj.__dict__[f] = None
-    obj.id = gen_id(value, salt, rand=rand, length=length)
-    return obj
-
-
 def my_framer():
     """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
     f0 = f = old_framer()

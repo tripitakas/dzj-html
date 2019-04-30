@@ -225,7 +225,7 @@ class PickTaskApi(TaskHandler):
                 task_type + '.start_time': datetime.now()
             }
             r = self.db.page.update_one(can_lock, {'$set': lock})
-            page = convert_bson(self.db.page.find_one(dict(name=name)))
+            page = self.db.page.find_one(dict(name=name))
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['id'], context=name)
@@ -281,7 +281,7 @@ class SaveCutApi(TaskHandler):
             assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
             assert re.match(self.re_cut_type, task_type)
 
-            page = convert_bson(self.db.page.find_one(dict(name=data['name'])))
+            page = self.db.page.find_one(dict(name=data['name']))
             if not page:
                 return self.send_error(errors.no_object)
 

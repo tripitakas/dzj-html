@@ -101,7 +101,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
 
-
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
@@ -118,11 +117,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_request_data(self):
         """
-        从请求内容的 data 属性解析出一个或多个模型对象.
-        客户端的请求需要在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
-        :return: 模型字典对象，如果 data 属性值为数组则返回对象数组
+        获取请求数据。客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
-
         if 'data' not in self.request.body_arguments:
             body = json_decode(self.request.body).get('data')
         else:
