@@ -178,22 +178,22 @@ class ChangeUserProfileApi(BaseHandler):
     def post(self):
         """ 修改用户基本信息 """
         user = self.get_request_data()
-        if user.get('name') and not re_name.match(unicode_type(info['name'])):
-            return self.send_error(errors.invalid_name, reason=info['name']) or -1
+        if user.get('name') and not re_name.match(unicode_type(user['name'])):
+            return self.send_error(errors.invalid_name, reason=user['name']) or -1
 
         try:
-            old_user = self.fetch2obj(self.db.user.find_one(dict(id=info['id'])))
+            old_user = self.fetch2obj(self.db.user.find_one(dict(id=user['id'])))
             if not old_user:
-                return self.send_error(errors.no_user, reason=info['id'])
+                return self.send_error(errors.no_user, reason=user['id'])
 
-            sets = {f: info[f] for f in ['name', 'phone', 'email', 'gender']
+            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
                     if user.get(f) and user.get(f) != old_user.get(f)}
             if not sets:
                 return self.send_error(errors.no_change)
 
-            r = self.db.user.update_one(dict(id=info['id']), {'$set': sets})
+            r = self.db.user.update_one(dict(id=user['id']), {'$set': sets})
             if r.modified_count:
-                self.add_op_log('change_user_profile', context=','.join([info['id']] + list(sets.keys())))
+                self.add_op_log('change_user_profile', context=','.join([user['id']] + list(sets.keys())))
 
             self.send_response(dict(info=sets))
 
@@ -270,7 +270,7 @@ class RemoveUserApi(BaseHandler):
         except DbError as e:
             return self.send_db_error(e)
 
-        logging.user('remove user %s %s' % (user.get('name'), user['email']))
+        logging.info('remove user %s %s' % (user.get('name'), user['email']))
         self.send_response()
 
 
@@ -305,7 +305,7 @@ class ChangeMyPasswordApi(BaseHandler):
         except DbError as e:
             return self.send_db_error(e)
 
-        logging.user('change password %s %s' % (self.current_user['id'], self.current_user['name']))
+        logging.info('change password %s %s' % (self.current_user['id'], self.current_user['name']))
         self.send_response()
 
 
@@ -328,5 +328,5 @@ class ChangeMyProfileApi(BaseHandler):
         except DbError as e:
             return self.send_db_error(e)
 
-        logging.user('change profile %s %s' % (user['name'], user.get('name')))
+        logging.info('change profile %s %s' % (user['name'], user.get('name')))
         self.send_response()
