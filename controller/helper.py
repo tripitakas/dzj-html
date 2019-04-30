@@ -21,8 +21,6 @@ def convert_bson(r):
             r[k] = v.strftime('%Y-%m-%d %H:%M:%S')
         elif isinstance(v, dict):
             convert_bson(v)
-    if 'update_time' not in r and 'create_time' in r:
-        r['update_time'] = r['create_time']
     if '_id' in r:
         r['id'] = str(r.pop('_id'))
     return r
