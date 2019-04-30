@@ -100,6 +100,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
+
+
         if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
@@ -114,7 +116,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
-    def get_body_obj(self):
+    def get_request_data(self):
         """
         从请求内容的 data 属性解析出一个或多个模型对象.
         客户端的请求需要在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
