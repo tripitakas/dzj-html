@@ -233,7 +233,7 @@ class TaskHandler(BaseHandler):
         """
         assert task_type in self.task_types
 
-        user_id = self.current_user.id
+        user_id = self.current_user['id']
 
         if 'sub_task_types' in self.task_types.get(task_type, {}):
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
@@ -262,16 +262,3 @@ class TaskHandler(BaseHandler):
         page_size = self.default_page_size if page_size == '' else page_size
         pages = self.db.page.find(query, fields).limit(page_size).skip(page_size * (page_no - 1))
         return [convert_bson(p) for p in pages]
-
-
-class PublishTask(object):
-    # 任务模型类，用于数据格式定义与转换
-    pages = str
-    priority = str
-    comment = str
-    task_type = str
-
-
-class SaveTask(object):
-    name = str
-    submit = int

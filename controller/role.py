@@ -191,7 +191,7 @@ def get_role_routes(role, routes=None):
     获取指定角色对应的route集合
     :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
     """
-    assert type(role) == str
+    assert type(role) == str, str(role)
     routes = dict() if routes is None else routes
     roles = [r.strip() for r in role.split(',')]
     for r in roles:

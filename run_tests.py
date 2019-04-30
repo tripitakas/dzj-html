@@ -17,8 +17,8 @@ if __name__ == '__main__':
     try:
         test_args.remove('--coverage')
     except ValueError:
-        # test_args += ['tests']
-        test_args += ['-k test_with_admin']
+        test_args += ['tests']
+        # test_args += ['-k test_with_admin']
     else:
         test_args = ['--cov=controller',
                      '--cov-report=term',

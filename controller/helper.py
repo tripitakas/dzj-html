@@ -29,20 +29,6 @@ def convert_bson(r):
     return r
 
 
-def convert2obj(cls, json_obj):
-    """ 将JSON对象转换为指定模型类的对象 """
-    if isinstance(json_obj, dict):
-        for k, v in list(json_obj.items()):
-            if v is None or v == str or v == int:
-                json_obj.pop(k)
-    obj = convertJSON2OBJ(cls, json_obj)
-    fields = [f for f in cls.__dict__.keys() if f[0] != '_']
-    for f in fields:
-        if f not in obj.__dict__:
-            obj.__dict__[f] = None
-    return obj
-
-
 def get_date_time(fmt=None, diff_seconds=None):
     time = datetime.now()
     if diff_seconds:

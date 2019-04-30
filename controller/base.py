@@ -21,9 +21,8 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors
-from controller.model import User
 from controller.role import get_route_roles, can_access
-from controller.helper import convert2obj, get_date_time
+from controller.helper import get_date_time
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
@@ -38,7 +37,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         """ 请求响应的初始化，在此指定额外属性的默认值 """
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db
-
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -62,14 +60,16 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(email=self.current_user.email))
+        user_in_db = self.db.user.find_one(dict(email=self.current_user['email']))
         if not user_in_db:
             return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
 
-        # 检查前更新self.current_user.roles
-        self.current_user.roles = user_in_db.get('roles', '')
-        self.set_secure_cookie('user', json_encode(self.convert2dict(self.current_user)))
+        # 检查前更新roles
+        self.current_user['roles'] = user_in_db.get('roles', '')
+        if isinstance(self.current_user['roles'], dict):  # 数据库结构变了，角色丢弃
+            self.current_user['roles'] = '用户管理员' if self.current_user['roles'].get('manager') else ''
+        self.set_secure_cookie('user', json_encode(self.current_user))
 
         # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
         if can_access('普通用户', self.request.path, self.request.method):
@@ -78,7 +78,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
 
         # 检查当前用户是否可以访问本请求
-        if can_access(self.current_user.roles, self.request.path, self.request.method):
+        if can_access(self.current_user['roles'], self.request.path, self.request.method):
             return
         else:
             need_roles = get_route_roles(self.request.path, self.request.method)
@@ -92,14 +92,13 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.get_secure_cookie('user')
         try:
-            user = user and convert2obj(User, json_decode(user))
-            return user or None
+            return user and json_decode(user) or None
         except TypeError as e:
             print(user, str(e))
 
     def render(self, template_name, **kwargs):
-        kwargs['currentRoles'] = self.current_user.roles if self.current_user else ''
-        kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
+        kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
+        kwargs['currentUserId'] = self.current_user['id'] if self.current_user else ''
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
@@ -118,84 +117,30 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
-    @staticmethod
-    def _trim_obj(obj, param_type):
-        if param_type not in [dict, str, int, float]:
-            fields = [f for f in param_type.__dict__.keys() if f[0] != '_']
-            for f in list(obj.__dict__):
-                if f not in fields and '__' not in f:
-                    del obj.__dict__[f]
-            for f in fields:
-                if f not in obj.__dict__:
-                    obj.__dict__[f] = None
-                elif isinstance(obj.__dict__[f], str):
-                    obj.__dict__[f] = obj.__dict__[f].strip()
-
-    def get_body_obj(self, param_type):
+    def get_body_obj(self):
         """
-        从请求内容的 data 属性解析出指定模型类的一个或多个对象.
+        从请求内容的 data 属性解析出一个或多个模型对象.
         客户端的请求需要在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
-        :param param_type: 模型类或dict
-        :return: 指定模型类的对象，如果 data 属性值为数组则返回对象数组
+        :return: 模型字典对象，如果 data 属性值为数组则返回对象数组
         """
-
-        def str2obj(text):
-            if type(text) == dict:
-                text = {k: v for k, v in text.items() if v is not None}
-            return convert2obj(param_type, text)
 
         if 'data' not in self.request.body_arguments:
             body = json_decode(self.request.body).get('data')
         else:
             body = self.get_body_argument('data')
 
-        if param_type == str:
-            return body
-        elif param_type == dict:
-            return json_decode(body or '{}')
-
         try:
-            body = json_decode(body or '{}')
-            if type(body) == list:
-                param_obj = [str2obj(p) for p in body]
-            else:
-                param_obj = str2obj(body)
+            return json_decode(body or '{}')
         except ValueError:
             logging.error(body)
-            return
-
-        if type(param_obj) == list:
-            [self._trim_obj(p, param_type) for p in param_obj]
-        else:
-            self._trim_obj(param_obj, param_type)
-
-        return param_obj
-
-    @staticmethod
-    def convert2dict(obj):
-        """ 将模型类的对象转为 dict 对象，以便输出到客户端 """
-        filter_attr = obj.__dict__
-        data = dict()
-        for v in filter_attr:
-            d = getattr(obj, v)
-            if d not in [None, str, int]:
-                data[v] = d
-        return data
 
     def convert_for_send(self, response, trim=None):
         """ 将包含模型对象的API响应内容转换为原生对象(dict或list) """
         if isinstance(response, list):
             response = [self.convert_for_send(r, trim) for r in response]
-        elif hasattr(response, '__dict__'):
-            dup = response.__class__()
-            for f, v in response.__dict__.items():
-                dup.__dict__[f] = v
-            if callable(trim):
-                trim(dup)
-            for f, v in list(dup.__dict__.items()):
-                if v is None or v == str:
-                    del dup.__dict__[f]
-            response = convert2JSON(dup)
+        elif isinstance(response, dict) and callable(trim):
+            response = dict(response)
+            trim(response)
         return response
 
     def send_response(self, response=None, trim=None):
@@ -224,7 +169,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             str(self).split('.')[-1].split(' ')[0],
             str(kwargs.get('exc_info', (0, '', 0))[1]))
         logging.error('%d %s [%s %s]' % (status_code, reason,
-                                         self.current_user and self.current_user.name, self.get_ip()))
+                                         self.current_user and self.current_user['name'], self.get_ip()))
         if not self._finished:
             self.set_header('Content-Type', 'application/json; charset=UTF-8')
             self.write({'code': status_code, 'error': reason})
@@ -253,23 +198,22 @@ class BaseHandler(CorsMixin, RequestHandler):
                             default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
     @staticmethod
-    def fetch2obj(record, cls, fields=None):
+    def fetch2obj(record, fields=None):
         """
         将从数据库取到(fetchall、fetchone)的记录字典对象转为模型对象
         :param record: 数据库记录，字典对象
-        :param cls: 模型对象的类
-        :return: 模型对象
+        :param fields: 要保留的字段
+        :return: 模型数据对象，字典
         """
         if record:
             obj = {}
-            fields = set(cls.__dict__.keys()) & set(record.keys())
+            fields = set(fields) & set(record.keys()) if fields else record.keys()
             for f in fields:
                 value = record[f]
                 if type(value) == datetime:
                     value = value.strftime('%Y-%m-%d %H:%M:%S')
                 if value is not None and (not fields or f in fields):
                     obj[f] = value
-            obj = convert2obj(cls, obj)
             return obj
 
     def get_ip(self):
@@ -279,7 +223,7 @@ class BaseHandler(CorsMixin, RequestHandler):
     def add_op_log(self, op_type, file_id=None, context=None):
         logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
         self.db.log.insert_one(dict(type=op_type,
-                                    user_id=self.current_user and self.current_user.id,
+                                    user_id=self.current_user and self.current_user['id'],
                                     file_id=file_id or None,
                                     context=context and context[:80],
                                     create_time=get_date_time(),

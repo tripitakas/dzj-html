@@ -53,28 +53,28 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label">姓名</label>
 														<div class="col-sm-3">
-															<input type="text" id="name" class="form-control" value="{{current_user.name}}">
+															<input type="text" id="name" class="form-control" value="{{current_user['name']}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">手机</label>
 														<div class="col-sm-3">
-															<input type="text" id = "phone" class="form-control" readonly="" value="{{current_user.phone or ''}}">
+															<input type="text" id = "phone" class="form-control" readonly="" value="{{current_user.get('phone') or ''}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">邮箱</label>
 														<div class="col-sm-3">
-															<input type="text" id="email" class="form-control" readonly="" value="{{current_user.email}}">
+															<input type="text" id="email" class="form-control" readonly="" value="{{current_user.get('email')}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">性别</label>
 														<div class="col-sm-3">
 															<select id="gender" class="form-control">
-																<option {{"selected=selected" if not current_user.gender else '' }}></option>
-																<option {{"selected=selected" if current_user.gender=='男' else '' }}>男</option>
-																<option {{"selected=selected" if current_user.gender=='女' else '' }}>女</option>
+																<option {{"selected=selected" if not current_user.get('gender') else '' }}></option>
+																<option {{"selected=selected" if current_user.get('gender')=='男' else '' }}>男</option>
+																<option {{"selected=selected" if current_user.get('gender')=='女' else '' }}>女</option>
 															</select>
 														</div>
 													</div>

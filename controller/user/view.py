@@ -4,7 +4,6 @@
 @desc: 登录和注册
 @time: 2018/6/23
 """
-from controller.model import User
 from controller.base import BaseHandler
 from controller.role import assignable_roles
 
@@ -41,8 +40,8 @@ class UsersAdminHandler(BaseHandler):
         fields = ['id', 'name', 'phone', 'email', 'gender', 'status', 'create_time']
         try:
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, User, fields=fields) for r in users]
-            users.sort(key=lambda a: a.name)
+            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users.sort(key=lambda a: a['name'])
             users = self.convert_for_send(users, trim=self.trim_user)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
@@ -53,7 +52,7 @@ class UsersAdminHandler(BaseHandler):
 
     @staticmethod
     def trim_user(r):
-        r.image = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.gender or '']
+        r['image'] = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.get('gender') or '']
         return r
 
 
@@ -64,9 +63,12 @@ class UserRolesHandler(BaseHandler):
         """ 角色管理页面 """
         fields = ['id', 'name', 'phone', 'roles']
         try:
-            users = self.db.user.find({}) # Todo 分页
-            users = [self.fetch2obj(r, User, fields=fields) for r in users]
-            users.sort(key=lambda a: a.name)
+            users = self.db.user.find({})  # Todo 分页
+            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users.sort(key=lambda a: a['name'])
+            for r in users:
+                if isinstance(r['roles'], dict):  # 数据库结构变了，角色丢弃
+                    r['roles'] = '用户管理员' if r['roles'].get('manager') else ''
             users = self.convert_for_send(users)
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
@@ -84,8 +86,8 @@ class UserStatisticHandler(BaseHandler):
         fields = ['id', 'name', 'phone']
         try:
             users = self.db.user.find({})
-            users = [self.fetch2obj(r, User, fields=fields) for r in users]
-            users.sort(key=lambda a: a.name)
+            users = [self.fetch2obj(r, fields=fields) for r in users]
+            users.sort(key=lambda a: a['name'])
             users = self.convert_for_send(users)
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
