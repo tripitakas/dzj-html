@@ -8,6 +8,7 @@
 import re
 import logging
 import traceback
+import hashlib
 
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
@@ -199,6 +200,15 @@ class BaseHandler(CorsMixin, RequestHandler):
                                     context=context and context[:80],
                                     create_time=get_date_time(),
                                     ip=self.get_ip()))
+
+    def get_img_url(self, page_code):
+        host = self.application.config['img']['host']
+        salt = self.application.config['img']['salt']
+        md5 = hashlib.md5()
+        md5.update((page_code + salt).encode('utf-8'))
+        hash_value = md5.hexdigest()
+        inner_path = '/'.join(page_code.split('_')[:-1])
+        return '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):

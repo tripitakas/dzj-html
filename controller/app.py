@@ -102,6 +102,7 @@ class Application(web.Application):
         with open(cfg_file, **param) as f:
             self.config = load_yml(f, Loader=SafeLoader)
             self.site = self.config['site']
+            self.img = self.config['img']
             self.site['url'] = 'localhost:{0}'.format(options.port)
             if db_name_ext and not self.config['database']['name'].endswith('_test'):
                 self.config['database']['name'] += db_name_ext

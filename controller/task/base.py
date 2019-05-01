@@ -2,15 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 任务Handler基类
-@time: 2019/3/11
-"""
-
-from controller.base import BaseHandler
-
-
-class TaskHandler(BaseHandler):
-    """
-    任务Handler基类。
     1. 任务状态。
     任务数据未到位时，状态为“unready”。上传数据后，程序进行检查，如果满足发布条件，则状态置为“ready”。
     发布任务只能发布状态为“ready”的任务。如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
@@ -21,7 +12,13 @@ class TaskHandler(BaseHandler):
     如果任务包含前置任务，系统发布任务后，状态为“pending”。当前置任务状态都变为“finished”时，自动将当前任务发布为“opened”。
     3. 发布任务
     一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（task_id）
-    """
+@time: 2019/3/11
+"""
+
+from controller.base import BaseHandler
+
+
+class TaskHandler(BaseHandler):
 
     default_page_size = 50
 

@@ -14,3 +14,7 @@ site:
   # https:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
+
+img:
+  host: 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com'
+  salt: '待配置'
