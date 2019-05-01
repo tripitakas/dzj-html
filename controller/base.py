@@ -32,10 +32,9 @@ class BaseHandler(CorsMixin, RequestHandler):
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
-    def __init__(self, application, request, **kwargs):
-        """ 请求响应的初始化，在此指定额外属性的默认值 """
-        super(BaseHandler, self).__init__(application, request, **kwargs)
+    def initialize(self):
         self.db = self.application.db
+
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -71,6 +70,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
         if can_access('普通用户', self.request.path, self.request.method):
             return
+
+        # 单元测试时，跳过权限检查
         if self.get_query_argument('_no_auth', 0) == '1' and options.testing:
             return
 
@@ -89,7 +90,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.get_secure_cookie('user')
         try:
-            return user and json_decode(user) or None
+            return user and json_util.loads(user) or None
         except TypeError as e:
             print(user, str(e))
 
@@ -101,7 +102,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
 
-        if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
+        # 单元测试时，获取传递给页面的数据
+        if self.get_query_argument('_raw', 0) == '1':
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
                 if hasattr(v, '__call__'):
@@ -109,6 +111,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_response(kwargs)
 
         logging.info(template_name + ' by class ' + self.__class__.__name__)
+
         try:
             super(BaseHandler, self).render(template_name, dumps=lambda p: json_util.dumps(p), **kwargs)
         except Exception as e:
@@ -132,10 +135,11 @@ class BaseHandler(CorsMixin, RequestHandler):
     def send_response(self, response=None):
         """ 发送并结束API响应内容 """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        response = {'code': 200} if response is None else response
-        if not isinstance(response, dict):
-            response = json_util.dumps({'items': response} if isinstance(response, list) else response)
-        self.write(response)
+        if not response:
+            response = {'code': 200}
+        if isinstance(response, list):
+            response = {'items': response}
+        self.write(json_util.dumps(response))
         self.finish()
 
     def send_error(self, status_code=500, **kwargs):

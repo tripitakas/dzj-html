@@ -9,7 +9,7 @@ import random
 import re
 
 from tornado.util import unicode_type
-
+from bson import json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
 import controller.helper as hlp
@@ -17,12 +17,6 @@ import controller.helper as hlp
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
 re_password = re.compile(r'^[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$')
-base_fields = ['id', 'name', 'email', 'phone', 'gender', 'roles', 'create_time']
-
-
-def trim_user(r):
-    r.pop('password', 0)
-    return r
 
 
 class LoginApi(BaseHandler):
@@ -49,9 +43,9 @@ class LoginApi(BaseHandler):
                 'context': email
             }
             times = self.db.log.count_documents(login_fail)
-
             if times >= 20:
                 return self.send_error(errors.unauthorized, reason='请半小时后重试，或者申请重置密码')
+
             login_fail['create_time']['$gt'] = hlp.get_date_time(diff_seconds=-60)
             times = self.db.log.count_documents(login_fail)
             if times >= 5:
@@ -64,7 +58,7 @@ class LoginApi(BaseHandler):
 
     @staticmethod
     def login(self, email, password, report_error=True):
-        user = self.db.user.find_one(dict(email=email))
+        user = self.db.user.find_one(dict(email=email), dict(old_password=0, password=0))
         if not user:
             if report_error:
                 self.add_op_log('login-no', context=email)
@@ -76,21 +70,19 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.incorrect_password)
             return
 
-        self.current_user = user
-        self.add_op_log('login-ok', context=email + ': ' + user['name'])
+        # 清除登录失败记录
         ResetUserPasswordApi.remove_login_fails(self, email)
-        user['login_md5'] = hlp.gen_id(user.get('roles'))
-        user['roles'] = user.get('roles') or ''
 
-        user.pop('old_password', 0)
-        user.pop('password', 0)
-        user.pop('last_time', 0)
+        user['roles'] = user.get('roles', '')
+        user['login_md5'] = hlp.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
-        logging.info('login id=%s, name=%s, email=%s, roles=%s' % (
-            user['id'], user['name'], user['email'], user['roles']))
 
-        self.send_response(trim_user(user))
+        self.add_op_log('login-ok', context=email + ': ' + user['name'])
+        logging.info('login id=%s, name=%s, email=%s, roles=%s' %
+                     (user['id'], user['name'], user['email'], user['roles']))
+
+        self.send_response(user)
         return user
 
 
@@ -139,7 +131,7 @@ class RegisterApi(BaseHandler):
         user = self.get_request_data()
         if self.check_info(user):
             try:
-                exist_user = self.db.user.find_one(dict(email=user['email']))
+                exist_user = self.db.user.find_one(dict(email=user['email']), dict(old_password=0, password=0))
                 if exist_user:
                     # 尝试自动登录，可用在自动测试上
                     return None if LoginApi.login(self, user['email'], user['password'], report_error=False) \
@@ -160,14 +152,11 @@ class RegisterApi(BaseHandler):
                 return self.send_db_error(e)
 
             user['login_md5'] = hlp.gen_id(user['roles'])
-            user.pop('old_password', 0)
-            user.pop('password', 0)
-            user.pop('last_time', 0)
             self.current_user = user
             self.set_secure_cookie('user', json_util.dumps(user))
             logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user['email']))
 
-            self.send_response(trim_user(user))
+            self.send_response(user)
 
 
 class ChangeUserProfileApi(BaseHandler):
