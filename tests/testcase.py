@@ -3,11 +3,12 @@
 """
 @time: 2018/12/22
 """
-from tornado.escape import json_decode, json_encode, to_basestring, native_str
+from tornado.escape import json_decode, to_basestring, native_str
 from tornado.options import options
 from tornado.testing import AsyncHTTPTestCase
 from tornado.httpclient import HTTPRequest
 from tornado.util import PY3
+from bson import json_util
 import re
 import controller as c
 from controller.app import Application
@@ -58,8 +59,8 @@ class APITestCase(AsyncHTTPTestCase):
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
             if isinstance(kwargs['body'].get('data'), dict):
-                kwargs['body']['data'] = json_encode(kwargs['body']['data'])
-            kwargs['body'] = json_encode(kwargs['body'])
+                kwargs['body']['data'] = json_util.dumps(kwargs['body']['data'])
+            kwargs['body'] = json_util.dumps(kwargs['body'])
             kwargs['method'] = kwargs.get('method', 'POST')
 
         headers = kwargs.get('headers', {})

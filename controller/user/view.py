@@ -39,9 +39,7 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            users = self.db.user.find({})
-            users = [self.trim_user(hlp.convert_bson(r)) for r in users]
-            users.sort(key=lambda a: a['name'])
+            users = self.db.user.find().sort({"name": 1})
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -49,10 +47,6 @@ class UsersAdminHandler(BaseHandler):
 
         self.render('user_admin.html', users=users)
 
-    @staticmethod
-    def trim_user(r):
-        r['image'] = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.get('gender') or '']
-        return r
 
 
 class UserRolesHandler(BaseHandler):
@@ -61,9 +55,7 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            users = self.db.user.find({})  # Todo 分页
-            users = [hlp.convert_bson(r) for r in users]
-            users.sort(key=lambda a: a['name'])
+            users = self.db.user.find().sort({"name": 1})  # Todo 分页
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -78,9 +70,7 @@ class UserStatisticHandler(BaseHandler):
     def get(self):
         """ 人员管理-数据管理页面 """
         try:
-            users = self.db.user.find({})
-            users = [hlp.convert_bson(r) for r in users]
-            users.sort(key=lambda a: a['name'])
+            users = self.db.user.find().sort({"name": 1})
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
                 r.update(dict(cut_proof_count=0, cut_review_count=0,

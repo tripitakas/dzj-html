@@ -8,7 +8,6 @@ import re
 from datetime import datetime
 from tornado.escape import json_decode, to_basestring
 from controller.base import DbError
-from controller.helper import convert_bson
 from controller import errors
 from controller.task.base import TaskHandler
 
@@ -76,7 +75,7 @@ class GetTaskApi(TaskHandler):
             page = self.db.page.find_one(dict(name=task_id))
             if not page:
                 return self.send_error(errors.no_object)
-            self.send_response(convert_bson(page))
+            self.send_response(page)
         except DbError as e:
             self.send_db_error(e)
 
@@ -121,7 +120,7 @@ class GetPageApi(TaskHandler):
             page = self.db.page.find_one(dict(name=name))
             if not page:
                 return self.send_error(errors.no_object)
-            self.send_response(convert_bson(page))
+            self.send_response(page)
         except DbError as e:
             self.send_db_error(e)
 
@@ -153,7 +152,7 @@ class GetPagesApi(TaskHandler):
                 pages = self.db.page.find({data['task_type'] + '.status': self.STATUS_READY})
                 self.send_response([p['name'] for p in pages])
             else:
-                pages = [convert_bson(p) for p in self.db.page.find({})
+                pages = [p for p in self.db.page.find({})
                          if [t for t in all_types if p.get(t + '.status')]]
                 for p in pages:
                     for field, value in list(p.items()):

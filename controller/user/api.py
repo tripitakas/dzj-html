@@ -8,7 +8,6 @@ import logging
 import random
 import re
 
-from tornado.escape import json_encode
 from tornado.util import unicode_type
 
 from controller import errors
@@ -65,7 +64,7 @@ class LoginApi(BaseHandler):
 
     @staticmethod
     def login(self, email, password, report_error=True):
-        user = hlp.convert_bson(self.db.user.find_one(dict(email=email)))
+        user = self.db.user.find_one(dict(email=email))
         if not user:
             if report_error:
                 self.add_op_log('login-no', context=email)
@@ -87,7 +86,7 @@ class LoginApi(BaseHandler):
         user.pop('password', 0)
         user.pop('last_time', 0)
         self.current_user = user
-        self.set_secure_cookie('user', json_encode(user))
+        self.set_secure_cookie('user', json_util.dumps(user))
         logging.info('login id=%s, name=%s, email=%s, roles=%s' % (
             user['id'], user['name'], user['email'], user['roles']))
 
@@ -165,7 +164,7 @@ class RegisterApi(BaseHandler):
             user.pop('password', 0)
             user.pop('last_time', 0)
             self.current_user = user
-            self.set_secure_cookie('user', json_encode(user))
+            self.set_secure_cookie('user', json_util.dumps(user))
             logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user['email']))
 
             self.send_response(trim_user(user))
@@ -181,7 +180,7 @@ class ChangeUserProfileApi(BaseHandler):
             return self.send_error(errors.invalid_name, reason=user['name']) or -1
 
         try:
-            old_user = hlp.convert_bson(self.db.user.find_one(dict(id=user['id'])))
+            old_user = self.db.user.find_one(dict(id=user['id']))
             if not old_user:
                 return self.send_error(errors.no_user, reason=user['id'])
 
@@ -322,7 +321,7 @@ class ChangeMyProfileApi(BaseHandler):
             )
             self.current_user['name'] = user.get('name') or self.current_user['name']
             self.current_user['gender'] = user.get('gender') or self.current_user.get('gender')
-            self.set_secure_cookie('user', json_encode(self.current_user))
+            self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')
         except DbError as e:
             return self.send_db_error(e)

@@ -12,20 +12,6 @@ from datetime import datetime, timedelta
 from hashids import Hashids
 
 
-def convert_bson(r):
-    """ 将从文档库读取到的记录转为可JSON序列化的对象 """
-    if not r:
-        return r
-    for k, v in (r.items() if isinstance(r, dict) else enumerate(r)):
-        if type(v) == datetime:
-            r[k] = v.strftime('%Y-%m-%d %H:%M:%S')
-        elif isinstance(v, dict):
-            convert_bson(v)
-    if '_id' in r:
-        r['id'] = str(r.pop('_id'))
-    return r
-
-
 def get_date_time(fmt=None, diff_seconds=None):
     time = datetime.now()
     if diff_seconds:

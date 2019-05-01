@@ -12,11 +12,12 @@ import traceback
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
 from tornado import gen
-from tornado.escape import json_decode, json_encode, to_basestring
+from tornado.escape import json_decode, to_basestring
 from tornado.httpclient import AsyncHTTPClient
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
+from bson import json_util
 
 from controller import errors
 from controller.role import get_route_roles, can_access
@@ -65,7 +66,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         # 检查前更新roles
         self.current_user['roles'] = user_in_db.get('roles', '')
-        self.set_secure_cookie('user', json_encode(self.current_user))
+        self.set_secure_cookie('user', json_util.dumps(self.current_user))
 
         # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
         if can_access('普通用户', self.request.path, self.request.method):
@@ -109,7 +110,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         logging.info(template_name + ' by class ' + self.__class__.__name__)
         try:
-            super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+            super(BaseHandler, self).render(template_name, dumps=lambda p: json_util.dumps(p), **kwargs)
         except Exception as e:
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
@@ -133,7 +134,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         response = {'code': 200} if response is None else response
         if not isinstance(response, dict):
-            response = json_encode({'items': response} if isinstance(response, list) else response)
+            response = json_util.dumps({'items': response} if isinstance(response, list) else response)
         self.write(response)
         self.finish()
 

@@ -8,7 +8,6 @@
 import json
 from os import path
 from controller.task.base import TaskHandler
-from controller.helper import convert_bson
 
 
 class TaskLobbyHandler(TaskHandler):
@@ -186,7 +185,7 @@ class CutDetailBaseHandler(TaskHandler):
     def enter(self, box_type, stage, name):
         def handle_response(body):
             try:
-                page = convert_bson(self.db.page.find_one(dict(name=name)))
+                page = self.db.page.find_one(dict(name=name))
                 if not page:
                     return self.render('_404.html')
 
@@ -241,7 +240,7 @@ class CharProofDetailHandler(TaskHandler):
     def get(self, name=''):
         """ 进入文字校对 """
         try:
-            page = convert_bson(self.db.page.find_one(dict(name=name))) or dict(name='?')
+            page = self.db.page.find_one(dict(name=name)) or dict(name='?')
             if not page:
                 return self.render('_404.html')
             self.render('text_proof.html', page=page,
@@ -256,7 +255,7 @@ class CharReviewDetailHandler(TaskHandler):
     def get(self, name=''):
         """ 进入文字校对 """
         try:
-            page = convert_bson(self.db.page.find_one(dict(name=name))) or dict(name='?')
+            page = self.db.page.find_one(dict(name=name)) or dict(name='?')
             if not page:
                 return self.render('_404.html')
             self.render('text_review.html', page=page,
