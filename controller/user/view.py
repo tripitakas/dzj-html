@@ -39,7 +39,7 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            users = self.db.user.find().sort({"name": 1})
+            users = list(self.db.user.find().sort('name', 1))
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -55,7 +55,7 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            users = self.db.user.find().sort({"name": 1})  # Todo 分页
+            users = list(self.db.user.find().sort('name', 1))  # Todo 分页
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
@@ -70,7 +70,7 @@ class UserStatisticHandler(BaseHandler):
     def get(self):
         """ 人员管理-数据管理页面 """
         try:
-            users = self.db.user.find().sort({"name": 1})
+            users = list(self.db.user.find().sort('name', 1))
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
                 r.update(dict(cut_proof_count=0, cut_review_count=0,

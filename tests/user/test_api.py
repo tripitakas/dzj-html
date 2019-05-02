@@ -24,8 +24,7 @@ class TestUserApi(APITestCase):
 
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
-        r = self.add_admin_user()
-        r = self.parse_response(r)
+        r = self.parse_response(self.add_admin_user())
         if 'error' not in r:
             self.assertIn('用户管理员', r['roles'])
         else:

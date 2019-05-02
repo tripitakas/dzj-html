@@ -36,7 +36,6 @@ class BaseHandler(CorsMixin, RequestHandler):
     def initialize(self):
         self.db = self.application.db
 
-
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
         self.set_header('Cache-Control', 'no-cache')
@@ -136,10 +135,10 @@ class BaseHandler(CorsMixin, RequestHandler):
     def send_response(self, response=None):
         """ 发送并结束API响应内容 """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        if not response:
-            response = {'code': 200}
         if isinstance(response, list):
             response = {'items': response}
+        elif not response:
+            response = {'code': 200}
         self.write(json_util.dumps(response))
         self.finish()
 

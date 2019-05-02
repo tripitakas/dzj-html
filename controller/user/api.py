@@ -58,7 +58,7 @@ class LoginApi(BaseHandler):
 
     @staticmethod
     def login(self, email, password, report_error=True):
-        user = self.db.user.find_one(dict(email=email), dict(old_password=0, password=0))
+        user = self.db.user.find_one(dict(email=email))
         if not user:
             if report_error:
                 self.add_op_log('login-no', context=email)
@@ -131,10 +131,10 @@ class RegisterApi(BaseHandler):
         user = self.get_request_data()
         if self.check_info(user):
             try:
-                exist_user = self.db.user.find_one(dict(email=user['email']), dict(old_password=0, password=0))
+                exist_user = self.db.user.find_one(dict(email=user['email']))
                 if exist_user:
                     # 尝试自动登录，可用在自动测试上
-                    return None if LoginApi.login(self, user['email'], user['password'], report_error=False) \
+                    return None if LoginApi.login(self, user['email'], user.get('password'), report_error=False) \
                         else self.send_error(errors.user_exists, reason=user['email'])
 
                 # 如果是第一个用户则设置为用户管理员
