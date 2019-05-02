@@ -40,13 +40,14 @@ class UsersAdminHandler(BaseHandler):
         """ 用户管理页面 """
         try:
             users = list(self.db.user.find().sort('name', 1))
+            for r in users:
+                r['image'] = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.get('gender') or '']
             self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
         except Exception as e:
             return self.send_db_error(e, render=True)
 
         self.render('user_admin.html', users=users)
-
 
 
 class UserRolesHandler(BaseHandler):
