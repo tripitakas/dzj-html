@@ -94,6 +94,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         except TypeError as e:
             print(user, str(e))
 
+
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
         kwargs['currentUserId'] = self.current_user['id'] if self.current_user else ''
@@ -101,11 +102,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
-
-        # 避免 _id (ObjectId) 等特殊值影响JSON转换
-        for k, v in kwargs.items():
-            if isinstance(v, (list, dict)):
-                kwargs[k] = json_decode(json_util.dumps(v))
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
