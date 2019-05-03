@@ -232,26 +232,29 @@ class BaseHandler(CorsMixin, RequestHandler):
                     body = str(r.body, encoding='gb18030').strip()
                 except TypeError:
                     body = to_basestring(r.body).strip()
-                if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
-                    if 'var next' in body:
-                        body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
-                        body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
-                        self.write(body)
-                        self.finish()
-                    else:
-                        handle_response(body)
-                else:
-                    body = json_decode(body)
-                    if body.get('error'):
-                        if handle_error:
-                            handle_error(body['error'])
-                        else:
-                            self.render('_error.html', code=500, error='错误3: ' + body['error'])
-                    else:
-                        handle_response(body)
+                self._handle_body(body, handle_response, handle_error)
             except Exception as e:
                 e = '错误(%s): %s' % (e.__class__.__name__, str(e))
                 if handle_error:
                     handle_error(e)
                 else:
                     self.render('_error.html', code=500, error=e)
+
+    def _handle_body(self, body, handle_response, handle_error):
+        if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+            if 'var next' in body:
+                body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
+                body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
+                self.write(body)
+                self.finish()
+            else:
+                handle_response(body)
+        else:
+            body = json_decode(body)
+            if body.get('error'):
+                if handle_error:
+                    handle_error(body['error'])
+                else:
+                    self.render('_error.html', code=500, error='错误3: ' + body['error'])
+            else:
+                handle_response(body)

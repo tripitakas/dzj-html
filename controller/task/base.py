@@ -19,7 +19,6 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-
     default_page_size = 50
 
     """

@@ -6,7 +6,6 @@
 """
 from controller.base import BaseHandler
 from controller.role import assignable_roles
-import controller.helper as hlp
 
 
 class UserLoginHandler(BaseHandler):

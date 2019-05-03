@@ -183,7 +183,8 @@ role_maps = {
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
-assignable_do_roles = [v['is_assignable'] for role, v in role_maps.items() if isinstance(v.get('is_assignable'), str)]
+assignable_do_roles = [v['is_assignable'] for role, v in role_maps.items()
+                       if isinstance(v.get('is_assignable'), str)]
 
 
 def get_role_routes(role, routes=None):

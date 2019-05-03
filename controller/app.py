@@ -40,7 +40,8 @@ class Application(web.Application):
         self.version = __version__
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
-        handlers = [(r'/php/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler, dict(path=self.IMAGE_PATH))]
+        handlers = [(r'/php/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))',
+                     web.StaticFileHandler, dict(path=self.IMAGE_PATH))]
 
         for cls in self.handlers:
             if isinstance(cls.URL, list):
@@ -66,10 +67,11 @@ class Application(web.Application):
 
     def log_function(self, handler):
         summary = handler._request_summary()
-        if not(handler.get_status() in [304, 200] and re.search(r'GET /(static|api/(pull|message|discuss))', summary)
-               or handler.get_status() == 404):
-            nickname = hasattr(handler, 'current_user') and handler.current_user
-            nickname = nickname and (hasattr(nickname, 'name') and nickname.name or nickname.get('name')) or ''
+        if not (handler.get_status() in [304, 200] and re.search(
+                r'GET /(static|api/(pull|message|discuss))', summary)
+                or handler.get_status() == 404):
+            nick = hasattr(handler, 'current_user') and handler.current_user
+            nickname = nick and (hasattr(nick, 'name') and nick.name or nick.get('name')) or ''
             request_time = 1000.0 * handler.request.request_time()
 
             if handler.get_status() < 400:

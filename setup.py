@@ -11,7 +11,10 @@ setup(name='tripitaka',
       platforms='any',
       packages=find_packages() + ['controller'],
       package_data={
-          'controller': ['../main.py', '../*.yml', '../requirements.txt', '../run_tests.py', '../tox.ini']
+          'controller': [
+              '../main.py',
+              '../*.yml', '../requirements.txt', '../run_tests.py', '../tox.ini'
+          ]
       },
       classifiers=[
           'Intended Audience :: System Administrators',
