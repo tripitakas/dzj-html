@@ -114,7 +114,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
-            super(BaseHandler, self).render(template_name, dumps=json_util.dumps, **kwargs)
+            super(BaseHandler, self).render(template_name, dumps=json_util.dumps, **kwargs)  # dumps用于模板中解析数据
         except Exception as e:
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
@@ -134,7 +134,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             logging.error(body)
 
     def send_response(self, response=None):
-        """ 发送并结束API响应内容 """
+        """ 发送API响应内容，结束处理 """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         if isinstance(response, list):
             response = {'items': response}
@@ -143,18 +143,19 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.write(json_util.dumps(response))
         self.finish()
 
-    def send_error(self, status_code=500, **kwargs):
-        """ 发送并结束API异常响应消息 """
+    def send_error(self, status_code=500, render=False, **kwargs):
+        """ 发送异常响应消息，结束处理 """
         if isinstance(status_code, tuple):
             status_code, message = status_code
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
-        if kwargs.get('render'):
+        if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
         self.write_error(status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
+        """ 发送API异常响应消息，结束处理 """
         reason = kwargs.get('reason') or self._reason
         reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
             str(self).split('.')[-1].split(' ')[0],
