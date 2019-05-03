@@ -18,6 +18,9 @@
 
 - 可使用 `showError`、`showSuccess`、`decodeJSON` 等常用函数进行消息显示和数据转换。
 
+- 在网页中要将python对象转为js对象时，可以用 `dumps` 函数先将python对象转为JSON串（用单引号括起来，例如 `modify('{{dumps(p)}}')` ），
+  然后在js代码中使用 `decodeJSON` 转为 js对象。
+
 ## 安装
 
 本平台需要 Python 3.6+、MongoDB(可用远程数据库)，请参考下面的说明安装和部署。
