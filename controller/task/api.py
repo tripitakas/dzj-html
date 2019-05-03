@@ -166,7 +166,7 @@ class GetPagesApi(TaskHandler):
 
 
 class UnlockTasksApi(TaskHandler):
-    URL = r'/api/unlock/@task_type/@page_prefix'
+    URL = '/api/unlock/@task_type/@page_prefix'
 
     def get(self, task_type, prefix=None):
         """ 退回全部任务 """
@@ -246,7 +246,7 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/@box-type_cut_proof/@task_id'
+    URL = '/api/pick/@box-type_cut_proof/@task_id'
 
     def get(self, kind, name):
         """ 取切分校对任务 """
@@ -254,7 +254,7 @@ class PickCutProofTaskApi(PickTaskApi):
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = r'/api/pick/@box-type_cut_review/@task_id'
+    URL = '/api/pick/@box-type_cut_review/@task_id'
 
     def get(self, kind, name):
         """ 取切分审定任务 """
@@ -262,7 +262,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = r'/api/pick/text_proof_(1|2|3)/@task_id'
+    URL = '/api/pick/text_proof_(1|2|3)/@task_id'
 
     def get(self, kind, name):
         """ 取文字校对任务 """
@@ -270,7 +270,7 @@ class PickTextProofTaskApi(PickTaskApi):
 
 
 class PickTextReviewTaskApi(PickTaskApi):
-    URL = r'/api/pick/text_review/@task_id'
+    URL = '/api/pick/text_review/@task_id'
 
     def get(self, name):
         """ 取文字审定任务 """
@@ -339,7 +339,7 @@ class SaveCutApi(TaskHandler):
 
 
 class SaveCutProofApi(SaveCutApi):
-    URL = r'/api/save/@box-type_cut_proof'
+    URL = '/api/save/@box-type_cut_proof'
 
     def post(self, kind):
         """ 保存或提交切分校对任务 """
@@ -347,7 +347,7 @@ class SaveCutProofApi(SaveCutApi):
 
 
 class SaveCutReviewApi(SaveCutApi):
-    URL = r'/api/save/@box-type_cut_review'
+    URL = '/api/save/@box-type_cut_review'
 
     def post(self, kind):
         """ 保存或提交切分审定任务 """

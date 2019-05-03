@@ -13,6 +13,7 @@ import re
 url_placeholder = {
     'task_type': r'[a-z0-9_.]+',
     'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
+    'box-type': 'block|column|char',
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
