@@ -147,9 +147,12 @@ class BaseHandler(CorsMixin, RequestHandler):
     def send_error(self, status_code=500, error=None, render=False, **kwargs):
         """
         发送异常响应消息，结束处理
+        :param status_code: 错误码，系统调用时会传此参数
         :param error: 错误消息。如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
         :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
         """
+        error = error or (status_code if isinstance(status_code, tuple) else
+                          (status_code, kwargs.get('reason', '后台服务出错')))
         assert type(error) in [tuple, dict]
         response = {'status': 'failed', 'error': {}}
         if isinstance(error, tuple):
@@ -157,7 +160,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
-            response['error'] = {'': {'code': status_code, 'message': message}}
+            response['error'] = {'': (status_code, message)}
         elif isinstance(error, dict):
             response['error'] = error
 

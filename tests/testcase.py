@@ -48,7 +48,13 @@ class APITestCase(AsyncHTTPTestCase):
         code = code[0] if isinstance(code, tuple) else code
         try:
             r2 = self.parse_response(response)
-            r_code, error = r2.get('code', response.code), r2.get('error')
+            if isinstance(r2.get('error'), dict):
+                name = list(r2['error'].keys())[0]
+                if not isinstance(r2['error'][name], dict):
+                    r2=r2
+                r_code, error = r2['error'][name]
+            else:
+                r_code, error = r2.get('code', response.code), r2.get('error')
         except (AttributeError, KeyError):
             r_code, error = response.code, response.error
         if isinstance(code, list):

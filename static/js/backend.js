@@ -48,6 +48,11 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     cache: false,
     success: function (data) {
       if (data.error) {
+        if (typeof data.error === 'object') {
+          var name = Object.keys(data.error)[0];
+          data.code = data.error[name][0];
+          data.error = data.error[name][1];
+        }
         error_callback(data.error, data.code);
       }
       else if (success_callback) {
