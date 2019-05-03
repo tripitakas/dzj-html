@@ -94,6 +94,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         except TypeError as e:
             print(user, str(e))
 
+
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
         kwargs['currentUserId'] = self.current_user['id'] if self.current_user else ''
