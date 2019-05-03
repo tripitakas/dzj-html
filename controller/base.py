@@ -102,11 +102,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
 
-        # 避免 _id (ObjectId) 等特殊值影响JSON转换
-        for k, v in kwargs.items():
-            if isinstance(v, (list, dict)):
-                kwargs[k] = json_decode(json_util.dumps(v))
-
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
             kwargs = dict(kwargs)
@@ -118,7 +113,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
-            super(BaseHandler, self).render(template_name, dumps=lambda p: json_util.dumps(p), **kwargs)
+            super(BaseHandler, self).render(template_name, dumps=json_util.dumps, **kwargs)
         except Exception as e:
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)

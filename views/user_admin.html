@@ -76,7 +76,7 @@
 														<td>{{p.get('gender', '')}}</td>
 														<td>{{p['create_time']}}</td>
 														<td>
-															<span onclick='update("{{p}}")'>修改</span>
+															<span onclick="update('{{dumps(p)}}')">修改</span>
 															<span onclick=reset_pwd("{{p['id']}}")>重置密码</span>
 														</td>
 													</tr>

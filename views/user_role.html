@@ -64,7 +64,7 @@
 													  {% for p in users %}
 														<tr id="{{p['id']}}">
 															<th>
-																<a onclick='modify("{{p}}")'>修改</a>
+																<a onclick="modify('{{dumps(p)}}')">修改</a>
 															</th>
 															<td>{{p['name']}}</td>
 															<td>{{p.get('phone') or ''}}</td>
