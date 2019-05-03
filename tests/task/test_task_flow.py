@@ -30,7 +30,7 @@ class TestTaskFlow(APITestCase):
         super(APITestCase, self).setUp()
 
     def publish(self, task_type, data):
-        return self.fetch('/api/task/publish/%s?_no_auth=1' % task_type, body={'data': data})
+        return self.fetch('/api/task/publish/%s' % task_type, body={'data': data})
 
     def test_publish_tasks(self):
         """ 在页面创建后，通过界面和接口发布审校任务 """

@@ -212,14 +212,16 @@
 															<td>{{t.get(task_type, {}).get('finished_time','')}}</td>
 															<td>
 																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}">查看</a>
+																{% if t.get(task_type, {}).get('status') not in [None, 'unready', 'ready'] %}
 																<a class="withdraw">撤回</a>
+																{% end %}
 															</td>
 															</tr>
 													{% end %}
 												{% else %}
 													{% for t in tasks %}
-                                                        {% for k, st in t[task_type].items() %}
-                                                            <tr id="{{t['name']+'-'+k}}">
+														{% for k, st in t[task_type].items() %}
+															<tr id="{{t['name']+'-'+k}}">
 																<th><span><input type="checkbox" name="" value="" /></span></th>
 																<td>{{t['name']}}</td>
 																<td>{{task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
@@ -232,10 +234,12 @@
 																<td>{{st.get('finished_time','')}}</td>
 																<td>
 																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}">查看</a>
-																    <a class="withdraw">撤回</a>
+																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}
+																	<a class="withdraw">撤回</a>
+																	{% end %}
 																</td>
-                                                            </tr>
-                                                        {% end %}
+															</tr>
+														{% end %}
 													{% end %}
 												{% end %}
 
@@ -276,7 +280,7 @@
 						pages: pages.join(',')
 					}
 				}, function (res) {
-					showSuccess('已发布任务', res.log.length + ' 个页面已发布。');
+					showSuccess('已发布任务', res.items.length + ' 个页面已发布。');
 					setTimeout(function () {
 						location.reload();
 					}, 1000);
@@ -377,22 +381,32 @@
 						confirmButtonColor: "#b8906f",
 						confirmButtonText: "确定撤回",
 						cancelButtonText: "取消",
-						closeOnConfirm: false
+						closeOnConfirm: true
 					},
 					function() {
 						//此处调用后台删除逻辑(ajax)
+						getApi('/unlock/{{task_type}}/' + name, function (res) {
+							if (res.items.length) {
+								window.location.reload();
+							}
+						});
 
 						//如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-						swal({
+						/* swal({
 							title: "撤回任务！",
 							text: name + "的任务已经被撤回。",
 							type: "success",
 							confirmButtonColor: "#b8906f",
 							confirmButtonText: "确定"
-						});
+						});*/
 					}
 				);
 			}
+
+			$('.withdraw').click(function () {
+				var $tr = $(this).parent().parent();
+				revoke($tr.attr('id'));
+			});
 
 		</script>
 
