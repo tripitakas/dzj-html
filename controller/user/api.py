@@ -13,6 +13,7 @@ from bson import json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
 import controller.helper as hlp
+import controller.validate as v
 
 re_email = re.compile(r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$')
 re_name = re.compile(br'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'.decode('raw_unicode_escape'))
@@ -25,16 +26,16 @@ class LoginApi(BaseHandler):
     def post(self):
         """ 登录 """
         user = self.get_request_data()
+        rules = [
+            (v.not_empty, 'email', 'password'),
+            (v.is_email, 'email'),
+            (v.is_password, 'password')
+        ]
+        err = v.validate(user, rules)
+        if err:
+            return self.send_error(error=err)
+
         email, password = user.get('email'), user.get('password')
-
-        if not email:
-            return self.send_error(errors.need_phone_or_email)
-        if not password:
-            return self.send_error(errors.need_password)
-        email = email.lower()
-        if not re_email.match(email):
-            return self.send_error(errors.invalid_email)
-
         try:
             # 检查是否多次登录失败
             login_fail = {
@@ -61,7 +62,7 @@ class LoginApi(BaseHandler):
         user = self.db.user.find_one(dict(email=email))
         if not user:
             if report_error:
-                self.add_op_log('login-no', context=email)
+                self.add_op_log('login-no-user', context=email)
                 return self.send_error(errors.no_user, reason=email)
             return
         if user['password'] != hlp.gen_id(password):
@@ -94,7 +95,7 @@ class LogoutApi(BaseHandler):
         if self.current_user:
             self.add_op_log('logout')
             self.clear_cookie('user')
-            self.send_response({'result': 'ok'})
+            self.send_response()
 
 
 class RegisterApi(BaseHandler):

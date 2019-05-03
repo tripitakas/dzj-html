@@ -121,7 +121,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_request_data(self):
         """
-        获取请求数据。客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
+        获取请求数据。
+        客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
         if 'data' not in self.request.body_arguments:
             body = json_decode(self.request.body).get('data')
@@ -136,25 +137,35 @@ class BaseHandler(CorsMixin, RequestHandler):
     def send_response(self, response=None):
         """ 发送API响应内容，结束处理 """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        if not response:
+            response = {'status': 'success'}
         if isinstance(response, list):
-            response = {'items': response}
-        elif not response:
-            response = {'code': 200}
+            response = {'status': 'success', 'items': response}
         self.write(json_util.dumps(response))
         self.finish()
 
-    def send_error(self, status_code=500, render=False, **kwargs):
-        """ 发送异常响应消息，结束处理 """
-        if isinstance(status_code, tuple):
-            status_code, message = status_code
+    def send_error(self, status_code=500, error=None, render=False, **kwargs):
+        """
+        发送异常响应消息，结束处理
+        :param error: 错误消息。如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
+        :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
+        """
+        assert type(error) in [tuple, dict]
+        response = {'status': 'failed', 'error': {}}
+        if isinstance(error, tuple):
+            status_code, message = error
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
+            response['error'] = {'': {'code': status_code, 'message': message}}
+        elif isinstance(error, dict):
+            response['error'] = error
+
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
-        self.write_error(status_code, **kwargs)
+        self.write_error(status_code, response, **kwargs)
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status_code, response=None, **kwargs):
         """ 发送API异常响应消息，结束处理 """
         reason = kwargs.get('reason') or self._reason
         reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
@@ -163,9 +174,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.error('%d %s [%s %s]' % (status_code, reason,
                                          self.current_user and self.current_user['name'], self.get_ip()))
         if not self._finished:
-            self.set_header('Content-Type', 'application/json; charset=UTF-8')
-            self.write({'code': status_code, 'error': reason})
-            self.finish()
+            self.send_response(response)
+
 
     def send_db_error(self, e, render=False):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
