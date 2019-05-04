@@ -25,7 +25,7 @@ function showSuccess(title, text) {
  * @param type POST 或 GET
  * @param data 数据对象
  * @param success_callback 成功回调函数，参数为 data 对象或数组
- * @param error_callback 失败回调函数，参数为 msg、code
+ * @param error_callback 失败回调函数，参数为 msg、code、errors可选对象
  */
 function ajaxApi(url, type, data, success_callback, error_callback) {
   error_callback = error_callback || window.swal && function (msg) {
@@ -48,15 +48,18 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     cache: false,
     success: function (data) {
       if (data.error) {
-        if (typeof data.error === 'object') {
-          var name = Object.keys(data.error)[0];
-          data.code = data.error[name][0];
-          data.error = data.error[name][1];
+        if (Array.isArray(data.error)) {  // 单一错误
+          error_callback(data.error[1], data.error[0]);
         }
-        error_callback(data.error, data.code);
+        else if (typeof data.error === 'object') {  // 多个错误
+          var name = Object.keys(data.error)[0];
+          error_callback(data.error[name][1], data.error[name][0], data.error);
+        } else {
+          error_callback(data.error, data.code);
+        }
       }
       else if (success_callback) {
-        success_callback(data);
+        success_callback(data.data || data);
       }
     },
     error: function (xhr) {
@@ -67,7 +70,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
           success_callback({});
         }
       }
-      else if (!unloading) {
+      else if (!window.unloading) {
         error_callback('网络访问失败，不能访问后台服务(' + code + ')', code);
       }
     }
