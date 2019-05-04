@@ -94,7 +94,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         except TypeError as e:
             print(user, str(e))
 
-
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
         kwargs['currentUserId'] = self.current_user['id'] if self.current_user else ''
@@ -134,41 +133,44 @@ class BaseHandler(CorsMixin, RequestHandler):
         except ValueError:
             logging.error(body)
 
-    def send_response(self, response=None):
-        """ 发送API响应内容，结束处理 """
+    def send_response(self, response=None, type='data'):
+        """
+        发送API响应内容，结束处理
+        :param response: 返回给请求的内容
+        :param type: 'data'表示正确数据，'error'表示错误消息
+        """
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        if not response:
-            response = {'status': 'success'}
-        if isinstance(response, list):
-            response = {'status': 'success', 'items': response}
-        self.write(json_util.dumps(response))
+        _response = {'status': 'failed' if type == 'error' else 'success'}
+        if type == 'data':
+            _response['data'] = response
+        elif type == 'error':
+            _response['error'] = response
+        self.write(json_util.dumps(_response))
         self.finish()
 
-    def send_error(self, status_code=500, error=None, render=False, **kwargs):
+    def send_error(self, status_code=500, render=False, **kwargs):
         """
-        发送异常响应消息，结束处理
-        :param status_code: 错误码，系统调用时会传此参数
-        :param error: 错误消息。如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
+        发送异常响应消息，并结束处理
+        :param status_code: 错误码，系统调用时会传此参数。
+            重载后，status_code接受错误消息，如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
         :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
         """
-        error = error or (status_code if isinstance(status_code, tuple) else
-                          (status_code, kwargs.get('reason', '后台服务出错')))
-        assert type(error) in [tuple, dict]
-        response = {'status': 'failed', 'error': {}}
-        if isinstance(error, tuple):
-            status_code, message = error
+        error = None
+        if isinstance(status_code, tuple):
+            status_code, message = status_code
             if 'reason' in kwargs and kwargs['reason'] != message:
                 message += ': ' + kwargs['reason']
             kwargs['reason'] = message
-            response['error'] = {'': (status_code, message)}
-        elif isinstance(error, dict):
-            response['error'] = error
+            error = (status_code, message)
+        elif isinstance(status_code, dict):
+            error = status_code
 
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
-        self.write_error(status_code, response, **kwargs)
 
-    def write_error(self, status_code, response=None, **kwargs):
+        self.write_error(status_code, error, **kwargs)
+
+    def write_error(self, status_code, error=None, **kwargs):
         """ 发送API异常响应消息，结束处理 """
         reason = kwargs.get('reason') or self._reason
         reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
@@ -177,8 +179,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.error('%d %s [%s %s]' % (status_code, reason,
                                          self.current_user and self.current_user['name'], self.get_ip()))
         if not self._finished:
-            self.send_response(response)
-
+            self.send_response(response=error, type='error')
 
     def send_db_error(self, e, render=False):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
