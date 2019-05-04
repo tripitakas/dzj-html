@@ -205,11 +205,11 @@
 															<td>{{task_types.get(task_type, {}).get('name','')}}</td>
 															<td>{{task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
 															<td>{{t.get(task_type, {}).get('priority','')}}</td>
-															<td>{{t.get(task_type, {}).get('publish_time','')}}</td>
-															<td>{{t.get(task_type, {}).get('last_updated_time','')}}</td>
+															<td>{{to_date_str(t.get(task_type, {}).get('publish_time'))}}</td>
+															<td>{{to_date_str(t.get(task_type, {}).get('last_updated_time'))}}</td>
 															<td>{{t.get(task_type, {}).get('picked_by','')}}</td>
-															<td>{{t.get(task_type, {}).get('picked_time','')}}</td>
-															<td>{{t.get(task_type, {}).get('finished_time','')}}</td>
+															<td>{{to_date_str(t.get(task_type, {}).get('picked_time'))}}</td>
+															<td>{{to_date_str(t.get(task_type, {}).get('finished_time'))}}</td>
 															<td>
 																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}">查看</a>
 																{% if t.get(task_type, {}).get('status') not in [None, 'unready', 'ready'] %}
@@ -227,11 +227,11 @@
 																<td>{{task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
 																<td>{{task_statuses.get(st.get('status',''))}}</td>
 																<td>{{st.get('priority','')}}</td>
-																<td>{{st.get('publish_time','')}}</td>
-																<td>{{st.get('last_updated_time','')}}</td>
+																<td>{{to_date_str(st.get('publish_time'))}}</td>
+																<td>{{to_date_str(st.get('last_updated_time'))}}</td>
 																<td>{{st.get('picked_by','')}}</td>
-																<td>{{st.get('picked_time','')}}</td>
-																<td>{{st.get('finished_time','')}}</td>
+																<td>{{to_date_str(st.get('picked_time'))}}</td>
+																<td>{{to_date_str(st.get('finished_time'))}}</td>
 																<td>
 																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}">查看</a>
 																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}

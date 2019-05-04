@@ -113,7 +113,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
-            super(BaseHandler, self).render(template_name, dumps=json_util.dumps, **kwargs)  # dumps用于模板中解析数据
+            super(BaseHandler, self).render(template_name,
+                                            dumps=json_util.dumps,  # dumps用于模板中解析数据
+                                            to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or '',
+                                            **kwargs)
         except Exception as e:
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)

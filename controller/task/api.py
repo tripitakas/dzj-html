@@ -44,6 +44,9 @@ class PublishTasksApi(TaskHandler):
                     update_value = {
                         '%s.status' % task_type: status,
                         '%s.priority' % task_type: priority,
+                        '%s.publish_time' % task_type: datetime.now(),
+                        '%s.publish_user_id' % task_type: self.current_user['id'],
+                        '%s.publish_by' % task_type: self.current_user['name'],
                     }
                     r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
                     if r.modified_count:
@@ -207,7 +210,7 @@ class PickTaskApi(TaskHandler):
         """ 取审校任务 """
         try:
             # 有未完成的任务则不能继续
-            task_user = task_type + '.user'
+            task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
             names = list(self.db.page.find({task_user: self.current_user['id'], task_status: self.STATUS_LOCKED}))
             names = [p['name'] for p in names]
@@ -222,7 +225,7 @@ class PickTaskApi(TaskHandler):
             }
             lock = {
                 task_user: self.current_user['id'],
-                task_type + '.nickname': self.current_user['name'],
+                task_type + '.picked_by': self.current_user['name'],
                 task_status: self.STATUS_LOCKED,
                 task_type + '.start_time': datetime.now()
             }

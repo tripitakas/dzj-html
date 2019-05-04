@@ -56,7 +56,7 @@ class APITestCase(AsyncHTTPTestCase):
                 r_code, error = r2['error'][name]
             else:
                 r_code, error = r2['error']
-        except (AttributeError, KeyError):
+        except (AttributeError, KeyError, TypeError):
             r_code, error = response.code, response.error
         if isinstance(code, list):
             self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)

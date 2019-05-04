@@ -23,8 +23,9 @@ class LoginApi(BaseHandler):
     def post(self):
         """ 登录 """
         user = self.get_request_data()
+        phone_or_email = user.get('email') or user.get('phone')
         rules = [
-            (v.not_empty, 'phone_or_email', 'password'),
+            (v.not_empty, 'password'),
             (v.is_phone_or_email, 'phone_or_email'),
             (v.is_password, 'password')
         ]
@@ -37,7 +38,7 @@ class LoginApi(BaseHandler):
             login_fail = {
                 'type': 'login-fail',
                 'create_time': {'$gt': hlp.get_date_time(diff_seconds=-1800)},
-                'context': user.get('phone_or_email')
+                'context': phone_or_email
             }
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
@@ -49,7 +50,7 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.unauthorized, reason='请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
-            self.login(self, user.get('phone_or_email'), user.get('password'))
+            self.login(self, phone_or_email, user.get('password'))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -82,7 +83,7 @@ class LoginApi(BaseHandler):
 
         self.add_op_log('login-ok', context=phone_or_email + ': ' + user['name'])
         logging.info('login id=%s, name=%s, email=%s, roles=%s' %
-                     (user['id'], user['name'], user['email'], user['roles']))
+                     (user['id'], user['name'], user.get('email'), user['roles']))
 
         self.send_response(user)
         return user
@@ -108,8 +109,9 @@ class RegisterApi(BaseHandler):
         user = self.get_request_data()
 
         # 单元测试时，如果用户已存在，则自动登录
-        if options.testing:
-            return LoginApi.login(self, user['email'], user.get('password'), report_error=False)
+        exist = options.testing and LoginApi.login(self, user.get('email'), user.get('password'), report_error=False)
+        if exist:
+            return
 
         rules = [
             (v.not_empty, 'name', 'password'),
@@ -126,19 +128,20 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
-            self.db.user.insert_one(dict(name=user['name'], email=user.get('email'), phone=str(user.get('phone')),
-                                         gender=user.get('gender'), roles=user['roles'],
-                                         password=hlp.gen_id(user['password']),
-                                         create_time=hlp.get_date_time()
-                                         ))
-            self.add_op_log('register', context=user['email'] + ': ' + str(user['phone']) + ': ' + user['name'])
+            r = self.db.user.insert_one(dict(name=user['name'], email=user.get('email'), phone=str(user.get('phone')),
+                                             gender=user.get('gender'), roles=user['roles'],
+                                             password=hlp.gen_id(user['password']),
+                                             create_time=hlp.get_date_time()
+                                             ))
+            user['id'] = str(r.inserted_id)
+            self.add_op_log('register', context=user.get('email') + ': ' + str(user.get('phone')) + ': ' + user['name'])
         except DbError as e:
             return self.send_db_error(e)
 
         user['login_md5'] = hlp.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
-        logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user['email']))
+        logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user.get('email')))
         self.send_response(user)
 
 
@@ -215,7 +218,7 @@ class ResetUserPasswordApi(BaseHandler):
                 return self.send_error(errors.no_user)
 
             user = self.db.user.find_one(dict(id=uid))
-            self.remove_login_fails(self, user['email'])
+            self.remove_login_fails(self, user.get('email'))
             self.add_op_log('reset_pwd', context=': '.join(user))
         except DbError as e:
             return self.send_db_error(e)
