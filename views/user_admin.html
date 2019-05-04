@@ -65,7 +65,7 @@
 												</thead>
 												<tbody>
 												  {% for p in users %}
-													<tr id="{{p['id']}}">
+													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>
 															<img src="{{ static_url(p['image']) }}" alt="" class="thumb-md img-circle">
@@ -77,7 +77,7 @@
 														<td>{{p['create_time']}}</td>
 														<td>
 															<span onclick="update('{{dumps(p)}}')">修改</span>
-															<span onclick=reset_pwd("{{p['id']}}")>重置密码</span>
+															<span onclick=reset_pwd("{{p['_id']}}")>重置密码</span>
 														</td>
 													</tr>
 													{% end %}
@@ -168,7 +168,7 @@
 				$dlg.modal();
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
 					var info = {
-						id: user.id, name: $dlg.find('#name').val().trim(),
+						_id: user._id, name: $dlg.find('#name').val().trim(),
 						phone: $dlg.find('#phone').val().trim(), email: $dlg.find('#email').val().trim(),
 						gender: $dlg.find('#gender').val().trim()
 					};
@@ -203,7 +203,7 @@
 			 * 重置密码
 			 * @param user_id 用户id
 			 */
-			function reset_pwd(uid) {
+			function reset_pwd(_id) {
 				swal({
 						title: "确定重置" + name + "吗？",
 						text: "重置后无法恢复！",
@@ -215,7 +215,7 @@
 						closeOnConfirm: false
 					},
 					function() {
-						postApi('/user/reset_pwd', {data:{uid: uid}}, function(){
+						postApi('/user/reset_pwd', {data:{_id: _id}}, function(){
 							showSuccess('密码重置成功', '');
 						}, function (msg, code) {
 							showError('修改失败', msg);

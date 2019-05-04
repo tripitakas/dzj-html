@@ -6,11 +6,10 @@
 
 import logging
 import random
-import re
 
 from tornado.options import options
 
-from bson import json_util
+from bson import objectid, json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
 import controller.helper as hlp
@@ -23,9 +22,8 @@ class LoginApi(BaseHandler):
     def post(self):
         """ 登录 """
         user = self.get_request_data()
-        phone_or_email = user.get('email') or user.get('phone')
         rules = [
-            (v.not_empty, 'password'),
+            (v.not_empty, 'phone_or_email', 'password'),
             (v.is_phone_or_email, 'phone_or_email'),
             (v.is_password, 'password')
         ]
@@ -38,7 +36,7 @@ class LoginApi(BaseHandler):
             login_fail = {
                 'type': 'login-fail',
                 'create_time': {'$gt': hlp.get_date_time(diff_seconds=-1800)},
-                'context': phone_or_email
+                'context': user.get('phone_or_email')
             }
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
@@ -50,7 +48,7 @@ class LoginApi(BaseHandler):
                 return self.send_error(errors.unauthorized, reason='请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
-            self.login(self, phone_or_email, user.get('password'))
+            self.login(self, user.get('phone_or_email'), user.get('password'))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -82,8 +80,8 @@ class LoginApi(BaseHandler):
         self.set_secure_cookie('user', json_util.dumps(user))
 
         self.add_op_log('login-ok', context=phone_or_email + ': ' + user['name'])
-        logging.info('login id=%s, name=%s, email=%s, roles=%s' %
-                     (user['id'], user['name'], user.get('email'), user['roles']))
+        logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
+                     (user['id'], user['name'], phone_or_email, user['roles']))
 
         self.send_response(user)
         return user
@@ -133,7 +131,7 @@ class RegisterApi(BaseHandler):
                                              password=hlp.gen_id(user['password']),
                                              create_time=hlp.get_date_time()
                                              ))
-            user['id'] = str(r.inserted_id)
+            user['_id'] = r.inserted_id
             self.add_op_log('register', context=user.get('email') + ': ' + str(user.get('phone')) + ': ' + user['name'])
         except DbError as e:
             return self.send_db_error(e)
@@ -141,7 +139,7 @@ class RegisterApi(BaseHandler):
         user['login_md5'] = hlp.gen_id(user['roles'])
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
-        logging.info('register id=%s, name=%s, email=%s' % (user['id'], user['name'], user.get('email')))
+        logging.info('register id=%s, name=%s, email=%s' % (user['_id'], user['name'], user.get('email')))
         self.send_response(user)
 
 
@@ -210,16 +208,24 @@ class ResetUserPasswordApi(BaseHandler):
         """ 重置用户密码 """
 
         user = self.get_request_data()
-        uid = user['id']
+        rules = [(v.not_empty, '_id')]
+        err = v.validate(user, rules)
+        if err:
+            return self.send_error(err)
+
+        if user['_id'] == self.current_user['_id'].__str__():
+            return self.send_error(errors.unauthorized, reason='不能删除自己')
+
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
-            r = self.db.user.update_one(dict(id=uid), {'$set': dict(password=hlp.gen_id(pwd))})
+            oid = objectid.ObjectId(user['_id'])
+            r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=hlp.gen_id(pwd))})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
 
-            user = self.db.user.find_one(dict(id=uid))
-            self.remove_login_fails(self, user.get('email'))
-            self.add_op_log('reset_pwd', context=': '.join(user))
+            user = self.db.user.find_one(dict(_id=oid))
+            self.remove_login_fails(self, user['_id'])
+            self.add_op_log('reset_password', context=': '.join(user))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'password': pwd})
@@ -239,20 +245,23 @@ class RemoveUserApi(BaseHandler):
     def post(self):
         """ 删除用户 """
         user = self.get_request_data()
-        if not user or not user.get('email') or not user.get('name'):
-            return self.send_error(errors.incomplete)
-        if user['email'] == self.current_user['email']:
+        rules = [(v.not_empty, '_id')]
+        err = v.validate(user, rules)
+        if err:
+            return self.send_error(err)
+
+        if user['_id'] == self.current_user['_id'].__str__():
             return self.send_error(errors.unauthorized, reason='不能删除自己')
 
         try:
-            r = self.db.user.delete_one(dict(name=user.get('name'), email=user['email']))
+            r = self.db.user.delete_one(dict(_id=objectid.ObjectId(user.get('_id'))))
             if not r.deleted_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('remove_user', context=user['email'] + ': ' + user.get('name'))
+            self.add_op_log('remove_user', context=user['_id'])
         except DbError as e:
             return self.send_db_error(e)
 
-        logging.info('remove user %s %s' % (user.get('name'), user['email']))
+        logging.info('remove user %s' % user['_id'])
         self.send_response()
 
 
@@ -306,19 +315,19 @@ class ChangeMyProfileApi(BaseHandler):
             return self.send_error(err)
 
         try:
-            self.db.user.update_one(dict(_id=self.current_user['_id']), {
-                '$set': dict(
-                    name=user.get('name') or self.current_user['name'],
-                    gender=user.get('gender') or self.current_user.get('gender'),
-                    email=user.get('email') or self.current_user.get('email'),
-                    phone=user.get('phone') or self.current_user.get('phone')
-                )
-            })
-
             self.current_user['name'] = user.get('name') or self.current_user['name']
             self.current_user['gender'] = user.get('gender') or self.current_user.get('gender')
             self.current_user['email'] = user.get('email') or self.current_user['email']
             self.current_user['phone'] = user.get('phone') or self.current_user.get('phone')
+
+            self.db.user.update_one(dict(_id=self.current_user['_id']), {
+                '$set': dict(
+                    name=self.current_user['name'],
+                    gender=self.current_user.get('gender'),
+                    email=self.current_user.get('email'),
+                    phone=self.current_user.get('phone')
+                )
+            })
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')

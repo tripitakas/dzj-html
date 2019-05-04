@@ -216,7 +216,7 @@ class BaseHandler(CorsMixin, RequestHandler):
     def add_op_log(self, op_type, file_id=None, context=None):
         logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
         self.db.log.insert_one(dict(type=op_type,
-                                    user_id=self.current_user and self.current_user['id'],
+                                    user_id=self.current_user and self.current_user.get('_id'),
                                     file_id=file_id or None,
                                     context=context and context[:80],
                                     create_time=get_date_time(),
