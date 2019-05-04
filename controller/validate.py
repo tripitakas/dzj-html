@@ -35,7 +35,8 @@ def allowed_keys(**kw):
 
 
 def not_empty(**kw):
-    errs = {k: e.not_allowed_empty for k, v in kw.items() if not v}
+    code, message = e.not_allowed_empty
+    errs = {k: (code, message + ' (%s)' % k) for k, v in kw.items() if not v}
     return errs or None
 
 
