@@ -266,7 +266,7 @@
 			// 勾选发布任务
 			$modal.on('shown.bs.modal', function () {
 				postApi('/pages/cut_start', {data: {task_type: '{{task_type}}' }}, function (res) {
-					pages = res.items;
+					pages = res.data;
 					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
 						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
 					}).join('\n'));
@@ -280,7 +280,7 @@
 						pages: pages.join(',')
 					}
 				}, function (res) {
-					showSuccess('已发布任务', res.items.length + ' 个页面已发布。');
+					showSuccess('已发布任务', res.data.length + ' 个页面已发布。');
 					setTimeout(function () {
 						location.reload();
 					}, 1000);
@@ -386,7 +386,7 @@
 					function() {
 						//此处调用后台删除逻辑(ajax)
 						getApi('/unlock/{{task_type}}/' + name, function (res) {
-							if (res.items.length) {
+							if (res.data.length) {
 								window.location.reload();
 							}
 						});

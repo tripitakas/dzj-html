@@ -146,8 +146,6 @@ class BaseHandler(CorsMixin, RequestHandler):
             'status': 'failed' if type == 'error' else 'success',
             type: response
         }
-        if type == 'data' and isinstance(response, list):
-            _response['items'] = response  # 兼容旧版本格式
         self.write(json_util.dumps(_response))
         self.finish()
 
