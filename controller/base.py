@@ -139,12 +139,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param response: 返回给请求的内容
         :param type: 'data'表示正确数据，'error'表示错误消息
         """
+        assert type in ['data', 'error']
+
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        _response = {'status': 'failed' if type == 'error' else 'success'}
-        if type == 'data':
-            _response['data'] = response
-        elif type == 'error':
-            _response['error'] = response
+        _response = {
+            'status': 'failed' if type == 'error' else 'success',
+            type: response
+        }
         self.write(json_util.dumps(_response))
         self.finish()
 
