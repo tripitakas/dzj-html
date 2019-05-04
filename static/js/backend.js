@@ -8,7 +8,7 @@ function showError(title, text) {
     $err.text(text.replace(/[。！]$/, '')).show(200);
     return setTimeout(function () {
       $err.hide();
-    }, 2000);
+    }, 5000);
   }
   swal({
     title: title, text: text, type: /失败|错误/.test(title) ? 'error' : 'warning',

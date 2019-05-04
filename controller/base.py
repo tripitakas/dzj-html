@@ -58,7 +58,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(email=self.current_user['email']))
+        user_in_db = self.db.user.find_one(dict(_id=self.current_user['_id']))
         if not user_in_db:
             return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
@@ -96,7 +96,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
-        kwargs['currentUserId'] = self.current_user['id'] if self.current_user else ''
+        kwargs['currentUserId'] = self.current_user and self.current_user.get('id') or ''
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
@@ -165,6 +165,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             error = (status_code, message)
         elif isinstance(status_code, dict):
             error = status_code
+            status_code = 1000
 
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))

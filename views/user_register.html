@@ -84,9 +84,11 @@
         gender: $('#gender').val(),
         email: $('#email').val(),
         password: password,
-        phone: parseInt($('#phone').val() || 0)
-      }}, function () {
+        phone: $('#phone').val()
+      }}, function (data) {
         window.location = '{{next}}';
+      }, function (error, code, errors) {
+        return showError(code, error);
       });
     });
 </script>

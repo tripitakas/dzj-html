@@ -17,7 +17,7 @@
                         <h3 class="logo"></h3>
                         <div class="log">
                             <div class="item">
-                                <input type="text" placeholder='请输入邮件账号' id="email">
+                                <input type="text" placeholder='请输入手机号或邮箱账号' id="phone_or_email">
                                 <i class="user-icon"></i>
                             </div>
                             <div class="item">
@@ -49,7 +49,7 @@
 <script>
     $('.log-btn > a').click(function () {
       postApi('/user/login', {data: {
-        email: $('#email').val(),
+        phone_or_email: $('#phone_or_email').val(),
         password: $('#password').val()
       }}, function () {
         window.location = '{{next}}';
