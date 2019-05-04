@@ -6,15 +6,7 @@
 """
 
 import re
-
-"""错误类型、代码及错误提示消息"""
-not_allowed_empty = 1000, '不允许为空'
-not_allowed_both_empty = 1001, '%s和%s不允许同时为空'
-invalid_name = 1002, '姓名应为2~5个汉字，或3~20个英文字母（可含空格和-）'
-invalid_phone = 1003, '手机号码格式有误'
-invalid_email = 1004, '邮箱格式有误'
-invalid_password = 1005, '密码应为6至18位由数字、字母和英文符号组成的字符串，不可以为纯数字或纯字母'
-invalid_range = 1006, '数据范围应为[%s, %s]'
+import controller.errors as e
 
 
 def validate(data, rules):
@@ -43,7 +35,7 @@ def allowed_keys(**kw):
 
 
 def not_empty(**kw):
-    errs = {k: not_allowed_empty for k, v in kw.items() if not v}
+    errs = {k: e.not_allowed_empty for k, v in kw.items() if not v}
     return errs or None
 
 
@@ -51,7 +43,7 @@ def not_both_empty(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
-    code, message = not_allowed_both_empty
+    code, message = e.not_allowed_both_empty
     err = code, message % (k1, k2)
     if not v1 and not v2:
         return {k1: err, k2: err}
@@ -62,7 +54,7 @@ def is_name(**kw):
     k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
     if v and not re.match(regex, v):
-        return {k: invalid_name}
+        return {k: e.invalid_name}
 
 
 def is_phone(**kw):
@@ -70,7 +62,7 @@ def is_phone(**kw):
     k, v = list(kw.items())[0]
     regex = r'^1[34578]\d{9}$'
     if v and not re.match(regex, v):
-        return {k: invalid_phone}
+        return {k: e.invalid_phone}
 
 
 def is_email(**kw):
@@ -78,7 +70,7 @@ def is_email(**kw):
     k, v = list(kw.items())[0]
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     if v and not re.match(regex, v):
-        return {k: invalid_email}
+        return {k: e.invalid_email}
 
 
 def is_password(**kw):
@@ -86,13 +78,13 @@ def is_password(**kw):
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
     if v and not re.match(regex, v):
-        return {k: invalid_password}
+        return {k: e.invalid_password}
 
 
 def between(min, max, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    code, message = invalid_range
+    code, message = e.invalid_range
     err = code, message % (min, max)
     if v < min or v > max:
         return {k: err}
