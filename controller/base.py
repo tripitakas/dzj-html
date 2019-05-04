@@ -146,6 +146,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             'status': 'failed' if type == 'error' else 'success',
             type: response
         }
+        if type == 'data' and isinstance(response, list):
+            _response['items'] = response  # 兼容旧版本格式
         self.write(json_util.dumps(_response))
         self.finish()
 
@@ -156,7 +158,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             重载后，status_code接受错误消息，如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
         :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
         """
-        error = None
+        error = kwargs.get('error')
         if isinstance(status_code, tuple):
             status_code, message = status_code
             if 'reason' in kwargs and kwargs['reason'] != message:
@@ -169,9 +171,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
 
-        self.write_error(status_code, error, **kwargs)
+        kwargs['error'] = error
+        self.write_error(status_code, **kwargs)
 
-    def write_error(self, status_code, error=None, **kwargs):
+    def write_error(self, status_code, **kwargs):
         """ 发送API异常响应消息，结束处理 """
         reason = kwargs.get('reason') or self._reason
         reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
@@ -180,7 +183,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.error('%d %s [%s %s]' % (status_code, reason,
                                          self.current_user and self.current_user['name'], self.get_ip()))
         if not self._finished:
-            self.send_response(response=error, type='error')
+            self.send_response(response=kwargs.get('error'), type='error')
 
     def send_db_error(self, e, render=False):
         code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
