@@ -237,32 +237,6 @@ class ResetUserPasswordApi(BaseHandler):
         })
 
 
-class RemoveUserApi(BaseHandler):
-    URL = '/api/user/remove'
-
-    def post(self):
-        """ 删除用户 """
-        user = self.get_request_data()
-        rules = [(v.not_empty, '_id')]
-        err = v.validate(user, rules)
-        if err:
-            return self.send_error(err)
-
-        if user['_id'] == str(self.current_user['_id']):
-            return self.send_error(errors.unauthorized, reason='不能删除自己')
-
-        try:
-            r = self.db.user.delete_one(dict(_id=objectid.ObjectId(user['_id'])))
-            if not r.deleted_count:
-                return self.send_error(errors.no_user)
-            self.add_op_log('remove_user', context=user['_id'])
-        except DbError as e:
-            return self.send_db_error(e)
-
-        logging.info('remove user %s' % user['_id'])
-        self.send_response()
-
-
 class ChangeMyPasswordApi(BaseHandler):
     URL = '/api/my/pwd'
 
