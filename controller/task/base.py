@@ -226,7 +226,7 @@ class TaskHandler(BaseHandler):
         """
         assert task_type in self.task_types
 
-        user_id = self.current_user['id']
+        user_id = self.current_user['_id']
 
         if 'sub_task_types' in self.task_types.get(task_type, {}):
             sub_types = self.task_types[task_type]['sub_task_types'].keys()

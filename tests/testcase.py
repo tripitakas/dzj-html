@@ -40,7 +40,7 @@ class APITestCase(AsyncHTTPTestCase):
         body = response.body and to_basestring(response.body) or '{}'
         if body and body.startswith('{'):
             body = json_decode(body)
-            body = body['data'] if isinstance(body.get('data'), dict) else body
+            body = body['data'] if 'data' in body else body
         return body
 
     def get_code(self, response):
@@ -56,10 +56,10 @@ class APITestCase(AsyncHTTPTestCase):
                 r_code, error = r2['error'][name]
             else:
                 r_code, error = r2['error']
-        except (AttributeError, KeyError, TypeError):
+        except (AttributeError, KeyError, TypeError, ValueError):
             r_code, error = response.code, response.error
         if isinstance(code, list):
-            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg or error)
         else:
             self.assertEqual(code, r_code, msg=msg or error)
 
@@ -102,14 +102,15 @@ class APITestCase(AsyncHTTPTestCase):
         return r
 
     def add_users(self, users, auth=None):
-        self.add_admin_user()
+        admin = self.add_admin_user()
         for u in users:
             r = self.parse_response(self.fetch('/api/user/register', body={'data': u}))
-            u['id'] = r.get('id')
+            u['_id'] = r.get('_id')
         self.assert_code(200, self.login_as_admin())
         for u in users:
-            r = self.fetch('/api/user/role', body={'data': dict(id=u['id'], roles=u.get('auth', auth))})
+            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('auth', auth))})
             self.assert_code(200, r)
+        return self.parse_response(admin)
 
     def login_as_admin(self):
         return self.login('admin@test.com', 'test123')

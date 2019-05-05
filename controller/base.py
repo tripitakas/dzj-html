@@ -35,6 +35,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def initialize(self):
         self.db = self.application.db
+        self.config = self.application.config
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -133,7 +134,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
 
         try:
-            return json_decode(body) if body and isinstance(body, str) else body or '{}'
+            return json_util.loads(body) if body and isinstance(body, str) else body or '{}'
         except ValueError:
             logging.error(body)
 

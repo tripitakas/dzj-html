@@ -81,7 +81,7 @@ class LoginApi(BaseHandler):
 
         self.add_op_log('login-ok', context=phone_or_email + ': ' + user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
-                     (user['id'], user['name'], phone_or_email, user['roles']))
+                     (user['_id'], user['name'], phone_or_email, user['roles']))
 
         self.send_response(user)
         return user
@@ -149,8 +149,8 @@ class ChangeUserProfileApi(BaseHandler):
         """ 修改用户基本信息: 姓名，手机，邮箱，性别"""
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name', '_id'),
-            (v.not_both_empty, 'email', 'phone'),
+            (v.not_empty, '_id'),
+            # (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),

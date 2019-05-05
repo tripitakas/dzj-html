@@ -28,6 +28,7 @@ def validate(data, rules):
             errs.update(ret)
     return errs or None
 
+
 def i18n_trans(key):
     maps = {
         'name': '姓名',
@@ -38,6 +39,7 @@ def i18n_trans(key):
         'gender': '性别',
     }
     return maps[key] if key in maps else key
+
 
 def allowed_keys(**kw):
     """申明需要哪些数据属性"""
@@ -69,6 +71,7 @@ def not_equal(**kw):
     if v1 == v2:
         return {k1: err, k2: err}
 
+
 def equal(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()
@@ -77,6 +80,7 @@ def equal(**kw):
     err = code, message % (i18n_trans(k1), i18n_trans(k2))
     if v1 != v2:
         return {k1: err, k2: err}
+
 
 def is_name(name='', **kw):
     """ 检查是否为姓名。参数可以为字符串或者字典。"""
@@ -165,6 +169,7 @@ def not_existed(collection=None, exclude_id=None, **kw):
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 
+
 def is_unique(collection=None, **kw):
     """校验数据库中是否唯一"""
     errs = {}
@@ -174,6 +179,7 @@ def is_unique(collection=None, **kw):
             if v and collection.find({k: v}).count() > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
+
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中
