@@ -46,9 +46,13 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/post 前的准备 """
 
-        # 检查是否单元测试用户、访客可以访问
-        open_roles = '单元测试用户, 访客' if options.testing else '访客'
-        if can_access(open_roles, self.request.path, self.request.method):
+        # 单元测试
+        if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or
+                                can_access('单元测试用户', self.request.path, self.request.method)):
+            return
+
+        # 检查是否访客可以访问
+        if can_access('访客', self.request.path, self.request.method):
             return
 
         # 检查用户是否已登录
@@ -67,21 +71,18 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.current_user['roles'] = user_in_db.get('roles', '')
         self.set_secure_cookie('user', json_util.dumps(self.current_user))
 
-        # 检查是否不需授权（即普通用户可访问，或单元测试中传入_no_auth=1）
+        # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', self.request.path, self.request.method):
-            return
-
-        # 单元测试时，跳过权限检查
-        if self.get_query_argument('_no_auth', 0) == '1' and options.testing:
             return
 
         # 检查当前用户是否可以访问本请求
         if can_access(self.current_user['roles'], self.request.path, self.request.method):
             return
-        else:
-            need_roles = get_route_roles(self.request.path, self.request.method)
-            if options.debug or options.testing:  # TODO: 正式上线时去掉本行或加上 or 1
-                self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
+
+        # 报错，无权访问
+        need_roles = get_route_roles(self.request.path, self.request.method)
+        self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
+
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -96,11 +97,14 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
-        kwargs['currentUserId'] = self.current_user and self.current_user.get('id') or ''
+        kwargs['currentUserId'] = self.current_user and self.current_user.get('_id') or ''
         kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
+        # dumps/to_date_str传递给页面模板
+        kwargs['dumps'] = json_util.dumps
+        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
@@ -113,10 +117,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
-            super(BaseHandler, self).render(template_name,
-                                            dumps=json_util.dumps,  # dumps用于模板中解析数据
-                                            to_date_str=lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or '',
-                                            **kwargs)
+            super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as e:
             kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
             super(BaseHandler, self).render('_error.html', **kwargs)
@@ -229,7 +230,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         md5.update((page_code + salt).encode('utf-8'))
         hash_value = md5.hexdigest()
         inner_path = '/'.join(page_code.split('_')[:-1])
-        return '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value) if host and salt else ''
+        return url
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
