@@ -133,7 +133,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
 
         try:
-            return body or '{}'
+            return json_decode(body) if body and isinstance(body, str) else body or '{}'
         except ValueError:
             logging.error(body)
 

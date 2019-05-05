@@ -20,7 +20,7 @@ class TestViews(APITestCase):
                 self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):
-        r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
         if self.get_code(r) == 200:
             for view in views:
                 if isinstance(view.URL, list):
@@ -30,7 +30,7 @@ class TestViews(APITestCase):
                     self._test_view(view.URL, True)
 
     def test_with_any_user(self):
-        r = self.fetch('/api/user/login', body={'data': dict(email=user1[0], password=user1[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
             for view in views:
                 if isinstance(view.URL, list):

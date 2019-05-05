@@ -115,4 +115,4 @@ class APITestCase(AsyncHTTPTestCase):
         return self.login('admin@test.com', 'test123')
 
     def login(self, email, password):
-        return self.fetch('/api/user/login', body={'data': dict(email=email, password=password)})
+        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})

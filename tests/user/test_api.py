@@ -16,7 +16,7 @@ class TestUserApi(APITestCase):
         response = self.fetch('/api/user/login', body={'data': dict(email='')})
         self.assert_code(e.not_allowed_empty, response)
 
-        response = self.fetch('/api/user/login', body={'data': dict(email='test')})
+        response = self.fetch('/api/user/login', body={'data': dict(phone_or_email='test')})
         self.assert_code([e.need_password, e.not_allowed_empty], response)
 
     def _register_login(self, info):
@@ -28,9 +28,9 @@ class TestUserApi(APITestCase):
         if 'error' not in r:
             self.assertIn('用户管理员', r['roles'])
         else:
-            r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password='test')})
+            r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password='test')})
             self.assert_code(e.incorrect_password, r)
-            r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
+            r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
             self.assert_code(200, r)
             self.assertIn('user_admin', self.parse_response(r).get('roles'))
 
@@ -64,7 +64,7 @@ class TestUserApi(APITestCase):
         '''
 
         # 管理员可设置或取消权限
-        r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
         self.assert_code(200, r)
         r = self.fetch('/api/user/role', body={'data': dict(
             id=user['id'], email=user['email'], roles='切分校对员')})
@@ -88,7 +88,7 @@ class TestUserApi(APITestCase):
         r = self.fetch('/api/user/logout')
         self.assert_code(200, r)
 
-        self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
+        self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
 
         # 管理员为其重置密码
         r = self.fetch('/api/user/reset_pwd', body={'data': dict(id=user['id'])})
@@ -103,5 +103,5 @@ class TestUserApi(APITestCase):
         # 删除用户后不能再登录
         r = self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
         self.assert_code(200, r)
-        r = self.fetch('/api/user/login', body={'data': dict(email='t2@test.com', password='t12345')})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email='t2@test.com', password='t12345')})
         self.assert_code(e.no_user, r)
