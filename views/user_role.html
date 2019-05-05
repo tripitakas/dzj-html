@@ -62,7 +62,7 @@
 													</thead>
 													<tbody>
 													  {% for p in users %}
-														<tr id="{{p['id']}}">
+														<tr>
 															<th>
 																<a onclick="modify('{{dumps(p)}}')">修改</a>
 															</th>
@@ -164,7 +164,7 @@
 				$dlg.modal();
 
 				$dlg.find("#modal_confirm").unbind('click').click(function () {
-					var info = {id: user.id};
+					var info = {_id: user._id};
 					var roles = [];
 					$list.find('label').each(function (i, el) {
 						var label = $(el).text().replace(/\s/g, '');

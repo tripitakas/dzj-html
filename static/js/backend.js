@@ -15,8 +15,9 @@ function showError(title, text) {
     timer: 2000, showConfirmButton: false
   });
 }
-function showSuccess(title, text) {
-  swal({title: title, text: text, type: 'success', timer: 1000, showConfirmButton: false});
+function showSuccess(title, text, timer) {
+  timer = typeof timer !== 'undefined' ?  timer : 1000;
+  swal({title: title, text: text, type: 'success', timer: timer, showConfirmButton: false});
 }
 
 /**

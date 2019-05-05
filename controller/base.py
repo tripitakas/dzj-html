@@ -128,12 +128,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
         if 'data' not in self.request.body_arguments:
-            body = json_decode(self.request.body).get('data')
+            body = json_util.loads(self.request.body).get('data')
         else:
-            body = self.get_body_argument('data')
+            body = json_util.loads(self.get_body_argument('data'))
 
         try:
-            return json_decode(body or '{}')
+            return body or '{}'
         except ValueError:
             logging.error(body)
 

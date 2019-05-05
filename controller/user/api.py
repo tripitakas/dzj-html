@@ -107,8 +107,7 @@ class RegisterApi(BaseHandler):
         user = self.get_request_data()
 
         # 单元测试时，如果用户已存在，则自动登录
-        exist = options.testing and LoginApi.login(self, user.get('email'), user.get('password'), report_error=False)
-        if exist:
+        if options.testing and LoginApi.login(self, user.get('email'), user.get('password'), report_error=False):
             return
 
         rules = [
@@ -150,30 +149,29 @@ class ChangeUserProfileApi(BaseHandler):
         """ 修改用户基本信息: 姓名，手机，邮箱，性别"""
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name'),
+            (v.not_empty, 'name', '_id'),
             (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
-            (v.not_existed, self.db.user, 'phone', 'email')
+            (v.not_existed, self.db.user, user['_id'], 'phone', 'email')
         ]
         err = v.validate(user, rules)
         if err:
             return self.send_error(err)
 
         try:
-            old_user = self.db.user.find_one(dict(id=user['id']))
+            old_user = self.db.user.find_one(dict(_id=user['_id']))
             if not old_user:
-                return self.send_error(errors.no_user, reason=user['id'])
+                return self.send_error(errors.no_user, reason=str(user['_id']))
 
-            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
-                    if user.get(f) and user.get(f) != old_user.get(f)}
+            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender'] if user.get(f) != old_user.get(f)}
             if not sets:
                 return self.send_error(errors.no_change)
 
-            r = self.db.user.update_one(dict(id=user['id']), {'$set': sets})
+            r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
-                self.add_op_log('change_user_profile', context=','.join([user['id']] + list(sets.keys())))
+                self.add_op_log('change_user_profile', context=','.join([str(user['_id'])] + list(sets.keys())))
 
             self.send_response(dict(info=sets))
 
@@ -188,14 +186,17 @@ class ChangeUserRoleApi(BaseHandler):
         """ 修改用户角色 """
 
         user = self.get_request_data()
+        rules = [(v.not_empty, '_id')]
+        err = v.validate(user, rules)
+        if err:
+            return self.send_error(err)
+
         try:
             user['roles'] = user.get('roles') or ''
-            r = self.db.user.update_one({'$or': [{'id': user.get('id')}, {'email': user.get('email')}]},
-                                        {'$set': dict(roles=user['roles'])})
+            r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role',
-                            context=(user.get('id') or user.get('email')) + ': ' + user['roles'])
+            self.add_op_log('change_role', context=(user.get('_id') + ': ' + user['roles']))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': user['roles']})
@@ -213,9 +214,6 @@ class ResetUserPasswordApi(BaseHandler):
         if err:
             return self.send_error(err)
 
-        if user['_id'] == self.current_user['_id'].__str__():
-            return self.send_error(errors.unauthorized, reason='不能删除自己')
-
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
             oid = objectid.ObjectId(user['_id'])
@@ -231,11 +229,11 @@ class ResetUserPasswordApi(BaseHandler):
         self.send_response({'password': pwd})
 
     @staticmethod
-    def remove_login_fails(self, phone_or_email):
+    def remove_login_fails(self, context):
         self.db.log.delete_many({
             'type': 'login-fail',
             'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
-            'context': phone_or_email
+            'context': context
         })
 
 
@@ -250,11 +248,11 @@ class RemoveUserApi(BaseHandler):
         if err:
             return self.send_error(err)
 
-        if user['_id'] == self.current_user['_id'].__str__():
+        if user['_id'] == str(self.current_user['_id']):
             return self.send_error(errors.unauthorized, reason='不能删除自己')
 
         try:
-            r = self.db.user.delete_one(dict(_id=objectid.ObjectId(user.get('_id'))))
+            r = self.db.user.delete_one(dict(_id=objectid.ObjectId(user['_id'])))
             if not r.deleted_count:
                 return self.send_error(errors.no_user)
             self.add_op_log('remove_user', context=user['_id'])

@@ -45,7 +45,7 @@
 											<table style="border-collapse:separate; border-spacing:0px 10px;">
 												<thead>
 													<tr>
-														<th><input type="checkbox" name="" id="" value="" /></th>
+														<th><input type="checkbox" name="" value="" /></th>
 														<th>姓名</th>
 														<th>手机</th>
 														<th><span class="sort">切分校对数量</span><span class="ion-arrow-down-b"></span></th>
@@ -60,7 +60,7 @@
 												</thead>
 												<tbody>
 												  {% for r in users %}
-													<tr id="{{r['id']}}">
+													<tr>
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{r['name']}}</td>
 														<td>{{r.get('phone', '')}}</td>

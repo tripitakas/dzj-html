@@ -66,7 +66,7 @@
 												<tbody>
 												  {% for p in users %}
 													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
+														<td><input type="checkbox" name="" value="" /></td>
 														<td>
 															<img src="{{ static_url(p['image']) }}" alt="" class="thumb-md img-circle">
 														</td>
@@ -77,7 +77,7 @@
 														<td>{{p['create_time']}}</td>
 														<td>
 															<span onclick="update('{{dumps(p)}}')">修改</span>
-															<span onclick=reset_pwd("{{p['_id']}}")>重置密码</span>
+															<span onclick="reset_pwd('{{p['_id']}}')">重置密码</span>
 														</td>
 													</tr>
 													{% end %}
@@ -215,8 +215,9 @@
 						closeOnConfirm: false
 					},
 					function() {
-						postApi('/user/reset_pwd', {data:{_id: _id}}, function(){
-							showSuccess('密码重置成功', '');
+						postApi('/user/reset_pwd', {data:{_id: _id}}, function(data){
+							var psw = data.password ? data.password : ''
+							showSuccess('密码重置成功', '新密码是' + psw, 4000);
 						}, function (msg, code) {
 							showError('修改失败', msg);
 						});
