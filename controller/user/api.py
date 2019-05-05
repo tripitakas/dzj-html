@@ -196,7 +196,7 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role', context=(user.get('_id') + ': ' + user['roles']))
+            self.add_op_log('change_role', context=(str(user.get('_id')) + ': ' + user['roles']))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': user['roles']})
