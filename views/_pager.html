@@ -1,13 +1,19 @@
+{% if pager['page_count'] > 1 %}
 <div class="pagers">
-  <span>当前&nbsp;<em>1/4</em>&nbsp;页，共&nbsp;<em>29</em>&nbsp;条</span>
+  <span>当前&nbsp;<em>{{pager['cur_page']}}</em>/{{pager['page_count']}}&nbsp;页，共&nbsp;<em>{{pager['item_count']}}</em>&nbsp;条</span>
   <ul>
-    <li><a href="">首页</a></li>
-    <li><a href="">上一页</a></li>
-    <li class="active"><a href="">1</a></li>
-    <li><a href="">2</a></li>
-    <li><a href="">3</a></li>
-    <li><a href="">下一页</a></li>
-    <li><a href="">末页</a></li>
+    <li><a href="{{pager['path']}}">首页</a></li>
+    {% if pager['cur_page'] > 1 %}
+      <li><a href="{{pager['path']+'?page='+str(pager['cur_page'] - 1)}}">上一页</a></li>
+    {% end %}
+    {% for i in pager['display_range'] %}
+      <li class="{{'active' if i == pager['cur_page'] else '' }}"><a href="{{pager['path']+'?page='+str(i)}}">{{i}}</a></li>
+    {% end %}
+    {% if pager['cur_page'] < pager['page_count'] %}
+      <li><a href="{{pager['path']+'?page='+str(pager['cur_page']+1)}}">下一页</a></li>
+    {% end %}
+    <li><a href="{{pager['path']+'?page='+str(pager['page_count'])}}">末页</a></li>
     <li>跳至&nbsp;<input type="text">&nbsp;页</li>
   </ul>
 </div>
+{% end %}

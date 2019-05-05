@@ -19,8 +19,6 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-    default_page_size = 50
-
     """
     任务类型配置表。
     @name 任务名称
@@ -218,7 +216,7 @@ class TaskHandler(BaseHandler):
         set_conditions and set_conditions(conditions)
         fields = {'name': 1, task_type: 1}
 
-        page_size = page_size or self.default_page_size
+        page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return list(pages)
 
@@ -240,7 +238,7 @@ class TaskHandler(BaseHandler):
 
         fields = {'name': 1, task_type: 1}
 
-        page_size = page_size or self.default_page_size
+        page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
         return pages
 

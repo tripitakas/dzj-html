@@ -6,6 +6,7 @@
 """
 from controller.base import BaseHandler
 from controller.role import assignable_roles
+import math
 
 
 class UserLoginHandler(BaseHandler):
@@ -38,15 +39,18 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            users = list(self.db.user.find().sort('name', 1))
-            for r in users:
-                r['image'] = 'imgs/' + {'': 'ava3.png', '女': 'ava2.png', '男': 'ava1.png'}[r.get('gender') or '']
-            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
 
+            item_count = self.db.user.count()
+            page_size = int(self.application.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
+            users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        self.render('user_admin.html', users=users)
+        pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+        self.render('user_admin.html', users=users, pager=pager)
 
 
 class UserRolesHandler(BaseHandler):

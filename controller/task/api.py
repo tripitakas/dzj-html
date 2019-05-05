@@ -92,7 +92,7 @@ class GetLobbyTasksApi(TaskHandler):
         assert task_type in self.task_types.keys()
         try:
             page_no = self.get_query_argument('page_no', 1)
-            page_size = self.get_query_argument('page_size', self.default_page_size)
+            page_size = self.get_query_argument('page_size', self.config['pager']['page_size'])
 
             if 'sub_task_types' in self.task_types[task_type]:
                 sub_types = self.task_types[task_type]['sub_task_types'].keys()

@@ -237,6 +237,14 @@ class ResetUserPasswordApi(BaseHandler):
         })
 
 
+class RemoveUserApi(BaseHandler):
+    URL = '/api/user/remove'
+
+    def post(self):
+        """ 删除用户 """
+        pass
+
+
 class ChangeMyPasswordApi(BaseHandler):
     URL = '/api/my/pwd'
 
