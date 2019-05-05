@@ -6,11 +6,10 @@
 
 ## Wiki在线文档
 
-- [URL和API介绍](URL-and-API-Introduction)
-- [任务流介绍](Task-Flow-Introduction)
-- [RBAC-基于角色的访问控制](RBAC)
-- [前后端数据沟通JSON格式约定](JSON-communication-format)
-- [应用架构介绍](Application-Architecture-Introduction)
+- [URL和API介绍](https://github.com/tripitakas/tripitaka-web/wiki/URL-and-API-Introduction)
+- [任务流介绍](https://github.com/tripitakas/tripitaka-web/wiki/Task-Flow-Introduction)
+- [RBAC-基于角色的访问控制](https://github.com/tripitakas/tripitaka-web/wiki/RBAC)
+- [前后端数据JSON格式约定](https://github.com/tripitakas/tripitaka-web/wiki/JSON-communication-format)
 
 ## 前端改版
 
