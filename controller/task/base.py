@@ -240,7 +240,7 @@ class TaskHandler(BaseHandler):
 
         page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages
+        return list(pages)
 
     def get_tasks_info(self, page_size='', page_no=1):
         """
@@ -252,6 +252,6 @@ class TaskHandler(BaseHandler):
             query[self.get_query_argument('t') + '.status'] = self.get_query_argument('status')
         fields = {'name': 1}
         fields.update({k: 1 for k in self.task_types.keys()})
-        page_size = page_size or self.default_page_size
+        page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(query, fields).limit(page_size).skip(page_size * (page_no - 1))
-        return pages
+        return list(pages)
