@@ -76,6 +76,7 @@
 														<td>{{p.get('gender', '')}}</td>
 														<td>{{p['create_time']}}</td>
 														<td>
+															<span onclick="delete_user('{{dumps(p)}}')">删除</span>
 															<span onclick="update('{{dumps(p)}}')">修改</span>
 															<span onclick="reset_pwd('{{p['_id']}}')">重置密码</span>
 														</td>
@@ -223,7 +224,33 @@
 						});
 					});
 			}
-			
+
+			/**
+			 * 删除用户
+			 * @param user_id 用户id
+			 */
+			function delete_user(user) {
+				user = decodeJSON(user);
+
+				swal({
+						title: "确定删除" + user.name + "用户吗？",
+						text: "删除后无法恢复！",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#b8906f",
+						confirmButtonText: "确定删除",
+						cancelButtonText: "取消",
+						closeOnConfirm: false
+					},
+					function() {
+						postApi('/user/delete', {data:{_id: user._id}}, function(data){
+							showSuccess('删除用户' + user.name + '成功');
+							window.location.reload();
+						}, function (msg, code) {
+							showError('删除失败', msg);
+						});
+					});
+			}
 			
 		</script>
 		

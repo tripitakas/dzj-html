@@ -174,7 +174,7 @@ role_maps = {
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],
-            '/api/user/remove': ['POST'],
+            '/api/user/delete': ['POST'],
             '/api/user/profile': ['POST'],
             '/api/user/role': ['POST'],
             '/api/user/reset_pwd': ['POST'],
