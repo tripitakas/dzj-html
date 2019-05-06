@@ -19,9 +19,6 @@ class TestUserApi(APITestCase):
         response = self.fetch('/api/user/login', body={'data': dict(phone_or_email='test')})
         self.assert_code([e.need_password, e.not_allowed_empty], response)
 
-    def _register_login(self, info):
-        return self.fetch('/api/user/register', body={'data': info})
-
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
         r = self.parse_response(self.add_admin_user())
@@ -39,7 +36,7 @@ class TestUserApi(APITestCase):
 
         # 注册一个新用户
         self.add_admin_user()
-        r = self._register_login(dict(email='t1@test.com', name='测试', password='t12345'))
+        r = self.register_login(dict(email='t1@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)
         self.assertIn('_id', user)
 
@@ -74,9 +71,8 @@ class TestUserApi(APITestCase):
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """
 
-        self.assert_code(200, self.add_admin_user())
-        self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
-        r = self._register_login(dict(email='t2@test.com', name='测试', password='t12345'))
+        r = self.register_login(dict(email='t3@test.com', name='测试', password='t12345'))
+        self.assert_code(200, r)
         user = self.parse_response(r)
 
         # 修改密码
@@ -94,14 +90,22 @@ class TestUserApi(APITestCase):
         r = self.fetch('/api/user/reset_pwd', body={'data': dict(_id=user['_id'])})
         result = self.parse_response(r)
         self.assertIn('password', result)
+        new_password = result['password']
 
         # 修改用户信息
-        r = self.fetch('/api/user/profile', body={'data': dict(_id=user['_id'], gender='男')})
-        result = self.parse_response(r)
-        self.assertTrue(result.get('info'))
+        r = self.fetch('/api/user/profile', body={'data': dict(_id=user['_id'], gender='男',
+                                                               email=user['email'], name='教师甲')})
+        self.assertTrue(self.parse_response(r).get('info') or self.get_code(r) == e.no_change[0])
 
-        # 删除用户后不能再登录
-        r = self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
-        self.assert_code(200, r)
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email='t2@test.com', password='t12345')})
-        self.assert_code(e.no_user, r)
+        if 0:
+            # 删除用户后不能再登录
+            r = self.fetch('/api/user/remove', body={'data': dict(email='t2@test.com', name='测试')})
+            self.assert_code(200, r)
+            r = self.fetch('/api/user/login', body={'data': dict(phone_or_email='t2@test.com', password='t12345')})
+            self.assert_code(e.no_user, r)
+        else:
+            # 用新密码登录然后恢复原密码，以便下次测试通过
+            r = self.register_login(dict(email='t3@test.com', name='测试', password=new_password))
+            self.assert_code(200, r)
+            r = self.fetch('/api/my/pwd', body={'data': dict(old_password=new_password, password='t12345')})
+            self.assert_code(200, r)

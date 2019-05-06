@@ -105,11 +105,6 @@ class RegisterApi(BaseHandler):
     def post(self):
         """ 注册 """
         user = self.get_request_data()
-
-        # 单元测试时，如果用户已存在，则自动登录
-        if options.testing and LoginApi.login(self, user.get('email'), user.get('password'), report_error=False):
-            return
-
         rules = [
             (v.not_empty, 'name', 'password'),
             (v.not_both_empty, 'email', 'phone'),
