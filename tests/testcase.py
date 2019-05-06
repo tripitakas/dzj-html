@@ -39,7 +39,7 @@ class APITestCase(AsyncHTTPTestCase):
         body = response.body and to_basestring(response.body) or '{}'
         if body and body.startswith('{'):
             body = json_util.loads(body)
-            if 'data' in body:  # 如果body含'date'，则将data的内容赋给body，以便测试使用
+            if 'data' in body and isinstance(body['data'], dict):  # 将data的内容赋给body，以便测试使用
                 body.update(body['data'])
         return body
 
