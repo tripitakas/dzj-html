@@ -150,7 +150,7 @@ class ChangeUserProfileApi(BaseHandler):
         user = self.get_request_data()
         rules = [
             (v.not_empty, '_id'),
-            # (v.not_both_empty, 'email', 'phone'),
+            (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
@@ -165,7 +165,8 @@ class ChangeUserProfileApi(BaseHandler):
             if not old_user:
                 return self.send_error(errors.no_user, reason=str(user['_id']))
 
-            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender'] if user.get(f) != old_user.get(f)}
+            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
+                    if f in user and user[f] != old_user.get(f)}
             if not sets:
                 return self.send_error(errors.no_change)
 
