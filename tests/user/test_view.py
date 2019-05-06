@@ -12,6 +12,10 @@ user1 = 't1@test.com', 't12345'
 
 
 class TestViews(APITestCase):
+    def setUp(self):
+        super(TestViews, self).setUp()
+        self.add_users([dict(email=user1[0], name='测试', password=user1[1])])
+
     def _test_view(self, url, check_role):
         if '(' not in url:  # URL不需要动态参数
             r = self.parse_response(self.fetch(url + '?_no_auth=1'))

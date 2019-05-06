@@ -296,7 +296,7 @@ class ChangeMyProfileApi(BaseHandler):
             self.current_user['email'] = user.get('email') or self.current_user['email']
             self.current_user['phone'] = user.get('phone') or self.current_user.get('phone')
 
-            self.db.user.update_one(dict(_id=self.current_user['_id']), {
+            r = self.db.user.update_one(dict(_id=self.current_user['_id']), {
                 '$set': dict(
                     name=self.current_user['name'],
                     gender=self.current_user.get('gender'),
@@ -304,6 +304,8 @@ class ChangeMyProfileApi(BaseHandler):
                     phone=self.current_user.get('phone')
                 )
             })
+            if not r.modified_count:
+                return self.send_error(errors.no_change)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')

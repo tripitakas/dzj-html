@@ -63,7 +63,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(_id=self.current_user['_id']))
+        user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
             return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
@@ -119,7 +119,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as e:
-            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
+            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e) or e.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
