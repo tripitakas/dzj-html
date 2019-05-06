@@ -68,7 +68,8 @@
 													<tr>
 														<td><input type="checkbox" name="" value="" /></td>
 														<td>
-															<img src="{{ static_url(p['image']) }}" alt="" class="thumb-md img-circle">
+															{% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
+															<img src="{{ static_url('imgs/' + ava) }}" alt="" class="thumb-md img-circle">
 														</td>
 														<td>{{p['name']}}</td>
 														<td>{{p.get('phone') or ''}}</td>
@@ -81,11 +82,11 @@
 															<span onclick="reset_pwd('{{p['_id']}}')">重置密码</span>
 														</td>
 													</tr>
-													{% end %}
+												  {% end %}
 												</tbody>
 											</table>
 										</div>
-										{% module Pager(pager='TODO') %}
+										{% module Pager(pager) %}
 									</div>
 								</div>
 							</div>

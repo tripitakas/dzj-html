@@ -45,7 +45,7 @@ class PublishTasksApi(TaskHandler):
                         '%s.status' % task_type: status,
                         '%s.priority' % task_type: priority,
                         '%s.publish_time' % task_type: datetime.now(),
-                        '%s.publish_user_id' % task_type: self.current_user['id'],
+                        '%s.publish_user_id' % task_type: self.current_user['_id'],
                         '%s.publish_by' % task_type: self.current_user['name'],
                     }
                     r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
@@ -92,7 +92,7 @@ class GetLobbyTasksApi(TaskHandler):
         assert task_type in self.task_types.keys()
         try:
             page_no = self.get_query_argument('page_no', 1)
-            page_size = self.get_query_argument('page_size', self.default_page_size)
+            page_size = self.get_query_argument('page_size', self.config['pager']['page_size'])
 
             if 'sub_task_types' in self.task_types[task_type]:
                 sub_types = self.task_types[task_type]['sub_task_types'].keys()
@@ -212,7 +212,7 @@ class PickTaskApi(TaskHandler):
             # 有未完成的任务则不能继续
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
-            names = list(self.db.page.find({task_user: self.current_user['id'], task_status: self.STATUS_LOCKED}))
+            names = list(self.db.page.find({task_user: self.current_user['_id'], task_status: self.STATUS_LOCKED}))
             names = [p['name'] for p in names]
             if names and name not in names:
                 return self.send_error(errors.task_uncompleted, reason=','.join(names))
@@ -224,7 +224,7 @@ class PickTaskApi(TaskHandler):
                 '$or': [{task_status: self.STATUS_OPENED}, {task_status: self.STATUS_RETURNED}]
             }
             lock = {
-                task_user: self.current_user['id'],
+                task_user: self.current_user['_id'],
                 task_type + '.picked_by': self.current_user['name'],
                 task_status: self.STATUS_LOCKED,
                 task_type + '.start_time': datetime.now()
@@ -234,7 +234,7 @@ class PickTaskApi(TaskHandler):
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['id'], context=name)
-            elif page and page.get(task_user) == self.current_user['id'] \
+            elif page and page.get(task_user) == self.current_user['_id'] \
                     and page.get(task_status) == self.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['id'], context=name)
             else:
@@ -296,7 +296,7 @@ class SaveCutApi(TaskHandler):
                 return self.send_error(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.user'
-            if page.get(task_user) != self.current_user['id']:
+            if page.get(task_user) != self.current_user['_id']:
                 return self.send_error(errors.task_locked)
 
             result = dict(name=data['name'])
@@ -323,7 +323,7 @@ class SaveCutApi(TaskHandler):
 
     def submit_task(self, result, data, page, task_type, task_user):
         end_info = {task_type + '.status': self.STATUS_ENDED, task_type + '.end_time': datetime.now()}
-        r = self.db.page.update_one({'name': data.name, task_user: self.current_user['id']}, {'$set': end_info})
+        r = self.db.page.update_one({'name': data.name, task_user: self.current_user['_id']}, {'$set': end_info})
         if r.modified_count:
             result['submit'] = True
             self.add_op_log('submit_' + task_type, file_id=page['id'], context=data.name)

@@ -35,6 +35,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def initialize(self):
         self.db = self.application.db
+        self.config = self.application.config
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -62,7 +63,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(_id=self.current_user['_id']))
+        user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
             return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
                 else self.redirect(self.get_login_url())
@@ -82,7 +83,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 报错，无权访问
         need_roles = get_route_roles(self.request.path, self.request.method)
         self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
-
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -119,7 +119,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as e:
-            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e))))
+            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e) or e.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
@@ -133,24 +133,29 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
 
         try:
-            return body or '{}'
+            return json_util.loads(body) if body and isinstance(body, str) else body or {}
         except ValueError:
             logging.error(body)
 
-    def send_response(self, response=None, type='data'):
+    def send_response(self, response=None, type='data', code=500):
         """
         发送API响应内容，结束处理
         :param response: 返回给请求的内容
         :param type: 'data'表示正确数据，'error'表示错误消息
+        :param code: 错误代码
         """
         assert type in ['data', 'error']
-
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        _response = {
-            'status': 'failed' if type == 'error' else 'success',
-            type: response
-        }
-        self.write(json_util.dumps(_response))
+        if type == 'error' and isinstance(response, tuple):
+            code = response[0]
+        elif type == 'error' and isinstance(response, dict) and len(response) > 0:
+            first_item = list(response.values())[0]
+            if isinstance(first_item, tuple):
+                code = first_item[0]
+        elif type == 'data':
+            code = 200
+
+        self.write(json_util.dumps({'code': code, type: response}))
         self.finish()
 
     def send_error(self, status_code=500, render=False, **kwargs):

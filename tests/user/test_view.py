@@ -12,6 +12,10 @@ user1 = 't1@test.com', 't12345'
 
 
 class TestViews(APITestCase):
+    def setUp(self):
+        super(TestViews, self).setUp()
+        self.add_users([dict(email=user1[0], name='测试', password=user1[1])])
+
     def _test_view(self, url, check_role):
         if '(' not in url:  # URL不需要动态参数
             r = self.parse_response(self.fetch(url + '?_no_auth=1'))
@@ -20,7 +24,7 @@ class TestViews(APITestCase):
                 self.assertFalse('访问出错' in r, msg=url)
 
     def test_with_admin(self):
-        r = self.fetch('/api/user/login', body={'data': dict(email=admin[0], password=admin[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
         if self.get_code(r) == 200:
             for view in views:
                 if isinstance(view.URL, list):
@@ -30,7 +34,7 @@ class TestViews(APITestCase):
                     self._test_view(view.URL, True)
 
     def test_with_any_user(self):
-        r = self.fetch('/api/user/login', body={'data': dict(email=user1[0], password=user1[1])})
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
             for view in views:
                 if isinstance(view.URL, list):

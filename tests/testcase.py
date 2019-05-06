@@ -40,7 +40,12 @@ class APITestCase(AsyncHTTPTestCase):
         body = response.body and to_basestring(response.body) or '{}'
         if body and body.startswith('{'):
             body = json_decode(body)
-            body = body['data'] if isinstance(body.get('data'), dict) else body
+            body = body['data'] if 'data' in body else body
+            if 'code' not in body and 'error' in body:
+                if isinstance(body['error'], list):
+                    body['code'] = body['error'][0]
+                elif isinstance(body['error'], dict):
+                    body['code'] = list(body['error'].values())[0][0]
         return body
 
     def get_code(self, response):
@@ -56,10 +61,10 @@ class APITestCase(AsyncHTTPTestCase):
                 r_code, error = r2['error'][name]
             else:
                 r_code, error = r2['error']
-        except (AttributeError, KeyError, TypeError):
+        except (AttributeError, KeyError, TypeError, ValueError):
             r_code, error = response.code, response.error
         if isinstance(code, list):
-            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg or error)
         else:
             self.assertEqual(code, r_code, msg=msg or error)
 
@@ -96,23 +101,27 @@ class APITestCase(AsyncHTTPTestCase):
 
     def add_admin_user(self):
         """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
-        r = self.fetch('/api/user/register', body={'data': dict(
-            email='admin@test.com', name='管理员', password='test123')})
+        r = self.register_login(dict(email='admin@test.com', name='管理员', password='test123'))
         self.assert_code([200, 1012], r)
         return r
 
     def add_users(self, users, auth=None):
-        self.add_admin_user()
+        admin = self.add_admin_user()
         for u in users:
-            r = self.parse_response(self.fetch('/api/user/register', body={'data': u}))
-            u['id'] = r.get('id')
+            r = self.parse_response(self.register_login(u))
+            u['_id'] = r.get('_id')
         self.assert_code(200, self.login_as_admin())
         for u in users:
-            r = self.fetch('/api/user/role', body={'data': dict(id=u['id'], roles=u.get('auth', auth))})
+            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('auth', auth))})
             self.assert_code(200, r)
+        return self.parse_response(admin)
 
     def login_as_admin(self):
         return self.login('admin@test.com', 'test123')
 
     def login(self, email, password):
-        return self.fetch('/api/user/login', body={'data': dict(email=email, password=password)})
+        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
+
+    def register_login(self, info):
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
+        return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})

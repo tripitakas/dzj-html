@@ -81,7 +81,7 @@ class LoginApi(BaseHandler):
 
         self.add_op_log('login-ok', context=phone_or_email + ': ' + user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
-                     (user['id'], user['name'], phone_or_email, user['roles']))
+                     (user['_id'], user['name'], phone_or_email, user['roles']))
 
         self.send_response(user)
         return user
@@ -105,11 +105,6 @@ class RegisterApi(BaseHandler):
     def post(self):
         """ 注册 """
         user = self.get_request_data()
-
-        # 单元测试时，如果用户已存在，则自动登录
-        if options.testing and LoginApi.login(self, user.get('email'), user.get('password'), report_error=False):
-            return
-
         rules = [
             (v.not_empty, 'name', 'password'),
             (v.not_both_empty, 'email', 'phone'),
@@ -165,7 +160,8 @@ class ChangeUserProfileApi(BaseHandler):
             if not old_user:
                 return self.send_error(errors.no_user, reason=str(user['_id']))
 
-            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender'] if user.get(f) != old_user.get(f)}
+            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
+                    if f in user and user[f] != old_user.get(f)}
             if not sets:
                 return self.send_error(errors.no_change)
 
@@ -196,7 +192,7 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role', context=(user.get('_id') + ': ' + user['roles']))
+            self.add_op_log('change_role', context=(str(user.get('_id')) + ': ' + user['roles']))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': user['roles']})
@@ -259,6 +255,14 @@ class DeleteUserApi(BaseHandler):
         self.send_response()
 
 
+class RemoveUserApi(BaseHandler):
+    URL = '/api/user/remove'
+
+    def post(self):
+        """ 删除用户 """
+        pass
+
+
 class ChangeMyPasswordApi(BaseHandler):
     URL = '/api/my/pwd'
 
@@ -314,7 +318,7 @@ class ChangeMyProfileApi(BaseHandler):
             self.current_user['email'] = user.get('email') or self.current_user['email']
             self.current_user['phone'] = user.get('phone') or self.current_user.get('phone')
 
-            self.db.user.update_one(dict(_id=self.current_user['_id']), {
+            r = self.db.user.update_one(dict(_id=self.current_user['_id']), {
                 '$set': dict(
                     name=self.current_user['name'],
                     gender=self.current_user.get('gender'),
@@ -322,6 +326,8 @@ class ChangeMyProfileApi(BaseHandler):
                     phone=self.current_user.get('phone')
                 )
             })
+            if not r.modified_count:
+                return self.send_error(errors.no_change)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')

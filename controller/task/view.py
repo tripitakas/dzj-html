@@ -47,7 +47,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
 
     def get_tasks(self, task_type):
         sub_types = self.task_types[task_type]['sub_task_types'].keys()
-        not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['id']} for t in sub_types}
+        not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
         tasks = self.get_tasks_info_by_type(task_type, [self.STATUS_OPENED, self.STATUS_RETURNED],
                                             set_conditions=lambda cond: cond.update(not_me))
         return tasks
@@ -244,7 +244,7 @@ class CharProofDetailHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
             self.render('text_proof.html', page=page,
-                        readonly=page.get('text_proof_user') != self.current_user['id'])
+                        readonly=page.get('text_proof_user') != self.current_user['_id'])
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -259,6 +259,6 @@ class CharReviewDetailHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
             self.render('text_review.html', page=page,
-                        readonly=page.get('text_proof_user') != self.current_user['id'])
+                        readonly=page.get('text_proof_user') != self.current_user['_id'])
         except Exception as e:
             self.send_db_error(e, render=True)
