@@ -12,7 +12,7 @@ user3 = 'expert3@test.com', 't12312'
 
 class TestTaskFlow(APITestCase):
     def setUp(self):
-        super(APITestCase, self).setUp()
+        super(TestTaskFlow, self).setUp()
 
         # 创建几个专家用户（权限足够），用于审校流程的测试
         admin = self.add_users([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
@@ -27,7 +27,7 @@ class TestTaskFlow(APITestCase):
         for task_type in assignable_do_roles:
             self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
 
-        super(APITestCase, self).setUp()
+        super(TestTaskFlow, self).setUp()
 
     def publish(self, task_type, data):
         return self.fetch('/api/task/publish/%s' % task_type, body={'data': data})
