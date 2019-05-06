@@ -34,6 +34,7 @@ def i18n_trans(key):
         'name': '姓名',
         'phone': '手机',
         'email': '邮箱',
+        'phone_or_email': '手机或邮箱',
         'password': '密码',
         'old_password': '原始密码',
         'gender': '性别',
@@ -47,12 +48,14 @@ def allowed_keys(**kw):
 
 
 def not_empty(**kw):
+    """不允许为空以及空串"""
     code, message = e.not_allowed_empty
     errs = {k: (code, message % i18n_trans(k)) for k, v in kw.items() if not v}
     return errs or None
 
 
 def not_both_empty(**kw):
+    """不允许同时为空以及空串"""
     assert len(kw) == 2
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
@@ -82,64 +85,49 @@ def equal(**kw):
         return {k1: err, k2: err}
 
 
-def is_name(name='', **kw):
-    """ 检查是否为姓名。参数可以为字符串或者字典。"""
-    if kw:
-        assert len(kw) == 1
-        k, v = list(kw.items())[0]
-    else:
-        k, v = '', name
+def is_name(**kw):
+    """ 检查是否为姓名。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
-    if v is not None and not re.match(regex, v):
+    if v and not re.match(regex, v): # 值为空或空串时跳过而不检查
         return {k: e.invalid_name}
 
 
-def is_phone(phone='', **kw):
-    """ 检查是否为手机。参数可以为字符串或者字典。"""
-    if kw:
-        assert len(kw) == 1
-        k, v = list(kw.items())[0]
-    else:
-        k, v = '', phone
+def is_phone(**kw):
+    """ 检查是否为手机。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
     regex = r'^1[34578]\d{9}$'
-    if v is not None and not re.match(regex, str(v)):
+    if v and not re.match(regex, str(v)): # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone}
 
 
-def is_email(email='', **kw):
-    """ 检查是否为邮箱。参数可以为字符串或者字典。"""
-    if kw:
-        assert len(kw) == 1
-        k, v = list(kw.items())[0]
-    else:
-        k, v = '', email
+def is_email(**kw):
+    """ 检查是否为邮箱。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
-    if v is not None and not re.match(regex, v):
+    if v and not re.match(regex, v):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_email}
 
 
-def is_phone_or_email(phone_or_email='', **kw):
-    """ 检查是否为邮箱。参数可以为字符串或者字典。"""
-    if kw:
-        assert len(kw) == 1
-        k, v = list(kw.items())[0]
-    else:
-        k, v = 'phone_or_email', phone_or_email
+def is_phone_or_email(**kw):
+    """ 检查是否为邮箱。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     phone_regex = r'^1[34578]\d{9}$'
-    if v is not None and not re.match(email_regex, phone_or_email) and not re.match(phone_regex, phone_or_email):
+    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):   # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone_or_email}
 
 
-def is_password(password='', **kw):
-    """ 检查是否为密码。参数可以为字符串或者字典。"""
-    if kw:
-        assert len(kw) == 1
-        k, v = list(kw.items())[0]
-    else:
-        k, v = '', password
+def is_password(**kw):
+    """ 检查是否为密码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
-    if v is not None and not re.match(regex, str(v)):
+    if v and not re.match(regex, str(v)):   # 值为空或空串时跳过而不检查
         return {k: e.invalid_password}
 
 

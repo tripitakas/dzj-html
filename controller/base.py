@@ -84,7 +84,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         need_roles = get_route_roles(self.request.path, self.request.method)
         self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
 
-
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
             self.write({'code': 403, 'error': 'Forbidden'})
@@ -138,20 +137,25 @@ class BaseHandler(CorsMixin, RequestHandler):
         except ValueError:
             logging.error(body)
 
-    def send_response(self, response=None, type='data'):
+    def send_response(self, response=None, type='data', code=500):
         """
         发送API响应内容，结束处理
         :param response: 返回给请求的内容
         :param type: 'data'表示正确数据，'error'表示错误消息
+        :param code: 错误代码
         """
         assert type in ['data', 'error']
-
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        _response = {
-            'status': 'failed' if type == 'error' else 'success',
-            type: response
-        }
-        self.write(json_util.dumps(_response))
+        if type == 'error' and isinstance(response, tuple):
+            code = response[0]
+        elif type == 'error' and isinstance(response, dict) and len(response) > 0:
+            first_item = list(response.values())[0]
+            if isinstance(first_item, tuple):
+                code = first_item[0]
+        elif type == 'data':
+            code = 200
+
+        self.write(json_util.dumps({'code': code, type: response}))
         self.finish()
 
     def send_error(self, status_code=500, render=False, **kwargs):
