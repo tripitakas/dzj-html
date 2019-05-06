@@ -40,3 +40,13 @@ mutiple_record = 2011, '%s存在多条记录'
 task_locked = 3000, '本任务已被领走，请领取新的任务'
 task_uncompleted = 3001, '您还有未完成的任务，请继续完成后再领取新的任务'
 task_changed = 3002, '本任务的状态已改变'
+
+
+def get_code_message(code):
+    msg = [v[1] for v in globals().values() if isinstance(v, tuple) and v[0] == int(code)]
+    return msg and msg[0]
+
+
+if __name__ == '__main__':
+    msg = get_code_message(3002)
+    print(msg)

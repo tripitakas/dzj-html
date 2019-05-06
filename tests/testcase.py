@@ -27,8 +27,7 @@ class APITestCase(AsyncHTTPTestCase):
         options.testing = True
         options.debug = False
         options.port = self.get_http_port()
-        return Application(c.handlers + c.views, db_name_ext='_test',
-                           ui_modules=c.modules,
+        return Application(c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules,
                            default_handler_class=c.InvalidPageHandler)
 
     def tearDown(self):
@@ -39,34 +38,27 @@ class APITestCase(AsyncHTTPTestCase):
     def parse_response(response):
         body = response.body and to_basestring(response.body) or '{}'
         if body and body.startswith('{'):
-            body = json_decode(body)
-            body = body['data'] if 'data' in body else body
-            if 'code' not in body and 'error' in body:
-                if isinstance(body['error'], list):
-                    body['code'] = body['error'][0]
-                elif isinstance(body['error'], dict):
-                    body['code'] = list(body['error'].values())[0][0]
+            body = json_util.loads(body)
+            if 'data' in body:  # 如果body含'date'，则将data的内容赋给body，以便测试使用
+                body.update(body['data'])
         return body
 
     def get_code(self, response):
         response = self.parse_response(response)
-        return response.get('code', 200)
+        return response.get('code')
 
     def assert_code(self, code, response, msg=None):
+        """
+        判断response中是否存在code
+        :param code: 有三种类型：code; (code, message); [(code, message), (code, message)...]
+        :param response: 请求的响应体
+        """
         code = code[0] if isinstance(code, tuple) else code
-        try:
-            r2 = self.parse_response(response)
-            if isinstance(r2.get('error'), dict):
-                name = list(r2['error'].keys())[0]
-                r_code, error = r2['error'][name]
-            else:
-                r_code, error = r2['error']
-        except (AttributeError, KeyError, TypeError, ValueError):
-            r_code, error = response.code, response.error
+        r_code = self.get_code(response) if self.get_code(response) else response.code
         if isinstance(code, list):
-            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg or error)
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)
         else:
-            self.assertEqual(code, r_code, msg=msg or error)
+            self.assertEqual(code, r_code, msg=msg)
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
@@ -105,14 +97,14 @@ class APITestCase(AsyncHTTPTestCase):
         self.assert_code([200, 1012], r)
         return r
 
-    def add_users(self, users, auth=None):
+    def add_users(self, users, roles=None):
         admin = self.add_admin_user()
         for u in users:
             r = self.parse_response(self.register_login(u))
             u['_id'] = r.get('_id')
         self.assert_code(200, self.login_as_admin())
         for u in users:
-            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('auth', auth))})
+            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
             self.assert_code(200, r)
         return self.parse_response(admin)
 

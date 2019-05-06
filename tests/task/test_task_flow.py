@@ -38,29 +38,29 @@ class TestTaskFlow(APITestCase):
         # 通过API发布栏切分校对任务（栏切分没有前置任务，简单）
         self.login_as_admin()
         r = self.parse_response(self.publish('block_cut_proof', dict(pages='')))
-        self.assertIsInstance(r, list)
-        self.assertEqual(r, [])
+        self.assertIsInstance(r['data'], list)
+        self.assertEqual(r['data'], [])
         r = self.parse_response(self.publish('block_cut_proof',
                                              dict(pages='GL_1056_5_6,JX_165_7_12', priority='高')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r])
-        self.assertEqual({'opened'}, set([t['status'] for t in r]))
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r['data']])
+        self.assertEqual({'opened'}, set([t['status'] for t in r['data']]))
 
         # 再发布有前置任务的栏切分审定任务，将跳过不存在的页面
         r = self.parse_response(self.publish('block_cut_review',
                                              dict(pages='GL_1056_5_6,JX_165_7_30,JX_er', priority='中')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r])
-        self.assertEqual(['pending', 'opened'], [t['status'] for t in r])
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['data']])
+        self.assertEqual(['pending', 'opened'], [t['status'] for t in r['data']])
 
         # 测试有子任务类型的情况
         r = self.parse_response(self.publish('text_proof.1', dict(pages='GL_1056_5_6,JX_165_7_30')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r])
-        self.assertEqual(['opened', 'opened'], [t['status'] for t in r])
+        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['data']])
+        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['data']])
         r = self.parse_response(self.publish('text_proof.2', dict(pages='GL_1056_5_6,JX_165_7_30')))
-        self.assertEqual(['opened', 'opened'], [t['status'] for t in r])
+        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['data']])
 
         r = self.parse_response(self.publish('text_review', dict(pages='GL_1056_5_6')))
-        self.assertEqual(['GL_1056_5_6'], [t['name'] for t in r])
-        self.assertEqual(['pending'], [t['status'] for t in r])
+        self.assertEqual(['GL_1056_5_6'], [t['name'] for t in r['data']])
+        self.assertEqual(['pending'], [t['status'] for t in r['data']])
 
     def test_task_lobby(self):
         """ 测试任务大厅 """
@@ -73,7 +73,7 @@ class TestTaskFlow(APITestCase):
                     r = self.parse_response(self.publish('%s.%d' % (task_type, i), dict(pages='GL_1056_5_6,JX_165_7_12')))
             else:
                 r = self.parse_response(self.publish(task_type, dict(pages='GL_1056_5_6,JX_165_7_12')))
-            self.assertEqual({'opened'}, set([t['status'] for t in r]), msg=task_type)
+            self.assertEqual({'opened'}, set([t['status'] for t in r['data']]), msg=task_type)
 
             r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
             self.assert_code(200, r, msg=task_type)
