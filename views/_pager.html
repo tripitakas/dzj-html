@@ -1,4 +1,4 @@
-{% if pager['page_count'] > 1 %}
+{% if isinstance(pager, dict) and pager['page_count'] > 1 %}
 <div class="pagers">
   <span>当前&nbsp;<em>{{pager['cur_page']}}</em>/{{pager['page_count']}}&nbsp;页，共&nbsp;<em>{{pager['item_count']}}</em>&nbsp;条</span>
   <ul>
