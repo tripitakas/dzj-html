@@ -90,7 +90,7 @@ def is_name(name='', **kw):
     else:
         k, v = '', name
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
-    if v and not re.match(regex, v):
+    if v is not None and not re.match(regex, v):
         return {k: e.invalid_name}
 
 
@@ -102,7 +102,7 @@ def is_phone(phone='', **kw):
     else:
         k, v = '', phone
     regex = r'^1[34578]\d{9}$'
-    if v and not re.match(regex, str(v)):
+    if v is not None and not re.match(regex, str(v)):
         return {k: e.invalid_phone}
 
 
@@ -114,7 +114,7 @@ def is_email(email='', **kw):
     else:
         k, v = '', email
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
-    if v and not re.match(regex, v):
+    if v is not None and not re.match(regex, v):
         return {k: e.invalid_email}
 
 
@@ -127,7 +127,7 @@ def is_phone_or_email(phone_or_email='', **kw):
         k, v = 'phone_or_email', phone_or_email
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     phone_regex = r'^1[34578]\d{9}$'
-    if v and not re.match(email_regex, phone_or_email) and not re.match(phone_regex, phone_or_email):
+    if v is not None and not re.match(email_regex, phone_or_email) and not re.match(phone_regex, phone_or_email):
         return {k: e.invalid_phone_or_email}
 
 
@@ -139,7 +139,7 @@ def is_password(password='', **kw):
     else:
         k, v = '', password
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
-    if v and not re.match(regex, str(v)):
+    if v is not None and not re.match(regex, str(v)):
         return {k: e.invalid_password}
 
 
@@ -165,7 +165,7 @@ def not_existed(collection=None, exclude_id=None, **kw):
             condition = {k: v}
             if exclude_id:
                 condition['_id'] = {'$ne': exclude_id}
-            if v and collection.find_one(condition):
+            if v is not None and collection.find_one(condition):
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 
@@ -176,7 +176,7 @@ def is_unique(collection=None, **kw):
     code, message = e.record_existed
     if collection:
         for k, v in kw.items():
-            if v and collection.find({k: v}).count() > 1:
+            if v is not None and collection.find({k: v}).count() > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 

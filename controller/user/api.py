@@ -149,7 +149,7 @@ class ChangeUserProfileApi(BaseHandler):
         """ 修改用户基本信息: 姓名，手机，邮箱，性别"""
         user = self.get_request_data()
         rules = [
-            (v.not_empty, '_id'),
+            (v.not_empty, 'name', '_id'),
             (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
