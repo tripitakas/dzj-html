@@ -48,7 +48,7 @@ class TestUserApi(APITestCase):
         # 可以修改自己的基本信息
         r = self.fetch('/api/my/profile', body={'data': dict(
             id=user['_id'], email=user['email'], name='教师甲')})
-        self.assert_code(200, r)
+        self.assert_code([200, e.no_change], r)
         r = self.fetch('/api/user/profile', body={'data': dict(
             id=user['_id'], email=user['email'], name='教师甲')})
         self.assert_code(e.unauthorized, r)
