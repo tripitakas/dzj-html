@@ -81,8 +81,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         user = self.get_secure_cookie('user')
         try:
             return user and json_util.loads(user) or None
-        except TypeError as e:
-            print(user, str(e))
+        except TypeError as err:
+            print(user, str(err))
 
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
@@ -102,8 +102,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
-        except Exception as e:
-            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(e) or e.__class__.__name__)))
+        except Exception as err:
+            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(err) or err.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
@@ -153,7 +153,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         if isinstance(status_code, tuple):
             status_code, message = status_code
             if 'reason' in kwargs and kwargs['reason'] != message:
-                message += ': ' + kwargs['reason']
+                if '%s' in message:
+                    message = message % kwargs['reason']
+                else:
+                    message += ': ' + kwargs['reason']
             kwargs['reason'] = message
             error = (status_code, message)
         elif isinstance(status_code, dict):
@@ -183,8 +186,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
-        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
-        if not code and '[Errno' in reason and isinstance(e, MongoError):
+        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
+        if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             return self.send_error(
@@ -201,7 +204,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if code not in [2003, 1]:
             traceback.print_exc()
 
-        default_error = e.mongo_error if isinstance(e, MongoError) else e.db_error
+        default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
         self.send_error(
             default_error[0] + code,
             for_yield=True,
@@ -234,55 +237,60 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(page_code.split('_')[:-1])
         return '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value) if host and salt else ''
 
-
-@gen.coroutine
-def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
-    self._auto_finish = False
-    client = AsyncHTTPClient()
-    url = re.sub('[\'"]', '', url)
-    if not re.match(r'http(s)?://', url):
-        url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-        r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
-    else:
-        r = yield client.fetch(url, validate_cert=False, **kwargs)
-
-    if r.error:
-        if handle_error:
-            handle_error(r.error)
+    @gen.coroutine
+    def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+        self._auto_finish = False
+        client = AsyncHTTPClient()
+        url = re.sub('[\'"]', '', url)
+        if not re.match(r'http(s)?://', url):
+            url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
+            r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
         else:
-            self.render('_error.html', code=500, error='错误1: ' + r.error)
-    else:
-        try:
+            r = yield client.fetch(url, validate_cert=False, **kwargs)
+
+        if r.error:
+            if handle_error:
+                handle_error(r.error)
+            else:
+                self.render('_error.html', code=500, error='错误1: ' + r.error)
+        else:
             try:
-                body = str(r.body, encoding='utf-8').strip()
-            except UnicodeDecodeError:
-                body = str(r.body, encoding='gb18030').strip()
-            except TypeError:
-                body = to_basestring(r.body).strip()
-            self._handle_body(body, handle_response, handle_error)
-        except Exception as e:
-            e = '错误(%s): %s' % (e.__class__.__name__, str(e))
-            if handle_error:
-                handle_error(e)
-            else:
-                self.render('_error.html', code=500, error=e)
+                try:
+                    body = str(r.body, encoding='utf-8').strip()
+                except UnicodeDecodeError:
+                    body = str(r.body, encoding='gb18030').strip()
+                except TypeError:
+                    body = to_basestring(r.body).strip()
+                self._handle_body(body, handle_response, handle_error)
+            except Exception as err:
+                err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                if handle_error:
+                    handle_error(err)
+                else:
+                    self.render('_error.html', code=500, error=err)
 
-
-def _handle_body(self, body, handle_response, handle_error):
-    if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
-        if 'var next' in body:
-            body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
-            body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
-            self.write(body)
-            self.finish()
-        else:
-            handle_response(body)
-    else:
-        body = json_util.loads(body)
-        if body.get('error'):
-            if handle_error:
-                handle_error(body['error'])
+    def _handle_body(self, body, handle_response, handle_error):
+        if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+            if 'var next' in body:
+                body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
+                body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
+                self.write(body)
+                self.finish()
             else:
-                self.render('_error.html', code=500, error='错误3: ' + body['error'])
+                handle_response(body)
         else:
-            handle_response(body)
+            body = json_util.loads(body)
+            if body.get('error'):
+                if isinstance(body['error'], list):
+                    error = body['error'][1]
+                elif isinstance(body['error'], dict):
+                    error = list(body['error'].values())[0][1]
+                else:
+                    error = body['error']
+
+                if handle_error:
+                    handle_error(error)
+                else:
+                    self.render('_error.html', code=500, error=error)
+            else:
+                handle_response(body)

@@ -18,12 +18,12 @@ class TaskLobbyHandler(TaskHandler):
             for t in tasks:
                 if t.get(task_type, {}).get('priority'):
                     t['priority'] = t.get(task_type, {}).get('priority')
-                    t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
+                    t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                     continue
                 for k, v in t.get(task_type, {}).items():
                     if v.get('status') in [self.STATUS_OPENED, self.STATUS_RETURNED]:
                         t['priority'] = v.get('priority')
-                        t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
+                        t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                         continue
 
         try:
