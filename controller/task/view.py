@@ -197,14 +197,14 @@ class LobbyCharCutReviewHandler(TaskLobbyHandler):
 
 
 class CutDetailBaseHandler(TaskHandler):
-    def enter(self, box_type, stage, name):
+    def enter(self, box_type, stage, name, template_name):
         def handle_response(body):
             try:
                 page = self.db.page.find_one(dict(name=name))
                 if not page:
                     return self.render('_404.html')
 
-                self.render('text_proof.html', page=page,
+                self.render(template_name, page=page,
                             readonly=body.get('name') != name,
                             title='切分校对' if stage == 'proof' else '切分审定',
                             get_img=self.get_img,
@@ -238,7 +238,7 @@ class CutProofDetailHandler(CutDetailBaseHandler):
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
-        self.enter(box_type, 'proof', name)
+        self.enter(box_type, 'proof', name, 'cut_%s.html' % box_type)
 
 
 class CutReviewDetailHandler(CutDetailBaseHandler):
@@ -246,7 +246,7 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
-        self.enter(box_type, 'review', name)
+        self.enter(box_type, 'review', name, 'cut_%s.html' % box_type)
 
 
 class CharProofDetailHandler(TaskHandler):
