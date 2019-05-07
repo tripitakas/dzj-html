@@ -120,13 +120,13 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
-            r = self.db.user.insert_one(dict(name=user['name'], email=user.get('email'), phone=str(user.get('phone')),
+            r = self.db.user.insert_one(dict(name=user['name'], email=user.get('email'), phone=user.get('phone'),
                                              gender=user.get('gender'), roles=user['roles'],
                                              password=hlp.gen_id(user['password']),
                                              create_time=hlp.get_date_time()
                                              ))
             user['_id'] = r.inserted_id
-            self.add_op_log('register', context=user.get('email') + ': ' + str(user.get('phone')) + ': ' + user['name'])
+            self.add_op_log('register', context='%s: %s: %s' % (user.get('email'), user.get('phone'), user['name']))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -158,7 +158,7 @@ class ChangeUserProfileApi(BaseHandler):
         try:
             old_user = self.db.user.find_one(dict(_id=user['_id']))
             if not old_user:
-                return self.send_error(errors.no_user, reason=str(user['_id']))
+                return self.send_error(errors.no_user, reason=user['_id'])
 
             sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
                     if f in user and user[f] != old_user.get(f)}
@@ -167,7 +167,7 @@ class ChangeUserProfileApi(BaseHandler):
 
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
-                self.add_op_log('change_user_profile', context=','.join([str(user['_id'])] + list(sets.keys())))
+                self.add_op_log('change_user_profile', context='%s: %s' % (user['_id'], ','.join(sets.keys())))
 
             self.send_response(dict(info=sets))
 
@@ -192,7 +192,7 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error(errors.no_user)
-            self.add_op_log('change_role', context=(str(user.get('_id')) + ': ' + user['roles']))
+            self.add_op_log('change_role', context='%s: %s' % (user.get('_id'), user.get('roles')))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response({'roles': user['roles']})
@@ -231,6 +231,7 @@ class ResetUserPasswordApi(BaseHandler):
             'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
             'context': context
         })
+
 
 class DeleteUserApi(BaseHandler):
     URL = r'/api/user/delete'
