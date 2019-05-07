@@ -10,15 +10,15 @@ import logging
 import traceback
 import hashlib
 
+from bson import json_util
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
 from tornado import gen
-from tornado.escape import json_decode, to_basestring
+from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-from bson import json_util
 
 from controller import errors as e
 from controller.role import get_route_roles, can_access
@@ -47,37 +47,29 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/post 前的准备 """
         p, m = self.request.path, self.request.method
-
         # 单元测试
         if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
             return
-
         # 检查是否访客可以访问
         if can_access('访客', p, m):
             return
-
         # 检查用户是否已登录
         api = '/api/' in p
         if not self.current_user:
             return self.send_error(e.need_login, reason='需要重新登录') if api else self.redirect(self.get_login_url())
-
         # 检查数据库中是否有该用户
         user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
             return self.send_error(e.no_user, reason='需要重新注册') if api else self.redirect(self.get_login_url())
-
         # 检查前更新roles
         self.current_user['roles'] = user_in_db.get('roles', '')
         self.set_secure_cookie('user', json_util.dumps(self.current_user))
-
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
-
         # 检查当前用户是否可以访问本请求
         if can_access(self.current_user['roles'], p, m):
             return
-
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
         self.send_error(e.unauthorized, render=not api, reason=','.join(need_roles))
@@ -172,7 +164,6 @@ class BaseHandler(CorsMixin, RequestHandler):
             error = (status_code, message)
         elif isinstance(status_code, dict):
             error, status_code = status_code, e.validate_error[0]
-
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
 
@@ -184,33 +175,46 @@ class BaseHandler(CorsMixin, RequestHandler):
         reason = kwargs.get('reason') or self._reason
         reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
             str(self).split('.')[-1].split(' ')[0],
-            str(kwargs.get('exc_info', (0, '', 0))[1]))
-        logging.error('%d %s [%s %s]' % (status_code, reason,
-                                         self.current_user and self.current_user['name'], self.get_ip()))
+            str(kwargs.get('exc_info', (0, '', 0))[1])
+        )
+        logging.error('%d %s [%s %s]' % (
+            status_code,
+            reason,
+            self.current_user and self.current_user['name'],
+            self.get_ip()
+        ))
+
         if not self._finished:
             self.send_response(response=kwargs.get('error'), type='error')
 
-    def send_db_error(self, e, render=False):
-        code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
-        reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
+    def send_db_error(self, error, render=False):
+        code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
+        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
         if not code and '[Errno' in reason and isinstance(e, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            return self.send_error(e.mongo_error[0] + code,
-                                   render=render,
-                                   reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                                       e.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
+            return self.send_error(
+                e.mongo_error[0] + code,
+                render=render,
+                reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
+                    e.mongo_error[1], error.__class__.__name__, ': ' + (reason or ''))
+            )
+
         if code:
-            logging.error(e.args[1])
-        if 'InvalidId' == e.__class__.__name__:
+            logging.error(error.args[1])
+        if 'InvalidId' == error.__class__.__name__:
             code, reason = 1, e.no_object[1]
         if code not in [2003, 1]:
             traceback.print_exc()
+
         default_error = e.mongo_error if isinstance(e, MongoError) else e.db_error
-        self.send_error(default_error[0] + code, for_yield=True,
-                        render=render,
-                        reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
-                            default_error[1], e.__class__.__name__, ': ' + (reason or '')))
+        self.send_error(
+            default_error[0] + code,
+            for_yield=True,
+            render=render,
+            reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
+                default_error[1], error.__class__.__name__, ': ' + (reason or ''))
+        )
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
@@ -218,69 +222,73 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def add_op_log(self, op_type, file_id=None, context=None):
         logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
-        self.db.log.insert_one(dict(type=op_type,
-                                    user_id=self.current_user and self.current_user.get('_id'),
-                                    file_id=file_id or None,
-                                    context=context and context[:80],
-                                    create_time=get_date_time(),
-                                    ip=self.get_ip()))
+        self.db.log.insert_one(dict(
+            type=op_type,
+            user_id=self.current_user and self.current_user.get('_id'),
+            file_id=file_id or None,
+            context=context and context[:80],
+            create_time=get_date_time(),
+            ip=self.get_ip()
+        ))
 
     def get_img_url(self, page_code):
-        host = self.application.config['img']['host']
-        salt = self.application.config['img']['salt']
+        host = self.config.get('img', {}).get('host')
+        salt = self.config.get('img', {}).get('salt')
         md5 = hashlib.md5()
         md5.update((page_code + salt).encode('utf-8'))
         hash_value = md5.hexdigest()
         inner_path = '/'.join(page_code.split('_')[:-1])
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value) if host and salt else ''
-        return url
+        return '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value) if host and salt else ''
 
-    @gen.coroutine
-    def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
-        self._auto_finish = False
-        client = AsyncHTTPClient()
-        url = re.sub('[\'"]', '', url)
-        if not re.match(r'http(s)?://', url):
-            url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-            r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
+
+@gen.coroutine
+def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+    self._auto_finish = False
+    client = AsyncHTTPClient()
+    url = re.sub('[\'"]', '', url)
+    if not re.match(r'http(s)?://', url):
+        url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
+        r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
+    else:
+        r = yield client.fetch(url, validate_cert=False, **kwargs)
+
+    if r.error:
+        if handle_error:
+            handle_error(r.error)
         else:
-            r = yield client.fetch(url, validate_cert=False, **kwargs)
-        if r.error:
-            if handle_error:
-                handle_error(r.error)
-            else:
-                self.render('_error.html', code=500, error='错误1: ' + r.error)
-        else:
+            self.render('_error.html', code=500, error='错误1: ' + r.error)
+    else:
+        try:
             try:
-                try:
-                    body = str(r.body, encoding='utf-8').strip()
-                except UnicodeDecodeError:
-                    body = str(r.body, encoding='gb18030').strip()
-                except TypeError:
-                    body = to_basestring(r.body).strip()
-                self._handle_body(body, handle_response, handle_error)
-            except Exception as e:
-                e = '错误(%s): %s' % (e.__class__.__name__, str(e))
-                if handle_error:
-                    handle_error(e)
-                else:
-                    self.render('_error.html', code=500, error=e)
+                body = str(r.body, encoding='utf-8').strip()
+            except UnicodeDecodeError:
+                body = str(r.body, encoding='gb18030').strip()
+            except TypeError:
+                body = to_basestring(r.body).strip()
+            self._handle_body(body, handle_response, handle_error)
+        except Exception as e:
+            e = '错误(%s): %s' % (e.__class__.__name__, str(e))
+            if handle_error:
+                handle_error(e)
+            else:
+                self.render('_error.html', code=500, error=e)
 
-    def _handle_body(self, body, handle_response, handle_error):
-        if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
-            if 'var next' in body:
-                body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
-                body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
-                self.write(body)
-                self.finish()
-            else:
-                handle_response(body)
+
+def _handle_body(self, body, handle_response, handle_error):
+    if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+        if 'var next' in body:
+            body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
+            body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
+            self.write(body)
+            self.finish()
         else:
-            body = json_decode(body)
-            if body.get('error'):
-                if handle_error:
-                    handle_error(body['error'])
-                else:
-                    self.render('_error.html', code=500, error='错误3: ' + body['error'])
+            handle_response(body)
+    else:
+        body = json_util.loads(body)
+        if body.get('error'):
+            if handle_error:
+                handle_error(body['error'])
             else:
-                handle_response(body)
+                self.render('_error.html', code=500, error='错误3: ' + body['error'])
+        else:
+            handle_response(body)

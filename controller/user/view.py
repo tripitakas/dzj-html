@@ -40,7 +40,7 @@ class UsersAdminHandler(BaseHandler):
         """ 用户管理页面 """
         try:
             item_count = self.db.user.count()
-            page_size = int(self.application.config['pager']['page_size'])
+            page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
@@ -59,7 +59,7 @@ class UserRolesHandler(BaseHandler):
         """ 角色管理页面 """
         try:
             item_count = self.db.user.count()
-            page_size = int(self.application.config['pager']['page_size'])
+            page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
@@ -79,7 +79,7 @@ class UserStatisticHandler(BaseHandler):
         """ 人员管理-数据管理页面 """
         try:
             item_count = self.db.user.count()
-            page_size = int(self.application.config['pager']['page_size'])
+            page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
