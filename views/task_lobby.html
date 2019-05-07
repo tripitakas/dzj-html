@@ -60,7 +60,7 @@
 													<tr id="{{t['name']}}">
 														<td>{{t['name']}}</td>
 														<td>{{t.get('priority', '')}}</td>
-														<td><a href="{{t.get('pick_url', '#')}}">领取</a></td>
+														<td><a href="{{t.get('pick_url', '#')}}">{{'继续' if t['status'] == 'locked' else '领取'}}</a></td>
 													</tr>
 													{% end %}
 												</tbody>

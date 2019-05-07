@@ -8,34 +8,49 @@
 import json
 from os import path
 from controller.task.base import TaskHandler
+from functools import cmp_to_key
 
 
 class TaskLobbyHandler(TaskHandler):
     def show_tasks(self, task_type):
         """ 任务大厅 """
 
-        def pack():
-            for t in tasks:
+        def pack(items):
+            for t in items:
                 if t.get(task_type, {}).get('priority'):
                     t['priority'] = t.get(task_type, {}).get('priority')
                     t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
+                    t['status'] = t.get(task_type, {}).get('status')
                     continue
                 for k, v in t.get(task_type, {}).items():
-                    if v.get('status') in [self.STATUS_OPENED, self.STATUS_RETURNED]:
+                    if v.get('status') in task_status or uncompleted(v):
                         t['priority'] = v.get('priority')
                         t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
+                        t['status'] = v.get('status')
                         continue
 
+        def sorted_by_priority(items):
+            pack(items)
+            return sorted(items, key=cmp_to_key(
+                lambda a, b: '高中低'.index(a['priority']) - '高中低'.index(b['priority'])))
+
+        def uncompleted(t):
+            return t.get('status') == self.STATUS_LOCKED and \
+                   t.get('picked_user_id') == self.current_user['_id']
+
         try:
-            tasks = self.get_tasks(task_type)
-            pack()
+            task_status = [self.STATUS_OPENED, self.STATUS_RETURNED]
+            my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_LOCKED])
+                        if [1 for s in t.get(task_type, {}).get('status') and [t.get(task_type)]
+                            or list(t.get(task_type, {}).values()) if uncompleted(s)]]
+            tasks = sorted_by_priority(my_tasks) + sorted_by_priority(self.get_tasks(task_type, task_status))
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
         except Exception as e:
             self.send_db_error(e, render=True)
 
-    def get_tasks(self, task_type):
-        return self.get_tasks_info_by_type(task_type, [self.STATUS_OPENED, self.STATUS_RETURNED])
+    def get_tasks(self, task_type, task_status):
+        return self.get_tasks_info_by_type(task_type, task_status)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -45,10 +60,10 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
         """ 文字校对任务大厅 """
         self.show_tasks('text_proof')
 
-    def get_tasks(self, task_type):
+    def get_tasks(self, task_type, task_status):
         sub_types = self.task_types[task_type]['sub_task_types'].keys()
         not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_tasks_info_by_type(task_type, [self.STATUS_OPENED, self.STATUS_RETURNED],
+        tasks = self.get_tasks_info_by_type(task_type, task_status,
                                             set_conditions=lambda cond: cond.update(not_me))
         return tasks
 

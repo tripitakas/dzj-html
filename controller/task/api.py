@@ -108,7 +108,7 @@ class GetLobbyTasksApi(TaskHandler):
                 fields.update({'%s.status' % task_type: 1})
                 fields.update({'%s.priority' % task_type: 1})
 
-            pages = self.db.page.find(conditions, fields).limit(page_size).skip(page_size * (page_no - 1))
+            pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
             self.send_response(pages)
         except DbError as e:
             self.send_db_error(e)
