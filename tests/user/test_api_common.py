@@ -21,23 +21,72 @@ class TestUserCommonApi(APITestCase):
 
     def test_api_login(self):
         """ 登录api """
-        # 测试接口有效性
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email='')})
-        self.assert_code(e.not_allowed_empty, r)
-
-        # 测试管理员用户
         self.add_first_user_as_admin_then_login()
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.admin[0], password='')})
-        self.assert_code([e.need_password, e.not_allowed_empty], r)
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.admin[0], password=u.admin[1])})
-        self.assert_code(200, r)
-        data = self.parse_response(r)
-        self.assertIn('用户管理员', data['roles'])
+        self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
 
-        # 测试普通用户
+        # 密码有误
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password='!@#$%^%$1234')})
+        self.assert_code(e.incorrect_password, r)
+
+        # 正常登陆
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
+        self.assert_code(200, r)
+
+    def test_api_logout(self):
+        """ 登出api """
+        self.add_first_user_as_admin_then_login()
         self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
         self.assert_code(200, r)
+
+        r = self.fetch('/api/user/logout')
+        self.assert_code(200, r)
+
+        r = self.fetch('/my/profile')
+        self.assertNotIn(u.user1[0], self.parse_response(r))
+
+    def test_api_register(self):
+        """ 用户注册 """
+        self._app.db.user.drop()
+        # 姓名为空
+        r = self.fetch('/api/user/register', body={'data': dict(email=u.user1[0], password=u.user1[1], name='')})
+        self.assert_code(e.not_allowed_empty, r)
+
+        # 姓名格式有误
+        r = self.fetch('/api/user/register', body={'data': dict(email=u.user1[0], password=u.user1[1], name='张三123')})
+        self.assert_code(e.invalid_name, r)
+
+        # 手机和邮箱同时为空
+        r = self.fetch('/api/user/register', body={'data': dict(password=u.user1[1], name=u.user1[2])})
+        self.assert_code(e.not_allowed_both_empty, r)
+
+        # 手机格式有误
+        r = self.fetch('/api/user/register', body={
+            'data': dict(phone='13800000000-1', password=u.user1[1], name=u.user1[2])
+        })
+        self.assert_code(e.invalid_phone, r)
+
+        # 邮箱格式有误
+        r = self.fetch('/api/user/register', body={
+            'data': dict(email='user1#test.com', password=u.user1[1], name=u.user1[2])
+        })
+        self.assert_code(e.invalid_email, r)
+
+        # 密码为空
+        r = self.fetch('/api/user/register', body={'data': dict(email=u.user1[0], password='', name=u.user1[2])})
+        self.assert_code(e.not_allowed_empty, r)
+
+        # 密码格式有误
+        r = self.fetch('/api/user/register', body={'data': dict(email=u.user1[0], password='123456', name=u.user1[2])})
+        self.assert_code(e.invalid_password, r)
+
+        # 正常注册
+        r = self.fetch('/api/user/register', body={
+            'data': dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])
+        })
+        self.assert_code(200, r)
+        data = self.parse_response(r)
+        self.assertEqual(u.user1[0], data['email'])
 
     def test_api_change_my_pwd(self):
         """修改个人密码"""
