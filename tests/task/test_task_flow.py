@@ -16,19 +16,16 @@ class TestTaskFlow(APITestCase):
 
         # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_first_user_as_admin_then_login()
-        admin = self.add_users_by_admin([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
-                                         for i, r in enumerate([user1, user2, user3])],
-                               ','.join(['切分专家', '文字专家']))
-        self.assert_code([200, e.no_change],
-                         self.fetch('/api/user/role', body={'data': dict(_id=admin['_id'],
-                                                                         roles='用户管理员,任务管理员')}))
+        self.add_users_by_admin([dict(email=r[0], name='专家%s' % '一二三'[i], password=r[1])
+                                 for i, r in enumerate([user1, user2, user3])],
+                                ','.join(['切分专家', '文字专家']))
 
     def tearDown(self):
         # 退回所有任务，还原改动
         for task_type in assignable_do_roles:
             self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
 
-        super(TestTaskFlow, self).setUp()
+        super(TestTaskFlow, self).tearDown()
 
     def publish(self, task_type, data):
         return self.fetch('/api/task/publish/%s' % task_type, body={'data': data})
@@ -71,7 +68,8 @@ class TestTaskFlow(APITestCase):
                           'column_cut_review', 'char_cut_review', 'text_proof', 'text_review']:
             if task_type == 'text_proof':
                 for i in range(1, 4):
-                    r = self.parse_response(self.publish('%s.%d' % (task_type, i), dict(pages='GL_1056_5_6,JX_165_7_12')))
+                    r = self.parse_response(
+                        self.publish('%s.%d' % (task_type, i), dict(pages='GL_1056_5_6,JX_165_7_12')))
             else:
                 r = self.parse_response(self.publish(task_type, dict(pages='GL_1056_5_6,JX_165_7_12')))
             self.assertEqual({'opened'}, set([t['status'] for t in r['data']]), msg=task_type)

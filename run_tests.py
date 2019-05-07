@@ -18,7 +18,7 @@ if __name__ == '__main__':
         test_args.remove('--coverage')
     except ValueError:
         test_args += ['tests']
-        test_args += ['-k test_api_change_my_profile']
+        # test_args += ['-k test_api_change_my_profile']
     else:
         test_args = ['--cov=controller',
                      '--cov-report=term',
