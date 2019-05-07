@@ -94,17 +94,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         # dumps/to_date_str传递给页面模板
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
+        logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         # 单元测试时，获取传递给页面的数据
-        self._get_kwargs_for_unitest(kwargs)
         if self.get_query_argument('_raw', 0) == '1':
-            kwargs = dict(kwargs)
-            for k, v in list(kwargs.items()):
-                if hasattr(v, '__call__'):
-                    del kwargs[k]
-            return self.send_response(kwargs)
-
-        logging.info(template_name + ' by class ' + self.__class__.__name__)
+            return self.send_response({k: v for k, v in kwargs.items() if not hasattr(v, '__call__')})
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
