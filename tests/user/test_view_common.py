@@ -3,8 +3,8 @@
 """
 @time: 2018/6/12
 """
-from tests.testcase import APITestCase
 import tests.users as u
+from tests.testcase import APITestCase
 
 
 class TestUserCommonViews(APITestCase):

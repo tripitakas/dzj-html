@@ -3,9 +3,10 @@
 """
 @time: 2018/6/12
 """
+import tests.users as u
 import controller.errors as e
 from tests.testcase import APITestCase
-import tests.users as u
+
 
 
 class TestUserCommonApi(APITestCase):

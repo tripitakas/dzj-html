@@ -5,8 +5,8 @@
 """
 import re
 import tests.users as u
-from tests.testcase import APITestCase
 from controller.user import views
+from tests.testcase import APITestCase
 
 
 class TestUserAdminViews(APITestCase):
