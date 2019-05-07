@@ -233,10 +233,10 @@ class PickTaskApi(TaskHandler):
             page = self.db.page.find_one(dict(name=name))
 
             if r.matched_count:
-                self.add_op_log('pick_' + task_type, file_id=page['id'], context=name)
+                self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
             elif page and page.get(task_user) == self.current_user['_id'] \
                     and page.get(task_status) == self.STATUS_LOCKED:
-                self.add_op_log('open_' + task_type, file_id=page['id'], context=name)
+                self.add_op_log('open_' + task_type, file_id=page['_id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)
                 return self.send_response() if page else self.send_error(errors.no_object)
@@ -318,7 +318,7 @@ class SaveCutApi(TaskHandler):
             page[field] = boxes
             r = self.db.page.update_one({'name': name}, {'$set': {field: boxes}})
             if r.modified_count:
-                self.add_op_log('save_' + task_type, file_id=page['id'], context=name)
+                self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
                 result['box_changed'] = True
 
     def submit_task(self, result, data, page, task_type, task_user):
@@ -326,7 +326,7 @@ class SaveCutApi(TaskHandler):
         r = self.db.page.update_one({'name': data.name, task_user: self.current_user['_id']}, {'$set': end_info})
         if r.modified_count:
             result['submit'] = True
-            self.add_op_log('submit_' + task_type, file_id=page['id'], context=data.name)
+            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=data.name)
 
             idx = self.task_types.index(task_type)
             for i in range(idx + 1, len(self.task_types)):
@@ -336,7 +336,7 @@ class SaveCutApi(TaskHandler):
                     r = self.db.page.update_one({'name': data.name, next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})
                     if r.modified_count:
-                        self.add_op_log('resume_' + task_type, file_id=page['id'], context=data.name)
+                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=data.name)
                         result['resume_next'] = True
                     break
 
