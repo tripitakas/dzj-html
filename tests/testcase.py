@@ -3,7 +3,7 @@
 """
 @time: 2018/12/22
 """
-from tornado.escape import json_decode, to_basestring, native_str
+from tornado.escape import to_basestring, native_str
 from tornado.options import options
 from tornado.testing import AsyncHTTPTestCase
 from tornado.httpclient import HTTPRequest
@@ -19,6 +19,7 @@ else:
     import Cookie
 
 cookie = Cookie.SimpleCookie()
+admin = 'admin@test.com', 'admin123', '用户管理员'
 
 
 class APITestCase(AsyncHTTPTestCase):
@@ -91,14 +92,14 @@ class APITestCase(AsyncHTTPTestCase):
 
         return response
 
-    def add_admin_user(self):
-        """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
-        r = self.register_login(dict(email='admin@test.com', name='管理员', password='test123'))
-        self.assert_code([200, 1012], r)
+    def add_first_user_as_admin(self):
+        """ 系统会将第一个用户作为用户管理员，在创建其他用户前先创建用户管理员，避免测试用例乱序执行引发错误"""
+        r = self.register_login(dict(email=admin[0], password=admin[1], name=admin[2], ))
+        self.assert_code(200, r)
         return r
 
     def add_users(self, users, roles=None):
-        admin = self.add_admin_user()
+        admin = self.add_first_user_as_admin()
         for u in users:
             r = self.parse_response(self.register_login(u))
             u['_id'] = r.get('_id')
@@ -109,11 +110,12 @@ class APITestCase(AsyncHTTPTestCase):
         return self.parse_response(admin)
 
     def login_as_admin(self):
-        return self.login('admin@test.com', 'test123')
+        return self.login(admin[0], admin[1])
 
     def login(self, email, password):
         return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
 
     def register_login(self, info):
+        """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
