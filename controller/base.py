@@ -61,13 +61,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
             return self.send_error(e.no_user, reason='需要重新注册') if api else self.redirect(self.get_login_url())
-        # 检查前更新roles
-        self.current_user['roles'] = user_in_db.get('roles', '')
-        self.set_secure_cookie('user', json_util.dumps(self.current_user))
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
         # 检查当前用户是否可以访问本请求
+        self.current_user['roles'] = user_in_db.get('roles', '')  # 检查权限前更新roles
+        self.set_secure_cookie('user', json_util.dumps(self.current_user))
         if can_access(self.current_user['roles'], p, m):
             return
         # 报错，无权访问
@@ -97,6 +96,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
 
         # 单元测试时，获取传递给页面的数据
+        self._get_kwargs_for_unitest(kwargs)
         if self.get_query_argument('_raw', 0) == '1':
             kwargs = dict(kwargs)
             for k, v in list(kwargs.items()):
