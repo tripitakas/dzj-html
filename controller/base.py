@@ -20,7 +20,7 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 from bson import json_util
 
-from controller import errors
+from controller import errors as e
 from controller.role import get_route_roles, can_access
 from controller.helper import get_date_time
 
@@ -46,43 +46,41 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def prepare(self):
         """ 调用 get/post 前的准备 """
+        p, m = self.request.path, self.request.method
 
         # 单元测试
-        if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or
-                                can_access('单元测试用户', self.request.path, self.request.method)):
+        if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
             return
 
         # 检查是否访客可以访问
-        if can_access('访客', self.request.path, self.request.method):
+        if can_access('访客', p, m):
             return
 
         # 检查用户是否已登录
-        is_api = '/api/' in self.request.path
+        api = '/api/' in p
         if not self.current_user:
-            return self.send_error(errors.need_login, reason='需要重新登录') if is_api \
-                else self.redirect(self.get_login_url())
+            return self.send_error(e.need_login, reason='需要重新登录') if api else self.redirect(self.get_login_url())
 
         # 检查数据库中是否有该用户
         user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
-            return self.send_error(errors.no_user, reason='需要重新注册') if is_api \
-                else self.redirect(self.get_login_url())
+            return self.send_error(e.no_user, reason='需要重新注册') if api else self.redirect(self.get_login_url())
 
         # 检查前更新roles
         self.current_user['roles'] = user_in_db.get('roles', '')
         self.set_secure_cookie('user', json_util.dumps(self.current_user))
 
         # 检查是否不需授权（即普通用户可访问）
-        if can_access('普通用户', self.request.path, self.request.method):
+        if can_access('普通用户', p, m):
             return
 
         # 检查当前用户是否可以访问本请求
-        if can_access(self.current_user['roles'], self.request.path, self.request.method):
+        if can_access(self.current_user['roles'], p, m):
             return
 
         # 报错，无权访问
-        need_roles = get_route_roles(self.request.path, self.request.method)
-        self.send_error(errors.unauthorized, render=not is_api, reason=','.join(need_roles))
+        need_roles = get_route_roles(p, m)
+        self.send_error(e.unauthorized, render=not api, reason=','.join(need_roles))
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -173,7 +171,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs['reason'] = message
             error = (status_code, message)
         elif isinstance(status_code, dict):
-            error, status_code = status_code, errors.validate_error[0]
+            error, status_code = status_code, e.validate_error[0]
 
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
@@ -198,17 +196,17 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not code and '[Errno' in reason and isinstance(e, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            return self.send_error(errors.mongo_error[0] + code,
+            return self.send_error(e.mongo_error[0] + code,
                                    render=render,
                                    reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                                       errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
+                                       e.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
         if code:
             logging.error(e.args[1])
         if 'InvalidId' == e.__class__.__name__:
-            code, reason = 1, errors.no_object[1]
+            code, reason = 1, e.no_object[1]
         if code not in [2003, 1]:
             traceback.print_exc()
-        default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
+        default_error = e.mongo_error if isinstance(e, MongoError) else e.db_error
         self.send_error(default_error[0] + code, for_yield=True,
                         render=render,
                         reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
