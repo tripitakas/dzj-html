@@ -3,18 +3,18 @@
 """
 @time: 2018/6/12
 """
-from tests.testcase import APITestCase
+from tests.testcase import APITestCase, admin
 from controller.user import views
 import re
 
-admin = 'admin@test.com', 'test123'
-user1 = 't1@test.com', 't12345'
+user1 = 'user1@test.com', 'user1123', '普通用户'
 
 
 class TestViews(APITestCase):
     def setUp(self):
         super(TestViews, self).setUp()
-        self.add_users([dict(email=user1[0], name='测试', password=user1[1])])
+        self._app.db.user.drop()
+        self.add_first_user_as_admin()
 
     def _test_view(self, url, check_role):
         if '(' not in url:  # URL不需要动态参数
@@ -23,7 +23,7 @@ class TestViews(APITestCase):
             if check_role and '访问出错' in r:
                 self.assertFalse('访问出错' in r, msg=url)
 
-    def test_with_admin(self):
+    def test_login_with_admin(self):
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
         if self.get_code(r) == 200:
             for view in views:
@@ -33,7 +33,8 @@ class TestViews(APITestCase):
                 elif isinstance(view.URL, str):
                     self._test_view(view.URL, True)
 
-    def test_with_any_user(self):
+    def test_login_with_any_user(self):
+        self.add_users([dict(email=user1[0], password=user1[1], name=user1[2])])
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=user1[0], password=user1[1])})
         if self.get_code(r) == 200:
             for view in views:
@@ -64,7 +65,7 @@ class TestViews(APITestCase):
             self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, func))
 
     def test_profile(self):
-        self.add_users([dict(email='text1@test.com', name='文字校对', password='t12345')])
+        self.add_users([dict(email=user1[0], password=user1[1], name=user1[2])])
         self.assert_code(200, self.login(user1[0], user1[1]))
         r = self.parse_response(self.fetch('/my/profile'))
         self.assertIn(user1[0], r)

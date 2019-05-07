@@ -4,12 +4,13 @@
 @time: 2018/6/12
 """
 import controller.errors as e
-from tests.testcase import APITestCase
-
-admin = 'admin@test.com', 'test123'
+from tests.testcase import APITestCase, admin
 
 
 class TestUserApi(APITestCase):
+    def setUp(self):
+        super(TestUserApi, self).setUp()
+        self._app.db.user.drop()
 
     def test_login_invalid(self):
         """ 测试接口可工作 """
@@ -21,7 +22,8 @@ class TestUserApi(APITestCase):
 
     def test_register(self):
         """ 测试注册和登录，测试第一个用户为管理员 """
-        r = self.parse_response(self.add_admin_user())
+        r = self.parse_response(self.add_first_user_as_admin())
+
         if 'error' not in r:
             self.assertIn('用户管理员', r['roles'])
         else:
@@ -35,7 +37,7 @@ class TestUserApi(APITestCase):
         """ 测试为新用户设置权限 """
 
         # 注册一个新用户
-        self.add_admin_user()
+        self.add_first_user_as_admin()
         r = self.register_login(dict(email='t1@test.com', name='测试', password='t12345'))
         user = self.parse_response(r)
         self.assertIn('_id', user)
@@ -53,24 +55,19 @@ class TestUserApi(APITestCase):
             id=user['_id'], email=user['email'], name='教师甲')})
         self.assert_code(e.unauthorized, r)
 
-        # 普通用户取用户列表只能得到自己
-        '''
-        r = self.parse_response(self.fetch('/api/user/list?_no_auth=1'))
-        self.assertEqual(len(r.get('items', [])), 1)
-        self.assertIn('教师甲', [t['name'] for t in r.get('items', [])])
-        '''
-
         # 管理员可设置或取消权限
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=admin[0], password=admin[1])})
         self.assert_code(200, r)
         r = self.fetch('/api/user/role', body={'data': dict(
             _id=user['_id'], email=user['email'], roles='切分校对员')})
         self.assert_code([200, e.no_change], r)
-        self.fetch('/api/user/role', body={'data': dict(_id=user['_id'], email=user['email'], roles='')})
+        response = self.parse_response(r)
+        self.assertIn('切分校对员', response['roles'])
 
     def test_change_password(self):
         """ 测试修改密码、重置密码、删除用户 """
 
+        self.add_first_user_as_admin()
         r = self.register_login(dict(email='t3@test.com', name='测试', password='t12345'))
         self.assert_code(200, r)
         user = self.parse_response(r)
