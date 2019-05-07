@@ -107,17 +107,20 @@ class APITestCase(AsyncHTTPTestCase):
         return r
 
     def add_users_by_admin(self, users, roles=None):
-        """ 清空user数据库，新建管理员，然后新增users所代表的用户并以管理员身份授予权限。"""
-        admin_user = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
+        """ 以管理员身份新增users所代表的用户并授予权限。"""
+        self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         for u in users:
-            r = self.parse_response(self.register_and_login(u))
-            u['_id'] = r.get('_id')
+            r = self.register_and_login(u)
+            self.assert_code(200, r)
+            data = self.parse_response(r)
+            u['_id'] = data.get('_id')
         self.assert_code(200, self.login_as_admin())
-        for u in users:
-            if roles:
-                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
+        if roles:
+            for u in users:
+                u['roles'] = u.get('roles', roles)
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
                 self.assert_code(200, r)
-        return self.parse_response(admin_user)
+        return users
 
     def login_as_admin(self):
         return self.login(admin[0], admin[1])
