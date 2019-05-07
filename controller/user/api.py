@@ -232,12 +232,12 @@ class ResetUserPasswordApi(BaseHandler):
             'context': context
         })
 
+
 class DeleteUserApi(BaseHandler):
     URL = r'/api/user/delete'
 
     def post(self):
         """ 删除用户 """
-
         user = self.get_request_data()
         rules = [(v.not_empty, '_id')]
         err = v.validate(user, rules)
@@ -245,22 +245,15 @@ class DeleteUserApi(BaseHandler):
             return self.send_error(err)
 
         try:
+            if user['_id'] == self.current_user['_id']:  # 判断删除的用户是否为自己
+                return self.send_error(errors.cannot_delete_self)
             r = self.db.user.delete_one(dict(_id=user['_id']))
-            if not r.matched_count:
+            if r.deleted_count < 1 :
                 return self.send_error(errors.no_user)
-
             self.add_op_log('delete_user', context=': '.join(user))
         except DbError as e:
             return self.send_db_error(e)
         self.send_response()
-
-
-class RemoveUserApi(BaseHandler):
-    URL = '/api/user/remove'
-
-    def post(self):
-        """ 删除用户 """
-        pass
 
 
 class ChangeMyPasswordApi(BaseHandler):
