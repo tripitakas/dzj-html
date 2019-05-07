@@ -65,3 +65,10 @@ class TestUserAdminApi(APITestCase):
         self.assert_code(200, r)
 
 
+    def test_api_delete_user(self):
+        """ 测试删除用户 """
+        self.add_first_user_as_admin_then_login()
+        self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
+        uid = self._get_id_by_email(u.user1[0])
+        r = self.fetch('/api/user/delete', body={'data': dict(_id=uid)})
+        self.assert_code(200, r)
