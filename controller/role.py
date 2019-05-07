@@ -17,7 +17,7 @@ url_placeholder = {
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
-    'tripitaka_id': r'[a-z]{2,}'
+    'tripitaka_id': r'[a-z]{3,}'
 }
 
 role_maps = {
