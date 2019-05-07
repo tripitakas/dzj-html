@@ -3,7 +3,7 @@
 """
 @time: 2018/12/22
 """
-from tornado.escape import json_decode, to_basestring, native_str
+from tornado.escape import to_basestring, native_str
 from tornado.options import options
 from tornado.testing import AsyncHTTPTestCase
 from tornado.httpclient import HTTPRequest
@@ -11,7 +11,9 @@ from tornado.util import PY3
 from bson import json_util
 import re
 import controller as c
+import controller.role as role
 from controller.app import Application
+from tests.users import admin
 
 if PY3:
     import http.cookies as Cookie
@@ -27,8 +29,7 @@ class APITestCase(AsyncHTTPTestCase):
         options.testing = True
         options.debug = False
         options.port = self.get_http_port()
-        return Application(c.handlers + c.views, db_name_ext='_test',
-                           ui_modules=c.modules,
+        return Application(c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules,
                            default_handler_class=c.InvalidPageHandler)
 
     def tearDown(self):
@@ -39,34 +40,27 @@ class APITestCase(AsyncHTTPTestCase):
     def parse_response(response):
         body = response.body and to_basestring(response.body) or '{}'
         if body and body.startswith('{'):
-            body = json_decode(body)
-            body = body['data'] if 'data' in body else body
-            if 'code' not in body and 'error' in body:
-                if isinstance(body['error'], list):
-                    body['code'] = body['error'][0]
-                elif isinstance(body['error'], dict):
-                    body['code'] = list(body['error'].values())[0][0]
+            body = json_util.loads(body)
+            if 'data' in body and isinstance(body['data'], dict):  # 将data的内容赋给body，以便测试使用
+                body.update(body['data'])
         return body
 
     def get_code(self, response):
         response = self.parse_response(response)
-        return response.get('code', 200)
+        return isinstance(response, dict) and response.get('code')
 
     def assert_code(self, code, response, msg=None):
+        """
+        判断response中是否存在code
+        :param code: 有三种类型：code; (code, message); [(code, message), (code, message)...]
+        :param response: 请求的响应体
+        """
         code = code[0] if isinstance(code, tuple) else code
-        try:
-            r2 = self.parse_response(response)
-            if isinstance(r2.get('error'), dict):
-                name = list(r2['error'].keys())[0]
-                r_code, error = r2['error'][name]
-            else:
-                r_code, error = r2['error']
-        except (AttributeError, KeyError, TypeError, ValueError):
-            r_code, error = response.code, response.error
+        r_code = self.get_code(response) if self.get_code(response) else response.code
         if isinstance(code, list):
-            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg or error)
+            self.assertIn(r_code, [c[0] if isinstance(c, tuple) else c for c in code], msg=msg)
         else:
-            self.assertEqual(code, r_code, msg=msg or error)
+            self.assertEqual(code, r_code, msg=msg)
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
@@ -99,29 +93,39 @@ class APITestCase(AsyncHTTPTestCase):
 
         return response
 
-    def add_admin_user(self):
-        """ 在创建其他用户前先创建超级管理员，避免测试用例乱序执行时其他用户先创建而成为管理员 """
-        r = self.register_login(dict(email='admin@test.com', name='管理员', password='test123'))
-        self.assert_code([200, 1012], r)
+    def add_first_user_as_admin_then_login(self):
+        """
+        创建第一个用户，作为超级管理员，并且登录。
+        在创建其他用户前先创建管理员，避免测试用例乱序执行引发错误。
+        """
+        self._app.db.user.drop()
+        r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
+        self.assert_code(200, r)
+        u = self.parse_response(r)
+        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(role.assignable_roles))})
+        self.assert_code(200, r)
         return r
 
-    def add_users(self, users, auth=None):
-        admin = self.add_admin_user()
+    def add_users_by_admin(self, users, roles=None):
+        """ 清空user数据库，新建管理员，然后新增users所代表的用户并以管理员身份授予权限。"""
+        admin_user = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         for u in users:
-            r = self.parse_response(self.register_login(u))
+            r = self.parse_response(self.register_and_login(u))
             u['_id'] = r.get('_id')
         self.assert_code(200, self.login_as_admin())
         for u in users:
-            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('auth', auth))})
-            self.assert_code(200, r)
-        return self.parse_response(admin)
+            if roles:
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
+                self.assert_code(200, r)
+        return self.parse_response(admin_user)
 
     def login_as_admin(self):
-        return self.login('admin@test.com', 'test123')
+        return self.login(admin[0], admin[1])
 
     def login(self, email, password):
         return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
 
-    def register_login(self, info):
+    def register_and_login(self, info):
+        """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})

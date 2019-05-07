@@ -173,8 +173,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             kwargs['reason'] = message
             error = (status_code, message)
         elif isinstance(status_code, dict):
-            error = status_code
-            status_code = 1000
+            error, status_code = status_code, errors.validate_error[0]
 
         if render:
             return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))

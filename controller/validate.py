@@ -153,7 +153,7 @@ def not_existed(collection=None, exclude_id=None, **kw):
             condition = {k: v}
             if exclude_id:
                 condition['_id'] = {'$ne': exclude_id}
-            if v is not None and collection.find_one(condition):
+            if v and collection.find_one(condition):
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 
