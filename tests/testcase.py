@@ -11,7 +11,9 @@ from tornado.util import PY3
 from bson import json_util
 import re
 import controller as c
+import controller.role as role
 from controller.app import Application
+from tests.users import admin
 
 if PY3:
     import http.cookies as Cookie
@@ -19,7 +21,6 @@ else:
     import Cookie
 
 cookie = Cookie.SimpleCookie()
-admin = 'admin@test.com', 'admin123', '用户管理员'
 
 
 class APITestCase(AsyncHTTPTestCase):
@@ -46,7 +47,7 @@ class APITestCase(AsyncHTTPTestCase):
 
     def get_code(self, response):
         response = self.parse_response(response)
-        return response.get('code')
+        return isinstance(response, dict) and response.get('code')
 
     def assert_code(self, code, response, msg=None):
         """
@@ -92,22 +93,31 @@ class APITestCase(AsyncHTTPTestCase):
 
         return response
 
-    def add_first_user_as_admin(self):
-        """ 系统会将第一个用户作为用户管理员，在创建其他用户前先创建用户管理员，避免测试用例乱序执行引发错误"""
-        r = self.register_login(dict(email=admin[0], password=admin[1], name=admin[2], ))
+    def add_first_user_as_admin_then_login(self):
+        """
+        创建第一个用户，作为超级管理员，并且登录。
+        在创建其他用户前先创建管理员，避免测试用例乱序执行引发错误。
+        """
+        self._app.db.user.drop()
+        r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
+        self.assert_code(200, r)
+        u = self.parse_response(r)
+        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(role.assignable_roles))})
         self.assert_code(200, r)
         return r
 
-    def add_users(self, users, roles=None):
-        admin = self.add_first_user_as_admin()
+    def add_users_by_admin(self, users, roles=None):
+        """ 清空user数据库，新建管理员，然后新增users所代表的用户并以管理员身份授予权限。"""
+        admin_user = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         for u in users:
-            r = self.parse_response(self.register_login(u))
+            r = self.parse_response(self.register_and_login(u))
             u['_id'] = r.get('_id')
         self.assert_code(200, self.login_as_admin())
         for u in users:
-            r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
-            self.assert_code(200, r)
-        return self.parse_response(admin)
+            if roles:
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
+                self.assert_code(200, r)
+        return self.parse_response(admin_user)
 
     def login_as_admin(self):
         return self.login(admin[0], admin[1])
@@ -115,7 +125,7 @@ class APITestCase(AsyncHTTPTestCase):
     def login(self, email, password):
         return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
 
-    def register_login(self, info):
+    def register_and_login(self, info):
         """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
