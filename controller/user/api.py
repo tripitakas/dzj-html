@@ -7,8 +7,6 @@
 import logging
 import random
 
-from tornado.options import options
-
 from bson import objectid, json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
@@ -248,7 +246,7 @@ class DeleteUserApi(BaseHandler):
             if user['_id'] == self.current_user['_id']:  # 判断删除的用户是否为自己
                 return self.send_error(errors.cannot_delete_self)
             r = self.db.user.delete_one(dict(_id=user['_id']))
-            if r.deleted_count < 1 :
+            if r.deleted_count < 1:
                 return self.send_error(errors.no_user)
             self.add_op_log('delete_user', context=': '.join(user))
         except DbError as e:
