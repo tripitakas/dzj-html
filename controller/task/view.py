@@ -214,7 +214,10 @@ class CutDetailBaseHandler(TaskHandler):
 
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
-        self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
+        if self.get_query_argument('view', 0):
+            handle_response({})
+        else:
+            self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
 
     def get_img(self, name):
         cfg = self.application.config

@@ -193,16 +193,20 @@ class UnlockTasksApi(TaskHandler):
             self.send_db_error(e)
 
     def unlock(self, page, field, types, info, unset):
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time',
+                  'publish_time', 'publish_by', 'publish_user_id', 'priority']
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
                     continue
                 if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
                     info[field + '.' + sub_task + '.status'] = self.STATUS_READY
-                    unset[field + '.' + sub_task + '.user'] = None
+                    for f in fields:
+                        unset[field + '.' + sub_task + '.' + f] = None
         if page[field].get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
             info[field + '.status'] = self.STATUS_READY
-            unset[field + '.user'] = None
+            for f in fields:
+                unset[field + '.' + f] = None
 
 
 class PickTaskApi(TaskHandler):
@@ -227,7 +231,7 @@ class PickTaskApi(TaskHandler):
                 task_user: self.current_user['_id'],
                 task_type + '.picked_by': self.current_user['name'],
                 task_status: self.STATUS_LOCKED,
-                task_type + '.start_time': datetime.now()
+                task_type + '.picked_time': datetime.now()
             }
             r = self.db.page.update_one(can_lock, {'$set': lock})
             page = self.db.page.find_one(dict(name=name))
