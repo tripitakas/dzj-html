@@ -64,8 +64,6 @@ class APITestCase(AsyncHTTPTestCase):
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
-            if isinstance(kwargs['body'].get('data'), dict):
-                kwargs['body']['data'] = json_util.dumps(kwargs['body']['data'])
             kwargs['body'] = json_util.dumps(kwargs['body'])
             kwargs['method'] = kwargs.get('method', 'POST')
 

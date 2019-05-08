@@ -94,11 +94,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         # dumps/to_date_str传递给页面模板
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
-        logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
             return self.send_response({k: v for k, v in kwargs.items() if not hasattr(v, '__call__')})
+
+        logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
@@ -111,13 +112,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         获取请求数据。
         客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
-        if 'data' not in self.request.body_arguments:
-            body = json_util.loads(self.request.body).get('data')
-        else:
-            body = json_util.loads(self.get_body_argument('data'))
-
         try:
-            return json_util.loads(body) if body and isinstance(body, str) else body or {}
+            if 'data' not in self.request.body_arguments:
+                body = json_util.loads(self.request.body).get('data')
+            else:
+                body = json_util.loads(self.get_body_argument('data'))
+            return body or {}
         except ValueError:
             logging.error(body)
 
