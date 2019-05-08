@@ -50,7 +50,7 @@ class TaskLobbyHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
     def get_tasks(self, task_type, task_status):
-        return self.get_tasks_info_by_type(task_type, task_status)
+        return self.get_tasks_info_by_type(task_type, task_status, rand=True)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -63,7 +63,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
     def get_tasks(self, task_type, task_status):
         sub_types = self.task_types[task_type]['sub_task_types'].keys()
         not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_tasks_info_by_type(task_type, task_status,
+        tasks = self.get_tasks_info_by_type(task_type, task_status, rand=True,
                                             set_conditions=lambda cond: cond.update(not_me))
         return tasks
 
