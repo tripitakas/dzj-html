@@ -238,8 +238,8 @@ class PickTaskApi(TaskHandler):
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
-            elif page and page.get(task_user) == self.current_user['_id'] \
-                    and page.get(task_status) == self.STATUS_LOCKED:
+            elif page and self.page_get_prop(page, task_user) == self.current_user['_id'] \
+                    and self.page_get_prop(page, task_status) == self.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['_id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)
@@ -249,6 +249,13 @@ class PickTaskApi(TaskHandler):
             self.send_response(dict(name=page['name']))
         except DbError as e:
             self.send_db_error(e)
+
+    @staticmethod
+    def page_get_prop(page, name):
+        obj = page
+        for s in name.split('.'):
+            obj = obj and obj.get(s)
+        return obj
 
 
 class PickCutProofTaskApi(PickTaskApi):
@@ -294,12 +301,12 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error(errors.no_object)
 
-            status = page.get(task_type + '.status')
+            status = PickTaskApi.page_get_prop(page, task_type + '.status')
             if status != self.STATUS_LOCKED:
                 return self.send_error(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.user'
-            if page.get(task_user) != self.current_user['_id']:
+            if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
                 return self.send_error(errors.task_locked)
 
             result = dict(name=data['name'])
@@ -334,7 +341,7 @@ class SaveCutApi(TaskHandler):
             idx = self.task_types.index(task_type)
             for i in range(idx + 1, len(self.task_types)):
                 next_status = self.task_types[i] + '.status'
-                status = page.get(next_status)
+                status = PickTaskApi.page_get_prop(page, next_status)
                 if status:
                     r = self.db.page.update_one({'name': data.name, next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})

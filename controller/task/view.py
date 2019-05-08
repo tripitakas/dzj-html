@@ -198,7 +198,7 @@ class LobbyCharCutReviewHandler(TaskLobbyHandler):
 
 
 class CutDetailBaseHandler(TaskHandler):
-    def enter(self, box_type, stage, name, template_name):
+    def enter(self, box_type, stage, name):
         def handle_response(body):
             try:
                 page = self.db.page.find_one(dict(name=name))
@@ -208,10 +208,11 @@ class CutDetailBaseHandler(TaskHandler):
                 if body.get('name') != name and not readonly:  # 锁定失败
                     return self.send_error(errors.task_locked, render=True)
 
-                self.render(template_name, page=page,
-                            readonly=readonly,
-                            title='切分校对' if stage == 'proof' else '切分审定',
+                self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
+                            boxes=page[box_type + 's'],
+                            title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
+                            from_url=self.get_query_argument('from', '/task/lobby/' + task_type),
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
             except Exception as e:
                 self.send_db_error(e, render=True)
@@ -246,7 +247,7 @@ class CutProofDetailHandler(CutDetailBaseHandler):
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
-        self.enter(box_type, 'proof', name, 'cut_%s.html' % box_type)
+        self.enter(box_type, 'proof', name)
 
 
 class CutReviewDetailHandler(CutDetailBaseHandler):
@@ -254,7 +255,7 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
-        self.enter(box_type, 'review', name, 'cut_%s.html' % box_type)
+        self.enter(box_type, 'review', name)
 
 
 class CharProofDetailHandler(TaskHandler):

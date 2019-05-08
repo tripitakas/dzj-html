@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{title}}</title>
+  {% include _base_meta.html %}
+
+  <!-- Plugins css -->
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+  <div class="app-main">
+    <div class="single-page-con enlarge">
+      <div class="layout">
+        <div class="layout-content">
+          <!-- 中间内容 -->
+          <!--<div class="single-page-con">-->
+          <div class="layout">
+            <div class="layout-content">
+              <div class="tripitaka-volume">
+                <div class="wrapper">
+                  <div class="main-volume">
+                    <div class="volume-right">
+                      <!--根据接口返回数据情况--右侧没有文本数据时-->
+                      <div class="full">
+                        <div class="full-hd clearfix">
+                          <div class="left fl">
+                            <a href="/home"><span class="head_home ion-home"></span></a>
+                            <span class="slice_title">
+                              <a href="{{from_url}}">{{title}}</a>
+                            </span>
+                            <span class="slice_info">页编码：{{page['name']}}</span>
+                            <div class="slice_btn_group">
+                              <div class="btn-group m-b-10 hl-btn">
+                                <button type="button" class="btn btn-default waves-effect" id="hl-all">所有
+                                  <sup class="s_h_count"></sup></button>
+                                {% if box_type == 'char' %}
+                                <button type="button" class="btn btn-default waves-effect" id="hl-large">大框
+                                  <sup class="s_h_count"></sup></button>
+                                <button type="button" class="btn btn-default waves-effect" id="hl-small">小框
+                                  <sup class="s_h_count"></sup></button>
+                                <button type="button" class="btn btn-default waves-effect" id="hl-narrow">窄框
+                                  <sup class="s_h_count"></sup></button>
+                                <button type="button" class="btn btn-default waves-effect" id="hl-flat">扁框
+                                  <sup class="s_h_count"></sup></button>
+                                {% end %}
+                                <button type="button" class="btn btn-default waves-effect" id="hl-overlap">重叠
+                                  <sup class="s_h_count"></sup></button>
+                              </div>
+                              <div class="btn-group m-b-10">
+                                <button type="button" class="btn btn-default" id="undo">撤销</button>
+                                <button type="button" class="btn btn-default" id="redo">重做</button>
+                              </div>
+                            </div>
+                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="save">
+                              <i class="ion-ios7-bookmarks"></i> <span>保存</span></button>
+                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="submit">
+                              <i class="ion-upload"></i> <span>提交</span></button>
+                          </div>
+                          <div class="right fr">
+
+                          </div>
+                        </div>
+                        <div class="full-bd">
+                          <div id="holder"></div>
+                        </div>
+
+                      </div>
+                      <!--./右侧没有文本数据时-->
+                      <!--根据接口返回数据情况--右侧有文本数据时-->
+
+                      <!--./右侧有文本数据时-->
+                      <!--弹窗-->
+
+                      <!--./弹窗-->
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--</div>-->
+          <!-- ./中间内容 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include _base_js.html %}
+  <script src="{{ static_url('js/cut/raphael.js') }}"></script>
+  <script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
+  <script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
+  <script src="{{ static_url('js/cut/cut.js') }}"></script>
+  <script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+  <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
+
+  <script>
+    $.cut.create({
+      '{{box_type}}Mode': true,
+      removeSmallBoxes: {{int(box_type == 'char' and name[:2] in ['JX'])}},
+      name: '{{box_type}}_{{name}}',
+      width: {{page['width']}},
+      height: {{page['height']}},
+      holder: 'holder',
+      scrollContainer: '.full-bd',
+      image: "{{get_img(name)}}",
+      chars: '{{boxes}}'
+    });
+
+    $.cut.bindKeys();
+
+    function updateUndo() {
+      $('#undo').toggleClass('disabled', !$.cut.canUndo());
+      $('#redo').toggleClass('disabled', !$.cut.canRedo());
+    }
+    $('#undo').click(function () {
+      $.cut.undo();
+      updateUndo();
+    });
+    $('#redo').click(function () {
+      $.cut.redo();
+      updateUndo();
+    });
+    updateUndo();
+
+    function showHighLightCount() {
+      $('.hl-btn > button').each(function (i, btn) {
+        if (i > 0 || '{{box_type}}' !== 'char') {
+          var type = btn.getAttribute('id').replace(/^.*-/, '');
+          var boxes = $.cut.highlightBoxes(type, true);
+          $(btn).find('.s_h_count').text(boxes.length);
+        }
+      });
+    }
+    showHighLightCount();
+    $('.hl-btn > button').click(function () {
+      var type = this.getAttribute('id').replace(/^.*-/, '');
+      $.cut.switchHighlightBoxes(type);
+    });
+
+    $.cut.onBoxChanged(function (char, box, reason) {
+      if (reason === 'removed' || reason === 'added' || reason === 'changed') {
+        var type = $.cut.data.hlType;
+        if (type) {
+          $.cut.clearHighlight();
+          $.cut.highlightBoxes(type, false, true);
+        }
+      }
+      showHighLightCount();
+      updateUndo();
+    });
+  </script>
+
+</body>
+</html>

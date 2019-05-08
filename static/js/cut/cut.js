@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-03-05
+ * Date: 2019-05-08
  */
 (function() {
   'use strict';
@@ -394,7 +394,8 @@
       var self = this;
 
       var getPoint = function(e) {
-        var box = data.holder.getBoundingClientRect();
+        var svg = data.holder.getElementsByTagName('svg');
+        var box = svg[0].getBoundingClientRect();
         return { x: e.clientX - box.x, y: e.clientY - box.y };
       };
 
@@ -705,7 +706,7 @@
     findBoxByPoint: function(pt, lockBox) {
       var ret = null, dist = 1e5, d, i, j, el;
       var isInRect = function(el, tol) {
-        var box = el.getBBox();
+        var box = el && el.getBBox();
         return box && pt.x > box.x - tol &&
           pt.y > box.y - tol &&
           pt.x < box.x + box.width + tol &&
@@ -863,7 +864,7 @@
 
       // 找加权距离最近的字框
       for (i = 0; i < chars.length; i++) {
-        d = calc(chars[i].shape.getBBox());
+        d = chars[i].shape ? calc(chars[i].shape.getBBox()) : invalid;
         if (minDist > d) {
           minDist = d;
           ret = chars[i].shape;
@@ -951,7 +952,7 @@
 
       this.switchCurrentBox(el);
 
-      var box2 = el.getBBox();
+      var box2 = el && el.getBBox();
       if (box && box2) {
         window.scrollTo(box2.x + box2.width / 2 - box.x - box.width / 2 + pos[0],
           box2.y + box2.width / 2 - box.y - box.width / 2 + pos[1]);
