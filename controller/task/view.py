@@ -8,6 +8,7 @@
 import json
 from os import path
 from controller.task.base import TaskHandler
+from controller import errors
 from functools import cmp_to_key
 
 
@@ -204,8 +205,11 @@ class CutDetailBaseHandler(TaskHandler):
                 if not page:
                     return self.render('_404.html')
 
+                if body.get('name') != name and not readonly:  # 锁定失败
+                    return self.send_error(errors.task_locked, render=True)
+
                 self.render(template_name, page=page,
-                            readonly=body.get('name') != name,
+                            readonly=readonly,
                             title='切分校对' if stage == 'proof' else '切分审定',
                             get_img=self.get_img,
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
@@ -214,7 +218,8 @@ class CutDetailBaseHandler(TaskHandler):
 
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
-        if self.get_query_argument('view', 0):
+        readonly = self.get_query_argument('view', 0)
+        if readonly:
             handle_response({})
         else:
             self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)

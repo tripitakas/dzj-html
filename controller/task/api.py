@@ -246,7 +246,6 @@ class PickTaskApi(TaskHandler):
                 return self.send_response() if page else self.send_error(errors.no_object)
 
             # 反馈领取成功
-            assert page.get(task_status) == self.STATUS_LOCKED
             self.send_response(dict(name=page['name']))
         except DbError as e:
             self.send_db_error(e)

@@ -293,4 +293,4 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else:
                     self.render('_error.html', code=500, error=error)
             else:
-                handle_response(body)
+                handle_response(body.get('data') or body)
