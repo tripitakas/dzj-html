@@ -21,6 +21,15 @@
 
   {% include _base_css.html %}
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
+  <style>
+    {% if box_type == 'char' %}
+    @media (max-width:1020px) {
+      .slice_info {
+        display: none;
+      }
+    }
+    {% end %}
+  </style>
 </head>
 
 <body>
@@ -67,10 +76,20 @@
                                 <button type="button" class="btn btn-default" id="redo">重做</button>
                               </div>
                             </div>
-                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="save">
-                              <i class="ion-ios7-bookmarks"></i> <span>保存</span></button>
-                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="submit">
-                              <i class="ion-upload"></i> <span>提交</span></button>
+
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-warning waves-effect waves-light m-b-5" id="save">保存</button>
+                              <button type="button" class="btn btn-warning waves-effect waves-light dropdown-toggle"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                              </button>
+                              <ul class="dropdown-menu">
+                                <li><a id="return-task">退回任务</a></li>
+                              </ul>
+                            </div>
+
+                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="submit">提交</button>
                           </div>
                           <div class="right fr">
 
@@ -141,7 +160,7 @@
 
     function showHighLightCount() {
       $('.hl-btn > button').each(function (i, btn) {
-        if (i > 0 || '{{box_type}}' !== 'char') {
+        if (i > 0 || {{int(box_type != "char")}}) {
           var type = btn.getAttribute('id').replace(/^.*-/, '');
           var boxes = $.cut.highlightBoxes(type, true);
           $(btn).find('.s_h_count').text(boxes.length);
@@ -164,6 +183,14 @@
       }
       showHighLightCount();
       updateUndo();
+    });
+
+    $('#return-task').click(function () {
+      postApi('/unlock/{{task_type}}/{{name}}', {}, function (res) {
+        if (res.length === 1 && res[0] === '{{name}}') {
+          window.location = '{{from_url}}';
+        }
+      });
     });
   </script>
 

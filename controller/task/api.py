@@ -192,6 +192,17 @@ class UnlockTasksApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
+    def post(self, task_type, prefix=None):
+        """ 由审校者主动退回当前任务 """
+        assert prefix
+        page = self.db.page.find_one(dict(name=prefix))
+        if not page:
+            return self.send_error(errors.no_object)
+        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
+                PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
+            return self.send_error(errors.task_locked)
+        self.get(task_type, prefix)
+
     def unlock(self, page, field, types, info, unset):
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time',
                   'publish_time', 'publish_by', 'publish_user_id', 'priority']
@@ -305,7 +316,7 @@ class SaveCutApi(TaskHandler):
             if status != self.STATUS_LOCKED:
                 return self.send_error(errors.task_changed, reason=self.task_statuses.get(status))
 
-            task_user = task_type + '.user'
+            task_user = task_type + '.picked_user_id'
             if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
                 return self.send_error(errors.task_locked)
 

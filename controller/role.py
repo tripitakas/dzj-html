@@ -54,6 +54,7 @@ role_maps = {
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
+            '/api/unlock/@task_type/@page_prefix': ['POST'],
         }
     },
     '切栏校对员': {
