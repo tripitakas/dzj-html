@@ -7,18 +7,17 @@
 
 import json
 from os import path
-from controller.task.base import TaskHandler
 from controller import errors
 from functools import cmp_to_key
+from controller.task.base import TaskHandler
 
 
 class TaskLobbyHandler(TaskHandler):
+    """ 任务大厅基类 """
     def show_tasks(self, task_type):
-        """ 任务大厅 """
-
         def pack(items):
             for t in items:
-                if t.get(task_type, {}).get('status'):
+                if t.get(task_type, {}).get('status'):  # status不为空，表明任务已发布
                     t['priority'] = t.get(task_type, {}).get('priority')
                     t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                     t['status'] = t.get(task_type, {}).get('status')
@@ -36,11 +35,11 @@ class TaskLobbyHandler(TaskHandler):
         def sorted_by_priority(items):
             pack(items)
             return sorted(items, key=cmp_to_key(
-                lambda a, b: '高中低'.index(a.get('priority') or '低') - '高中低'.index(b.get('priority') or '低')))
+                lambda a, b: '高中低'.index(a.get('priority') or '低') - '高中低'.index(b.get('priority') or '低')
+            ))
 
         def uncompleted(t):
-            return t.get('status') == self.STATUS_LOCKED and \
-                   t.get('picked_user_id') == self.current_user['_id']
+            return t.get('status') == self.STATUS_LOCKED and t.get('picked_user_id') == self.current_user['_id']
 
         try:
             task_status = [self.STATUS_OPENED, self.STATUS_RETURNED]
