@@ -202,17 +202,17 @@ class UnlockTasksApi(TaskHandler):
             return self.send_error(errors.no_object)
         if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
                 PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
-            return self.send_error(errors.task_locked)
+            return self.send_error(errors.task_locked, reason=page['name'])
         self.get(task_type, prefix, returned=True)
 
     def unlock(self, page, field, types, info, unset, returned):
         def fill_info(field1):
             info['%s.status' % field1] = self.STATUS_RETURNED if returned else self.STATUS_READY
-            info['%s.publish_time' % field1] = datetime.now()
-            info['%s.publish_user_id' % field1] = self.current_user['_id']
-            info['%s.publish_by' % field1] = self.current_user['name']
+            info['%s.last_updated_time' % field1] = datetime.now()
 
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
+        if returned:
+            fields.remove('picked_by')  # 在任务管理页面可看到原领取人
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
@@ -237,7 +237,8 @@ class PickTaskApi(TaskHandler):
             names = list(self.db.page.find({task_user: self.current_user['_id'], task_status: self.STATUS_LOCKED}))
             names = [p['name'] for p in names]
             if names and name not in names:
-                return self.send_error(errors.task_uncompleted, reason=','.join(names))
+                name = names[0]
+                # return self.send_error(errors.task_uncompleted, reason=','.join(names))
 
             # 领取新任务(待领取或已退回时)或继续原任务
             can_lock = {
@@ -325,7 +326,7 @@ class SaveCutApi(TaskHandler):
 
             task_user = task_type + '.picked_user_id'
             if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
-                return self.send_error(errors.task_locked)
+                return self.send_error(errors.task_locked, reason=page['name'])
 
             result = dict(name=data['name'])
             self.change_box(result, page, data['name'], task_type)
