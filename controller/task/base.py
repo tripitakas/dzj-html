@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 任务Handler基类
+    https://github.com/tripitakas/tripitaka-web/wiki/Task-Flow-Introduction
     1. 任务状态。
     任务数据未到位时，状态为“unready”。上传数据后，程序进行检查，如果满足发布条件，则状态置为“ready”。
     发布任务只能发布状态为“ready”的任务。如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
@@ -27,57 +28,21 @@ class TaskHandler(BaseHandler):
     @sub_task_types 子任务列表
     """
     task_types = {
-        'block_cut_proof': {
-            'name': '切栏校对',
-        },
-        'block_cut_review': {
-            'name': '切栏审定',
-            'pre_tasks': ['block_cut_proof'],
-        },
-        'column_cut_proof': {
-            'name': '切列校对',
-        },
-        'column_cut_review': {
-            'name': '切列审定',
-            'pre_tasks': ['column_cut_proof'],
-        },
-        'char_cut_proof': {
-            'name': '切字校对',
-        },
-        'char_cut_review': {
-            'name': '切字审定',
-            'pre_tasks': ['char_cut_proof'],
-        },
-        'char_order_proof': {
-            'name': '字序校对',
-            'pre_tasks': ['char_cut_review'],
-        },
-        'char_order_review': {
-            'name': '字序审定',
-            'pre_tasks': ['char_order_proof'],
-        },
-        'text_proof': {
-            'name': '文字校对',
-            'sub_task_types': {
-                '1': {
-                    'name': '校一',
-                },
-                '2': {
-                    'name': '校二',
-                },
-                '3': {
-                    'name': '校三',
-                },
-            }
-        },
-        'text_review': {
-            'name': '文字审定',
-            'pre_tasks': ['text_proof.1', 'text_proof.2', 'text_proof.3'],
-        },
-        'text_hard': {
-            'name': '难字处理',
-            'pre_tasks': [],
-        },
+        'block_cut_proof': {'name': '切栏校对'},
+        'block_cut_review': {'name': '切栏审定', 'pre_tasks': ['block_cut_proof']},
+        'column_cut_proof': {'name': '切列校对'},
+        'column_cut_review': {'name': '切列审定', 'pre_tasks': ['column_cut_proof']},
+        'char_cut_proof': {'name': '切字校对'},
+        'char_cut_review': {'name': '切字审定', 'pre_tasks': ['char_cut_proof']},
+        'char_order_proof': {'name': '字序校对', 'pre_tasks': ['char_cut_review']},
+        'char_order_review': {'name': '字序审定', 'pre_tasks': ['char_order_proof']},
+        'text_proof': {'name': '文字校对', 'sub_task_types': {
+            '1': {'name': '校一'},
+            '2': {'name': '校二'},
+            '3': {'name': '校三'},
+        }},
+        'text_review': {'name': '文字审定', 'pre_tasks': ['text_proof.1', 'text_proof.2', 'text_proof.3']},
+        'text_hard': {'name': '难字处理', 'pre_tasks': ['text_review']},
     }
 
     # 任务状态表
@@ -100,17 +65,13 @@ class TaskHandler(BaseHandler):
 
     @property
     def flat_task_types(self):
-        """
-        将任务类型扁平化后，返回任务类型列表。
-        如果是二级任务，则表示为task_type.sub_task_type。
-        """
+        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
         types = []
         for k, v in self.task_types.items():
             if 'sub_task_types' not in v:
                 types.append(k)
             else:
-                for t in v['sub_task_types']:
-                    types.append('%s.%s' % (k, t))
+                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
         return types
 
     @property
@@ -124,7 +85,7 @@ class TaskHandler(BaseHandler):
         return type_names
 
     @property
-    def text_task_names(self):
+    def cut_task_names(self):
         return {
             'block_cut_proof': '切栏校对',
             'block_cut_review': '切栏审定',
@@ -135,7 +96,7 @@ class TaskHandler(BaseHandler):
         }
 
     @property
-    def cut_task_names(self):
+    def text_task_names(self):
         return {
             'text_proof.1': '文字校一',
             'text_proof.2': '文字校二',
@@ -145,9 +106,7 @@ class TaskHandler(BaseHandler):
 
     @property
     def post_tasks(self):
-        """
-        后置任务类型
-        """
+        """ 后置任务类型 """
         post_types = {}
         for task_type, v in self.task_types.items():
             if 'pre_tasks' in v:
@@ -160,9 +119,7 @@ class TaskHandler(BaseHandler):
 
     @property
     def pre_tasks(self):
-        """
-        前置任务类型
-        """
+        """ 前置任务类型 """
 
         def recursion(cur):
             """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
@@ -209,9 +166,7 @@ class TaskHandler(BaseHandler):
             conditions = {}
         elif 'sub_task_types' in self.task_types[task_type]:
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
-            conditions = {
-                '$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]
-            }
+            conditions = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
         else:
             conditions = {'%s.status' % task_type: task_status}
 
@@ -228,23 +183,18 @@ class TaskHandler(BaseHandler):
         return list(pages)
 
     def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):
-        """
-        获取我的任务列表
-        """
+        """ 获取我的任务列表 """
         assert task_type in self.task_types
 
         user_id = self.current_user['_id']
 
         if 'sub_task_types' in self.task_types.get(task_type, {}):
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
-            conditions = {
-                '$or': [{'%s.%s.picked_by' % (task_type, t): user_id} for t in sub_types]
-            }
+            conditions = {'$or': [{'%s.%s.picked_by' % (task_type, t): user_id} for t in sub_types]}
         else:
             conditions = {'%s.picked_by' % task_type: user_id}
 
         fields = {'name': 1, task_type: 1}
-
         page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
