@@ -98,7 +98,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
         # can_access/dumps/to_date_str传递给页面模板
-        kwargs['can_access'] = can_access
+        kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
 
