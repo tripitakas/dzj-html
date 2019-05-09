@@ -71,7 +71,6 @@ class UserRolesHandler(BaseHandler):
         self.render('user_role.html', users=users, roles=assignable_roles, pager=pager)
 
 
-
 class UserStatisticHandler(BaseHandler):
     URL = '/user/statistic'
 

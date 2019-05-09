@@ -192,17 +192,32 @@ class UnlockTasksApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
+    def post(self, task_type, prefix=None):
+        """ 由审校者主动退回当前任务 """
+        assert prefix
+        page = self.db.page.find_one(dict(name=prefix))
+        if not page:
+            return self.send_error(errors.no_object)
+        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
+                PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
+            return self.send_error(errors.task_locked)
+        self.get(task_type, prefix)
+
     def unlock(self, page, field, types, info, unset):
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time',
+                  'publish_time', 'publish_by', 'publish_user_id', 'priority']
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
                     continue
                 if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
                     info[field + '.' + sub_task + '.status'] = self.STATUS_READY
-                    unset[field + '.' + sub_task + '.user'] = None
+                    for f in fields:
+                        unset[field + '.' + sub_task + '.' + f] = None
         if page[field].get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
             info[field + '.status'] = self.STATUS_READY
-            unset[field + '.user'] = None
+            for f in fields:
+                unset[field + '.' + f] = None
 
 
 class PickTaskApi(TaskHandler):
@@ -227,25 +242,31 @@ class PickTaskApi(TaskHandler):
                 task_user: self.current_user['_id'],
                 task_type + '.picked_by': self.current_user['name'],
                 task_status: self.STATUS_LOCKED,
-                task_type + '.start_time': datetime.now()
+                task_type + '.picked_time': datetime.now()
             }
             r = self.db.page.update_one(can_lock, {'$set': lock})
             page = self.db.page.find_one(dict(name=name))
 
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
-            elif page and page.get(task_user) == self.current_user['_id'] \
-                    and page.get(task_status) == self.STATUS_LOCKED:
+            elif page and self.page_get_prop(page, task_user) == self.current_user['_id'] \
+                    and self.page_get_prop(page, task_status) == self.STATUS_LOCKED:
                 self.add_op_log('open_' + task_type, file_id=page['_id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)
                 return self.send_response() if page else self.send_error(errors.no_object)
 
             # 反馈领取成功
-            assert page.get(task_status) == self.STATUS_LOCKED
             self.send_response(dict(name=page['name']))
         except DbError as e:
             self.send_db_error(e)
+
+    @staticmethod
+    def page_get_prop(page, name):
+        obj = page
+        for s in name.split('.'):
+            obj = obj and obj.get(s)
+        return obj
 
 
 class PickCutProofTaskApi(PickTaskApi):
@@ -291,12 +312,12 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error(errors.no_object)
 
-            status = page.get(task_type + '.status')
+            status = PickTaskApi.page_get_prop(page, task_type + '.status')
             if status != self.STATUS_LOCKED:
                 return self.send_error(errors.task_changed, reason=self.task_statuses.get(status))
 
-            task_user = task_type + '.user'
-            if page.get(task_user) != self.current_user['_id']:
+            task_user = task_type + '.picked_user_id'
+            if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
                 return self.send_error(errors.task_locked)
 
             result = dict(name=data['name'])
@@ -331,7 +352,7 @@ class SaveCutApi(TaskHandler):
             idx = self.task_types.index(task_type)
             for i in range(idx + 1, len(self.task_types)):
                 next_status = self.task_types[i] + '.status'
-                status = page.get(next_status)
+                status = PickTaskApi.page_get_prop(page, next_status)
                 if status:
                     r = self.db.page.update_one({'name': data.name, next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})

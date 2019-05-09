@@ -16,6 +16,7 @@
 """
 
 from controller.base import BaseHandler
+import random
 
 
 class TaskHandler(BaseHandler):
@@ -185,7 +186,8 @@ class TaskHandler(BaseHandler):
         """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
         pass
 
-    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1, set_conditions=None):
+    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1,
+                               set_conditions=None, rand=False):
         """
         获取指定类型、状态的任务列表
         :param task_type: 任务类型串
@@ -217,7 +219,12 @@ class TaskHandler(BaseHandler):
         fields = {'name': 1, task_type: 1}
 
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
+        pages = self.db.page.find(conditions, fields)
+        if rand:
+            pages = list(pages)
+            random.shuffle(pages)
+            return pages[:page_size]
+        pages = pages.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
     def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):

@@ -8,6 +8,7 @@
 import json
 from os import path
 from controller.task.base import TaskHandler
+from controller import errors
 from functools import cmp_to_key
 
 
@@ -50,7 +51,7 @@ class TaskLobbyHandler(TaskHandler):
             self.send_db_error(e, render=True)
 
     def get_tasks(self, task_type, task_status):
-        return self.get_tasks_info_by_type(task_type, task_status)
+        return self.get_tasks_info_by_type(task_type, task_status, rand=True)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -63,7 +64,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
     def get_tasks(self, task_type, task_status):
         sub_types = self.task_types[task_type]['sub_task_types'].keys()
         not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_tasks_info_by_type(task_type, task_status,
+        tasks = self.get_tasks_info_by_type(task_type, task_status, rand=True,
                                             set_conditions=lambda cond: cond.update(not_me))
         return tasks
 
@@ -204,17 +205,27 @@ class CutDetailBaseHandler(TaskHandler):
                 if not page:
                     return self.render('_404.html')
 
-                self.render('text_proof.html', page=page,
-                            readonly=body.get('name') != name,
-                            title='切分校对' if stage == 'proof' else '切分审定',
+                if body.get('name') != name and not readonly:  # 锁定失败
+                    return self.send_error(errors.task_locked, render=True)
+
+                from_url = self.get_query_argument('from', None)
+                self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
+                            boxes=page[box_type + 's'],
+                            title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
+                            from_url=from_url or '/task/lobby/' + task_type,
+                            can_return=from_url,
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
             except Exception as e:
                 self.send_db_error(e, render=True)
 
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
-        self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
+        readonly = self.get_query_argument('view', 0)
+        if readonly:
+            handle_response({})
+        else:
+            self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
 
     def get_img(self, name):
         cfg = self.application.config

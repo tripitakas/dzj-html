@@ -211,7 +211,7 @@
 															<td>{{to_date_str(t.get(task_type, {}).get('picked_time'))}}</td>
 															<td>{{to_date_str(t.get(task_type, {}).get('finished_time'))}}</td>
 															<td>
-																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}">查看</a>
+																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
 																{% if t.get(task_type, {}).get('status') not in [None, 'unready', 'ready'] %}
 																<a class="withdraw">撤回</a>
 																{% end %}
@@ -233,7 +233,7 @@
 																<td>{{to_date_str(st.get('picked_time'))}}</td>
 																<td>{{to_date_str(st.get('finished_time'))}}</td>
 																<td>
-																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}">查看</a>
+																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
 																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}
 																	<a class="withdraw">撤回</a>
 																	{% end %}
