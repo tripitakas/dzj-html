@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.role import assignable_do_roles
-import controller.errors as e
+from controller.task.base import TaskHandler
+
 
 user1 = 'expert1@test.com', 't12345'
 user2 = 'expert2@test.com', 't12312'
@@ -22,7 +22,7 @@ class TestTaskFlow(APITestCase):
 
     def tearDown(self):
         # 退回所有任务，还原改动
-        for task_type in assignable_do_roles:
+        for task_type in TaskHandler.task_types.keys():
             self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
 
         super(TestTaskFlow, self).tearDown()

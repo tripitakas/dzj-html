@@ -47,6 +47,7 @@ role_maps = {
         'routes': {
             '/': ['GET'],
             '/home': ['GET'],
+            '/help': ['GET'],
             '/my/profile': ['GET'],
             '/api/my/profile': ['POST'],
             '/api/my/pwd': ['POST'],
@@ -57,7 +58,8 @@ role_maps = {
         }
     },
     '切栏校对员': {
-        'is_assignable': 'block_cut_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
             '/task/my/block_cut_proof': ['GET'],
@@ -67,7 +69,8 @@ role_maps = {
         }
     },
     '切栏审定员': {
-        'is_assignable': 'block_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
@@ -77,7 +80,8 @@ role_maps = {
         }
     },
     '切列校对员': {
-        'is_assignable': 'column_cut_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
             '/task/my/column_cut_proof': ['GET'],
@@ -87,7 +91,8 @@ role_maps = {
         }
     },
     '切列审定员': {
-        'is_assignable': 'column_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
@@ -98,6 +103,7 @@ role_maps = {
     },
     '切字校对员': {
         'is_assignable': 'char_cut_proof',
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
             '/task/my/char_cut_proof': ['GET'],
@@ -107,7 +113,8 @@ role_maps = {
         }
     },
     '切字审定员': {
-        'is_assignable': 'char_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
@@ -118,10 +125,11 @@ role_maps = {
     },
     '切分专家': {
         'is_assignable': True,
-        'roles': ['切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
+        'roles': ['普通用户', '切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
     },
     '文字校对员': {
-        'is_assignable': 'text_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
@@ -130,7 +138,8 @@ role_maps = {
         }
     },
     '文字审定员': {
-        'is_assignable': 'text_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
@@ -139,14 +148,15 @@ role_maps = {
         }
     },
     '文字专家': {
-        'is_assignable': 'text_hard',
-        'roles': ['文字校对员', '文字审定员'],
+        'is_assignable': True,
+        'roles': ['普通用户', '文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
         }
     },
     '任务管理员': {
         'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
@@ -159,6 +169,7 @@ role_maps = {
     },
     '数据管理员': {
         'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/data/tripitaka': ['GET'],
             '/data/envelop': ['GET'],
@@ -184,8 +195,6 @@ role_maps = {
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
-assignable_do_roles = [v['is_assignable'] for role, v in role_maps.items()
-                       if isinstance(v.get('is_assignable'), str)]
 
 
 def get_role_routes(role, routes=None):
@@ -231,8 +240,6 @@ def get_route_roles(uri, method):
 
 if __name__ == '__main__':
     # TODO: 这段测试可移到单元测试中，校验 role_maps
-    print(assignable_roles)
-
     if can_access('切分专家', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
         print('can access')
     else:

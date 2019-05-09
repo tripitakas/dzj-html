@@ -1,0 +1,258 @@
+<div class="sidebar-menu-con" style="">
+	<div class="ivu-shrinkable-menu sidebar-collapse">
+		<div class="logo-con">
+			<img class="large" src="{{ static_url('imgs/logo_rushi.png') }}">
+			<img class="mini" src="{{ static_url('imgs/logo-small.png') }}">
+		</div>
+		<ul class="menu">
+			<li class="menu-item" >
+				<i ><img src="{{ static_url('imgs/frame/icon_home.png') }}" style="margin-top:10px;"></i>
+				<span><a href="/home">首页</a></span>
+			</li>
+			<li class="menu-item {{'show' if can_access('/tripitaka/rs') else 'hidden'}}">
+				<i><img src="{{ static_url('imgs/frame/icon_temple.png') }}" style="margin-top:11px;margin-left:-2px;"></i>
+				<span style="margin-left:-3px;"><a href="/tripitaka/rs">如是藏经</a></span>
+			</li>
+			<li class="menu-item {{'show' if can_access('/tripitaka') else 'hidden'}}">
+				<i><img src="{{ static_url('imgs/frame/icon_tripitaka.png') }}" style="margin-top:12px;"></i>
+				<span><a href="/tripitaka">实体藏经</a></span>
+			</li>
+			<li>
+				<div class="submenu-title">
+					<i><img src="{{ static_url('imgs/frame/icon_lobby.png') }}" style="margin-top:9px;"></i>
+					<span>任务大厅</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li class="{{'show' if can_access('/task/lobby/block_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/block_cut_proof">切栏校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/block_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/block_cut_review">切栏审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/column_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/column_cut_proof">切列校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/column_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/column_cut_review">切列审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/char_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/char_cut_proof">切字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/char_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/char_cut_review">切字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/text_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_proof">文字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/text_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_review">文字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/lobby/text_hard') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/lobby/text_hard">难字处理</a></span>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<div class="submenu-title">
+					<i><img src="{{ static_url('imgs/frame/icon_my_task.png') }}" style="margin-top:9px;"></i>
+					<span>我的任务</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li class="{{'show' if can_access('/task/my/block_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/block_cut_proof">切栏校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/block_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/block_cut_review">切栏审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/column_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/column_cut_proof">切列校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/column_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/column_cut_review">切列审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/char_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/char_cut_proof">切字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/char_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/char_cut_review">切字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/text_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/text_proof">文字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/text_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/text_review">文字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/my/text_hard') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/my/text_hard">难字处理</a></span>
+					</li>
+				</ul>
+			</li>
+			<!--<li class="menu-item">-->
+				<!--<i><img src="{{ static_url('imgs/frame/icon_msg.png') }}" style="margin-top:12px;"></i>-->
+				<!--<span id="feedback"><a href="/my/feedback">我的反馈</a></span>-->
+			<!--</li>-->
+			<li>
+				<div class="submenu-title">
+					<i><img src="{{ static_url('imgs/frame/icon_task_admin.png') }}" style="margin-top:9px;"></i>
+					<span>任务管理</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li class="{{'show' if can_access('/task/admin/cut/status') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/cut/status">切分状态</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/block_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/block_cut_proof">切栏校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/block_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/block_cut_review">切栏审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/column_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/column_cut_proof">切列校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/column_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/column_cut_review">切列审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/char_cut_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/char_cut_proof">切字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/char_cut_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/char_cut_review">切字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/text/status') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/text/status">文字状态</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/text_proof') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/text_proof">文字校对</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/text_review') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/text_review">文字审定</a></span>
+					</li>
+					<li class="{{'show' if can_access('/task/admin/text_hard') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/task/admin/text_hard">文字难字</a></span>
+					</li>
+
+				</ul>
+			</li>
+			<li>
+				<div class="submenu-title">
+					<i><img src="{{ static_url('imgs/frame/icon_user.png') }}" style="margin-top:9px;"></i>
+					<span>人员管理</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li class="{{'show' if can_access('/user/admin') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/user/admin">用户管理</a></span>
+					</li>
+					<li class="{{'show' if can_access('/user/role') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/user/role">授权管理</a></span>
+					</li>
+					<li class="{{'show' if can_access('/user/statistic') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/user/statistic">数据统计</a></span>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<div class="submenu-title">
+					<i><img src="{{ static_url('imgs/frame/icon_data.png') }}" style="margin-top:9px;"></i>
+					<span>数据管理</span>
+					<i></i>
+				</div>
+				<ul class="sub-ul sub-ul-hidden">
+					<li class="{{'show' if can_access('/data/tripitaka') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/tripitaka">实体藏</a></span>
+					</li>
+					<li class="{{'show' if can_access('/data/envelop') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/envelop">实体函</a></span>
+					</li>
+					<li class="{{'show' if can_access('/data/volume') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/volume">实体册</a></span>
+					</li>
+					<li class="{{'show' if can_access('/data/sutra') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/sutra">实体经</a></span>
+					</li>
+					<li class="{{'show' if can_access('/data/reel') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/reel">实体卷</a></span>
+					</li>
+					<li class="{{'show' if can_access('/data/page') else 'hidden'}}">
+						<i><img src="{{ static_url('imgs/frame/icon_subitem.png') }}" class="sub-img"/></i>
+						<span><a href="/data/page">实体页</a></span>
+					</li>
+				</ul>
+			</li>
+			<li class="menu-item">
+				<i><img src="{{ static_url('imgs/frame/icon_help.png') }}" style="margin-top:12px;"></i>
+				<span><a href="/help">帮助文档</a></span>
+			</li>
+		</ul>
+		<!--<img class="budda" src="{{ static_url('imgs/frame/budda.png') }}" alt="">-->
+	</div>
+
+</div>
+<script>
+	$(function() {
+		$('.sidebar-collapse').slimScroll({
+			height: '100%',
+			railOpacity: 0.9,
+			alwaysVisible: false
+		});
+		$('.submenu-title').click(function() {
+			$('.sub-ul').slideUp(300);
+
+			if($(this).hasClass('active')) {
+				$(this).removeClass('active');
+			} else {
+				$(this).addClass('active');
+				$(this).next().slideDown(300);
+			}
+		});
+
+		var paths = location.pathname.replace(/^\//, '').split('/')
+		paths.pop()
+		var current_item = '#' + paths.slice(0,2).join('-')
+		$(current_item).addClass("active");
+		$('.active').next().slideDown(300);
+
+		var current_sub_item = '#' + location.pathname.replace(/^\//, '').replace(/[\/_]/g, '-')
+		$(current_sub_item).addClass("sub-active");
+	});
+</script>

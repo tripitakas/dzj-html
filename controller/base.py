@@ -73,6 +73,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         need_roles = get_route_roles(p, m)
         self.send_error(e.unauthorized, render=not api, reason=','.join(need_roles))
 
+    def can_access(self, path, method='GET'):
+        """检查当前用户是否能访问某个(path, method)"""
+        role = self.current_user.get('roles')
+        role = role if role else '普通用户'
+        return can_access(role, path, method)
+
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
             self.write({'code': 403, 'error': 'Forbidden'})
@@ -91,7 +97,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path
-        # dumps/to_date_str传递给页面模板
+        # can_access/dumps/to_date_str传递给页面模板
+        kwargs['can_access'] = can_access
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
 
