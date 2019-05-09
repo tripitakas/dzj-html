@@ -207,8 +207,8 @@ class CutDetailBaseHandler(TaskHandler):
                 if not page:
                     return self.render('_404.html')
 
-                if body.get('name') != name and not readonly:  # 锁定失败
-                    return self.send_error(errors.task_locked, render=True)
+                if not body.get('name') and not readonly:  # 锁定失败
+                    return self.send_error(errors.task_locked, render=True, reason=name)
 
                 from_url = self.get_query_argument('from', None)
                 self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
