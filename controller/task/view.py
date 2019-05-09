@@ -208,11 +208,13 @@ class CutDetailBaseHandler(TaskHandler):
                 if body.get('name') != name and not readonly:  # 锁定失败
                     return self.send_error(errors.task_locked, render=True)
 
+                from_url = self.get_query_argument('from', None)
                 self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
                             boxes=page[box_type + 's'],
                             title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
-                            from_url=self.get_query_argument('from', '/task/lobby/' + task_type),
+                            from_url=from_url or '/task/lobby/' + task_type,
+                            can_return=from_url,
                             box_type=box_type, stage=stage, task_type=task_type, task_name=task_name)
             except Exception as e:
                 self.send_db_error(e, render=True)

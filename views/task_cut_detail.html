@@ -49,10 +49,16 @@
                       <div class="full">
                         <div class="full-hd clearfix">
                           <div class="left fl">
+                            {% if can_return %}
+                            <span class="slice_title">
+                              <a href="{{from_url}}">返回</a>
+                            </span>
+                            {% else %}
                             <a href="/home"><span class="head_home ion-home"></span></a>
                             <span class="slice_title">
                               <a href="{{from_url}}">{{title}}</a>
                             </span>
+                            {% end %}
                             <span class="slice_info">页编码：{{page['name']}}</span>
                             <div class="slice_btn_group">
                               <div class="btn-group m-b-10 hl-btn">
@@ -85,6 +91,11 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                               </button>
                               <ul class="dropdown-menu">
+                                {% if box_type == 'char' %}
+                                <li><a id="edit-block">修改栏框</a></li>
+                                <li><a id="edit-column">修改列框</a></li>
+                                <li role="separator" class="divider"></li>
+                                {% end %}
                                 <li><a id="return-task">退回任务</a></li>
                               </ul>
                             </div>
