@@ -4,17 +4,17 @@
             <img class="large" src="{{ static_url('imgs/logo_rushi.png') }}">
             <img class="mini" src="{{ static_url('imgs/logo-small.png') }}">
         </div>
-        <ul class="menu">
+        <ul class="menu" id="side-menu">
             {% for item in display_items %}
             {% if item.get('sub_items') %}
             <li>
-                <div class="submenu-title">
+                <div class="submenu-title" id="{{item['id']}}">
                     <i><img src='{{ static_url("imgs/frame/%s.png" % item["icon"]) }}' style="margin-top:9px;"></i>
                     <span>{{item['name']}}</span>
                 </div>
                 <ul class="sub-ul sub-ul-hidden">
                     {% for sub_item in item.get('sub_items') %}
-                    <li>
+                    <li class="" id="{{sub_item['id']}}">
                         <i><img src='{{ static_url("imgs/frame/%s.png" % sub_item["icon"]) }}' class="sub-img"/></i>
                         <span><a href="{{sub_item['link']}}">{{sub_item['name']}}</a></span>
                     </li>
@@ -22,7 +22,7 @@
                 </ul>
             </li>
             {% else %}
-            <li class="menu-item">
+            <li class="menu-item" id="{{item['id']}}">
                 <i><img src='{{ static_url("imgs/frame/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
                 <span><a href="{{item['link']}}">{{item['name']}}</a></span>
             </li>
@@ -56,7 +56,6 @@
 		var current_item = '#' + paths.slice(0,2).join('-')
 		$(current_item).addClass("active");
 		$('.active').next().slideDown(300);
-
 		var current_sub_item = '#' + location.pathname.replace(/^\//, '').replace(/[\/_]/g, '-')
 		$(current_sub_item).addClass("sub-active");
 	});

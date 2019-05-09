@@ -5,8 +5,10 @@
 @file: modules.py
 @time: 2018/12/22
 """
-from tornado.web import UIModule
+import re
 import math
+from tornado.web import UIModule
+
 
 
 class CommonLeft(UIModule):
@@ -16,7 +18,7 @@ class CommonLeft(UIModule):
             dict(name='首页', icon='icon_home', link='/home'),
             dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
             dict(name='实体藏经', icon='icon_tripitaka', link='/tripitaka'),
-            dict(name='任务大厅', icon='icon_task_lobby', sub_items=[
+            dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切栏校对', icon='icon_subitem', link='/task/lobby/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/lobby/block_cut_review'),
                 dict(name='切列校对', icon='icon_subitem', link='/task/lobby/column_cut_proof'),
@@ -27,7 +29,7 @@ class CommonLeft(UIModule):
                 dict(name='文字审定', icon='icon_subitem', link='/task/lobby/text_proof'),
                 dict(name='难字处理', icon='icon_subitem', link='/task/lobby/text_review'),
             ]),
-            dict(name='我的任务', icon='icon_my_task', sub_items=[
+            dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
                 dict(name='切栏校对', icon='icon_subitem', link='/task/my/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/my/block_cut_review'),
                 dict(name='切列校对', icon='icon_subitem', link='/task/my/column_cut_proof'),
@@ -38,7 +40,7 @@ class CommonLeft(UIModule):
                 dict(name='文字审定', icon='icon_subitem', link='/task/my/text_proof'),
                 dict(name='难字处理', icon='icon_subitem', link='/task/my/text_review'),
             ]),
-            dict(name='任务管理', icon='icon_task_admin', sub_items=[
+            dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
                 dict(name='切分状态', icon='icon_subitem', link='/task/admin/cut/status'),
                 dict(name='切栏校对', icon='icon_subitem', link='/task/admin/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/admin/block_cut_review'),
@@ -51,12 +53,12 @@ class CommonLeft(UIModule):
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_proof'),
                 dict(name='难字处理', icon='icon_subitem', link='/task/admin/text_review'),
             ]),
-            dict(name='人员管理', icon='icon_user', sub_items=[
+            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon_subitem', link='/user/role'),
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
-            dict(name='数据管理', icon='icon_data', sub_items=[
+            dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='实体藏', icon='icon_subitem', link='/data/tripitaka'),
                 dict(name='实体函', icon='icon_subitem', link='/data/envelop'),
                 dict(name='实体册', icon='icon_subitem', link='/data/volume'),
@@ -71,10 +73,13 @@ class CommonLeft(UIModule):
         display_items = []
         for item in items:
             if item.get('link') and can_access(item['link']):
+                item['id'] = re.sub('[/_]', '-', item['link'][1:])
                 display_items.append(item)
             if item.get('sub_items'):
                 sub_items = [i for i in item['sub_items'] if i.get('link') and can_access(i['link'])]
                 if sub_items:
+                    for _item in sub_items:
+                        _item['id'] = re.sub('[/_]', '-', _item['link'][1:])
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
