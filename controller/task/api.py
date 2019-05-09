@@ -171,18 +171,20 @@ class GetPagesApi(TaskHandler):
 class UnlockTasksApi(TaskHandler):
     URL = '/api/unlock/@task_type/@page_prefix'
 
-    def get(self, task_type, prefix=None):
+    def get(self, task_type, prefix=None, returned=False):
         """ 退回全部任务 """
         types = task_type.split('.')
         try:
-            pages = self.db.page.find(dict(name=re.compile('^' + prefix)) if prefix else {})
+            # prefix为空找所有页面，prefix为6个以上字符为唯一匹配页面，其他则为页名前缀
+            pages = self.db.page.find(dict(name=re.compile('^' + prefix) if len(prefix) < 6 else prefix
+                                           ) if prefix else {})
             ret = []
             for page in pages:
                 info, unset = {}, {}
                 name = page['name']
                 for field in page:
                     if field in self.task_types and types[0] in field:
-                        self.unlock(page, field, types, info, unset)
+                        self.unlock(page, field, types, info, unset, returned)
                 if info:
                     r = self.db.page.update_one(dict(name=name), {'$set': info, '$unset': unset})
                     if r.modified_count:
@@ -194,28 +196,33 @@ class UnlockTasksApi(TaskHandler):
 
     def post(self, task_type, prefix=None):
         """ 由审校者主动退回当前任务 """
-        assert prefix
+        assert prefix and len(prefix) > 5
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
             return self.send_error(errors.no_object)
         if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
                 PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
             return self.send_error(errors.task_locked)
-        self.get(task_type, prefix)
+        self.get(task_type, prefix, returned=True)
 
-    def unlock(self, page, field, types, info, unset):
-        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time',
-                  'publish_time', 'publish_by', 'publish_user_id', 'priority']
+    def unlock(self, page, field, types, info, unset, returned):
+        def fill_info(field1):
+            info['%s.status' % field1] = self.STATUS_RETURNED if returned else self.STATUS_READY
+            info['%s.publish_time' % field1] = datetime.now()
+            info['%s.publish_user_id' % field1] = self.current_user['_id']
+            info['%s.publish_by' % field1] = self.current_user['name']
+
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
                     continue
                 if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
-                    info[field + '.' + sub_task + '.status'] = self.STATUS_READY
+                    fill_info(field + '.' + sub_task)
                     for f in fields:
                         unset[field + '.' + sub_task + '.' + f] = None
         if page[field].get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
-            info[field + '.status'] = self.STATUS_READY
+            fill_info(field)
             for f in fields:
                 unset[field + '.' + f] = None
 

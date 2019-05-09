@@ -18,22 +18,25 @@ class TaskLobbyHandler(TaskHandler):
 
         def pack(items):
             for t in items:
-                if t.get(task_type, {}).get('priority'):
+                if t.get(task_type, {}).get('status'):
                     t['priority'] = t.get(task_type, {}).get('priority')
                     t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                     t['status'] = t.get(task_type, {}).get('status')
                     continue
-                for k, v in t.get(task_type, {}).items():
+                for v in sub_tasks(t):
                     if v.get('status') in task_status or uncompleted(v):
                         t['priority'] = v.get('priority')
                         t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                         t['status'] = v.get('status')
                         continue
 
+        def sub_tasks(page):
+            return [v for k, v in page.get(task_type, {}).items() if k in self.task_types]
+
         def sorted_by_priority(items):
             pack(items)
             return sorted(items, key=cmp_to_key(
-                lambda a, b: '高中低'.index(a['priority']) - '高中低'.index(b['priority'])))
+                lambda a, b: '高中低'.index(a.get('priority') or '低') - '高中低'.index(b.get('priority') or '低')))
 
         def uncompleted(t):
             return t.get('status') == self.STATUS_LOCKED and \
@@ -42,8 +45,8 @@ class TaskLobbyHandler(TaskHandler):
         try:
             task_status = [self.STATUS_OPENED, self.STATUS_RETURNED]
             my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_LOCKED])
-                        if [1 for s in t.get(task_type, {}).get('status') and [t.get(task_type)]
-                            or list(t.get(task_type, {}).values()) if uncompleted(s)]]
+                        if [1 for s in (t.get(task_type, {}).get('status') and [t.get(task_type)]
+                                        or sub_tasks(t)) if uncompleted(s)]]
             tasks = sorted_by_priority(my_tasks) + sorted_by_priority(self.get_tasks(task_type, task_status))
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
