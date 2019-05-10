@@ -56,11 +56,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查用户是否已登录
         api = '/api/' in p
         if not self.current_user:
-            return self.send_error(e.need_login, reason='需要重新登录') if api else self.redirect(self.get_login_url())
+            return self.send_error_response(e.need_login) if api else self.redirect(self.get_login_url())
         # 检查数据库中是否有该用户
         user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
-            return self.send_error(e.no_user, reason='需要重新注册') if api else self.redirect(self.get_login_url())
+            return self.send_error_response(e.no_user) if api else self.redirect(self.get_login_url())
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -71,7 +71,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        self.send_error(e.unauthorized, render=not api, reason=','.join(need_roles))
+        self.send_error_response(e.unauthorized, render=not api, message='没有权限，需要：%s' % ','.join(need_roles))
 
     def can_access(self, path, method='GET'):
         """检查当前用户是否能访问某个(path, method)"""
@@ -125,19 +125,28 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
         return body or {}
 
-    def send_response_data(self, data, **kwargs):
-        """ 正常情况下，发送API响应数据"""
+    def send_data_response(self, data, **kwargs):
+        """
+        发送正常响应内容，并结束处理
+        :param data: 返回给请求的内容，字典或列表
+        :param kwargs: 更多上下文参数
+        :return: None
+        """
+        assert data is None or isinstance(data, (tuple, dict))
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+
         type = 'mutiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
         response = dict(status='success', type=type, data=data)
         response.update(kwargs)
         self.write(json_util.dumps(response))
         self.finish()
 
-    def send_response_error(self, error, render=False, **kwargs):
+    def send_error_response(self, error, **kwargs):
         """
-        异常情况下，发送错误消息
-        :param error: 错误消息，tuple表示单个错误，dict表示多个错误。
-        :param render: False表示Ajax请求，返回json数据。True表示页面请求，返回错误页面。
+        反馈错误消息，并结束处理
+        :param error: 单一错误描述的元组(见errors.py)，或多个错误的字典对象
+        :param kwargs: 错误的具体上下文参数，例如 render、page_name
+        :return: None
         """
         type = 'mutiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
         _error = list(error.values())[0] if type == 'mutiple' else error
@@ -145,22 +154,33 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 如果kwargs中含有message，则覆盖error中对应的message
         message = kwargs['message'] if kwargs.get('message') else message
 
-        if render:
-            return self.render('_error.html', code=_error[0], message=_error[1])
-
         response = dict(status='failed', type=type, code=code, message=message, error=error)
         response.update(kwargs)
 
-        self.write(json_util.dumps(response))
-        self.finish()
+        if kwargs.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+            return self.render('_error.html', **response)
 
-    def send_error(self, status_code, **kwargs):
-        """ 截获框架的send_error函数 """
-        pass
+        user_name = self.current_user and self.current_user['name']
+        logging.error('%d %s [%s %s]' % (code, message, user_name, self.get_ip()))
+
+        if not self._finished:
+            self.set_header('Content-Type', 'application/json; charset=UTF-8')
+            self.write(json_util.dumps(response))
+            self.finish()
+
+    def send_error(self, status_code=500, **kwargs):
+        """拦截系统错误，不允许API调用"""
+        self.write_error(status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
-        """ write_error """
-        pass
+        """拦截系统错误，不允许API调用"""
+        assert isinstance(status_code, int)
+        message = kwargs.get('message') or kwargs.get('reason') or self._reason
+        message = message if message != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
+            str(self).split('.')[-1].split(' ')[0],
+            str(kwargs.get('exc_info', (0, '', 0))[1])
+        )
+        self.send_error_response((status_code, message), **kwargs)
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
@@ -168,13 +188,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            return self.send_error(
-                e.mongo_error[0] + code,
-                render=render,
-                message='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                    e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
-                )
+            reason = '无法访问文档库' if code in [61] else '%s(%s)%s' % (
+                e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
             )
+            return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
 
         if code:
             logging.error(error.args[1])
@@ -184,14 +201,11 @@ class BaseHandler(CorsMixin, RequestHandler):
             traceback.print_exc()
 
         default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
-        self.send_response_error(
-            default_error[0] + code,
-            for_yield=True,
-            render=render,
-            message='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
-                default_error[1], error.__class__.__name__, ': ' + (reason or '')
-            )
+        reason = '无法连接数据库' if code in [2003] else '%s(%s)%s' % (
+            default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
+
+        self.send_error_response((default_error[0] + code, reason), render=render)
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
@@ -200,12 +214,8 @@ class BaseHandler(CorsMixin, RequestHandler):
     def add_op_log(self, op_type, file_id=None, context=None):
         logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
         self.db.log.insert_one(dict(
-            type=op_type,
-            user_id=self.current_user and self.current_user.get('_id'),
-            file_id=file_id or None,
-            context=context and context[:80],
-            create_time=get_date_time(),
-            ip=self.get_ip()
+            type=op_type, file_id=file_id or None, context=context and context[:80], ip=self.get_ip(),
+            user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 
     def get_img_url(self, page_code):
