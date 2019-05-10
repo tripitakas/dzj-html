@@ -49,7 +49,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     cache: false,
     success: function (data) {
       if (data.status == 'error') {
-        if (data.type == 'single' && !error_callback)) { // 单一错误
+        if (data.type == 'single' && !error_callback) { // 单一错误
           _error_callback(data.error[1], data.error[0]);
         }
         else if (data.type == 'multiple' && !error_callback) {  // 多个错误
@@ -66,11 +66,8 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     },
     error: function (xhr) {
       var code = xhr.status || xhr.code || 500;
-
       if (code >= 200 && code <= 299) {
-        if (success_callback) {
-          success_callback({});
-        }
+        success_callback && success_callback({});
       }
       else if (!window.unloading) {
         _error_callback('网络访问失败，不能访问后台服务(' + code + ')', code);
