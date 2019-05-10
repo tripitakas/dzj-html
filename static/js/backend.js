@@ -57,7 +57,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
           _error_callback(data.error[key][1], data.error[key][0]);
         }
         else {
-          error_callback(data)
+          error_callback && error_callback(data)
         }
       }
       else {
