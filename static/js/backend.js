@@ -52,7 +52,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
         if (data.status == 'single' && !error_callback)) { // 单一错误
           _error_callback(data.error[1], data.error[0]);
         }
-        else if (data.status == 'mutiple' && !error_callback) {  // 多个错误
+        else if (data.status == 'multiple' && !error_callback) {  // 多个错误
           var key = Object.keys(data.error)[0];
           _error_callback(data.error[key][1], data.error[key][0]);
         }
