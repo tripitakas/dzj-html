@@ -52,7 +52,7 @@ class PublishTasksApi(TaskHandler):
                     if r.modified_count:
                         self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
 
-            self.send_response(result)
+            self.send_data_response(result)
 
         except DbError as e:
             self.send_db_error(e)
@@ -77,8 +77,8 @@ class GetTaskApi(TaskHandler):
         try:
             page = self.db.page.find_one(dict(name=task_id))
             if not page:
-                return self.send_error(errors.no_object)
-            self.send_response(page)
+                return self.send_error_response(errors.no_object)
+            self.send_data_response(page)
         except DbError as e:
             self.send_db_error(e)
 
@@ -109,7 +109,7 @@ class GetLobbyTasksApi(TaskHandler):
                 fields.update({'%s.priority' % task_type: 1})
 
             pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
-            self.send_response(pages)
+            self.send_data_response(pages)
         except DbError as e:
             self.send_db_error(e)
 
@@ -122,8 +122,8 @@ class GetPageApi(TaskHandler):
         try:
             page = self.db.page.find_one(dict(name=name))
             if not page:
-                return self.send_error(errors.no_object)
-            self.send_response(page)
+                return self.send_error_response(errors.no_object)
+            self.send_data_response(page)
         except DbError as e:
             self.send_db_error(e)
 
@@ -153,7 +153,7 @@ class GetPagesApi(TaskHandler):
                 assert data.get('task_type') in all_types
 
                 pages = self.db.page.find({data['task_type'] + '.status': self.STATUS_READY})
-                self.send_response([p['name'] for p in pages])
+                self.send_data_response([p['name'] for p in pages])
             else:
                 pages = [p for p in self.db.page.find({})
                          if [t for t in all_types if p.get(t + '.status')]]
@@ -163,7 +163,7 @@ class GetPagesApi(TaskHandler):
                             p[field] = len(p[field])
                         elif isinstance(value, list):
                             del p[field]
-                self.send_response(pages)
+                self.send_data_response(pages)
         except DbError as e:
             self.send_db_error(e)
 
@@ -190,7 +190,7 @@ class UnlockTasksApi(TaskHandler):
                     if r.modified_count:
                         self.add_op_log('unlock_' + task_type, file_id=str(page['_id']), context=name)
                         ret.append(name)
-            self.send_response(ret)
+            self.send_data_response(ret)
         except DbError as e:
             self.send_db_error(e)
 
@@ -199,10 +199,10 @@ class UnlockTasksApi(TaskHandler):
         assert prefix and len(prefix) > 5
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
-            return self.send_error(errors.no_object)
+            return self.send_error_response(errors.no_object)
         if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
                 PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
-            return self.send_error(errors.task_locked, reason=page['name'])
+            return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
     def unlock(self, page, field, types, info, unset, returned):
@@ -238,7 +238,7 @@ class PickTaskApi(TaskHandler):
             names = [p['name'] for p in names]
             if names and name not in names:
                 name = names[0]
-                # return self.send_error(errors.task_uncompleted, reason=','.join(names))
+                # return self.send_error_response(errors.task_uncompleted, reason=','.join(names))
 
             # 领取新任务(待领取或已退回时)或继续原任务
             can_lock = {
@@ -262,10 +262,10 @@ class PickTaskApi(TaskHandler):
                 self.add_op_log('open_' + task_type, file_id=page['_id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)
-                return self.send_response() if page else self.send_error(errors.no_object)
+                return self.send_data_response() if page else self.send_error_response(errors.no_object)
 
             # 反馈领取成功
-            self.send_response(dict(name=page['name']))
+            self.send_data_response(dict(name=page['name']))
         except DbError as e:
             self.send_db_error(e)
 
@@ -318,22 +318,22 @@ class SaveCutApi(TaskHandler):
 
             page = self.db.page.find_one(dict(name=data['name']))
             if not page:
-                return self.send_error(errors.no_object)
+                return self.send_error_response(errors.no_object)
 
             status = PickTaskApi.page_get_prop(page, task_type + '.status')
             if status != self.STATUS_LOCKED:
-                return self.send_error(errors.task_changed, reason=self.task_statuses.get(status))
+                return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.picked_user_id'
             if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
-                return self.send_error(errors.task_locked, reason=page['name'])
+                return self.send_error_response(errors.task_locked, reason=page['name'])
 
             result = dict(name=data['name'])
             self.change_box(result, page, data['name'], task_type)
             if data.get('submit'):
                 self.submit_task(result, data, page, task_type, task_user)
 
-            self.send_response(result)
+            self.send_data_response(result)
         except DbError as e:
             self.send_db_error(e)
 

@@ -104,7 +104,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
-            return self.send_response({k: v for k, v in kwargs.items() if not hasattr(v, '__call__')})
+            return self.send_data_response({k: v for k, v in kwargs.items() if not hasattr(v, '__call__')})
 
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
@@ -125,31 +125,31 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
         return body or {}
 
-    def send_data_response(self, data, **kwargs):
+    def send_data_response(self, data=None, **kwargs):
         """
         发送正常响应内容，并结束处理
         :param data: 返回给请求的内容，字典或列表
         :param kwargs: 更多上下文参数
         :return: None
         """
-        assert data is None or isinstance(data, (tuple, dict))
+        assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
 
-        type = 'mutiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
+        type = 'multiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
         response = dict(status='success', type=type, data=data)
         response.update(kwargs)
         self.write(json_util.dumps(response))
         self.finish()
 
-    def send_error_response(self, error, **kwargs):
+    def send_error_response(self, error=None, **kwargs):
         """
         反馈错误消息，并结束处理
         :param error: 单一错误描述的元组(见errors.py)，或多个错误的字典对象
         :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
-        type = 'mutiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
-        _error = list(error.values())[0] if type == 'mutiple' else error
+        type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
+        _error = list(error.values())[0] if type == 'multiple' else error
         code, message = _error
         # 如果kwargs中含有message，则覆盖error中对应的message
         message = kwargs['message'] if kwargs.get('message') else message

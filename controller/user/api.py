@@ -27,7 +27,7 @@ class LoginApi(BaseHandler):
         ]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             # 检查是否多次登录失败
@@ -38,12 +38,12 @@ class LoginApi(BaseHandler):
             }
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
-                return self.send_error(errors.unauthorized, reason='请半小时后重试，或者申请重置密码')
+                return self.send_error_response(errors.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
 
             login_fail['create_time']['$gt'] = hlp.get_date_time(diff_seconds=-60)
             times = self.db.log.count_documents(login_fail)
             if times >= 5:
-                return self.send_error(errors.unauthorized, reason='请一分钟后重试')
+                return self.send_error_response(errors.unauthorized, message='登录失败，请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             self.login(self, user.get('phone_or_email'), user.get('password'))
@@ -61,12 +61,12 @@ class LoginApi(BaseHandler):
         if not user:
             if report_error:
                 self.add_op_log('login-no-user', context=phone_or_email)
-                return self.send_error(errors.no_user, reason=phone_or_email)
+                return self.send_error_response(errors.no_user)
             return
         if user['password'] != hlp.gen_id(password):
             if report_error:
                 self.add_op_log('login-fail', context=phone_or_email)
-                return self.send_error(errors.incorrect_password)
+                return self.send_error_response(errors.incorrect_password)
             return
 
         # 清除登录失败记录
@@ -81,7 +81,7 @@ class LoginApi(BaseHandler):
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                      (user['_id'], user['name'], phone_or_email, user['roles']))
 
-        self.send_response(user)
+        self.send_data_response(user)
         return user
 
 
@@ -94,7 +94,7 @@ class LogoutApi(BaseHandler):
             self.clear_cookie('user')
             self.current_user = None
             self.add_op_log('logout')
-            self.send_response()
+            self.send_data_response()
 
 
 class RegisterApi(BaseHandler):
@@ -114,7 +114,7 @@ class RegisterApi(BaseHandler):
         ]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
@@ -132,7 +132,7 @@ class RegisterApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
         logging.info('register id=%s, name=%s, email=%s' % (user['_id'], user['name'], user.get('email')))
-        self.send_response(user)
+        self.send_data_response(user)
 
 
 class ChangeUserProfileApi(BaseHandler):
@@ -151,23 +151,23 @@ class ChangeUserProfileApi(BaseHandler):
         ]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             old_user = self.db.user.find_one(dict(_id=user['_id']))
             if not old_user:
-                return self.send_error(errors.no_user, reason=user['_id'])
+                return self.send_error_response(errors.no_user, id=user['_id'])
 
             sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
                     if f in user and user[f] != old_user.get(f)}
             if not sets:
-                return self.send_error(errors.no_change)
+                return self.send_error_response(errors.no_change)
 
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
                 self.add_op_log('change_user_profile', context='%s: %s' % (user['_id'], ','.join(sets.keys())))
 
-            self.send_response(dict(info=sets))
+            self.send_data_response(dict(info=sets))
 
         except DbError as e:
             return self.send_db_error(e)
@@ -183,17 +183,17 @@ class ChangeUserRoleApi(BaseHandler):
         rules = [(v.not_empty, '_id')]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             user['roles'] = user.get('roles') or ''
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
-                return self.send_error(errors.no_user)
+                return self.send_error_response(errors.no_user)
             self.add_op_log('change_role', context='%s: %s' % (user.get('_id'), user.get('roles')))
         except DbError as e:
             return self.send_db_error(e)
-        self.send_response({'roles': user['roles']})
+        self.send_data_response({'roles': user['roles']})
 
 
 class ResetUserPasswordApi(BaseHandler):
@@ -206,21 +206,21 @@ class ResetUserPasswordApi(BaseHandler):
         rules = [(v.not_empty, '_id')]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
             oid = objectid.ObjectId(user['_id'])
             r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=hlp.gen_id(pwd))})
             if not r.matched_count:
-                return self.send_error(errors.no_user)
+                return self.send_error_response(errors.no_user)
 
             user = self.db.user.find_one(dict(_id=oid))
             self.remove_login_fails(self, user['_id'])
             self.add_op_log('reset_password', context=': '.join(user))
         except DbError as e:
             return self.send_db_error(e)
-        self.send_response({'password': pwd})
+        self.send_data_response({'password': pwd})
 
     @staticmethod
     def remove_login_fails(self, context):
@@ -240,18 +240,18 @@ class DeleteUserApi(BaseHandler):
         rules = [(v.not_empty, '_id')]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             if user['_id'] == self.current_user['_id']:  # 判断删除的用户是否为自己
-                return self.send_error(errors.cannot_delete_self)
+                return self.send_error_response(errors.cannot_delete_self)
             r = self.db.user.delete_one(dict(_id=user['_id']))
             if r.deleted_count < 1:
-                return self.send_error(errors.no_user)
+                return self.send_error_response(errors.no_user)
             self.add_op_log('delete_user', context=': '.join(user))
         except DbError as e:
             return self.send_db_error(e)
-        self.send_response()
+        self.send_data_response()
 
 
 class ChangeMyPasswordApi(BaseHandler):
@@ -267,12 +267,12 @@ class ChangeMyPasswordApi(BaseHandler):
         ]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             u = self.db.user.find_one(dict(_id=self.current_user['_id']))
             if u.get('password') != hlp.gen_id(user['old_password']):
-                return self.send_error(errors.incorrect_old_password)
+                return self.send_error_response(errors.incorrect_old_password)
             self.db.user.update_one(
                 dict(_id=self.current_user['_id']),
                 {'$set': dict(password=hlp.gen_id(user['password']))}
@@ -282,7 +282,7 @@ class ChangeMyPasswordApi(BaseHandler):
             return self.send_db_error(e)
 
         logging.info('change password %s' % self.current_user['name'])
-        self.send_response()
+        self.send_data_response()
 
 
 class ChangeMyProfileApi(BaseHandler):
@@ -301,7 +301,7 @@ class ChangeMyProfileApi(BaseHandler):
         ]
         err = v.validate(user, rules)
         if err:
-            return self.send_error(err)
+            return self.send_error_response(err)
 
         try:
             self.current_user['name'] = user.get('name') or self.current_user['name']
@@ -318,7 +318,7 @@ class ChangeMyProfileApi(BaseHandler):
                 )
             })
             if not r.modified_count:
-                return self.send_error(errors.no_change)
+                return self.send_error_response(errors.no_change)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')
@@ -326,4 +326,4 @@ class ChangeMyProfileApi(BaseHandler):
             return self.send_db_error(e)
 
         logging.info('change profile %s' % (user.get('name')))
-        self.send_response()
+        self.send_data_response()
