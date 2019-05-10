@@ -149,38 +149,43 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.write(json_util.dumps(response))
         self.finish()
 
-    def send_error(self, status_code=500, render=False, **kwargs):
+    def send_response_data(self, data, **kwargs):
+        """ 正常情况下，发送API响应数据"""
+        type = 'mutiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
+        response = dict(status='success', type=type, data=data)
+        response.update(kwargs)
+        self.write(json_util.dumps(response))
+        self.finish()
+
+    def send_response_error(self, error, render=False, **kwargs):
         """
-        发送异常响应消息，并结束处理
-        :param status_code: 错误代码，系统调用时会传此参数。重载后，status_code用来接受错误消息：
-                            如果类型为tuple，则表示单个错误；如果类型为dict，则表示多个错误。
-        :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
+        异常情况下，发送错误消息
+        :param error: 错误消息，tuple表示单个错误，dict表示多个错误。
+        :param render: False表示Ajax请求，返回json数据。True表示页面请求，返回错误页面。
         """
-        error = status_code if type(status_code) in [tuple, dict] else None
-        message, code_message = kwargs.get('message'), None
-        if isinstance(status_code, tuple):
-            status_code, code_message = error
-        elif isinstance(status_code, dict):
-            status_code, code_message = e.mutiple_errors
-        kwargs['message'] = code_message if not message else message
+        type = 'mutiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
+
+        # 如果是单个错误且kwargs中含有message，则覆盖error中的message
+        if kwargs.get('message') and isinstance(error, tuple):
+            error[1] = kwargs.get('message')
 
         if render:
-            return self.render('_error.html', code=status_code, message=kwargs['message'])
+            _error = list(error.values())[0] if type == 'mutiple' else error
+            return self.render('_error.html', code=_error[0], message=_error[1])
 
-        self.write_error(status_code, error=error, **kwargs)
+        response = dict(status='failed', type=type, error=error)
+        response.update(kwargs)
 
-    def write_error(self, status_code=500, error=None, **kwargs):
-        """ 发送API异常响应消息，结束处理 """
-        message = kwargs.get('message') or self._reason
-        message = message if message != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
-            str(self).split('.')[-1].split(' ')[0],
-            str(kwargs.get('exc_info', (0, '', 0))[1])
-        )
-        user_name = self.current_user and self.current_user['name']
-        logging.error('%d %s [%s %s]' % (status_code, message, user_name, self.get_ip()))
+        self.write(json_util.dumps(response))
+        self.finish()
 
-        if not self._finished:
-            self.send_response(response=error, type='error', **kwargs)
+    def send_error(self, status_code, **kwargs):
+        """ 截获框架的send_error函数 """
+        pass
+
+    def write_error(self, status_code, **kwargs):
+        """ write_error """
+        pass
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
@@ -191,8 +196,9 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error(
                 e.mongo_error[0] + code,
                 render=render,
-                reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                    e.mongo_error[1], error.__class__.__name__, ': ' + (reason or ''))
+                message='无法访问文档库' if code in [61] else '%s(%s)%s' % (
+                    e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
+                )
             )
 
         if code:
@@ -203,12 +209,13 @@ class BaseHandler(CorsMixin, RequestHandler):
             traceback.print_exc()
 
         default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
-        self.send_error(
+        self.send_response_error(
             default_error[0] + code,
             for_yield=True,
             render=render,
-            reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
-                default_error[1], error.__class__.__name__, ': ' + (reason or ''))
+            message='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
+                default_error[1], error.__class__.__name__, ': ' + (reason or '')
+            )
         )
 
     def get_ip(self):

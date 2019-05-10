@@ -6,7 +6,6 @@
 """
 
 need_login = 403, '尚未登录'
-
 db_error = 10000, '数据库访问出错'
 mongo_error = 20000, '文档库访问出错'
 
@@ -38,6 +37,6 @@ invalid_parameter = 2008, '无效的参数'
 no_object = 2009, '对象不存在或已删除'
 cannot_delete_self = 2012, '不能删除自己'
 
-task_locked = 3000, '本任务(%s)已被领走，请领取新的任务'
-task_uncompleted = 3001, '您还有未完成的任务(%s)，请继续完成后再领取新的任务'
+task_locked = 3000, '本任务已被领走，请领取新的任务'
+task_uncompleted = 3001, '您还有未完成的任务，请继续完成后再领取新的任务'
 task_changed = 3002, '本任务的状态已改变'

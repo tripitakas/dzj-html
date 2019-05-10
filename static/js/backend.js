@@ -48,19 +48,20 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     crossDomain: true,
     cache: false,
     success: function (data) {
-      if (data.error) {
-        if (Array.isArray(data.error)) {  // 单一错误
-          error_callback(data.error[1], data.error[0]);
+      if (data.status == 'error') {
+        if (data.status == 'single')) { // 单一错误
+            error_callback(data.error[1], data.error[0], data);
         }
-        else if (typeof data.error === 'object') {  // 多个错误
-          var name = Object.keys(data.error)[0];
-          error_callback(data.error[name][1], data.error[name][0], data.error);
-        } else {
-          error_callback(data.error, data.code);
+        else if (data.status == 'mutiple') {  // 多个错误
+            var key = Object.keys(data.error)[0];
+            error_callback(data.error[key][1], data.error[key][0], data);
+        }
+        else {
+            error_callback(data)
         }
       }
-      else if (success_callback) {
-        success_callback(data.data || data);
+      else {
+        success_callback && success_callback(data);
       }
     },
     error: function (xhr) {
