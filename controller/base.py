@@ -145,7 +145,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         """
         反馈错误消息，并结束处理
         :param error: 单一错误描述的元组(见errors.py)，或多个错误的字典对象
-        :param kwargs: 错误的具体上下文参数，例如 render、page_name
+        :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
         type = 'mutiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
