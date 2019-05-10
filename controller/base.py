@@ -125,30 +125,6 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
         return body or {}
 
-    def send_response(self, response=None, type='data', code=500, **kwargs):
-        """
-        发送API响应内容，并结束处理
-        :param response: 返回给请求的内容。type为'error'时，如果response类型为tuple，表示单个错误，如果为dict，则表示多个错误
-        :param type: 'data'表示正确数据，'error'表示错误消息
-        :param code: 返回代码
-        """
-        self.set_header('Content-Type', 'application/json; charset=UTF-8')
-
-        assert type in ['data', 'error']
-        if type == 'error' and isinstance(response, tuple):
-            code = response[0]
-        elif type == 'error' and isinstance(response, dict):
-            if len(response) > 0 and isinstance(list(response.values())[0], tuple):
-                first = list(response.values())[0]
-                code = first[0]
-        elif type == 'data':
-            code = 200
-
-        response = {'code': code, type: response}
-        response.update(kwargs)
-        self.write(json_util.dumps(response))
-        self.finish()
-
     def send_response_data(self, data, **kwargs):
         """ 正常情况下，发送API响应数据"""
         type = 'mutiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
@@ -164,16 +140,15 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param render: False表示Ajax请求，返回json数据。True表示页面请求，返回错误页面。
         """
         type = 'mutiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
-
-        # 如果是单个错误且kwargs中含有message，则覆盖error中的message
-        if kwargs.get('message') and isinstance(error, tuple):
-            error[1] = kwargs.get('message')
+        _error = list(error.values())[0] if type == 'mutiple' else error
+        code, message = _error
+        # 如果kwargs中含有message，则覆盖error中对应的message
+        message = kwargs['message'] if kwargs.get('message') else message
 
         if render:
-            _error = list(error.values())[0] if type == 'mutiple' else error
             return self.render('_error.html', code=_error[0], message=_error[1])
 
-        response = dict(status='failed', type=type, error=error)
+        response = dict(status='failed', type=type, code=code, message=message, error=error)
         response.update(kwargs)
 
         self.write(json_util.dumps(response))

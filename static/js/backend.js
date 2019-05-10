@@ -29,7 +29,7 @@ function showSuccess(title, text, timer) {
  * @param error_callback 失败回调函数，参数为 msg、code、errors可选对象
  */
 function ajaxApi(url, type, data, success_callback, error_callback) {
-  error_callback = error_callback || window.swal && function (msg) {
+  _error_callback = window.swal && function (msg) {
         showError('操作失败', msg);
       } || console.log.bind(console);
 
@@ -49,15 +49,15 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     cache: false,
     success: function (data) {
       if (data.status == 'error') {
-        if (data.status == 'single')) { // 单一错误
-            error_callback(data.error[1], data.error[0], data);
+        if (data.status == 'single' && !error_callback)) { // 单一错误
+          _error_callback(data.error[1], data.error[0]);
         }
-        else if (data.status == 'mutiple') {  // 多个错误
-            var key = Object.keys(data.error)[0];
-            error_callback(data.error[key][1], data.error[key][0], data);
+        else if (data.status == 'mutiple' && !error_callback) {  // 多个错误
+          var key = Object.keys(data.error)[0];
+          _error_callback(data.error[key][1], data.error[key][0]);
         }
         else {
-            error_callback(data)
+          error_callback(data)
         }
       }
       else {
