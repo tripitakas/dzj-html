@@ -39,11 +39,11 @@ class TaskLobbyHandler(TaskHandler):
             ))
 
         def uncompleted(t):
-            return t.get('status') == self.STATUS_LOCKED and t.get('picked_user_id') == self.current_user['_id']
+            return t.get('status') == self.STATUS_PICKED and t.get('picked_user_id') == self.current_user['_id']
 
         try:
             task_status = [self.STATUS_OPENED, self.STATUS_RETURNED]
-            my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_LOCKED])
+            my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_PICKED])
                         if [1 for s in (t.get(task_type, {}).get('status') and [t.get(task_type)]
                                         or sub_tasks(t)) if uncompleted(s)]]
             tasks = sorted_by_priority(my_tasks) + sorted_by_priority(self.get_tasks(task_type, task_status))

@@ -200,7 +200,7 @@ class UnlockTasksApi(TaskHandler):
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
             return self.send_error_response(errors.no_object)
-        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_LOCKED or \
+        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_PICKED or \
                 PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
@@ -234,11 +234,9 @@ class PickTaskApi(TaskHandler):
             # 有未完成的任务则不能继续
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
-            names = list(self.db.page.find({task_user: self.current_user['_id'], task_status: self.STATUS_LOCKED}))
-            names = [p['name'] for p in names]
-            if names and name not in names:
-                name = names[0]
-                # return self.send_error_response(errors.task_uncompleted, reason=','.join(names))
+            uncompleted_task = self.db.page.find_one({task_user: self.current_user['_id'], task_status: self.STATUS_PICKED})
+            if uncompleted_task:
+                return self.send_error_response(errors.task_uncompleted, task_id=uncompleted_task['name'])
 
             # 领取新任务(待领取或已退回时)或继续原任务
             can_lock = {
@@ -249,7 +247,7 @@ class PickTaskApi(TaskHandler):
             lock = {
                 task_user: self.current_user['_id'],
                 task_type + '.picked_by': self.current_user['name'],
-                task_status: self.STATUS_LOCKED,
+                task_status: self.STATUS_PICKED,
                 task_type + '.picked_time': datetime.now()
             }
             r = self.db.page.update_one(can_lock, {'$set': lock})
@@ -258,7 +256,7 @@ class PickTaskApi(TaskHandler):
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
             elif page and self.page_get_prop(page, task_user) == self.current_user['_id'] \
-                    and self.page_get_prop(page, task_status) == self.STATUS_LOCKED:
+                    and self.page_get_prop(page, task_status) == self.STATUS_PICKED:
                 self.add_op_log('open_' + task_type, file_id=page['_id'], context=name)
             else:
                 # 被别人领取或还未就绪，就将只读打开(没有name)
@@ -321,7 +319,7 @@ class SaveCutApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
 
             status = PickTaskApi.page_get_prop(page, task_type + '.status')
-            if status != self.STATUS_LOCKED:
+            if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.picked_user_id'

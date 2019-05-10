@@ -50,7 +50,7 @@ class TaskHandler(BaseHandler):
     STATUS_READY = 'ready'
     STATUS_OPENED = 'opened'
     STATUS_PENDING = 'pending'
-    STATUS_LOCKED = 'locked'
+    STATUS_PICKED = 'picked'
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
     task_statuses = {
@@ -58,7 +58,7 @@ class TaskHandler(BaseHandler):
         STATUS_READY: '数据已就绪',
         STATUS_OPENED: '已发布未领取',
         STATUS_PENDING: '等待前置任务',
-        STATUS_LOCKED: '进行中',
+        STATUS_PICKED: '进行中',
         STATUS_RETURNED: '已退回',
         STATUS_FINISHED: '已完成',
     }
