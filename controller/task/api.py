@@ -314,7 +314,7 @@ class SaveCutApi(TaskHandler):
         try:
             data = self.get_request_data()
             assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
-            assert re.match(self.re_cut_type, task_type)
+            assert task_type in self.cut_task_names
 
             page = self.db.page.find_one(dict(name=data['name']))
             if not page:
@@ -329,7 +329,7 @@ class SaveCutApi(TaskHandler):
                 return self.send_error_response(errors.task_locked, reason=page['name'])
 
             result = dict(name=data['name'])
-            self.change_box(result, page, data['name'], task_type)
+            self.change_box(result, page, data, task_type)
             if data.get('submit'):
                 self.submit_task(result, data, page, task_type, task_user)
 
@@ -337,37 +337,40 @@ class SaveCutApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
-    def change_box(self, result, page, name, task_type):
-        boxes = json_decode(self.get_body_argument('boxes', '[]'))
-        box_type = to_basestring(self.get_body_argument('box_type', ''))
+    def change_box(self, result, page, data, task_type):
+        name = page['name']
+        boxes = json_decode(data.get('boxes', '[]'))
+        box_type = data.get('box_type')
         field = box_type and box_type + 's'
         assert not boxes or box_type and field in page
 
         if boxes and boxes != page[field]:
             page[field] = boxes
-            r = self.db.page.update_one({'name': name}, {'$set': {field: boxes}})
+            time_field = '%s.last_updated_time' % task_type
+            new_info = {field: boxes, time_field: datetime.now()}
+            r = self.db.page.update_one({'name': name}, {'$set': new_info})
             if r.modified_count:
                 self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
                 result['box_changed'] = True
+                result['updated_time'] = new_info[time_field]
 
     def submit_task(self, result, data, page, task_type, task_user):
-        end_info = {task_type + '.status': self.STATUS_ENDED, task_type + '.end_time': datetime.now()}
-        r = self.db.page.update_one({'name': data.name, task_user: self.current_user['_id']}, {'$set': end_info})
+        end_info = {task_type + '.status': self.STATUS_FINISHED, task_type + '.finished_time': datetime.now()}
+        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']}, {'$set': end_info})
         if r.modified_count:
-            result['submit'] = True
-            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=data.name)
+            result['submitted'] = True
+            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
 
-            idx = self.task_types.index(task_type)
-            for i in range(idx + 1, len(self.task_types)):
-                next_status = self.task_types[i] + '.status'
+            post_task = self.post_tasks.get(task_type)
+            if post_task:
+                next_status = post_task + '.status'
                 status = PickTaskApi.page_get_prop(page, next_status)
                 if status:
-                    r = self.db.page.update_one({'name': data.name, next_status: self.STATUS_PENDING},
+                    r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})
                     if r.modified_count:
-                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=data.name)
+                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
                         result['resume_next'] = True
-                    break
 
 
 class SaveCutProofApi(SaveCutApi):

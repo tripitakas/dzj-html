@@ -5,6 +5,7 @@ import tests.users as u
 from tests.testcase import APITestCase
 from controller.task.base import TaskHandler
 from controller import errors
+from tornado.escape import json_encode
 
 
 class TestTaskFlow(APITestCase):
@@ -96,7 +97,7 @@ class TestTaskFlow(APITestCase):
         r = self.parse_response(self.fetch(tasks[0]['pick_url'] + '?_raw=1'))
         page = r.get('page')
         self.assertIn(task_type, page)
-        self.assertEqual(page[task_type]['status'], 'locked')
+        self.assertEqual(page[task_type]['status'], 'picked')
         self.assertEqual(page[task_type]['picked_by'], u.expert1[2])
 
         # 再领取新任务就提示有未完成任务
@@ -111,3 +112,24 @@ class TestTaskFlow(APITestCase):
         self.assertNotIn(page['name'], [t['name'] for t in r.get('tasks')])
         r = self.fetch('/task/do/%s/%s?_raw=1' % (task_type, page['name']))
         self.assert_code(errors.task_locked, r)
+
+        # 保存
+        self.login(u.expert1[0], u.expert1[1])
+        box_type = task_type.split('_')[0]
+        boxes = page[box_type + 's']
+        r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+                       body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))})
+        self.assert_code(200, r)
+        self.assertFalse(self.parse_response(r).get('box_changed'))
+
+        boxes[0]['w'] += 1
+        r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+                       body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))})
+        self.assertTrue(self.parse_response(r).get('box_changed'))
+
+        # 提交
+        r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+                       body={'data': dict(name=page['name'], submit=True,
+                                          box_type=box_type, boxes=json_encode(boxes))})
+        self.assert_code(200, r)
+        self.assertTrue(self.parse_response(r).get('submitted'))
