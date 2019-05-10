@@ -99,6 +99,12 @@ class TestTaskFlow(APITestCase):
         self.assertEqual(page[task_type]['status'], 'locked')
         self.assertEqual(page[task_type]['picked_by'], u.expert1[2])
 
+        # 再领取新任务就提示有未完成任务
+        r = self.parse_response(self.fetch(tasks[1]['pick_url'] + '?_raw=1'))
+        self.assertIn('links', r)
+        r = self.parse_response(self.fetch(tasks[1]['pick_url']))
+        self.assertIn('继续任务</a>', r)
+
         # 其他人不能领取此任务
         self.login(u.expert2[0], u.expert2[1])
         r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))

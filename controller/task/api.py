@@ -234,10 +234,12 @@ class PickTaskApi(TaskHandler):
             # 有未完成的任务则不能继续
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
-            uncompleted_task = self.db.page.find_one({task_user: self.current_user['_id'], task_status: self.STATUS_PICKED})
-            if uncompleted_task:
-                return self.send_error_response(errors.task_uncompleted, task_id=uncompleted_task['name'])
-
+            names = list(self.db.page.find({task_user: self.current_user['_id'], task_status: self.STATUS_PICKED}))
+            names = [p['name'] for p in names]
+            if names and name not in names:
+                return self.send_error_response(errors.task_uncompleted,
+                                                message='您有未完成的任务，不能领取新任务。是否继续未完成的任务(%s)？' % names[0],
+                                                links=[('继续任务', '/task/do/%s/%s' % (task_type, names[0]))])
             # 领取新任务(待领取或已退回时)或继续原任务
             can_lock = {
                 task_user: None,
