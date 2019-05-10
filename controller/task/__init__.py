@@ -1,13 +1,13 @@
-from . import api, view
+from . import api, view_admin, view_do, view_lobby, view_my
 
 views = [
-    view.LobbyBlockCutProofHandler, view.LobbyColumnCutProofHandler, view.LobbyCharCutProofHandler,
-    view.LobbyBlockCutReviewHandler, view.LobbyColumnCutReviewHandler, view.LobbyCharCutReviewHandler,
-    view.CutProofDetailHandler, view.CutReviewDetailHandler,
-    view.CharProofDetailHandler, view.CharReviewDetailHandler,
-    view.TaskCutStatusHandler, view.TaskTextStatusHandler,
-    view.TextProofTaskLobbyHandler, view.TextReviewTaskLobbyHandler, view.TextHardTaskLobbyHandler,
-    view.TaskAdminHandler, view.MyTaskHandler,
+    view_lobby.LobbyBlockCutProofHandler, view_lobby.LobbyColumnCutProofHandler, view_lobby.LobbyCharCutProofHandler,
+    view_lobby.LobbyBlockCutReviewHandler, view_lobby.LobbyColumnCutReviewHandler, view_lobby.LobbyCharCutReviewHandler,
+    view_lobby.TextProofTaskLobbyHandler, view_lobby.TextReviewTaskLobbyHandler, view_lobby.TextHardTaskLobbyHandler,
+    view_admin.TaskAdminHandler, view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler,
+    view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler,
+    view_do.CharProofDetailHandler, view_do.CharReviewDetailHandler,
+    view_my.MyTaskHandler,
 ]
 handlers = [
     api.GetPageApi, api.GetPagesApi, api.UnlockTasksApi,
