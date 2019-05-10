@@ -125,68 +125,62 @@ class BaseHandler(CorsMixin, RequestHandler):
             body = json_util.loads(self.get_body_argument('data'))
         return body or {}
 
-    def send_response(self, response=None, type='data', code=500):
+    def send_response(self, response=None, type='data', code=500, **kwargs):
         """
-        发送API响应内容，结束处理
-        :param response: 返回给请求的内容
+        发送API响应内容，并结束处理
+        :param response: 返回给请求的内容。type为'error'时，如果response类型为tuple，表示单个错误，如果为dict，则表示多个错误
         :param type: 'data'表示正确数据，'error'表示错误消息
-        :param code: 错误代码
+        :param code: 返回代码
         """
-        assert type in ['data', 'error']
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
+
+        assert type in ['data', 'error']
         if type == 'error' and isinstance(response, tuple):
             code = response[0]
-        elif type == 'error' and isinstance(response, dict) and len(response) > 0:
-            first_item = list(response.values())[0]
-            if isinstance(first_item, tuple):
-                code = first_item[0]
+        elif type == 'error' and isinstance(response, dict):
+            if len(response) > 0 and isinstance(list(response.values())[0], tuple):
+                first = list(response.values())[0]
+                code = first[0]
         elif type == 'data':
             code = 200
 
-        self.write(json_util.dumps({'code': code, type: response}))
+        response = {'code': code, type: response}
+        response.update(kwargs)
+        self.write(json_util.dumps(response))
         self.finish()
 
     def send_error(self, status_code=500, render=False, **kwargs):
         """
         发送异常响应消息，并结束处理
-        :param status_code: 错误码，系统调用时会传此参数。
-            重载后，status_code接受错误消息，如果类型为tuple，则表示为单个错误；如果类型为dict，则表示为多个错误。
+        :param status_code: 错误代码，系统调用时会传此参数。重载后，status_code用来接受错误消息：
+                            如果类型为tuple，则表示单个错误；如果类型为dict，则表示多个错误。
         :param render: render为False，表示ajax请求，则返回json数据；为True，表示页面请求，则返回错误页面。
         """
-        error = kwargs.get('error')
+        error = status_code if type(status_code) in [tuple, dict] else None
+        message, code_message = kwargs.get('message'), None
         if isinstance(status_code, tuple):
-            status_code, message = status_code
-            if 'reason' in kwargs and kwargs['reason'] != message:
-                if '%s' in message:
-                    message = message % kwargs['reason']
-                else:
-                    message += ': ' + kwargs['reason']
-            kwargs['reason'] = message
-            error = (status_code, message)
+            status_code, code_message = error
         elif isinstance(status_code, dict):
-            error, status_code = status_code, e.validate_error[0]
+            status_code, code_message = e.mutiple_errors
+        kwargs['message'] = code_message if not message else message
+
         if render:
-            return self.render('_error.html', code=status_code, error=kwargs.get('reason', '后台服务出错'))
+            return self.render('_error.html', code=status_code, message=kwargs['message'])
 
-        kwargs['error'] = error
-        self.write_error(status_code, **kwargs)
+        self.write_error(status_code, error=error, **kwargs)
 
-    def write_error(self, status_code, **kwargs):
+    def write_error(self, status_code=500, error=None, **kwargs):
         """ 发送API异常响应消息，结束处理 """
-        reason = kwargs.get('reason') or self._reason
-        reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
+        message = kwargs.get('message') or self._reason
+        message = message if message != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
             str(self).split('.')[-1].split(' ')[0],
             str(kwargs.get('exc_info', (0, '', 0))[1])
         )
-        logging.error('%d %s [%s %s]' % (
-            status_code,
-            reason,
-            self.current_user and self.current_user['name'],
-            self.get_ip()
-        ))
+        user_name = self.current_user and self.current_user['name']
+        logging.error('%d %s [%s %s]' % (status_code, message, user_name, self.get_ip()))
 
         if not self._finished:
-            self.send_response(response=kwargs.get('error'), type='error')
+            self.send_response(response=error, type='error', **kwargs)
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
