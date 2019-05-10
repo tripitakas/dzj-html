@@ -237,9 +237,9 @@ class PickTaskApi(TaskHandler):
             names = list(self.db.page.find({task_user: self.current_user['_id'], task_status: self.STATUS_LOCKED}))
             names = [p['name'] for p in names]
             if names and name not in names:
-                name = names[0]
-                # return self.send_error_response(errors.task_uncompleted, reason=','.join(names))
-
+                return self.send_error_response(errors.task_uncompleted,
+                                                message='您有未完成的任务，不能领取新任务。是否继续未完成的任务(%s)？' % names[0],
+                                                links=[('继续任务', '/task/do/%s/%s' % (task_type, names[0]))])
             # 领取新任务(待领取或已退回时)或继续原任务
             can_lock = {
                 task_user: None,
