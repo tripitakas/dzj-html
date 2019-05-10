@@ -271,16 +271,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         else:
             body = json_util.loads(body)
             if body.get('error'):
-                if isinstance(body['error'], list):
-                    error = body['error'][1]
-                elif isinstance(body['error'], dict):
-                    error = list(body['error'].values())[0][1]
-                else:
-                    error = body['error']
-
+                body['error'] = body.get('message')
                 if handle_error:
-                    handle_error(error)
+                    handle_error(body['error'])
                 else:
-                    self.render('_error.html', code=500, error=error)
+                    self.render('_error.html', **body)
             else:
                 handle_response(body.get('data') or body)
