@@ -73,7 +73,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
         }
       }
       else if (!window.unloading) {
-        error_callback('网络访问失败，不能访问后台服务(' + code + ')', code);
+        _error_callback('网络访问失败，不能访问后台服务(' + code + ')', code);
       }
     }
   });
