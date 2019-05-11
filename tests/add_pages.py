@@ -73,7 +73,7 @@ def add_repeat_pages(name, info, db, repeat, img_name=None):
 
 def _add_range_pages(name, info, db, start, end, img_name=None):
     meta_list = []
-    for i in range(start, end+1):
+    for i in range(start, end + 1):
         meta = dict(name='%s_%s' % (name, i),
                     kind=name[:2],
                     width=int(info['imgsize']['width']),
@@ -96,6 +96,8 @@ def _add_range_pages(name, info, db, start, end, img_name=None):
         })
         meta_list.append(meta)
     db.page.insert_many(meta_list)
+
+    data['count'] += end - start + 1
 
     print('%s[%d:%d]:\t\t%d x %d blocks=%d columns=%d chars=%d' % (
         name, start, end, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']),
