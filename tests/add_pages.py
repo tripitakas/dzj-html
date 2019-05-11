@@ -56,11 +56,51 @@ def scan_dir(src_path, kind, db, ret, repeat=0):
                         sys.stderr.write('invalid imgname %s, %s\n' % (filename, kind))
                         continue
                     if repeat > 1:
-                        for i in range(repeat):
-                            add_page('%sr%d' % (name, i + 1), info, db, img_name=name)
+                        add_repeat_pages(name, info, db, repeat)
                     else:
                         add_page(name, info, db)
                     ret.add(name)
+
+
+def add_repeat_pages(name, info, db, repeat, img_name=None):
+    if not db.page.find_one(dict(name=name)):
+        start, length = 1, 5000
+        while start + length - 1 < repeat:
+            _add_range_pages(name, info, db, start, start + length - 1, img_name)
+            start = start + length
+        _add_range_pages(name, info, db, start, repeat, img_name)
+
+
+def _add_range_pages(name, info, db, start, end, img_name=None):
+    meta_list = []
+    for i in range(start, end+1):
+        meta = dict(name='%s_%s' % (name, i),
+                    kind=name[:2],
+                    width=int(info['imgsize']['width']),
+                    height=int(info['imgsize']['height']),
+                    blocks=info.get('blocks', []),
+                    columns=info.get('columns', []),
+                    chars=info.get('chars', []),
+                    txt='',
+                    create_time=datetime.now())
+        if img_name:
+            meta['img_name'] = img_name
+        # initialize task
+        meta.update({
+            'block_cut_proof': {'status': task.STATUS_READY},
+            'block_cut_review': {'status': task.STATUS_READY},
+            'column_cut_proof': {'status': task.STATUS_READY},
+            'column_cut_review': {'status': task.STATUS_READY},
+            'char_cut_proof': {'status': task.STATUS_READY},
+            'char_cut_review': {'status': task.STATUS_READY},
+        })
+        meta_list.append(meta)
+    db.page.insert_many(meta_list)
+
+    print('%s[%d:%d]:\t\t%d x %d blocks=%d columns=%d chars=%d' % (
+        name, start, end, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']),
+        len(meta['chars']),
+    ))
 
 
 def add_page(name, info, db, img_name=None):
