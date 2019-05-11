@@ -205,29 +205,33 @@ class PickTaskApi(TaskHandler):
             # 有未完成的任务，不能领新任务
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
+            cur_user = self.current_user['_id']
             task_uncompleted = self.db.page.find_one({
-                task_user: self.current_user['_id'], task_status: self.STATUS_PICKED
+                task_user: cur_user, task_status: self.STATUS_PICKED
             })
-            if task_uncompleted:
+            if task_uncompleted and task_uncompleted['name'] != name:
                 url = '/task/do/%s/%s' % (task_type.replace('.', '/'), task_uncompleted['name'])
-                return self.send_error_response(errors.task_uncompleted, url=url)
+                return self.send_error_response(errors.task_uncompleted, url=url,
+                                                uncompleted_name=task_uncompleted['name'])
 
             # 任务已被其它人领取
             page = self.db.page.find_one(dict(name=name, task_user=None))
-            if not page or (page and self.page_get_property(page, task_status) != self.STATUS_OPENED):
+            status = page and self.page_get_property(page, task_status)
+            page_user = page and self.page_get_property(page, task_user)
+            if status != self.STATUS_OPENED and not (status == self.STATUS_PICKED and page_user == cur_user):
                 url = '/task/pick/%s' % (task_type.replace('.', '/'))
                 return self.send_error_response(errors.task_picked, url=url)
 
             # 领取该任务
             r = self.db.page.update_one(dict(name=name, task_user=None), {'$set': {
-                task_user: self.current_user['_id'],
+                task_user: cur_user,
                 task_type + '.picked_by': self.current_user['name'],
                 task_status: self.STATUS_PICKED,
                 task_type + '.picked_time': datetime.now()
             }})
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
-            self.send_data_response(dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name)))
+            self.send_data_response(dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name))
 
         except DbError as e:
             self.send_db_error(e)
@@ -280,14 +284,12 @@ class SaveCutApi(TaskHandler):
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
-            task_user = task_type + '.picked_user_id'
-            if PickTaskApi.page_get_prop(page, task_user) != self.current_user['_id']:
-                return self.send_error_response(errors.task_locked, reason=page['name'])
+            return self.send_error_response(errors.task_locked, reason=page['name'])
 
             result = dict(name=data['name'])
             self.change_box(result, page, data, task_type)
             if data.get('submit'):
-                self.submit_task(result, data, page, task_type, task_user)
+                self.submit_task(result, data, page, task_type, task_type + '.picked_user_id')
 
             self.send_data_response(result)
         except DbError as e:

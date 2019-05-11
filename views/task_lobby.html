@@ -84,32 +84,32 @@
 				}, function (data) {
 					if (data.code == {{e.task_uncompleted[0]}}) {
 						swal({
-							title: "是否继续未完成的任务？",
-							text: "您还有未完成的任务，不能领取新任务！",
-							type: "warning",
-							showCancelButton: true,
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定继续",
-							cancelButtonText: "取消",
-							closeOnConfirm: false
+								title: "是否继续未完成的任务？",
+								text: "您还有未完成的任务(" + data.uncompleted_name + ")，不能领取新任务！",
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonColor: "#b8906f",
+								confirmButtonText: "确定继续",
+								cancelButtonText: "取消",
+								closeOnConfirm: false
 						  },
 						  function() {
-							window.location = data.url
+								window.location = data.url;
 						  }
 						);
 					} else if (data.code == {{e.task_locked[0]}}) {
 						swal({
-							title: "是否领取其它任务？",
-							text: "当期任务已被领取！",
-							type: "warning",
-							showCancelButton: true,
-							confirmButtonColor: "#b8906f",
-							confirmButtonText: "确定领取",
-							cancelButtonText: "取消",
-							closeOnConfirm: false
+								title: "是否领取其它任务？",
+								text: "当期任务已被领取！",
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonColor: "#b8906f",
+								confirmButtonText: "确定领取",
+								cancelButtonText: "取消",
+								closeOnConfirm: false
 						  },
 						  function() {
-							window.location = data.url
+								window.location = data.url;
 						  }
 						);
 					}
