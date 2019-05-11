@@ -284,12 +284,15 @@ class SaveCutApi(TaskHandler):
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
-            return self.send_error_response(errors.task_locked, reason=page['name'])
+            task_user = task_type + '.picked_user_id'
+            page_user = PickTaskApi.page_get_property(page, task_user)
+            if page_user != self.current_user['_id']:
+                return self.send_error_response(errors.task_locked, reason=page['name'])
 
             result = dict(name=data['name'])
             self.change_box(result, page, data, task_type)
             if data.get('submit'):
-                self.submit_task(result, data, page, task_type, task_type + '.picked_user_id')
+                self.submit_task(result, data, page, task_type, task_user)
 
             self.send_data_response(result)
         except DbError as e:
