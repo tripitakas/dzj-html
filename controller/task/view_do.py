@@ -59,7 +59,7 @@ class CutDetailBaseHandler(TaskHandler):
 
 
 class CutProofDetailHandler(CutDetailBaseHandler):
-    URL = '/task/do/@box-type_cut_proof/@task_id'
+    URL = '/task/do/@box_type_cut_proof/@task_id'
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
@@ -67,7 +67,7 @@ class CutProofDetailHandler(CutDetailBaseHandler):
 
 
 class CutReviewDetailHandler(CutDetailBaseHandler):
-    URL = '/task/do/@box-type_cut_review/@task_id'
+    URL = '/task/do/@box_type_cut_review/@task_id'
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
