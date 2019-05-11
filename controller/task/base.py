@@ -136,15 +136,11 @@ class TaskHandler(BaseHandler):
             recursion(task_type)
         return pre_types
 
-    def get_next_task_todo(self, task_type):
-        """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
-        pass
-
     def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1, more_conditions=None,
                                rand=False, sort=False):
         """
         获取指定类型、状态的任务列表
-        :param task_type: 任务类型
+        :param task_type: 任务类型。仅支持一级任务，如text_proof。不支持二级任务，比如text_proof.1
         :param task_status: 任务状态，或多个任务状态的列表
         :param page_size: 分页大小
         :param page_no: 取第几页，首页为1
@@ -196,7 +192,7 @@ class TaskHandler(BaseHandler):
             obj = obj and obj.get(s)
         return obj
 
-    def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):
+    def get_my_tasks_by_type(self, task_type, page_size=0, page_no=1):
         """ 获取我的任务列表 """
         assert task_type in self.task_types
 

@@ -3,7 +3,6 @@
 """
 @time: 2018/12/27
 """
-
 import re
 from datetime import datetime
 from tornado.escape import json_decode
@@ -58,9 +57,7 @@ class PublishTasksApi(TaskHandler):
             self.send_db_error(e)
 
     def has_pre_task(self, page, task_type):
-        """
-        检查任务是否包含待完成的前置任务
-        """
+        """ 检查任务是否包含待完成的前置任务 """
         pre = self.pre_tasks.get(task_type, [])
         for t in pre:
             types = t.split('.')
@@ -239,15 +236,15 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/@task_type/@task_id'
+    URL = '/api/task/pick/@box_type_cut_proof/@task_id'
 
-    def get(self, task_type, name):
+    def get(self, kind, name):
         """ 取切分校对任务 """
-        self.pick(task_type, name)
+        self.pick(kind + '_cut_proof', name)
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = '/api/task/pick/@box-type_cut_review/@task_id'
+    URL = '/api/task/pick/@box_type_cut_review/@task_id'
 
     def get(self, kind, name):
         """ 取切分审定任务 """
@@ -348,7 +345,7 @@ class SaveCutApi(TaskHandler):
 
 
 class SaveCutProofApi(SaveCutApi):
-    URL = '/api/task/save/@box-type_cut_proof'
+    URL = '/api/task/save/@box_type_cut_proof'
 
     def post(self, kind):
         """ 保存或提交切分校对任务 """
@@ -356,7 +353,7 @@ class SaveCutProofApi(SaveCutApi):
 
 
 class SaveCutReviewApi(SaveCutApi):
-    URL = '/api/task/save/@box-type_cut_review'
+    URL = '/api/task/save/@box_type_cut_review'
 
     def post(self, kind):
         """ 保存或提交切分审定任务 """
