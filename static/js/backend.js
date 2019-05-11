@@ -49,7 +49,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     crossDomain: true,
     cache: false,
     success: function (data) {
-      if (data.status === 'error') {
+      if (data.status === 'failed') {
         error_callback && error_callback(data);
       }
       else {

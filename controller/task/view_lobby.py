@@ -12,31 +12,24 @@ class TaskLobbyHandler(TaskHandler):
 
     def show_tasks(self, task_type):
         def pack(items):
+            """设置任务的priority、pick_url、status等属性"""
             for t in items:
-                if t.get(task_type, {}).get('status'):  # status不为空，表明任务已发布
-                    t['priority'] = t.get(task_type, {}).get('priority')
-                    t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
-                    t['status'] = t.get(task_type, {}).get('status')
-                    continue
-                for v in sub_tasks(t):
-                    if v.get('status') in task_status or uncompleted(v):
-                        t['priority'] = v.get('priority')
-                        t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
-                        t['status'] = v.get('status')
-                        continue
-            return items
-
-        def sub_tasks(page):
-            return [v for k, v in page.get(task_type, {}).items() if k in self.task_types]
-
-        def uncompleted(t):
-            return t.get('status') == self.STATUS_PICKED and t.get('picked_user_id') == self.current_user['_id']
+                if not self.task_types.get(task_type, {}).get('sub_task_types'):  # 一级任务
+                    current_task = t.get(task_type, {})
+                    t['priority'] = current_task.get('priority')
+                    t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
+                    t['status'] = current_task.get('status')
+                else:  # 二级任务
+                    for k, sub_task in t.get(task_type, {}).items():
+                        if sub_task.get('status') == self.STATUS_OPENED:
+                            t['priority'] = sub_task.get('priority')
+                            t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
+                            t['status'] = sub_task.get('status')
+                            continue
 
         try:
-            my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_PICKED])
-                        if [1 for s in (t.get(task_type, {}).get('status') and [t.get(task_type)]
-                                        or sub_tasks(t)) if uncompleted(s)]]
-            tasks = pack(my_tasks) + pack(self.get_tasks(task_type, self.STATUS_OPENED))
+            tasks = self.get_tasks(task_type, self.STATUS_OPENED)
+            pack(tasks)
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
         except Exception as e:

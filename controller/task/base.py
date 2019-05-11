@@ -140,15 +140,15 @@ class TaskHandler(BaseHandler):
         """ 获取下一个代办任务。如果有未完成的任务，则优先分配。如果没有，则从任务大厅中自动分配。 """
         pass
 
-    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1,
-                               set_conditions=None, rand=False, sort=False):
+    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1, more_conditions=None,
+                               rand=False, sort=False):
         """
         获取指定类型、状态的任务列表
-        :param task_type: 任务类型串
-        :param task_status: 任务状态串，或多个任务状态的列表
+        :param task_type: 任务类型
+        :param task_status: 任务状态，或多个任务状态的列表
         :param page_size: 分页大小
         :param page_no: 取第几页，首页为1
-        :param set_conditions: 搜索条件的额外处理
+        :param more_conditions: 更多搜索条件
         :param rand: 任务随机排序
         :param sort: 随机且按优先级排序
         :return: 页面列表
@@ -165,17 +165,17 @@ class TaskHandler(BaseHandler):
         if type(task_status) == list:
             task_status = {"$in": task_status}
 
-        if not task_status:
+        if not task_status:  # task_status为空
             conditions = {}
-        elif 'sub_task_types' in self.task_types[task_type]:
+        elif 'sub_task_types' in self.task_types[task_type]:  # 二级任务
             sub_types = self.task_types[task_type]['sub_task_types'].keys()
             conditions = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
-        else:
+        else:  # 一级任务
             conditions = {'%s.status' % task_type: task_status}
 
-        set_conditions and set_conditions(conditions)
-        fields = {'name': 1, task_type: 1}
+        more_conditions and conditions.update(more_conditions)
 
+        fields = {'name': 1, task_type: 1}
         page_size = page_size or self.config['pager']['page_size']
         pages = self.db.page.find(conditions, fields)
         if rand:

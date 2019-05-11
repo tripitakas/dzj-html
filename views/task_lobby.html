@@ -18,9 +18,7 @@
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
         <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
         <![endif]-->
-
 	</head>
-
 
 	<body>
 		<div class="app-main">
@@ -36,7 +34,6 @@
 								<div class="collate-history">
 									<div class="wrapper">
 										<div class="collate-list">
-
 											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
 												<thead>
 													<tr>
@@ -54,21 +51,17 @@
 														<th><span>操作</span></th>
 													</tr>
 												</thead>
-
 												<tbody>
 												  {% for t in tasks %}
 													<tr id="{{t['name']}}">
 														<td>{{t['name']}}</td>
 														<td>{{t.get('priority', '')}}</td>
-														<td><a href="{{t.get('pick_url', '#')}}">{{'继续' if t['status'] == 'locked' else '领取'}}</a></td>
+														<td><a onclick="pick('{{t.get('pick_url', '')}}')" style="cursor:pointer">领取</a></td>
 													</tr>
-													{% end %}
+												  {% end %}
 												</tbody>
 											</table>
-
-
 										</div>
-										{% module Pager(pager='TODO') %}
 									</div>
 								</div>
 							</div>
@@ -78,6 +71,52 @@
 			</div>
 		</div>
 		{% include _base_js.html %}
+		{% import controller.errors as e %}
+		<script type="text/javascript">
+			/**
+			 * 领取任务
+			 */
+			function pick(url) {
+				getApi(url, function (data) {
+					if (data && data.url) {
+					  window.location = data.url
+					}
+				}, function (data) {
+					if (data.code == {{e.task_uncompleted[0]}}) {
+						swal({
+							title: "是否继续未完成的任务？",
+							text: "您还有未完成的任务，不能领取新任务！",
+							type: "warning",
+							showCancelButton: true,
+							confirmButtonColor: "#b8906f",
+							confirmButtonText: "确定继续",
+							cancelButtonText: "取消",
+							closeOnConfirm: false
+						  },
+						  function() {
+							window.location = data.url
+						  }
+						);
+					} else if (data.code == {{e.task_locked[0]}}) {
+						swal({
+							title: "是否领取其它任务？",
+							text: "当期任务已被领取！",
+							type: "warning",
+							showCancelButton: true,
+							confirmButtonColor: "#b8906f",
+							confirmButtonText: "确定领取",
+							cancelButtonText: "取消",
+							closeOnConfirm: false
+						  },
+						  function() {
+							window.location = data.url
+						  }
+						);
+					}
+				});
+			}
+
+		</script>
 		
 	</body>
 
