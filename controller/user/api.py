@@ -255,7 +255,7 @@ class DeleteUserApi(BaseHandler):
 
 
 class ChangeMyPasswordApi(BaseHandler):
-    URL = '/api/my/pwd'
+    URL = '/api/user/my/pwd'
 
     def post(self):
         """ 修改我的密码 """
@@ -286,7 +286,7 @@ class ChangeMyPasswordApi(BaseHandler):
 
 
 class ChangeMyProfileApi(BaseHandler):
-    URL = '/api/my/profile'
+    URL = '/api/user/my/profile'
 
     def post(self):
         """ 修改我的个人信息，包括姓名、性别等 """

@@ -37,14 +37,14 @@ class TestUserCommonViews(APITestCase):
         """测试个人中心"""
         # 管理员
         self.add_first_user_as_admin_then_login()
-        r = self.fetch('/my/profile')
+        r = self.fetch('/user/my/profile')
         self.assert_code(200, r)
         data = self.parse_response(r)
         self.assertIn(u.admin[0], data)
         # 普通用户
         r = self.register_and_login(dict(email=u.user1[0], password=u.user1[1], name=u.user1[2]))
         self.assert_code(200, r)
-        r = self.fetch('/my/profile')
+        r = self.fetch('/user/my/profile')
         self.assert_code(200, r)
         data = self.parse_response(r)
         self.assertIn(u.user1[0], data)

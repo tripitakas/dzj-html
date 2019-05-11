@@ -18,12 +18,12 @@ class TestTaskFlow(APITestCase):
                                  for r in [u.expert1, u.expert2, u.expert3]],
                                 ','.join(['切分专家', '文字专家']))
 
-        self.assert_code(200, self.fetch('/api/unlock/cut/'))  # 清除切分任务
+        self.assert_code(200, self.fetch('/api/task/unlock/cut/'))  # 清除切分任务
 
     def tearDown(self):
         # 退回所有任务，还原改动
         for task_type in TaskHandler.task_types.keys():
-            self.assert_code(200, self.fetch('/api/unlock/%s/' % task_type))
+            self.assert_code(200, self.fetch('/api/task/unlock/%s/' % task_type))
 
         super(TestTaskFlow, self).tearDown()
 
@@ -78,8 +78,8 @@ class TestTaskFlow(APITestCase):
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['tasks']]), msg=task_type)
-            self.assert_code(200, self.fetch('/api/unlock/cut/'))
-            self.assert_code(200, self.fetch('/api/unlock/text/'))
+            self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
+            self.assert_code(200, self.fetch('/api/task/unlock/text/'))
 
     def test_cut_proof(self):
         """ 测试切分校对的任务领取、保存和提交 """
@@ -87,7 +87,7 @@ class TestTaskFlow(APITestCase):
         for task_type in TaskHandler.cut_task_names:
             # 发布任务
             self.login_as_admin()
-            self.assert_code(200, self.fetch('/api/unlock/cut/'))
+            self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
             self.assert_code(200, self.publish(task_type, dict(pages='GL_1056_5_6,JX_165_7_12')))
 
             # 任务大厅
@@ -120,19 +120,19 @@ class TestTaskFlow(APITestCase):
             self.login(u.expert1[0], u.expert1[1])
             box_type = task_type.split('_')[0]
             boxes = page[box_type + 's']
-            r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+            r = self.fetch('/api/task/save/%s?_raw=1' % (task_type,),
                            body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))})
             self.assert_code(200, r)
             self.assertFalse(self.parse_response(r).get('box_changed'))
 
             boxes[0]['w'] += 1
-            r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+            r = self.fetch('/api/task/save/%s?_raw=1' % (task_type,),
                            body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))})
             self.assertTrue(self.parse_response(r).get('box_changed'))
 
             # 提交
             boxes[0]['w'] -= 1
-            r = self.fetch('/api/save/%s?_raw=1' % (task_type,),
+            r = self.fetch('/api/task/save/%s?_raw=1' % (task_type,),
                            body={'data': dict(name=page['name'], submit=True,
                                               box_type=box_type, boxes=json_encode(boxes))})
             self.assert_code(200, r)
@@ -151,7 +151,7 @@ class TestTaskFlow(APITestCase):
         self.login(u.expert1[0], u.expert1[1])
         page = self.parse_response(self.fetch(tasks[0]['pick_url'] + '?_raw=1'))['page']
         self.assertIn('name', page)
-        r = self.fetch('/api/save/block_cut_proof?_raw=1',
+        r = self.fetch('/api/task/save/block_cut_proof?_raw=1',
                        body={'data': dict(name=page['name'], submit=True,
                                           box_type='block', boxes=json_encode(page['blocks']))})
         r = self.parse_response(r)

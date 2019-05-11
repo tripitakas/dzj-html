@@ -42,7 +42,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/logout')
         self.assert_code(200, r)
 
-        r = self.fetch('/my/profile')
+        r = self.fetch('/user/my/profile')
         self.assertNotIn(u.user1[0], self.parse_response(r))
 
     def test_api_register(self):
@@ -96,15 +96,15 @@ class TestUserCommonApi(APITestCase):
         self.assert_code(200, self.login(user1['email'], user1['password']))
 
         # 原始密码错误
-        r = self.fetch('/api/my/pwd', body={'data': dict(old_password='wrong_psw_1', password='user1!@#$')})
+        r = self.fetch('/api/user/my/pwd', body={'data': dict(old_password='wrong_psw_1', password='user1!@#$')})
         self.assert_code(e.incorrect_old_password, r)
 
         # 原始密码和新密码一致
-        r = self.fetch('/api/my/pwd', body={'data': dict(old_password=user1['password'], password=user1['password'])})
+        r = self.fetch('/api/user/my/pwd', body={'data': dict(old_password=user1['password'], password=user1['password'])})
         self.assert_code(e.not_allow_equal, r)
 
         # 正常修改
-        r = self.fetch('/api/my/pwd', body={'data': dict(old_password=user1['password'], password='user1!@#$%')})
+        r = self.fetch('/api/user/my/pwd', body={'data': dict(old_password=user1['password'], password='user1!@#$%')})
         self.assert_code(200, r)
 
     def test_api_change_my_profile(self):
@@ -115,31 +115,31 @@ class TestUserCommonApi(APITestCase):
         self.assert_code(200, self.login(user1['email'], user1['password']))
 
         # 手机和邮箱同时为空
-        r = self.fetch('/api/my/profile', body={
+        r = self.fetch('/api/user/my/profile', body={
             'data': dict(name=user1['name'], phone='', email='')
         })
         self.assert_code(e.not_allowed_both_empty, r)
 
         # 姓名格式有误
-        r = self.fetch('/api/my/profile', body={
+        r = self.fetch('/api/user/my/profile', body={
             'data': dict(name='张三1', phone='', email=user1['email'])
         })
         self.assert_code(e.invalid_name, r)
 
         # 邮箱格式有误
-        r = self.fetch('/api/my/profile', body={
+        r = self.fetch('/api/user/my/profile', body={
             'data': dict(name=user1['name'], phone='13800000000', email='user1#test.com')
         })
         self.assert_code(e.invalid_email, r)
 
         # 手机格式有误
-        r = self.fetch('/api/my/profile', body={
+        r = self.fetch('/api/user/my/profile', body={
             'data': dict(name=user1['name'], phone='138000000001111', email=user1['email'])
         })
         self.assert_code(e.invalid_phone, r)
 
         # 正常修改
-        r = self.fetch('/api/my/profile', body={
+        r = self.fetch('/api/user/my/profile', body={
             'data': dict(name='张三', phone='13800000000', email='user1_new@test.com', gender='男')
         })
         self.assert_code(200, r)

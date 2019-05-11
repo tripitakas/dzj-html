@@ -115,7 +115,7 @@ class GetLobbyTasksApi(TaskHandler):
 
 
 class GetPageApi(TaskHandler):
-    URL = r'/api/page/@task_id'
+    URL = r'/api/task/page/@task_id'
 
     def get(self, name):
         """ 获取页面数据 """
@@ -129,7 +129,7 @@ class GetPageApi(TaskHandler):
 
 
 class GetPagesApi(TaskHandler):
-    URL = r'/api/pages/@page_kind'
+    URL = r'/api/task/pages/@page_kind'
 
     def get(self, kind):
         """ 为任务管理获取页面列表 """
@@ -169,7 +169,7 @@ class GetPagesApi(TaskHandler):
 
 
 class UnlockTasksApi(TaskHandler):
-    URL = '/api/unlock/@task_type/@page_prefix'
+    URL = '/api/task/unlock/@task_type/@page_prefix'
 
     def get(self, task_type, prefix=None, returned=False):
         """ 退回全部任务 """
@@ -278,7 +278,7 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = '/api/pick/@box-type_cut_proof/@task_id'
+    URL = '/api/task/pick/@box-type_cut_proof/@task_id'
 
     def get(self, kind, name):
         """ 取切分校对任务 """
@@ -286,7 +286,7 @@ class PickCutProofTaskApi(PickTaskApi):
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = '/api/pick/@box-type_cut_review/@task_id'
+    URL = '/api/task/pick/@box-type_cut_review/@task_id'
 
     def get(self, kind, name):
         """ 取切分审定任务 """
@@ -294,7 +294,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/pick/text_proof_(1|2|3)/@task_id'
+    URL = '/api/task/pick/text_proof_(1|2|3)/@task_id'
 
     def get(self, kind, name):
         """ 取文字校对任务 """
@@ -302,7 +302,7 @@ class PickTextProofTaskApi(PickTaskApi):
 
 
 class PickTextReviewTaskApi(PickTaskApi):
-    URL = '/api/pick/text_review/@task_id'
+    URL = '/api/task/pick/text_review/@task_id'
 
     def get(self, name):
         """ 取文字审定任务 """
@@ -387,7 +387,7 @@ class SaveCutApi(TaskHandler):
 
 
 class SaveCutProofApi(SaveCutApi):
-    URL = '/api/save/@box-type_cut_proof'
+    URL = '/api/task/save/@box-type_cut_proof'
 
     def post(self, kind):
         """ 保存或提交切分校对任务 """
@@ -395,7 +395,7 @@ class SaveCutProofApi(SaveCutApi):
 
 
 class SaveCutReviewApi(SaveCutApi):
-    URL = '/api/save/@box-type_cut_review'
+    URL = '/api/task/save/@box-type_cut_review'
 
     def post(self, kind):
         """ 保存或提交切分审定任务 """

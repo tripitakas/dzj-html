@@ -26,7 +26,7 @@ class UserRegisterHandler(BaseHandler):
 
 
 class UserProfileHandler(BaseHandler):
-    URL = '/my/profile'
+    URL = '/user/my/profile'
 
     def get(self):
         """ 个人中心 """

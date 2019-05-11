@@ -39,7 +39,7 @@ class CutDetailBaseHandler(TaskHandler):
         if readonly:
             handle_response({})
         else:
-            self.call_back_api('/api/pick/{0}/{1}'.format(task_type, name), handle_response)
+            self.call_back_api('/api/task/pick/{0}/{1}'.format(task_type, name), handle_response)
 
     def get_img(self, name):
         cfg = self.application.config
