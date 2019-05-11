@@ -51,4 +51,3 @@ class TaskTextStatusHandler(TaskHandler):
                         task_names=self.text_task_names)
         except Exception as e:
             self.send_db_error(e, render=True)
-

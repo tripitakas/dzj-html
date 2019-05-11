@@ -105,7 +105,7 @@ class APITestCase(AsyncHTTPTestCase):
         return r
 
     def add_users_by_admin(self, users, roles=None):
-        """ 以管理员身份新增users所代表的用户并授予权限。"""
+        """ 以管理员身份新增users所代表的用户并授予权限，完成后当前用户为管理员 """
         self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         for u in users:
             r = self.register_and_login(u)

@@ -17,6 +17,7 @@
 """
 
 from controller.base import BaseHandler
+from functools import cmp_to_key
 import random
 
 
@@ -84,25 +85,21 @@ class TaskHandler(BaseHandler):
                     type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
         return type_names
 
-    @property
-    def cut_task_names(self):
-        return {
-            'block_cut_proof': '切栏校对',
-            'block_cut_review': '切栏审定',
-            'column_cut_proof': '切列校对',
-            'column_cut_review': '切列审定',
-            'char_cut_proof': '切字校对',
-            'char_cut_review': '切字审定'
-        }
+    cut_task_names = {
+        'block_cut_proof': '切栏校对',
+        'block_cut_review': '切栏审定',
+        'column_cut_proof': '切列校对',
+        'column_cut_review': '切列审定',
+        'char_cut_proof': '切字校对',
+        'char_cut_review': '切字审定'
+    }
 
-    @property
-    def text_task_names(self):
-        return {
-            'text_proof.1': '文字校一',
-            'text_proof.2': '文字校二',
-            'text_proof.3': '文字校三',
-            'text_review': '文字审定'
-        }
+    text_task_names = {
+        'text_proof.1': '文字校一',
+        'text_proof.2': '文字校二',
+        'text_proof.3': '文字校三',
+        'text_review': '文字审定'
+    }
 
     @property
     def post_tasks(self):
@@ -144,7 +141,7 @@ class TaskHandler(BaseHandler):
         pass
 
     def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1,
-                               set_conditions=None, rand=False):
+                               set_conditions=None, rand=False, sort=False):
         """
         获取指定类型、状态的任务列表
         :param task_type: 任务类型串
@@ -152,8 +149,14 @@ class TaskHandler(BaseHandler):
         :param page_size: 分页大小
         :param page_no: 取第几页，首页为1
         :param set_conditions: 搜索条件的额外处理
+        :param rand: 任务随机排序
+        :param sort: 随机且按优先级排序
         :return: 页面列表
         """
+
+        def get_priority(page):
+            return self.page_get_prop(page, task_type + '.priority') or '低'
+
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
 
@@ -178,9 +181,20 @@ class TaskHandler(BaseHandler):
         if rand:
             pages = list(pages)
             random.shuffle(pages)
+            if sort:
+                pages.sort(key=cmp_to_key(
+                    lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b))))
             return pages[:page_size]
+
         pages = pages.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
+
+    @staticmethod
+    def page_get_prop(page, name):
+        obj = page
+        for s in name.split('.'):
+            obj = obj and obj.get(s)
+        return obj
 
     def get_my_tasks_by_type(self, task_type, page_size='', page_no=1):
         """ 获取我的任务列表 """

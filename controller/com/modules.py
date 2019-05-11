@@ -10,7 +10,6 @@ import math
 from tornado.web import UIModule
 
 
-
 class CommonLeft(UIModule):
     def render(self, title='', sub=''):
         can_access = self.handler.can_access

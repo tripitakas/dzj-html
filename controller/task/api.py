@@ -6,7 +6,7 @@
 
 import re
 from datetime import datetime
-from tornado.escape import json_decode, to_basestring
+from tornado.escape import json_decode
 from controller.base import DbError
 from controller import errors
 from controller.task.base import TaskHandler
@@ -355,14 +355,19 @@ class SaveCutApi(TaskHandler):
                 result['updated_time'] = new_info[time_field]
 
     def submit_task(self, result, data, page, task_type, task_user):
-        end_info = {task_type + '.status': self.STATUS_FINISHED, task_type + '.finished_time': datetime.now()}
+        end_info = {
+            task_type + '.status': self.STATUS_FINISHED,
+            task_type + '.finished_time': datetime.now(),
+            task_type + '.last_updated_time': datetime.now()
+        }
         r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']}, {'$set': end_info})
         if r.modified_count:
             result['submitted'] = True
             self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
 
+            # 激活后置任务，没有相邻后置任务则继续往后激活任务
             post_task = self.post_tasks.get(task_type)
-            if post_task:
+            while post_task:
                 next_status = post_task + '.status'
                 status = PickTaskApi.page_get_prop(page, next_status)
                 if status:
@@ -370,7 +375,15 @@ class SaveCutApi(TaskHandler):
                                                 {'$set': {next_status: self.STATUS_OPENED}})
                     if r.modified_count:
                         self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
-                        result['resume_next'] = True
+                        result['resume_next'] = post_task
+                post_task = not status and self.post_tasks.get(post_task)
+
+            # 随机分配新任务
+            tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
+            if tasks:
+                name = tasks[0]['name']
+                self.add_op_log('jump_' + task_type, file_id=tasks[0]['_id'], context=name)
+                result['jump'] = '/task/do/%s/%s' % (task_type, name)
 
 
 class SaveCutProofApi(SaveCutApi):

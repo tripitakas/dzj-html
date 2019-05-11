@@ -4,7 +4,6 @@
 @desc: 任务大厅
 @time: 2018/12/26
 """
-from functools import cmp_to_key
 from controller.task.base import TaskHandler
 
 
@@ -25,32 +24,26 @@ class TaskLobbyHandler(TaskHandler):
                         t['pick_url'] = '/task/do/%s/%s' % (task_type, t['name'])
                         t['status'] = v.get('status')
                         continue
+            return items
 
         def sub_tasks(page):
             return [v for k, v in page.get(task_type, {}).items() if k in self.task_types]
-
-        def sorted_by_priority(items):
-            pack(items)
-            return sorted(items, key=cmp_to_key(
-                lambda a, b: '高中低'.index(a.get('priority') or '低') - '高中低'.index(b.get('priority') or '低')
-            ))
 
         def uncompleted(t):
             return t.get('status') == self.STATUS_PICKED and t.get('picked_user_id') == self.current_user['_id']
 
         try:
-            task_status = [self.STATUS_OPENED, self.STATUS_RETURNED]
             my_tasks = [t for t in self.get_tasks(task_type, [self.STATUS_PICKED])
                         if [1 for s in (t.get(task_type, {}).get('status') and [t.get(task_type)]
                                         or sub_tasks(t)) if uncompleted(s)]]
-            tasks = sorted_by_priority(my_tasks) + sorted_by_priority(self.get_tasks(task_type, task_status))
+            tasks = pack(my_tasks) + pack(self.get_tasks(task_type, self.STATUS_OPENED))
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
         except Exception as e:
             self.send_db_error(e, render=True)
 
     def get_tasks(self, task_type, task_status):
-        return self.get_tasks_info_by_type(task_type, task_status, rand=True)
+        return self.get_tasks_info_by_type(task_type, task_status, rand=True, sort=True)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -64,7 +57,8 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
         sub_types = self.task_types[task_type]['sub_task_types'].keys()
         not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
         tasks = self.get_tasks_info_by_type(
-            task_type, task_status, rand=True, set_conditions=lambda cond: cond.update(not_me)
+            task_type, task_status, rand=True, sort=True,
+            set_conditions=lambda cond: cond.update(not_me)
         )
         return tasks
 

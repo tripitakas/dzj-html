@@ -22,4 +22,3 @@ class MyTaskHandler(TaskHandler):
                         task_types=self.task_types, task_statuses=self.task_statuses)
         except Exception as e:
             self.send_db_error(e, render=True)
-

@@ -90,7 +90,7 @@ def is_name(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
-    if v and not re.match(regex, v): # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, v):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_name}
 
 
@@ -99,7 +99,7 @@ def is_phone(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^1[34578]\d{9}$'
-    if v and not re.match(regex, str(v)): # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone}
 
 
@@ -118,7 +118,7 @@ def is_phone_or_email(**kw):
     k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     phone_regex = r'^1[34578]\d{9}$'
-    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):   # 值为空或空串时跳过而不检查
+    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone_or_email}
 
 
@@ -127,7 +127,7 @@ def is_password(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
-    if v and not re.match(regex, str(v)):   # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_password}
 
 
