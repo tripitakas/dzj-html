@@ -39,14 +39,14 @@ def load_json(filename):
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
-def scan_dir(src_path, kind, db, ret):
+def scan_dir(src_path, kind, db, ret, repeat=0):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
-            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret)
+            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret, repeat=repeat)
         elif kind and fn[:2] == kind:
             if fn.endswith('.json') and fn[:-5] not in ret:
                 info = load_json(filename)
@@ -55,11 +55,15 @@ def scan_dir(src_path, kind, db, ret):
                     if name != fn[:-5]:
                         sys.stderr.write('invalid imgname %s, %s\n' % (filename, kind))
                         continue
-                    add_page(name, info, db)
+                    if repeat > 1:
+                        for i in range(repeat):
+                            add_page('%sr%d' % (name, i + 1), info, db, img_name=name)
+                    else:
+                        add_page(name, info, db)
                     ret.add(name)
 
 
-def add_page(name, info, db):
+def add_page(name, info, db, img_name=None):
     if not db.page.find_one(dict(name=name)):
         meta = dict(name=name,
                     kind=name[:2],
@@ -70,6 +74,8 @@ def add_page(name, info, db):
                     chars=info.get('chars', []),
                     txt='',
                     create_time=datetime.now())
+        if img_name:
+            meta['img_name'] = img_name
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},
@@ -125,7 +131,8 @@ def copy_img_files(src_path, pages):
                 shutil.copy(filename, dst_file)
 
 
-def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost', reset=False):
+def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
+         reset=False, repeat=0):
     if not json_path:
         txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient(uri)
@@ -133,7 +140,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     if reset:
         db.page.drop()
     pages = set()
-    scan_dir(json_path, kind, db, pages)
+    scan_dir(json_path, kind, db, pages, repeat=repeat)
     copy_img_files(img_path, pages)
     add_texts(txt_path, pages, db)
     return data['count']

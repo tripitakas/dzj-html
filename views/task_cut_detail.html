@@ -149,7 +149,7 @@
       height: {{page['height']}},
       holder: 'holder',
       scrollContainer: '.full-bd',
-      image: "{{get_img(name)}}",
+      image: "{{get_img(page.get('img_name', name))}}",
       chars: '{{boxes}}'
     });
 
