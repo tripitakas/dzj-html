@@ -167,8 +167,8 @@ class UnlockTasksApi(TaskHandler):
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
             return self.send_error_response(errors.no_object)
-        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_PICKED or \
-                PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
+        if self.page_get_property(page, task_type + '.status') != self.STATUS_PICKED or \
+                self.page_get_property(page, task_type + '.picked_user_id') != self.current_user['_id']:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
@@ -280,12 +280,12 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
 
-            status = PickTaskApi.page_get_prop(page, task_type + '.status')
+            status = self.page_get_property(page, task_type + '.status')
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.picked_user_id'
-            page_user = PickTaskApi.page_get_property(page, task_user)
+            page_user = self.page_get_property(page, task_user)
             if page_user != self.current_user['_id']:
                 return self.send_error_response(errors.task_locked, reason=page['name'])
 
@@ -330,7 +330,7 @@ class SaveCutApi(TaskHandler):
             post_task = self.post_tasks.get(task_type)
             while post_task:
                 next_status = post_task + '.status'
-                status = PickTaskApi.page_get_prop(page, next_status)
+                status = self.page_get_property(page, next_status)
                 if status:
                     r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})

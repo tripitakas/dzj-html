@@ -97,24 +97,24 @@ class TestTaskFlow(APITestCase):
             self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in tasks]), msg=task_type)
 
             # 领取任务
-            r = self.parse_response(self.fetch(tasks[0]['pick_url'] + '?_raw=1'))
+            r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
+            self.assertIn('url', r)
+            r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
             page = r.get('page')
             self.assertIn(task_type, page)
             self.assertEqual(page[task_type]['status'], 'picked')
             self.assertEqual(page[task_type]['picked_by'], u.expert1[2])
 
             # 再领取新任务就提示有未完成任务
-            r = self.parse_response(self.fetch(tasks[1]['pick_url'] + '?_raw=1'))
-            self.assertIn('links', r)
-            r = self.parse_response(self.fetch(tasks[1]['pick_url']))
-            self.assertIn('继续任务</a>', r)
+            r = self.parse_response(self.fetch('/api%s' % tasks[1]['pick_url']))
+            self.assertEqual(errors.task_uncompleted[0], r.get('code'))
 
             # 其他人不能领取此任务
             self.login(u.expert2[0], u.expert2[1])
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))
             self.assertNotIn(page['name'], [t['name'] for t in r.get('tasks')])
             r = self.fetch('/task/do/%s/%s?_raw=1' % (task_type, page['name']))
-            self.assert_code(errors.task_locked, r)
+            self.assert_code(errors.task_picked, r)
 
             # 保存
             self.login(u.expert1[0], u.expert1[1])
@@ -149,7 +149,9 @@ class TestTaskFlow(APITestCase):
 
         # 领取并提交
         self.login(u.expert1[0], u.expert1[1])
-        page = self.parse_response(self.fetch(tasks[0]['pick_url'] + '?_raw=1'))['page']
+        r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
+        r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
+        page = self.parse_response(r)['page']
         self.assertIn('name', page)
         r = self.fetch('/api/task/save/block_cut_proof?_raw=1',
                        body={'data': dict(name=page['name'], submit=True,
