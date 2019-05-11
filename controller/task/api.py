@@ -213,10 +213,7 @@ class PickTaskApi(TaskHandler):
 
             # 任务已被其它人领取
             page = self.db.page.find_one(dict(name=name, task_user=None))
-            status = page
-            for key in task_status.split('.'):
-                status = status.get(key, {})
-            if not page or (page and status != self.STATUS_OPENED):
+            if not page or (page and self.page_get_property(page, task_status) != self.STATUS_OPENED):
                 url = '/task/pick/%s' % (task_type.replace('.', '/'))
                 return self.send_error_response(errors.task_picked, url=url)
 

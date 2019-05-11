@@ -151,7 +151,7 @@ class TaskHandler(BaseHandler):
         """
 
         def get_priority(page):
-            return self.page_get_prop(page, task_type + '.priority') or '低'
+            return self.page_get_property(page, task_type + '.priority') or '低'
 
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
@@ -177,18 +177,18 @@ class TaskHandler(BaseHandler):
         if rand:
             pages = list(pages)
             random.shuffle(pages)
-            if sort:
-                pages.sort(key=cmp_to_key(
-                    lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b))))
+            sort and pages.sort(key=cmp_to_key(
+                    lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b)))
+            )
             return pages[:page_size]
 
         pages = pages.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
     @staticmethod
-    def page_get_prop(page, name):
+    def page_get_property(page, key):
         obj = page
-        for s in name.split('.'):
+        for s in key.split('.'):
             obj = obj and obj.get(s)
         return obj
 
@@ -209,7 +209,7 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
-    def get_tasks_info(self, page_size='', page_no=1):
+    def get_tasks_info(self, page_size=0, page_no=1):
         """
         获取所有任务的状态
         :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
