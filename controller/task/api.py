@@ -24,7 +24,7 @@ class PublishTasksApi(TaskHandler):
         try:
             data = self.get_request_data()
             priority, task_pages = data.get('priority') or '高', data['pages'].split(',')
-            pages = self.db.page.find({'name': {"$in": task_pages}})
+            pages = list(self.db.page.find({'name': {"$in": task_pages}}).limit(self.MAX_RECORDS))
             result = []
             for page in pages:
                 if '.' in task_type:
@@ -118,7 +118,8 @@ class GetPagesApi(TaskHandler):
                 data = self.get_request_data()
                 assert data.get('task_type') in all_types
 
-                pages = self.db.page.find({data['task_type'] + '.status': self.STATUS_READY})
+                pages = list(self.db.page.find({data['task_type'] + '.status': self.STATUS_READY})
+                             .limit(self.MAX_RECORDS))
                 self.send_data_response([p['name'] for p in pages])
             else:
                 pages = [p for p in self.db.page.find({})

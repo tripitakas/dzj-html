@@ -197,7 +197,7 @@
     });
 
     $('#return-task').click(function () {
-      postApi('/unlock/{{task_type}}/{{name}}', {}, function (res) {
+      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
         if (res.length === 1 && res[0] === '{{name}}') {
           window.location = '{{from_url}}';
         }
@@ -205,7 +205,7 @@
     });
 
     function save(submit) {
-      postApi('/save/{{task_type}}', {data: {
+      postApi('/task/save/{{task_type}}', {data: {
         submit: submit,
         name: '{{name}}',
         box_type: '{{box_type}}',

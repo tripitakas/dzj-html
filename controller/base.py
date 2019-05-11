@@ -164,6 +164,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         logging.error('%d %s [%s %s]' % (code, message, user_name, self.get_ip()))
 
         if not self._finished:
+            response.pop('exc_info', None)
             self.set_header('Content-Type', 'application/json; charset=UTF-8')
             self.write(json_util.dumps(response))
             self.finish()

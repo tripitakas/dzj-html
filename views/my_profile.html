@@ -157,7 +157,7 @@
 			// 修改个人信息
 			function save_profile() {
 				var info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
-				postApi('/my/profile', {data: info}, function () {
+				postApi('/user/my/profile', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。');
 					location.reload();
 				}, function (msg, code) {
@@ -180,7 +180,7 @@
 					return;
 				}
 				var info = {old_password: $('#old_password').val(), password: $('#password').val()};
-				postApi('/my/pwd', {data: info}, function () {
+				postApi('/user/my/pwd', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的密码已修改。');
 				}, function (msg, code) {
 					if (code === 1009) {

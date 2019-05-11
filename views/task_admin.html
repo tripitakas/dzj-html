@@ -265,7 +265,7 @@
 
 			// 勾选发布任务
 			$modal.on('shown.bs.modal', function () {
-				postApi('/pages/cut_start', {data: {task_type: '{{task_type}}' }}, function (res) {
+				postApi('/task/pages/cut_start', {data: {task_type: '{{task_type}}' }}, function (res) {
 					pages = res;
 					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
 						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
@@ -385,7 +385,7 @@
 					},
 					function() {
 						//此处调用后台删除逻辑(ajax)
-						getApi('/unlock/{{task_type}}/' + name, function (res) {
+						getApi('/task/unlock/{{task_type}}/' + name, function (res) {
 							if (res.length) {
 								window.location.reload();
 							}

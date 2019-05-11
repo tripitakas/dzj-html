@@ -46,6 +46,8 @@ class TaskHandler(BaseHandler):
         'text_hard': {'name': '难字处理', 'pre_tasks': ['text_review']},
     }
 
+    MAX_RECORDS = 10000
+
     # 任务状态表
     STATUS_UNREADY = 'unready'
     STATUS_READY = 'ready'
