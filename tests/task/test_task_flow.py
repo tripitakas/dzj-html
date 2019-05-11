@@ -151,7 +151,7 @@ class TestTaskFlow(APITestCase):
         self.login(u.expert1[0], u.expert1[1])
         r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
         r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
-        page = self.parse_response(r)['page']
+        page = r['page']
         self.assertIn('name', page)
         r = self.fetch('/api/task/save/block_cut_proof?_raw=1',
                        body={'data': dict(name=page['name'], submit=True,
