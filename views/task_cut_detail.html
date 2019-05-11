@@ -83,6 +83,7 @@
                               </div>
                             </div>
 
+                            {% if not readonly %}
                             <div class="btn-group">
                               <button type="button" class="btn btn-warning waves-effect waves-light m-b-5" id="save">保存</button>
                               <button type="button" class="btn btn-warning waves-effect waves-light dropdown-toggle"
@@ -101,6 +102,7 @@
                             </div>
 
                             <button class="btn btn-warning waves-effect waves-light m-b-5" id="submit">提交</button>
+                            {% end %}
                           </div>
                           <div class="right fr">
 
@@ -198,7 +200,7 @@
 
     $('#return-task').click(function () {
       postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
-        if (res.length === 1 && res[0] === '{{name}}') {
+        if (res.data.length === 1 && res.data[0] === '{{name}}') {
           window.location = '{{from_url}}';
         }
       });

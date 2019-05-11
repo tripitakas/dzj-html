@@ -62,19 +62,20 @@ def scan_dir(src_path, kind, db, ret, repeat=0):
                     ret.add(name)
 
 
-def add_repeat_pages(name, info, db, repeat, img_name=None):
+def add_repeat_pages(name, info, db, repeat):
     if not db.page.find_one(dict(name=name)):
         start, length = 1, 5000
         while start + length - 1 < repeat:
-            _add_range_pages(name, info, db, start, start + length - 1, img_name)
-            start = start + length
-        _add_range_pages(name, info, db, start, repeat, img_name)
+            _add_range_pages(name, info, db, start, start + length - 1)
+            start += length
+        _add_range_pages(name, info, db, start, repeat)
 
 
-def _add_range_pages(name, info, db, start, end, img_name=None):
+def _add_range_pages(name, info, db, start, end):
     meta_list = []
     for i in range(start, end + 1):
         meta = dict(name='%s_%s' % (name, i),
+                    img_name=name,
                     kind=name[:2],
                     width=int(info['imgsize']['width']),
                     height=int(info['imgsize']['height']),
@@ -83,8 +84,6 @@ def _add_range_pages(name, info, db, start, end, img_name=None):
                     chars=info.get('chars', []),
                     txt='',
                     create_time=datetime.now())
-        if img_name:
-            meta['img_name'] = img_name
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},

@@ -53,7 +53,7 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
         error_callback && error_callback(data);
       }
       else {
-        $.extend(data, data.data || {});
+        $.extend(data, data.data && typeof data.data === 'object' && !Array.isArray(data.data) ? data.data : {});
         success_callback && success_callback(data);
       }
     },
