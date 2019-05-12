@@ -134,6 +134,9 @@ class TestTaskFlow(APITestCase):
             self.login(u.expert1[0], u.expert1[1])
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))
             tasks = r.get('tasks')
+            if 'cut_review' in task_type:
+                self.assertEqual(tasks, [], msg=task_type)
+                continue
             self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in tasks]), msg=task_type)
 
             # 领取任务

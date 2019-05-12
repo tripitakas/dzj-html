@@ -33,9 +33,11 @@ class BaseHandler(CorsMixin, RequestHandler):
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
-    def initialize(self):
+    def __init__(self, application, request, **kwargs):
+        super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db
         self.config = self.application.config
+        self.more = {}  # 给子类记录使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])

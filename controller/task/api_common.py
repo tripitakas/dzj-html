@@ -158,8 +158,7 @@ class PickTaskApi(TaskHandler):
             })
             if task_uncompleted and task_uncompleted['name'] != name:
                 url = '/task/do/%s/%s' % (task_type.replace('.', '/'), task_uncompleted['name'])
-                return self.send_error_response(errors.task_uncompleted, url=url,
-                                                uncompleted_name=task_uncompleted['name'])
+                return self.error_has_uncompleted(url, task_uncompleted)
 
             # 任务已被其它人领取
             page = self.db.page.find_one(dict(name=name, task_user=None))
@@ -167,7 +166,7 @@ class PickTaskApi(TaskHandler):
             page_user = page and self.get_obj_property(page, task_user)
             if status != self.STATUS_OPENED and not (status == self.STATUS_PICKED and page_user == cur_user):
                 url = '/task/pick/%s' % (task_type.replace('.', '/'))
-                return self.send_error_response(errors.task_picked, url=url)
+                return self.error_picked_by_other_user(url)
 
             # 领取该任务
             r = self.db.page.update_one(dict(name=name, task_user=None), {'$set': {
@@ -178,10 +177,20 @@ class PickTaskApi(TaskHandler):
             }})
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
-            self.send_data_response(dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name))
+
+            response = dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name)
+            self.send_data_response(response)
+            return response
 
         except DbError as e:
             self.send_db_error(e)
+
+    def error_has_uncompleted(self, url, task_uncompleted):
+        return self.send_error_response(errors.task_uncompleted, url=url,
+                                        uncompleted_name=task_uncompleted['name'])
+
+    def error_picked_by_other_user(self, url):
+        return self.send_error_response(errors.task_picked, url=url)
 
 
 class PickCutProofTaskApi(PickTaskApi):
@@ -201,11 +210,35 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_proof/@num/@task_id'
+    URL = '/api/task/pick/text_proof/@task_id'
 
-    def get(self, num, name):
+    def get(self, name):
         """ 取文字校对任务 """
-        self.pick('text_proof.%s' % num, name)
+
+        # 已领取某个校次的任务则不重复领取
+        for i in range(1, 4):
+            picked = self.db.page.find_one({'text_proof.%d.picked_user_id' % i: self.current_user['_id']})
+            if picked:
+                picked = self.pick('text_proof.%d' % i, name)
+                assert isinstance(picked, tuple) and picked[0] == 1
+                return PickTaskApi.error_has_uncompleted(self, picked[1], picked[2])
+
+        # 没领取则依次领取一个校次的任务
+        for i in range(1, 4):
+            ret = self.pick('text_proof.%d' % i, name)
+            if ret:
+                if isinstance(ret, tuple) and ret[0] == 2:
+                    continue
+                assert isinstance(ret, dict)
+                return
+        assert isinstance(ret, tuple) and ret[0] == 2
+        self.send_error_response(errors.task_no_picked)
+
+    def error_has_uncompleted(self, url, task_uncompleted):
+        return 1, url, task_uncompleted  # 有未完成的任意校次任务，在本类的get中退出循环
+
+    def error_picked_by_other_user(self, url):
+        return 2, url  # 任务已被其它人领取，返回None在本类的get中可换其他校次
 
 
 class PickTextReviewTaskApi(PickTaskApi):

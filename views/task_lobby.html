@@ -97,7 +97,7 @@
 								window.location = data.url;
 						  }
 						);
-					} else if (data.code == {{e.task_locked[0]}}) {
+					} else if (data.code == {{e.task_locked[0]}} || data.code == {{e.task_picked[0]}}) {
 						swal({
 								title: "是否领取其它任务？",
 								text: "当期任务已被领取！",
@@ -112,6 +112,8 @@
 								window.location = data.url;
 						  }
 						);
+					} else if (data.code == {{e.task_no_picked[0]}}) {
+						showError('没有领取新任务', data.message);
 					}
 				});
 			}
