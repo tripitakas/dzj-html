@@ -37,11 +37,6 @@ class TestTaskFlow(APITestCase):
         self._app.db.page.update_many(condition, {'$set': update_value})
 
     def _test_publish_task(self, task_type):
-        # pages = [
-        #     'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30', 'JX_165_7_75', 'JX_165_7_87', 'JX_245_1_21', 'JX_245_1_24',
-        #     'QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389', 'YB_22_476', 'YB_22_555',
-        #     'YB_22_713', 'YB_22_759', 'YB_22_816', 'YB_22_916', 'YB_22_995'
-        # ]
 
         # 测试页面为空
         r = self.parse_response(self.publish(task_type, dict(pages='')))
@@ -84,6 +79,10 @@ class TestTaskFlow(APITestCase):
         self.assertEqual(pages_ready, r['data'][status])
         self.assertEqual(pages_published, r['data']['published_before'])
 
+        # 还原页面状态
+        self._set_page_status(pages_not_ready, task_type, TaskHandler.STATUS_READY)
+        self._set_page_status(pages_published, task_type, TaskHandler.STATUS_READY)
+
     def test_publish_tasks(self):
         """ 测试发布审校任务 """
         self.add_first_user_as_admin_then_login()
@@ -104,12 +103,21 @@ class TestTaskFlow(APITestCase):
                                                          dict(pages='GL_1056_5_6,JX_165_7_12')))
             else:
                 r = self.parse_response(self.publish(task_type, dict(pages='GL_1056_5_6,JX_165_7_12')))
-            self.assertEqual({'opened'}, set([t['status'] for t in r['data']]), msg=task_type)
+            published = r.get('data', {}).get('published')
+            pending = r.get('data', {}).get('pending')
+            if 'cut_proof' in task_type:
+                self.assertIsInstance(published, list, msg=task_type)
+                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set(published), msg=task_type)
+            elif 'cut_review' in task_type:
+                self.assertIsInstance(pending, list, msg=task_type)
+                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set(pending), msg=task_type)
 
             r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
-            self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['tasks']]), msg=task_type)
+            if published:
+                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['tasks']]), msg=task_type)
+
             self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
             self.assert_code(200, self.fetch('/api/task/unlock/text/'))
 

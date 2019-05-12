@@ -85,16 +85,14 @@ class TaskHandler(BaseHandler):
     @staticmethod
     def get_sub_tasks(task_type):
         task = TaskHandler.get_obj_property(TaskHandler.task_types, task_type)
-        if 'sub_task_types' in task:
+        if task and 'sub_task_types' in task:
             return task['sub_task_types'].keys()
 
     @staticmethod
     def get_obj_property(obj, key):
         for s in key.split('.'):
-            if obj.get(s):
-                obj = obj.get(s)
-            else:
-                break
+            obj = (obj or {}).get(s)
+            # 子对象不存在就算不匹配，None
         return obj
 
     @staticmethod

@@ -44,7 +44,7 @@ class PublishTasksApi(TaskHandler):
             ])
             page_names = [i for i in page_names if i not in log['published_before']]
 
-        """准备发布任务"""
+        # 准备发布任务
         if page_names:
             pre_tasks = self.pre_tasks().get(task_type)
             if pre_tasks:
