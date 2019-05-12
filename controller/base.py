@@ -114,7 +114,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as err:
-            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(err) or err.__class__.__name__)))
+            traceback.print_exc()
+            kwargs.update(dict(code=500, error='网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
