@@ -112,13 +112,16 @@ class GetPagesApi(TaskHandler):
                 all_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
                              'block_cut_review', 'column_cut_review', 'char_cut_review']
             else:
-                all_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
+                all_types = ['text_proof', 'text_review']
 
             if kind == 'cut_start' or kind == 'text_start':
                 data = self.get_request_data()
                 assert data.get('task_type') in all_types
 
-                pages = list(self.db.page.find({data['task_type'] + '.status': self.STATUS_READY})
+                cond = {data['task_type'] + '.status': self.STATUS_READY}
+                if kind == 'text_start':
+                    cond = {'%s.%d.status' % (data['task_type'], i): self.STATUS_READY for i in range(1, 4)}
+                pages = list(self.db.page.find(cond)
                              .limit(self.MAX_RECORDS))
                 self.send_data_response([p['name'] for p in pages])
             else:

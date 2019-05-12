@@ -142,8 +142,9 @@ def add_texts(src_path, pages, db):
         elif fn.endswith('.txt') and fn[:-4] in pages:
             with open_file(filename) as f:
                 txt = f.read().strip().replace('\n', '|')
-            r = db.page.find_one(dict(name=fn[:-4]))
-            if r and not r.get('txt'):
+            cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
+            r = list(db.page.find(cond))
+            if r and not r[0].get('txt'):
                 meta = {
                     'txt': txt,
                     'text_proof': {
@@ -153,7 +154,7 @@ def add_texts(src_path, pages, db):
                     },
                     'text_review': {'status': task.STATUS_READY},
                 }
-                db.page.update_one(dict(name=fn[:-4]), {'$set': meta})
+                db.page.update_many(cond, {'$set': meta})
 
 
 def copy_img_files(src_path, pages):
