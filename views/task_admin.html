@@ -216,16 +216,16 @@
 															<th><span><input type="checkbox" name="{{t['name']}}" value="" /></span></th>
 															<td>{{t['name']}}</td>
 															<td>{{task_types.get(task_type, {}).get('name','')}}</td>
-															<td>{{task_statuses.get(th.page_get_property(t, task_type + '.status')) or ''}}</td>
-															<td>{{th.page_get_property(t, task_type + '.priority') or ''}}</td>
-															<td>{{to_date_str(th.page_get_property(t, task_type + '.publish_time'))}}</td>
-															<td>{{to_date_str(th.page_get_property(t, task_type + '.last_updated_time'))}}</td>
-															<td>{{th.page_get_property(t, task_type + '.picked_by') or ''}}</td>
-															<td>{{to_date_str(th.page_get_property(t, task_type + '.picked_time'))}}</td>
-															<td>{{to_date_str(th.page_get_property(t, task_type + '.finished_time'))}}</td>
+															<td>{{task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
+															<td>{{th.get_obj_property(t, task_type + '.priority') or ''}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
+															<td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
 															<td>
 																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
-																{% if th.page_get_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
+																{% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
 																<a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
 																{% end %}
 															</td>

@@ -227,12 +227,12 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
 
-            status = self.page_get_property(page, task_type + '.status')
+            status = self.get_obj_property(page, task_type + '.status')
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.picked_user_id'
-            page_user = self.page_get_property(page, task_user)
+            page_user = self.get_obj_property(page, task_user)
             if page_user != self.current_user['_id']:
                 return self.send_error_response(errors.task_locked, reason=page['name'])
 
