@@ -1,4 +1,4 @@
-from . import api, view_admin, view_do, view_lobby, view_my
+from . import api_common, api_admin, view_admin, view_do, view_lobby, view_my
 
 views = [
     view_lobby.LobbyBlockCutProofHandler, view_lobby.LobbyColumnCutProofHandler, view_lobby.LobbyCharCutProofHandler,
@@ -10,8 +10,8 @@ views = [
     view_my.MyTaskHandler,
 ]
 handlers = [
-    api.GetPageApi, api.GetPagesApi, api.UnlockTasksApi,
-    api.PickCutProofTaskApi, api.PickCutReviewTaskApi, api.PickTextProofTaskApi, api.PickTextReviewTaskApi,
-    api.SaveCutProofApi, api.SaveCutReviewApi,
-    api.PublishTasksApi,
+    api_common.GetPageApi, api_common.GetPagesApi, api_common.UnlockTasksApi,
+    api_common.PickCutProofTaskApi, api_common.PickCutReviewTaskApi, api_common.PickTextProofTaskApi, api_common.PickTextReviewTaskApi,
+    api_common.SaveCutProofApi, api_common.SaveCutReviewApi,
+    api_admin.PublishTasksApi,
 ]

@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>任务管理-切分任务状态</title>
+		<title>任务管理-文字任务状态</title>
 		{% include _base_meta.html %}
 
 		<!-- DataTables -->
@@ -83,10 +83,10 @@
 													<tr id="{{t['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{t['name']}}</td>
-														<td class="">{{task_statuses.get(t['text_proof']['1']['status'],{})}}</td>
-														<td class="">{{task_statuses.get(t['text_proof']['2']['status'],{})}}</td>
-														<td class="">{{task_statuses.get(t['text_proof']['3']['status'],{})}}</td>
-														<td class="">{{task_statuses.get(t['text_review']['status'],{})}}</td>
+														<td class="">{{task_statuses.get(th.page_get_property(t, 'text_proof.1.status')) or ''}}</td>
+														<td class="">{{task_statuses.get(th.page_get_property(t, 'text_proof.2.status')) or ''}}</td>
+														<td class="">{{task_statuses.get(th.page_get_property(t, 'text_proof.3.status')) or ''}}</td>
+														<td class="">{{task_statuses.get(th.page_get_property(t, 'text_review.status')) or ''}}</td>
 													</tr>
 												  {% end %}
 												</tbody>

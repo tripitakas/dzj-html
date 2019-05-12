@@ -104,14 +104,18 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
-            return self.send_data_response({k: v for k, v in kwargs.items() if not hasattr(v, '__call__')})
+            kwargs = {k: v for k, v in kwargs.items() if not hasattr(v, '__call__') and k != 'error'}
+            if template_name[0] == '_':
+                return self.send_error_response((self.get_status(), self._reason), **kwargs)
+            return self.send_data_response(**kwargs)
 
         logging.info(template_name + ' by class ' + self.__class__.__name__)
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as err:
-            kwargs.update(dict(code=500, error='网页生成出错: %s' % (str(err) or err.__class__.__name__)))
+            traceback.print_exc()
+            kwargs.update(dict(code=500, error='网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):

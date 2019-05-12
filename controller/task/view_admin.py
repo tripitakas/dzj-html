@@ -18,7 +18,7 @@ class TaskAdminHandler(TaskHandler):
             task_name = self.task_types[task_type]['name']
             has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
 
-            self.render('task_admin.html',
+            self.render('task_admin.html', th=TaskHandler,
                         tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
                         task_types=self.task_types, task_statuses=self.task_statuses)
         except Exception as e:
@@ -34,7 +34,7 @@ class TaskCutStatusHandler(TaskHandler):
         try:
             tasks = self.get_tasks_info()
             self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses,
-                        task_names=self.cut_task_names)
+                        task_names=self.cut_task_names, th=TaskHandler)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -48,6 +48,6 @@ class TaskTextStatusHandler(TaskHandler):
         try:
             tasks = self.get_tasks_info()
             self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses,
-                        task_names=self.text_task_names)
+                        task_names=self.text_task_names, th=TaskHandler)
         except Exception as e:
             self.send_db_error(e, render=True)
