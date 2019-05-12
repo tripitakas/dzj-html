@@ -3,8 +3,9 @@
 
 import tests.users as u
 from tests.testcase import APITestCase
-from controller.task.base import TaskHandler
 from controller import errors
+from controller.task.base import TaskHandler
+from controller.task.api import PublishTasksApi
 from tornado.escape import json_encode
 
 
@@ -30,35 +31,66 @@ class TestTaskFlow(APITestCase):
     def publish(self, task_type, data):
         return self.fetch('/api/task/publish/%s' % task_type, body={'data': data})
 
+    def _set_page_status(self, page_names, task_type, status):
+        condition = {'name': {'$in': page_names}}
+        update_value = PublishTasksApi.get_status_update(task_type, status)
+        self._app.db.page.update_many(condition, {'$set': update_value})
+
+    def _test_publish_task(self, task_type):
+        # pages = [
+        #     'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30', 'JX_165_7_75', 'JX_165_7_87', 'JX_245_1_21', 'JX_245_1_24',
+        #     'QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389', 'YB_22_476', 'YB_22_555',
+        #     'YB_22_713', 'YB_22_759', 'YB_22_816', 'YB_22_916', 'YB_22_995'
+        # ]
+
+        # 测试页面为空
+        r = self.parse_response(self.publish(task_type, dict(pages='')))
+        self.assertIsInstance(r['data'], dict)
+        self.assertFalse(hasattr(r['data'], 'published'))
+
+        # 测试不存在的页面
+        pages_not_existed = ['GL_not_existed_1', 'JX_not_existed_2']
+        r = self.parse_response(self.publish(task_type, dict(pages=','.join(pages_not_existed), priority='高')))
+        self.assertEqual(pages_not_existed, r['data']['not_existed'])
+
+        # 测试未就绪的页面
+        pages_not_ready = ['GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30', 'JX_165_7_75', 'JX_165_7_87']
+        self._set_page_status(pages_not_ready, task_type, TaskHandler.STATUS_UNREADY)
+        r = self.parse_response(self.publish(task_type, dict(pages=','.join(pages_not_ready), priority='高')))
+        self.assertEqual(pages_not_ready, r['data']['not_ready'])
+
+        # 测试已就绪的页面
+        pages_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
+        self._set_page_status(pages_ready, task_type, TaskHandler.STATUS_READY)
+        r = self.parse_response(self.publish(task_type, dict(pages=','.join(pages_ready), priority='高')))
+        status = 'pending' if TaskHandler.pre_tasks().get(task_type) else 'published'
+        self.assertEqual(pages_ready, r['data'][status])
+        self._set_page_status(pages_ready, task_type, TaskHandler.STATUS_READY)
+
+        # 测试已发布的页面
+        pages_published = ['YB_22_713', 'YB_22_759', 'YB_22_816', 'YB_22_916', 'YB_22_995']
+        self._set_page_status(pages_published, task_type, TaskHandler.STATUS_OPENED)
+        r = self.parse_response(self.publish(task_type, dict(pages=','.join(pages_published), priority='高')))
+        self.assertEqual(pages_published, r['data']['published_before'])
+
+        # 组合测试
+        all_pages = pages_not_existed + pages_not_ready + pages_ready + pages_published
+        self._set_page_status(pages_not_ready, task_type, TaskHandler.STATUS_UNREADY)
+        self._set_page_status(pages_ready, task_type, TaskHandler.STATUS_READY)
+        self._set_page_status(pages_published, task_type, TaskHandler.STATUS_OPENED)
+        r = self.parse_response(self.publish(task_type, dict(pages=','.join(all_pages), priority='高')))
+        self.assertEqual(pages_not_existed, r['data']['not_existed'])
+        self.assertEqual(pages_not_ready, r['data']['not_ready'])
+        self.assertEqual(pages_ready, r['data'][status])
+        self.assertEqual(pages_published, r['data']['published_before'])
+
     def test_publish_tasks(self):
-        """ 在页面创建后，通过界面和接口发布审校任务 """
-
-        # 通过API发布栏切分校对任务（栏切分没有前置任务，简单）
-        self.login_as_admin()
-        r = self.parse_response(self.publish('block_cut_proof', dict(pages='')))
-        self.assertIsInstance(r['data'], list)
-        self.assertEqual(r['data'], [])
-        r = self.parse_response(self.publish('block_cut_proof',
-                                             dict(pages='GL_1056_5_6,JX_165_7_12', priority='高')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_12'], [t['name'] for t in r['data']])
-        self.assertEqual({'opened'}, set([t['status'] for t in r['data']]))
-
-        # 再发布有前置任务的栏切分审定任务，将跳过不存在的页面
-        r = self.parse_response(self.publish('block_cut_review',
-                                             dict(pages='GL_1056_5_6,JX_165_7_30,JX_er', priority='中')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['data']])
-        self.assertEqual(['pending', 'opened'], [t['status'] for t in r['data']])
-
-        # 测试有子任务类型的情况
-        r = self.parse_response(self.publish('text_proof.1', dict(pages='GL_1056_5_6,JX_165_7_30')))
-        self.assertEqual(['GL_1056_5_6', 'JX_165_7_30'], [t['name'] for t in r['data']])
-        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['data']])
-        r = self.parse_response(self.publish('text_proof.2', dict(pages='GL_1056_5_6,JX_165_7_30')))
-        self.assertEqual(['opened', 'opened'], [t['status'] for t in r['data']])
-
-        r = self.parse_response(self.publish('text_review', dict(pages='GL_1056_5_6')))
-        self.assertEqual(['GL_1056_5_6'], [t['name'] for t in r['data']])
-        self.assertEqual(['pending'], [t['status'] for t in r['data']])
+        """ 测试发布审校任务 """
+        self.add_first_user_as_admin_then_login()
+        self._test_publish_task('block_cut_proof')  # 测试一级任务
+        self._test_publish_task('block_cut_review')  # 测试一级任务有前置任务的情况
+        self._test_publish_task('text_proof')  # 测试一级任务有子任务的情况
+        self._test_publish_task('text_proof.1')  # 测试二级任务
 
     def test_task_lobby(self):
         """ 测试任务大厅 """

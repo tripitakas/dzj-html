@@ -155,6 +155,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         message = kwargs['message'] if kwargs.get('message') else message
 
         response = dict(status='failed', type=type, code=code, message=message, error=error)
+        kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
         if kwargs.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面

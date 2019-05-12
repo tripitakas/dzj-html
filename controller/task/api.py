@@ -17,54 +17,118 @@ class PublishTasksApi(TaskHandler):
     def post(self, task_type):
         """
         发布某个任务类型的任务。
-        如果task_type包含“.”，表示任务的二级结构task_type.sub_task_type，如text_proof.1表示文字校对/校一
+        :param task_type 任务类型。如text_review/text_proof/text_proof.1。如果task_type有子任务，则检查子任务。
+        :return {'not_existed':[...], 'not_ready':[...], 'published_before':[...], 'pending':[...],
+                'published':[...], 'not_published':[...]}
         """
+        assert task_type in self.all_task_types()
+        data = self.get_request_data()
+        priority = data.get('priority', '低')
+        assert priority in '高中低'
+        page_names = data['pages'].split(',') if data.get('pages') else []
+        log = dict()
 
-        assert task_type in self.flat_task_types
+        # 检查不存在的任务
+        if page_names:
+            pages = self.db.page.find({'name': {'$in': page_names}}, {'name': 1})
+            existed = [page['name'] for page in list(pages)]
+            log['not_existed'] = [i for i in page_names if i not in existed]
+            page_names = existed
+
+        # 检查未就绪的任务（状态为UNREADY）
+        if page_names:
+            log['not_ready'] = self.find_tasks_from_pages(page_names, task_type, self.STATUS_UNREADY)
+            page_names = [i for i in page_names if i not in log['not_ready']]
+
+        # 检查已发布的任务（状态为OPENED\PENDING\PICKED\RETURNED\FINISHED）
+        if page_names:
+            log['published_before'] = self.find_tasks_from_pages(page_names, task_type, [
+                self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_RETURNED, self.STATUS_FINISHED
+            ])
+            page_names = [i for i in page_names if i not in log['published_before']]
+
+        """准备发布任务"""
+        if page_names:
+            pre_tasks = self.pre_tasks().get(task_type)
+            if pre_tasks:
+                # 针对前置任务未完成的情况进行发布，状态为PENDING
+                condition = self.get_status_condition(task_type, self.STATUS_READY)
+                condition.update({'%s.status' % t: {"$ne": self.STATUS_FINISHED} for t in pre_tasks})
+                log['pending'] = self.publish_task(page_names, condition, task_type, self.STATUS_PENDING, priority)
+                page_names = [i for i in page_names if i not in log['pending']]
+
+                # 针对前置任务已完成的情况进行发布，状态为OPENED
+                condition = self.get_status_condition(task_type, self.STATUS_READY)
+                condition.update({'%s.status' % t: self.STATUS_FINISHED for t in pre_tasks})
+                log['published'] = self.publish_task(page_names, condition, task_type, self.STATUS_PENDING, priority)
+                page_names = [i for i in page_names if i not in log['published']]
+            else:
+                # 针对没有前置任务的情况进行发布，状态为OPENED
+                condition = self.get_status_condition(task_type, self.STATUS_READY)
+                log['published'] = self.publish_task(page_names, condition, task_type, self.STATUS_OPENED, priority)
+                page_names = [i for i in page_names if i not in log['published']]
+
+        # 剩下的page_names，设置为未发布
+        if page_names:
+            log['not_published'] = page_names
+
+        self.send_data_response(log)
+
+    def publish_task(self, page_names, condition, task_type, status, priority):
+        """从page_names中发布指定condition的任务，发布时设置好对应的task_type, status, priority等参数"""
         try:
-            data = self.get_request_data()
-            priority, task_pages = data.get('priority') or '高', data['pages'].split(',')
-            pages = list(self.db.page.find({'name': {"$in": task_pages}}).limit(self.MAX_RECORDS))
-            result = []
-            for page in pages:
-                if '.' in task_type:
-                    types = task_type.split('.')
-                    old_status = page.get(types[0], {}).get(types[1], {}).get('status')
-                else:
-                    old_status = page.get(task_type, {}).get('status')
+            condition.update({'name': {'$in': page_names}})
+            pages = self.db.page.find(condition, {'name': 1})
+            if not pages:
+                return []
 
-                status = self.STATUS_UNREADY
-                if old_status == self.STATUS_READY:
-                    status = self.STATUS_PENDING if self.has_pre_task(page, task_type) \
-                        else self.STATUS_OPENED
-                result.append({'name': page['name'], 'status': status})
+            page_names = [page['name'] for page in list(pages)]
+            condition.update({'name': {'$in': page_names}})
+            update_value = {
+                '%s.priority' % task_type: priority,
+                '%s.publish_time' % task_type: datetime.now(),
+                '%s.publish_user_id' % task_type: self.current_user['_id'],
+                '%s.publish_by' % task_type: self.current_user['name'],
+            }
+            update_value.update(self.get_status_update(task_type, status))
+            r = self.db.page.update_many(condition, {'$set': update_value})
+            if r.modified_count:
+                self.add_op_log('publish_' + task_type, file_id='', context=','.join(page_names))
 
-                if status != self.STATUS_UNREADY:
-                    update_value = {
-                        '%s.status' % task_type: status,
-                        '%s.priority' % task_type: priority,
-                        '%s.publish_time' % task_type: datetime.now(),
-                        '%s.publish_user_id' % task_type: self.current_user['_id'],
-                        '%s.publish_by' % task_type: self.current_user['name'],
-                    }
-                    r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
-                    if r.modified_count:
-                        self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
-
-            self.send_data_response(result)
+            return page_names
 
         except DbError as e:
             self.send_db_error(e)
 
-    def has_pre_task(self, page, task_type):
-        """ 检查任务是否包含待完成的前置任务 """
-        pre = self.pre_tasks.get(task_type, [])
-        for t in pre:
-            types = t.split('.')
-            node = page.get(types[0], {}).get(types[1], {}) if len(types) > 1 else page.get(t, {})
-            if node.get('status') not in [None, self.STATUS_READY, self.STATUS_FINISHED]:
-                return True
+    def find_tasks_from_pages(self, page_names, task_type, status):
+        """根据task_type, status参数，从page_names中查找存在的记录"""
+        condition = {'name': {'$in': page_names}}
+        condition.update(self.get_status_condition(task_type, status))
+        pages = self.db.page.find(condition, {'name': 1})
+        return [page['name'] for page in list(pages)]
 
+    @staticmethod
+    def get_status_condition(task_type, status):
+        """根据是否有子任务，设置字段status的值"""
+        assert type(status) in [str, list]
+        sub_tasks = TaskHandler.get_sub_tasks(task_type)
+        status = {"$in": status} if isinstance(status, list) else status
+        if sub_tasks:
+            condition = {'%s.%s.status' % (task_type, t): status for t in sub_tasks}
+        else:
+            condition = {'%s.status' % task_type: status}
+        return condition
+
+    @staticmethod
+    def get_status_update(task_type, status):
+        """根据是否有子任务，设置update"""
+        assert isinstance(status, str)
+        sub_tasks = TaskHandler.get_sub_tasks(task_type)
+        if sub_tasks:
+            update = {'%s.%s.status' % (task_type, t): status for t in sub_tasks}
+        else:
+            update = {'%s.status' % task_type: status}
+        return update
 
 class GetTaskApi(TaskHandler):
     URL = r'/api/@task_type/@task_id'
@@ -167,8 +231,8 @@ class UnlockTasksApi(TaskHandler):
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
             return self.send_error_response(errors.no_object)
-        if PickTaskApi.page_get_prop(page, task_type + '.status') != self.STATUS_PICKED or \
-                PickTaskApi.page_get_prop(page, task_type + '.picked_user_id') != self.current_user['_id']:
+        if self.get_obj_property(page, task_type + '.status') != self.STATUS_PICKED or \
+                self.get_obj_property(page, task_type + '.picked_user_id') != self.current_user['_id']:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
@@ -184,7 +248,7 @@ class UnlockTasksApi(TaskHandler):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
                     continue
-                if v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
+                if isinstance(v, dict) and v.get('status') not in [None, self.STATUS_UNREADY, self.STATUS_READY]:
                     fill_info(field + '.' + sub_task)
                     for f in fields:
                         unset[field + '.' + sub_task + '.' + f] = None
@@ -214,7 +278,7 @@ class PickTaskApi(TaskHandler):
 
             # 任务已被其它人领取
             page = self.db.page.find_one(dict(name=name, task_user=None))
-            if not page or (page and self.page_get_property(page, task_status) != self.STATUS_OPENED):
+            if not page or (page and self.get_obj_property(page, task_status) != self.STATUS_OPENED):
                 url = '/task/pick/%s' % (task_type.replace('.', '/'))
                 return self.send_error_response(errors.task_picked, url=url)
 
@@ -322,17 +386,17 @@ class SaveCutApi(TaskHandler):
             self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
 
             # 激活后置任务，没有相邻后置任务则继续往后激活任务
-            post_task = self.post_tasks.get(task_type)
+            post_task = self.post_tasks().get(task_type)
             while post_task:
                 next_status = post_task + '.status'
-                status = PickTaskApi.page_get_prop(page, next_status)
+                status = PickTaskApi.get_obj_property(page, next_status)
                 if status:
                     r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})
                     if r.modified_count:
                         self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
                         result['resume_next'] = post_task
-                post_task = not status and self.post_tasks.get(post_task)
+                post_task = not status and self.post_tasks().get(post_task)
 
             # 随机分配新任务
             tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)

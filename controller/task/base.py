@@ -66,27 +66,6 @@ class TaskHandler(BaseHandler):
         STATUS_FINISHED: '已完成',
     }
 
-    @property
-    def flat_task_types(self):
-        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
-        types = []
-        for k, v in self.task_types.items():
-            if 'sub_task_types' not in v:
-                types.append(k)
-            else:
-                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
-        return types
-
-    @property
-    def task_type_names(self):
-        type_names = {}
-        for k, v in self.task_types.items():
-            type_names[k] = v['name']
-            if 'sub_task_types' in v:
-                for k1, v1 in v['sub_task_types'].items():
-                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
-        return type_names
-
     cut_task_names = {
         'block_cut_proof': '切栏校对',
         'block_cut_review': '切栏审定',
@@ -103,11 +82,46 @@ class TaskHandler(BaseHandler):
         'text_review': '文字审定'
     }
 
-    @property
-    def post_tasks(self):
+    @staticmethod
+    def get_sub_tasks(task_type):
+        task = TaskHandler.get_obj_property(TaskHandler.task_types, task_type)
+        if 'sub_task_types' in task:
+            return task['sub_task_types'].keys()
+
+    @staticmethod
+    def get_obj_property(obj, key):
+        for s in key.split('.'):
+            if obj.get(s):
+                obj = obj.get(s)
+            else:
+                break
+        return obj
+
+    @staticmethod
+    def all_task_types():
+        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
+        types = []
+        for k, v in TaskHandler.task_types.items():
+            types.append(k)
+            if 'sub_task_types' in v:
+                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
+        return types
+
+    @staticmethod
+    def task_type_names():
+        type_names = {}
+        for k, v in TaskHandler.task_types.items():
+            type_names[k] = v['name']
+            if 'sub_task_types' in v:
+                for k1, v1 in v['sub_task_types'].items():
+                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
+        return type_names
+
+    @staticmethod
+    def post_tasks():
         """ 后置任务类型 """
         post_types = {}
-        for task_type, v in self.task_types.items():
+        for task_type, v in TaskHandler.task_types.items():
             if 'pre_tasks' in v:
                 post_types.update({t: task_type for t in v['pre_tasks']})
             elif 'sub_task_types' in v:
@@ -116,8 +130,8 @@ class TaskHandler(BaseHandler):
                         post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
         return post_types
 
-    @property
-    def pre_tasks(self):
+    @staticmethod
+    def pre_tasks():
         """ 前置任务类型 """
 
         def recursion(cur):
@@ -127,7 +141,7 @@ class TaskHandler(BaseHandler):
             return pre_types.get(cur, [])
 
         pre_types = {}
-        for task_type, v in self.task_types.items():
+        for task_type, v in TaskHandler.task_types.items():
             if 'pre_tasks' in v:
                 pre_types[task_type] = v['pre_tasks']
             elif 'sub_task_types' in v:
@@ -153,7 +167,7 @@ class TaskHandler(BaseHandler):
         """
 
         def get_priority(page):
-            return self.page_get_property(page, task_type + '.priority') or '低'
+            return self.get_obj_property(page, task_type + '.priority') or '低'
 
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
@@ -186,13 +200,6 @@ class TaskHandler(BaseHandler):
 
         pages = pages.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
-
-    @staticmethod
-    def page_get_property(page, key):
-        obj = page
-        for s in key.split('.'):
-            obj = obj and obj.get(s)
-        return obj
 
     def get_my_tasks_by_type(self, task_type, page_size=0, page_no=1):
         """ 获取我的任务列表 """
