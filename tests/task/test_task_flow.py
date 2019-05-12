@@ -5,7 +5,7 @@ import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors
 from controller.task.base import TaskHandler
-from controller.task.api_common import PublishTasksApi
+from controller.task.api_admin import PublishTasksApi
 from tornado.escape import json_encode
 
 
