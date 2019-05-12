@@ -226,7 +226,7 @@
 															<td>
 																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
 																{% if th.page_get_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
-																<a class="withdraw">撤回</a>
+																<a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
 																{% end %}
 															</td>
 														</tr>
@@ -249,7 +249,7 @@
 																<td>
 																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
 																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}
-																	<a class="withdraw">撤回</a>
+																	<a class="withdraw" onclick="revoke('{{task_type}}.{{k}}', '{{t['name']}}')">撤回</a>
 																	{% end %}
 																</td>
 															</tr>
@@ -417,7 +417,7 @@
 			 * 撤销任务
 			 * @param {Object} name 任务的标记名
 			 */
-			function revoke(name) {
+			function revoke(task_type, name) {
 				swal({
 						title: "确定撤回任务吗？",
 						text: "页面编码：" + name + "\n撤回后无法恢复！",
@@ -430,7 +430,7 @@
 					},
 					function() {
 						//此处调用后台删除逻辑(ajax)
-						getApi('/task/unlock/{{task_type}}/' + name, function (res) {
+						getApi('/task/unlock/' + task_type + '/' + name, function (res) {
 							if (res.data.length) {
 								window.location.reload();
 							}
@@ -447,11 +447,6 @@
 					}
 				);
 			}
-
-			$('.withdraw').click(function () {
-				var $tr = $(this).parent().parent();
-				revoke($tr.attr('id'));
-			});
 
 		</script>
 

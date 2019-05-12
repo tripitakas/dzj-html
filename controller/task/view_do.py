@@ -77,7 +77,7 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
 class CharProofDetailHandler(TaskHandler):
     URL = '/task/do/text_proof/@num/@task_id'
 
-    def get(self, name=''):
+    def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
         try:
             page = self.db.page.find_one(dict(name=name)) or dict(name='?')

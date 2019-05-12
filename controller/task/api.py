@@ -37,7 +37,6 @@ class PublishTasksApi(TaskHandler):
                 if old_status == self.STATUS_READY:
                     status = self.STATUS_PENDING if self.has_pre_task(page, task_type) \
                         else self.STATUS_OPENED
-                result.append({'name': page['name'], 'status': status})
 
                 if status != self.STATUS_UNREADY:
                     update_value = {
@@ -50,6 +49,7 @@ class PublishTasksApi(TaskHandler):
                     r = self.db.page.update_one(dict(name=page['name']), {'$set': update_value})
                     if r.modified_count:
                         self.add_op_log('publish_' + task_type, file_id=str(page['_id']), context=page['name'])
+                        result.append(dict(name=page['name'], status=status))
 
             self.send_data_response(result)
 
@@ -120,9 +120,8 @@ class GetPagesApi(TaskHandler):
 
                 cond = {data['task_type'] + '.status': self.STATUS_READY}
                 if kind == 'text_start':
-                    cond = {'%s.%d.status' % (data['task_type'], i): self.STATUS_READY for i in range(1, 4)}
-                pages = list(self.db.page.find(cond)
-                             .limit(self.MAX_RECORDS))
+                    cond = {'$or': [{'%s.%d.status' % (data['task_type'], i): self.STATUS_READY} for i in range(1, 4)]}
+                pages = list(self.db.page.find(cond).limit(self.MAX_RECORDS))
                 self.send_data_response([p['name'] for p in pages])
             else:
                 pages = [p for p in self.db.page.find({})
