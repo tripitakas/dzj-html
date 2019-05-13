@@ -26,6 +26,9 @@ class InvalidPageHandler(TaskHandler):
         self.set_status(404, reason='Not found')
         self.render('_404.html')
 
+    def post(self):
+        self.get()
+
 
 class ApiTable(TaskHandler):
     URL = '/api'

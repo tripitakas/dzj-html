@@ -1,4 +1,4 @@
-from . import api_common, api_admin, view_admin, view_do, view_lobby, view_my
+from . import api_common, api_admin, api_text, view_admin, view_do, view_lobby, view_my
 
 views = [
     view_lobby.LobbyBlockCutProofHandler, view_lobby.LobbyColumnCutProofHandler, view_lobby.LobbyCharCutProofHandler,
@@ -14,5 +14,6 @@ handlers = [
     api_common.PickCutProofTaskApi, api_common.PickCutReviewTaskApi,
     api_common.PickTextProofTaskApi, api_common.PickTextReviewTaskApi,
     api_common.SaveCutProofApi, api_common.SaveCutReviewApi,
+    api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
     api_admin.PublishTasksApi,
 ]

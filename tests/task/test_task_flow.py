@@ -19,8 +19,6 @@ class TestTaskFlow(APITestCase):
                                  for r in [u.expert1, u.expert2, u.expert3]],
                                 ','.join(['切分专家', '文字专家']))
 
-        self.assert_code(200, self.fetch('/api/task/unlock/cut/'))  # 清除切分任务
-
     def tearDown(self):
         # 退回所有任务，还原改动
         for task_type in TaskHandler.task_types.keys():
@@ -203,3 +201,38 @@ class TestTaskFlow(APITestCase):
         self.assertRegex(r.get('jump'), r'^/task/do/')
         self.assertIn(tasks[1]['name'], r.get('jump'))
         self.assertEqual(r.get('resume_next'), 'block_cut_review')
+
+    def test_pick_text_proof_task(self):
+        """ 测试文字校对任务的领取和提交 """
+
+        # 发布一个页面的校一、校二任务
+        self.login_as_admin()
+        self.fetch('/api/task/unlock/text_proof/')
+        r1 = self.parse_response(self.publish('text_proof.1', dict(pages='GL_1056_5_6')))
+        r2 = self.parse_response(self.publish('text_proof.2', dict(pages='GL_1056_5_6')))
+        self.assertEqual(r1.get('published'), ['GL_1056_5_6'])
+        self.assertEqual(r2.get('published'), ['GL_1056_5_6'])
+
+        # 多次领取的是同一个任务
+        self.login(u.expert1[0], u.expert1[1])
+        self.assert_code(404, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
+        r1 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
+        self.assert_code(200, r1)
+        r2 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
+        self.assert_code(200, r2)
+        r1, r2 = self.parse_response(r1), self.parse_response(r2)
+        self.assertEqual(r1['url'], r2['url'])
+
+        # 让此任务完成
+        r = self.parse_response(self.fetch('%s?_raw=1' % r1['url']))
+        page = r.get('page')
+        self.assertIn('name', page)
+        r = self.fetch('/api/task/save/text_proof/%s?_raw=1' % r1['url'].split('/')[-2],
+                       body={'data': dict(name=page['name'], submit=True,
+                                          chars=json_encode(page['chars']))})
+        self.assert_code(200, r)
+        # 页面相同，不能再自动领另一个校次的
+        self.assertFalse(self.parse_response(r).get('jump'))
+
+        p2 = self.parse_response(self.fetch('%s?_raw=1' % r1['url'])).get('page') or {}
+        self.assertEqual(p2.get('name'), page['name'])

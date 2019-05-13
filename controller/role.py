@@ -136,6 +136,7 @@ role_maps = {
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
             '/api/task/pick/text_proof/@task_id': ['GET'],
+            '/api/task/save/text_proof/@num': ['POST'],
         }
     },
     '文字审定员': {
@@ -146,6 +147,7 @@ role_maps = {
             '/task/my/text_review': ['GET'],
             '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
             '/api/task/pick/text_review/@task_id': ['GET'],
+            '/api/task/save/text_review': ['POST'],
         }
     },
     '文字专家': {
