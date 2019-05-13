@@ -42,6 +42,10 @@ class CutDetailBaseHandler(TaskHandler):
             self.call_back_api('/api/task/pick/{0}/{1}'.format(task_type, name), handle_response)
 
     def get_img(self, name):
+        return self.get_img_(self, name)
+
+    @staticmethod
+    def get_img_(self, name):
         cfg = self.application.config
         if 'page_codes' not in cfg:
             try:
@@ -79,12 +83,19 @@ class CharProofDetailHandler(TaskHandler):
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
+        self.enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
+
+    @staticmethod
+    def enter(self, task_type, name, stage):
         try:
-            page = self.db.page.find_one(dict(name=name)) or dict(name='?')
+            page = self.db.page.find_one(dict(name=name))
             if not page:
                 return self.render('_404.html')
-            self.render('text_proof.html', page=page, stage=('proof', '文字校对'),
-                        readonly=page.get('text_proof_user') != self.current_user['_id'])
+
+            picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
+            self.render('text_proof.html', page=page, name=page['name'], stage=stage,
+                        readonly=picked_user_id != self.current_user['_id'],
+                        get_img=lambda: CutDetailBaseHandler.get_img_(self, name))
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -94,11 +105,4 @@ class CharReviewDetailHandler(TaskHandler):
 
     def get(self, name=''):
         """ 进入文字审定页面 """
-        try:
-            page = self.db.page.find_one(dict(name=name)) or dict(name='?')
-            if not page:
-                return self.render('_404.html')
-            self.render('text_proof.html', page=page, stage=('review', '文字审定'),
-                        readonly=page.get('text_review_user') != self.current_user['_id'])
-        except Exception as e:
-            self.send_db_error(e, render=True)
+        CharProofDetailHandler.enter(self, 'text_review', name, ('review', '文字审定'))

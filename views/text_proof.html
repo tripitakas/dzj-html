@@ -69,9 +69,9 @@
       </header>
       <div class="flex-content">
 
-        <div class="main-right m-l-14">
+        <div class="main-right m-l-14" id="canvas-bd">
           <div class="main-right-img flex-1">
-            <img src="{{ static_url('imgs/examImg1.png') }}">
+            <div id="holder"></div>
           </div>
           <div class="main-right-content w-500px">
             <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
@@ -147,6 +147,12 @@
 
 
 {% include _base_js.html %}
+<script src="{{ static_url('js/cut/raphael.js') }}"></script>
+<script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
+<script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
+<script src="{{ static_url('js/cut/cut.js') }}"></script>
+<script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+<script src="{{ static_url('js/proofread.js') }}"></script>
 
 <!-- CUSTOM JS -->
 <script type="text/javascript">
@@ -154,6 +160,45 @@
     $(this).toggleClass('active');
     $('.char-list-table').toggleClass('hidden');
   });
+
+  var char_data = $.cut.decodeJSON('{{page["chars"]}}');
+  var cmpdata = {};//$.cut.decodeJSON('{{page["txt"]}}');
+  var columns = $.cut.decodeJSON('{{page["columns"]}}');
+  var blocks = $.cut.decodeJSON('{{page["blocks"]}}');
+
+  function createPage() {
+    $.cut.create({
+      readonly: true,
+      scrollContainer: '#canvas-bd',
+      name: '{{name}}',
+      width: {{page['width']}},
+      height: {{page['height']}},
+      holder: 'holder',
+      scrollContainer: '#canvas-bd',
+      image: '{{get_img()}}',
+      chars: char_data
+    });
+    // $.cut.bindMatchingKeys();
+    $.cut.toggleBox(false);
+    $.cut.switchCurrentBox(null);
+    updateUndo();
+  }
+  createPage();
+
+  function updateUndo() {
+    $('#undo').toggleClass('disabled', !$.cut.canUndo());
+    $('#redo').toggleClass('disabled', !$.cut.canRedo());
+  }
+  $('#undo').click(function () {
+    $.cut.undo();
+    updateUndo();
+  });
+  $('#redo').click(function () {
+    $.cut.redo();
+    updateUndo();
+  });
+  updateUndo();
+
 </script>
 
 

@@ -130,7 +130,7 @@
       }
       return c;
     });
-    s = s.replace(/'/g, '"').replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0');
+    s = s.replace(/'/g, '"').replace(/: True/g, ': 1').replace(/: (False|None)/g, ': 0').replace(/\\/g, '/');
     return s;
   }
 
