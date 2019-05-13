@@ -145,7 +145,7 @@ role_maps = {
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
-            '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
+            '/task/do/text_review/@task_id': ['GET', 'POST'],
             '/api/task/pick/text_review/@task_id': ['GET'],
             '/api/task/save/text_review': ['POST'],
         }

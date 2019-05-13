@@ -83,14 +83,14 @@ class CharProofDetailHandler(TaskHandler):
             page = self.db.page.find_one(dict(name=name)) or dict(name='?')
             if not page:
                 return self.render('_404.html')
-            self.render('text_proof.html', page=page,
+            self.render('text_proof.html', page=page, stage=('proof', '文字校对'),
                         readonly=page.get('text_proof_user') != self.current_user['_id'])
         except Exception as e:
             self.send_db_error(e, render=True)
 
 
 class CharReviewDetailHandler(TaskHandler):
-    URL = '/task/do/text_review/@num/@task_id'
+    URL = '/task/do/text_review/@task_id'
 
     def get(self, name=''):
         """ 进入文字审定页面 """
@@ -98,7 +98,7 @@ class CharReviewDetailHandler(TaskHandler):
             page = self.db.page.find_one(dict(name=name)) or dict(name='?')
             if not page:
                 return self.render('_404.html')
-            self.render('text_review.html', page=page,
-                        readonly=page.get('text_proof_user') != self.current_user['_id'])
+            self.render('text_proof.html', page=page, stage=('review', '文字审定'),
+                        readonly=page.get('text_review_user') != self.current_user['_id'])
         except Exception as e:
             self.send_db_error(e, render=True)
