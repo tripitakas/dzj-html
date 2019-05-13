@@ -1313,8 +1313,7 @@ span.active a {
 .m-header-img{
     width:20px;
     height:20px;
-    margin-top:10px;
-    margin-left:15px;
+    margin:10px;
 }
 
 .m-header-title{
@@ -1364,6 +1363,7 @@ span.active a {
 .m-header-font{
     margin-top:6px;
     margin-left:20px;
+		margin-right: 10px;
 }
 .m-header-font div{
     padding:3px 5px;

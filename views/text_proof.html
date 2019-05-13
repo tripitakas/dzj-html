@@ -24,7 +24,12 @@
 
 </head>
 <style>
-
+  .main-right {
+    width: 60%;
+  }
+  .main-right-content {
+    width: 40%;
+  }
 </style>
 
 <body>
@@ -38,11 +43,11 @@
 
         <div class="m-header-title">{{stage[1]}}</div>
         <div class="m-header-edit-btn">
-          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
-          <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img"/>
-          <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img"/>
+          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img show-all-box" title="显示所有字框"/>
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img zoom-in" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img zoom-out" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>
+          <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>
         </div>
         <div class="m-header-right">
           <div class="m-header-txt">
@@ -54,26 +59,25 @@
           </div>
           <div class="m-header-edit-btn">
             <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img"/>
+            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-deleteline" title="删除该行"/>
+            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-addupline" title="向上增行"/>
+            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-adddownline" title="向下增行"/>
+            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>
+            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-txt" title="原文"/>
+            <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-help" title="帮助"/>
+            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img" title="保存"/>
+            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img" title="提交"/>
+            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img" title="退回"/>
           </div>
         </div>
 
       </header>
       <div class="flex-content">
 
-        <div class="main-right m-l-14" id="canvas-bd">
-          <div class="main-right-img flex-1">
-            <div id="holder"></div>
-          </div>
-          <div class="main-right-content w-500px">
+        <div class="main-right" id="canvas-bd">
+          <div id="holder"></div>
+        </div>
+        <div class="main-right-content">
             <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
             <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
             <p>壽八萬四千歲從惡念遮迦越殺一</p>
@@ -138,7 +142,6 @@
               </table>
             </div>
           </div>
-        </div>
       </div>
 
     </div>
