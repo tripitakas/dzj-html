@@ -311,7 +311,7 @@
 						var sub_task_type = sub_task_types.shift();
 						if (sub_task_type) {
 							postApi('/task/publish/{{task_type}}.' + sub_task_type, {data: data}, function (res) {
-								published += (res.data.published || []).length;
+								published += (res.published || res.pending || []).length;
 								publish();
 							});
 						} else {
@@ -324,7 +324,7 @@
 					publish();
 				} else {
 					postApi('/task/publish/{{task_type}}', {data: data}, function (res) {
-						showSuccess('已发布任务', (res.data.published || []).length + ' 个页面已发布。');
+						showSuccess('已发布任务', (res.published || res.pending || []).length + ' 个页面已发布。');
 						setTimeout(function () {
 							location.reload();
 						}, 1000);

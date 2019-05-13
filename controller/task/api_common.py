@@ -64,7 +64,7 @@ class GetPagesApi(TaskHandler):
                 assert data.get('task_type') in all_types
 
                 cond = {data['task_type'] + '.status': self.STATUS_READY}
-                if kind == 'text_start':
+                if data['task_type'] == 'text_proof':
                     cond = {'$or': [{'%s.%d.status' % (data['task_type'], i): self.STATUS_READY} for i in range(1, 4)]}
                 pages = list(self.db.page.find(cond).limit(self.MAX_RECORDS))
                 self.send_data_response([p['name'] for p in pages])
@@ -114,8 +114,10 @@ class UnlockTasksApi(TaskHandler):
         page = self.db.page.find_one(dict(name=prefix))
         if not page:
             return self.send_error_response(errors.no_object)
-        if self.get_obj_property(page, task_type + '.status') != self.STATUS_PICKED or \
-                self.get_obj_property(page, task_type + '.picked_user_id') != self.current_user['_id']:
+        status = self.get_obj_property(page, task_type + '.status')
+        if status != self.STATUS_PICKED:
+            return self.send_error_response(errors.task_changed, page_name=page['name'])
+        if self.get_obj_property(page, task_type + '.picked_user_id') != self.current_user['_id']:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
@@ -262,7 +264,7 @@ class SaveCutApi(TaskHandler):
 
             status = self.get_obj_property(page, task_type + '.status')
             if status != self.STATUS_PICKED:
-                return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
+                return self.send_error_response(errors.task_changed, reason=page['name'])
 
             task_user = task_type + '.picked_user_id'
             page_user = self.get_obj_property(page, task_user)

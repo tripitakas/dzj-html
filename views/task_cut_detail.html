@@ -78,8 +78,8 @@
                                   <sup class="s_h_count"></sup></button>
                               </div>
                               <div class="btn-group m-b-10">
-                                <button type="button" class="btn btn-default" id="undo">撤销</button>
-                                <button type="button" class="btn btn-default" id="redo">重做</button>
+                                <button type="button" class="btn btn-default" id="undo" title="撤销"><i class="md md-undo"></i></button>
+                                <button type="button" class="btn btn-default" id="redo" title="重做"><i class="md md-redo"></i></button>
                               </div>
                             </div>
 
@@ -92,16 +92,16 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                               </button>
                               <ul class="dropdown-menu">
+                                <li><a id="submit">提交任务</a></li>
+                                <li role="separator" class="divider"></li>
                                 {% if box_type == 'char' %}
-                                <li><a id="edit-block">修改栏框</a></li>
-                                <li><a id="edit-column">修改列框</a></li>
+                                <li><a id="order-mode">字序校对</a></li>
+                                <li><a id="box-mode">字框校对</a></li>
                                 <li role="separator" class="divider"></li>
                                 {% end %}
                                 <li><a id="return-task">退回任务</a></li>
                               </ul>
                             </div>
-
-                            <button class="btn btn-warning waves-effect waves-light m-b-5" id="submit">提交</button>
                             {% end %}
                           </div>
                           <div class="right fr">

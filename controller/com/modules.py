@@ -47,7 +47,6 @@ class CommonLeft(UIModule):
                 dict(name='切列审定', icon='icon_subitem', link='/task/admin/column_cut_review'),
                 dict(name='切字校对', icon='icon_subitem', link='/task/admin/char_cut_proof'),
                 dict(name='切字审定', icon='icon_subitem', link='/task/admin/char_cut_review'),
-                dict(name='切字审定', icon='icon_subitem', link='/task/admin/char_cut_review'),
                 dict(name='文字状态', icon='icon_subitem', link='/task/admin/text/status'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
