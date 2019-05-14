@@ -40,6 +40,11 @@ class ApiTable(TaskHandler):
             assert func.__doc__, str(func) + ' no comment'
             return func.__doc__.strip().split('\n')[0]
 
+        def show_roles():
+            if 'MyTaskHandler.' in func_name:
+                return '普通用户'
+            return ','.join(r for r in roles if not re.search(r'员|专家', r) or '普通用户' not in roles)
+
         handlers = []
         for cls in self.application.handlers:
             handler = cls(self.application, self.request)
@@ -53,10 +58,10 @@ class ApiTable(TaskHandler):
                     if isinstance(cls.URL, list):
                         for url in cls.URL:
                             roles = get_route_roles(url, method)
-                            handlers.append((url, func_name, file, get_doc(), ','.join(roles)))
+                            handlers.append((url, func_name, file, get_doc(), show_roles()))
                     else:
                         roles = get_route_roles(cls.URL, method)
-                        handlers.append((cls.URL, func_name, file, get_doc(), ','.join(roles)))
+                        handlers.append((cls.URL, func_name, file, get_doc(), show_roles()))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
 

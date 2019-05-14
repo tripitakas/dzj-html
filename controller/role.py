@@ -224,11 +224,18 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
+    path0 = path
+    for holder, regex in url_placeholder.items():
+        path = path.replace('@' + holder, '(%s)' % regex)
     route_accessible = get_role_routes(role)
     for _path, _method in route_accessible.items():
         for holder, regex in url_placeholder.items():
-            _path = _path.replace('@' + holder, regex)
-        if re.match('^%s$' % _path, path) and method in _method:
+            _path = _path.replace('@' + holder, '(%s)' % regex)
+        if (path == _path or re.match('^%s$' % _path, path) or re.match('^%s$' % path, _path)) and method in _method:
+            return True
+
+    if '@box_type' in path0:
+        if [1 for p in ['block', 'column', 'char'] if can_access(role, path0.replace('@box_type', p), method)]:
             return True
     return False
 
