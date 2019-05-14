@@ -56,12 +56,21 @@ class ApiTable(TaskHandler):
                     func = cls.__dict__[method.lower()]
                     func_name = re.sub(r'<|function |at .+$', '', str(func))
                     if isinstance(cls.URL, list):
-                        for url in cls.URL:
+                        for i, url in enumerate(cls.URL):
                             roles = get_route_roles(url, method)
-                            handlers.append((url, func_name, file, get_doc(), show_roles()))
+                            handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
                     else:
-                        roles = get_route_roles(cls.URL, method)
-                        handlers.append((cls.URL, func_name, file, get_doc(), show_roles()))
+                        added = 0
+                        if '@box_type' in cls.URL:
+                            for i, box_type in enumerate(['block', 'char', 'column']):
+                                url = cls.URL.replace('@box_type', box_type)
+                                roles = get_route_roles(url, method)
+                                if roles:
+                                    added += len(roles)
+                                    handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
+                        if not added:
+                            roles = get_route_roles(cls.URL, method)
+                            handlers.append((cls.URL, func_name, 0, file, get_doc(), show_roles()))
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
 

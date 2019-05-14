@@ -233,10 +233,6 @@ def can_access(role, path, method):
             _path = _path.replace('@' + holder, '(%s)' % regex)
         if (path == _path or re.match('^%s$' % _path, path) or re.match('^%s$' % path, _path)) and method in _method:
             return True
-
-    if '@box_type' in path0:
-        if [1 for p in ['block', 'column', 'char'] if can_access(role, path0.replace('@box_type', p), method)]:
-            return True
     return False
 
 

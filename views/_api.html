@@ -32,11 +32,11 @@
     <th>接口说明</th>
     <th>角色</th>
   </tr>
-  {% for i, (url, func, file, comment, auth) in enumerate(handlers) %}
+  {% for i, (url, func, repeat, file, comment, auth) in enumerate(handlers) %}
   <tr>
     <td>{{1 + i}}</td>
     <td>{{url}}</td>
-    <td><a href="/api/code/{{func}}" title="{{file}}">{{func}}</a></td>
+    <td><a href="/api/code/{{func}}" title="{{file}}">{{func}}{{' (%d)' % repeat if repeat else ''}}</a></td>
     <td>{{comment}}</td>
     <td>{{auth}}</td>
   </tr>
