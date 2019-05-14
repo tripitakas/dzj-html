@@ -15,8 +15,8 @@
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
 
   {% include _base_css.html %}
@@ -39,9 +39,9 @@
     <div class="main-content">
 
       <header class="m-header">
-        <div><a href="/home"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img"/></a></div>
+        <div><a href="/home" title="首页"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img"/></a></div>
 
-        <div class="m-header-title">{{stage[1]}}</div>
+        <div class="m-header-title" title="页面编码：{{name}}">{{stage[1]}}</div>
         <div class="m-header-edit-btn">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img show-all-box" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img zoom-in" title="放大"/>
@@ -58,16 +58,16 @@
             </div>
           </div>
           <div class="m-header-edit-btn">
-            <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img"/>
-            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-deleteline" title="删除该行"/>
-            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-addupline" title="向上增行"/>
-            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-adddownline" title="向下增行"/>
-            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>
-            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-txt" title="原文"/>
+            <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>
+            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
+            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
+            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
+            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
+            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>
             <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-help" title="帮助"/>
-            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img" title="保存"/>
-            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img" title="提交"/>
-            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img" title="退回"/>
+            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
+            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
           </div>
         </div>
 
@@ -78,30 +78,23 @@
           <div id="holder"></div>
         </div>
         <div class="main-right-content">
-            <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
-            <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
-            <p>壽八萬四千歲從惡念遮迦越殺一</p>
-            <p>牛祠祀害命失金輪得銀輪主三天</p>
-            <p>下壽萬歲堅念王作鎧壽五千歲得</p>
-            <p>銅輪主二天下主西南喜殺王壽二</p>
-            <p>千五百歲得鐵輪王主南天下其王有</p>
-            <p>太子行五百歲得惡殺一減壽千歲</p>
-            <p>古人有九病寒熱飢渴生老病死婆</p>
-            <p>羅門殺生祠祀從是生四百四病從</p>
-            <p>師子念王人壽轉減壽百二十歲從師</p>
-            <p>子念王後師子意王有八十四王人壽</p>
-            <p>轉減或壽八十七十五十三十二十</p>
-            <p>十歲者於後師子合車王師子合車王卽師子</p>
-            <p>頰王也子名白淨是菩薩父計菩薩身</p>
-            <p>終始幷前後八萬四千遮迦越王</p>
-            <p>遮迦越齊言飛行皇帝卽轉輪王也</p>
-            <p>長阿含及曇無德律序轉輪世數甚</p>
-            <p>明已顯於前此記抄撮難尋若依全</p>
-            <p>經宜以阿含爲正大瞿曇氏純淑之姓</p>
-            <p>大方便經云白淨劫初以來嫡嫡相</p>
-            <p>承作轉輪王近來三世不作轉輪而</p>
-            <p>作閻浮提王</p>
-            <p>祐觀十二遊經不稱我聞復無佛言蓋</p>
+            <div class="sutra-text" id="sutra-text"></div>
+            <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
+              <div class="dlg-before"></div>
+              <dl class="item">
+                <dt>OCR</dt>
+                <dd class="text" id="pfread-dialog-ocr">&nbsp;</dd>
+              </dl>
+              <dl class="item">
+                <dt>比对本</dt>
+                <dd class="text" id="pfread-dialog-cmp">&nbsp;</dd>
+              </dl>
+              <dl class="item">
+                <dt>选择结果</dt>
+                <dd class="text"><span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span></dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
             <div class="char-list">
               <div class="char-list-tab">
                 <div class="char-list-tab-item active">存疑列表</div>
@@ -148,6 +141,27 @@
   </div>
 </div>
 
+<div class="panel-body" style="padding: 0;">
+  <!-- modal content -->
+  <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: blue">×</button>
+          <h4 class="modal-title" id="txtModalLabel">原文
+            <button class="btn btn-default" style="margin-left: 10px" id="save-txt">保存</button>
+          </h4>
+        </div>
+        <div class="modal-body">
+          <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">
+            {{'\n'.join(origin_txt)}}
+          </textarea>
+          <p><b>说明</b>：用两个空行作栏分隔符</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% include _base_js.html %}
 <script src="{{ static_url('js/cut/raphael.js') }}"></script>
@@ -164,10 +178,10 @@
     $('.char-list-table').toggleClass('hidden');
   });
 
-  var char_data = $.cut.decodeJSON('{{page["chars"]}}');
-  var cmpdata = {};//$.cut.decodeJSON('{{page["txt"]}}');
-  var columns = $.cut.decodeJSON('{{page["columns"]}}');
-  var blocks = $.cut.decodeJSON('{{page["blocks"]}}');
+  var char_data = decodeJSON('{{page["chars"]}}');
+  var cmp_data = decodeJSON('{{cmp_data}}');
+  var columns = decodeJSON('{{page["columns"]}}');
+  var blocks = decodeJSON('{{page["blocks"]}}');
 
   function createPage() {
     $.cut.create({
@@ -178,7 +192,7 @@
       height: {{page['height']}},
       holder: 'holder',
       scrollContainer: '#canvas-bd',
-      image: '{{get_img()}}',
+      image: '{{get_img(name)}}',
       chars: char_data
     });
     // $.cut.bindMatchingKeys();
@@ -199,6 +213,10 @@
   $('#redo').click(function () {
     $.cut.redo();
     updateUndo();
+  });
+  $.cut.onBoxChanged(function () {
+    updateUndo();
+    // $('#char-id').text($.cut.getCurrentCharID() || '');
   });
   updateUndo();
 

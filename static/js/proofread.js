@@ -191,7 +191,7 @@ $(document).ready(function () {
         offset += item.ocr ? item.ocr.length : 0;
     }
 
-    (cmpdata.segments || []).forEach(genHtmlByJson);
+    (cmp_data.segments || []).forEach(genHtmlByJson);
     contentHtml += "</li></ul>";
     $('#sutra-text').html(contentHtml);
     
@@ -304,7 +304,7 @@ $(document).on('click', '.not-same', function (e) {
     var $mark = $dlg.find('.dlg-after');
     var ml = $mark.attr('last-left') || $mark.css('marginLeft');
     if (shouldUp) {
-        $mark.attr('last-left', ml)
+        $mark.attr('last-left', ml);
         $mark.css('marginLeft', parseInt(ml) - offset);
     }
 
@@ -415,7 +415,7 @@ $(document).on('click', '.btn-next', function () {
 });
 
 // 删除该行
-$(document).on('click', '.btn-deleteline', function () {
+$(document).on('click', '.btn-delete-line', function () {
     if ($('.current-span').length === 0) {
         return;
     }
@@ -429,7 +429,7 @@ $(document).on('click', '.btn-deleteline', function () {
 });
 
 // 向上增行
-$(document).on('click', '.btn-addupline', function (e) {
+$(document).on('click', '.btn-add-up-line', function (e) {
     e.stopPropagation();
     if ($('.current-span').length === 0) {
         return;
@@ -441,7 +441,7 @@ $(document).on('click', '.btn-addupline', function (e) {
 });
 
 // 向下增行
-$(document).on('click', '.btn-adddownline', function (e) {
+$(document).on('click', '.btn-add-down-line', function (e) {
     e.stopPropagation();
     if ($('.current-span').length === 0) {
         return;
@@ -500,7 +500,7 @@ $(document).on('click', '.btn-enlarge', function () {
 window.showAllBoxes = function() {
   var $this = $('.btn-cut-show');
   $this.removeClass("btn-cut-show");
-  $this.addClass("btn-cut-hidden")
+  $this.addClass("btn-cut-hidden");
   $.cut.toggleBox(true);
   $.fn.mapKey.bindings = {up: {}, down: {}};
   $.cut.bindKeys();
@@ -508,41 +508,45 @@ window.showAllBoxes = function() {
 // 显隐字框
 $(document).on('click', '.btn-cut-show', window.showAllBoxes);
 $(document).on('click', '.btn-cut-hidden', function () {
-    $(this).removeClass("btn-cut-hidden")
-    $(this).addClass("btn-cut-show")
+    $(this).removeClass("btn-cut-hidden");
+    $(this).addClass("btn-cut-show");
     $.cut.toggleBox(false);
     $.fn.mapKey.bindings = {up: {}, down: {}};
     $.cut.bindMatchingKeys();
 });
 // 显隐序号
 $(document).on('click', '.btn-num-show', function () {
-    $(this).removeClass("btn-num-show")
-    $(this).addClass("btn-num-hidden")
+    $(this).removeClass("btn-num-show");
+    $(this).addClass("btn-num-hidden");
     showOrder = !showOrder;
     highlightBox();
     $('#order').toggle(showOrder);
 });
 $(document).on('click', '.btn-num-hidden', function () {
-    $(this).removeClass("btn-num-hidden")
-    $(this).addClass("btn-num-show")
+    $(this).removeClass("btn-num-hidden");
+    $(this).addClass("btn-num-show");
     showOrder = !showOrder;
     highlightBox();
     $('#order').toggle(showOrder);
 });
 // 显隐文本
 $(document).on('click', '.btn-txt-show', function () {
-    $(this).removeClass("btn-txt-show")
-    $(this).addClass("btn-txt-hidden")
+    $(this).removeClass("btn-txt-show");
+    $(this).addClass("btn-txt-hidden");
     showText = !showText;
     highlightBox();
 });
 $(document).on('click', '.btn-txt-hidden', function () {
-    $(this).removeClass("btn-txt-hidden")
-    $(this).addClass("btn-txt-show")
+    $(this).removeClass("btn-txt-hidden");
+    $(this).addClass("btn-txt-show");
     showText = !showText;
     highlightBox();
 });
+// 原文
+$(document).on('click', '.btn-txt', function () {
+    $('#txtModal').modal();
+});
 // 帮助
 $(document).on('click', '.btn-help', function () {
-    window.open('/proofread/help','_blank');
+    window.open('/task/do/proofread/help','_blank');
 });
