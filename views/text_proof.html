@@ -21,31 +21,52 @@
 
   {% include _base_css.html %}
   {% include _font.html %}
+  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
 </head>
 <style>
-  .main-right {
-    width: 60%;
+  .left {
+    width: 55%;
+    max-height: 900px;
+    overflow: auto;
   }
-  .main-right-content {
-    width: 40%;
+  .right {
+    width: 45%;
+  }
+  .m-header {
+    position: fixed;
+    z-index: 1000;
+  }
+  .flex-content {
+    padding-top: 40px;
+  }
+  .char-list-tab {
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+  .char-list-tab > div {
+    display: inline-block;
+  }
+  .char-list-tab-item {
+    font-size: 1.2em;
   }
 </style>
 
 <body>
 <div class="app-main">
-  <div class="main">
+  <div class="main pfread">
 
-    <div class="main-content">
+    <div class="main-content hd">
 
       <header class="m-header">
         <div><a href="/home" title="首页"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img"/></a></div>
 
         <div class="m-header-title" title="页面编码：{{name}}">{{stage[1]}}</div>
         <div class="m-header-edit-btn">
-          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img show-all-box" title="显示所有字框"/>
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img zoom-in" title="放大"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img zoom-out" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
           <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>
           <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>
         </div>
@@ -76,10 +97,10 @@
       </header>
       <div class="flex-content">
 
-        <div class="main-right" id="canvas-bd">
+        <div class="main-right left" id="canvas-bd">
           <div id="holder"></div>
         </div>
-        <div class="main-right-content">
+        <div class="main-right-content right">
             <div class="sutra-text" id="sutra-text"></div>
             <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
               <div class="dlg-before"></div>
@@ -100,7 +121,9 @@
             <div class="char-list">
               <div class="char-list-tab">
                 <div class="char-list-tab-item active">存疑列表</div>
-                <div class="char-list-tab-arrow" id="table_toggle_btn"><img src="{{ static_url('imgs/up_arrow.png') }}">
+                <div class="char-list-tab-arrow" id="table_toggle_btn">
+                  <img src="{{ static_url('imgs/up_arrow.png') }}">
+                  <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
                 </div>
               </div>
               <table class="char-list-table">
@@ -143,7 +166,7 @@
   </div>
 </div>
 
-<div class="panel-body" style="padding: 0;">
+<div class="panel-body" style="padding: 0">
   <!-- modal content -->
   <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -171,6 +194,7 @@
 <script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
 <script src="{{ static_url('js/cut/cut.js') }}"></script>
 <script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+<script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
 
 <!-- CUSTOM JS -->
@@ -178,6 +202,7 @@
   $('#table_toggle_btn').click(function () {
     $(this).toggleClass('active');
     $('.char-list-table').toggleClass('hidden');
+    $(this).find('img').toggle();
   });
 
   var char_data = decodeJSON('{{page["chars"]}}');
@@ -197,7 +222,7 @@
       image: '{{get_img(name)}}',
       chars: char_data
     });
-    // $.cut.bindMatchingKeys();
+    $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
     $.cut.switchCurrentBox(null);
     updateUndo();

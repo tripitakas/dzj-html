@@ -22,6 +22,9 @@
   {% include _base_css.html %}
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
   <style>
+    #holder {
+      cursor: crosshair;
+    }
     {% if box_type == 'char' %}
     @media (max-width:1020px) {
       .slice_info {
