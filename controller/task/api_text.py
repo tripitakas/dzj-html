@@ -26,7 +26,7 @@ class CharProofDetailHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
-            params = dict(page=page, name=page['name'], stage=stage)
+            params = dict(page=page, name=page['name'], stage=stage, mismatch_lines=[])
             cmp_data = dict(segments=self.gen_segments(page['txt'], page['chars'], params))
             picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
             self.render('text_proof.html',
@@ -68,19 +68,22 @@ class CharProofDetailHandler(TaskHandler):
                 chars_segment += len(boxes)
                 column_strip = re.sub(r'\s', '', column_txt)
                 if len(boxes) != len(column_strip):
-                    params and params['mismatch_lines'].append('b%dc%d' % (1 + blk_i, line_no))
+                    if params and 'mismatch_lines' in params:
+                        params['mismatch_lines'].append('b%dc%d' % (1 + blk_i, line_no))
                 else:
                     for i, c in enumerate(boxes):
-                        c['no'] = c.get('char_no') or c['no']
+                        c['no'] = c.get('char_no') or c.get('no')
+                        if not c['no'] and c.get('char_id'):  # b1c11c8
+                            cid = c['char_id'][1:].split('c')
+                            c['no'] = c['char_no'] = int(cid[2])
+                            c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
+
                     for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-                        c['txt'] = column_strip[i]  # 取一个字符
-                        if len(c['txt']) > 1:  # 大字符，待举例
-                            code = int(re.sub(r'^U', '', c['txt']), 16)
-                            c['txt'] = chr(code)
+                        c['txt'] = column_strip[i]
                 column_txt = [url_escape(c) for c in list(column_txt)]
                 items = []
                 for c in column_txt:
-                    if len(c) > 9:  # utf8mb4大字符，例如'\U0002e34f'
+                    if len(c) > 9:  # utf8mb4大字符，例如 '%F0%AE%8D%8F'
                         apply_span()
                         items = []
                         segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='variant', ocr=[c], cmp=''))
