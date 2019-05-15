@@ -5,9 +5,11 @@
 """
 import re
 from datetime import datetime
+from tornado.escape import url_escape
 from controller.base import DbError
 from controller import errors
 from controller.task.base import TaskHandler
+from operator import itemgetter
 
 
 class CharProofDetailHandler(TaskHandler):
@@ -24,14 +26,69 @@ class CharProofDetailHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
-            cmp_data = dict(segments=[])
+            params = dict(page=page, name=page['name'], stage=stage)
+            cmp_data = dict(segments=self.gen_segments(page['txt'], page['chars'], params))
             picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
-            self.render('text_proof.html', page=page, name=page['name'], stage=stage,
-                        origin_txt=re.split(r'\n|\|', page['txt'].strip()),
+            self.render('text_proof.html',
+                        origin_txt=re.split(r'[\n|]', page['txt'].strip()),
                         readonly=picked_user_id != self.current_user['_id'],
-                        get_img=self.get_img, cmp_data=cmp_data)
+                        get_img=self.get_img, cmp_data=cmp_data, **params)
         except Exception as e:
             self.send_db_error(e, render=True)
+
+    @staticmethod
+    def gen_segments(txt, chars, params=None):
+        def get_column_boxes():
+            """得到当前栏中当前列的所有字框"""
+            return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (1 + blk_i, line_no))]
+
+        def apply_span():
+            """添加正常文本片段"""
+            if items:
+                segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='same', ocr=items))
+
+        assert '\n' not in txt
+        segments = []
+        chars_segment = 0
+        # 处理每个栏的文本，相邻栏用两个空行隔开，数据库存储时是用竖号代替多行分隔符
+        for blk_i, block_txt in enumerate(txt.replace('|', '\n').split('\n\n\n')):
+            col_diff = 1
+            block_txt = re.sub(r'\n{2}', '\n', block_txt, flags=re.M)  # 栏内的多余空行视为一个空行
+            for col_i, column_txt in enumerate(block_txt.strip().split('\n')):  # 处理栏的每行文本
+                column_txt = column_txt.strip().replace('\ufeff', '')  # 去掉特殊字符
+                line_no = col_diff + col_i
+                if not column_txt:  # 遇到空行则记录，空行不改变列号
+                    segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='emptyline', ocr=''))
+                    continue
+                while col_diff < 50 and not get_column_boxes():  # 跳过不存在的列号
+                    col_diff += 1
+                    line_no = col_diff + col_i
+
+                boxes = get_column_boxes()
+                chars_segment += len(boxes)
+                column_strip = re.sub(r'\s', '', column_txt)
+                if len(boxes) != len(column_strip):
+                    params and params['mismatch_lines'].append('b%dc%d' % (1 + blk_i, line_no))
+                else:
+                    for i, c in enumerate(boxes):
+                        c['no'] = c.get('char_no') or c['no']
+                    for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
+                        c['txt'] = column_strip[i]  # 取一个字符
+                        if len(c['txt']) > 1:  # 大字符，待举例
+                            code = int(re.sub(r'^U', '', c['txt']), 16)
+                            c['txt'] = chr(code)
+                column_txt = [url_escape(c) for c in list(column_txt)]
+                items = []
+                for c in column_txt:
+                    if len(c) > 9:  # utf8mb4大字符，例如'\U0002e34f'
+                        apply_span()
+                        items = []
+                        segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='variant', ocr=[c], cmp=''))
+                    else:
+                        items.append(c)
+                apply_span()
+
+        return segments
 
 
 class CharReviewDetailHandler(TaskHandler):
