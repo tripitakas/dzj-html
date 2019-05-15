@@ -78,6 +78,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def can_access(self, path, method='GET'):
         """检查当前用户是否能访问某个(path, method)"""
+        if not self.current_user:
+            return can_access('访客', path, method)
         role = self.current_user.get('roles')
         role = role if role else '普通用户'
         return can_access(role, path, method)

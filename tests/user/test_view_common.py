@@ -57,6 +57,6 @@ class TestUserCommonViews(APITestCase):
     def test_view_show_api(self):
         r = self.parse_response(self.fetch('/api?_raw=1'))
         self.assertIn('handlers', r)
-        for url, func, file, comment, auth in r['handlers']:
+        for url, func, repeat, file, comment, auth in r['handlers']:
             # 控制器类的get/post方法需要写简要的文档字符串
             self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, func))
