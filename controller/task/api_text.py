@@ -10,6 +10,38 @@ from controller import errors
 from controller.task.base import TaskHandler
 
 
+class CharProofDetailHandler(TaskHandler):
+    URL = '/task/do/text_proof/@num/@task_id'
+
+    def get(self, proof_num, name=''):
+        """ 进入文字校对页面 """
+        self.enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
+
+    @staticmethod
+    def enter(self, task_type, name, stage):
+        try:
+            page = self.db.page.find_one(dict(name=name))
+            if not page:
+                return self.render('_404.html')
+
+            cmp_data = dict(segments=[])
+            picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
+            self.render('text_proof.html', page=page, name=page['name'], stage=stage,
+                        origin_txt=re.split(r'\n|\|', page['txt'].strip()),
+                        readonly=picked_user_id != self.current_user['_id'],
+                        get_img=self.get_img, cmp_data=cmp_data)
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+
+class CharReviewDetailHandler(TaskHandler):
+    URL = '/task/do/text_review/@task_id'
+
+    def get(self, name=''):
+        """ 进入文字审定页面 """
+        CharProofDetailHandler.enter(self, 'text_review', name, ('review', '文字审定'))
+
+
 class SaveTextApi(TaskHandler):
     def save(self, task_type):
         try:

@@ -118,7 +118,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as err:
             traceback.print_exc()
-            kwargs.update(dict(code=500, error='网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)))
+            kwargs.update(dict(code=500, message='网页生成出错(%s): %s' % (
+                template_name, str(err) or err.__class__.__name__)))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
@@ -251,7 +252,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             if handle_error:
                 handle_error(r.error)
             else:
-                self.render('_error.html', code=500, error='错误1: ' + r.error)
+                self.render('_error.html', code=500, message='错误1: ' + r.error)
         else:
             try:
                 try:
@@ -266,7 +267,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 if handle_error:
                     handle_error(err)
                 else:
-                    self.render('_error.html', code=500, error=err)
+                    self.render('_error.html', code=500, message=err)
 
     def _handle_body(self, body, handle_response, handle_error):
         if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):

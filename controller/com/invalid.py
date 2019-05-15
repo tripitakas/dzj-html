@@ -91,4 +91,4 @@ class ApiSourceHandler(TaskHandler):
                         file = 'controller' + re.sub(r'^.+controller', '', inspect.getsourcefile(cls))
                         src = inspect.getsource(cls).strip()
                         return self.render('_api_src.html', name=name, file=file, src=src)
-        self.render('_error.html', code=404, error=name + '不存在')
+        self.render('_error.html', code=404, message=name + '不存在')
