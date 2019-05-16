@@ -222,6 +222,8 @@ class PickTextProofTaskApi(PickTaskApi):
             picked = self.db.page.find_one({'text_proof.%d.picked_user_id' % i: self.current_user['_id']})
             if picked:
                 picked = self.pick('text_proof.%d' % i, name)
+                if isinstance(picked, dict) and 'name' in picked:
+                    return
                 assert isinstance(picked, tuple) and picked[0] == 1
                 return PickTaskApi.error_has_uncompleted(self, picked[1], picked[2])
 

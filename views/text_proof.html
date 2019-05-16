@@ -67,27 +67,28 @@
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
-          <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>
-          <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>
+          <!--<img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>-->
+          <!--<img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>-->
+          <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="修改切分框"/>
         </div>
         <div class="m-header-right">
           <div class="m-header-txt">
             <div class="m-header-font">
-              <div class="m-header-font-reduce"><a href="">A-</a></div>
+              <div class="m-header-font-reduce"><a title="缩小字号">A-</a></div>
               <div class="m-header-font-current">20</div>
-              <div class="m-header-font-enlarge"><a href="">A+</a></div>
+              <div class="m-header-font-enlarge"><a title="增加字号">A+</a></div>
             </div>
           </div>
           <div class="m-header-edit-btn">
-            <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>
+            <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>-->
             <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
             <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
             <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
             <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
-            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>
+            <!--<img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>-->
             <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-help" title="帮助"/>
             {% if not readonly %}
-            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存" style="margin-left: 20px"/>
             <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
             <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
             {% end %}
@@ -205,6 +206,8 @@
     $(this).find('img').toggle();
   });
 
+  // 显示左边页面图和字框
+
   var char_data = decodeJSON('{{page["chars"]}}');
   var cmp_data = decodeJSON('{{cmp_data}}');
   var columns = decodeJSON('{{page["columns"]}}');
@@ -225,28 +228,108 @@
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
     $.cut.switchCurrentBox(null);
-    updateUndo();
   }
   createPage();
 
-  function updateUndo() {
-    $('#undo').toggleClass('disabled', !$.cut.canUndo());
-    $('#redo').toggleClass('disabled', !$.cut.canRedo());
-  }
-  $('#undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-  $('#redo').click(function () {
-    $.cut.redo();
-    updateUndo();
-  });
-  $.cut.onBoxChanged(function () {
-    updateUndo();
-    // $('#char-id').text($.cut.getCurrentCharID() || '');
-  });
-  updateUndo();
+  // 文本区的字号调整
 
+  $('.m-header-font-reduce').click(function () {
+    var $div = $('.right .sutra-text');
+    var size = parseInt($div.css('font-size'));
+    if (size > 8) {
+      size--;
+      $('.m-header-font-current').text(size);
+      $div.css('font-size', size + 'px');
+    }
+  });
+  $('.m-header-font-enlarge').click(function () {
+    var $div = $('.right .sutra-text');
+    var size = parseInt($div.css('font-size'));
+    if (size < 36) {
+      size++;
+      $('.m-header-font-current').text(size);
+      $div.css('font-size', size + 'px');
+    }
+  });
+
+  // 回退任务
+  $('.btn-return-back').click(function () {
+    postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
+      if (res.data.length === 1 && res.data[0] === '{{name}}') {
+        window.location = '/task/lobby/text_proof';
+      }
+    });
+  });
+
+  // 保存和提交
+
+  function save_(data, onSuccess) {
+    postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
+      showSuccess('保存成功', '{{name}} ' +
+           (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
+      if (res.jump) {
+        setTimeout(function () {
+          window.location = res.jump;
+        }, 1000);
+      }
+      if (onSuccess) {
+        onSuccess(res);
+      }
+    });
+  }
+
+  function save(submit) {
+    var txt = $('#sutra-text').find('.block').map(function (i, block) {
+      return $(block).find('.line:not(.delete)').map(function (line, el) {
+        return $(el).text();
+      }).get().join('\n');
+    }).get().join('\n\n\n');
+
+    save_({
+      submit: submit,
+      name: '{{name}}',
+      txt: JSON.stringify(txt),
+      chars: JSON.stringify($.cut.exportBoxes())
+    });
+  }
+  $('.btn-save').click(save.bind(null, false));
+  $('.btn-submit').click(save.bind(null, true));
+
+  // 原文等对话框允许拖动
+  $('.modal-header').on('mousedown', function (mousedownEvt) {
+    var $draggable = $(this);
+    var x = mousedownEvt.pageX - $draggable.offset().left,
+        y = mousedownEvt.pageY - $draggable.offset().top;
+    $('body').on('mousemove.draggable', function (mousemoveEvt) {
+      $draggable.closest('.modal-dialog').offset({
+        left: mousemoveEvt.pageX - x,
+        top: mousemoveEvt.pageY - y
+      });
+    });
+    $('body').one('mouseup', function () {
+      $('body').off('mousemove.draggable');
+    });
+    $draggable.closest('.modal').one('bs.modal.hide', function () {
+      $('body').off('mousemove.draggable');
+    });
+  });
+
+  // 原文的保存
+  $('#save-txt').click(function () {
+    var txt = $('#txtModal .modal-body > textarea').val().replace(/-/g, '');
+    save_({
+      name: '{{name}}',
+      txt: JSON.stringify(txt)
+    }, function (res) {
+      if (res.changed) {
+        window.location.reload();
+      } else {
+        setTimeout(function () {
+          $('#txtModal [data-dismiss]').click();
+        }, 1000);
+      }
+    });
+  });
 </script>
 
 

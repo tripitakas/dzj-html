@@ -14,17 +14,17 @@
 }
 
 .wrapper {
-  margin: 0px;
-  padding-bottom: 0px;
+  margin: 0;
+  padding-bottom: 0;
 }
 
 .layout-content {
-  margin: 0px;
+  margin: 0;
 }
 
 .tripitaka-volume .volume-right {
-  top: 0px;
-  margin: 0px;
+  top: 0;
+  margin: 0;
 }
 
 .tripitaka-volume .volume-right .full .full-hd {
@@ -42,7 +42,7 @@
   line-height: 37px;
   height: 37px;
   vertical-align: middle;
-  padding: 0px 10px;
+  padding: 0 10px;
   background: #843534;
   color: #fff;
   margin-right: 12px;

@@ -5,7 +5,7 @@
 """
 import re
 from datetime import datetime
-from tornado.escape import url_escape
+from tornado.escape import url_escape, json_decode
 from controller.base import DbError
 from controller import errors
 from controller.task.base import TaskHandler
@@ -26,7 +26,7 @@ class CharProofDetailHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
-            params = dict(page=page, name=page['name'], stage=stage, mismatch_lines=[])
+            params = dict(page=page, name=name, stage=stage, task_type=task_type, mismatch_lines=[])
             cmp_data = dict(segments=self.gen_segments(page['txt'], page['chars'], params))
             picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
             self.render('text_proof.html',
@@ -42,11 +42,11 @@ class CharProofDetailHandler(TaskHandler):
             """得到当前栏中当前列的所有字框"""
             return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (1 + blk_i, line_no))]
 
-        assert '\n' not in txt
         segments = []
         chars_segment = 0
         # 处理每个栏的文本，相邻栏用两个空行隔开，数据库存储时是用竖号代替多行分隔符
-        for blk_i, block_txt in enumerate(txt.replace('|', '\n').split('\n\n\n')):
+        txt = re.sub(r'\n+$', '', txt.replace('|', '\n'))
+        for blk_i, block_txt in enumerate(txt.split('\n\n\n')):
             col_diff = 1
             block_txt = re.sub(r'\n{2}', '\n', block_txt, flags=re.M)  # 栏内的多余空行视为一个空行
             for col_i, column_txt in enumerate(block_txt.strip().split('\n')):  # 处理栏的每行文本
@@ -112,7 +112,8 @@ class SaveTextApi(TaskHandler):
             assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
             assert task_type in self.text_task_names
 
-            page = self.db.page.find_one(dict(name=data['name']))
+            name = data['name']
+            page = self.db.page.find_one(dict(name=name))
             if not page:
                 return self.send_error_response(errors.no_object)
 
@@ -123,10 +124,19 @@ class SaveTextApi(TaskHandler):
             task_user = task_type + '.picked_user_id'
             page_user = self.get_obj_property(page, task_user)
             if page_user != self.current_user['_id']:
-                return self.send_error_response(errors.task_locked, reason=page['name'])
+                return self.send_error_response(errors.task_locked, reason=name)
 
-            result = dict(name=data['name'])
-            # self.change_box(result, page, data, task_type)
+            result = dict(name=name)
+            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
+            if txt and txt != page['txt']:
+                assert isinstance(txt, str)
+                page['txt'] = txt
+                result['changed'] = True
+                self.db.page.update_one(dict(name=name), {'$set': {
+                    'txt': txt, '%s.last_updated_time' % task_type: datetime.now()
+                }})
+                self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
+
             if data.get('submit'):
                 self.submit_task(result, data, page, task_type, task_user)
 

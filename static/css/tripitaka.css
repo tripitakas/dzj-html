@@ -1178,7 +1178,7 @@ a:hover {
 }
 
 .single-page-con .panel-body {
-	padding: 0px;
+	padding: 0;
 }
 
 .preview_img {
@@ -1198,7 +1198,7 @@ a:hover {
 }
 
 .modal-footer .pagers {
-	margin: 20px 0px;
+	margin: 20px 0;
 }
 
 .layout-content1.rszj-layout-content {
@@ -1239,37 +1239,37 @@ span.active a {
 	color: #317EEB;
 }
 .collate-history .collate-list table.table{
-	margin-top: 0px;
+	margin-top: 0;
 }
 .btn-toolbar{
-	margin-bottom: 0px;
+	margin-bottom: 0;
 	float: right;
 }
 .btn-toolbar .dropdown-toggle.btn-primary{
-	 padding-left: 0px; 
-	 padding-right: 0px; 
-	 letter-spacing: 0px; 
+	 padding-left: 0;
+	 padding-right: 0;
+	 letter-spacing: 0;
 }
 .table-wrapper{
 	position: relative;
 }
 .collate-list .btn-toolbar{
 	position: absolute;
-	left: 0px;
+	left: 0;
 	margin-top: -20px;
 }
 .collate-list .table-responsive{
-	margin-top: 0px;
+	margin-top: 0;
 	top:10px;
 }
 .single-page-con.enlarge{
-	margin-left: 0px;
+	margin-left: 0;
 }
 .main-header-con.enlarge{
-	padding-left: 0px;
+	padding-left: 0;
 }
 .sidebar-menu-con.collapse{
-	width: 0px;
+	width: 0;
 }
 .toggle img{
 	cursor: pointer;
@@ -1313,7 +1313,7 @@ span.active a {
 .m-header-img{
     width:20px;
     height:20px;
-    margin:10px;
+    margin:8px 6px;
 }
 
 .m-header-title{
@@ -1349,7 +1349,7 @@ span.active a {
 	margin:0 2px;
 }
 .m-header-page-btn.last{
-    border:0px;
+    border: 0;
 }
 
 .m-header-image{
@@ -1372,16 +1372,21 @@ span.active a {
 }
 .m-header-font-reduce{
     border:1px solid var(--Color_Grey_Dark);
-    border-radius:15px 0px 0px 15px;
+    border-radius:15px 0 0 15px;
 }
 .m-header-font-current{
     border-top:1px solid var(--Color_Grey_Dark);
     border-bottom:1px solid var(--Color_Grey_Dark);
+		width: 24px;
 }
 .m-header-font-enlarge{
     border:1px solid var(--Color_Grey_Dark);
-    border-radius:0px 15px 15px 0px;
-
+    border-radius: 0 15px 15px 0;
+}
+.m-header-font-reduce > a, .m-header-font-enlarge > a {
+		cursor: pointer;
+		text-decoration: none;
+		user-select: none;
 }
 .m-header div.m-header-help{
     float:right;
@@ -1499,8 +1504,8 @@ span.active a {
     background:none;
 }
 .main-right.no-pm{
-    margin:0px;
-    padding:0px;
+    margin: 0;
+    padding: 0;
 }
 .main-right-content{
 
@@ -1559,7 +1564,7 @@ span.active a {
 }
 .menu-search-scope ul li{
     float:left;
-    padding:0px 5px;
+    padding: 0 5px;
     height:25px;
     line-height:26px;
     text-align:center;
@@ -1568,7 +1573,7 @@ span.active a {
     background:var(--Color_Brown_Darker);
 }
 .menu-search-scope ul li:last-child{
-    border:0px;
+    border: 0;
 }
 .menu-search-scope ul li.active{
     background:var(--Color_Brown_Line);
@@ -1580,10 +1585,10 @@ span.active a {
     margin-right:10px;
 }
 .search_ck .checkbox.custom{
-    margin:0px;
+    margin: 0;
 }
 .search_ck .checkbox.custom label{
-    padding:0px;
+    padding: 0;
 }
 .checkbox-brown input[type="checkbox"]:checked+label::before {
 	background-color: var(--Color_Brown_Darker);
@@ -1613,7 +1618,7 @@ span.active a {
 .search_item{
     float:left;
     width:calc(100% - 20px);
-    margin:10px 10px 0px 10px;
+    margin:10px 10px 0 10px;
     background:var(--Color_Brown_Darker);
     border-radius:2px;
     padding:5px;
@@ -1676,7 +1681,7 @@ span.active a {
 #text_selected_dlg{
     display:none;
     position:absolute;
-    padding:20px 20px 0px 20px;
+    padding:20px 20px 0 20px;
     border-radius:5px;
     background:var(--Color_Grey_Light);
 }
@@ -1694,7 +1699,7 @@ span.active a {
 
 .modal-content.black_bg{
     background:var(--Color_Black);
-    border:0px;
+    border: 0;
 
 }
 .modal-body{
@@ -1713,7 +1718,7 @@ span.active a {
     border-right:1px dotted var(--Color_Brown_Dark);
 }
 .jk_list_ul>li:last-child{
-    border:0px;
+    border: 0;
 }
 .jk_list_ul img{
     max-width:110px;
@@ -1725,7 +1730,7 @@ span.active a {
 .jk_list_char_ul{
     border:1px solid var(--Color_Brown_Dark);
     color:var(--Color_Brown_Dark);
-    margin:20px 0px;
+    margin:20px 0;
 }
 .jk_list_char_ul li span{
     display:inline-block;
@@ -1733,7 +1738,7 @@ span.active a {
     border-bottom:1px dotted var(--Color_Brown_Dark);
 }
 .jk_list_char_ul li:last-child span{
-    border:0px;
+    border: 0;
 }
 .main-right-img{
 	float:left;
@@ -1760,7 +1765,7 @@ span.active a {
 	border-color: var(--Color_Grey_Line);
 }
 .checkbox-grey label{
-    padding:0px;
+    padding: 0;
 }
 .main-right.pt{
     padding-top:15px;
