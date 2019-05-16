@@ -241,16 +241,3 @@ def get_route_roles(uri, method):
         if can_access(role, uri, method) and role not in roles:
             roles.append(role)
     return roles
-
-
-if __name__ == '__main__':
-    # TODO: 这段测试可移到单元测试中，校验 role_maps
-    if can_access('切分专家', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
-        print('can access')
-    else:
-        print('can not access')
-
-    print(get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'))
-
-    for k, v in get_role_routes('切分专家, 数据管理员').items():
-        print(k, v)

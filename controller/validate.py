@@ -167,22 +167,3 @@ def is_unique(collection=None, **kw):
             if v is not None and collection.find({k: v}).count() > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
-
-
-if __name__ == '__main__':
-    # TODO: 这段测试可移到单元测试中
-    data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '', 'age': 8}
-    rules = [
-        (allowed_keys, 'name', 'phone', 'email', 'password'),
-        (not_empty, 'name', 'password'),
-        (not_both_empty, 'phone', 'email'),
-        (is_name, 'name'),
-        (is_phone, 'phone'),
-        (is_email, 'email'),
-        (is_password, 'password'),
-        (between, 'age', 10, 100),
-    ]
-
-    errs = validate(data, rules)
-    for k, v in errs.items():
-        print(k, v)

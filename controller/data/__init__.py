@@ -1,7 +1,7 @@
-from . import tripitaka as t
+from . import data as t
 
 views = [
-    t.RsTripitakaHandler, t.TripitakaListHandler, t.TripitakaHandler, t.DataTripitakaHandler,
+    t.DataTripitakaHandler,
     t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler, t.DataPageHandler,
 ]
 handlers = [
