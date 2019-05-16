@@ -224,7 +224,6 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
-    path0 = path
     for holder, regex in url_placeholder.items():
         path = path.replace('@' + holder, '(%s)' % regex)
     route_accessible = get_role_routes(role)

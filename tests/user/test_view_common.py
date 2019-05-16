@@ -60,3 +60,6 @@ class TestUserCommonViews(APITestCase):
         for url, func, repeat, file, comment, auth in r['handlers']:
             # 控制器类的get/post方法需要写简要的文档字符串
             self.assertNotIn(comment, ['', 'None', None], '%s %s need doc comment' % (url, func))
+
+            r2 = self.fetch('/api/code/%s?_raw=1' % (func,))
+            self.assertEqual(self.parse_response(r2).get('name'), func)

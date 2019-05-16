@@ -110,7 +110,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':
             kwargs = {k: v for k, v in kwargs.items() if not hasattr(v, '__call__') and k != 'error'}
-            if template_name[0] == '_':
+            if template_name.startswith('_404') or template_name.startswith('_error'):
                 return self.send_error_response((self.get_status(), self._reason), **kwargs)
             return self.send_data_response(**kwargs)
 

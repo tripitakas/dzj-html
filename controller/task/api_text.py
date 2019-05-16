@@ -42,11 +42,6 @@ class CharProofDetailHandler(TaskHandler):
             """得到当前栏中当前列的所有字框"""
             return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (1 + blk_i, line_no))]
 
-        def apply_span():
-            """添加正常文本片段"""
-            if items:
-                segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='same', ocr=items))
-
         assert '\n' not in txt
         segments = []
         chars_segment = 0
@@ -66,32 +61,40 @@ class CharProofDetailHandler(TaskHandler):
 
                 boxes = get_column_boxes()
                 chars_segment += len(boxes)
-                column_strip = re.sub(r'\s', '', column_txt)
-                if len(boxes) != len(column_strip):
-                    if params and 'mismatch_lines' in params:
-                        params['mismatch_lines'].append('b%dc%d' % (1 + blk_i, line_no))
-                else:
-                    for i, c in enumerate(boxes):
-                        c['no'] = c.get('char_no') or c.get('no')
-                        if not c['no'] and c.get('char_id'):  # b1c11c8
-                            cid = c['char_id'][1:].split('c')
-                            c['no'] = c['char_no'] = int(cid[2])
-                            c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
-
-                    for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-                        c['txt'] = column_strip[i]
-                column_txt = [url_escape(c) for c in list(column_txt)]
-                items = []
-                for c in column_txt:
-                    if len(c) > 9:  # utf8mb4大字符，例如 '%F0%AE%8D%8F'
-                        apply_span()
-                        items = []
-                        segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='variant', ocr=[c], cmp=''))
-                    else:
-                        items.append(c)
-                apply_span()
+                CharProofDetailHandler.fill_segments(blk_i + 1, line_no, column_txt, params, boxes, segments)
 
         return segments
+
+    @staticmethod
+    def fill_segments(blk_no, line_no, column_txt, params, boxes, segments):
+        def apply_span():
+            if items:
+                segments.append(dict(block_no=blk_no, line_no=line_no, type='same', ocr=items))
+
+        column_strip = re.sub(r'\s', '', column_txt)
+        if len(boxes) != len(column_strip):
+            if params and 'mismatch_lines' in params:
+                params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
+        else:
+            for i, c in enumerate(boxes):
+                c['no'] = c.get('char_no') or c.get('no')
+                if not c['no'] and c.get('char_id'):  # b1c11c8
+                    cid = c['char_id'][1:].split('c')
+                    c['no'] = c['char_no'] = int(cid[2])
+                    c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
+
+            for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
+                c['txt'] = column_strip[i]
+        column_txt = [url_escape(c) for c in list(column_txt)]
+        items = []
+        for c in column_txt:
+            if len(c) > 9:  # utf8mb4大字符，例如 '%F0%AE%8D%8F'
+                apply_span()
+                items = []
+                segments.append(dict(block_no=blk_no, line_no=line_no, type='variant', ocr=[c], cmp=''))
+            else:
+                items.append(c)
+        apply_span()
 
 
 class CharReviewDetailHandler(TaskHandler):

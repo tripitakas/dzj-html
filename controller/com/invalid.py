@@ -40,11 +40,6 @@ class ApiTable(TaskHandler):
             assert func.__doc__, str(func) + ' no comment'
             return func.__doc__.strip().split('\n')[0]
 
-        def show_roles():
-            if 'MyTaskHandler.' in func_name:
-                return '普通用户'
-            return ','.join(r for r in roles if not re.search(r'员|专家', r) or '普通用户' not in roles)
-
         handlers = []
         for cls in self.application.handlers:
             handler = cls(self.application, self.request)
@@ -54,25 +49,34 @@ class ApiTable(TaskHandler):
                 method = method.strip()
                 if method != 'OPTIONS':
                     func = cls.__dict__[method.lower()]
-                    func_name = re.sub(r'<|function |at .+$', '', str(func))
-                    if isinstance(cls.URL, list):
-                        for i, url in enumerate(cls.URL):
-                            roles = get_route_roles(url, method)
-                            handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
-                    else:
-                        added = 0
-                        if '@box_type' in cls.URL:
-                            for i, box_type in enumerate(['block', 'char', 'column']):
-                                url = cls.URL.replace('@box_type', box_type)
-                                roles = get_route_roles(url, method)
-                                if roles:
-                                    added += len(roles)
-                                    handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
-                        if not added:
-                            roles = get_route_roles(cls.URL, method)
-                            handlers.append((cls.URL, func_name, 0, file, get_doc(), show_roles()))
+                    func_name = re.sub(r'<|function |at .+$', '', str(func)).strip()
+                    self.add_handlers(cls, file, func_name, get_doc, handlers, method)
         handlers.sort(key=itemgetter(0))
         self.render('_api.html', version=self.application.version, handlers=handlers)
+
+    @staticmethod
+    def add_handlers(cls, file, func_name, get_doc, handlers, method):
+        def show_roles():
+            if 'MyTaskHandler.' in func_name:
+                return '普通用户'
+            return ','.join(r for r in roles if not re.search(r'员|专家', r) or '普通用户' not in roles)
+
+        if isinstance(cls.URL, list):
+            for i, url in enumerate(cls.URL):
+                roles = get_route_roles(url, method)
+                handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
+        else:
+            added = 0
+            if '@box_type' in cls.URL:
+                for i, box_type in enumerate(['block', 'char', 'column']):
+                    url = cls.URL.replace('@box_type', box_type)
+                    roles = get_route_roles(url, method)
+                    if roles:
+                        added += len(roles)
+                        handlers.append((url, func_name, i + 1, file, get_doc(), show_roles()))
+            if not added:
+                roles = get_route_roles(cls.URL, method)
+                handlers.append((cls.URL, func_name, 0, file, get_doc(), show_roles()))
 
 
 class ApiSourceHandler(TaskHandler):
