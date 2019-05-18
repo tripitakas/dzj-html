@@ -167,7 +167,8 @@ class TaskHandler(BaseHandler):
         """
 
         def get_priority(page):
-            return self.get_obj_property(page, task_type + '.priority') or '低'
+            priority = self.get_obj_property(page, task_type + page.get('_sub_type', '') + '.priority')
+            return priority or '低'
 
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
@@ -177,10 +178,10 @@ class TaskHandler(BaseHandler):
         if type(task_status) == list:
             task_status = {"$in": task_status}
 
+        sub_types = self.task_types[task_type].get('sub_task_types', {}).keys()
         if not task_status:  # task_status为空
             conditions = {}
-        elif 'sub_task_types' in self.task_types[task_type]:  # 二级任务
-            sub_types = self.task_types[task_type]['sub_task_types'].keys()
+        elif sub_types:  # 二级任务
             conditions = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
         else:  # 一级任务
             conditions = {'%s.status' % task_type: task_status}
@@ -193,6 +194,12 @@ class TaskHandler(BaseHandler):
         if rand:
             pages = list(pages)
             random.shuffle(pages)
+            if sub_types and '$or' in conditions:
+                for p in pages:
+                    for t in sub_types:
+                        s = self.get_obj_property(p, '%s.%s.status' % (task_type, t))
+                        if s == task_status and not p.get('_sub_type'):
+                            p['_sub_type'] = '.' + t  # used in get_priority
             sort and pages.sort(key=cmp_to_key(
                     lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b)))
             )

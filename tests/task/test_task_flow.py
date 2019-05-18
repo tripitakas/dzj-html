@@ -236,3 +236,19 @@ class TestTaskFlow(APITestCase):
 
         p2 = self.parse_response(self.fetch('%s?_raw=1' % r1['url'])).get('page') or {}
         self.assertEqual(p2.get('name'), page['name'])
+
+    def test_lobby_order(self):
+        """测试任务大厅的任务显示顺序"""
+        self.login_as_admin()
+        self.fetch('/api/task/unlock/text_proof/')
+        self.publish('text_proof.1', dict(pages='GL_1056_5_6', priority='中'))
+        self.publish('text_proof.2', dict(pages='JX_165_7_12', priority='高'))
+        self.publish('text_proof.2', dict(pages='JX_165_7_30', priority='中'))
+        self.publish('text_proof.3', dict(pages='JX_165_7_12', priority='高'))
+
+        self.login(u.expert1[0], u.expert1[1])
+        for i in range(5):
+            r = self.parse_response(self.fetch('/task/lobby/text_proof?_raw=1'))
+            names = [t['name'] for t in r.get('tasks', [])]
+            self.assertEqual(set(names), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
+            self.assertEqual(names[0], 'JX_165_7_12')

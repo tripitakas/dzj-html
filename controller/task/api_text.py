@@ -22,19 +22,37 @@ class CharProofDetailHandler(TaskHandler):
     @staticmethod
     def enter(self, task_type, name, stage):
         try:
-            page = self.db.page.find_one(dict(name=name))
-            if not page:
+            p = self.db.page.find_one(dict(name=name))
+            if not p:
                 return self.render('_404.html')
 
-            params = dict(page=page, name=name, stage=stage, task_type=task_type, mismatch_lines=[])
-            cmp_data = dict(segments=self.gen_segments(page['txt'], page['chars'], params))
-            picked_user_id = self.get_obj_property(page, task_type + '.picked_user_id')
-            self.render('text_proof.html',
-                        origin_txt=re.split(r'[\n|]', page['txt'].strip()),
+            for c in p['chars']:
+                c.pop('txt', 0)
+            params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
+            cmp_data = dict(segments=CharProofDetailHandler.gen_segments(p['txt'], p['chars'], params))
+            picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
+            self.render('text_proof.html', task_type=task_type,
+                        origin_txt=re.split(r'[\n|]', p['txt'].strip()),
                         readonly=picked_user_id != self.current_user['_id'],
                         get_img=self.get_img, cmp_data=cmp_data, **params)
         except Exception as e:
             self.send_db_error(e, render=True)
+
+    @staticmethod
+    def normalize_boxes(page):
+        for c in page.get('chars', []):
+            cid = c.get('char_id', '')[1:].split('c')
+            if len(cid) == 3:
+                c['no'] = c['char_no'] = int(cid[2])
+                c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
+            else:
+                c['no'] = c['char_no'] = c.get('char_no') or c.get('no', 0)
+                c['block_no'] = c.get('block_no', 0)
+                c['line_no'] = c.get('line_no', 0)
+                c['char_id'] = 'b%dc%dc%d' % (c.get('block_no'), c.get('line_no'), c.get('no'))
+        for c in page.get('columns', []):
+            c.pop('char_id', 0)
+            c.pop('char_no', 0)
 
     @staticmethod
     def gen_segments(txt, chars, params=None):
@@ -44,6 +62,9 @@ class CharProofDetailHandler(TaskHandler):
 
         segments = []
         chars_segment = 0
+        params = params or {}
+        CharProofDetailHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
+
         # 处理每个栏的文本，相邻栏用两个空行隔开，数据库存储时是用竖号代替多行分隔符
         txt = re.sub(r'\n+$', '', txt.replace('|', '\n'))
         for blk_i, block_txt in enumerate(txt.split('\n\n\n')):
@@ -72,19 +93,12 @@ class CharProofDetailHandler(TaskHandler):
                 segments.append(dict(block_no=blk_no, line_no=line_no, type='same', ocr=items))
 
         column_strip = re.sub(r'\s', '', column_txt)
-        if len(boxes) != len(column_strip):
-            if params and 'mismatch_lines' in params:
-                params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
-        else:
-            for i, c in enumerate(boxes):
-                c['no'] = c.get('char_no') or c.get('no')
-                if not c['no'] and c.get('char_id'):  # b1c11c8
-                    cid = c['char_id'][1:].split('c')
-                    c['no'] = c['char_no'] = int(cid[2])
-                    c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
+        if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
+            params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
 
-            for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-                c['txt'] = column_strip[i]
+        for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
+            c['txt'] = column_strip[i] if i < len(column_strip) else '?'
+
         column_txt = [url_escape(c) for c in list(column_txt)]
         items = []
         for c in column_txt:

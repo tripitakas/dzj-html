@@ -42,4 +42,4 @@ class TestTextTaskSegment(APITestCase):
         self.assertIn('chars', page)
         params = dict(page=page, mismatch_lines=[])
         Proof.gen_segments(page['txt'], page['chars'], params)
-        self.assertEqual(params['mismatch_lines'], ['b1c6', 'b1c7'])
+        self.assertEqual(set(params['mismatch_lines']), {'b1c6', 'b1c7'})
