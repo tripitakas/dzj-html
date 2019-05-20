@@ -6,7 +6,7 @@
 """
 
 need_login = 403, '尚未登录'
-db_error = 10000, '数据库访问出错'
+db_error = 10000, '服务访问出错'
 mongo_error = 20000, '文档库访问出错'
 
 multiple_errors = 1000, '多个数据校验错误'
@@ -42,3 +42,4 @@ task_picked = 3001, '本任务已被领走，请领取新的任务'
 task_uncompleted = 3002, '您还有未完成的任务，请继续完成后再领取新的任务'
 task_changed = 3003, '本任务的状态已改变，请领取新的任务'
 task_no_picked = 3004, '暂时没有新的任务可领取，请关注任务动态'
+task_unlocked = 3005, '本任务已被撤回，请领取新的任务'

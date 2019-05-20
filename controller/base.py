@@ -98,7 +98,6 @@ class BaseHandler(CorsMixin, RequestHandler):
     def render(self, template_name, **kwargs):
         kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
         kwargs['currentUserId'] = self.current_user and self.current_user.get('_id') or ''
-        kwargs['protocol'] = self.request.protocol
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_url'] = self.request.path

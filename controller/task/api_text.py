@@ -31,7 +31,10 @@ class CharProofDetailHandler(TaskHandler):
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
             cmp_data = dict(segments=CharProofDetailHandler.gen_segments(p['txt'], p['chars'], params))
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
+            from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
+            home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
             self.render('text_proof.html', task_type=task_type,
+                        from_url=from_url, home_title=home_title,
                         origin_txt=re.split(r'[\n|]', p['txt'].strip()),
                         readonly=picked_user_id != self.current_user['_id'],
                         get_img=self.get_img, cmp_data=cmp_data, **params)

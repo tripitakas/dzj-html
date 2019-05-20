@@ -97,6 +97,11 @@
 								window.location = data.url;
 						  }
 						);
+					} else if (data.code == {{e.task_changed[0]}}) {
+						showError('没有领取新任务', data.message);
+						setTimeout(function () {
+							window.location.reload();
+						}, 1500);
 					} else if (data.code == {{e.task_locked[0]}} || data.code == {{e.task_picked[0]}}) {
 						swal({
 								title: "是否领取其它任务？",
@@ -109,11 +114,13 @@
 								closeOnConfirm: false
 						  },
 						  function() {
-								window.location = data.url;
+								if (data.url) {
+									window.location = data.url;
+								} else {
+									window.location.reload();
+								}
 						  }
 						);
-					} else if (data.code == {{e.task_no_picked[0]}}) {
-						showError('没有领取新任务', data.message);
 					}
 				});
 			}

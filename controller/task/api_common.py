@@ -155,6 +155,10 @@ class PickTaskApi(TaskHandler):
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
             cur_user = self.current_user['_id']
+            from_url = self.get_query_argument('from', None)
+            if from_url and re.match(r'/task/do/', from_url) and name in from_url:
+                return self.lock_edit(task_type, name)
+
             task_uncompleted = self.db.page.find_one({
                 task_user: cur_user, task_status: self.STATUS_PICKED
             })
@@ -167,8 +171,7 @@ class PickTaskApi(TaskHandler):
             status = page and self.get_obj_property(page, task_status)
             page_user = page and self.get_obj_property(page, task_user)
             if status != self.STATUS_OPENED and not (status == self.STATUS_PICKED and page_user == cur_user):
-                url = '/task/pick/%s' % (task_type.replace('.', '/'))
-                return self.error_picked_by_other_user(url)
+                return self.error_picked_by_other_user(None, status)
 
             # 领取该任务
             r = self.db.page.update_one(dict(name=name, task_user=None), {'$set': {
@@ -191,8 +194,37 @@ class PickTaskApi(TaskHandler):
         return self.send_error_response(errors.task_uncompleted, url=url,
                                         uncompleted_name=task_uncompleted['name'])
 
-    def error_picked_by_other_user(self, url):
-        return self.send_error_response(errors.task_picked, url=url)
+    def error_picked_by_other_user(self, url, status):
+        error = errors.task_unlocked if status == self.STATUS_READY else errors.task_picked
+        return self.send_error_response(error, url=url)
+
+    def lock_edit(self, task_type, name):
+        page = self.db.page.find_one(dict(name=name))
+        assert page
+        assert '.' not in task_type
+        status = self.get_obj_property(page, task_type + '.status')
+        page_user = self.get_obj_property(page, task_type + '.picked_user_id')
+        picked_by = self.get_obj_property(page, task_type + '.picked_by')
+
+        if status in [self.STATUS_UNREADY, None]:
+            error = errors.task_picked[0], '本任务还未就绪，暂时不能操作'
+            return self.send_error_response(error)
+
+        if status == self.STATUS_PICKED and page_user != self.current_user['_id']:
+            error = errors.task_picked[0], '本任务已被 %s 领走，暂时不能操作' % picked_by
+            return self.send_error_response(error)
+
+        r = self.db.page.update_one(dict(name=name), {'$set': {
+            task_type + '.picked_user_id': self.current_user['_id'],
+            task_type + '.picked_by': self.current_user['name'],
+            task_type + '.status': self.STATUS_PICKED,
+            task_type + '.picked_time': datetime.now()
+        }})
+        if r.matched_count:
+            self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
+
+        response = dict(url='/task/do/%s/%s' % (task_type, name), name=name)
+        self.send_data_response(response)
 
 
 class PickCutProofTaskApi(PickTaskApi):
@@ -236,12 +268,12 @@ class PickTextProofTaskApi(PickTaskApi):
                 assert isinstance(ret, dict)
                 return
         assert isinstance(ret, tuple) and ret[0] == 2
-        self.send_error_response(errors.task_no_picked)
+        self.send_error_response(errors.task_changed)
 
     def error_has_uncompleted(self, url, task_uncompleted):
         return 1, url, task_uncompleted  # 有未完成的任意校次任务，在本类的get中退出循环
 
-    def error_picked_by_other_user(self, url):
+    def error_picked_by_other_user(self, url, status):
         return 2, url  # 任务已被其它人领取，返回None在本类的get中可换其他校次
 
 

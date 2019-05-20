@@ -20,7 +20,6 @@ class CutDetailBaseHandler(TaskHandler):
                 if not body.get('name') and not readonly:  # 锁定失败
                     return self.send_error_response(errors.task_locked, render=True, reason=name)
 
-                from_url = self.get_query_argument('from', None)
                 self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
                             boxes=page[box_type + 's'],
                             title=task_name + ('校对' if stage == 'proof' else '审定'),
@@ -33,11 +32,13 @@ class CutDetailBaseHandler(TaskHandler):
 
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
+        from_url = self.get_query_argument('from', None)
         readonly = self.get_query_argument('view', 0)
         if readonly:
             handle_response({})
         else:
-            self.call_back_api('/api/task/pick/{0}/{1}'.format(task_type, name), handle_response)
+            pick_from = '?from=' + from_url if from_url else ''
+            self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
 
 
 class CutProofDetailHandler(CutDetailBaseHandler):

@@ -60,7 +60,9 @@
     <div class="main-content hd">
 
       <header class="m-header">
-        <div><a href="/home" title="首页"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img"/></a></div>
+        <div><a href="{{from_url}}" title="{{home_title}}">
+          <img src="{{ static_url('imgs/%s.png' % ('icon_back' if '返回' in home_title else 'frame/icon_task_lobby')) }}"
+               class="m-header-img"/></a></div>
 
         <div class="m-header-title" title="页面编码：{{name}}">{{stage[1]}}</div>
         <div class="m-header-edit-btn">
@@ -72,9 +74,9 @@
           <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="修改切分框"/>
         </div>
         <div class="btn-group ed-box-group hidden" role="group" aria-label="修改切分框" style="margin-top: 5px">
-          <button type="button" class="btn btn-default btn-sm ed-block-box">栏框</button>
-          <button type="button" class="btn btn-default btn-sm ed-column-box">列框</button>
-          <button type="button" class="btn btn-default btn-sm ed-char-box">字框</button>
+          {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框')] %}
+          <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
+          {% end %}
         </div>
         <div class="m-header-right">
           <div class="m-header-txt">
@@ -260,6 +262,11 @@
     $('.ed-box-group').toggleClass('hidden');
     {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
       $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
+      $('{{cls}}').unbind('click').click(function () {
+        if (!$(this).hasClass('disabled')) {
+          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
+        }
+      });
     {% end %}
   });
 
