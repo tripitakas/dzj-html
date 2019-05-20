@@ -166,6 +166,7 @@ class SaveTextApi(TaskHandler):
         }
         r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']}, {'$set': end_info})
         if r.modified_count:
+            result['changed'] = True
             result['submitted'] = True
             self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
 

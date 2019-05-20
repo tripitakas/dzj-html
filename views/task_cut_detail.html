@@ -216,7 +216,7 @@
         box_type: '{{box_type}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       }}, function (res) {
-        showSuccess('保存成功', '{{name}} ' +
+        showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
              (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
         if (res.jump) {
           setTimeout(function () {

@@ -71,6 +71,11 @@
           <!--<img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>-->
           <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="修改切分框"/>
         </div>
+        <div class="btn-group ed-box-group hidden" role="group" aria-label="修改切分框" style="margin-top: 5px">
+          <button type="button" class="btn btn-default btn-sm ed-block-box">栏框</button>
+          <button type="button" class="btn btn-default btn-sm ed-column-box">列框</button>
+          <button type="button" class="btn btn-default btn-sm ed-char-box">字框</button>
+        </div>
         <div class="m-header-right">
           <div class="m-header-txt">
             <div class="m-header-font">
@@ -94,7 +99,6 @@
             {% end %}
           </div>
         </div>
-
       </header>
       <div class="flex-content">
 
@@ -182,7 +186,7 @@
           <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">
             {{'\n'.join(origin_txt)}}
           </textarea>
-          <p><b>说明</b>：用两个空行作栏分隔符</p>
+          <p><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
         </div>
       </div>
     </div>
@@ -252,6 +256,13 @@
     }
   });
 
+  $('.btn-ed-box').click(function () {
+    $('.ed-box-group').toggleClass('hidden');
+    {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
+      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
+    {% end %}
+  });
+
   // 回退任务
   $('.btn-return-back').click(function () {
     postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
@@ -265,7 +276,7 @@
 
   function save_(data, onSuccess) {
     postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
-      showSuccess('保存成功', '{{name}} ' +
+      showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
            (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
       if (res.jump) {
         setTimeout(function () {

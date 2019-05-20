@@ -423,7 +423,7 @@ $(document).on('click', '.btn-next', function () {
 $(document).on('click', '.btn-delete-line', function () {
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
-    return;
+    return showError('提示', '请先在右边文本区点击一行文本，然后重试。');
   }
   var $currentLine = $curSpan.parent(".line");
   $currentLine.fadeOut(500).fadeIn(500);
@@ -443,7 +443,7 @@ $(document).on('click', '.btn-add-up-line', function (e) {
   e.stopPropagation();
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
-    return;
+    return showError('提示', '请先在右边文本区点击一行文本，然后重试。');
   }
   var $currentLine = $curSpan.parent(".line");
   $curSpan.removeClass("current-span");
@@ -456,7 +456,7 @@ $(document).on('click', '.btn-add-down-line', function (e) {
   e.stopPropagation();
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
-    return;
+    return showError('提示', '请先在右边文本区点击一行文本，然后重试。');
   }
   var $currentLine = $curSpan.parent(".line");
   $curSpan.removeClass("current-span");
