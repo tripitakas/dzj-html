@@ -103,6 +103,13 @@
                                 <li role="separator" class="divider"></li>
                                 {% end %}
                                 <li><a id="return-task">退回任务</a></li>
+
+                                {% if box_type != 'block' %}
+                                <li role="separator" class="divider"></li>
+                                {% for type,text in ([('block', '栏框')] if box_type == 'column' else [('block', '栏框'), ('column', '列框')]) %}
+                                <li><a class="ed-box" id="ed-{{type}}-box">修改{{text}}</a></li>
+                                {% end %}
+                                {% end %}
                               </ul>
                             </div>
                             {% end %}
@@ -214,6 +221,15 @@
         window.location = '{{from_url}}';
       });
     });
+
+    {% for cut, cls in [('block', '#ed-block-box'), ('column', '#ed-column-box')] %}
+      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
+      $('{{cls}}').unbind('click').click(function () {
+        if (!$(this).hasClass('disabled')) {
+          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
+        }
+      });
+    {% end %}
 
     function save(submit) {
       postApi('/task/save/{{task_type}}', {data: {

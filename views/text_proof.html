@@ -75,7 +75,7 @@
         </div>
         <div class="btn-group ed-box-group hidden" role="group" aria-label="修改切分框" style="margin-top: 5px">
           {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框')] %}
-          <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
+          <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
           {% end %}
         </div>
         <div class="m-header-right">
