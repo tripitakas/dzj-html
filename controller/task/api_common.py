@@ -117,18 +117,21 @@ class UnlockTasksApi(TaskHandler):
         status = self.get_obj_property(page, task_type + '.status')
         if status != self.STATUS_PICKED:
             return self.send_error_response(errors.task_changed, page_name=page['name'])
-        if self.get_obj_property(page, task_type + '.picked_user_id') != self.current_user['_id']:
+        if self.get_obj_property(page, task_type + '.picked_user_id') not in [self.current_user['_id'], None]:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
     def unlock(self, page, field, types, info, unset, returned):
         def fill_info(field1):
-            info['%s.status' % field1] = self.STATUS_RETURNED if returned else self.STATUS_READY
+            info['%s.status' % field1] = status_before or (self.STATUS_RETURNED if returned else self.STATUS_READY)
             info['%s.last_updated_time' % field1] = datetime.now()
 
-        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
+        status_before = self.get_obj_property(page, field + '.status_before')
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time', 'status_before']
         if returned:
             fields.remove('picked_by')  # 在任务管理页面可看到原领取人
+            if status_before:
+                fields.remove('finished_time')
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
@@ -151,14 +154,16 @@ class PickTaskApi(TaskHandler):
         :param name: 任务名称。如果为空，则任取一个。
         """
         try:
-            # 有未完成的任务，不能领新任务
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
             cur_user = self.current_user['_id']
+
+            # 从其他任务跳转而来，就绕开流程限制直接去修改
             from_url = self.get_query_argument('from', None)
             if from_url and re.match(r'/task/do/', from_url) and name in from_url:
                 return self.lock_edit(task_type, name)
 
+            # 有未完成的任务，不能领新任务
             task_uncompleted = self.db.page.find_one({
                 task_user: cur_user, task_status: self.STATUS_PICKED
             })
@@ -174,12 +179,17 @@ class PickTaskApi(TaskHandler):
                 return self.error_picked_by_other_user(None, status)
 
             # 领取该任务
-            r = self.db.page.update_one(dict(name=name, task_user=None), {'$set': {
-                task_user: cur_user,
-                task_type + '.picked_by': self.current_user['name'],
-                task_status: self.STATUS_PICKED,
-                task_type + '.picked_time': datetime.now()
-            }})
+            r = self.db.page.update_one(dict(name=name, task_user=None), {
+                '$set': {
+                    task_user: cur_user,
+                    task_type + '.picked_by': self.current_user['name'],
+                    task_status: self.STATUS_PICKED,
+                    task_type + '.picked_time': datetime.now()
+                },
+                '$unset': {
+                    task_type + '.status_before': None,
+                }
+            })
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
 
@@ -201,7 +211,6 @@ class PickTaskApi(TaskHandler):
     def lock_edit(self, task_type, name):
         page = self.db.page.find_one(dict(name=name))
         assert page
-        assert '.' not in task_type
         status = self.get_obj_property(page, task_type + '.status')
         page_user = self.get_obj_property(page, task_type + '.picked_user_id')
         picked_by = self.get_obj_property(page, task_type + '.picked_by')
@@ -210,7 +219,7 @@ class PickTaskApi(TaskHandler):
             error = errors.task_picked[0], '本任务还未就绪，暂时不能操作'
             return self.send_error_response(error)
 
-        if status == self.STATUS_PICKED and page_user != self.current_user['_id']:
+        if status == self.STATUS_PICKED and page_user and page_user != self.current_user['_id']:
             error = errors.task_picked[0], '本任务已被 %s 领走，暂时不能操作' % picked_by
             return self.send_error_response(error)
 
@@ -218,12 +227,13 @@ class PickTaskApi(TaskHandler):
             task_type + '.picked_user_id': self.current_user['_id'],
             task_type + '.picked_by': self.current_user['name'],
             task_type + '.status': self.STATUS_PICKED,
+            task_type + '.status_before': status,
             task_type + '.picked_time': datetime.now()
         }})
         if r.matched_count:
             self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
 
-        response = dict(url='/task/do/%s/%s' % (task_type, name), name=name)
+        response = dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name)
         self.send_data_response(response)
 
 
@@ -259,6 +269,13 @@ class PickTextProofTaskApi(PickTaskApi):
                 assert isinstance(picked, tuple) and picked[0] == 1
                 return PickTaskApi.error_has_uncompleted(self, picked[1], picked[2])
 
+        # 别人领取了某个校次的文字校对任务或审定任务，则不能再领取
+        conditions = {'$or': [{'text_proof.%d.status' % i: self.STATUS_PICKED} for i in range(1, 4)] + [
+            {'text_review.status': self.STATUS_PICKED}]}
+        picked = self.db.page.find_one(conditions)
+        if picked:
+            return self.send_error_response(errors.task_picked)
+
         # 没领取则依次领取一个校次的任务
         for i in range(1, 4):
             ret = self.pick('text_proof.%d' % i, name)
@@ -282,6 +299,14 @@ class PickTextReviewTaskApi(PickTaskApi):
 
     def get(self, name):
         """ 取文字审定任务 """
+
+        # 别人领取了某个校次的文字校对任务或审定任务，则不能再领取
+        conditions = {'$or': [{'text_proof.%d.status' % i: self.STATUS_PICKED} for i in range(1, 4)] + [
+            {'text_review.status': self.STATUS_PICKED}]}
+        picked = self.db.page.find_one(conditions)
+        if picked:
+            return self.send_error_response(errors.task_picked)
+
         self.pick('text_review', name)
 
 
@@ -332,12 +357,14 @@ class SaveCutApi(TaskHandler):
                 result['updated_time'] = new_info[time_field]
 
     def submit_task(self, result, data, page, task_type, task_user):
+        status_before = self.get_obj_property(page, task_type + '.status_before')
         end_info = {
-            task_type + '.status': self.STATUS_FINISHED,
+            task_type + '.status': status_before or self.STATUS_FINISHED,
             task_type + '.finished_time': datetime.now(),
             task_type + '.last_updated_time': datetime.now()
         }
-        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']}, {'$set': end_info})
+        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']},
+                                    {'$set': end_info, '$unset': {task_type + '.status_before': None}})
         if r.modified_count:
             result['box_changed'] = True
             result['submitted'] = True
@@ -345,7 +372,7 @@ class SaveCutApi(TaskHandler):
 
             # 激活后置任务，没有相邻后置任务则继续往后激活任务
             post_task = self.post_tasks().get(task_type)
-            while post_task:
+            while post_task and not status_before:
                 next_status = post_task + '.status'
                 status = self.get_obj_property(page, next_status)
                 if status:
@@ -357,11 +384,14 @@ class SaveCutApi(TaskHandler):
                 post_task = not status and self.post_tasks().get(post_task)
 
             # 随机分配新任务
-            tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
+            tasks = not status_before and self.get_tasks_info_by_type(task_type, self.STATUS_OPENED,
+                                                                      rand=True, sort=True)
             if tasks:
                 name = tasks[0]['name']
                 self.add_op_log('jump_' + task_type, file_id=tasks[0]['_id'], context=name)
                 result['jump'] = '/task/do/%s/%s' % (task_type, name)
+            elif 'from_url' in data:
+                result['jump'] = data['from_url']
 
 
 class SaveCutProofApi(SaveCutApi):

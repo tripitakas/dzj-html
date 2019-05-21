@@ -59,7 +59,7 @@
                             {% else %}
                             <a href="/home"><span class="head_home ion-home"></span></a>
                             <span class="slice_title">
-                              <a href="{{from_url}}">{{title}}</a>
+                              <a class="back-task">{{title}}</a>
                             </span>
                             {% end %}
                             <span class="slice_info">页编码：{{page['name']}}</span>
@@ -209,10 +209,17 @@
       });
     });
 
+    $('.back-task').click(function () {
+      postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: '{{from_url}}'}, function () {
+        window.location = '{{from_url}}';
+      });
+    });
+
     function save(submit) {
       postApi('/task/save/{{task_type}}', {data: {
         submit: submit,
         name: '{{name}}',
+        from_url: '{{from_url}}',
         box_type: '{{box_type}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       }}, function (res) {

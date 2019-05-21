@@ -162,12 +162,14 @@ class SaveTextApi(TaskHandler):
             self.send_db_error(e)
 
     def submit_task(self, result, data, page, task_type, task_user):
+        status_before = self.get_obj_property(page, task_type + '.status_before')
         end_info = {
-            task_type + '.status': self.STATUS_FINISHED,
+            task_type + '.status': status_before or self.STATUS_FINISHED,
             task_type + '.finished_time': datetime.now(),
             task_type + '.last_updated_time': datetime.now()
         }
-        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']}, {'$set': end_info})
+        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']},
+                                    {'$set': end_info, '$unset': {task_type + '.status_before': None}})
         if r.modified_count:
             result['changed'] = True
             result['submitted'] = True
@@ -175,7 +177,7 @@ class SaveTextApi(TaskHandler):
 
             # 激活后置任务，没有相邻后置任务则继续往后激活任务
             post_task = self.post_tasks().get(task_type)
-            while post_task:
+            while post_task and not status_before:
                 next_status = post_task + '.status'
                 status = self.get_obj_property(page, next_status)
                 if status:
@@ -186,10 +188,12 @@ class SaveTextApi(TaskHandler):
                         result['resume_next'] = post_task
                 post_task = not status and self.post_tasks().get(post_task)
 
-            task = self.pick_new_task(task_type)
+            task = not status_before and self.pick_new_task(task_type)
             if task:
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=task['name'])
                 result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), task['name'])
+            elif 'from_url' in data:
+                result['jump'] = data['from_url']
 
     def pick_new_task(self, task_type):
         tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)

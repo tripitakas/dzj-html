@@ -279,6 +279,14 @@
     });
   });
 
+  {% if '返回' in home_title %}
+  $('.back-task').click(function () {
+    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: '{{from_url}}'}, function () {
+      window.location = '{{from_url}}';
+    });
+  });
+  {% end %}
+
   // 保存和提交
 
   function save_(data, onSuccess) {
@@ -306,6 +314,7 @@
     save_({
       submit: submit,
       name: '{{name}}',
+      from_url: '{{from_url}}',
       txt: JSON.stringify(txt),
       chars: JSON.stringify($.cut.exportBoxes())
     });
