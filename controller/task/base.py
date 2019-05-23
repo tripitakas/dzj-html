@@ -228,7 +228,8 @@ class TaskHandler(BaseHandler):
     def get_tasks_info(self, page_size=0, page_no=1):
         """
         获取所有任务的状态
-        :param task_status: 可以是str或者list。如果为空，则查询所有存在status字段的记录。
+        :param page_size: 分页大小，默认取配置文件中的值
+        :param page_no: 当前页号，第一页为1
         """
         query = {}
         if self.get_query_argument('status', None) and self.get_query_argument('t', None):
@@ -236,7 +237,8 @@ class TaskHandler(BaseHandler):
         fields = {'name': 1}
         fields.update({k: 1 for k in self.task_types.keys()})
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(query, fields).limit(page_size).skip(page_size * (page_no - 1))
+        pages = self.db.page.find(query, fields).sort('last_updated_time', -1) \
+            .limit(page_size).skip(page_size * (page_no - 1))
         return list(pages)
 
     def get_img(self, name):

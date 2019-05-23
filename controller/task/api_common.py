@@ -127,11 +127,18 @@ class UnlockTasksApi(TaskHandler):
             info['%s.last_updated_time' % field1] = datetime.now()
 
         status_before = self.get_obj_property(page, field + '.status_before')
-        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time', 'status_before']
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time', 'last_updated_time']
+
+        if status_before:  # 是直接锁定编辑而不是从任务大厅领取的，则还原状态
+            for f in fields:
+                v = self.get_obj_property(page, '%s.%s_before' % (field, f))
+                if v:
+                    info['%s.%s' % (field, f)] = v
+                    unset['%s.%s_before' % (field, f)] = None
+            return
+
         if returned:
             fields.remove('picked_by')  # 在任务管理页面可看到原领取人
-            if status_before:
-                fields.remove('finished_time')
         if self.task_types[field].get('sub_task_types'):
             for sub_task, v in page[field].items():
                 if len(types) > 1 and types[1] != sub_task:
@@ -223,13 +230,27 @@ class PickTaskApi(TaskHandler):
             error = errors.task_picked[0], '本任务已被 %s 领走，暂时不能操作' % picked_by
             return self.send_error_response(error)
 
-        r = self.db.page.update_one(dict(name=name), {'$set': {
+        set_v = {
             task_type + '.picked_user_id': self.current_user['_id'],
             task_type + '.picked_by': self.current_user['name'],
             task_type + '.status': self.STATUS_PICKED,
-            task_type + '.status_before': status,
-            task_type + '.picked_time': datetime.now()
-        }})
+            task_type + '.picked_time': datetime.now(),
+            task_type + '.last_updated_time': datetime.now()
+        }
+        for k in list(set_v.keys()):
+            v = self.get_obj_property(page, k)
+            if v and k != 'last_updated_time':
+                set_v['%s_before' % k] = v
+        if status == self.STATUS_READY:  # 还未发布则强制发布
+            set_v.update({
+                task_type + '.status_before': self.STATUS_OPENED,
+                task_type + '.priority': '高',
+                task_type + '.publish_by': self.current_user['name'],
+                task_type + '.publish_user_id': self.current_user['_id'],
+                task_type + '.publish_time': datetime.now()
+            })
+
+        r = self.db.page.update_one(dict(name=name), {'$set': set_v})
         if r.matched_count:
             self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
 

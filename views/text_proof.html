@@ -279,11 +279,11 @@
     });
   });
 
+  var saved = false;
   {% if '返回' in home_title %}
-  $('.back-task').click(function () {
+  $(window).bind('beforeunload', function () {
     postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: '{{from_url}}'}, function () {
-      window.location = '{{from_url}}';
-    });
+    }, function () {});
   });
   {% end %}
 
@@ -291,6 +291,7 @@
 
   function save_(data, onSuccess) {
     postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
+      saved = true;
       showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
            (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
       if (res.jump) {

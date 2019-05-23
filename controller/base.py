@@ -113,7 +113,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return self.send_error_response((self.get_status(), self._reason), **kwargs)
             return self.send_data_response(**kwargs)
 
-        logging.info(template_name + ' by class ' + self.__class__.__name__)
+        logging.info(template_name + ' by ' + re.sub(r"^.+controller\.|'>", '', str(self.__class__)))
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)

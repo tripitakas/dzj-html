@@ -59,7 +59,7 @@
                             {% else %}
                             <a href="/home"><span class="head_home ion-home"></span></a>
                             <span class="slice_title">
-                              <a class="back-task">{{title}}</a>
+                              <a>{{title}}</a>
                             </span>
                             {% end %}
                             <span class="slice_info">页编码：{{page['name']}}</span>
@@ -216,10 +216,10 @@
       });
     });
 
-    $('.back-task').click(function () {
+    var saved = false;
+    $(window).bind('beforeunload', function () {
       postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: '{{from_url}}'}, function () {
-        window.location = '{{from_url}}';
-      });
+      }, function () {});
     });
 
     {% for cut, cls in [('block', '#ed-block-box'), ('column', '#ed-column-box')] %}
@@ -239,6 +239,7 @@
         box_type: '{{box_type}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       }}, function (res) {
+        saved = true;
         showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
              (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
         if (res.jump) {
