@@ -162,14 +162,19 @@ class SaveTextApi(TaskHandler):
             self.send_db_error(e)
 
     def submit_task(self, result, data, page, task_type, task_user):
-        status_before = self.get_obj_property(page, task_type + '.status_before')
         end_info = {
-            task_type + '.status': status_before or self.STATUS_FINISHED,
+            task_type + '.status': self.STATUS_FINISHED,
             task_type + '.finished_time': datetime.now(),
             task_type + '.last_updated_time': datetime.now()
         }
+        unset = {task_type + '.status_before': None}
+        status_before = self.get_obj_property(page, task_type + '.status_before')
+
+        if status_before:
+            self.unlock_before(page, task_type, end_info, unset)
+
         r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']},
-                                    {'$set': end_info, '$unset': {task_type + '.status_before': None}})
+                                    {'$set': end_info, '$unset': unset})
         if r.modified_count:
             result['changed'] = True
             result['submitted'] = True

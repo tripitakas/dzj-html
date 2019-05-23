@@ -123,19 +123,13 @@ class UnlockTasksApi(TaskHandler):
 
     def unlock(self, page, field, types, info, unset, returned):
         def fill_info(field1):
-            info['%s.status' % field1] = status_before or (self.STATUS_RETURNED if returned else self.STATUS_READY)
+            info['%s.status' % field1] = self.STATUS_RETURNED if returned else self.STATUS_READY
             info['%s.last_updated_time' % field1] = datetime.now()
 
-        status_before = self.get_obj_property(page, field + '.status_before')
-        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time', 'last_updated_time']
+        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
 
-        if status_before:  # 是直接锁定编辑而不是从任务大厅领取的，则还原状态
-            for f in fields:
-                v = self.get_obj_property(page, '%s.%s_before' % (field, f))
-                if v:
-                    info['%s.%s' % (field, f)] = v
-                    unset['%s.%s_before' % (field, f)] = None
-            return
+        if self.get_obj_property(page, field + '.status_before'):
+            return self.unlock_before(page, field, info, unset)
 
         if returned:
             fields.remove('picked_by')  # 在任务管理页面可看到原领取人
@@ -164,11 +158,12 @@ class PickTaskApi(TaskHandler):
             task_user = task_type + '.picked_user_id'
             task_status = task_type + '.status'
             cur_user = self.current_user['_id']
+            lock_name = task_type.split('_')[0]  # block|column|char|text
 
             # 从其他任务跳转而来，就绕开流程限制直接去修改
             from_url = self.get_query_argument('from', None)
             if from_url and re.match(r'/task/do/', from_url) and name in from_url:
-                return self.lock_edit(task_type, name)
+                return self.lock_edit(task_type, name, lock_name)
 
             # 有未完成的任务，不能领新任务
             task_uncompleted = self.db.page.find_one({
@@ -185,9 +180,17 @@ class PickTaskApi(TaskHandler):
             if status != self.STATUS_OPENED and not (status == self.STATUS_PICKED and page_user == cur_user):
                 return self.error_picked_by_other_user(None, status)
 
+            # 不允许多人改动相同的框或文字字段
+            lock_by = page.get('lock_' + lock_name)
+            if lock_by and not lock_by.endswith(',' + self.current_user['name']):
+                lock_by = (lock_by + ',,').split(',')
+                error = errors.task_picked[0], '本任务已被 {1} 领走({0})，暂时不能操作'.format(*lock_by[:2])
+                return self.send_error_response(error)
+
             # 领取该任务
             r = self.db.page.update_one(dict(name=name, task_user=None), {
                 '$set': {
+                    'lock_' + lock_name: ','.join([task_type, self.current_user['name']]),
                     task_user: cur_user,
                     task_type + '.picked_by': self.current_user['name'],
                     task_status: self.STATUS_PICKED,
@@ -215,7 +218,7 @@ class PickTaskApi(TaskHandler):
         error = errors.task_unlocked if status == self.STATUS_READY else errors.task_picked
         return self.send_error_response(error, url=url)
 
-    def lock_edit(self, task_type, name):
+    def lock_edit(self, task_type, name, lock_name):
         page = self.db.page.find_one(dict(name=name))
         assert page
         status = self.get_obj_property(page, task_type + '.status')
@@ -230,6 +233,12 @@ class PickTaskApi(TaskHandler):
             error = errors.task_picked[0], '本任务已被 %s 领走，暂时不能操作' % picked_by
             return self.send_error_response(error)
 
+        lock_by = page.get('lock_' + lock_name)
+        if lock_by and lock_by != self.current_user['name']:
+            lock_by = (lock_by + ',,').split(',')
+            error = errors.task_picked[0], '本任务已被 %s 领走(%s)，暂时不能操作' % tuple(lock_by[:2])
+            return self.send_error_response(error)
+
         set_v = {
             task_type + '.picked_user_id': self.current_user['_id'],
             task_type + '.picked_by': self.current_user['name'],
@@ -241,6 +250,7 @@ class PickTaskApi(TaskHandler):
             v = self.get_obj_property(page, k)
             if v and k != 'last_updated_time':
                 set_v['%s_before' % k] = v
+        set_v['lock_' + lock_name] = ','.join([task_type, self.current_user['name']])
         if status == self.STATUS_READY:  # 还未发布则强制发布
             set_v.update({
                 task_type + '.status_before': self.STATUS_OPENED,
@@ -378,14 +388,19 @@ class SaveCutApi(TaskHandler):
                 result['updated_time'] = new_info[time_field]
 
     def submit_task(self, result, data, page, task_type, task_user):
-        status_before = self.get_obj_property(page, task_type + '.status_before')
         end_info = {
-            task_type + '.status': status_before or self.STATUS_FINISHED,
+            task_type + '.status': self.STATUS_FINISHED,
             task_type + '.finished_time': datetime.now(),
             task_type + '.last_updated_time': datetime.now()
         }
+        unset = {task_type + '.status_before': None}
+        status_before = self.get_obj_property(page, task_type + '.status_before')
+
+        if status_before:
+            self.unlock_before(page, task_type, end_info, unset)
+
         r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']},
-                                    {'$set': end_info, '$unset': {task_type + '.status_before': None}})
+                                    {'$set': end_info, '$unset': unset})
         if r.modified_count:
             result['box_changed'] = True
             result['submitted'] = True

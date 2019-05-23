@@ -191,6 +191,7 @@ class TestTaskFlow(APITestCase):
         # 领取并提交
         self.login(u.expert1[0], u.expert1[1])
         r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
+        self.assertIn('url', r, str(r))
         r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
         page = r['page']
         self.assertIn('name', page)
