@@ -78,8 +78,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def can_access(self, path, method='GET'):
         """检查当前用户是否能访问某个(path, method)"""
-        role = '访客' if not self.current_user else '普通用户' if not self.current_user.get('roles') else self.current_user[
-            'roles']
+        role = '访客' if not self.current_user else self.current_user.get('roles') or '普通用户'
         return can_access(role, path, method)
 
     def get_current_user(self):
@@ -117,8 +116,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             super(BaseHandler, self).render(template_name, **kwargs)
         except Exception as err:
             traceback.print_exc()
-            kwargs.update(dict(code=500, message='网页生成出错(%s): %s' % (
-                template_name, str(err) or err.__class__.__name__)))
+            message = '网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)
+            kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
     def get_request_data(self):
