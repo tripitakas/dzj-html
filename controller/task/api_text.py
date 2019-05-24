@@ -29,13 +29,14 @@ class CharProofDetailHandler(TaskHandler):
             for c in p['chars']:
                 c.pop('txt', 0)
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
-            cmp_data = dict(segments=CharProofDetailHandler.gen_segments(p['txt'], p['chars'], params))
+            txt = self.get_obj_property(p, task_type.replace('text_', 'text.')) or p['txt']
+            cmp_data = dict(segments=CharProofDetailHandler.gen_segments(txt, p['chars'], params))
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
             self.render('text_proof.html', task_type=task_type,
                         from_url=from_url, home_title=home_title,
-                        origin_txt=re.split(r'[\n|]', p['txt'].strip()),
+                        origin_txt=re.split(r'[\n|]', txt.strip()),
                         readonly=picked_user_id != self.current_user['_id'],
                         get_img=self.get_img, cmp_data=cmp_data, **params)
         except Exception as e:
@@ -145,12 +146,13 @@ class SaveTextApi(TaskHandler):
 
             result = dict(name=name)
             txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
-            if txt and txt != page['txt']:
+            txt_field = task_type.replace('text_', 'text.')
+            old_txt = self.get_obj_property(page, txt_field) or page['txt']
+            if txt and txt != old_txt:
                 assert isinstance(txt, str)
-                page['txt'] = txt
                 result['changed'] = True
                 self.db.page.update_one(dict(name=name), {'$set': {
-                    'txt': txt, '%s.last_updated_time' % task_type: datetime.now()
+                    txt_field: txt, '%s.last_updated_time' % task_type: datetime.now()
                 }})
                 self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
 

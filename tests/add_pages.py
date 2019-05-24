@@ -82,7 +82,6 @@ def _add_range_pages(name, info, db, start, end):
                     blocks=info.get('blocks', []),
                     columns=info.get('columns', []),
                     chars=info.get('chars', []),
-                    txt='',
                     create_time=datetime.now())
         # initialize task
         meta.update({
@@ -113,7 +112,6 @@ def add_page(name, info, db, img_name=None):
                     blocks=info.get('blocks', []),
                     columns=info.get('columns', []),
                     chars=info.get('chars', []),
-                    txt='',
                     create_time=datetime.now())
         if img_name:
             meta['img_name'] = img_name
@@ -144,9 +142,13 @@ def add_texts(src_path, pages, db):
                 txt = f.read().strip().replace('\n', '|')
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
             r = list(db.page.find(cond))
-            if r and not r[0].get('txt'):
+            if r and not r[0].get('text'):
                 meta = {
-                    'txt': txt,
+                    'txt': txt,  # 本应为 text.ocr，先兼容此字段
+                    'text': {
+                        'proof': {'1': '', '2': '', '3': ''},
+                        'review': ''
+                    },
                     'text_proof': {
                         '1': {'status': task.STATUS_READY},
                         '2': {'status': task.STATUS_READY},

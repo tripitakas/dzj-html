@@ -229,13 +229,15 @@ class BaseHandler(CorsMixin, RequestHandler):
     def get_img(self, page_code, resize=True):
         host = self.config.get('img', {}).get('host')
         salt = self.config.get('img', {}).get('salt')
+        if not host or salt in [None, '', '待配置']:
+            return '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
         md5 = hashlib.md5()
         md5.update((page_code + salt).encode('utf-8'))
         hash_value = md5.hexdigest()
         inner_path = '/'.join(page_code.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
         url = url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-        return url if (host and salt) else ''
+        return url
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
