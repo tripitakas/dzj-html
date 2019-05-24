@@ -19,8 +19,6 @@
 from controller.base import BaseHandler
 from functools import cmp_to_key
 import random
-import json
-from os import path
 
 
 class TaskHandler(BaseHandler):
@@ -240,23 +238,6 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(query, fields).sort('last_updated_time', -1) \
             .limit(page_size).skip(page_size * (page_no - 1))
         return list(pages)
-
-    def get_img(self, name):
-        """得到页面图的地址"""
-        cfg = self.application.config
-        if 'page_codes' not in cfg:
-            try:
-                cfg['page_codes'] = json.load(open(path.join(self.application.BASE_DIR, 'page_codes.json')))
-            except OSError:
-                cfg['page_codes'] = {}
-        code = cfg['page_codes'].get(name)
-        if code:
-            base_url = 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com/page'
-            sub_dirs = '/'.join(name.split('_')[:-1])
-            url = '/'.join([base_url, sub_dirs, name + '_' + code + '.jpg'])
-            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300'
-
-        return '/static/img/{0}/{1}.jpg'.format(name[:2], name)
 
     def unlock_before(self, page, task_type, info, unset):
         """是直接锁定编辑而不是从任务大厅领取的，则还原状态"""

@@ -69,10 +69,7 @@ class PublishTasksApi(TaskHandler):
         if page_names:
             log['not_published'] = page_names
 
-        for k, v in list(log.items()):
-            if not v:
-                log.pop(k)  # 允许界面用 (res.published || res.pending || []) 显示发布数量
-        self.send_data_response(log)
+        self.send_data_response({k: v for k, v in log.items() if v})
 
     def publish_task(self, page_names, condition, task_type, status, priority):
         """从page_names中发布指定condition的任务，发布时设置好对应的task_type, status, priority等参数"""

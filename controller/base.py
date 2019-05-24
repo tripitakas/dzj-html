@@ -226,14 +226,16 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 
-    def get_img_url(self, page_code):
+    def get_img(self, page_code, resize=True):
         host = self.config.get('img', {}).get('host')
         salt = self.config.get('img', {}).get('salt')
         md5 = hashlib.md5()
         md5.update((page_code + salt).encode('utf-8'))
         hash_value = md5.hexdigest()
         inner_path = '/'.join(page_code.split('_')[:-1])
-        return '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value) if host and salt else ''
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
+        url = url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+        return url if (host and salt) else ''
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
