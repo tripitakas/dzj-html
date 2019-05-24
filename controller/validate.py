@@ -113,7 +113,7 @@ def is_email(**kw):
 
 
 def is_phone_or_email(**kw):
-    """ 检查是否为邮箱。"""
+    """ 检查是否为手机或邮箱。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
