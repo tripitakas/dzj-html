@@ -127,8 +127,9 @@ class UnlockTasksApi(TaskHandler):
             info['%s.last_updated_time' % field1] = datetime.now()
 
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
+        from_exit = 'exit' in self.request.body_arguments
 
-        if self.get_obj_property(page, field + '.status_before'):
+        if from_exit or self.get_obj_property(page, field + '.status_before'):
             return self.unlock_before(page, field, info, unset)
 
         if returned:
@@ -159,6 +160,14 @@ class PickTaskApi(TaskHandler):
             task_status = task_type + '.status'
             cur_user = self.current_user['_id']
             lock_name = task_type.split('_')[0]  # block|column|char|text
+
+            # 不重复领取同一任务
+            page = self.db.page.find_one({'name': name, task_user: self.current_user['_id']})
+            if page and self.get_obj_property(page, task_status) in [
+                    self.STATUS_PICKED, self.STATUS_RETURNED, self.STATUS_FINISHED]:
+                response = dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name)
+                self.send_data_response(response)
+                return response
 
             # 从其他任务跳转而来，就绕开流程限制直接去修改
             from_url = self.get_query_argument('from', None)

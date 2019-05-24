@@ -260,7 +260,8 @@ class TaskHandler(BaseHandler):
 
     def unlock_before(self, page, task_type, info, unset):
         """是直接锁定编辑而不是从任务大厅领取的，则还原状态"""
-        assert self.get_obj_property(page, task_type + '.status_before')
+        status = self.get_obj_property(page, task_type + '.status')
+        status_before = self.get_obj_property(page, task_type + '.status_before')
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
 
         for f in fields:
@@ -268,4 +269,10 @@ class TaskHandler(BaseHandler):
             if v:
                 info['%s.%s' % (task_type, f)] = v
                 unset['%s.%s_before' % (task_type, f)] = None
+
+        if not status_before and status == self.STATUS_PICKED:
+            info[task_type + '.status'] = self.STATUS_OPENED
+            for f in fields:
+                unset['%s.%s' % (task_type, f)] = None
+
         unset['lock_' + task_type.split('_')[0]] = None
