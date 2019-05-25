@@ -202,7 +202,7 @@ class PickTaskApi(TaskHandler):
             }
             cond = {'name': name, lock_user: None}
             if not jump_from_task:
-                cond[task_status] = self.STATUS_OPENED
+                cond[task_status] = {'$in': [self.STATUS_OPENED, self.STATUS_RETURNED]}
                 cond[task_user] = None
 
             page = self.db.page.find_one({'name': name})
@@ -212,7 +212,7 @@ class PickTaskApi(TaskHandler):
                 picked_by = self.get_obj_property(page, lock_name + '.picked_by')
                 picked_task_type = self.get_obj_property(page, lock_type)
                 reason = '页面不存在' if not page else (
-                    '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by else status)
+                    '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by else self.task_statuses[status])
                 return self.error_picked_by_other_user(from_url, reason)
 
             # 在任务大厅领取任务，则改变任务状态
@@ -238,7 +238,7 @@ class PickTaskApi(TaskHandler):
 
     def error_has_uncompleted(self, url, task_uncompleted):
         return self.send_error_response(errors.task_uncompleted, url=url,
-                                        uncompleted_name=task_uncompleted['name'])
+                                        uncompleted_name=task_uncompleted.get('name'))
 
     def error_picked_by_other_user(self, url, reason):
         code, message = errors.task_picked
@@ -262,9 +262,9 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_proof/@task_id'
+    URL = '/api/task/pick/text_proof(\.[123])?/@task_id'
 
-    def get(self, name):
+    def get(self, num, name):
         """ 取文字校对任务 """
 
         # 已领取某个校次的任务则不重复领取
@@ -274,8 +274,8 @@ class PickTextProofTaskApi(PickTaskApi):
                 picked = self.pick('text_proof.%d' % i, name)
                 if isinstance(picked, dict) and 'name' in picked:
                     return
-                assert isinstance(picked, tuple) and picked[0] == 1
-                return PickTaskApi.error_has_uncompleted(self, picked[1], picked[2])
+                assert isinstance(picked, tuple)
+                return PickTaskApi.error_has_uncompleted(self, picked[1], picked[2] if len(picked) > 2 else {})
 
         # 别人领取了某个校次的文字校对任务或审定任务，则不能再领取
         conditions = {'$or': [{'text_proof.%d.status' % i: self.STATUS_PICKED} for i in range(1, 4)] + [
@@ -285,7 +285,8 @@ class PickTextProofTaskApi(PickTaskApi):
             return self.send_error_response(errors.task_picked)
 
         # 没领取则依次领取一个校次的任务
-        for i in range(1, 4):
+        num = num and int(num[-1])
+        for i in ([num] if num else range(1, 4)):
             ret = self.pick('text_proof.%d' % i, name)
             if ret:
                 if isinstance(ret, tuple) and ret[0] == 2:

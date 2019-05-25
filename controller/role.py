@@ -135,7 +135,7 @@ role_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/api/task/pick/text_proof/@task_id': ['GET'],
+            '/api/task/pick/text_proof(\.[123])?/@task_id': ['GET'],
             '/api/task/save/text_proof/@num': ['POST'],
         }
     },

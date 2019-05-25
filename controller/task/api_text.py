@@ -17,10 +17,29 @@ class CharProofDetailHandler(TaskHandler):
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
-        self.enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
+        self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
 
     @staticmethod
-    def enter(self, task_type, name, stage):
+    def lock_enter(self, task_type, name, stage):
+        def handle_response(body):
+            try:
+                if not body.get('name') and not readonly:  # 锁定失败
+                    return self.send_error_response(errors.task_locked, render=True, reason=name)
+
+                CharProofDetailHandler.enter(self, task_type, name, stage, readonly)
+            except Exception as e:
+                self.send_db_error(e, render=True)
+
+        from_url = self.get_query_argument('from', None)
+        readonly = self.get_query_argument('view', 0)
+        if readonly:
+            handle_response({})
+        else:
+            pick_from = '?from=' + from_url if from_url else ''
+            self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
+
+    @staticmethod
+    def enter(self, task_type, name, stage, readonly=False):
         try:
             p = self.db.page.find_one(dict(name=name))
             if not p:
@@ -37,7 +56,7 @@ class CharProofDetailHandler(TaskHandler):
             self.render('text_proof.html', task_type=task_type,
                         from_url=from_url, home_title=home_title,
                         origin_txt=re.split(r'[\n|]', txt.strip()),
-                        readonly=picked_user_id != self.current_user['_id'],
+                        readonly=readonly or picked_user_id != self.current_user['_id'],
                         get_img=self.get_img, cmp_data=cmp_data, **params)
         except Exception as e:
             self.send_db_error(e, render=True)
@@ -120,7 +139,7 @@ class CharReviewDetailHandler(TaskHandler):
 
     def get(self, name=''):
         """ 进入文字审定页面 """
-        CharProofDetailHandler.enter(self, 'text_review', name, ('review', '文字审定'))
+        CharProofDetailHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'))
 
 
 class SaveTextApi(TaskHandler):

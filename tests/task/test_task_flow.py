@@ -216,7 +216,7 @@ class TestTaskFlow(APITestCase):
 
         # 多次领取的是同一个任务
         self.login(u.expert1[0], u.expert1[1])
-        self.assert_code(404, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
+        self.assert_code(200, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
         r1 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
         self.assert_code(200, r1)
         r2 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
@@ -235,8 +235,10 @@ class TestTaskFlow(APITestCase):
         # 页面相同，不能再自动领另一个校次的
         self.assertFalse(self.parse_response(r).get('jump'))
 
-        p2 = self.parse_response(self.fetch('%s?_raw=1' % r1['url'])).get('page') or {}
-        self.assertEqual(p2.get('name'), page['name'])
+        r = self.fetch('%s?_raw=1' % r1['url'])
+        self.assert_code(errors.task_uncompleted, r)
+        # p2 = self.parse_response(r).get('page') or {}
+        # self.assertEqual(p2.get('name'), page['name'])
 
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""
