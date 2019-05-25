@@ -18,6 +18,7 @@
 
 from controller.base import BaseHandler
 from functools import cmp_to_key
+from datetime import datetime
 import random
 
 
@@ -91,7 +92,7 @@ class TaskHandler(BaseHandler):
     @staticmethod
     def get_obj_property(obj, key):
         for s in key.split('.'):
-            obj = (obj or {}).get(s)
+            obj = obj.get(s) if isinstance(obj, dict) else None
             # 子对象不存在就算不匹配，None
         return obj
 
@@ -239,21 +240,50 @@ class TaskHandler(BaseHandler):
             .limit(page_size).skip(page_size * (page_no - 1))
         return list(pages)
 
-    def unlock_before(self, page, task_type, info, unset):
-        """是直接锁定编辑而不是从任务大厅领取的，则还原状态"""
-        status = self.get_obj_property(page, task_type + '.status')
-        status_before = self.get_obj_property(page, task_type + '.status_before')
-        fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
+    def submit_task(self, result, data, page, task_type, pick_new_task=None):
+        lock_name = 'lock_' + task_type.split('_')[0]
+        jump_from_task = self.get_obj_property(page, lock_name + '.jump_from_task')
+        cur_user = self.current_user['_id']
 
-        for f in fields:
-            v = self.get_obj_property(page, '%s.%s_before' % (task_type, f))
-            if v:
-                info['%s.%s' % (task_type, f)] = v
-                unset['%s.%s_before' % (task_type, f)] = None
+        r = self.db.page.update_one({'name': page['name'], lock_name + '.picked_user_id': cur_user},
+                                    {'$unset': {lock_name: None}})
+        if r.modified_count:
+            result['box_changed'] = True
+            result['submitted'] = True
+            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
+            if 'from_url' in data:
+                result['jump'] = data['from_url']
+        if not r.modified_count or jump_from_task:
+            return
 
-        if not status_before and status == self.STATUS_PICKED:
-            info[task_type + '.status'] = self.STATUS_OPENED
-            for f in fields:
-                unset['%s.%s' % (task_type, f)] = None
+        end_info = {
+            task_type + '.status': self.STATUS_FINISHED,
+            task_type + '.finished_time': datetime.now(),
+            task_type + '.last_updated_time': datetime.now()
+        }
+        r = self.db.page.update_one({'name': page['name'], task_type + '.picked_user_id': cur_user},
+                                    {'$set': end_info})
+        if r.modified_count:
+            # 激活后置任务，没有相邻后置任务则继续往后激活任务
+            post_task = self.post_tasks().get(task_type)
+            while post_task:
+                next_status = post_task + '.status'
+                status = self.get_obj_property(page, next_status)
+                if status:
+                    r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
+                                                {'$set': {next_status: self.STATUS_OPENED}})
+                    if r.modified_count:
+                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
+                        result['resume_next'] = post_task
+                post_task = not status and self.post_tasks().get(post_task)
 
-        unset['lock_' + task_type.split('_')[0]] = None
+            # 随机分配新任务
+            if pick_new_task:
+                task = pick_new_task(task_type)
+            else:
+                task = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
+                task = task and task[0]
+            if task:
+                name = task['name']
+                self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
+                result['jump'] = '/task/do/%s/%s' % (task_type, name)

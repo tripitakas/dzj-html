@@ -157,50 +157,11 @@ class SaveTextApi(TaskHandler):
                 self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
 
             if data.get('submit'):
-                self.submit_task(result, data, page, task_type, task_user)
+                self.submit_task(result, data, page, task_type, pick_new_task=self.pick_new_task)
 
             self.send_data_response(result)
         except DbError as e:
             self.send_db_error(e)
-
-    def submit_task(self, result, data, page, task_type, task_user):
-        end_info = {
-            task_type + '.status': self.STATUS_FINISHED,
-            task_type + '.finished_time': datetime.now(),
-            task_type + '.last_updated_time': datetime.now()
-        }
-        unset = {task_type + '.status_before': None}
-        status_before = self.get_obj_property(page, task_type + '.status_before')
-
-        if status_before:
-            self.unlock_before(page, task_type, end_info, unset)
-
-        r = self.db.page.update_one({'name': page['name'], task_user: self.current_user['_id']},
-                                    {'$set': end_info, '$unset': unset})
-        if r.modified_count:
-            result['changed'] = True
-            result['submitted'] = True
-            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
-
-            # 激活后置任务，没有相邻后置任务则继续往后激活任务
-            post_task = self.post_tasks().get(task_type)
-            while post_task and not status_before:
-                next_status = post_task + '.status'
-                status = self.get_obj_property(page, next_status)
-                if status:
-                    r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
-                                                {'$set': {next_status: self.STATUS_OPENED}})
-                    if r.modified_count:
-                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
-                        result['resume_next'] = post_task
-                post_task = not status and self.post_tasks().get(post_task)
-
-            task = not status_before and self.pick_new_task(task_type)
-            if task:
-                self.add_op_log('jump_' + task_type, file_id=task['_id'], context=task['name'])
-                result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), task['name'])
-            elif 'from_url' in data:
-                result['jump'] = data['from_url']
 
     def pick_new_task(self, task_type):
         tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
