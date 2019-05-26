@@ -17,7 +17,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/xyz')
         self.assert_code(404, r)
         data = self.parse_response(r)
-        self.assertFalse(data)
+        self.assertEqual(data.get('code'), 404)
 
     def test_api_login(self):
         """ 登录api """

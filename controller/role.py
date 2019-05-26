@@ -23,7 +23,6 @@ url_placeholder = {
 role_maps = {
     '单元测试用户': {
         'routes': {
-            '/api/@task_type/@task_id': ['GET'],
             '/api/task/page/@task_id': ['GET'],
             '/api/task/pages/@page_kind': ['GET', 'POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],

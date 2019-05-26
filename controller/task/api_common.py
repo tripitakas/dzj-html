@@ -11,22 +11,8 @@ from controller import errors
 from controller.task.base import TaskHandler
 
 
-class GetTaskApi(TaskHandler):
-    URL = r'/api/@task_type/@task_id'
-
-    def get(self, task_type, task_id):
-        """ 获取单页数据 """
-        try:
-            page = self.db.page.find_one(dict(name=task_id))
-            if not page:
-                return self.send_error_response(errors.no_object)
-            self.send_data_response(page)
-        except DbError as e:
-            self.send_db_error(e)
-
-
 class GetPageApi(TaskHandler):
-    URL = r'/api/task/page/@task_id'
+    URL = '/api/task/page/@task_id'
 
     def get(self, name):
         """ 获取页面数据 """
@@ -40,7 +26,7 @@ class GetPageApi(TaskHandler):
 
 
 class GetPagesApi(TaskHandler):
-    URL = r'/api/task/pages/@page_kind'
+    URL = '/api/task/pages/@page_kind'
 
     def get(self, kind):
         """ 为任务管理获取页面列表 """
@@ -171,10 +157,10 @@ class PickTaskApi(TaskHandler):
             lock_name = 'lock_' + task_type.split('_')[0]
             lock_user = lock_name + '.picked_user_id'
             lock_type = lock_name + '.task_type'
-            assert re.match(r'^lock_(block|column|char|text)$', lock_name)
+            assert re.match('^lock_(block|column|char|text)$', lock_name)
 
             from_url = self.get_query_argument('from', None)
-            jump_from_task = from_url and re.match(r'/task/(do|my)/', from_url)
+            jump_from_task = from_url and re.match('/task/(do|my)/', from_url)
 
             # 不重复领取同一任务 (这两种领取任务方式都会设置 page.lock_<type>.picked_user_id)
             page = self.db.page.find_one({'name': name, lock_user: cur_user, lock_type: task_type})
@@ -323,7 +309,7 @@ class SaveCutApi(TaskHandler):
     def save(self, task_type):
         try:
             data = self.get_request_data()
-            assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
+            assert re.match('^[A-Za-z0-9_]+$', data.get('name'))
             assert task_type in self.cut_task_names
 
             page = self.db.page.find_one(dict(name=data['name']))
