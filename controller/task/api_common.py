@@ -160,7 +160,7 @@ class PickTaskApi(TaskHandler):
             assert re.match('^lock_(block|column|char|text)$', lock_name)
 
             from_url = self.get_query_argument('from', None)
-            jump_from_task = from_url and re.match('/task/(do|my)/', from_url)
+            jump_from_task = bool(from_url and re.match('/task/(do|my)/', from_url))
 
             # 不重复领取同一任务 (这两种领取任务方式都会设置 page.lock_<type>.picked_user_id)
             page = self.db.page.find_one({'name': name, lock_user: cur_user, lock_type: task_type})
