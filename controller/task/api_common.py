@@ -177,6 +177,12 @@ class PickTaskApi(TaskHandler):
                 url = '/task/do/%s/%s' % (task_type.replace('.', '/'), task_uncompleted['name'])
                 return self.error_has_uncompleted(url, task_uncompleted)
 
+            page = self.db.page.find_one({'name': name})
+            status = self.get_obj_property(page, task_status)
+            picked_by = self.get_obj_property(page, lock_name + '.picked_by')
+            picked_task_type = self.get_obj_property(page, lock_type)
+            jump_from_task = jump_from_task or status in [self.STATUS_READY, self.STATUS_PENDING, self.STATUS_FINISHED]
+
             # 锁定任务
             set_v = {
                 lock_name + '.jump_from_task': jump_from_task,
@@ -188,15 +194,11 @@ class PickTaskApi(TaskHandler):
             }
             cond = {'name': name, lock_user: None}
             if not jump_from_task:
-                cond[task_status] = {'$in': [self.STATUS_OPENED, self.STATUS_RETURNED]}
-                cond[task_user] = None
+                cond[task_status] = {'$in': [self.STATUS_OPENED, self.STATUS_RETURNED, self.STATUS_FINISHED]}
+                cond[task_user] = {'$in': [None, cur_user]}
 
-            page = self.db.page.find_one({'name': name})
             r = self.db.page.update_one(cond, {'$set': set_v})
             if not r.matched_count:
-                status = self.get_obj_property(page, task_status)
-                picked_by = self.get_obj_property(page, lock_name + '.picked_by')
-                picked_task_type = self.get_obj_property(page, lock_type)
                 reason = '页面不存在' if not page else (
                     '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by else self.task_statuses[status])
                 return self.error_picked_by_other_user(from_url, reason)
@@ -222,9 +224,15 @@ class PickTaskApi(TaskHandler):
         except DbError as e:
             self.send_db_error(e)
 
-    def error_has_uncompleted(self, url, task_uncompleted):
-        return self.send_error_response(errors.task_uncompleted, url=url,
-                                        uncompleted_name=task_uncompleted.get('name'))
+    def error_has_uncompleted(self, url, task):
+        params = dict(url=url)
+        if task and isinstance(task, str):
+            params['message'] = task
+        elif task:
+            params['message'] = task.get('name')
+        params['message'] = '您还有未完成的任务(%s)，请继续完成后再领取新的任务' % (params['message'])
+        code, message = errors.task_uncompleted[0], '您还有未完成的任务(&s)，请继续完成后再领取新的任务' % ()
+        return self.send_error_response((code, message), **params)
 
     def error_picked_by_other_user(self, url, reason):
         code, message = errors.task_picked
@@ -286,7 +294,7 @@ class PickTextProofTaskApi(PickTaskApi):
         return 1, url, task_uncompleted  # 有未完成的任意校次任务，在本类的get中退出循环
 
     def error_picked_by_other_user(self, url, status):
-        return 2, url  # 任务已被其它人领取，返回None在本类的get中可换其他校次
+        return 2, url, status  # 任务已被其它人领取，返回None在本类的get中可换其他校次
 
 
 class PickTextReviewTaskApi(PickTaskApi):

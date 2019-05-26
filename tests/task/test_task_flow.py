@@ -237,10 +237,13 @@ class TestTaskFlow(APITestCase):
         # 页面相同，不能再自动领另一个校次的
         self.assertFalse(self.parse_response(r).get('jump'))
 
-        r = self.fetch('%s?_raw=1' % r1['url'])
-        self.assert_code(errors.task_uncompleted, r)
-        # p2 = self.parse_response(r).get('page') or {}
-        # self.assertEqual(p2.get('name'), page['name'])
+        # 已完成的任务还可以再次继续编辑，任务状态不变
+        r = self.parse_response(self.fetch('%s?_raw=1' % r1['url']))
+        p2 = r.get('page') or {}
+        self.assertEqual(p2.get('name'), page['name'])
+
+        p = self.parse_response(self.fetch('/api/task/page/' + page['name']))
+        self.assertEqual(TaskHandler.get_obj_property(p, r['task_type'] + '.status'), TaskHandler.STATUS_FINISHED)
 
     def test_text_returned_pick(self):
         """测试先退回文字校对任务再领取同一页面的文字校对任务"""
