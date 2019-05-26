@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-05-08
+ * Date: 2019-05-26
  */
 (function() {
   'use strict';
@@ -146,7 +146,7 @@
     handleSize: 2.2,                          // 字框控制点的半宽
     boxFill: 'rgba(0, 0, 0, .01)',            // 默认的字框填充色，不能全透明
     boxOpacity: 0.7,                          // 字框线半透明度
-    activeFillOpacity: 0.4,                   // 略过或当期字框的填充半透明度
+    activeFillOpacity: 0.4,                   // 掠过或当期字框的填充半透明度
     ratio: 1,                                 // 缩放比例
     unit: 5,                                  // 微调量
     paper: null,                              // Raphael 画布
@@ -230,6 +230,7 @@
     data: data,
     state: state,
     getDistance: getDistance,
+    getHandle: getHandle,
 
     decodeJSON: function (text) {
       return JSON.parse(decodeHtml(text));
@@ -421,6 +422,8 @@
           self.hoverOut(state.hover);
           state.hover = null;
           self.showHandles(state.hover, state.hoverHandle);
+        } else {
+          state.mouseHover(pt);
         }
         e.preventDefault();
       };
@@ -436,7 +439,7 @@
           $.fn.mapKey.enabled = true;
         }
 
-        // 鼠标略过控制点时，当前字框的控制点不能被选中，则切换为另外已亮显热点控制点的字框
+        // 鼠标掠过控制点时，当前字框的控制点不能被选中，则切换为另外已亮显热点控制点的字框
         var lockBox = e.altKey;
         if (e.shiftKey) {
           self.switchCurrentBox(null);
@@ -460,6 +463,8 @@
         if (!state.edit && !state.readonly) {
           state.editHandle.index = 2;  // 右下角为拖动位置
           state.edit = createRect(state.down, state.down, true);
+        } else {
+          state.mouseDown(state.down);
         }
       };
 
@@ -467,6 +472,7 @@
         var pt = getPoint(e);
 
         e.preventDefault();
+        state.mouseDrag(pt);
         if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3) {
           return;
         }
@@ -489,6 +495,7 @@
         e.preventDefault();
         if (state.down) {
           var pt = getPoint(e);
+          state.mouseUp(pt);
           if (state.originBox && getDistance(pt, state.down) > 1) {
             self._changeBox(state.originBox, state.edit);
           }
@@ -503,10 +510,11 @@
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
       state.focus = true;
+      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function(){};
 
       data.image = data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
-        .attr({'stroke': 'transparent', fill: data.boxFill});
+        .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
       data.blockMode = p.blockMode;

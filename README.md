@@ -68,5 +68,6 @@ python3 run_tests.py 或选中测试用例文件调试
 - [MongoDB 数据库开发](http://demo.pythoner.com/itt2zh/ch4.html)
 - [MongoDB 官方文档](http://api.mongodb.com/python/current/index.html)
 - [MongoDB 查询操作符](https://docs.mongodb.com/manual/reference/operator/query/)
+- [Raphael 图形库文档](http://dmitrybaranovskiy.github.io/raphael/reference.html)
 
 [templates]: https://tornado-zh.readthedocs.io/zh/latest/guide/templates.html
