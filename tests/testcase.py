@@ -43,6 +43,10 @@ class APITestCase(AsyncHTTPTestCase):
             body = json_util.loads(body)
             if 'data' in body and isinstance(body['data'], dict):  # 将data的内容赋给body，以便测试使用
                 body.update(body['data'])
+            elif 'error' in body and isinstance(body['error'], dict):
+                body.update(body['error'])
+        if response.code != 200 and 'code' not in body:
+            body = dict(code=response.code, message=response.reason)
         return body
 
     def get_code(self, response):

@@ -51,8 +51,7 @@ class TestUserCommonViews(APITestCase):
 
     def test_view_404(self):
         """测试不存在的页面"""
-        r = self.parse_response(self.fetch('/xyz'))
-        self.assertIn('404', r)
+        self.assert_code(404, self.fetch('/xyz'))
 
     def test_view_show_api(self):
         r = self.parse_response(self.fetch('/api?_raw=1'))

@@ -291,4 +291,4 @@ class TaskHandler(BaseHandler):
             if task:
                 name = task['name']
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
-                result['jump'] = '/task/do/%s/%s' % (task_type, name)
+                result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), name)

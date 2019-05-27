@@ -22,6 +22,8 @@ class TestTaskFlow(APITestCase):
         # 退回所有任务，还原改动
         for task_type in TaskHandler.task_types.keys():
             self.assert_code(200, self.fetch('/api/task/unlock/%s/' % task_type))
+        for i in range(1, 4):
+            self.assert_code(200, self.fetch('/api/task/unlock/text_proof.%d/' % i))
         super(TestTaskFlow, self).tearDown()
 
     def publish(self, data):
@@ -247,10 +249,63 @@ class TestTaskFlow(APITestCase):
         # 页面相同，不能再自动领另一个校次的
         self.assertFalse(self.parse_response(r).get('jump'))
 
-        r = self.fetch('%s?_raw=1' % r1['url'])
-        self.assert_code(errors.task_uncompleted, r)
-        # p2 = self.parse_response(r).get('page') or {}
-        # self.assertEqual(p2.get('name'), page['name'])
+        # 已完成的任务还可以再次继续编辑，任务状态不变
+        r = self.parse_response(self.fetch('%s?_raw=1' % r1['url']))
+        p2 = r.get('page') or {}
+        self.assertEqual(p2.get('name'), page['name'])
+
+        p = self.parse_response(self.fetch('/api/task/page/' + page['name']))
+        self.assertEqual(TaskHandler.get_obj_property(p, r['task_type'] + '.status'), TaskHandler.STATUS_FINISHED)
+
+    def test_text_returned_pick(self):
+        """测试先退回文字校对任务再领取同一页面的文字校对任务"""
+
+        # 发布两个校次的文字校对任务
+        self.login_as_admin()
+        self.fetch('/api/task/unlock/text_proof/')
+        self.assert_code(200, self.publish('text_proof.1', dict(pages='GL_1056_5_6,JX_165_7_12')))
+        self.assert_code(200, self.publish('text_proof.2', dict(pages='GL_1056_5_6')))
+
+        # 领取一个任务
+        self.login(u.expert1[0], u.expert1[1])
+        self.assert_code(200, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
+        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
+        self.assertEqual(TaskHandler.get_obj_property(p, 'text_proof.1.status'), TaskHandler.STATUS_PICKED)
+
+        # 再领取相同任务则结果不变
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
+
+        # 再领取别的任务则结果不变
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof.1/JX_165_7_12'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof/GL_1056_5_6'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
+
+        # 退回任务后领取相同页面的其他校次任务
+
+        self.assert_code(200, self.fetch('/api/task/unlock/text_proof.1/GL_1056_5_6'))
+        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
+        self.assertEqual(TaskHandler.get_obj_property(p, 'text_proof.1.status'), TaskHandler.STATUS_READY)
+        self.assertIsNone(TaskHandler.get_obj_property(p, 'text_proof.1.picked_user_id'))
+        self.assertIsNone(TaskHandler.get_obj_property(p, 'text_proof.1.picked_by'))
+
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/2/GL_1056_5_6')
+
+        self.assert_code(200, self.fetch('/api/task/unlock/text_proof.2/GL_1056_5_6', body={}))
+        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
+        self.assertEqual(TaskHandler.get_obj_property(p, 'text_proof.2.status'), TaskHandler.STATUS_RETURNED)
+        self.assertIsNone(TaskHandler.get_obj_property(p, 'text_proof.2.picked_user_id'))
+        self.assertTrue(TaskHandler.get_obj_property(p, 'text_proof.2.picked_by'))
+
+        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
+        self.assertEqual(r.get('url'), '/task/do/text_proof/2/GL_1056_5_6')
+
+        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
+        self.assertEqual(TaskHandler.get_obj_property(p, 'text_proof.2.status'), TaskHandler.STATUS_PICKED)
 
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""

@@ -5,7 +5,7 @@ views = [
     view_lobby.LobbyBlockCutReviewHandler, view_lobby.LobbyColumnCutReviewHandler, view_lobby.LobbyCharCutReviewHandler,
     view_lobby.TextProofTaskLobbyHandler, view_lobby.TextReviewTaskLobbyHandler, view_lobby.TextHardTaskLobbyHandler,
     view_admin.TaskAdminHandler, view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler,
-    view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler,
+    view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler, view_do.CharOrderProofHandler,
     api_text.CharProofDetailHandler, api_text.CharReviewDetailHandler,
     view_my.MyTaskHandler,
 ]

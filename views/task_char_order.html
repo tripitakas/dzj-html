@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{title}}</title>
+  <title>字序校对</title>
   {% include _base_meta.html %}
 
   <!-- Plugins css -->
@@ -22,13 +22,19 @@
   {% include _base_css.html %}
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
   <style>
-    {% if box_type == 'char' %}
-    @media (max-width:1020px) {
-      .slice_info {
-        display: none;
-      }
+    #info {
+      position: fixed;
+      bottom: 20px;
+      right: 50px;
+      padding: 8px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      opacity: .6;
     }
-    {% end %}
+    #info > span + span {
+      margin-left: 8px;
+    }
   </style>
 </head>
 
@@ -49,33 +55,12 @@
                       <div class="full">
                         <div class="full-hd clearfix">
                           <div class="left fl">
-                            {% if can_return %}
                             <span class="slice_title">
                               <a onclick="leave('{{from_url}}')">返回</a>
                             </span>
-                            {% else %}
-                            <a onclick="leave('/home')"><span class="head_home ion-home"></span></a>
-                            <span class="slice_title">
-                              <a onclick="leave('{{from_url}}')">{{title}}</a>
-                            </span>
-                            {% end %}
                             <span class="slice_info">页编码：{{page['name']}}</span>
                             <div class="slice_btn_group">
-                              <div class="btn-group m-b-10 hl-btn">
-                                <button type="button" class="btn btn-default waves-effect" id="hl-all">所有
-                                  <sup class="s_h_count"></sup></button>
-                                {% if box_type == 'char' %}
-                                <button type="button" class="btn btn-default waves-effect" id="hl-large">大框
-                                  <sup class="s_h_count"></sup></button>
-                                <button type="button" class="btn btn-default waves-effect" id="hl-small">小框
-                                  <sup class="s_h_count"></sup></button>
-                                <button type="button" class="btn btn-default waves-effect" id="hl-narrow">窄框
-                                  <sup class="s_h_count"></sup></button>
-                                <button type="button" class="btn btn-default waves-effect" id="hl-flat">扁框
-                                  <sup class="s_h_count"></sup></button>
-                                {% end %}
-                                <button type="button" class="btn btn-default waves-effect" id="hl-overlap">重叠
-                                  <sup class="s_h_count"></sup></button>
+                              <div class="btn-group m-b-10">
                               </div>
                               <div class="btn-group m-b-10">
                                 <button type="button" class="btn btn-default" id="undo" title="撤销"><i class="md md-undo"></i></button>
@@ -94,40 +79,26 @@
                               <ul class="dropdown-menu">
                                 <li><a id="submit">提交任务</a></li>
                                 <li role="separator" class="divider"></li>
-                                {% if box_type == 'char' %}
                                 <li><a id="order-mode">字序校对</a></li>
                                 <li><a id="box-mode">字框校对</a></li>
-                                <li role="separator" class="divider"></li>
-                                {% end %}
-                                <li><a id="return-task">退回任务</a></li>
-
-                                {% if box_type != 'block' %}
-                                <li role="separator" class="divider"></li>
-                                {% for type,text in ([('block', '栏框')] if box_type == 'column' else [('block', '栏框'), ('column', '列框')]) %}
-                                <li><a class="ed-box" id="ed-{{type}}-box">修改{{text}}</a></li>
-                                {% end %}
-                                {% end %}
                               </ul>
                             </div>
                             {% end %}
                           </div>
                           <div class="right fr">
-
                           </div>
                         </div>
                         <div class="full-bd">
                           <!-- holder为显示切分框和页面图的画布容器 -->
                           <div id="holder"></div>
+                          <div id="info">
+                            <span class="col-info"></span>
+                            <span class="char-info"></span>
+                            <span class="target-char"></span>
+                          </div>
                         </div>
 
                       </div>
-                      <!--./右侧没有文本数据时-->
-                      <!--根据接口返回数据情况--右侧有文本数据时-->
-
-                      <!--./右侧有文本数据时-->
-                      <!--弹窗-->
-
-                      <!--./弹窗-->
                     </div>
                   </div>
 
@@ -148,22 +119,22 @@
   <script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
   <script src="{{ static_url('js/cut/cut.js') }}"></script>
   <script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
-  <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
+  <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
   <script>
     $.cut.create({
-      '{{box_type}}Mode': true,
-      removeSmallBoxes: {{int(box_type == 'char' and name[:2] in ['JX'])}},
-      name: '{{box_type}}_{{name}}',
+      readonly: true,
+      name: '{{name}}_order',
       width: {{page['width']}},
       height: {{page['height']}},
       holder: 'holder',
       scrollContainer: '.full-bd',
       image: "{{get_img(page.get('img_name', name))}}",
-      chars: '{{boxes}}'
+      chars: '{{page["chars"]}}'
     });
 
     $.cut.bindKeys();
+    $.cut.addCharOrderLinks();
 
     function updateUndo() {
       $('#undo').toggleClass('disabled', !$.cut.canUndo());
@@ -179,55 +150,11 @@
     });
     updateUndo();
 
-    function showHighLightCount() {
-      $('.hl-btn > button').each(function (i, btn) {
-        if (i > 0 || {{int(box_type != "char")}}) {
-          var type = btn.getAttribute('id').replace(/^.*-/, '');
-          var boxes = $.cut.highlightBoxes(type, true);
-          $(btn).find('.s_h_count').text(boxes.length);
-        }
-      });
-    }
-    showHighLightCount();
-    $('.hl-btn > button').click(function () {
-      var type = this.getAttribute('id').replace(/^.*-/, '');
-      $.cut.switchHighlightBoxes(type);
-    });
-
-    $.cut.onBoxChanged(function (char, box, reason) {
-      if (reason === 'removed' || reason === 'added' || reason === 'changed') {
-        var type = $.cut.data.hlType;
-        if (type) {
-          $.cut.clearHighlight();
-          $.cut.highlightBoxes(type, false, true);
-        }
-      }
-      showHighLightCount();
-      updateUndo();
-    });
-
-    $('#return-task').click(function () {
-      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
-        if (res.data.length === 1 && res.data[0] === '{{name}}') {
-          window.location = '{{from_url}}';
-        }
-      });
-    });
-
     window.leave = function (url) {
       postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
         window.location = url;
       });
     };
-
-    {% for cut, cls in [('block', '#ed-block-box'), ('column', '#ed-column-box')] %}
-      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
-      $('{{cls}}').unbind('click').click(function () {
-        if (!$(this).hasClass('disabled')) {
-          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
-        }
-      });
-    {% end %}
 
     function save(submit) {
       postApi('/task/save/{{task_type}}', {data: {
