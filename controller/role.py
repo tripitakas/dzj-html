@@ -40,6 +40,7 @@ role_maps = {
             '/api/user/logout': ['GET'],
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
+            '/api/user/upload_img':['POST'],
         }
     },
     '普通用户': {

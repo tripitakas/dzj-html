@@ -6,6 +6,7 @@
 
 import logging
 import random
+import os.path
 
 from tornado.options import options
 
@@ -120,9 +121,14 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
+            #设置默认头像
+            if user.get('gender')=='男': img = 'imgs/ava1.png'
+            elif user.get('gender')=='女': img = 'imgs/ava2.png'
+            else: img = 'imgs/ava1.png'
             r = self.db.user.insert_one(dict(name=user['name'], email=user.get('email'), phone=user.get('phone'),
                                              gender=user.get('gender'), roles=user['roles'],
                                              password=hlp.gen_id(user['password']),
+                                             img=img,
                                              create_time=hlp.get_date_time()
                                              ))
             user['_id'] = r.inserted_id
@@ -131,6 +137,7 @@ class RegisterApi(BaseHandler):
             return self.send_db_error(e)
 
         user['login_md5'] = hlp.gen_id(user['roles'])
+        user['img'] = img
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
         logging.info('register id=%s, name=%s, email=%s' % (user['_id'], user['name'], user.get('email')))
@@ -329,3 +336,32 @@ class ChangeMyProfileApi(BaseHandler):
 
         logging.info('change profile %s' % (user.get('name')))
         self.send_response()
+
+class UploadUserImageHandler(BaseHandler):
+    URL = '/api/user/upload_img'
+
+    def post(self):
+        if self.request.method == 'POST':
+            # 获取上传头像
+            file_img = self.request.files.get('img')
+            # 更新头像名称为用户ID加图片类型后缀
+            img_name = str(self.current_user['_id']) + os.path.splitext(file_img[0]['filename'])[-1]
+            # 设置头像的存储地址
+            img = 'profile/{}'.format(img_name)
+            save_to = 'static/'+img
+            # 存储头像
+            with open(save_to, 'wb') as f:  # 二进制
+                f.write(file_img[0]['body'])
+                f.close()
+
+            try:
+                # 更新用户数据表中的头像存储信息
+                self.db.user.update_one(
+                    dict(_id=self.current_user['_id']), {'$set': dict(img=img)}
+                )
+            except DbError as e:
+                return self.send_db_error(e)
+
+            self.current_user['img'] = img
+            self.set_secure_cookie('user', json_util.dumps(self.current_user))
+            self.send_response()
