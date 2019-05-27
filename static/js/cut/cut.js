@@ -965,6 +965,9 @@
         window.scrollTo(box2.x + box2.width / 2 - box.x - box.width / 2 + pos[0],
           box2.y + box2.width / 2 - box.y - box.width / 2 + pos[1]);
       }
+      if (state['onZoomed']) {
+        state['onZoomed']();
+      }
     }
 
   };
