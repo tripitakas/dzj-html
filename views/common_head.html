@@ -14,7 +14,7 @@
 
 			<div class="main-header-right">
 				<span class="welcome">欢迎您：{{current_user['name'] if current_user else '访客'}}</span>
-				<span><a href="/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心"><img src="{{ static_url('imgs/frame/user.png') }}" alt=""></a></span>
+				<span><a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心"><img src="{{ static_url('imgs/frame/user.png') }}" alt=""></a></span>
 				<!--<span><img src="{{ static_url('imgs/frame/message.png') }}" alt=""></span>
 				<span><img src="{{ static_url('imgs/frame/help.png') }}" alt=""></span>-->
 				<span><a id="logout" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="退出系统"><img src="{{ static_url('imgs/frame/logout.png') }}" alt="" title="退出系统"></a></span>
