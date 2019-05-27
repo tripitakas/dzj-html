@@ -39,6 +39,7 @@ role_maps = {
             '/api/user/logout': ['GET'],
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
+            '/task/do/char_order_proof/@task_id': ['GET'],  # 实现后再移到切字校对员里
         }
     },
     '普通用户': {

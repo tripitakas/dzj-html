@@ -181,7 +181,7 @@ class PickTaskApi(TaskHandler):
             status = self.get_obj_property(page, task_status)
             picked_by = self.get_obj_property(page, lock_name + '.picked_by')
             picked_task_type = self.get_obj_property(page, lock_type)
-            jump_from_task = jump_from_task or status in [self.STATUS_READY, self.STATUS_PENDING, self.STATUS_FINISHED]
+            jump_or_edit = jump_from_task or status in [self.STATUS_READY, self.STATUS_PENDING, self.STATUS_FINISHED]
 
             # 锁定任务
             set_v = {
@@ -200,12 +200,13 @@ class PickTaskApi(TaskHandler):
             r = self.db.page.update_one(cond, {'$set': set_v})
             if not r.matched_count:
                 reason = '页面不存在' if not page else (
-                    '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by else self.task_statuses[status])
+                    '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by
+                    else '任务状态为 ' + self.task_statuses[status])
                 return self.error_picked_by_other_user(from_url, reason)
 
             # 在任务大厅领取任务，则改变任务状态
             self.add_op_log('pick_' + task_type, file_id=page['_id'], context=name)
-            if not jump_from_task:
+            if not jump_or_edit:
                 r = self.db.page.update_one(dict(name=name, task_user=None), {
                     '$set': {
                         task_user: cur_user,

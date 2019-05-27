@@ -10,7 +10,7 @@ from controller.task.base import TaskHandler
 
 
 class CutDetailBaseHandler(TaskHandler):
-    def enter(self, box_type, stage, name):
+    def enter(self, box_type, stage, name, template_name='task_cut_detail.html'):
         def handle_response(body):
             try:
                 page = self.db.page.find_one(dict(name=name))
@@ -20,7 +20,7 @@ class CutDetailBaseHandler(TaskHandler):
                 if not body.get('name') and not readonly:  # 锁定失败
                     return self.send_error_response(errors.task_locked, render=True, reason=name)
 
-                self.render('task_cut_detail.html', page=page, name=page['name'], readonly=readonly,
+                self.render(template_name, page=page, name=page['name'], readonly=readonly,
                             boxes=page[box_type + 's'],
                             title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
@@ -55,3 +55,11 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
     def get(self, box_type, name):
         """ 进入切分审定页面 """
         self.enter(box_type, 'review', name)
+
+
+class CharOrderProofHandler(CutDetailBaseHandler):
+    URL = '/task/do/char_order_proof/@task_id'
+
+    def get(self, name):
+        """ 进入字序校对页面 """
+        self.enter('char', 'proof', name, template_name='task_char_order.html')
