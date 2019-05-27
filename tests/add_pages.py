@@ -129,7 +129,7 @@ def add_page(name, info, db, img_name=None):
             'char_cut_review': {'status': task.STATUS_READY},
         })
         data['count'] += 1
-        print('%s:\t%d x %d blocks=%d colum.findns=%d chars=%d' % (
+        print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
         db.page.insert_one(meta)
 
