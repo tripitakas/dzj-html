@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8">
 		<title>任务管理-{{task_name}}</title>
@@ -111,27 +111,40 @@
 											<h4 class="modal-title" id="choose-pages">选择页编码</h4>
 										</div>
 										<div class="modal-body">
+											{% if task_type == 'text_proof' %}
+											<div class="sub-tasks">
+												<h4 class="control-label">选择任务类型</h4>
+												<div>
+													{% for st, v in th.task_types['text_proof']['sub_task_types'].items() %}
+														<label class="checkbox-inline">
+															<input type="checkbox" id="task{{st}}">{{v['name']}}
+														</label>
+													{% end %}
+												</div>
+											</div>
+											{% end %}
+
 											<div class="priority-list">
 												<h4 class="control-label">优先级</h4>
 												<select class="form-control">
-                                                    <option>高</option>
-                                                    <option>中</option>
-                                                    <option>低</option>
-                                                </select>
+													<option>高</option>
+													<option>中</option>
+													<option>低</option>
+												</select>
 											</div>
 											<br />
 											<div class="form-group">
-			                                    <div class="">
-		                                            <select name="country" style="width: 500px;" class="multi-select" multiple="" id="my_multi_select" >
-		                                                <option value="Afghanistan">Afghanistan</option>
-		                                                <option value="Algeria">Algeria</option>
-		                                                <option value="Andorra">Andorra</option>
-		                                                <option value="Bahamas">Bahamas</option>
-		                                                <option value="Belarus">Belarus</option>
-		                                                <option value="Bclize">Belize</option>
-		                                            </select>
-		                                        </div>
-		                                    </div>
+												<div class="">
+													<select name="country" style="width: 500px;" class="multi-select" multiple="" id="my_multi_select" >
+														<option value="Afghanistan">Afghanistan</option>
+														<option value="Algeria">Algeria</option>
+														<option value="Andorra">Andorra</option>
+														<option value="Bahamas">Bahamas</option>
+														<option value="Belarus">Belarus</option>
+														<option value="Bclize">Belize</option>
+													</select>
+												</div>
+											</div>
 											<div class="">
 												<h4>备注</h4>
 												<input type="text" class="form-control" placeholder="填写备注">
@@ -157,14 +170,14 @@
 										<div class="collate-list">
 											<div class="operation bat-upload">
 												<div class="btn-group dropdown">
-		                                            <button type="button" class="btn btn-default waves-effect">发布任务</button>
-		                                            <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
-		                                            <ul class="dropdown-menu" role="menu">
-		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
-		                                                <li class="divider"></li>
-		                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">上传页编码</a></li>
-		                                            </ul>
-		                                        </div>
+														<button type="button" class="btn btn-default waves-effect">发布任务</button>
+														<button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+														<ul class="dropdown-menu" role="menu">
+																<li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
+																<li class="divider"></li>
+																<li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">上传页编码</a></li>
+														</ul>
+												</div>
 												<span onclick="revoke(100)">批量撤销任务</span>
 											</div>
 											<div class="search fr">
@@ -174,7 +187,7 @@
 											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
 												<thead>
 													<tr>
-                                                        <th><span><input type="checkbox" name="" id="check" value="" /></span></th>
+														<th><span><input type="checkbox" name="" id="check" value="" /></span></th>
 														<th><span>页编码</span></th>
 														<th><span>类型</span></th>
 														<th><span>
@@ -185,13 +198,13 @@
 																	<li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
 																	{% end %}
 																</ul>
-					                                        </div>
+															</div>
 														</span></th>
 														<th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
-                                                        <th><span>发布时间</span></th>
+														<th><span>发布时间</span></th>
 														<th><span>更新时间</span></th>
 														<th><span>领取人</span></th>
-                                                        <th><span>领取时间</span></th>
+														<th><span>领取时间</span></th>
 														<th><span>完成时间</span></th>
 														<th><span>操作</span></th>
 													</tr>
@@ -203,42 +216,44 @@
 															<th><span><input type="checkbox" name="{{t['name']}}" value="" /></span></th>
 															<td>{{t['name']}}</td>
 															<td>{{task_types.get(task_type, {}).get('name','')}}</td>
-															<td>{{task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
-															<td>{{t.get(task_type, {}).get('priority','')}}</td>
-															<td>{{to_date_str(t.get(task_type, {}).get('publish_time'))}}</td>
-															<td>{{to_date_str(t.get(task_type, {}).get('last_updated_time'))}}</td>
-															<td>{{t.get(task_type, {}).get('picked_by','')}}</td>
-															<td>{{to_date_str(t.get(task_type, {}).get('picked_time'))}}</td>
-															<td>{{to_date_str(t.get(task_type, {}).get('finished_time'))}}</td>
+															<td>{{task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
+															<td>{{th.get_obj_property(t, task_type + '.priority') or ''}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
+															<td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
+															<td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
 															<td>
-																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}">查看</a>
-																{% if t.get(task_type, {}).get('status') not in [None, 'unready', 'ready'] %}
-																<a class="withdraw">撤回</a>
+																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
+																{% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
+																<a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
 																{% end %}
 															</td>
 														</tr>
 													{% end %}
 												{% else %}
 													{% for t in tasks %}
-														{% for k, st in t[task_type].items() %}
+														{% for k, st in t.get(task_type, {}).items() %}
+												      {% if isinstance(st, dict) %}
 															<tr id="{{t['name']+'-'+k}}">
 																<th><span><input type="checkbox" name="" value="" /></span></th>
 																<td>{{t['name']}}</td>
 																<td>{{task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
-																<td>{{task_statuses.get(st.get('status',''))}}</td>
-																<td>{{st.get('priority','')}}</td>
+																<td>{{task_statuses.get(st.get('status','') or '')}}</td>
+																<td>{{st.get('priority') or ''}}</td>
 																<td>{{to_date_str(st.get('publish_time'))}}</td>
 																<td>{{to_date_str(st.get('last_updated_time'))}}</td>
-																<td>{{st.get('picked_by','')}}</td>
+																<td>{{st.get('picked_by') or ''}}</td>
 																<td>{{to_date_str(st.get('picked_time'))}}</td>
 																<td>{{to_date_str(st.get('finished_time'))}}</td>
 																<td>
-																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}">查看</a>
+																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
 																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}
-																	<a class="withdraw">撤回</a>
+																	<a class="withdraw" onclick="revoke('{{task_type}}.{{k}}', '{{t['name']}}')">撤回</a>
 																	{% end %}
 																</td>
 															</tr>
+															{% end %}
 														{% end %}
 													{% end %}
 												{% end %}
@@ -265,26 +280,56 @@
 
 			// 勾选发布任务
 			$modal.on('shown.bs.modal', function () {
-				postApi('/pages/cut_start', {data: {task_type: '{{task_type}}' }}, function (res) {
-					pages = res;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-				});
+				var data = {task_type: '{{task_type}}' };
+				postApi('/task/pages/{{"text" if task_type.startswith("text_") else "cut"}}_start',
+					{data: data}, function (res) {
+						pages = res.data;
+						$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+							return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+						}).join('\n'));
+					});
 			});
 
 			$modal.find('.btn-primary').click(function () {
-				postApi('/task/publish/{{task_type}}', {
-					data: {
-						priority: $('.priority-list select').val(),
-						pages: pages.join(',')
+				var data = {
+					priority: $('.priority-list select').val(),
+					pages: pages.join(',')
+				};
+				var $subTasks = $('.sub-tasks input');
+
+				if ($subTasks.length) {
+					var sub_task_types = [], published = 0;
+					$subTasks.each(function (i, el) {
+						if ($(el).is(':checked')) {
+							sub_task_types.push($(el).attr('id').replace('task', ''));
+						}
+					});
+					if (sub_task_types.length < 1) {
+						return showError('未选择任务类型', '请勾选要发布的任务类型。')
 					}
-				}, function (res) {
-					showSuccess('已发布任务', res.length + ' 个页面已发布。');
-					setTimeout(function () {
-						location.reload();
-					}, 1000);
-				});
+					function publish() {
+						var sub_task_type = sub_task_types.shift();
+						if (sub_task_type) {
+							postApi('/task/publish/{{task_type}}.' + sub_task_type, {data: data}, function (res) {
+								published += (res.published || res.pending || []).length;
+								publish();
+							});
+						} else {
+							showSuccess('已发布任务', published + ' 个任务已发布。');
+							setTimeout(function () {
+								location.reload();
+							}, 1500);
+						}
+					}
+					publish();
+				} else {
+					postApi('/task/publish/{{task_type}}', {data: data}, function (res) {
+						showSuccess('已发布任务', (res.published || res.pending || []).length + ' 个页面已发布。');
+						setTimeout(function () {
+							location.reload();
+						}, 1000);
+					});
+				}
 
 			});
 
@@ -372,10 +417,10 @@
 			 * 撤销任务
 			 * @param {Object} name 任务的标记名
 			 */
-			function revoke(name) {
+			function revoke(task_type, name) {
 				swal({
-						title: "确定撤回" + name + "任务吗？",
-						text: "撤回后无法恢复！",
+						title: "确定撤回任务吗？",
+						text: "页面编码：" + name + "\n撤回后无法恢复！",
 						type: "warning",
 						showCancelButton: true,
 						confirmButtonColor: "#b8906f",
@@ -385,8 +430,8 @@
 					},
 					function() {
 						//此处调用后台删除逻辑(ajax)
-						getApi('/unlock/{{task_type}}/' + name, function (res) {
-							if (res.length) {
+						getApi('/task/unlock/' + task_type + '/' + name, function (res) {
+							if (res.data.length) {
 								window.location.reload();
 							}
 						});
@@ -402,11 +447,6 @@
 					}
 				);
 			}
-
-			$('.withdraw').click(function () {
-				var $tr = $(this).parent().parent();
-				revoke($tr.attr('id'));
-			});
 
 		</script>
 

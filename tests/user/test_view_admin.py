@@ -5,8 +5,8 @@
 """
 import re
 import tests.users as u
+from controller import views
 from tests.testcase import APITestCase
-from controller.user import views
 
 
 class TestUserAdminViews(APITestCase):
@@ -43,9 +43,13 @@ class TestUserAdminViews(APITestCase):
     def test_user_views(self):
         """URL的合法性"""
         for view in views:
-            if isinstance(view.URL, str) and '(' not in view.URL:  # URL不需要动态参数
+            pkg = re.sub(r'^.+controller\.', '', str(view)).split('.')[0]
+            if isinstance(view.URL, str) and '(' not in view.URL and '@' not in view.URL:  # URL不需要动态参数
                 r = self.parse_response(self.fetch(view.URL + '?_no_auth=1'))
-                self.assertTrue('currentUserId' in r, msg=view.URL + re.sub(r'(\n|\s)+', '', r)[:120])
+                self.assertTrue('currentUserId' in r, msg=view.URL + re.sub(r'(\n|\s)+', '', str(r))[:120])
+                if pkg != 'com':
+                    self.assertRegex(view.URL, r'^/%s(/|$)' % pkg, msg=view.URL)
             elif isinstance(view.URL, list):
-                for _view in view.URL:
-                    self._test_view(_view)
+                for _url in view.URL:
+                    if pkg != 'com':
+                        self.assertRegex(_url, r'^/%s(/|$)' % pkg, msg=_url)

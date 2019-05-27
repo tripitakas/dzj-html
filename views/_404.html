@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  {% include _base_meta.html %}
-
+  <meta charset="UTF-8">
   <title>{{site['name']}} - 404</title>
-
+  {% include _base_meta.html %}
   {% include _base_css.html %}
 </head>
 
@@ -45,39 +44,6 @@
     </div>
   </div>
 </div>
-
-
-<!-- Begin page -->
-<div id="wrapper">
-
-  <div class="content-page">
-    <!-- Start content -->
-    <div class="content">
-      <div class="container">
-
-        <div class="row">
-          <div class="col-md-12">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h3 class="panel-title">页面不存在</h3>
-              </div>
-              <div class="panel-body">
-                <div class="row" style="padding: 10px">
-                  <p>您要访问的页面不存在，请检查输入的地址是否有误。<br>{{request.uri}}</p>
-                  <p><a href="/" class="btn btn-default"><i class="glyphicon glyphicon-chevron-left"></i> 回到首页</a></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- container -->
-
-    </div>
-    <!-- content -->
-  </div>
-</div>
-<!-- END wrapper -->
 
 {% include _base_js.html %}
 

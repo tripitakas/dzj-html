@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8">
 		<title>人员管理-用户管理</title>
@@ -223,7 +223,8 @@
 						}, function (msg, code) {
 							showError('修改失败', msg);
 						});
-					});
+					}
+				);
 			}
 
 			/**
@@ -232,7 +233,6 @@
 			 */
 			function delete_user(user) {
 				user = decodeJSON(user);
-
 				swal({
 						title: "确定删除" + user.name + "用户吗？",
 						text: "删除后无法恢复！",
@@ -250,7 +250,8 @@
 						}, function (msg, code) {
 							showError('删除失败', msg);
 						});
-					});
+					}
+				);
 			}
 			
 		</script>

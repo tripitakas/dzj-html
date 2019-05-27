@@ -39,14 +39,14 @@ def load_json(filename):
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
-def scan_dir(src_path, kind, db, ret):
+def scan_dir(src_path, kind, db, ret, repeat=0):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
-            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret)
+            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret, repeat=repeat)
         elif kind and fn[:2] == kind:
             if fn.endswith('.json') and fn[:-5] not in ret:
                 info = load_json(filename)
@@ -55,11 +55,55 @@ def scan_dir(src_path, kind, db, ret):
                     if name != fn[:-5]:
                         sys.stderr.write('invalid imgname %s, %s\n' % (filename, kind))
                         continue
-                    add_page(name, info, db)
+                    if repeat > 1:
+                        add_repeat_pages(name, info, db, repeat)
+                    else:
+                        add_page(name, info, db)
                     ret.add(name)
 
 
-def add_page(name, info, db):
+def add_repeat_pages(name, info, db, repeat):
+    if not db.page.find_one(dict(name=name)):
+        start, length = 1, 5000
+        while start + length - 1 < repeat:
+            _add_range_pages(name, info, db, start, start + length - 1)
+            start += length
+        _add_range_pages(name, info, db, start, repeat)
+
+
+def _add_range_pages(name, info, db, start, end):
+    meta_list = []
+    for i in range(start, end + 1):
+        meta = dict(name='%s_%s' % (name, i),
+                    img_name=name,
+                    kind=name[:2],
+                    width=int(info['imgsize']['width']),
+                    height=int(info['imgsize']['height']),
+                    blocks=info.get('blocks', []),
+                    columns=info.get('columns', []),
+                    chars=info.get('chars', []),
+                    create_time=datetime.now())
+        # initialize task
+        meta.update({
+            'block_cut_proof': {'status': task.STATUS_READY},
+            'block_cut_review': {'status': task.STATUS_READY},
+            'column_cut_proof': {'status': task.STATUS_READY},
+            'column_cut_review': {'status': task.STATUS_READY},
+            'char_cut_proof': {'status': task.STATUS_READY},
+            'char_cut_review': {'status': task.STATUS_READY},
+        })
+        meta_list.append(meta)
+    db.page.insert_many(meta_list)
+
+    data['count'] += end - start + 1
+
+    print('%s[%d:%d]:\t\t%d x %d blocks=%d columns=%d chars=%d' % (
+        name, start, end, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']),
+        len(meta['chars']),
+    ))
+
+
+def add_page(name, info, db, img_name=None):
     if not db.page.find_one(dict(name=name)):
         meta = dict(name=name,
                     kind=name[:2],
@@ -68,8 +112,9 @@ def add_page(name, info, db):
                     blocks=info.get('blocks', []),
                     columns=info.get('columns', []),
                     chars=info.get('chars', []),
-                    txt='',
                     create_time=datetime.now())
+        if img_name:
+            meta['img_name'] = img_name
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},
@@ -95,10 +140,15 @@ def add_texts(src_path, pages, db):
         elif fn.endswith('.txt') and fn[:-4] in pages:
             with open_file(filename) as f:
                 txt = f.read().strip().replace('\n', '|')
-            r = db.page.find_one(dict(name=fn[:-4]))
-            if r and not r.get('txt'):
+            cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
+            r = list(db.page.find(cond))
+            if r and not r[0].get('text'):
                 meta = {
-                    'txt': txt,
+                    'txt': txt,  # 本应为 text.ocr，先兼容此字段
+                    'text': {
+                        'proof': {'1': '', '2': '', '3': ''},
+                        'review': ''
+                    },
                     'text_proof': {
                         '1': {'status': task.STATUS_READY},
                         '2': {'status': task.STATUS_READY},
@@ -106,7 +156,7 @@ def add_texts(src_path, pages, db):
                     },
                     'text_review': {'status': task.STATUS_READY},
                 }
-                db.page.update_one(dict(name=fn[:-4]), {'$set': meta})
+                db.page.update_many(cond, {'$set': meta})
 
 
 def copy_img_files(src_path, pages):
@@ -125,7 +175,8 @@ def copy_img_files(src_path, pages):
                 shutil.copy(filename, dst_file)
 
 
-def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost', reset=False):
+def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
+         reset=False, repeat=0):
     if not json_path:
         txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient(uri)
@@ -133,7 +184,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     if reset:
         db.page.drop()
     pages = set()
-    scan_dir(json_path, kind, db, pages)
+    scan_dir(json_path, kind, db, pages, repeat=repeat)
     copy_img_files(img_path, pages)
     add_texts(txt_path, pages, db)
     return data['count']

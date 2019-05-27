@@ -26,17 +26,18 @@ function showSuccess(title, text, timer) {
  * @param type POST 或 GET
  * @param data 数据对象
  * @param success_callback 成功回调函数，参数为 data 对象或数组
- * @param error_callback 失败回调函数，参数为 msg、code、errors可选对象
+ * @param error_callback 失败回调函数，参数为 data 对象或数组
  */
 function ajaxApi(url, type, data, success_callback, error_callback) {
-  error_callback = error_callback || window.swal && function (msg) {
-        showError('操作失败', msg);
+  error_callback = error_callback || window.swal && function (obj) {
+        showError('操作失败', data.message || obj.message || '');
       } || console.log.bind(console);
 
   if (data && typeof data.data === 'object') {
     data.data = JSON.stringify(data.data);
   }
   data = data || {};
+
   $.ajax({
     url: '/api' + url,
     data: $.param(data),
@@ -48,31 +49,21 @@ function ajaxApi(url, type, data, success_callback, error_callback) {
     crossDomain: true,
     cache: false,
     success: function (data) {
-      if (data.error) {
-        if (Array.isArray(data.error)) {  // 单一错误
-          error_callback(data.error[1], data.error[0]);
-        }
-        else if (typeof data.error === 'object') {  // 多个错误
-          var name = Object.keys(data.error)[0];
-          error_callback(data.error[name][1], data.error[name][0], data.error);
-        } else {
-          error_callback(data.error, data.code);
-        }
+      if (data.status === 'failed') {
+        error_callback && error_callback(data);
       }
-      else if (success_callback) {
-        success_callback(data.data || data);
+      else {
+        $.extend(data, data.data && typeof data.data === 'object' && !Array.isArray(data.data) ? data.data : {});
+        success_callback && success_callback(data);
       }
     },
     error: function (xhr) {
       var code = xhr.status || xhr.code || 500;
-
       if (code >= 200 && code <= 299) {
-        if (success_callback) {
-          success_callback({});
-        }
+        success_callback && success_callback({});
       }
       else if (!window.unloading) {
-        error_callback('网络访问失败，不能访问后台服务(' + code + ')', code);
+        error_callback({code: code, message: '网络访问失败，不能访问后台服务(' + code + ')'});
       }
     }
   });

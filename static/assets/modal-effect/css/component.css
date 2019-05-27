@@ -67,7 +67,7 @@ perspective effects (not including the modals and the overlay).
 	color: #5b5b5b;
 	/*background: #fff;*/
 	position: relative;
-	border-radius: 0px;
+	border-radius: 0;
 	margin: 0 auto;
 	font-family: 'Nunito', sans-serif !important;
 	width: 470px;

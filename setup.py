@@ -4,10 +4,11 @@
 from setuptools import setup, find_packages
 import controller.app as meta
 
+site = meta.Application([]).config['site']
 setup(name='tripitaka',
       version=meta.__version__,
-      description='如是我闻古籍数字化平台',
-      keywords="大藏经,古籍数字化,tripitaka",
+      description=site['name'],
+      keywords=site['keywords'],
       platforms='any',
       packages=find_packages() + ['controller'],
       package_data={

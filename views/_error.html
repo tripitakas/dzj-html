@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  {% include _base_meta.html %}
-
+  <meta charset="UTF-8">
   <title>{{site['name']}} - 访问出错</title>
-
+  {% include _base_meta.html %}
   {% include _base_css.html %}
 </head>
 
@@ -30,8 +29,13 @@
                     </h3>
                   </div>
                   <div class="panel-body" style="padding: 10px">
-                      <p>{{error}}</p>
+                      <p>{{message}}</p>
                       <p style="margin-top: 10px">
+                        {% if 'links' in globals() %}
+                        {% for text, url in links %}
+                        <a href="{{url}}" class="btn btn-primary">{{text}}</a>
+                        {% end %}
+                        {% end %}
                         <a href="javascript:history.back(-1)" class="btn btn-default">
                           <i class="glyphicon glyphicon-chevron-left"></i> 返回前页</a>
                         <a href="/" class="btn btn-default"><i class="glyphicon glyphicon-home"></i> 回到首页</a>

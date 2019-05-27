@@ -13,20 +13,19 @@ import re
 url_placeholder = {
     'task_type': r'[a-z0-9_.]+',
     'task_id': r'[A-Za-z0-9_]+',  # 对应page表的name字段
-    'box-type': 'block|column|char',
+    'box_type': 'block|column|char',
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
-    'tripitaka_id': r'[a-z]{2,}'
+    'tripitaka_id': r'[a-z]{3,}'
 }
 
 role_maps = {
     '单元测试用户': {
         'routes': {
-            '/api/@task_type/@task_id': ['GET'],
-            '/api/page/@task_id': ['GET'],
-            '/api/pages/@page_kind': ['GET', 'POST'],
-            '/api/unlock/@task_type/@page_prefix': ['GET'],
+            '/api/task/page/@task_id': ['GET'],
+            '/api/task/pages/@page_kind': ['GET', 'POST'],
+            '/api/task/unlock/@task_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
     },
@@ -41,6 +40,7 @@ role_maps = {
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
             '/api/user/upload_img':['POST'],
+            '/task/do/char_order_proof/@task_id': ['GET'],  # 实现后再移到切字校对员里
         }
     },
     '普通用户': {
@@ -48,118 +48,132 @@ role_maps = {
         'routes': {
             '/': ['GET'],
             '/home': ['GET'],
-            '/my/profile': ['GET'],
-            '/api/my/profile': ['POST'],
-            '/api/my/pwd': ['POST'],
-            '/api/page/@task_id': ['GET'],
+            '/help': ['GET'],
+            '/user/my/profile': ['GET'],
+            '/api/user/my/profile': ['POST'],
+            '/api/user/my/pwd': ['POST'],
+            '/api/task/page/@task_id': ['GET'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
+            '/api/task/unlock/@task_type/@page_prefix': ['POST'],
         }
     },
     '切栏校对员': {
-        'is_assignable': 'block_cut_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
             '/task/my/block_cut_proof': ['GET'],
             '/task/do/block_cut_proof/@task_id': ['GET', 'POST'],
-            '/api/pick/block_cut_proof/@task_id': ['GET'],
-            '/api/save/block_cut_proof': ['POST'],
+            '/api/task/pick/block_cut_proof/@task_id': ['GET'],
+            '/api/task/save/block_cut_proof': ['POST'],
         }
     },
     '切栏审定员': {
-        'is_assignable': 'block_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/task/my/block_cut_review': ['GET'],
             '/task/do/block_cut_review/@task_id': ['GET', 'POST'],
-            '/api/pick/block_cut_review/@task_id': ['GET'],
-            '/api/save/block_cut_review': ['POST'],
+            '/api/task/pick/block_cut_review/@task_id': ['GET'],
+            '/api/task/save/block_cut_review': ['POST'],
         }
     },
     '切列校对员': {
-        'is_assignable': 'column_cut_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
             '/task/my/column_cut_proof': ['GET'],
             '/task/do/column_cut_proof/@task_id': ['GET', 'POST'],
-            '/api/pick/column_cut_proof/@task_id': ['GET'],
-            '/api/save/column_cut_proof': ['POST'],
+            '/api/task/pick/column_cut_proof/@task_id': ['GET'],
+            '/api/task/save/column_cut_proof': ['POST'],
         }
     },
     '切列审定员': {
-        'is_assignable': 'column_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
             '/task/my/column_cut_review': ['GET'],
             '/task/do/column_cut_review/@task_id': ['GET', 'POST'],
-            '/api/pick/column_cut_review/@task_id': ['GET'],
-            '/api/save/column_cut_review': ['POST'],
+            '/api/task/pick/column_cut_review/@task_id': ['GET'],
+            '/api/task/save/column_cut_review': ['POST'],
         }
     },
     '切字校对员': {
         'is_assignable': 'char_cut_proof',
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
             '/task/my/char_cut_proof': ['GET'],
             '/task/do/char_cut_proof/@task_id': ['GET', 'POST'],
-            '/api/pick/char_cut_proof/@task_id': ['GET'],
-            '/api/save/char_cut_proof': ['POST'],
+            '/api/task/pick/char_cut_proof/@task_id': ['GET'],
+            '/api/task/save/char_cut_proof': ['POST'],
         }
     },
     '切字审定员': {
-        'is_assignable': 'char_cut_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/task/my/char_cut_review': ['GET'],
             '/task/do/char_cut_review/@task_id': ['GET', 'POST'],
-            '/api/pick/char_cut_review/@task_id': ['GET'],
-            '/api/save/char_cut_review': ['POST'],
+            '/api/task/pick/char_cut_review/@task_id': ['GET'],
+            '/api/task/save/char_cut_review': ['POST'],
         }
     },
     '切分专家': {
         'is_assignable': True,
-        'roles': ['切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
+        'roles': ['普通用户', '切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
     },
     '文字校对员': {
-        'is_assignable': 'text_proof',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/api/pick/text_proof/@task_id': ['GET'],
+            '/api/task/pick/text_proof(\.[123])?/@task_id': ['GET'],
+            '/api/task/save/text_proof/@num': ['POST'],
         }
     },
     '文字审定员': {
-        'is_assignable': 'text_review',
+        'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/task/my/text_review': ['GET'],
-            '/task/do/text_review/@num/@task_id': ['GET', 'POST'],
-            '/api/pick/text_review/@task_id': ['GET'],
+            '/task/do/text_review/@task_id': ['GET', 'POST'],
+            '/api/task/pick/text_review/@task_id': ['GET'],
+            '/api/task/save/text_review': ['POST'],
         }
     },
     '文字专家': {
-        'is_assignable': 'text_hard',
-        'roles': ['文字校对员', '文字审定员'],
+        'is_assignable': True,
+        'roles': ['普通用户', '文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
         }
     },
     '任务管理员': {
         'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
             '/api/start/@page_prefix': ['POST'],
-            '/api/pages/@page_kind': ['GET', 'POST'],
+            '/api/task/pages/@page_kind': ['GET', 'POST'],
             '/api/task/publish/@task_type': ['POST'],
-            '/api/unlock/@task_type/@page_prefix': ['GET'],
+            '/api/task/unlock/@task_type/@page_prefix': ['GET'],
         }
     },
     '数据管理员': {
         'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/data/tripitaka': ['GET'],
             '/data/envelop': ['GET'],
@@ -185,9 +199,6 @@ role_maps = {
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
-assignable_do_roles = [v['is_assignable'] for role, v in role_maps.items()
-                       if isinstance(v.get('is_assignable'), str)]
-
 
 def get_role_routes(role, routes=None):
     """
@@ -213,11 +224,13 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
+    for holder, regex in url_placeholder.items():
+        path = path.replace('@' + holder, '(%s)' % regex)
     route_accessible = get_role_routes(role)
     for _path, _method in route_accessible.items():
         for holder, regex in url_placeholder.items():
-            _path = _path.replace('@' + holder, regex)
-        if re.match('^%s$' % _path, path) and method in _method:
+            _path = _path.replace('@' + holder, '(%s)' % regex)
+        if (path == _path or re.match('^%s$' % _path, path) or re.match('^%s$' % path, _path)) and method in _method:
             return True
     return False
 
@@ -229,17 +242,3 @@ def get_route_roles(uri, method):
             roles.append(role)
     return roles
 
-
-if __name__ == '__main__':
-    # TODO: 这段测试可移到单元测试中，校验 role_maps
-    print(assignable_roles)
-
-    if can_access('切分专家', '/task/do/block_cut_proof/GL_1_1_1', 'GET'):
-        print('can access')
-    else:
-        print('can not access')
-
-    print(get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'))
-
-    for k, v in get_role_routes('切分专家, 数据管理员').items():
-        print(k, v)

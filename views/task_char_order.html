@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>字序校对</title>
+  {% include _base_meta.html %}
+
+  <!-- Plugins css -->
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
+  <style>
+    #info {
+      position: fixed;
+      bottom: 20px;
+      right: 50px;
+      padding: 8px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      opacity: .6;
+    }
+    #info > span + span {
+      margin-left: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-main">
+    <div class="single-page-con enlarge">
+      <div class="layout">
+        <div class="layout-content">
+          <!-- 中间内容 -->
+          <!--<div class="single-page-con">-->
+          <div class="layout">
+            <div class="layout-content">
+              <div class="tripitaka-volume">
+                <div class="wrapper">
+                  <div class="main-volume">
+                    <div class="volume-right">
+                      <!--根据接口返回数据情况--右侧没有文本数据时-->
+                      <div class="full">
+                        <div class="full-hd clearfix">
+                          <div class="left fl">
+                            <span class="slice_title">
+                              <a onclick="leave('{{from_url}}')">返回</a>
+                            </span>
+                            <span class="slice_info">页编码：{{page['name']}}</span>
+                            <div class="slice_btn_group">
+                              <div class="btn-group m-b-10">
+                              </div>
+                              <div class="btn-group m-b-10">
+                                <button type="button" class="btn btn-default" id="undo" title="撤销"><i class="md md-undo"></i></button>
+                                <button type="button" class="btn btn-default" id="redo" title="重做"><i class="md md-redo"></i></button>
+                              </div>
+                            </div>
+
+                            {% if not readonly %}
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-warning waves-effect waves-light m-b-5" id="save">保存</button>
+                              <button type="button" class="btn btn-warning waves-effect waves-light dropdown-toggle"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                              </button>
+                              <ul class="dropdown-menu">
+                                <li><a id="submit">提交任务</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a id="order-mode">字序校对</a></li>
+                                <li><a id="box-mode">字框校对</a></li>
+                              </ul>
+                            </div>
+                            {% end %}
+                          </div>
+                          <div class="right fr">
+                          </div>
+                        </div>
+                        <div class="full-bd">
+                          <!-- holder为显示切分框和页面图的画布容器 -->
+                          <div id="holder"></div>
+                          <div id="info">
+                            <span class="col-info"></span>
+                            <span class="char-info"></span>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <!--</div>-->
+          <!-- ./中间内容 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include _base_js.html %}
+  <script src="{{ static_url('js/cut/raphael.js') }}"></script>
+  <script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
+  <script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
+  <script src="{{ static_url('js/cut/cut.js') }}"></script>
+  <script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+  <script src="{{ static_url('js/cut/char_order.js') }}"></script>
+
+  <script>
+    $.cut.create({
+      readonly: true,
+      name: '{{name}}_order',
+      width: {{page['width']}},
+      height: {{page['height']}},
+      holder: 'holder',
+      scrollContainer: '.full-bd',
+      image: "{{get_img(page.get('img_name', name))}}",
+      chars: '{{page["chars"]}}'
+    });
+
+    $.cut.bindKeys();
+    $.cut.addCharOrderLinks();
+
+    function updateUndo() {
+      $('#undo').toggleClass('disabled', !$.cut.canUndo());
+      $('#redo').toggleClass('disabled', !$.cut.canRedo());
+    }
+    $('#undo').click(function () {
+      $.cut.undo();
+      updateUndo();
+    });
+    $('#redo').click(function () {
+      $.cut.redo();
+      updateUndo();
+    });
+    updateUndo();
+
+    window.leave = function (url) {
+      postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
+        window.location = url;
+      });
+    };
+
+    function save(submit) {
+      postApi('/task/save/{{task_type}}', {data: {
+        submit: submit,
+        name: '{{name}}',
+        from_url: '{{from_url}}',
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
+      }}, function (res) {
+        showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
+             (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
+        if (res.jump) {
+          setTimeout(function () {
+            window.location = res.jump;
+          }, 1000);
+        }
+      });
+    }
+    $('#save').click(save.bind(null, false));
+    $('#submit').click(save.bind(null, true));
+  </script>
+
+</body>
+</html>

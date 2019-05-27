@@ -43,6 +43,10 @@ class APITestCase(AsyncHTTPTestCase):
             body = json_util.loads(body)
             if 'data' in body and isinstance(body['data'], dict):  # 将data的内容赋给body，以便测试使用
                 body.update(body['data'])
+            elif 'error' in body and isinstance(body['error'], dict):
+                body.update(body['error'])
+        if response.code != 200 and 'code' not in body:
+            body = dict(code=response.code, message=response.reason)
         return body
 
     def get_code(self, response):
@@ -64,8 +68,6 @@ class APITestCase(AsyncHTTPTestCase):
 
     def fetch(self, url, **kwargs):
         if isinstance(kwargs.get('body'), dict):
-            if isinstance(kwargs['body'].get('data'), dict):
-                kwargs['body']['data'] = json_util.dumps(kwargs['body']['data'])
             kwargs['body'] = json_util.dumps(kwargs['body'])
             kwargs['method'] = kwargs.get('method', 'POST')
 
@@ -107,17 +109,20 @@ class APITestCase(AsyncHTTPTestCase):
         return r
 
     def add_users_by_admin(self, users, roles=None):
-        """ 清空user数据库，新建管理员，然后新增users所代表的用户并以管理员身份授予权限。"""
-        admin_user = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
+        """ 以管理员身份新增users所代表的用户并授予权限，完成后当前用户为管理员 """
+        self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         for u in users:
-            r = self.parse_response(self.register_and_login(u))
-            u['_id'] = r.get('_id')
+            r = self.register_and_login(u)
+            self.assert_code(200, r)
+            data = self.parse_response(r)
+            u['_id'] = data.get('_id')
         self.assert_code(200, self.login_as_admin())
-        for u in users:
-            if roles:
-                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u.get('roles', roles))})
+        if roles:
+            for u in users:
+                u['roles'] = u.get('roles', roles)
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
                 self.assert_code(200, r)
-        return self.parse_response(admin_user)
+        return users
 
     def login_as_admin(self):
         return self.login(admin[0], admin[1])

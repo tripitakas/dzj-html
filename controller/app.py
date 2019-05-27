@@ -19,7 +19,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.role import url_placeholder
 
-__version__ = '0.0.6.90307'
+__version__ = '0.0.8.90527'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -30,12 +30,14 @@ define('port', default=8000, help='run port', type=int)
 class Application(web.Application):
     def __init__(self, handlers, **settings):
         self._db = self.config = self.site = None
-        self.channels = {}
         self.load_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
         if not path.exists(self.IMAGE_PATH):
-            os.mkdir(self.IMAGE_PATH)
+            try:
+                os.mkdir(self.IMAGE_PATH)
+            except OSError:
+                pass
 
         self.version = __version__
         self.BASE_DIR = BASE_DIR

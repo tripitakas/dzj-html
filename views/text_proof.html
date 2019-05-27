@@ -1,164 +1,363 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<title>文字校对</title>
-    {% include _base_meta.html %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{stage[1]}}</title>
+  {% include _base_meta.html %}
 
-		<!-- Plugins css -->
-		<link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <!-- Plugins css -->
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
 
-		<!-- Custom Files -->
-		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
 
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-        <![endif]-->
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
 
-		{% include _base_css.html %}
+  {% include _base_css.html %}
+  {% include _font.html %}
+  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
-	</head>
-	<style>
+</head>
+<style>
+  .left {
+    width: 55%;
+    max-height: 900px;
+    overflow: auto;
+  }
+  .right {
+    width: 45%;
+  }
+  .m-header {
+    position: fixed;
+    z-index: 1000;
+  }
+  .flex-content {
+    padding-top: 40px;
+  }
+  .char-list-tab {
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid #ccc;
+  }
+  .char-list-tab > div {
+    display: inline-block;
+  }
+  .char-list-tab-item {
+    font-size: 1.2em;
+  }
+</style>
 
-	</style>
+<body>
+<div class="app-main">
+  <div class="main pfread">
 
-	<body>
-		<div class="app-main">
-			<div class="main">
+    <div class="main-content hd">
 
-				<div class="main-content">
+      <header class="m-header">
+        <div><a onclick="leave('{{from_url}}')" title="{{home_title}}">
+          <img src="{{ static_url('imgs/%s.png' % ('icon_back' if '返回' in home_title else 'frame/icon_task_lobby')) }}"
+               class="m-header-img"/></a></div>
 
-					<header class="m-header">
-						<div><a href="/home"><img src="{{ static_url('imgs/icon_back.png') }}" class="m-header-img" /></a></div>
+        <div class="m-header-title" title="页面编码：{{name}}">{{stage[1]}}</div>
+        <div class="m-header-edit-btn">
+          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
+          <!--<img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>-->
+          <!--<img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>-->
+          <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="修改切分框"/>
+        </div>
+        <div class="btn-group ed-box-group hidden" role="group" aria-label="修改切分框" style="margin-top: 5px">
+          {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框')] %}
+          <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
+          {% end %}
+        </div>
+        <div class="m-header-right">
+          <div class="m-header-txt">
+            <div class="m-header-font">
+              <div class="m-header-font-reduce"><a title="缩小字号">A-</a></div>
+              <div class="m-header-font-current">20</div>
+              <div class="m-header-font-enlarge"><a title="增加字号">A+</a></div>
+            </div>
+          </div>
+          <div class="m-header-edit-btn">
+            <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>-->
+            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
+            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
+            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
+            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
+            <!--<img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>-->
+            <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-help" title="帮助"/>
+            {% if not readonly %}
+            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存" style="margin-left: 20px"/>
+            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
+            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
+            {% end %}
+          </div>
+        </div>
+      </header>
+      <div class="flex-content">
 
-						<div class="m-header-title">文字校对</div>
-                        <div class="m-header-edit-btn">
-                            <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img"/>
-                            <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img"/>
-                        </div>
-                        <div class="m-header-right">
-                            <div class="m-header-txt">
-                                <div class="m-header-font">
-                                    <div class="m-header-font-reduce"><a href="" >A-</a></div>
-                                    <div class="m-header-font-current">20</div>
-                                    <div class="m-header-font-enlarge"><a href="" >A+</a></div>
-                                </div>
-                            </div>
-                            <div class="m-header-edit-btn">
-                                <img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img"/>
-                                <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img"/>
-                            </div>
-                        </div>
+        <div class="main-right left" id="canvas-bd">
+          <div id="holder"></div>
+        </div>
+        <div class="main-right-content right">
+            <div class="sutra-text" id="sutra-text"></div>
+            <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
+              <div class="dlg-before"></div>
+              <dl class="item">
+                <dt>OCR</dt>
+                <dd class="text" id="pfread-dialog-ocr">&nbsp;</dd>
+              </dl>
+              <dl class="item">
+                <dt>比对本</dt>
+                <dd class="text" id="pfread-dialog-cmp">&nbsp;</dd>
+              </dl>
+              <dl class="item">
+                <dt>选择结果</dt>
+                <dd class="text"><span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span></dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
+            <div class="char-list">
+              <div class="char-list-tab">
+                <div class="char-list-tab-item active">存疑列表</div>
+                <div class="char-list-tab-arrow" id="table_toggle_btn">
+                  <img src="{{ static_url('imgs/up_arrow.png') }}">
+                  <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
+                </div>
+              </div>
+              <table class="char-list-table">
+                <tr>
+                  <td>行号</td>
+                  <td>存疑文本</td>
+                  <td>存疑理由</td>
+                  <td>操作</td>
+                </tr>
+                <tr class="tr-odd">
+                  <td>1</td>
+                  <td>鍀</td>
+                  <td>存疑理由</td>
+                  <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>鍀</td>
+                  <td>存疑理由</td>
+                  <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                </tr>
+                <tr class="tr-odd">
+                  <td>3</td>
+                  <td>鍀</td>
+                  <td>存疑理由</td>
+                  <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                </tr>
+                <tr>
+                  <td>4</td>
+                  <td>鍀</td>
+                  <td>存疑理由</td>
+                  <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  <!-- modal content -->
+  <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: blue">×</button>
+          <h4 class="modal-title" id="txtModalLabel">原文
+            <button class="btn btn-default" style="margin-left: 10px" id="save-txt">保存</button>
+          </h4>
+        </div>
+        <div class="modal-body">
+          <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">
+            {{'\n'.join(origin_txt)}}
+          </textarea>
+          <p><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script src="{{ static_url('js/cut/raphael.js') }}"></script>
+<script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
+<script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
+<script src="{{ static_url('js/cut/cut.js') }}"></script>
+<script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+<script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
+<script src="{{ static_url('js/proofread.js') }}"></script>
+
+<!-- CUSTOM JS -->
+<script type="text/javascript">
+  $('#table_toggle_btn').click(function () {
+    $(this).toggleClass('active');
+    $('.char-list-table').toggleClass('hidden');
+    $(this).find('img').toggle();
+  });
+
+  // 显示左边页面图和字框
+
+  var char_data = decodeJSON('{{page["chars"]}}');
+  var cmp_data = decodeJSON('{{cmp_data}}');
+  var columns = decodeJSON('{{page["columns"]}}');
+  var blocks = decodeJSON('{{page["blocks"]}}');
+
+  function createPage() {
+    $.cut.create({
+      readonly: true,
+      scrollContainer: '#canvas-bd',
+      name: '{{name}}',
+      width: {{page['width']}},
+      height: {{page['height']}},
+      holder: 'holder',
+      scrollContainer: '#canvas-bd',
+      image: '{{get_img(name)}}',
+      chars: char_data
+    });
+    $.cut.bindMatchingKeys();
+    $.cut.toggleBox(false);
+    $.cut.switchCurrentBox(null);
+  }
+  createPage();
+
+  // 文本区的字号调整
+
+  $('.m-header-font-reduce').click(function () {
+    var $div = $('.right .sutra-text');
+    var size = parseInt($div.css('font-size'));
+    if (size > 8) {
+      size--;
+      $('.m-header-font-current').text(size);
+      $div.css('font-size', size + 'px');
+    }
+  });
+  $('.m-header-font-enlarge').click(function () {
+    var $div = $('.right .sutra-text');
+    var size = parseInt($div.css('font-size'));
+    if (size < 36) {
+      size++;
+      $('.m-header-font-current').text(size);
+      $div.css('font-size', size + 'px');
+    }
+  });
+
+  $('.btn-ed-box').click(function () {
+    $('.ed-box-group').toggleClass('hidden');
+    {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
+      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
+      $('{{cls}}').unbind('click').click(function () {
+        if (!$(this).hasClass('disabled')) {
+          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
+        }
+      });
+    {% end %}
+  });
+
+  // 回退任务
+  $('.btn-return-back').click(function () {
+    postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
+      if (res.data.length === 1 && res.data[0] === '{{name}}') {
+        window.location = '/task/lobby/text_proof';
+      }
+    });
+  });
+
+  window.leave = function (url) {
+    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
+      window.location = url;
+    });
+  };
+
+  // 保存和提交
+
+  function save_(data, onSuccess) {
+    postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
+      showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
+           (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
+      if (res.jump) {
+        setTimeout(function () {
+          window.location = res.jump;
+        }, 1000);
+      }
+      if (onSuccess) {
+        onSuccess(res);
+      }
+    });
+  }
+
+  function save(submit) {
+    var txt = $('#sutra-text').find('.block').map(function (i, block) {
+      return $(block).find('.line:not(.delete)').map(function (line, el) {
+        return $(el).text();
+      }).get().join('\n');
+    }).get().join('\n\n\n');
+
+    save_({
+      submit: submit,
+      name: '{{name}}',
+      from_url: '{{from_url}}',
+      txt: JSON.stringify(txt),
+      chars: JSON.stringify($.cut.exportBoxes())
+    });
+  }
+  $('.btn-save').click(save.bind(null, false));
+  $('.btn-submit').click(save.bind(null, true));
+
+  // 原文等对话框允许拖动
+  $('.modal-header').on('mousedown', function (mousedownEvt) {
+    var $draggable = $(this);
+    var x = mousedownEvt.pageX - $draggable.offset().left,
+        y = mousedownEvt.pageY - $draggable.offset().top;
+    $('body').on('mousemove.draggable', function (mousemoveEvt) {
+      $draggable.closest('.modal-dialog').offset({
+        left: mousemoveEvt.pageX - x,
+        top: mousemoveEvt.pageY - y
+      });
+    });
+    $('body').one('mouseup', function () {
+      $('body').off('mousemove.draggable');
+    });
+    $draggable.closest('.modal').one('bs.modal.hide', function () {
+      $('body').off('mousemove.draggable');
+    });
+  });
+
+  // 原文的保存
+  $('#save-txt').click(function () {
+    var txt = $('#txtModal .modal-body > textarea').val().replace(/-/g, '');
+    save_({
+      name: '{{name}}',
+      txt: JSON.stringify(txt)
+    }, function (res) {
+      if (res.changed) {
+        window.location.reload();
+      } else {
+        setTimeout(function () {
+          $('#txtModal [data-dismiss]').click();
+        }, 1000);
+      }
+    });
+  });
+</script>
 
 
-					</header>
-					<div class="flex-content">
-
-                        <div class="main-right m-l-14">
-                            <div class="main-right-img flex-1">
-                                <img src="{{ static_url('imgs/examImg1.png') }}">
-                            </div>
-                            <div class="main-right-content w-500px">
-                                <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
-                                <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
-                                <p>壽八萬四千歲從惡念遮迦越殺一</p>
-                                <p>牛祠祀害命失金輪得銀輪主三天</p>
-                                <p>下壽萬歲堅念王作鎧壽五千歲得</p>
-                                <p>銅輪主二天下主西南喜殺王壽二</p>
-                                <p>千五百歲得鐵輪王主南天下其王有</p>
-                                <p>太子行五百歲得惡殺一減壽千歲</p>
-                                <p>古人有九病寒熱飢渴生老病死婆</p>
-                                <p>羅門殺生祠祀從是生四百四病從</p>
-                                <p>師子念王人壽轉減壽百二十歲從師</p>
-                                <p>子念王後師子意王有八十四王人壽</p>
-                                <p>轉減或壽八十七十五十三十二十</p>
-                                <p>十歲者於後師子合車王師子合車王卽師子</p>
-                                <p>頰王也子名白淨是菩薩父計菩薩身</p>
-                                <p>終始幷前後八萬四千遮迦越王</p>
-                                <p>遮迦越齊言飛行皇帝卽轉輪王也</p>
-                                <p>長阿含及曇無德律序轉輪世數甚</p>
-                                <p>明已顯於前此記抄撮難尋若依全</p>
-                                <p>經宜以阿含爲正大瞿曇氏純淑之姓</p>
-                                <p>大方便經云白淨劫初以來嫡嫡相</p>
-                                <p>承作轉輪王近來三世不作轉輪而</p>
-                                <p>作閻浮提王</p>
-                                <p>祐觀十二遊經不稱我聞復無佛言蓋</p>
-                                <div class="char-list">
-                                    <div class="char-list-tab">
-                                        <div class="char-list-tab-item active">存疑列表</div>
-                                        <div class="char-list-tab-arrow" id="table_toggle_btn"><img src="{{ static_url('imgs/up_arrow.png') }}"> </div>
-                                    </div>
-                                    <table class="char-list-table">
-                                        <tr>
-                                            <td>行号</td>
-                                            <td>存疑文本</td>
-                                            <td>存疑理由</td>
-                                            <td>操作</td>
-                                        </tr>
-                                        <tr class="tr-odd">
-                                            <td>1</td>
-                                            <td>鍀</td>
-                                            <td>存疑理由</td>
-                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>鍀</td>
-                                            <td>存疑理由</td>
-                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                                        </tr>
-                                        <tr class="tr-odd">
-                                            <td>3</td>
-                                            <td>鍀</td>
-                                            <td>存疑理由</td>
-                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>4</td>
-                                            <td>鍀</td>
-                                            <td>存疑理由</td>
-                                            <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-				</div>
-			</div>
-		</div>
-
-
-
-
-
-		{% include _base_js.html %}
-
-		<!-- CUSTOM JS -->
-		<script type="text/javascript">
-            $('#table_toggle_btn').click(function(){
-                $(this).toggleClass('active');
-                $('.char-list-table').toggleClass('hidden');
-            });
-		</script>
-
-
-	</body>
+</body>
 
 </html>

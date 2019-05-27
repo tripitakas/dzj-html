@@ -56,6 +56,9 @@ python3 run_tests.py 或选中测试用例文件调试
 
 使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径。
 
+如果需要单独多次调试某个用例，可将 `run_tests.py` 中的 `test_args += ['-k test_` 行注释去掉，
+改为相应的测试用例名，在用例或API响应类中设置断点调试。
+
 ## 参考资料
 
 - [Bootstrap 3 中文文档](https://v3.bootcss.com)
@@ -65,5 +68,6 @@ python3 run_tests.py 或选中测试用例文件调试
 - [MongoDB 数据库开发](http://demo.pythoner.com/itt2zh/ch4.html)
 - [MongoDB 官方文档](http://api.mongodb.com/python/current/index.html)
 - [MongoDB 查询操作符](https://docs.mongodb.com/manual/reference/operator/query/)
+- [Raphael 图形库文档](http://dmitrybaranovskiy.github.io/raphael/reference.html)
 
 [templates]: https://tornado-zh.readthedocs.io/zh/latest/guide/templates.html

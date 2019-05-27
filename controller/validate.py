@@ -90,7 +90,7 @@ def is_name(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
-    if v and not re.match(regex, v): # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, v):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_name}
 
 
@@ -99,7 +99,7 @@ def is_phone(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^1[34578]\d{9}$'
-    if v and not re.match(regex, str(v)): # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone}
 
 
@@ -113,12 +113,12 @@ def is_email(**kw):
 
 
 def is_phone_or_email(**kw):
-    """ 检查是否为邮箱。"""
+    """ 检查是否为手机或邮箱。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     phone_regex = r'^1[34578]\d{9}$'
-    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):   # 值为空或空串时跳过而不检查
+    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_phone_or_email}
 
 
@@ -127,7 +127,7 @@ def is_password(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
-    if v and not re.match(regex, str(v)):   # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
         return {k: e.invalid_password}
 
 
@@ -167,22 +167,3 @@ def is_unique(collection=None, **kw):
             if v is not None and collection.find({k: v}).count() > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
-
-
-if __name__ == '__main__':
-    # TODO: 这段测试可移到单元测试中
-    data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '', 'age': 8}
-    rules = [
-        (allowed_keys, 'name', 'phone', 'email', 'password'),
-        (not_empty, 'name', 'password'),
-        (not_both_empty, 'phone', 'email'),
-        (is_name, 'name'),
-        (is_phone, 'phone'),
-        (is_email, 'email'),
-        (is_password, 'password'),
-        (between, 'age', 10, 100),
-    ]
-
-    errs = validate(data, rules)
-    for k, v in errs.items():
-        print(k, v)
