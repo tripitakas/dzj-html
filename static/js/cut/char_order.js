@@ -19,8 +19,12 @@
   };
   var getDistance = $.cut.getDistance;
 
+  function round(num) {
+    return Math.round(num * 100) / 100;
+  }
+
   function buildArrayLink(fromPt, toPt, tol, c1, c2, colId, color) {
-    var link = data.paper.path('M' + fromPt.x + ',' + fromPt.y + 'L' + toPt.x + ',' + toPt.y)
+    var link = data.paper.path('M' + round(fromPt.x) + ',' + round(fromPt.y) + 'L' + round(toPt.x) + ',' + round(toPt.y))
         .initZoom().setAttr({
           stroke: color,
           'stroke-opacity': 0.9,
@@ -41,7 +45,7 @@
   }
 
   function getCenter(char) {
-    return $.cut.getHandle(char.shape, 8);
+    return $.cut.getHandle(char && char.shape || char, 8);
   }
 
   function getHeight(char) {
@@ -131,22 +135,32 @@
 
   function mouseDown(pt) {
     if (linkState.handle) {
-      linkState.handle.attr({'stroke-opacity': 0.3});
-      linkState.link.attr({'stroke-opacity': 0.3});
+      linkState.handle.attr({'stroke-opacity': 0.2});
+      linkState.link.attr({'stroke-opacity': 0.2});
     }
     mouseDrag(pt);
   }
 
   function mouseDrag(pt) {
     if (linkState.link) {
+      linkState.dragTarget = $.cut.findBoxByPoint(pt);
+      if (linkState.dragTarget) {
+        pt = getCenter(linkState.dragTarget);
+      }
+      $('#info > .target-char').text(linkState.dragTarget ?
+          linkState.dragTarget.data('cid').replace(linkState.colId, '') : '');
+
       createHandle('draggingHandle', pt);
       if (linkState.dynLink) {
         linkState.dynLink.remove();
       }
-      linkState.dynLink = buildArrayLink(
-          linkState.atStart ? pt : linkState.link.data('fromPt'),
-          linkState.atStart ? linkState.link.data('toPt') : pt,
+      if (linkState.atStart) {
+        linkState.dynLink = buildArrayLink(pt, linkState.link.data('toPt'),
           10, null, null, null, '#f00');
+      } else {
+        linkState.dynLink = buildArrayLink(linkState.link.data('fromPt'), pt,
+            10, null, null, null, '#f00');
+      }
       linkState.dynLink.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.7});
     }
   }
@@ -157,6 +171,10 @@
       delete linkState.draggingHandle;
       linkState.dynLink.remove();
       delete linkState.dynLink;
+
+      if (linkState.dragTarget) {
+        $('#info > .target-char').text('');
+      }
     }
     if (linkState.handle) {
       linkState.handle.attr({'stroke-opacity': 1})
@@ -169,7 +187,7 @@
       delete linkState[name];
     }
     if (linkState.link && pt) {
-      linkState[name] = data.paper.circle(pt.x, pt.y, 3.5);
+      linkState[name] = data.paper.circle(pt.x, pt.y, 4);
     }
   }
 
