@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+from datetime import datetime, date
 import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors
@@ -37,8 +39,17 @@ class TestTaskFlow(APITestCase):
 
     def _assert_response(self, pages, response, task_type_status_dict):
         for task_type, status in task_type_status_dict.items():
-            _pages = response['data'].get(status) or response['data'][task_type][status]
+            data = response.get('data', {})
+            _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(pages, _pages)
+
+    def _test_publish_many_tasks(self, task_type, size):
+        pages = self._app.db.page.find({}, {'name': 1}).limit(size)
+        page_names = [page['name'] for page in pages]
+        self._set_page_status(page_names, {task_type: TaskHandler.STATUS_READY})
+        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
+        status = 'pending' if TaskHandler.pre_tasks().get(task_type) else 'published'
+        self.assertIn(status, r['data'])
 
     def _test_publish_task(self, task_type):
         task_type = [task_type] if isinstance(task_type, str) else task_type
@@ -86,11 +97,11 @@ class TestTaskFlow(APITestCase):
         """ 测试发布审校任务 """
         self.add_first_user_as_admin_then_login()
         # 测试异常情况
-        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages=''))) # 页面为空
+        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages='')))  # 页面为空
         self.assertIn('pages', r['error'])
 
         pages = 'GL_1056_5_6,JX_165_7_12'
-        r = self.parse_response(self.publish(dict(task_type='text_proof', pages=pages))) # 任务类型有误
+        r = self.parse_response(self.publish(dict(task_type='text_proof', pages=pages)))  # 任务类型有误
         self.assertIn('task_type', r['error'])
 
         # 优先级有误，必须为1/2/3
@@ -102,6 +113,9 @@ class TestTaskFlow(APITestCase):
         self._test_publish_task('block_cut_review')  # 测试一级任务有前置任务的情况
         self._test_publish_task('text_proof.1')  # 测试二级任务
         self._test_publish_task(['text_proof.1', 'text_proof.2', 'text_proof.3'])  # 测试任务组合
+
+        # 测试超大规模
+        # self._test_publish_many_tasks('block_cut_proof', 10000)
 
     def test_task_lobby(self):
         """ 测试任务大厅 """

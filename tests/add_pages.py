@@ -74,15 +74,17 @@ def add_repeat_pages(name, info, db, repeat):
 def _add_range_pages(name, info, db, start, end):
     meta_list = []
     for i in range(start, end + 1):
-        meta = dict(name='%s_%s' % (name, i),
-                    img_name=name,
-                    kind=name[:2],
-                    width=int(info['imgsize']['width']),
-                    height=int(info['imgsize']['height']),
-                    blocks=info.get('blocks', []),
-                    columns=info.get('columns', []),
-                    chars=info.get('chars', []),
-                    create_time=datetime.now())
+        meta = dict(
+            name='%s_%s' % (name, i),
+            img_name=name,
+            kind=name[:2],
+            width=int(info['imgsize']['width']),
+            height=int(info['imgsize']['height']),
+            blocks=info.get('blocks', []),
+            columns=info.get('columns', []),
+            chars=info.get('chars', []),
+            create_time=datetime.now()
+        )
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},
@@ -105,14 +107,16 @@ def _add_range_pages(name, info, db, start, end):
 
 def add_page(name, info, db, img_name=None):
     if not db.page.find_one(dict(name=name)):
-        meta = dict(name=name,
-                    kind=name[:2],
-                    width=int(info['imgsize']['width']),
-                    height=int(info['imgsize']['height']),
-                    blocks=info.get('blocks', []),
-                    columns=info.get('columns', []),
-                    chars=info.get('chars', []),
-                    create_time=datetime.now())
+        meta = dict(
+            name=name,
+            kind=name[:2],
+            width=int(info['imgsize']['width']),
+            height=int(info['imgsize']['height']),
+            blocks=info.get('blocks', []),
+            columns=info.get('columns', []),
+            chars=info.get('chars', []),
+            create_time=datetime.now()
+        )
         if img_name:
             meta['img_name'] = img_name
         # initialize task
@@ -125,7 +129,7 @@ def add_page(name, info, db, img_name=None):
             'char_cut_review': {'status': task.STATUS_READY},
         })
         data['count'] += 1
-        print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
+        print('%s:\t%d x %d blocks=%d colum.findns=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
         db.page.insert_one(meta)
 

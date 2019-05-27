@@ -30,7 +30,7 @@ class APITestCase(AsyncHTTPTestCase):
         options.debug = False
         options.port = self.get_http_port()
         return Application(
-            c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules, default_handler_class=c.InvalidPageHandler
+            c.handlers + c.views, db_name_ext='-big', ui_modules=c.modules, default_handler_class=c.InvalidPageHandler
         )
 
     def tearDown(self):
@@ -78,7 +78,7 @@ class APITestCase(AsyncHTTPTestCase):
         request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
         self.http_client.fetch(request, self.stop)
 
-        response = self.wait()
+        response = self.wait(timeout=60)
         headers = response.headers
         try:
             sc = headers._dict.get('Set-Cookie') if hasattr(headers, '_dict') else headers.get('Set-Cookie')
