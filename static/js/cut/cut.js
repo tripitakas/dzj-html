@@ -13,7 +13,7 @@
 
   // 得到字框矩形的控制点坐标
   function getHandle(el, index) {
-    var box = el.getBBox();
+    var box = el && el.getBBox();
     var pt;
 
     if (!box) {
@@ -512,7 +512,7 @@
       state.focus = true;
       state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function(){};
 
-      data.image = data.paper.image(p.image, 0, 0, p.width, p.height);
+      data.image = p.image && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
         .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 

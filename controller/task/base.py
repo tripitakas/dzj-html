@@ -47,6 +47,10 @@ class TaskHandler(BaseHandler):
         'text_hard': {'name': '难字处理', 'pre_tasks': ['text_review']},
     }
 
+    MAX_PUBLISH_RECORDS = 250000  # 用户单次发布任务最大值
+    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
+    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
+
     MAX_RECORDS = 10000
 
     # 任务状态表
@@ -101,9 +105,10 @@ class TaskHandler(BaseHandler):
         """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
         types = []
         for k, v in TaskHandler.task_types.items():
-            types.append(k)
             if 'sub_task_types' in v:
                 types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
+            else:
+                types.append(k)
         return types
 
     @staticmethod

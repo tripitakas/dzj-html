@@ -24,6 +24,8 @@ not_allow_equal = 1011, '%s和%s一致'
 not_equal = 1012, '%s和%s不一致'
 record_existed = 1013, '%s已存在'
 multiple_record = 1014, '%s存在多条记录'
+invalid_priority = 1015, '优先级有误'
+not_in_list = 1016, '%s应在列表%s中'
 
 no_user = 2001, '没有此账号'
 user_existed = 2002, '账号已存在'
@@ -43,3 +45,4 @@ task_uncompleted = 3002, '您还有未完成的任务，请继续完成后再领
 task_changed = 3003, '本任务的状态已改变，请领取新的任务'
 task_no_picked = 3004, '暂时没有新的任务可领取，请关注任务动态'
 task_unlocked = 3005, '本任务已被撤回，请领取新的任务'
+task_exceed_max = 3006, '超过上限'

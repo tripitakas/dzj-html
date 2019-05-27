@@ -38,6 +38,9 @@ def i18n_trans(key):
         'password': '密码',
         'old_password': '原始密码',
         'gender': '性别',
+        'priority': '优先级',
+        'task_type': '任务类型',
+        'pages': '页面',
     }
     return maps[key] if key in maps else key
 
@@ -131,12 +134,33 @@ def is_password(**kw):
         return {k: e.invalid_password}
 
 
+def is_priority(**kw):
+    """ 检查是否为优先级。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[123]$'
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
+        return {k: e.invalid_priority}
+
+
 def between(min, max, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     code, message = e.invalid_range
     err = code, message % (i18n_trans(k), min, max)
     if v < min or v > max:
+        return {k: err}
+
+
+def in_list(lst, **kw):
+    """检查是否在lst列表中"""
+    k, v = list(kw.items())[0]
+    code, message = e.not_in_list
+    err = code, message % (i18n_trans(k), lst)
+    assert type(v) in [str, list]
+    v = [v] if isinstance(v, str) else v
+    not_in = [i for i in v if i not in lst]
+    if not_in:
         return {k: err}
 
 
