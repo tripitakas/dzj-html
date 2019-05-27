@@ -7,5 +7,5 @@ views = [
 handlers = [
     api.LoginApi, api.LogoutApi, api.RegisterApi,
     api.ChangeUserProfileApi, api.ChangeUserRoleApi, api.ResetUserPasswordApi, api.DeleteUserApi,
-    api.ChangeMyProfileApi, api.ChangeMyPasswordApi,
+    api.ChangeMyProfileApi, api.ChangeMyPasswordApi, api.UploadUserImageHandler
 ]
