@@ -167,26 +167,3 @@ class PublishTasksApi(TaskHandler):
             _pages = self.db.page.find({'name': {'$in': _page_names}}, {field: 1 for field in fields})
             pages.extend(list(_pages))
         return pages
-
-    @staticmethod
-    def get_status_condition(task_type, status):
-        """根据是否有子任务，设置字段status的值"""
-        assert type(status) in [str, list]
-        sub_tasks = TaskHandler.get_sub_tasks(task_type)
-        status = {"$in": status} if isinstance(status, list) else status
-        if sub_tasks:
-            condition = {'%s.%s.status' % (task_type, t): status for t in sub_tasks}
-        else:
-            condition = {'%s.status' % task_type: status}
-        return condition
-
-    @staticmethod
-    def get_status_update(task_type, status):
-        """根据是否有子任务，设置update"""
-        assert isinstance(status, str)
-        sub_tasks = TaskHandler.get_sub_tasks(task_type)
-        if sub_tasks:
-            update = {'%s.%s.status' % (task_type, t): status for t in sub_tasks}
-        else:
-            update = {'%s.status' % task_type: status}
-        return update

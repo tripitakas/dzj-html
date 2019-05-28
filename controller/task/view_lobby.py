@@ -12,7 +12,7 @@ class TaskLobbyHandler(TaskHandler):
 
     def show_tasks(self, task_type):
         try:
-            tasks = self.get_tasks(task_type, self.STATUS_OPENED)
+            tasks = self.get_tasks(task_type)
             tasks = self.pack_tasks(tasks, task_type)
             task_name = self.task_types[task_type]['name']
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
@@ -22,7 +22,7 @@ class TaskLobbyHandler(TaskHandler):
     def pack_tasks(self, tasks, task_type):
         """设置任务的priority、pick_url、status等属性"""
         for t in tasks:
-            if not self.task_types.get(task_type, {}).get('sub_task_types'):  # 一级任务
+            if not self.get_sub_tasks(task_type):  # 一级任务
                 current_task = t.get(task_type, {})
                 t['priority'] = current_task.get('priority')
                 t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
@@ -36,8 +36,8 @@ class TaskLobbyHandler(TaskHandler):
                         continue
         return tasks
 
-    def get_tasks(self, task_type, task_status):
-        return self.get_tasks_info_by_type(task_type, task_status, rand=True, sort=True)
+    def get_tasks(self, task_type):
+        return self.get_random_tasks(task_type)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -47,10 +47,10 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
         """ 任务大厅-文字校对 """
         self.show_tasks('text_proof')
 
-    def get_tasks(self, task_type, task_status):
-        sub_types = self.task_types[task_type]['sub_task_types'].keys()
-        not_me = {'%s.%s.user' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_tasks_info_by_type(task_type, task_status, rand=True, sort=True, more_conditions=not_me)
+    def get_tasks(self, task_type):
+        sub_types = self.get_sub_tasks(task_type)
+        not_me = {'%s.%s.picked_by' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
+        tasks = self.get_random_tasks(task_type, more_conditions=not_me)
         return tasks
 
 

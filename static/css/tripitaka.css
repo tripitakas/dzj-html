@@ -1177,6 +1177,16 @@ a:hover {
 	margin-top: 20px;
 }
 
+.modal-body .ser-btn {
+    position: absolute;
+    top: 145px;
+    left: 215px;
+    background: url(../imgs/search-icon.png) no-repeat;
+    width: 15px;
+    height: 17px;
+    cursor: pointer;
+}
+
 .single-page-con .panel-body {
 	padding: 0;
 }
