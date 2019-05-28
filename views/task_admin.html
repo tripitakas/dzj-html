@@ -127,9 +127,9 @@
 											<div class="priority-list">
 												<h4 class="control-label">优先级</h4>
 												<select class="form-control">
-													<option>高</option>
-													<option>中</option>
-													<option>低</option>
+													<option>1-高</option>
+													<option>2-中</option>
+													<option>3-低</option>
 												</select>
 											</div>
 											<br />
@@ -292,7 +292,7 @@
 
 			$modal.find('.btn-primary').click(function () {
 				var data = {
-					priority: $('.priority-list select').val(),
+					priority: parseInt($('.priority-list select').val()),
 					pages: pages.join(',')
 				};
 				var $subTasks = $('.sub-tasks input');

@@ -172,7 +172,7 @@ class TaskHandler(BaseHandler):
 
         def get_priority(page):
             priority = self.get_obj_property(page, task_type + page.get('_sub_type', '') + '.priority')
-            return priority or '低'
+            return priority or 1
 
         assert task_type in self.task_types.keys()
         assert not task_status or type(task_status) in [str, list]
@@ -205,7 +205,7 @@ class TaskHandler(BaseHandler):
                         if s == task_status and not p.get('_sub_type'):
                             p['_sub_type'] = '.' + t  # used in get_priority
             sort and pages.sort(key=cmp_to_key(
-                    lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b)))
+                    lambda a, b: get_priority(a) - get_priority(b))
             )
             return pages[:page_size]
 

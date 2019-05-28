@@ -118,7 +118,7 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
-            user['img'] = 'imgs/ava%s.png' % 1 if user.get('gender') == '男' else 2 if user.get('gender') == '女' else 3
+            user['img'] = 'imgs/ava%s.png' % (1 if user.get('gender') == '男' else 2 if user.get('gender') == '女' else 3)
 
             r = self.db.user.insert_one(dict(
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
@@ -336,19 +336,18 @@ class UploadUserImageHandler(BaseHandler):
     URL = '/api/user/upload_img'
 
     def post(self):
-        if self.request.method == 'POST':
-            upload_img = self.request.files.get('img')
-            img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
-            img = 'upload/avatar/' + img_name
-            with open('static/' + img, 'wb') as f:
-                f.write(upload_img[0]['body'])
-                f.close()
+        """上传用户头像"""
+        upload_img = self.request.files.get('img')
+        img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
+        img = 'upload/avatar/' + img_name
+        with open('static/' + img, 'wb') as f:
+            f.write(upload_img[0]['body'])
 
-            try:
-                self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
-            except DbError as e:
-                return self.send_db_error(e)
+        try:
+            self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
+        except DbError as e:
+            return self.send_db_error(e)
 
-            self.current_user['img'] = img
-            self.set_secure_cookie('user', json_util.dumps(self.current_user))
-            self.send_data_response()
+        self.current_user['img'] = img
+        self.set_secure_cookie('user', json_util.dumps(self.current_user))
+        self.send_data_response()
