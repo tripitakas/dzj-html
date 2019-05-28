@@ -7,7 +7,6 @@ import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors
 from controller.task.base import TaskHandler
-from controller.task.api_admin import PublishTasksApi
 from tornado.escape import json_encode
 
 
@@ -34,14 +33,18 @@ class TestTaskFlow(APITestCase):
     def _set_page_status(self, page_names, task_type_status_dict):
         update_value = dict()
         for task_type, status in task_type_status_dict.items():
-            update_value.update(PublishTasksApi.get_status_update(task_type, status))
+            sub_tasks = TaskHandler.get_sub_tasks(task_type)
+            if sub_tasks:
+                update_value.update({'%s.%s.status' % (task_type, t): status for t in sub_tasks})
+            else:
+                update_value.update({'%s.status' % task_type: status})
         self._app.db.page.update_many({'name': {'$in': page_names}}, {'$set': update_value})
 
     def _assert_response(self, pages, response, task_type_status_dict):
         for task_type, status in task_type_status_dict.items():
             data = response.get('data', {})
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
-            self.assertEqual(pages, _pages)
+            self.assertEqual(set(pages), set(_pages))
 
     def _test_publish_many_tasks(self, task_type, size):
         pages = self._app.db.page.find({}, {'name': 1}).limit(size)
@@ -135,7 +138,8 @@ class TestTaskFlow(APITestCase):
                 self.assertIsInstance(pending, list, msg=task_type)
                 self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set(pending), msg=task_type)
 
-            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
+            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % (
+                task_type if isinstance(task_type, str) else 'text_proof'))
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             if published:
@@ -329,9 +333,9 @@ class TestTaskFlow(APITestCase):
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
         self.publish(dict(task_type='text_proof.1', pages='GL_1056_5_6', priority=2))
-        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=3))
+        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=1))
         self.publish(dict(task_type='text_proof.2', pages='JX_165_7_30', priority=2))
-        self.publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=3))
+        self.publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=1))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):

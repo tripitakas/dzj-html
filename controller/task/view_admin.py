@@ -12,17 +12,16 @@ class TaskAdminHandler(TaskHandler):
 
     def get(self, task_type):
         """ 任务管理 """
-
         try:
+            item_count = self.db.user.count()
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             tasks = self.get_tasks_info_by_type(task_type)
-            task_name = self.task_types[task_type]['name']
-            has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
-
-            self.render('task_admin.html', th=TaskHandler,
-                        tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
-                        task_types=self.task_types, task_statuses=self.task_statuses)
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager)
         except Exception as e:
-            self.send_db_error(e, render=True)
+            return self.send_db_error(e, render=True)
 
 
 class TaskCutStatusHandler(TaskHandler):
@@ -32,7 +31,7 @@ class TaskCutStatusHandler(TaskHandler):
         """ 切分任务状态 """
 
         try:
-            tasks = self.get_tasks_info()
+            tasks = self.get_all_tasks()
             self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses,
                         task_names=self.cut_task_names, th=TaskHandler)
         except Exception as e:
@@ -46,7 +45,7 @@ class TaskTextStatusHandler(TaskHandler):
         """ 文字任务状态 """
 
         try:
-            tasks = self.get_tasks_info()
+            tasks = self.get_all_tasks()
             self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses,
                         task_names=self.text_task_names, th=TaskHandler)
         except Exception as e:
