@@ -63,6 +63,10 @@
                               <div class="btn-group m-b-10">
                               </div>
                               <div class="btn-group m-b-10">
+                                <button type="button" class="btn btn-default" id="switch-image" title="显示或隐藏页面图">显隐背景</button>
+                                <button type="button" class="btn btn-default" id="switch-char-no" title="显示或隐藏字框编号">显隐编号</button>
+                              </div>
+                              <div class="btn-group m-b-10">
                                 <button type="button" class="btn btn-default" id="undo" title="撤销"><i class="md md-undo"></i></button>
                                 <button type="button" class="btn btn-default" id="redo" title="重做"><i class="md md-redo"></i></button>
                               </div>
@@ -149,6 +153,11 @@
       updateUndo();
     });
     updateUndo();
+
+    $('#switch-image').click(function () {
+      var style = $.cut.data.image.node.style;
+      style.display = style.display === 'none' ? '' : 'none';
+    });
 
     window.leave = function (url) {
       postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {

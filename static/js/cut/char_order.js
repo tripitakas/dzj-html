@@ -11,11 +11,14 @@
   var state = $.cut.state;
   var links = {};
   var paths = [];
+  var texts = [];
+  var colPaths = {};
   var linkState = {
     normalWidth: 2, curColWidth: 3, curLinkWidth: 6,
     draggingHandle: null,
     handle: null,
-    avgLen: 0
+    avgLen: 0,
+    textVisible: false
   };
   var getDistance = $.cut.getDistance;
 
@@ -81,9 +84,10 @@
     var minPath = {dist: 1e5, path: null};
     paths.forEach(function (link) {
       var dist = pointToSegmentDistance(pt, link.data('fromPt'), link.data('toPt'));
+      var diff = link === linkState.link ? 10 : 0;
 
-      if (minPath.dist > dist && dist < linkState.avgLen) {
-        minPath.dist = dist;
+      if (minPath.dist > dist - diff && dist < linkState.avgLen) {
+        minPath.dist = dist - diff;
         minPath.path = link;
       }
     });
@@ -124,6 +128,33 @@
             p.setAttr({'stroke-width': linkState.curColWidth / data.ratioInitial});
           }
         });
+        if (linkState.alongDot) {
+          linkState.alongDot.remove();
+        }
+        var alongPath = colPaths[linkState.colId];
+        if (alongPath) {
+          linkState.alongLen = alongPath.getTotalLength();
+          linkState.alongDot = data.paper.circle(0, 0, 3).attr({stroke: 'none', fill: '#f00'});
+
+          data.paper.customAttributes.along = function (v) {
+            var point = alongPath.getPointAtLength(v * linkState.alongLen);
+            return point && {
+              transform: "t" + [point.x, point.y] + "r" + point.alpha
+            };
+          };
+          linkState.alongDot.attr({along: 0});
+
+          function run() {
+            if (links[linkState.colId]) {
+              var ms = 150 * links[linkState.colId].length;
+              linkState.alongDot.animate({along: 1}, ms, function () {
+                linkState.alongDot.attr({along: 0});
+                setTimeout(run);
+              });
+            }
+          }
+          setTimeout(run);
+        }
       }
       if (link) {
         link.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
@@ -223,11 +254,20 @@
 
   $.extend($.cut, {
     removeCharOrderLinks: function () {
+      delete linkState.colId;
       paths.forEach(function (link) {
         link.remove();
       });
       links = {};
       paths = [];
+      texts.forEach(function (text) {
+        text.remove();
+      });
+      texts = [];
+      Object.keys(colPaths).forEach(function (id) {
+        colPaths[id].remove();
+      });
+      colPaths = {};
     },
 
     addCharOrderLinks: function () {
@@ -243,8 +283,14 @@
           var colId = nums.slice(0, 2).join('c');
           var column = links[colId] = links[colId] || [];
           column.push([parseInt(nums[2]), box]);
+          if (linkState.textVisible) {
+            var cen = getCenter(box);
+            texts.push(data.paper.text(cen.x, cen.y, nums.slice(1, 3).join('c'))
+                .attr({'font-size': '13px'}));
+          }
         }
       });
+
       Object.keys(links).forEach(function (colId, colIndex) {
         var column = links[colId] = links[colId].sort(function (a, b) {
           return a[0] - b[0];
@@ -253,6 +299,7 @@
         });
 
         linkState.avgLen = 0;
+        var points = [getCenter(column[0].char)];
         column.forEach(function (c, i) {
           if (i > 0) {
             var h = Math.min(getHeight(column[i - 1].char), getHeight(c.char));
@@ -262,11 +309,15 @@
             linkState.avgLen += getDistance(fromPt, toPt);
             c.link = buildArrayLink(fromPt, toPt, h / 4, column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
             paths.push(c.link);
+            points.push(toPt);
           }
         });
         if (linkState.avgLen) {
           linkState.avgLen /= column.length - 1;
         }
+        colPaths[colId] = data.paper.path(points.map(function (pt, i) {
+          return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
+        }).join(' ')).attr({stroke: 'none'});
       });
     }
   });
@@ -276,4 +327,9 @@
       $.cut.addCharOrderLinks();
     }
   };
+
+  $('#switch-char-no').click(function () {
+    linkState.textVisible = !linkState.textVisible;
+    $.cut.addCharOrderLinks();
+  });
 }());
