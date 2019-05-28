@@ -57,7 +57,5 @@ class TaskTextStatusHandler(TaskHandler):
             tasks = self.get_all_tasks()
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('task_text_status.html', tasks=tasks, pager=pager)
-            tasks = self.get_all_tasks()
-            self.render('task_text_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)
