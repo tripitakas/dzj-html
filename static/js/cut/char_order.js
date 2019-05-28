@@ -12,7 +12,7 @@
   var links = {};
   var paths = [];
   var linkState = {
-    normalWidth: 2, curColWidth: 3, curLinkWidth: 5,
+    normalWidth: 2, curColWidth: 3, curLinkWidth: 6,
     draggingHandle: null,
     handle: null,
     avgLen: 0
@@ -98,7 +98,8 @@
     var link = hitTestLink(pt);
     var lastColId = linkState.colId;
     var lastLink = linkState.link;
-    var linkText;
+    var lastStart = linkState.atStart;
+    var linkText, handleChanged;
 
     if (link) {
       linkState.atStart = getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
@@ -106,6 +107,7 @@
       linkText = (linkState.atStart ? '*' : '') + link.data('cid1').replace(linkState.colId, '')
           + '->' + (linkState.atStart ? '' : '*') + link.data('cid2').replace(linkState.colId, '');
     }
+    handleChanged = linkState.link !== link || lastStart !== linkState.atStart;
     if (linkState.link !== link) {
       linkState.link = link;
       linkState.colId = link && link.data('colId') || '';
@@ -118,16 +120,16 @@
           if (p.data('colId') === lastColId) {
             p.setAttr({'stroke-width': linkState.normalWidth / data.ratioInitial});
           }
-          if (p.data('colId') === linkState.colId) {
+          if (p.data('colId') === linkState.colId && p !== link) {
             p.setAttr({'stroke-width': linkState.curColWidth / data.ratioInitial});
           }
         });
       }
       if (link) {
-        link.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.5});
+        link.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
       }
     }
-    createHandle('handle', linkState.handlePt);
+    createHandle('handle', linkState.handlePt, link && link.data(linkState.atStart ? 'cid1' : 'cid2'), handleChanged);
 
     $('#info > .col-info').text(linkState.colId ? '栏: ' + linkState.colId : '');
     $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
@@ -150,7 +152,7 @@
       $('#info > .target-char').text(linkState.dragTarget ?
           linkState.dragTarget.data('cid').replace(linkState.colId, '') : '');
 
-      createHandle('draggingHandle', pt);
+      createHandle('draggingHandle', pt, linkState.dragTarget && linkState.dragTarget.data('cid'));
       if (linkState.dynLink) {
         linkState.dynLink.remove();
       }
@@ -167,11 +169,29 @@
 
   function mouseUp() {
     if (linkState.draggingHandle) {
+      var cidNew = linkState.draggingHandle.data('cid');
+      var cidOld = linkState.handle.data('cid');
+
       linkState.draggingHandle.remove();
       delete linkState.draggingHandle;
       linkState.dynLink.remove();
       delete linkState.dynLink;
 
+      if (cidNew && cidOld && cidNew !== cidOld) {
+        var charOld = $.cut.findCharById(cidOld);
+        var charNew = $.cut.findCharById(cidNew);
+        var t;
+        ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
+          t = charOld[f];
+          charOld[f] = charNew[f];
+          charNew[f] = t;
+        });
+        charOld.shape.data('cid', charOld.char_id);
+        charNew.shape.data('cid', charNew.char_id);
+        setTimeout(function () {
+          $.cut.addCharOrderLinks();
+        }, 500);
+      }
       if (linkState.dragTarget) {
         $('#info > .target-char').text('');
       }
@@ -181,13 +201,23 @@
     }
   }
 
-  function createHandle(name, pt) {
-    if (linkState[name]) {
+  function createHandle(name, pt, cid, switched) {
+    if (linkState[name] && !pt) {
       linkState[name].remove();
       delete linkState[name];
     }
-    if (linkState.link && pt) {
-      linkState[name] = data.paper.circle(pt.x, pt.y, 4);
+    if (linkState[name] && pt) {
+      linkState[name].animate({cx: pt.x, cy: pt.y, r: 5}, 300, 'elastic');
+    }
+    else if (linkState.link && pt) {
+      linkState[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : 5)
+          .attr({fill: 'rgba(0,255,0,.4)'});
+      if (switched) {
+        linkState[name].animate({r: 5}, 1000, 'elastic');
+      }
+    }
+    if (cid) {
+      linkState[name].data('cid', cid);
     }
   }
 
@@ -241,4 +271,9 @@
     }
   });
 
+  state.onZoomed = function () {
+    if (paths.length) {
+      $.cut.addCharOrderLinks();
+    }
+  };
 }());
