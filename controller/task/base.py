@@ -105,10 +105,10 @@ class TaskHandler(BaseHandler):
         """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
         types = []
         for k, v in TaskHandler.task_types.items():
+            types.append(k)
             if 'sub_task_types' in v:
                 types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
-            else:
-                types.append(k)
+
         return types
 
     @staticmethod
@@ -156,71 +156,68 @@ class TaskHandler(BaseHandler):
             recursion(task_type)
         return pre_types
 
-    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1, more_conditions=None,
-                               rand=False, sort=False):
+    def get_random_tasks(self, task_type, page_size=0):
+        """获取任务大厅任务列表，按优先级排序后随机获取"""
+        assert task_type in self.all_task_types()
+        try:
+            s = page_size or self.config['pager']['page_size']
+            fields = {'name': 1, task_type: 1}
+            sub_tasks = self.get_sub_tasks(task_type)
+            if sub_tasks:
+                condition = {'$or': [{'%s.%s.status' % (task_type, s): self.STATUS_OPENED} for s in sub_tasks]}
+            else:
+                condition = {'%s.status' % task_type: self.STATUS_OPENED}
+
+            # 获取随机skip值
+            _task_type = '%s.%s' % (task_type, sub_tasks[0]) if sub_tasks else task_type
+            _condition = {"%s.status" % _task_type: self.STATUS_OPENED}
+            n = self.db.page.find(condition).count()
+            n1 = self.db.page.find(_condition.copy().update({"%s.priority" % _task_type: 1})).count()
+            n2 = n1 + self.db.page.find(_condition.copy().update({"%s.priority" % _task_type: 2})).count()
+            n3 = n2 + self.db.page.find(_condition.copy().update({"%s.priority" % _task_type: 3})).count()
+            rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
+            skip = random.randint(0, rand_end)
+
+            pages = self.db.page.find(condition, fields).sort({"%s.priority" % _task_type: 1}).limit(s).skip(skip)
+            return list(pages)
+        except DbError as e:
+            self.send_db_error(e)
+
+    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1):
         """
-        获取指定类型、状态的任务列表
-        :param task_type: 任务类型。仅支持一级任务，如text_proof。不支持二级任务，比如text_proof.1
-        :param task_status: 任务状态，或多个任务状态的列表
+        根据task_type，task_status等参数，获取任务列表
+        :param task_type: str，任务类型。如text_proof、text_proof.1等
+        :param task_status: str或list，任务状态，或多个任务状态的列表
         :param page_size: 分页大小
-        :param page_no: 取第几页，首页为1
-        :param more_conditions: 更多搜索条件
-        :param rand: 任务随机排序
-        :param sort: 随机且按优先级排序
+        :param page_no: 第几页，默认为1
         :return: 页面列表
         """
+        assert task_type in self.all_task_types()
+        assert type(task_status) in [NoneType, str, list]
 
-        def get_priority(page):
-            priority = self.get_obj_property(page, task_type + page.get('_sub_type', '') + '.priority')
-            return priority or '低'
-
-        assert task_type in self.task_types.keys()
-        assert not task_status or type(task_status) in [str, list]
-
-        if not task_status and self.get_query_argument('status', None):
-            task_status = self.get_query_argument('status')
         if type(task_status) == list:
             task_status = {"$in": task_status}
 
-        sub_types = self.task_types[task_type].get('sub_task_types', {}).keys()
-        if not task_status:  # task_status为空
-            conditions = {}
-        elif sub_types:  # 二级任务
-            conditions = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
-        else:  # 一级任务
-            conditions = {'%s.status' % task_type: task_status}
-
-        more_conditions and conditions.update(more_conditions)
+        sub_types = self.get_sub_tasks(task_type)
+        if not task_status:
+            condition = {}
+        elif sub_types:
+            condition = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
+        else:
+            condition = {'%s.status' % task_type: task_status}
 
         fields = {'name': 1, task_type: 1}
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(conditions, fields)
-        if rand:
-            pages = list(pages)
-            random.shuffle(pages)
-            if sub_types and '$or' in conditions:
-                for p in pages:
-                    for t in sub_types:
-                        s = self.get_obj_property(p, '%s.%s.status' % (task_type, t))
-                        if s == task_status and not p.get('_sub_type'):
-                            p['_sub_type'] = '.' + t  # used in get_priority
-            sort and pages.sort(key=cmp_to_key(
-                    lambda a, b: '高中低'.index(get_priority(a)) - '高中低'.index(get_priority(b)))
-            )
-            return pages[:page_size]
-
-        pages = pages.skip(page_size * (page_no - 1)).limit(page_size)
+        pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
     def get_my_tasks_by_type(self, task_type, page_size=0, page_no=1):
         """ 获取我的任务列表 """
-        assert task_type in self.task_types
+        assert task_type in self.all_task_types()
 
-        user_id = self.current_user['_id']
-
-        if 'sub_task_types' in self.task_types.get(task_type, {}):
-            sub_types = self.task_types[task_type]['sub_task_types'].keys()
-            conditions = {'$or': [{'%s.%s.picked_by' % (task_type, t): user_id} for t in sub_types]}
+        sub_types = self.get_sub_tasks(task_type)
+        if sub_types:
+            conditions = {'$or': [{'%s.%s.picked_by' % (task_type, t): self.current_user['_id']} for t in sub_types]}
         else:
             conditions = {'%s.picked_by' % task_type: user_id}
 
@@ -229,20 +226,13 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
-    def get_tasks_info(self, page_size=0, page_no=1):
-        """
-        获取所有任务的状态
-        :param page_size: 分页大小，默认取配置文件中的值
-        :param page_no: 当前页号，第一页为1
-        """
-        query = {}
-        if self.get_query_argument('status', None) and self.get_query_argument('t', None):
-            query[self.get_query_argument('t') + '.status'] = self.get_query_argument('status')
+    def get_all_tasks(self, page_size=0, page_no=1):
+        """ 获取所有任务列表"""
         fields = {'name': 1}
-        fields.update({k: 1 for k in self.task_types.keys()})
+        fields.update({k: 1 for k in self.all_task_types()})
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(query, fields).sort('last_updated_time', -1) \
-            .limit(page_size).skip(page_size * (page_no - 1))
+        pages = self.db.page.find(query, fields).sort('last_updated_time', -1).limit(page_size).skip(
+            page_size * (page_no - 1))
         return list(pages)
 
     def submit_task(self, result, data, page, task_type, pick_new_task=None):
@@ -286,8 +276,7 @@ class TaskHandler(BaseHandler):
             if pick_new_task:
                 task = pick_new_task(task_type)
             else:
-                task = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
-                task = task and task[0]
+                task = self.get_random_tasks(task_type, page_size=1)
             if task:
                 name = task['name']
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
