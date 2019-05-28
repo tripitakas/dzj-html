@@ -183,7 +183,7 @@ class SaveTextApi(TaskHandler):
             self.send_db_error(e)
 
     def pick_new_task(self, task_type):
-        return self.get_random_tasks(task_type, page_size=1)
+        return self.get_lobby_tasks(task_type, page_size=1)
 
 
 class SaveTextProofApi(SaveTextApi):
@@ -194,7 +194,7 @@ class SaveTextProofApi(SaveTextApi):
         self.save('text_proof.' + num)
 
     def pick_new_task(self, task_type):
-        tasks = self.get_random_tasks('text_proof')
+        tasks = self.get_lobby_tasks('text_proof')
         picked = self.db.page.find({'$or': [
             {'text_proof.%d.picked_user_id' % i: self.current_user['_id']} for i in range(1, 4)
         ]}, {'name': 1})

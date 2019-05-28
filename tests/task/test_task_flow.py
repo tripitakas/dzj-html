@@ -104,7 +104,7 @@ class TestTaskFlow(APITestCase):
         self.assertIn('pages', r['error'])
 
         pages = 'GL_1056_5_6,JX_165_7_12'
-        r = self.parse_response(self.publish(dict(task_type='text_proof', pages=pages)))  # 任务类型有误
+        r = self.parse_response(self.publish(dict(task_type='error_task_type', pages=pages)))  # 任务类型有误
         self.assertIn('task_type', r['error'])
 
         # 优先级有误，必须为1/2/3
