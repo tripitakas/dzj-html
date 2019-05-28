@@ -224,7 +224,7 @@
 															<td>{{t['name']}}</td>
 															<td>{{th.task_types.get(task_type, {}).get('name','')}}</td>
 															<td>{{th.task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
-															<td>{{th.get_obj_property(t, task_type + '.priority') or ''}}</td>
+															<td>{{th.priorities.get(th.get_obj_property(t, task_type + '.priority')) or ''}}</td>
 															<td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
 															<td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
 															<td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
@@ -247,7 +247,7 @@
 																<td>{{t['name']}}</td>
 																<td>{{th.task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
 																<td>{{th.task_statuses.get(st.get('status','') or '')}}</td>
-																<td>{{st.get('priority') or ''}}</td>
+																<td>{{th.priorities.get(st.get('priority')) or ''}}</td>
 																<td>{{to_date_str(st.get('publish_time'))}}</td>
 																<td>{{to_date_str(st.get('last_updated_time'))}}</td>
 																<td>{{st.get('picked_by') or ''}}</td>
@@ -268,7 +268,7 @@
 												</tbody>
 											</table>
 										</div>
-										{% module Pager(pager='TODO') %}
+										{% module Pager(pager) %}
 									</div>
 								</div>
 							</div>

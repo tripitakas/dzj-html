@@ -4,6 +4,7 @@
 @desc: 任务管理
 @time: 2018/12/26
 """
+import math
 from controller.task.base import TaskHandler
 
 
@@ -31,9 +32,13 @@ class TaskCutStatusHandler(TaskHandler):
         """ 切分任务状态 """
 
         try:
+            item_count = self.db.user.count()
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             tasks = self.get_all_tasks()
-            self.render('task_cut_status.html', tasks=tasks, task_statuses=self.task_statuses,
-                        task_names=self.cut_task_names, th=TaskHandler)
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('task_cut_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -45,8 +50,14 @@ class TaskTextStatusHandler(TaskHandler):
         """ 文字任务状态 """
 
         try:
+            item_count = self.db.user.count()
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             tasks = self.get_all_tasks()
-            self.render('task_text_status.html', tasks=tasks, task_statuses=self.task_statuses,
-                        task_names=self.text_task_names, th=TaskHandler)
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('task_text_status.html', tasks=tasks, pager=pager)
+            tasks = self.get_all_tasks()
+            self.render('task_text_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)

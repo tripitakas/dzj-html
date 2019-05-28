@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8">
@@ -68,8 +69,8 @@
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
 																<span class="ion-android-sort "></span>
 																<ul class="dropdown-menu" role="menu">
-																	{% for k, v in task_statuses.items() %}
-																	<li><a href="{{current_url}}?status={{k}}&t={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}">{{v}}</a></li>
+																	{% for k, v in th.task_statuses.items() %}
+																	<li><a href="{{current_url}}?status={{k}}&task_type={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}">{{v}}</a></li>
 																	{% end %}
 																</ul>
 															</div>
@@ -83,16 +84,15 @@
 													<tr id="{{t['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{t['name']}}</td>
-														{% for item in ['block_cut_proof','block_cut_review','column_cut_proof', \
-														                'column_cut_review','char_cut_proof','char_cut_review'] %}
-														<td class="">{{task_statuses.get(t.get(item, {}).get('status'), '')}}</td>
+														{% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
+														<td class="">{{th.task_statuses.get(t.get(item, {}).get('status'), '')}}</td>
 														{% end %}
 													</tr>
 												  {% end %}
 												</tbody>
 											</table>
 										</div>
-										{% module Pager(pager='TODO') %}
+										{% module Pager(pager) %}
 									</div>
 								</div>
 							</div>

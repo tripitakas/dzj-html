@@ -24,20 +24,20 @@ class TaskLobbyHandler(TaskHandler):
         for t in tasks:
             if not self.get_sub_tasks(task_type):  # 一级任务
                 current_task = t.get(task_type, {})
-                t['priority'] = current_task.get('priority')
+                t['priority'] = self.priorities.get(current_task.get('priority'), '')
                 t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
                 t['status'] = current_task.get('status')
             else:  # 二级任务
                 for k, sub_task in t.get(task_type, {}).items():
                     if sub_task.get('status') == self.STATUS_OPENED:
-                        t['priority'] = sub_task.get('priority')
+                        t['priority'] = self.priorities.get(sub_task.get('priority'), '')
                         t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
                         t['status'] = sub_task.get('status')
                         continue
         return tasks
 
     def get_tasks(self, task_type):
-        return self.get_random_tasks(task_type)
+        return self.get_lobby_tasks(task_type)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -50,7 +50,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
     def get_tasks(self, task_type):
         sub_types = self.get_sub_tasks(task_type)
         not_me = {'%s.%s.picked_by' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_random_tasks(task_type, more_conditions=not_me)
+        tasks = self.get_lobby_tasks(task_type, more_conditions=not_me)
         return tasks
 
 

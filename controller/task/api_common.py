@@ -29,13 +29,14 @@ class GetPagesApi(TaskHandler):
     URL = '/api/task/pages/@task_type'
 
     def get(self, task_type):
+        """ 获取页面列表数据 """
         self.process(task_type)
 
     def post(self, task_type):
+        """ 获取页面列表数据 """
         self.process(task_type)
 
     def process(self, task_type):
-        """ 获取页面列表数据 """
         assert task_type in self.all_task_types()
         try:
             sub_tasks = self.get_sub_tasks(task_type)
