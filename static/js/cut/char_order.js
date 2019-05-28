@@ -1,7 +1,7 @@
 /*
  * char_order.js
  *
- * Date: 2019-05-26
+ * Date: 2019-05-29
  * global $
  */
 (function () {
@@ -134,7 +134,7 @@
         var alongPath = colPaths[linkState.colId];
         if (alongPath) {
           linkState.alongLen = alongPath.getTotalLength();
-          linkState.alongDot = data.paper.circle(0, 0, 3).attr({stroke: 'none', fill: '#f00'});
+          linkState.alongDot = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff'});
 
           data.paper.customAttributes.along = function (v) {
             var point = alongPath.getPointAtLength(v * linkState.alongLen);
@@ -255,19 +255,31 @@
   $.extend($.cut, {
     removeCharOrderLinks: function () {
       delete linkState.colId;
+
       paths.forEach(function (link) {
         link.remove();
       });
       links = {};
       paths = [];
+
       texts.forEach(function (text) {
         text.remove();
       });
       texts = [];
+
       Object.keys(colPaths).forEach(function (id) {
         colPaths[id].remove();
       });
       colPaths = {};
+
+      if (linkState.handle) {
+        linkState.handle.remove();
+        delete linkState.handle;
+      }
+      if (linkState.draggingHandle) {
+        linkState.draggingHandle.remove();
+        delete linkState.draggingHandle;
+      }
     },
 
     addCharOrderLinks: function () {

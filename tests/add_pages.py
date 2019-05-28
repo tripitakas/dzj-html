@@ -39,14 +39,15 @@ def load_json(filename):
             sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
-def scan_dir(src_path, kind, db, ret, repeat=0):
+def scan_dir(src_path, kind, db, ret, repeat=0, use_local_img=False):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
-            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret, repeat=repeat)
+            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret,
+                     repeat=repeat, use_local_img=use_local_img)
         elif kind and fn[:2] == kind:
             if fn.endswith('.json') and fn[:-5] not in ret:
                 info = load_json(filename)
@@ -56,22 +57,22 @@ def scan_dir(src_path, kind, db, ret, repeat=0):
                         sys.stderr.write('invalid imgname %s, %s\n' % (filename, kind))
                         continue
                     if repeat > 1:
-                        add_repeat_pages(name, info, db, repeat)
+                        add_repeat_pages(name, info, db, repeat, use_local_img=use_local_img)
                     else:
-                        add_page(name, info, db)
+                        add_page(name, info, db, use_local_img=use_local_img)
                     ret.add(name)
 
 
-def add_repeat_pages(name, info, db, repeat):
+def add_repeat_pages(name, info, db, repeat, use_local_img=False):
     if not db.page.find_one(dict(name=name)):
         start, length = 1, 5000
         while start + length - 1 < repeat:
-            _add_range_pages(name, info, db, start, start + length - 1)
+            _add_range_pages(name, info, db, start, start + length - 1, use_local_img)
             start += length
-        _add_range_pages(name, info, db, start, repeat)
+        _add_range_pages(name, info, db, start, repeat, use_local_img)
 
 
-def _add_range_pages(name, info, db, start, end):
+def _add_range_pages(name, info, db, start, end, use_local_img):
     meta_list = []
     for i in range(start, end + 1):
         meta = dict(
@@ -85,6 +86,8 @@ def _add_range_pages(name, info, db, start, end):
             chars=info.get('chars', []),
             create_time=datetime.now()
         )
+        if use_local_img:
+            meta['use_local_img'] = True
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},
@@ -105,7 +108,7 @@ def _add_range_pages(name, info, db, start, end):
     ))
 
 
-def add_page(name, info, db, img_name=None):
+def add_page(name, info, db, img_name=None, use_local_img=False):
     if not db.page.find_one(dict(name=name)):
         meta = dict(
             name=name,
@@ -119,6 +122,8 @@ def add_page(name, info, db, img_name=None):
         )
         if img_name:
             meta['img_name'] = img_name
+        if use_local_img:
+            meta['use_local_img'] = True
         # initialize task
         meta.update({
             'block_cut_proof': {'status': task.STATUS_READY},
@@ -180,7 +185,7 @@ def copy_img_files(src_path, pages):
 
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=False, repeat=0):
+         reset=False, repeat=0, use_local_img=False):
     if not json_path:
         txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient(uri)
@@ -188,7 +193,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     if reset:
         db.page.drop()
     pages = set()
-    scan_dir(json_path, kind, db, pages, repeat=repeat)
+    scan_dir(json_path, kind, db, pages, repeat=repeat, use_local_img=use_local_img)
     copy_img_files(img_path, pages)
     add_texts(txt_path, pages, db)
     return data['count']

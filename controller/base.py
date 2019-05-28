@@ -226,10 +226,10 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 
-    def get_img(self, page_code, resize=False):
+    def get_img(self, page_code, resize=False, force_local=False):
         host = self.config.get('img', {}).get('host')
         salt = self.config.get('img', {}).get('salt')
-        if not host or salt in [None, '', '待配置']:
+        if not host or salt in [None, '', '待配置'] or force_local:
             return '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
         md5 = hashlib.md5()
         md5.update((page_code + salt).encode('utf-8'))
