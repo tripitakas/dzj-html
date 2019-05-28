@@ -301,7 +301,7 @@ class SaveCutApi(TaskHandler):
         try:
             data = self.get_request_data()
             assert re.match('^[A-Za-z0-9_]+$', data.get('name'))
-            assert task_type in self.cut_task_names
+            assert task_type in self.cut_task_names()
 
             page = self.db.page.find_one(dict(name=data['name']))
             if not page:

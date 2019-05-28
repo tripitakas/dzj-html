@@ -61,7 +61,7 @@ class TestTaskFlow(APITestCase):
     def test_cut_proof(self):
         """ 测试切分校对的任务领取、保存和提交 """
 
-        for task_type in TaskHandler.cut_task_names:
+        for task_type in TaskHandler.cut_task_names():
             # 发布任务
             self.login_as_admin()
             self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
@@ -243,7 +243,8 @@ class TestTaskFlow(APITestCase):
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
         self.publish(dict(task_type='text_proof.1', pages='GL_1056_5_6', priority=2))
-        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=1))
+        self.publish(dict(task_type='text_proof.1', pages='JX_165_7_12', priority=1))
+        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=3))
         self.publish(dict(task_type='text_proof.2', pages='JX_165_7_30', priority=2))
         self.publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=1))
 
@@ -252,4 +253,5 @@ class TestTaskFlow(APITestCase):
             r = self.parse_response(self.fetch('/task/lobby/text_proof?_raw=1'))
             names = [t['name'] for t in r.get('tasks', [])]
             self.assertEqual(set(names), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
-            self.assertEqual(names[0], 'JX_165_7_12')
+            self.assertEqual(names[:2], ['GL_1056_5_6', 'JX_165_7_12'])  # 校一在前，相同校次的高优先级在前
+            self.assertEqual(names[2], 'JX_165_7_30')  # 不同校次的同名页面只列出一个

@@ -10,9 +10,9 @@ from controller.task.base import TaskHandler
 from tornado.escape import json_encode
 
 
-class TestTaskFlow(APITestCase):
+class TestTaskPublish(APITestCase):
     def setUp(self):
-        super(TestTaskFlow, self).setUp()
+        super(TestTaskPublish, self).setUp()
         # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
@@ -25,7 +25,7 @@ class TestTaskFlow(APITestCase):
             self.assert_code(200, self.fetch('/api/task/unlock/%s/' % task_type))
         for i in range(1, 4):
             self.assert_code(200, self.fetch('/api/task/unlock/text_proof.%d/' % i))
-        super(TestTaskFlow, self).tearDown()
+        super(TestTaskPublish, self).tearDown()
 
     def publish(self, data):
         return self.fetch('/api/task/publish', body={'data': data})

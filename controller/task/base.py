@@ -98,14 +98,14 @@ class TaskHandler(BaseHandler):
                     type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
         return type_names
 
-    @property
-    def cut_task_names(self):
-        task_type_names = self.task_type_names()
+    @staticmethod
+    def cut_task_names():
+        task_type_names = TaskHandler.task_type_names()
         return {k: v for k, v in task_type_names.items() if 'cut_' in k}
 
-    @property
-    def text_task_names(self):
-        task_type_names = self.task_type_names()
+    @staticmethod
+    def text_task_names():
+        task_type_names = TaskHandler.task_type_names()
         return {k: v for k, v in task_type_names.items() if 'text_' in k}
 
     @staticmethod
@@ -166,7 +166,7 @@ class TaskHandler(BaseHandler):
         rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
         skip = random.randint(0, rand_end)
 
-        pages = self.db.page.find(condition, fields).sort("%s.priority" % t, 1).limit(s).skip(skip)
+        pages = self.db.page.find(condition, fields).sort("%s.priority" % t, -1).limit(s).skip(skip)
         return list(pages)
 
     def get_my_tasks_by_type(self, task_type, page_size=0, page_no=1):
@@ -263,6 +263,7 @@ class TaskHandler(BaseHandler):
                 task = pick_new_task(task_type)
             else:
                 task = self.get_lobby_tasks(task_type, page_size=1)
+                task = task and task[0]
             if task:
                 name = task['name']
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)

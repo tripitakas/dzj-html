@@ -18,7 +18,7 @@ class PublishTasksApi(TaskHandler):
         """ 发布任务。
         @param task_type str或list，如text_review/text_proof.1或[text_proof.1, text_proof.2, text_proof.3]
         @param pages str，待发布的页面名称
-        @param priority str，1/2/3
+        @param priority str，1/2/3，数字越大优先级越高
         """
         data = self.get_request_data()
         rules = [

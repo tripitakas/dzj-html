@@ -147,7 +147,7 @@ class SaveTextApi(TaskHandler):
         try:
             data = self.get_request_data()
             assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
-            assert task_type in self.text_task_names
+            assert task_type in self.text_task_names()
 
             name = data['name']
             page = self.db.page.find_one(dict(name=name))
