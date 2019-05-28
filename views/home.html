@@ -25,7 +25,7 @@
                                <div class="left fl">
                                  <p class="title"><img src="{{ static_url('imgs/person.png') }}" alt=""></p>
                                  <div class="person clearfix">
-                                   <img class="ava fl" src="{{ static_url(current_user.get('img')) }}" alt="">
+                                   <img class="ava fl" src="{{ static_url(current_user.get('img', 'imgs/ava1.png')) }}" alt="">
                                    <dl class="fl">
                                      <dt>上午好，{{current_user['name']}}</dt>
                                      <dd>访问情况：今日访问6次</dd>

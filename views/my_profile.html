@@ -44,7 +44,7 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label"></label>
 														<div class="profile-info-name">
-						                                    <img src="{{ static_url(current_user.get('img'))}}" class="thumb-lg img-circle img-thumbnail" alt="profile-image">
+						                                    <img src="{{ static_url(current_user.get('img', 'imgs/ava1.png'))}}" class="thumb-lg img-circle img-thumbnail" alt="profile-image">
 															<a href="javascript:upload_img();" style="vertical-align:bottom;">上传头像</a>
 						                                </div>
 						                                
@@ -225,39 +225,37 @@
 
 			// 上传用户头像
 			$("#img-confirm").click(function() {
-				// 判断上传图片不能为空
 				if(typeof $('#upload')[0].files[0] == "undefined") {
-					alert("请选择图片");
-					return false;
-				}
-				// 判断文件类型是否为图片
-				imgFile = $('#upload')[0].files[0];
-				imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
-				if(!imgStr.test(imgFile.name)) {
-					alert("文件不是图片类型");
-					return false;
-				}
-				//判断图片大小是否超过1M
-				var imagSize = imgFile.size;
-				if(imagSize > (1024 * 1024 )) {
-					alert("文件大小不能超过1M");
+					showError('提示', '请选择图片');
 					return false;
 				}
 
-				var form_data = new FormData();
+				imgFile = $('#upload')[0].files[0];
+				imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
+				if(!imgStr.test(imgFile.name)) {
+					showError('提示', '文件不是图片类型');
+					return false;
+				}
+
+				var imagSize = imgFile.size;
+				if(imagSize > (1024 * 1024 )) {
+					showError('提示', '文件大小不能超过1M');
+					return false;
+				}
+
+				var formData = new FormData();
 				var len = $('#upload')[0].files.length;
-				for(var i =0;i<len;i++) {
-					var file_info = $('#upload')[0].files[i];
-					form_data.append('img', file_info);
+				for(var i=0; i<len; i++) {
+					var fileInfo = $('#upload')[0].files[i];
+					formData.append('img', fileInfo);
 				}
 				$.ajax({
-					url:'/api/user/upload_img',   //这里对应api.py中的 url
+					url:'/api/user/upload_img',
 					type:'POST',
-					data: form_data,
+					data: formData,
 					processData: false,  // tell jquery not to process the data
 					contentType: false, // tell jquery not to set contentType
 					success: function(callback) {
-						alert('上传头像成功');
 						window.location.reload();
 					}
 				});
