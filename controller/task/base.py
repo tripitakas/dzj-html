@@ -63,7 +63,7 @@ class TaskHandler(BaseHandler):
         STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回', STATUS_FINISHED: '已完成',
     }
 
-    priorities = {'3': '高', '2': '中', '1': '低'}
+    priorities = {3: '高', 2: '中', 1: '低'}
 
     @staticmethod
     def get_sub_tasks(task_type):
