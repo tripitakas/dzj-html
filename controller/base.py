@@ -226,7 +226,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 
-    def get_img(self, page_code, resize=True):
+    def get_img(self, page_code, resize=False):
         host = self.config.get('img', {}).get('host')
         salt = self.config.get('img', {}).get('salt')
         if not host or salt in [None, '', '待配置']:
