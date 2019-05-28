@@ -14,7 +14,7 @@ class TaskAdminHandler(TaskHandler):
     def get(self, task_type):
         """ 任务管理 """
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
@@ -32,7 +32,7 @@ class TaskCutStatusHandler(TaskHandler):
         """ 切分任务状态 """
 
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
@@ -50,7 +50,7 @@ class TaskTextStatusHandler(TaskHandler):
         """ 文字任务状态 """
 
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page

@@ -27,7 +27,7 @@ class TestTaskPublish(APITestCase):
             self.assert_code(200, self.fetch('/api/task/unlock/text_proof.%d/' % i))
         super(TestTaskPublish, self).tearDown()
 
-    def publish(self, data):
+    def _publish(self, data):
         return self.fetch('/api/task/publish', body={'data': data})
 
     def _set_page_status(self, page_names, task_type_status_dict):
@@ -46,31 +46,31 @@ class TestTaskPublish(APITestCase):
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(set(pages), set(_pages))
 
-    def _test_publish_many_tasks(self, task_type, size):
+    def _publish_many_tasks(self, task_type, size):
         pages = self._app.db.page.find({}, {'name': 1}).limit(size)
         page_names = [page['name'] for page in pages]
         self._set_page_status(page_names, {task_type: TaskHandler.STATUS_READY})
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(page_names))))
         status = 'pending' if TaskHandler.pre_tasks().get(task_type) else 'published'
         self.assertIn(status, r['data'])
 
-    def _test_publish_task(self, task_type):
+    def _publish_task(self, task_type):
         task_type = [task_type] if isinstance(task_type, str) else task_type
         # 测试不存在的页面
         pages_un_existed = ['GL_not_existed_1', 'JX_not_existed_2']
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(pages_un_existed))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(pages_un_existed))))
         self._assert_response(pages_un_existed, r, {t: 'un_existed' for t in task_type})
 
         # 测试未就绪的页面
         pages_un_ready = ['GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30', 'JX_165_7_75', 'JX_165_7_87']
         self._set_page_status(pages_un_ready, {t: TaskHandler.STATUS_UNREADY for t in task_type})
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(pages_un_ready))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(pages_un_ready))))
         self._assert_response(pages_un_ready, r, {t: 'un_ready' for t in task_type})
 
         # 测试已就绪的页面
         pages_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         self._set_page_status(pages_ready, {t: TaskHandler.STATUS_READY for t in task_type})
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(pages_ready))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(pages_ready))))
         pre_tasks = TaskHandler.pre_tasks()
         self._assert_response(pages_ready, r, {t: 'pending' if pre_tasks.get(t) else 'published' for t in task_type})
         self._set_page_status(pages_ready, {t: TaskHandler.STATUS_READY for t in task_type})
@@ -78,7 +78,7 @@ class TestTaskPublish(APITestCase):
         # 测试已发布的页面
         pages_published_before = ['YB_22_713', 'YB_22_759', 'YB_22_816', 'YB_22_916', 'YB_22_995']
         self._set_page_status(pages_published_before, {t: TaskHandler.STATUS_OPENED for t in task_type})
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(pages_published_before))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(pages_published_before))))
         self._assert_response(pages_published_before, r, {t: 'published_before' for t in task_type})
 
         # 组合测试
@@ -86,7 +86,7 @@ class TestTaskPublish(APITestCase):
         self._set_page_status(pages_un_ready, {t: TaskHandler.STATUS_UNREADY for t in task_type})
         self._set_page_status(pages_ready, {t: TaskHandler.STATUS_READY for t in task_type})
         self._set_page_status(pages_published_before, {t: TaskHandler.STATUS_OPENED for t in task_type})
-        r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(all_pages))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(all_pages))))
         self._assert_response(pages_un_existed, r, {t: 'un_existed' for t in task_type})
         self._assert_response(pages_un_ready, r, {t: 'un_ready' for t in task_type})
         self._assert_response(pages_ready, r, {t: 'pending' if pre_tasks.get(t) else 'published' for t in task_type})
@@ -100,22 +100,22 @@ class TestTaskPublish(APITestCase):
         """ 测试发布审校任务 """
         self.add_first_user_as_admin_then_login()
         # 测试异常情况
-        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages='')))  # 页面为空
+        r = self.parse_response(self._publish(dict(task_type='block_cut_proof', pages='')))  # 页面为空
         self.assertIn('pages', r['error'])
 
         pages = 'GL_1056_5_6,JX_165_7_12'
-        r = self.parse_response(self.publish(dict(task_type='error_task_type', pages=pages)))  # 任务类型有误
+        r = self.parse_response(self._publish(dict(task_type='error_task_type', pages=pages)))  # 任务类型有误
         self.assertIn('task_type', r['error'])
 
         # 优先级有误，必须为1/2/3
-        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages=pages, priority='高')))
+        r = self.parse_response(self._publish(dict(task_type='block_cut_proof', pages=pages, priority='高')))
         self.assertIn('priority', r['error'])
 
         # 测试正常情况
-        self._test_publish_task('block_cut_proof')  # 测试一级任务
-        self._test_publish_task('block_cut_review')  # 测试一级任务有前置任务的情况
-        self._test_publish_task('text_proof.1')  # 测试二级任务
-        self._test_publish_task(['text_proof.1', 'text_proof.2', 'text_proof.3'])  # 测试任务组合
+        self._publish_task('block_cut_proof')  # 测试一级任务
+        self._publish_task('block_cut_review')  # 测试一级任务有前置任务的情况
+        self._publish_task('text_proof.1')  # 测试二级任务
+        self._publish_task(['text_proof.1', 'text_proof.2', 'text_proof.3'])  # 测试任务组合
 
         # 测试超大规模
-        # self._test_publish_many_tasks('block_cut_proof', 10000)
+        # self._publish_many_tasks('block_cut_proof', 10000)

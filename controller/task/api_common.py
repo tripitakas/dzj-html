@@ -239,7 +239,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_proof(\.[123])?/@task_id'
+    URL = '/api/task/pick/text_proof([.][123])?/@task_id'
 
     def get(self, num, name):
         """ 取文字校对任务 """

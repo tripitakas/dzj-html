@@ -39,7 +39,7 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
@@ -58,7 +58,7 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
@@ -77,7 +77,7 @@ class UserStatisticHandler(BaseHandler):
     def get(self):
         """ 人员管理-数据管理页面 """
         try:
-            item_count = self.db.user.count()
+            item_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page

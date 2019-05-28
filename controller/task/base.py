@@ -159,10 +159,10 @@ class TaskHandler(BaseHandler):
 
         # 获取随机skip值
         t = '%s.%s' % (task_type, sub_tasks[0]) if sub_tasks else task_type
-        n = self.db.page.find(condition).count()
-        n1 = self.db.page.find({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 1}).count()
-        n2 = n1 + self.db.page.find({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 2}).count()
-        n3 = n2 + self.db.page.find({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 3}).count()
+        n = self.db.page.count_documents(condition)
+        n1 = self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 1})
+        n2 = n1 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 2})
+        n3 = n2 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 3})
         rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
         skip = random.randint(0, rand_end)
 

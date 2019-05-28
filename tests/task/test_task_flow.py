@@ -27,33 +27,45 @@ class TestTaskFlow(APITestCase):
             self.assert_code(200, self.fetch('/api/task/unlock/text_proof.%d/' % i))
         super(TestTaskFlow, self).tearDown()
 
-    def publish(self, data):
+    def _publish(self, data):
         return self.fetch('/api/task/publish', body={'data': data})
+
+    def _set_page_status(self, page_names, task_type_status_dict):
+        update_value = dict()
+        for task_type, status in task_type_status_dict.items():
+            sub_tasks = TaskHandler.get_sub_tasks(task_type)
+            if sub_tasks:
+                update_value.update({'%s.%s.status' % (task_type, t): status for t in sub_tasks})
+            else:
+                update_value.update({'%s.status' % task_type: status})
+        self._app.db.page.update_many({'name': {'$in': page_names}}, {'$set': update_value})
 
     def test_task_lobby(self):
         """ 测试任务大厅 """
 
         self.login_as_admin()
         for task_type in [
-            'block_cut_proof', 'column_cut_proof', 'char_cut_proof', 'block_cut_review', 'column_cut_review',
-            'char_cut_review', 'text_review', ['text_proof.1', 'text_proof.2', 'text_proof.3']
+            'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
+            'char_cut_proof', 'char_cut_review', 'text_proof', 'text_review',
         ]:
-            r = self.parse_response(self.publish(dict(task_type=task_type, pages='GL_1056_5_6,JX_165_7_12')))
+            page_names = ['GL_1056_5_6', 'JX_165_7_12']
+            self._set_page_status(page_names, {task_type: 'ready'})
+            _task_type = ['text_proof.1', 'text_proof.2', 'text_proof.3'] if task_type == 'text_proof' else task_type
+            r = self.parse_response(self._publish(dict(task_type=_task_type, pages=','.join(page_names))))
             published = r.get('data', {}).get('published')
             pending = r.get('data', {}).get('pending')
             if 'cut_proof' in task_type:
                 self.assertIsInstance(published, list, msg=task_type)
-                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set(published), msg=task_type)
+                self.assertEqual(set(page_names), set(published), msg=task_type)
             elif 'cut_review' in task_type:
                 self.assertIsInstance(pending, list, msg=task_type)
-                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set(pending), msg=task_type)
+                self.assertEqual(set(page_names), set(pending), msg=task_type)
 
-            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % (
-                task_type if isinstance(task_type, str) else 'text_proof'))
+            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             if published:
-                self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in r['tasks']]), msg=task_type)
+                self.assertEqual(set(page_names), set([t['name'] for t in r['tasks']]), msg=task_type)
 
             self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
             self.assert_code(200, self.fetch('/api/task/unlock/text/'))
@@ -65,7 +77,7 @@ class TestTaskFlow(APITestCase):
             # 发布任务
             self.login_as_admin()
             self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
-            self.assert_code(200, self.publish(dict(task_type=task_type, pages='GL_1056_5_6,JX_165_7_12')))
+            self.assert_code(200, self._publish(dict(task_type=task_type, pages='GL_1056_5_6,JX_165_7_12')))
 
             # 任务大厅
             self.login(u.expert1[0], u.expert1[1])
@@ -117,7 +129,7 @@ class TestTaskFlow(APITestCase):
             # 提交
             boxes[0]['w'] -= 1
             r = self.fetch(
-                '/api/task/save/%s?_raw=1' % (task_type,),
+                '/api/task/save/%s?_raw=1' % task_type,
                 body={'data': dict(name=page['name'], submit=True, box_type=box_type, boxes=json_encode(boxes))}
             )
             self.assert_code(200, r)
@@ -128,9 +140,9 @@ class TestTaskFlow(APITestCase):
 
         # 发布两个栏切分审校任务
         self.login_as_admin()
-        self.assert_code(200, self.publish(dict(task_type='block_cut_proof', pages='GL_1056_5_6,JX_165_7_12')))
+        self.assert_code(200, self._publish(dict(task_type='block_cut_proof', pages='GL_1056_5_6,JX_165_7_12')))
         tasks = self.parse_response(self.fetch('/task/lobby/block_cut_proof?_raw=1'))['tasks']
-        self.assert_code(200, self.publish(dict(task_type='block_cut_review', pages='GL_1056_5_6,JX_165_7_12')))
+        self.assert_code(200, self._publish(dict(task_type='block_cut_review', pages='GL_1056_5_6,JX_165_7_12')))
 
         # 领取并提交
         self.login(u.expert1[0], u.expert1[1])
@@ -154,7 +166,7 @@ class TestTaskFlow(APITestCase):
         # 发布一个页面的校一、校二任务
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
-        r = self.parse_response(self.publish(dict(task_type=['text_proof.1', 'text_proof.2'], pages='GL_1056_5_6')))
+        r = self.parse_response(self._publish(dict(task_type=['text_proof.1', 'text_proof.2'], pages='GL_1056_5_6')))
         self.assertEqual(r.get('text_proof.1').get('published'), ['GL_1056_5_6'])
         self.assertEqual(r.get('text_proof.2').get('published'), ['GL_1056_5_6'])
 
@@ -194,8 +206,8 @@ class TestTaskFlow(APITestCase):
         # 发布两个校次的文字校对任务
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
-        self.assert_code(200, self.publish(dict(task_type='text_proof.1', pages='GL_1056_5_6,JX_165_7_12')))
-        self.assert_code(200, self.publish(dict(task_type='text_proof.2', pages='GL_1056_5_6')))
+        self.assert_code(200, self._publish(dict(task_type='text_proof.1', pages='GL_1056_5_6,JX_165_7_12')))
+        self.assert_code(200, self._publish(dict(task_type='text_proof.2', pages='GL_1056_5_6')))
 
         # 领取一个任务
         self.login(u.expert1[0], u.expert1[1])
@@ -242,11 +254,11 @@ class TestTaskFlow(APITestCase):
         """测试任务大厅的任务显示顺序"""
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
-        self.publish(dict(task_type='text_proof.1', pages='GL_1056_5_6', priority=2))
-        self.publish(dict(task_type='text_proof.1', pages='JX_165_7_12', priority=1))
-        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=3))
-        self.publish(dict(task_type='text_proof.2', pages='JX_165_7_30', priority=2))
-        self.publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=1))
+        self._publish(dict(task_type='text_proof.1', pages='GL_1056_5_6', priority=2))
+        self._publish(dict(task_type='text_proof.1', pages='JX_165_7_12', priority=1))
+        self._publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=3))
+        self._publish(dict(task_type='text_proof.2', pages='JX_165_7_30', priority=2))
+        self._publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=1))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):
