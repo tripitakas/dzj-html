@@ -202,7 +202,7 @@
     }
   }
 
-  // 直接拖动就交换字框编号
+  // 直接拖动就交换字框编号，拖到空白处就原字框解除连接
   // pickTarget: 改连接到目标字框上，原字框解除连接
   // insertTarget: 将目标字框插入当前列，原字框不变，目标字框分配新号（整列重排编号）
   function onLinkChanged(charOld, charNew, pickTarget, insertTarget) {
@@ -230,11 +230,15 @@
       });
     } else {
       ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
-        t = charOld[f];
-        charOld[f] = pickTarget ? null : charNew[f];
-        charNew[f] = t;
+        if (!linkData.dragTarget) {
+          charOld[f] = null;
+        } else {
+          t = charOld[f];
+          charOld[f] = pickTarget ? null : charNew[f];
+          charNew[f] = t;
+        }
       });
-      if (pickTarget) {
+      if (pickTarget || !linkData.dragTarget) {
         for (t = 1; t < 1000 && $.cut.findCharById('break' + t);) t++;
         charOld.char_id = 'break' + t;
       }
