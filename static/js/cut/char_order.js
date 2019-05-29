@@ -220,9 +220,11 @@
       index = chars.indexOf(charOld);
       console.assert(index >= 0);
 
-      chars.splice(index, 0, charNew);
-      charNew.block_no = charOld.block_no;
-      charNew.line_no = charOld.line_no;
+      if (charNew) {
+        chars.splice(index, 0, charNew);
+        charNew.block_no = charOld.block_no;
+        charNew.line_no = charOld.line_no;
+      }
       chars.forEach(function (box, i) {
         box.char_no = box.no = i + 1;
         box.char_id = 'b' + box.block_no + 'c' + box.line_no + 'c' + box.char_no;
@@ -230,7 +232,7 @@
       });
     } else {
       ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
-        if (!linkData.dragTarget) {
+        if (!linkData.dragTarget || !charNew) {
           charOld[f] = null;
         } else {
           t = charOld[f];
@@ -243,11 +245,13 @@
         charOld.char_id = 'break' + t;
       }
       charOld.shape.data('cid', charOld.char_id);
-      charNew.shape.data('cid', charNew.char_id);
+      if (charNew) {
+        charNew.shape.data('cid', charNew.char_id);
+      }
     }
 
     $.cut.undoData.change();
-    $.cut.notifyChanged(charNew.shape, 'changed');
+    $.cut.notifyChanged(charNew && charNew.shape, 'changed');
   }
 
   function mouseUp(pt, e) {
@@ -263,7 +267,7 @@
       delete linkData.dynLink;
 
       // 直接拖动就交换字框编号，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就将目标字框插入当前列
-      if (charNew && charOld && cidNew !== cidOld) {
+      if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
         onLinkChanged(charOld, charNew, e.shiftKey, e.altKey);
         setTimeout(function () {
           $.cut.addCharOrderLinks();
@@ -279,23 +283,22 @@
   }
 
   function createHandle(name, pt, cid, switched) {
+    var r = cid ? 5 : 10;
     if (linkData[name] && !pt) {
       linkData[name].remove();
       delete linkData[name];
     }
     if (linkData[name] && pt) {
-      linkData[name].animate({cx: pt.x, cy: pt.y, r: 5}, 300, 'elastic');
+      linkData[name].animate({cx: pt.x, cy: pt.y, r: r}, 300, 'elastic');
     }
     else if (linkData.link && pt) {
-      linkData[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : 5)
+      linkData[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : r)
           .attr({fill: 'rgba(0,255,0,.4)'});
       if (switched) {
-        linkData[name].animate({r: 5}, 1000, 'elastic');
+        linkData[name].animate({r: r}, 1000, 'elastic');
       }
     }
-    if (cid) {
-      linkData[name].data('cid', cid);
-    }
+    linkData[name].data('cid', cid);
   }
 
   $.extend($.cut, {
