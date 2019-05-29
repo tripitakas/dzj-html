@@ -46,10 +46,11 @@ def scan_dir(src_path, kind, db, ret, repeat=0, use_local_img=False):
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
-            scan_dir(filename, fn if re.match(r'^[A-Z]{2}$', fn) else kind, db, ret,
-                     repeat=repeat, use_local_img=use_local_img)
+            fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
+            if not kind or kind == fn2:
+                scan_dir(filename, fn2, db, ret, repeat=repeat, use_local_img=use_local_img)
         elif kind and fn[:2] == kind:
-            if fn.endswith('.json') and fn[:-5] not in ret:
+            if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
                 info = load_json(filename)
                 if info:
                     name = info.get('imgname')
@@ -186,6 +187,19 @@ def copy_img_files(src_path, pages):
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
          reset=False, repeat=0, use_local_img=False):
+    """
+    页面导入的主函数
+    :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录
+    :param img_path: 页面图路径，json_path为空时取为data目录，可在不同的子目录下放图片文件(*.jpg)
+    :param txt_path: 页面文本文件的路径，json_path为空时取为data目录，可在不同的子目录下放图片文件(*.txt)
+    :param kind: 可指定要导入的藏别
+    :param db_name: 数据库名
+    :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
+    :param reset: 是否先清空page表
+    :param repeat: 页面重复次数，可用于模拟大量页面
+    :param use_local_img: 是否让页面强制使用本地的页面图，默认是使用OSS上的高清图（如果在app.yml配置了OSS）
+    :return: 新导入的页面的个数
+    """
     if not json_path:
         txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
     conn = pymongo.MongoClient(uri)

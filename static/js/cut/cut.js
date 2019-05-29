@@ -97,7 +97,7 @@
   }
 
   function findCharById(id) {
-    return data.chars.filter(function(box) {
+    return id && data.chars.filter(function(box) {
       return box.char_id === id;
     })[0];
   }
