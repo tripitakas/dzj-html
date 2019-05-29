@@ -8,7 +8,6 @@ import logging
 import random
 import os.path
 
-from tornado.options import options
 from bson import objectid, json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
@@ -338,25 +337,24 @@ class UploadUserImageHandler(BaseHandler):
     URL = '/api/user/upload_img'
 
     def post(self):
-        if self.request.method == 'POST':
-            # 获取上传头像
-            file_img = self.request.files.get('img')
-            # 更新头像名称为用户ID加图片类型后缀
-            img_name = str(self.current_user['_id']) + os.path.splitext(file_img[0]['filename'])[-1]
-            # 设置头像的存储地址
-            img = 'profile/{}'.format(img_name)
-            save_to = 'static/' + img
-            # 存储头像
-            with open(save_to, 'wb') as f:  # 二进制
-                f.write(file_img[0]['body'])
-                f.close()
+        # 获取上传头像
+        file_img = self.request.files.get('img')
+        # 更新头像名称为用户ID加图片类型后缀
+        img_name = str(self.current_user['_id']) + os.path.splitext(file_img[0]['filename'])[-1]
+        # 设置头像的存储地址
+        img = 'profile/{}'.format(img_name)
+        save_to = 'static/' + img
+        # 存储头像
+        with open(save_to, 'wb') as f:  # 二进制
+            f.write(file_img[0]['body'])
+            f.close()
 
-            try:
-                # 更新用户数据表中的头像存储信息
-                self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
-            except DbError as e:
-                return self.send_db_error(e)
+        try:
+            # 更新用户数据表中的头像存储信息
+            self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
+        except DbError as e:
+            return self.send_db_error(e)
 
-            self.current_user['img'] = img
-            self.set_secure_cookie('user', json_util.dumps(self.current_user))
-            self.send_data_response()
+        self.current_user['img'] = img
+        self.set_secure_cookie('user', json_util.dumps(self.current_user))
+        self.send_data_response()
