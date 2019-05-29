@@ -164,7 +164,8 @@
         link.setAttr({'stroke-width': linkData.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
       }
     }
-    createHandle('curHandle', linkData.handlePt, link && link.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
+    createHandle('curHandle', linkData.handlePt,
+        link && link.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
 
     $('#info > .col-info').text(linkData.colId ? '栏: ' + linkData.colId : '');
     $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
@@ -194,23 +195,58 @@
       var startPt = linkData.atStart ? pt : linkData.link.data('fromPt');
       var toPt = linkData.atStart ? linkData.link.data('toPt') : pt;
       linkData.dynLink = buildArrayLink(startPt, toPt, 10, null, null, null, '#f00');
-      linkData.dynLink.setAttr({'stroke-width': linkData.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.7});
+      linkData.dynLink.setAttr({
+        'stroke-width': linkData.curLinkWidth / data.ratioInitial,
+        'stroke-opacity': 0.7
+      });
     }
   }
 
-  function onLinkChanged(charOld, charNew) {
-    var t;
+  // 直接拖动就交换字框编号
+  // pickTarget: 改连接到目标字框上，原字框解除连接
+  // insertTarget: 将目标字框插入当前列，原字框不变，目标字框分配新号（整列重排编号）
+  function onLinkChanged(charOld, charNew, pickTarget, insertTarget) {
+    var t, chars, index;
 
-    ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
-      t = charOld[f];
-      charOld[f] = charNew[f];
-      charNew[f] = t;
-    });
-    charOld.shape.data('cid', charOld.char_id);
-    charNew.shape.data('cid', charNew.char_id);
+    if (insertTarget) {
+      chars = data.chars.filter(function (box) {
+        if (box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
+          box.char_no = parseInt(box.char_id.replace(linkData.colId + 'c', ''));
+          return true;
+        }
+      }).sort(function (a, b) {
+        return a.char_no - b.char_no;
+      });
+      index = chars.indexOf(charOld);
+      console.assert(index >= 0);
+
+      chars.splice(index, 0, charNew);
+      charNew.block_no = charOld.block_no;
+      charNew.line_no = charOld.line_no;
+      chars.forEach(function (box, i) {
+        box.char_no = box.no = i + 1;
+        box.char_id = 'b' + box.block_no + 'c' + box.line_no + 'c' + box.char_no;
+        box.shape.data('cid', box.char_id);
+      });
+    } else {
+      ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
+        t = charOld[f];
+        charOld[f] = pickTarget ? null : charNew[f];
+        charNew[f] = t;
+      });
+      if (pickTarget) {
+        for (t = 1; t < 1000 && $.cut.findCharById('break' + t);) t++;
+        charOld.char_id = 'break' + t;
+      }
+      charOld.shape.data('cid', charOld.char_id);
+      charNew.shape.data('cid', charNew.char_id);
+    }
+
+    $.cut.undoData.change();
+    $.cut.notifyChanged(charNew.shape, 'changed');
   }
 
-  function mouseUp() {
+  function mouseUp(pt, e) {
     if (linkData.draggingHandle) {
       var cidNew = linkData.draggingHandle.data('cid');
       var cidOld = linkData.curHandle.data('cid');
@@ -222,8 +258,9 @@
       linkData.dynLink.remove();
       delete linkData.dynLink;
 
+      // 直接拖动就交换字框编号，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就将目标字框插入当前列
       if (charNew && charOld && cidNew !== cidOld) {
-        onLinkChanged(charOld, charNew);
+        onLinkChanged(charOld, charNew, e.shiftKey, e.altKey);
         setTimeout(function () {
           $.cut.addCharOrderLinks();
         }, 500);
@@ -288,18 +325,18 @@
     },
 
     addCharOrderLinks: function () {
-      this.removeCharOrderLinks();
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;
       state.mouseDrag = mouseDrag;
       state.mouseUp = mouseUp;
 
+      this.removeCharOrderLinks();
       data.chars.forEach(function (box) {
         var nums = (box.char_id || '').split('c');
         if (box.shape && nums.length === 3) {
           var colId = nums.slice(0, 2).join('c');
-          var column = colChars[colId] = colChars[colId] || [];
-          column.push([parseInt(nums[2]), box]);
+          colChars[colId] = colChars[colId] || [];
+          colChars[colId].push([parseInt(nums[2]), box]);
           if (linkData.textVisible) {
             var cen = getCenter(box);
             texts.push(data.paper.text(cen.x, cen.y, nums.slice(1, 3).join('c'))
@@ -315,7 +352,7 @@
           return {char: a[1], link: null};
         });
 
-        linkData.avgLen = 0;
+        var avgLen = 0;
         var points = [getCenter(column[0].char)];
         column.forEach(function (c, i) {
           if (i > 0) {
@@ -323,15 +360,14 @@
             var fromPt = getCenter(column[i - 1].char);
             var toPt = getCenter(c.char);
 
-            linkData.avgLen += getDistance(fromPt, toPt);
-            c.link = buildArrayLink(fromPt, toPt, h / 4, column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
+            avgLen += getDistance(fromPt, toPt);
+            c.link = buildArrayLink(fromPt, toPt, h / 4,
+                column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
             colLinks.push(c.link);
             points.push(toPt);
           }
         });
-        if (linkData.avgLen) {
-          linkData.avgLen /= column.length - 1;
-        }
+        linkData.avgLen = avgLen && avgLen / (column.length - 1);
         colPaths[colId] = data.paper.path(points.map(function (pt, i) {
           return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
         }).join(' ')).attr({stroke: 'none'});
@@ -345,8 +381,15 @@
     }
   };
 
+  $.cut.onBoxChanged(function(info, box, reason) {
+    if (colLinks.length && reason === 'undo') {
+      $.cut.addCharOrderLinks();
+    }
+  });
+
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
     $.cut.addCharOrderLinks();
   });
+
 }());

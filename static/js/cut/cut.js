@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-05-26
+ * Date: 2019-05-29
  */
 (function() {
   'use strict';
@@ -206,7 +206,9 @@
         this.d.level--;
         this.apply(this.d.stack[this.d.level - 1]);
         this._save();
-        $.cut.switchCurrentBox(cid && $.cut.findCharById(cid).shape);
+        var shape = cid && $.cut.findCharById(cid).shape;
+        $.cut.switchCurrentBox(shape);
+        notifyChanged(shape, 'undo');
       }
     },
     redo: function () {
@@ -215,7 +217,9 @@
         this.d.level++;
         this.apply(this.d.stack[this.d.level - 1]);
         this._save();
-        $.cut.switchCurrentBox(cid && $.cut.findCharById(cid).shape);
+        var shape = cid && $.cut.findCharById(cid).shape;
+        $.cut.switchCurrentBox(shape);
+        notifyChanged(shape, 'undo');
       }
     },
     canUndo: function () {
@@ -229,6 +233,8 @@
   $.cut = {
     data: data,
     state: state,
+    undoData: undoData,
+    notifyChanged: notifyChanged,
     getDistance: getDistance,
     getHandle: getHandle,
 
@@ -423,7 +429,7 @@
           state.hover = null;
           self.showHandles(state.hover, state.hoverHandle);
         } else {
-          state.mouseHover(pt);
+          state.mouseHover(pt, e);
         }
         e.preventDefault();
       };
@@ -464,7 +470,7 @@
           state.editHandle.index = 2;  // 右下角为拖动位置
           state.edit = createRect(state.down, state.down, true);
         } else {
-          state.mouseDown(state.down);
+          state.mouseDown(state.down, e);
         }
       };
 
@@ -472,7 +478,7 @@
         var pt = getPoint(e);
 
         e.preventDefault();
-        state.mouseDrag(pt);
+        state.mouseDrag(pt, e);
         if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3) {
           return;
         }
@@ -495,7 +501,7 @@
         e.preventDefault();
         if (state.down) {
           var pt = getPoint(e);
-          state.mouseUp(pt);
+          state.mouseUp(pt, e);
           if (state.originBox && getDistance(pt, state.down) > 1) {
             self._changeBox(state.originBox, state.edit);
           }
