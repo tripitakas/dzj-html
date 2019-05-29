@@ -202,13 +202,13 @@
     }
   }
 
-  // 直接拖动就交换字框编号，拖到空白处就原字框解除连接
+  // 直接拖动就将目标字框插入当前列，拖到空白处就原字框解除连接
   // pickTarget: 改连接到目标字框上，原字框解除连接
   // insertTarget: 将目标字框插入当前列，原字框不变，目标字框分配新号（整列重排编号）
   function onLinkChanged(charOld, charNew, pickTarget, insertTarget) {
     var t, chars, index;
 
-    if (insertTarget) {
+    if (insertTarget && linkData.dragTarget) {
       chars = data.chars.filter(function (box) {
         if (box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
           box.char_no = parseInt(box.char_id.replace(linkData.colId + 'c', ''));
@@ -266,9 +266,9 @@
       linkData.dynLink.remove();
       delete linkData.dynLink;
 
-      // 直接拖动就交换字框编号，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就将目标字框插入当前列
+      // 直接拖动就将目标字框插入当前列，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就交换字框编号
       if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
-        onLinkChanged(charOld, charNew, e.shiftKey, e.altKey);
+        onLinkChanged(charOld, charNew, e.shiftKey, !e.altKey && !e.shiftKey);
         setTimeout(function () {
           $.cut.addCharOrderLinks();
         }, 500);
@@ -298,7 +298,9 @@
         linkData[name].animate({r: r}, 1000, 'elastic');
       }
     }
-    linkData[name].data('cid', cid);
+    if (linkData[name]) {
+      linkData[name].data('cid', cid);
+    }
   }
 
   $.extend($.cut, {
@@ -382,18 +384,21 @@
     }
   });
 
+  // 放缩后重新生成图形
   state.onZoomed = function () {
     if (colLinks.length) {
       $.cut.addCharOrderLinks();
     }
   };
 
+  // Undo/Redo后重新生成图形
   $.cut.onBoxChanged(function(info, box, reason) {
     if (colLinks.length && reason === 'undo') {
       $.cut.addCharOrderLinks();
     }
   });
 
+  // 显隐字框编号
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
     $.cut.addCharOrderLinks();
