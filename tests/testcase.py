@@ -78,7 +78,7 @@ class APITestCase(AsyncHTTPTestCase):
         request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
         self.http_client.fetch(request, self.stop)
 
-        response = self.wait(timeout=60)
+        response = self.wait()
         headers = response.headers
         try:
             sc = headers._dict.get('Set-Cookie') if hasattr(headers, '_dict') else headers.get('Set-Cookie')

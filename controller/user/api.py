@@ -334,6 +334,7 @@ class UploadUserImageHandler(BaseHandler):
     URL = '/api/user/upload_img'
 
     def post(self):
+
         """上传用户头像"""
         upload_img = self.request.files.get('img')
         img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
