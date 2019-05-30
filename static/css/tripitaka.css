@@ -767,7 +767,7 @@ a:hover {
 	background: none;
 	width: 305px;
 	height: 28px;
-	padding-left: 17px;
+	padding-left: 20px;
 	color: #cca78a;
 }
 
@@ -1175,6 +1175,16 @@ a:hover {
 
 .modal-body .progress-lg {
 	margin-top: 20px;
+}
+
+.modal-body .ser-btn {
+    position: absolute;
+    top: 145px;
+    left: 215px;
+    background: url(../imgs/search-icon.png) no-repeat;
+    width: 15px;
+    height: 17px;
+    cursor: pointer;
 }
 
 .single-page-con .panel-body {

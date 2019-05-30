@@ -20,11 +20,12 @@ url_placeholder = {
     'tripitaka_id': r'[a-z]{3,}'
 }
 
+""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 role_maps = {
     '单元测试用户': {
         'routes': {
             '/api/task/page/@task_id': ['GET'],
-            '/api/task/pages/@page_kind': ['GET', 'POST'],
+            '/api/task/pages/@task_type': ['POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
@@ -136,7 +137,7 @@ role_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof/@num/@task_id': ['GET', 'POST'],
-            '/api/task/pick/text_proof(\.[123])?/@task_id': ['GET'],
+            '/api/task/pick/text_proof([.][123])?/@task_id': ['GET'],
             '/api/task/save/text_proof/@num': ['POST'],
         }
     },
@@ -165,8 +166,7 @@ role_maps = {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
-            '/api/start/@page_prefix': ['POST'],
-            '/api/task/pages/@page_kind': ['GET', 'POST'],
+            '/api/task/pages/@task_type': ['GET', 'POST'],
             '/api/task/publish': ['POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],
         }
@@ -186,6 +186,7 @@ role_maps = {
     },
     '用户管理员': {
         'is_assignable': True,
+        'roles': ['普通用户'],
         'routes': {
             '/user/admin': ['GET'],
             '/user/role': ['GET'],

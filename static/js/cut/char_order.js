@@ -1,7 +1,7 @@
 /*
  * char_order.js
  *
- * Date: 2019-05-26
+ * Date: 2019-05-29
  * global $
  */
 (function () {
@@ -9,13 +9,16 @@
 
   var data = $.cut.data;
   var state = $.cut.state;
-  var links = {};
-  var paths = [];
-  var linkState = {
-    normalWidth: 2, curColWidth: 3, curLinkWidth: 5,
+  var colChars = {};    // 每列的字框 {colId: [[char_no, box]...]
+  var colLinks = [];    // 字框连线
+  var texts = [];       // 字框编号文本图形
+  var colPaths = {};    // 每列的连通线
+  var linkData = {
+    normalWidth: 2, curColWidth: 3, curLinkWidth: 6,
     draggingHandle: null,
-    handle: null,
-    avgLen: 0
+    curHandle: null,
+    avgLen: 0,
+    textVisible: false
   };
   var getDistance = $.cut.getDistance;
 
@@ -24,12 +27,13 @@
   }
 
   function buildArrayLink(fromPt, toPt, tol, c1, c2, colId, color) {
-    var link = data.paper.path('M' + round(fromPt.x) + ',' + round(fromPt.y) + 'L' + round(toPt.x) + ',' + round(toPt.y))
+    var path = 'M' + round(fromPt.x) + ',' + round(fromPt.y) + 'L' + round(toPt.x) + ',' + round(toPt.y);
+    var link = data.paper.path(path)
         .initZoom().setAttr({
           stroke: color,
           'stroke-opacity': 0.9,
-          'stroke-width': linkState.normalWidth / data.ratioInitial,
-          'stroke-dasharray': fromPt.y < toPt.y - tol ? '' : '.'
+          'stroke-width': linkData.normalWidth / data.ratioInitial,
+          'stroke-dasharray': fromPt.y < toPt.y - tol ? '' : '.'    // 向上或水平就显示虚线，否则为实线
         })
         .data('fromPt', fromPt)
         .data('toPt', toPt);
@@ -78,167 +82,321 @@
   }
 
   function hitTestLink(pt) {
-    var minPath = {dist: 1e5, path: null};
-    paths.forEach(function (link) {
+    var minDist = 1e5, minPath = null;
+    colLinks.forEach(function (link) {
       var dist = pointToSegmentDistance(pt, link.data('fromPt'), link.data('toPt'));
+      var diff = link === linkData.link ? 10 : 0;  // 当前连线段优先捕捉
 
-      if (minPath.dist > dist && dist < linkState.avgLen) {
-        minPath.dist = dist;
-        minPath.path = link;
+      if (minDist > dist - diff && dist < linkData.avgLen) {
+        minDist = dist - diff;
+        minPath = link;
       }
     });
-    return minPath.path;
+    return minPath;
+  }
+
+  function onColChanged(link, lastColId) {
+    function run() {
+      if (colChars[linkData.colId]) {
+        var ms = 150 * colChars[linkData.colId].length;
+        linkData.alongBall.animate({along: 1}, ms, function () {
+          linkData.alongBall.attr({along: 0});
+          setTimeout(run);
+        });
+      }
+    }
+
+    colLinks.forEach(function (p) {
+      if (p.data('colId') === lastColId) {
+        p.setAttr({'stroke-width': linkData.normalWidth / data.ratioInitial});
+      }
+      if (p.data('colId') === linkData.colId && p !== link) {
+        p.setAttr({'stroke-width': linkData.curColWidth / data.ratioInitial});
+      }
+    });
+    if (linkData.alongBall) {
+      linkData.alongBall.remove();
+    }
+    var alongPath = colPaths[linkData.colId];
+    if (alongPath) {
+      linkData.alongLen = alongPath.getTotalLength();
+      linkData.alongBall = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff'});
+
+      data.paper.customAttributes.along = function (v) {
+        var point = alongPath.getPointAtLength(v * linkData.alongLen);
+        return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
+      };
+      linkData.alongBall.attr({along: 0});
+
+      setTimeout(run);
+    }
   }
 
   function mouseHover(pt) {
-    if (linkState.draggingHandle) {
+    if (linkData.draggingHandle) {
       return;
     }
 
     var link = hitTestLink(pt);
-    var lastColId = linkState.colId;
-    var lastLink = linkState.link;
-    var linkText;
+    var lastColId = linkData.colId;
+    var lastLink = linkData.link;
+    var lastStart = linkData.atStart;
+    var linkText, handleChanged;
 
     if (link) {
-      linkState.atStart = getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
-      linkState.handlePt = link.data(linkState.atStart ? 'fromPt' : 'toPt');
-      linkText = (linkState.atStart ? '*' : '') + link.data('cid1').replace(linkState.colId, '')
-          + '->' + (linkState.atStart ? '' : '*') + link.data('cid2').replace(linkState.colId, '');
+      linkData.atStart = getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
+      linkData.handlePt = link.data(linkData.atStart ? 'fromPt' : 'toPt');
+      linkText = (linkData.atStart ? '*' : '') + link.data('cid1').replace(linkData.colId, '')
+          + '->' + (linkData.atStart ? '' : '*') + link.data('cid2').replace(linkData.colId, '');
     }
-    if (linkState.link !== link) {
-      linkState.link = link;
-      linkState.colId = link && link.data('colId') || '';
+    handleChanged = linkData.link !== link || lastStart !== linkData.atStart;
+    if (linkData.link !== link) {
+      linkData.link = link;
+      linkData.colId = link && link.data('colId') || '';
 
       if (lastLink) {
-        lastLink.setAttr({'stroke-width': linkState.curColWidth / data.ratioInitial, 'stroke-opacity': 0.9});
+        lastLink.setAttr({'stroke-width': linkData.curColWidth / data.ratioInitial, 'stroke-opacity': 0.9});
       }
-      if (linkState.colId !== lastColId) {
-        paths.forEach(function (p) {
-          if (p.data('colId') === lastColId) {
-            p.setAttr({'stroke-width': linkState.normalWidth / data.ratioInitial});
-          }
-          if (p.data('colId') === linkState.colId) {
-            p.setAttr({'stroke-width': linkState.curColWidth / data.ratioInitial});
-          }
-        });
+      if (linkData.colId !== lastColId) {
+        onColChanged(link, lastColId);
       }
       if (link) {
-        link.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.5});
+        link.setAttr({'stroke-width': linkData.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
       }
     }
-    createHandle('handle', linkState.handlePt);
+    createHandle('curHandle', linkData.handlePt,
+        link && link.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
 
-    $('#info > .col-info').text(linkState.colId ? '栏: ' + linkState.colId : '');
+    $('#info > .col-info').text(linkData.colId ? '栏: ' + linkData.colId : '');
     $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
   }
 
   function mouseDown(pt) {
-    if (linkState.handle) {
-      linkState.handle.attr({'stroke-opacity': 0.2});
-      linkState.link.attr({'stroke-opacity': 0.2});
+    if (linkData.curHandle) {
+      linkData.curHandle.attr({'stroke-opacity': 0.2});
+      linkData.link.attr({'stroke-opacity': 0.2});
     }
     mouseDrag(pt);
   }
 
   function mouseDrag(pt) {
-    if (linkState.link) {
-      linkState.dragTarget = $.cut.findBoxByPoint(pt);
-      if (linkState.dragTarget) {
-        pt = getCenter(linkState.dragTarget);
+    if (linkData.link) {
+      linkData.dragTarget = $.cut.findBoxByPoint(pt);
+      if (linkData.dragTarget) {
+        pt = getCenter(linkData.dragTarget);
       }
-      $('#info > .target-char').text(linkState.dragTarget ?
-          linkState.dragTarget.data('cid').replace(linkState.colId, '') : '');
+      $('#info > .target-char').text(linkData.dragTarget ?
+          linkData.dragTarget.data('cid').replace(linkData.colId, '') : '');
 
-      createHandle('draggingHandle', pt);
-      if (linkState.dynLink) {
-        linkState.dynLink.remove();
+      createHandle('draggingHandle', pt, linkData.dragTarget && linkData.dragTarget.data('cid'));
+      if (linkData.dynLink) {
+        linkData.dynLink.remove();
       }
-      if (linkState.atStart) {
-        linkState.dynLink = buildArrayLink(pt, linkState.link.data('toPt'),
-          10, null, null, null, '#f00');
-      } else {
-        linkState.dynLink = buildArrayLink(linkState.link.data('fromPt'), pt,
-            10, null, null, null, '#f00');
-      }
-      linkState.dynLink.setAttr({'stroke-width': linkState.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.7});
+      var startPt = linkData.atStart ? pt : linkData.link.data('fromPt');
+      var toPt = linkData.atStart ? linkData.link.data('toPt') : pt;
+      linkData.dynLink = buildArrayLink(startPt, toPt, 10, null, null, null, '#f00');
+      linkData.dynLink.setAttr({
+        'stroke-width': linkData.curLinkWidth / data.ratioInitial,
+        'stroke-opacity': 0.7
+      });
     }
   }
 
-  function mouseUp() {
-    if (linkState.draggingHandle) {
-      linkState.draggingHandle.remove();
-      delete linkState.draggingHandle;
-      linkState.dynLink.remove();
-      delete linkState.dynLink;
+  // 直接拖动就交换字框编号，拖到空白处就原字框解除连接
+  // pickTarget: 改连接到目标字框上，原字框解除连接
+  // insertTarget: 将目标字框插入当前列，原字框不变，目标字框分配新号（整列重排编号）
+  function onLinkChanged(charOld, charNew, pickTarget, insertTarget) {
+    var t, chars, index;
 
-      if (linkState.dragTarget) {
+    if (insertTarget) {
+      chars = data.chars.filter(function (box) {
+        if (box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
+          box.char_no = parseInt(box.char_id.replace(linkData.colId + 'c', ''));
+          return true;
+        }
+      }).sort(function (a, b) {
+        return a.char_no - b.char_no;
+      });
+      index = chars.indexOf(charOld);
+      console.assert(index >= 0);
+
+      if (charNew) {
+        chars.splice(index, 0, charNew);
+        charNew.block_no = charOld.block_no;
+        charNew.line_no = charOld.line_no;
+      }
+      chars.forEach(function (box, i) {
+        box.char_no = box.no = i + 1;
+        box.char_id = 'b' + box.block_no + 'c' + box.line_no + 'c' + box.char_no;
+        box.shape.data('cid', box.char_id);
+      });
+    } else {
+      ['block_no', 'line_no', 'char_no', 'no', 'char_id'].forEach(function (f) {
+        if (!linkData.dragTarget || !charNew) {
+          charOld[f] = null;
+        } else {
+          t = charOld[f];
+          charOld[f] = pickTarget ? null : charNew[f];
+          charNew[f] = t;
+        }
+      });
+      if (pickTarget || !linkData.dragTarget) {
+        for (t = 1; t < 1000 && $.cut.findCharById('break' + t);) t++;
+        charOld.char_id = 'break' + t;
+      }
+      charOld.shape.data('cid', charOld.char_id);
+      if (charNew) {
+        charNew.shape.data('cid', charNew.char_id);
+      }
+    }
+
+    $.cut.undoData.change();
+    $.cut.notifyChanged(charNew && charNew.shape, 'changed');
+  }
+
+  function mouseUp(pt, e) {
+    if (linkData.draggingHandle) {
+      var cidNew = linkData.draggingHandle.data('cid');
+      var cidOld = linkData.curHandle.data('cid');
+      var charOld = $.cut.findCharById(cidOld);
+      var charNew = $.cut.findCharById(cidNew);
+
+      linkData.draggingHandle.remove();
+      delete linkData.draggingHandle;
+      linkData.dynLink.remove();
+      delete linkData.dynLink;
+
+      // 直接拖动就交换字框编号，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就将目标字框插入当前列
+      if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
+        onLinkChanged(charOld, charNew, e.shiftKey, e.altKey);
+        setTimeout(function () {
+          $.cut.addCharOrderLinks();
+        }, 500);
+      }
+      if (linkData.dragTarget) {
         $('#info > .target-char').text('');
       }
     }
-    if (linkState.handle) {
-      linkState.handle.attr({'stroke-opacity': 1})
+    if (linkData.curHandle) {
+      linkData.curHandle.attr({'stroke-opacity': 1})
     }
   }
 
-  function createHandle(name, pt) {
-    if (linkState[name]) {
-      linkState[name].remove();
-      delete linkState[name];
+  function createHandle(name, pt, cid, switched) {
+    var r = cid ? 5 : 10;
+    if (linkData[name] && !pt) {
+      linkData[name].remove();
+      delete linkData[name];
     }
-    if (linkState.link && pt) {
-      linkState[name] = data.paper.circle(pt.x, pt.y, 4);
+    if (linkData[name] && pt) {
+      linkData[name].animate({cx: pt.x, cy: pt.y, r: r}, 300, 'elastic');
     }
+    else if (linkData.link && pt) {
+      linkData[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : r)
+          .attr({fill: 'rgba(0,255,0,.4)'});
+      if (switched) {
+        linkData[name].animate({r: r}, 1000, 'elastic');
+      }
+    }
+    linkData[name].data('cid', cid);
   }
 
   $.extend($.cut, {
     removeCharOrderLinks: function () {
-      paths.forEach(function (link) {
+      delete linkData.colId;
+
+      colLinks.forEach(function (link) {
         link.remove();
       });
-      links = {};
-      paths = [];
+      colChars = {};
+      colLinks.length = 0;
+
+      texts.forEach(function (text) {
+        text.remove();
+      });
+      texts = [];
+
+      Object.keys(colPaths).forEach(function (id) {
+        colPaths[id].remove();
+      });
+      colPaths = {};
+
+      if (linkData.curHandle) {
+        linkData.curHandle.remove();
+        delete linkData.curHandle;
+      }
+      if (linkData.draggingHandle) {
+        linkData.draggingHandle.remove();
+        delete linkData.draggingHandle;
+      }
     },
 
     addCharOrderLinks: function () {
-      this.removeCharOrderLinks();
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;
       state.mouseDrag = mouseDrag;
       state.mouseUp = mouseUp;
 
+      this.removeCharOrderLinks();
       data.chars.forEach(function (box) {
         var nums = (box.char_id || '').split('c');
         if (box.shape && nums.length === 3) {
           var colId = nums.slice(0, 2).join('c');
-          var column = links[colId] = links[colId] || [];
-          column.push([parseInt(nums[2]), box]);
+          colChars[colId] = colChars[colId] || [];
+          colChars[colId].push([parseInt(nums[2]), box]);
+          if (linkData.textVisible) {
+            var cen = getCenter(box);
+            texts.push(data.paper.text(cen.x, cen.y, nums.slice(1, 3).join('c'))
+                .attr({'font-size': '13px'}));
+          }
         }
       });
-      Object.keys(links).forEach(function (colId, colIndex) {
-        var column = links[colId] = links[colId].sort(function (a, b) {
+
+      Object.keys(colChars).forEach(function (colId, colIndex) {
+        var column = colChars[colId] = colChars[colId].sort(function (a, b) {
           return a[0] - b[0];
         }).map(function (a) {
           return {char: a[1], link: null};
         });
 
-        linkState.avgLen = 0;
+        var avgLen = 0;
+        var points = [getCenter(column[0].char)];
         column.forEach(function (c, i) {
           if (i > 0) {
             var h = Math.min(getHeight(column[i - 1].char), getHeight(c.char));
             var fromPt = getCenter(column[i - 1].char);
             var toPt = getCenter(c.char);
 
-            linkState.avgLen += getDistance(fromPt, toPt);
-            c.link = buildArrayLink(fromPt, toPt, h / 4, column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
-            paths.push(c.link);
+            avgLen += getDistance(fromPt, toPt);
+            c.link = buildArrayLink(fromPt, toPt, h / 4,
+                column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
+            colLinks.push(c.link);
+            points.push(toPt);
           }
         });
-        if (linkState.avgLen) {
-          linkState.avgLen /= column.length - 1;
-        }
+        linkData.avgLen = avgLen && avgLen / (column.length - 1);
+        colPaths[colId] = data.paper.path(points.map(function (pt, i) {
+          return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
+        }).join(' ')).attr({stroke: 'none'});
       });
     }
+  });
+
+  state.onZoomed = function () {
+    if (colLinks.length) {
+      $.cut.addCharOrderLinks();
+    }
+  };
+
+  $.cut.onBoxChanged(function(info, box, reason) {
+    if (colLinks.length && reason === 'undo') {
+      $.cut.addCharOrderLinks();
+    }
+  });
+
+  $('#switch-char-no').click(function () {
+    linkData.textVisible = !linkData.textVisible;
+    $.cut.addCharOrderLinks();
   });
 
 }());

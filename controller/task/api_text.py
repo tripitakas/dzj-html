@@ -147,7 +147,7 @@ class SaveTextApi(TaskHandler):
         try:
             data = self.get_request_data()
             assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
-            assert task_type in self.text_task_names
+            assert task_type in self.text_task_names()
 
             name = data['name']
             page = self.db.page.find_one(dict(name=name))
@@ -183,8 +183,7 @@ class SaveTextApi(TaskHandler):
             self.send_db_error(e)
 
     def pick_new_task(self, task_type):
-        tasks = self.get_tasks_info_by_type(task_type, self.STATUS_OPENED, rand=True, sort=True)
-        return tasks and tasks[0]
+        return self.get_lobby_tasks(task_type, page_size=1)
 
 
 class SaveTextProofApi(SaveTextApi):
@@ -195,7 +194,7 @@ class SaveTextProofApi(SaveTextApi):
         self.save('text_proof.' + num)
 
     def pick_new_task(self, task_type):
-        tasks = self.get_tasks_info_by_type('text_proof', self.STATUS_OPENED, rand=True, sort=True)
+        tasks = self.get_lobby_tasks('text_proof')
         picked = self.db.page.find({'$or': [
             {'text_proof.%d.picked_user_id' % i: self.current_user['_id']} for i in range(1, 4)
         ]}, {'name': 1})

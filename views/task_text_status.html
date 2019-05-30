@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 	<head>
 		<meta charset="UTF-8">
@@ -68,7 +69,7 @@
 																<span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
 																<span class="ion-android-sort "></span>
 																<ul class="dropdown-menu" role="menu">
-																	{% for k, v in task_statuses.items() %}
+																	{% for k, v in th.task_statuses.items() %}
 																	<li><a href="{{current_url}}?status={{k}}&t={{['text_proof.1', 'text_proof.2', 'text_proof.3', 'text_review'][i]}}">{{v}}</a></li>
 																	{% end %}
 																</ul>
@@ -83,16 +84,16 @@
 													<tr id="{{t['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{t['name']}}</td>
-														<td class="">{{task_statuses.get(th.get_obj_property(t, 'text_proof.1.status')) or ''}}</td>
-														<td class="">{{task_statuses.get(th.get_obj_property(t, 'text_proof.2.status')) or ''}}</td>
-														<td class="">{{task_statuses.get(th.get_obj_property(t, 'text_proof.3.status')) or ''}}</td>
-														<td class="">{{task_statuses.get(th.get_obj_property(t, 'text_review.status')) or ''}}</td>
+														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.1.status')) or ''}}</td>
+														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.2.status')) or ''}}</td>
+														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.3.status')) or ''}}</td>
+														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_review.status')) or ''}}</td>
 													</tr>
 												  {% end %}
 												</tbody>
 											</table>
 										</div>
-										{% module Pager(pager='TODO') %}
+										{% module Pager(pager) %}
 									</div>
 								</div>
 							</div>

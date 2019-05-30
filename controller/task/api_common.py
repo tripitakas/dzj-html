@@ -15,7 +15,7 @@ class GetPageApi(TaskHandler):
     URL = '/api/task/page/@task_id'
 
     def get(self, name):
-        """ 获取页面数据 """
+        """ 获取单个页面数据 """
         try:
             page = self.db.page.find_one(dict(name=name))
             if not page:
@@ -26,44 +26,26 @@ class GetPageApi(TaskHandler):
 
 
 class GetPagesApi(TaskHandler):
-    URL = '/api/task/pages/@page_kind'
+    URL = '/api/task/pages/@task_type'
 
-    def get(self, kind):
-        """ 为任务管理获取页面列表 """
-        self.process(kind)
+    def get(self, task_type):
+        """ 获取页面列表数据 """
+        self.process(task_type)
 
-    def post(self, kind):
-        """ 为任务管理获取页面列表 """
-        self.process(kind)
+    def post(self, task_type):
+        """ 获取页面列表数据 """
+        self.process(task_type)
 
-    def process(self, kind):
+    def process(self, task_type):
+        assert task_type in self.all_task_types()
         try:
-            assert 'cut_' in kind or 'text_' in kind
-            if 'cut_' in kind:
-                all_types = ['block_cut_proof', 'column_cut_proof', 'char_cut_proof',
-                             'block_cut_review', 'column_cut_review', 'char_cut_review']
+            sub_tasks = self.get_sub_tasks(task_type)
+            if sub_tasks:
+                condition = {'$or': [{'%s.%s.status' % (task_type, t): self.STATUS_READY} for t in sub_tasks]}
             else:
-                all_types = ['text_proof', 'text_review']
-
-            if kind == 'cut_start' or kind == 'text_start':
-                data = self.get_request_data()
-                assert data.get('task_type') in all_types
-
-                cond = {data['task_type'] + '.status': self.STATUS_READY}
-                if data['task_type'] == 'text_proof':
-                    cond = {'$or': [{'%s.%d.status' % (data['task_type'], i): self.STATUS_READY} for i in range(1, 4)]}
-                pages = list(self.db.page.find(cond).limit(self.MAX_RECORDS))
-                self.send_data_response([p['name'] for p in pages])
-            else:
-                pages = [p for p in self.db.page.find({})
-                         if [t for t in all_types if p.get(t + '.status')]]
-                for p in pages:
-                    for field, value in list(p.items()):
-                        if field == 'txt':
-                            p[field] = len(p[field])
-                        elif isinstance(value, list):
-                            del p[field]
-                self.send_data_response(pages)
+                condition = {'%s.status' % task_type: self.STATUS_READY}
+            pages = list(self.db.page.find(condition, {'name': 1}).limit(self.MAX_RECORDS))
+            self.send_data_response([p['name'] for p in pages])
         except DbError as e:
             self.send_db_error(e)
 
@@ -257,7 +239,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_proof(\.[123])?/@task_id'
+    URL = '/api/task/pick/text_proof([.][123])?/@task_id'
 
     def get(self, num, name):
         """ 取文字校对任务 """
@@ -319,7 +301,7 @@ class SaveCutApi(TaskHandler):
         try:
             data = self.get_request_data()
             assert re.match('^[A-Za-z0-9_]+$', data.get('name'))
-            assert task_type in self.cut_task_names
+            assert task_type in self.cut_task_names()
 
             page = self.db.page.find_one(dict(name=data['name']))
             if not page:

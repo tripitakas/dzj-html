@@ -118,8 +118,7 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
-            user['img'] = 'imgs/ava1.png' if user.get('gender') == '男' else 'imgs/ava2.png' if user.get(
-                'gender') == '女' else 'imgs/ava3.png'
+            user['img'] = 'imgs/ava%s.png' % (1 if user.get('gender') == '男' else 2 if user.get('gender') == '女' else 3)
 
             r = self.db.user.insert_one(dict(
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
@@ -337,20 +336,15 @@ class UploadUserImageHandler(BaseHandler):
     URL = '/api/user/upload_img'
 
     def post(self):
-        # 获取上传头像
-        file_img = self.request.files.get('img')
-        # 更新头像名称为用户ID加图片类型后缀
-        img_name = str(self.current_user['_id']) + os.path.splitext(file_img[0]['filename'])[-1]
-        # 设置头像的存储地址
-        img = 'profile/{}'.format(img_name)
-        save_to = 'static/' + img
-        # 存储头像
-        with open(save_to, 'wb') as f:  # 二进制
-            f.write(file_img[0]['body'])
-            f.close()
+
+        """上传用户头像"""
+        upload_img = self.request.files.get('img')
+        img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
+        img = 'upload/avatar/' + img_name
+        with open('static/' + img, 'wb') as f:
+            f.write(upload_img[0]['body'])
 
         try:
-            # 更新用户数据表中的头像存储信息
             self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
         except DbError as e:
             return self.send_db_error(e)
