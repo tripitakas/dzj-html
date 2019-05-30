@@ -166,7 +166,7 @@ role_maps = {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
-            '/api/task/pages/@task_type': ['GET', 'POST'],
+            '/api/task/pages/@task_type': ['POST'],
             '/api/task/publish': ['POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],
         }
