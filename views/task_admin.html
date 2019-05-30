@@ -123,8 +123,8 @@
 											</div>
 											<br />
 											<div class="form-group">
-												<div class="">
-													<select name="country" style="width: 500px;" class="multi-select" multiple="" id="my_multi_select" >
+												<div class="row">
+													<select name="my-select[]" style="width: 500px;" class="multi-select" multiple="multiple" id="my_multi_select" >
 														<option value="Afghanistan">Afghanistan</option>
 														<option value="Algeria">Algeria</option>
 														<option value="Andorra">Andorra</option>
@@ -259,20 +259,11 @@
 		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
         <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 		<script type="text/javascript">
-
+			// ---发布任务/选择页编码---
 			var pages = [];
 			var $modal = $('#selectModal');
 
-			// 发布任务/选择页编码
-			$modal.on('shown.bs.modal', function () {
-				getApi('/task/pages/{{task_type}}', function (res) {
-					pages = res.data;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-				});
-			});
-
+			// 点击确定
 			$modal.find('.btn-primary').click(function () {
 				var task_types = []
 				var $subTasks = $('.sub-tasks input');
@@ -300,41 +291,112 @@
 						location.reload();
 					}, 1000);
 				});
-
 			});
 
+			// pagination html
+			function get_pagination(page_no, page_size, total_count){
+				var page_count = Math.ceil(total_count/page_size);
+				var display_count = 5;	// 显示多少个页码
+				var start = page_no - parseInt(page_count/2);
+				start = start < 1 ? 1 : start;
+				var end = start + display_count;
+				end = end > page_count ? page_count : end;
+				var html = start > 1 ? "<a title='1'>首页</a>" : "";  // 首页
+				html = start > 1 ? html + "<a value='" + (page_no - 1) + "'><</a>" : html;	// 上一页
+				for (var i=1; i<=page_count; i++) {
+					if (i==page_no)
+						html += "<a class='cur' title='" + i + "'>" + i + "</a>";
+					else
+						html += "<a title='" + i + "'>" + i + "</a>";
+				}
+				html = page_no + 1 < page_count ? html + "<a title='" + (page_no + 1) + "'>></a>" : html  // 下一页
+				html = end < page_count ? html + "<a title='" + page_count + "'>未页</a>" : html
+				return page_count > 1 ? html : '';
+			}
+
+			// 初始化multiSelect
 	    	$('#my_multi_select').multiSelect({
             	selectableHeader:  "<div class='selectableHeader'>待选对象<a href='javascript:void(0);' class='right_btn' id='select_all_btn'>全选</a></div>" +
-            	                   "<div><i class='ser-btn'></i><input type='text' class='form-control search-input' id='selectable_input'  placeholder='您可以输入关键字进行搜索'></div>",
+            	                   "<div><i class='ser-btn'></i><input type='text' class='form-control search-input' id='selectable_input'  placeholder='请输入关键字，搜索服务器'></div>",
             	selectionHeader: "<div class='selectionHeader'>已选对象<a href='javascript:void(0);' class='right_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a></div>" +
-            	                 "<div><input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'></div>",
-            	selectableFooter: "<div class='search_pagination'><a>首页</a><a><</a><a>1</a><a class='cur'>2</a><a>3</a><a>4</a><a>5</a><a>></a><a>末页</a></div>",
+            	                 "<div><input type='text' class='form-control search-input' id='selected_input' placeholder='请输入关键字，搜索已选对象'></div>",
+            	selectableFooter: "<div id ='pagination' class='search-pagination'></div>",
             	selectionFooter: "",
             	selectableOptgroup:true,
-            	afterSelect:function(val){
+            	afterSelect: function(val){
                 	console.log(val);
-                }
+                },
+                afterDeselect: function(val){
+                	console.log(val);
+                },
             });
 
+            // 显示模态框
+			$modal.on('shown.bs.modal', function () {
+				postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
+					pages = res.data.pages;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+					var html = get_pagination(1, res.data.page_size, res.data.total_count);
+					$('#pagination').html(html);
+				});
+			});
+
+			var search_str = ''
             var selectableArr = [];
             var deSelectableArr = [];
-            // 待选对象-搜索
-            $(".ms-selectable #ser-btn").on('click',function(){
-            	alert('search')
-            });
 
             // 待选对象-全选
 			$("#select_all_btn").click(function(){
 				$('#my_multi_select').multiSelect('select_all');
 			});
 
-			// 待选对象- 全选所有搜索结果
-			$('#select_all_search_btn').click(function(){
-				if(selectableArr.length>0){
-					$('#my_multi_select').multiSelect('select',selectableArr);
-				}else{
-					alert("没有搜索结果");
-				}
+            // 待选对象-单选
+			$(".ms-elem-selectable").click(function(){
+				var itemValue = $(this).children('span').text().trim();
+				alert(itemValue)
+			});
+
+            // 待选对象-搜索
+            $(".ms-selectable .ser-btn").on('click', function(){
+            	var selectable_input = $('#selectable_input').val().trim();
+            	postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectable_input}}, function (res) {
+            		search_str = selectable_input  // 设置全局变量
+					pages = res.data.pages;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+					var html = get_pagination(1, res.data.page_size, res.data.total_count);
+					$('#pagination').html(html);
+				});
+
+            });
+
+			// 待选对象-搜索-添加回车响应
+            $(document).ready(function(e) {
+				$('.ms-selectable').on("keydown", function(event){
+					var keyCode = event.keyCode || event.which;
+					if(keyCode == "13"){
+						$(".ms-selectable .ser-btn").click();
+						event.preventDefault();
+					}
+				});
+			});
+
+			// 待选对象-翻页
+			$(".search-pagination a").on("click", function(){
+				var page = $(this).text().trim();
+				data = {page_prefix: search_str, page: page}
+				console.log(data)
+				postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
+					pages = res.data.pages;
+					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
+						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
+					}).join('\n'));
+					var html = get_pagination(res.data.page_no, res.data.page_size, res.data.total_count);
+					$('#pagination').html(html);
+				});
 			});
 
 			// 已选对象-搜索

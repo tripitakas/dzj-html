@@ -2991,7 +2991,7 @@ body.fixed-left .side-menu.left {
 .ms-container {
 	width: 100%;
 }
-.ms-container .search_pagination {
+.ms-container .search-pagination {
     margin-top: 10px;
 }
 .ms-container a {
@@ -3001,11 +3001,11 @@ body.fixed-left .side-menu.left {
     margin-left: 12px;
     cursor: pointer;
 }
-.ms-container .search_pagination a:hover {
+.ms-container .search-pagination a:hover {
 	color: #b33c2b;
 	text-decoration:none;
 }
-.ms-container .search_pagination .cur {
+.ms-container .search-pagination .cur {
     color: #555555;
 }
 
