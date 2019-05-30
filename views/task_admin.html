@@ -34,28 +34,6 @@
 			.collate-history .collate-list table tbody tr td.status_opened {
 				color: #007;
 			}
-			.ms-container {
-				width: 100%;
-			}
-			.ms-container .ms-list {
-			    margin-top: 32px;
-			}
-			.modal-dialog a {
-				color: #E4C3A8;
-				text-decoration:none;
-			}
-			.modal-dialog a:hover {
-				color: #b33c2b;
-				text-decoration:none;
-			}
-			.modal-dialog .search_pagination a {
-			    float: left;
-			    margin-left: 12px;
-			    cursor: pointer;
-			}
-			.modal-dialog .search_pagination .cur {
-			    color: #555555;
-			}
 		</style>
 	</head>
 
@@ -325,11 +303,11 @@
 
 			});
 
-			$('#my_multi_select').multiSelect({
-            	selectableHeader:  "待选对象<div class='search'><input type='text' class='form-control search-input' id='selectable_input'  placeholder='您可以输入关键字进行搜索'><i class='ser-btn'></i>" +
-            	                   "<a href='javascript:void(0);' class='left_btn' id='select_all_btn'>全选</a><a href='javascript:void(0);' class='right_btn' id='select_all_search_btn'>全选所有搜索结果</a></div>",
-            	selectionHeader: "已选对象<div class='search'><input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>" +
-            	                 "<a href='javascript:void(0);' class='left_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a></div>",
+	    	$('#my_multi_select').multiSelect({
+            	selectableHeader:  "<div class='selectableHeader'>待选对象<a href='javascript:void(0);' class='right_btn' id='select_all_btn'>全选</a></div>" +
+            	                   "<div><i class='ser-btn'></i><input type='text' class='form-control search-input' id='selectable_input'  placeholder='您可以输入关键字进行搜索'></div>",
+            	selectionHeader: "<div class='selectionHeader'>已选对象<a href='javascript:void(0);' class='right_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a></div>" +
+            	                 "<div><input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'></div>",
             	selectableFooter: "<div class='search_pagination'><a>首页</a><a><</a><a>1</a><a class='cur'>2</a><a>3</a><a>4</a><a>5</a><a>></a><a>末页</a></div>",
             	selectionFooter: "",
             	selectableOptgroup:true,
@@ -340,23 +318,26 @@
 
             var selectableArr = [];
             var deSelectableArr = [];
-            $("#selectable_input").on('input propertychange',function(){
-            	var inputval = $(this).val().trim();
-            	var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selectable li.ms-elem-selectable');
-            	selectableArr = [];
-            	selections.each(function(){
-            		var item_value = $(this).text();
-            		if(item_value.match(inputval)){
-            			$(this).show();
-            			selectableArr.push(item_value);
-            		}else{
-            			$(this).hide();
-            		}
-            	});
-            	$(".ms-elem-selectable.ms-selected").hide();
-            	console.log(selectableArr);
+            // 待选对象-搜索
+            $(".ms-selectable #ser-btn").on('click',function(){
+            	alert('search')
             });
 
+            // 待选对象-全选
+			$("#select_all_btn").click(function(){
+				$('#my_multi_select').multiSelect('select_all');
+			});
+
+			// 待选对象- 全选所有搜索结果
+			$('#select_all_search_btn').click(function(){
+				if(selectableArr.length>0){
+					$('#my_multi_select').multiSelect('select',selectableArr);
+				}else{
+					alert("没有搜索结果");
+				}
+			});
+
+			// 已选对象-搜索
             $("#selected_input").on('input propertychange',function(){
             	var inputval = $(this).val().trim();
             	var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
@@ -373,30 +354,21 @@
             	console.log(deSelectableArr);
             });
 
-			$('#select_all_search_btn').click(function(){
-				if(selectableArr.length>0){
-					$('#my_multi_select').multiSelect('select',selectableArr);
-				}else{
-					alert("没有搜索结果");
-				}
-			});
-
+			// 已选对象-删除所有搜索结果
 			$('#deselect_all_search_btn').click(function(){
-				if(deSelectableArr.length>0){
+				if(selectableArr.length>0){
 					$('#my_multi_select').multiSelect('deselect',deSelectableArr);
 				}else{
 					alert("没有搜索结果");
 				}
 			});
 
-			$("#select_all_btn").click(function(){
-				$('#my_multi_select').multiSelect('select_all');
-			});
-
+			// 已选对象-全删
 			$("#deselect_all_btn").click(function(){
 				$('#my_multi_select').multiSelect('deselect_all');
 			});
 
+			// 选择页编码-确定
 			$("#select_modal_btn").click(function(){
 				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
             	deSelectableArr = [];
@@ -407,8 +379,14 @@
             	console.log(deSelectableArr);
 			})
 
-			//排序图标
-			$(".sort").click(function(){
+			// 优先级-排序
+			$("#priority.sort").click(function(){
+				$(this).toggleClass('toggle');
+				$(this).next().toggleClass('toggle');
+			});
+
+			// 发布时间-排序
+			$("#publish_time.sort").click(function(){
 				$(this).toggleClass('toggle');
 				$(this).next().toggleClass('toggle');
 			});
@@ -440,6 +418,7 @@
 			}
 
 		</script>
+
 
 	</body>
 </html>
