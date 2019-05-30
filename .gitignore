@@ -45,4 +45,5 @@ target/
 # Project Files
 static/built/
 static/img/
+static/upload/
 app.yml
