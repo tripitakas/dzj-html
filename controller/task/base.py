@@ -17,7 +17,6 @@
 """
 
 from controller.base import BaseHandler
-from functools import cmp_to_key
 from datetime import datetime
 import random
 
@@ -174,10 +173,11 @@ class TaskHandler(BaseHandler):
         assert task_type in self.all_task_types()
 
         sub_types = self.get_sub_tasks(task_type)
+        user_id = self.current_user['_id']
         if sub_types:
-            conditions = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): self.current_user['_id']} for t in sub_types]}
+            conditions = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): user_id} for t in sub_types]}
         else:
-            conditions = {'%s.picked_user_id' % task_type: self.current_user['_id']}
+            conditions = {'%s.picked_user_id' % task_type: user_id}
 
         fields = {'name': 1, task_type: 1}
         page_size = page_size or self.config['pager']['page_size']

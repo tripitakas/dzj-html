@@ -100,7 +100,7 @@ class PublishTasksApi(TaskHandler):
         """
         assert task_type in self.all_task_types()
         try:
-            start, length, total = 0, self.MAX_UPDATE_RECORDS, len(page_names)  # 单次发布不超过10000
+            length, total = self.MAX_UPDATE_RECORDS, len(page_names)  # 单次发布不超过10000
             lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
             published_pages = []
             for _page_names in lst:
@@ -159,7 +159,7 @@ class PublishTasksApi(TaskHandler):
 
     def find_task(self, task_type, page_names):
         """根据task_type, page_names等参数，从数据库中查询对应的记录"""
-        start, length, total = 0, self.MAX_IN_FIND_RECORDS, len(page_names)  # 单次查询不超过50000
+        length, total = self.MAX_IN_FIND_RECORDS, len(page_names)  # 单次查询不超过50000
         lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
         pages = []
         for _page_names in lst:

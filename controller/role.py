@@ -40,7 +40,7 @@ role_maps = {
             '/api/user/logout': ['GET'],
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
-            '/api/user/upload_img':['POST'],
+            '/api/user/upload_img': ['POST'],
             '/task/do/char_order_proof/@task_id': ['GET'],  # 实现后再移到切字校对员里
         }
     },
@@ -201,6 +201,7 @@ role_maps = {
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
 
+
 def get_role_routes(role, routes=None):
     """
     获取指定角色对应的route集合
@@ -242,4 +243,3 @@ def get_route_roles(uri, method):
         if can_access(role, uri, method) and role not in roles:
             roles.append(role)
     return roles
-
