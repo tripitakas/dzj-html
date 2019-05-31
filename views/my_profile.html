@@ -198,11 +198,11 @@
 				postApi('/user/my/profile', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。');
 					location.reload();
-				}, function (msg, code) {
-					if (code === 1009) {
+				}, function (err) {
+					if (err.code === 1009) {
 						showSuccess('修改成功', '个人信息没有发生改变。');
 					}
-					showError('修改失败', msg);
+					showError('修改失败', err.message);
 				});
 			}
 
@@ -220,11 +220,11 @@
 				var info = {old_password: $('#old_password').val(), password: $('#password').val()};
 				postApi('/user/my/pwd', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的密码已修改。');
-				}, function (msg, code) {
-					if (code === 1009) {
+				}, function (err) {
+					if (err.code === 1009) {
 						showSuccess('修改成功', '密码没有发生改变。');
 					} else {
-						showError('修改失败', msg);
+						showError('修改失败', err.message);
 					}
 				});
 				$('#modifyModal').modal('hide');
