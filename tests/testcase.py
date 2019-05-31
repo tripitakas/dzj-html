@@ -15,12 +15,50 @@ import controller.role as role
 from controller.app import Application
 from tests.users import admin
 
+import uuid
+import mimetypes
+from functools import partial
+
 if PY3:
     import http.cookies as Cookie
 else:
     import Cookie
 
 cookie = Cookie.SimpleCookie()
+
+
+# https://github.com/ooclab/ga.service/blob/master/src/codebase/utils/fetch_with_form.py
+def body_producer(boundary, files, params, write):
+    boundary_bytes = boundary.encode()
+    crlf = b'\r\n'
+
+    for arg_name in files:
+        filename = files[arg_name]
+        filename_bytes = filename.encode()
+        write(b'--%s%s' % (boundary_bytes, crlf))
+        write(b'Content-Disposition: form-data; name="%s"; filename="%s"%s' %
+              (arg_name.encode(), filename_bytes, crlf))
+
+        m_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        write(b'Content-Type: %s%s' % (m_type.encode(), crlf))
+        write(crlf)
+        with open(filename, 'rb') as f:
+            while True:
+                # 16k at a time.
+                chunk = f.read(16 * 1024)
+                if not chunk:
+                    break
+                write(chunk)
+
+        write(crlf)
+
+    for arg_name in params:
+        value = params[arg_name]
+        write(b'--%s%s' % (boundary_bytes, crlf))
+        write(b'Content-Disposition: form-data; name="%s"{0}{0}%s{0}'.format(crlf) %
+              (arg_name.encode(), value.encode()))
+
+    write(b'--%s--%s' % (boundary_bytes, crlf))
 
 
 class APITestCase(AsyncHTTPTestCase):
@@ -68,16 +106,24 @@ class APITestCase(AsyncHTTPTestCase):
             self.assertEqual(code, r_code, msg=msg)
 
     def fetch(self, url, **kwargs):
-        if isinstance(kwargs.get('body'), dict):
+        files = kwargs.pop('files', None)
+        if not files and isinstance(kwargs.get('body'), dict):
             kwargs['body'] = json_util.dumps(kwargs['body'])
+        if 'body' in kwargs or files:
             kwargs['method'] = kwargs.get('method', 'POST')
 
         headers = kwargs.get('headers', {})
         headers['Cookie'] = ''.join(['%s=%s;' % (x, morsel.value) for (x, morsel) in cookie.items()])
 
-        request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
-        self.http_client.fetch(request, self.stop)
+        if files:
+            boundary = uuid.uuid4().hex
+            headers.update({'Content-Type': 'multipart/form-data; boundary=%s' % boundary})
+            producer = partial(body_producer, boundary, files, kwargs.pop('body', {}))
+            request = HTTPRequest(self.get_url(url), headers=headers, body_producer=producer, **kwargs)
+        else:
+            request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
 
+        self.http_client.fetch(request, self.stop)
         response = self.wait()
         headers = response.headers
         try:
