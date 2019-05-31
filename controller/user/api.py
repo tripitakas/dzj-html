@@ -23,8 +23,6 @@ class LoginApi(BaseHandler):
         user = self.get_request_data()
         rules = [
             (v.not_empty, 'phone_or_email', 'password'),
-            (v.is_phone_or_email, 'phone_or_email'),
-            (v.is_password, 'password')
         ]
         err = v.validate(user, rules)
         if err:

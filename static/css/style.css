@@ -2962,7 +2962,17 @@ body.fixed-left .side-menu.left {
 /* Multiple Select */
 
 .search-input {
-	margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.ms-container .ser-btn {
+    position: absolute;
+    margin-top: 10px;
+    margin-left: 41%;
+    background: url(../imgs/search-icon.png) no-repeat;
+    width: 15px;
+    height: 17px;
+    cursor: pointer;
 }
 
 .ms-selectable {
@@ -2978,7 +2988,26 @@ body.fixed-left .side-menu.left {
 .ms-container .ms-selection li.ms-hover {
 	background-color: #317eeb;
 }
-
+.ms-container {
+	width: 100%;
+}
+.ms-container .search-pagination {
+    margin-top: 10px;
+}
+.ms-container a {
+	color: #E4C3A8;
+	text-decoration:none;
+    float: left;
+    margin-left: 12px;
+    cursor: pointer;
+}
+.ms-container .search-pagination a:hover {
+	color: #b33c2b;
+	text-decoration:none;
+}
+.ms-container .search-pagination .cur {
+    color: #555555;
+}
 
 /* spinner */
 

@@ -9,6 +9,7 @@ from tornado.escape import json_decode
 from controller.base import DbError
 from controller import errors
 from controller.task.base import TaskHandler
+import controller.validate  as v
 
 
 class GetPageApi(TaskHandler):
@@ -28,27 +29,30 @@ class GetPageApi(TaskHandler):
 class GetPagesApi(TaskHandler):
     URL = '/api/task/pages/@task_type'
 
-    def get(self, task_type):
-        """ 获取页面列表数据 """
-        self.process(task_type)
-
     def post(self, task_type):
-        """ 获取页面列表数据 """
-        self.process(task_type)
-
-    def process(self, task_type):
+        """ 获取已就绪的页面列表数据 """
         assert task_type in self.all_task_types()
         try:
+            task_status = self.STATUS_READY
+            data = self.get_request_data()
+            condition = {}
+            page_prefix = data.get('page_prefix')
+            if page_prefix:
+                condition.update({'name': {'$regex': '^%s.*' % page_prefix.upper()}})
             sub_tasks = self.get_sub_tasks(task_type)
             if sub_tasks:
-                condition = {'$or': [{'%s.%s.status' % (task_type, t): self.STATUS_READY} for t in sub_tasks]}
+                condition.update({'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_tasks]})
             else:
-                condition = {'%s.status' % task_type: self.STATUS_READY}
-            pages = list(self.db.page.find(condition, {'name': 1}).limit(self.MAX_RECORDS))
-            self.send_data_response([p['name'] for p in pages])
+                condition.update({'%s.status' % task_type: task_status})
+            page_no = int(data['page']) if data.get('page') else 1
+            page_size = int(self.config['pager']['page_size'])
+            count = self.db.page.find(condition, {'name': 1}).count()
+            pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size*(page_no-1))
+            pages = [p['name'] for p in pages]
+            response = {'pages': pages, 'page_size':page_size, 'page_no':page_no,'total_count':count}
+            self.send_data_response(response)
         except DbError as e:
             self.send_db_error(e)
-
 
 class UnlockTasksApi(TaskHandler):
     URL = '/api/task/unlock/@task_type/@page_prefix'

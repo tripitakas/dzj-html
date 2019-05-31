@@ -181,7 +181,7 @@
 .register_code{
 	float: left;
 }
-.register_code_btn{
+.phone-code-btn{
 	float: right;
     margin:0 auto;
     width:30%;
@@ -193,5 +193,19 @@
     color:#fff;
     cursor: pointer;
     font-size:14px;
-	margin-top: 10px;    
+	margin-top: 10px;
+}
+.email-code-btn{
+	float: right;
+    margin:0 auto;
+    width:30%;
+    height:40px;
+    background: #b8906f;
+    border-radius:4px;
+    text-align: center;
+    line-height:40px;
+    color:#fff;
+    cursor: pointer;
+    font-size:14px;
+	margin-top: 10px;
 }

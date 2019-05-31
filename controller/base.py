@@ -141,8 +141,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
 
-        type = 'multiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
-        response = dict(status='success', type=type, data=data)
+        r_type = 'multiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
+        response = dict(status='success', type=r_type, data=data, code=200)
         response.update(kwargs)
         self.write(json_util.dumps(response))
         self.finish()
@@ -154,13 +154,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
-        type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
-        _error = list(error.values())[0] if type == 'multiple' else error
+        r_type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
+        _error = list(error.values())[0] if r_type == 'multiple' else error
         code, message = _error
         # 如果kwargs中含有message，则覆盖error中对应的message
         message = kwargs['message'] if kwargs.get('message') else message
 
-        response = dict(status='failed', type=type, code=code, message=message, error=error)
+        response = dict(status='failed', type=r_type, code=code, message=message, error=error)
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 

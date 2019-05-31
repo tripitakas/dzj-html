@@ -41,7 +41,8 @@ class Application(web.Application):
         self.version = __version__
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
-        handlers = [(r'/php/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler, dict(path=self.IMAGE_PATH))]
+        handlers = [(r'/upload/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler,
+                     dict(path=path.join(BASE_DIR, 'static', 'upload')))]
 
         for cls in self.handlers:
             if isinstance(cls.URL, list):
