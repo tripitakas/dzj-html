@@ -94,6 +94,9 @@ class UnlockTasksApi(TaskHandler):
         lock_name = 'lock_' + task_type.split('_')[0]
         locked_type = self.get_obj_property(page, lock_name + '.task_type')
         if locked_type != task_type:
+            from_exit = 'exit' in self.request.body_arguments
+            if from_exit:
+                self.send_data_response([])
             return self.send_error_response(errors.task_changed, page_name=page['name'])
         if self.get_obj_property(page, lock_name + '.picked_user_id') not in [self.current_user['_id'], None]:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
@@ -106,7 +109,6 @@ class UnlockTasksApi(TaskHandler):
 
         lock_name = 'lock_' + task_type.split('_')[0]
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
-        from_exit = 'exit' in self.request.body_arguments
 
         unset[lock_name] = None  # 删除锁定信息
         if self.get_obj_property(page, lock_name + '.jump_from_task'):
