@@ -5,6 +5,10 @@
 """
 import tests.users as u
 import controller.errors as e
+import requests
+from os import path
+import http.cookiejar as cookielib
+from tornado.httpclient import HTTPRequest
 from tests.testcase import APITestCase
 
 
@@ -143,3 +147,13 @@ class TestUserCommonApi(APITestCase):
             'data': dict(name='张三', phone='13800000000', email='user1_new@test.com', gender='男')
         })
         self.assert_code(200, r)
+
+    def test_api_upload_user_image(self):
+        BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
+        img_path = path.join(BASE_DIR, 'static', 'imgs', 'ava1.png')
+        user=self.fetch('/api/user/login', body={'data': dict(phone_or_email='goldennova09@hotmail.com', password='jin123456')})
+        session=requests.session()
+        resq=session.post(urls, files={'img': open(img_path, 'rb')})
+        r = self.fetch('/api/user/upload_img', body={'data': dict(phone_or_email='goldennova09@hotmail.com', password='jin123456')})
+        self.assert_code(200, r)
+
