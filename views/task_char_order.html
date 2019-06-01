@@ -151,6 +151,10 @@
     });
     updateUndo();
 
+    $.cut.onBoxChanged(function (char, box, reason) {
+      updateUndo();
+    });
+
     $('#switch-image').click(function () {
       var style = $.cut.data.image.node.style;
       style.display = style.display === 'none' ? '' : 'none';

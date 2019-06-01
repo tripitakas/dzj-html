@@ -1,7 +1,7 @@
 /*
  * char_order.js
  *
- * Date: 2019-05-29
+ * Date: 2019-06-01
  * global $
  */
 (function () {
@@ -10,11 +10,15 @@
   var data = $.cut.data;
   var state = $.cut.state;
   var colChars = {};    // 每列的字框 {colId: [[char_no, box]...]
-  var colLinks = [];    // 字框连线
+  var boxLinks = [];    // 字框连线
   var texts = [];       // 字框编号文本图形
   var colPaths = {};    // 每列的连通线
   var linkData = {
-    normalWidth: 2, curColWidth: 3, curLinkWidth: 6,
+    normalWidth: 3,
+    curColWidth: 4.5,
+    curLinkWidth: 8,
+    curLink: null,
+    dragTarget: null,
     draggingHandle: null,
     curHandle: null,
     avgLen: 0,
@@ -83,9 +87,9 @@
 
   function hitTestLink(pt) {
     var minDist = 1e5, minPath = null;
-    colLinks.forEach(function (link) {
+    boxLinks.forEach(function (link) {
       var dist = pointToSegmentDistance(pt, link.data('fromPt'), link.data('toPt'));
-      var diff = link === linkData.link ? 10 : 0;  // 当前连线段优先捕捉
+      var diff = link === linkData.curLink ? 10 : 0;  // 当前连线段优先捕捉
 
       if (minDist > dist - diff && dist < linkData.avgLen) {
         minDist = dist - diff;
@@ -98,15 +102,15 @@
   function onColChanged(link, lastColId) {
     function run() {
       if (colChars[linkData.colId]) {
-        var ms = 150 * colChars[linkData.colId].length;
+        var ms = 100 * colChars[linkData.colId].length;
         linkData.alongBall.animate({along: 1}, ms, function () {
           linkData.alongBall.attr({along: 0});
-          setTimeout(run);
+          setTimeout(run, 100);
         });
       }
     }
 
-    colLinks.forEach(function (p) {
+    boxLinks.forEach(function (p) {
       if (p.data('colId') === lastColId) {
         p.setAttr({'stroke-width': linkData.normalWidth / data.ratioInitial});
       }
@@ -128,59 +132,75 @@
       };
       linkData.alongBall.attr({along: 0});
 
-      setTimeout(run);
+      setTimeout(run, 100);
     }
   }
 
-  function mouseHover(pt) {
-    if (linkData.draggingHandle) {
-      return;
-    }
-
-    var link = hitTestLink(pt);
+  function selectLink(curLink, atStart) {
     var lastColId = linkData.colId;
-    var lastLink = linkData.link;
-    var lastStart = linkData.atStart;
-    var linkText, handleChanged;
+    var lastLink = linkData.curLink;
+    var handleChanged = linkData.curLink !== curLink || atStart !== linkData.atStart;
+    var linkText;
 
-    if (link) {
-      linkData.atStart = getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
-      linkData.handlePt = link.data(linkData.atStart ? 'fromPt' : 'toPt');
-      linkText = (linkData.atStart ? '*' : '') + link.data('cid1').replace(linkData.colId, '')
-          + '->' + (linkData.atStart ? '' : '*') + link.data('cid2').replace(linkData.colId, '');
+    if (curLink) {
+      linkData.atStart = atStart;
+      linkData.handlePt = curLink.data(linkData.atStart ? 'fromPt' : 'toPt');
+      linkText = (linkData.atStart ? '*' : '') + curLink.data('cid1').replace(linkData.colId, '')
+          + '->' + (linkData.atStart ? '' : '*') + curLink.data('cid2').replace(linkData.colId, '');
+    } else {
+      delete linkData.handlePt;
     }
-    handleChanged = linkData.link !== link || lastStart !== linkData.atStart;
-    if (linkData.link !== link) {
-      linkData.link = link;
-      linkData.colId = link && link.data('colId') || '';
+    if (linkData.curLink !== curLink) {
+      linkData.curLink = curLink;
+      linkData.colId = curLink && curLink.data('colId') || '';
 
       if (lastLink) {
-        lastLink.setAttr({'stroke-width': linkData.curColWidth / data.ratioInitial, 'stroke-opacity': 0.9});
+        lastLink.setAttr({
+          'stroke': lastLink.data('color'),
+          'stroke-width': linkData.curColWidth / data.ratioInitial,
+          'stroke-dasharray': lastLink.data('dash'),
+          'stroke-opacity': 0.9
+        });
       }
       if (linkData.colId !== lastColId) {
-        onColChanged(link, lastColId);
+        onColChanged(curLink, lastColId);
       }
-      if (link) {
-        link.setAttr({'stroke-width': linkData.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
+      if (curLink) {
+        curLink.setAttr({
+          'stroke': '#04f',
+          'stroke-width': linkData.curLinkWidth / data.ratioInitial,
+          'stroke-dasharray': '',
+          'stroke-opacity': 0.8
+        });
       }
     }
     createHandle('curHandle', linkData.handlePt,
-        link && link.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
+        curLink && curLink.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
 
     $('#info > .col-info').text(linkData.colId ? '栏: ' + linkData.colId : '');
     $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
   }
 
+  function mouseHover(pt) {
+    if (!linkData.draggingHandle) {
+      var link = hitTestLink(pt);
+      var atStart = link && getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
+      selectLink(link, atStart);
+    }
+  }
+
   function mouseDown(pt) {
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 0.2});
-      linkData.link.attr({'stroke-opacity': 0.2});
+    }
+    if (linkData.curLink) {
+      linkData.curLink.attr({'stroke-opacity': 0.2});
     }
     mouseDrag(pt);
   }
 
   function mouseDrag(pt) {
-    if (linkData.link) {
+    if (linkData.curLink) {
       linkData.dragTarget = $.cut.findBoxByPoint(pt);
       if (linkData.dragTarget) {
         pt = getCenter(linkData.dragTarget);
@@ -192,8 +212,8 @@
       if (linkData.dynLink) {
         linkData.dynLink.remove();
       }
-      var startPt = linkData.atStart ? pt : linkData.link.data('fromPt');
-      var toPt = linkData.atStart ? linkData.link.data('toPt') : pt;
+      var startPt = linkData.atStart ? pt : linkData.curLink.data('fromPt');
+      var toPt = linkData.atStart ? linkData.curLink.data('toPt') : pt;
       linkData.dynLink = buildArrayLink(startPt, toPt, 10, null, null, null, '#f00');
       linkData.dynLink.setAttr({
         'stroke-width': linkData.curLinkWidth / data.ratioInitial,
@@ -210,7 +230,7 @@
 
     if (insertTarget && linkData.dragTarget) {
       chars = data.chars.filter(function (box) {
-        if (box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
+        if (box.shape && box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
           box.char_no = parseInt(box.char_id.replace(linkData.colId + 'c', ''));
           return true;
         }
@@ -270,7 +290,7 @@
       if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
         onLinkChanged(charOld, charNew, e.shiftKey, !e.altKey && !e.shiftKey);
         setTimeout(function () {
-          $.cut.addCharOrderLinks();
+          updateOrderLinks(linkData.dragTarget ? cidOld : cidNew);
         }, 500);
       }
       if (linkData.dragTarget) {
@@ -280,6 +300,14 @@
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 1})
     }
+  }
+  
+  function updateOrderLinks(cid) {
+    cid = cid || linkData.curLink && linkData.curLink.data('cid2');
+    $.cut.addCharOrderLinks();
+    selectLink(boxLinks.filter(function (link) {
+      return link.data('cid1') === cid || link.data('cid2') === cid;
+    })[0], linkData.atStart);
   }
 
   function createHandle(name, pt, cid, switched) {
@@ -291,9 +319,9 @@
     if (linkData[name] && pt) {
       linkData[name].animate({cx: pt.x, cy: pt.y, r: r}, 300, 'elastic');
     }
-    else if (linkData.link && pt) {
+    else if (linkData.curLink && pt) {
       linkData[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : r)
-          .attr({fill: 'rgba(0,255,0,.4)'});
+          .attr({fill: 'rgba(0,255,0,.6)'});
       if (switched) {
         linkData[name].animate({r: r}, 1000, 'elastic');
       }
@@ -307,11 +335,11 @@
     removeCharOrderLinks: function () {
       delete linkData.colId;
 
-      colLinks.forEach(function (link) {
+      boxLinks.forEach(function (link) {
         link.remove();
       });
       colChars = {};
-      colLinks.length = 0;
+      boxLinks.length = 0;
 
       texts.forEach(function (text) {
         text.remove();
@@ -346,6 +374,7 @@
           var colId = nums.slice(0, 2).join('c');
           colChars[colId] = colChars[colId] || [];
           colChars[colId].push([parseInt(nums[2]), box]);
+
           if (linkData.textVisible) {
             var cen = getCenter(box);
             texts.push(data.paper.text(cen.x, cen.y, nums.slice(1, 3).join('c'))
@@ -363,6 +392,8 @@
 
         var avgLen = 0;
         var points = [getCenter(column[0].char)];
+        var color = colIndex % 2 ? '#00f' : '#08f';
+
         column.forEach(function (c, i) {
           if (i > 0) {
             var h = Math.min(getHeight(column[i - 1].char), getHeight(c.char));
@@ -371,8 +402,10 @@
 
             avgLen += getDistance(fromPt, toPt);
             c.link = buildArrayLink(fromPt, toPt, h / 4,
-                column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
-            colLinks.push(c.link);
+                column[i - 1].char, c.char, colId, color);
+            c.link.data('color', color)
+                .data('dash', c.link.attr('stroke-dasharray'));
+            boxLinks.push(c.link);
             points.push(toPt);
           }
         });
@@ -386,22 +419,22 @@
 
   // 放缩后重新生成图形
   state.onZoomed = function () {
-    if (colLinks.length) {
-      $.cut.addCharOrderLinks();
+    if (boxLinks.length) {
+      updateOrderLinks();
     }
   };
 
   // Undo/Redo后重新生成图形
   $.cut.onBoxChanged(function(info, box, reason) {
-    if (colLinks.length && reason === 'undo') {
-      $.cut.addCharOrderLinks();
+    if (boxLinks.length && reason === 'undo') {
+      updateOrderLinks();
     }
   });
 
   // 显隐字框编号
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
-    $.cut.addCharOrderLinks();
+    updateOrderLinks();
   });
 
 }());
