@@ -58,7 +58,7 @@
                             <span class="slice_title">
                               <a onclick="leave('{{from_url}}')">返回</a>
                             </span>
-                            <span class="slice_info">页编码：{{page['name']}}</span>
+                            <span class="slice_info">字序校对：{{page['name']}}</span>
                             <div class="slice_btn_group">
                               <div class="btn-group m-b-10">
                               </div>
@@ -81,10 +81,7 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                               </button>
                               <ul class="dropdown-menu">
-                                <li><a id="submit">提交任务</a></li>
-                                <li role="separator" class="divider"></li>
-                                <li><a id="order-mode">字序校对</a></li>
-                                <li><a id="box-mode">字框校对</a></li>
+                                <li><a href="/task/do/char_cut_{{stage}}/{{name}}">字框校对</a></li>
                               </ul>
                             </div>
                             {% end %}

@@ -33,7 +33,7 @@ class CutDetailBaseHandler(TaskHandler):
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
         from_url = self.get_query_argument('from', None)
-        readonly = self.get_query_argument('view', 0)
+        readonly = int(self.get_query_argument('view', 0))
         if readonly:
             handle_response({})
         else:

@@ -53,13 +53,14 @@
                             <span class="slice_title">
                               <a onclick="leave('{{from_url}}')">返回</a>
                             </span>
+                            <span class="slice_info">{{title}}：{{page['name']}}</span>
                             {% else %}
                             <a onclick="leave('/home')"><span class="head_home ion-home"></span></a>
                             <span class="slice_title">
                               <a onclick="leave('{{from_url}}')">{{title}}</a>
                             </span>
-                            {% end %}
                             <span class="slice_info">页编码：{{page['name']}}</span>
+                            {% end %}
                             <div class="slice_btn_group">
                               <div class="btn-group m-b-10 hl-btn">
                                 <button type="button" class="btn btn-default waves-effect" id="hl-all">所有
@@ -83,22 +84,20 @@
                               </div>
                             </div>
 
-                            {% if not readonly %}
                             <div class="btn-group">
-                              <button type="button" class="btn btn-warning waves-effect waves-light m-b-5" id="save">保存</button>
-                              <button type="button" class="btn btn-warning waves-effect waves-light dropdown-toggle"
-                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="caret"></span>
-                                <span class="sr-only">Toggle Dropdown</span>
+                              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{'更多' if readonly else '操作'}} <span class="caret"></span>
                               </button>
                               <ul class="dropdown-menu">
+                                {% if not readonly %}
+
+                                <li><a id="save">保存改动</a></li>
                                 <li><a id="submit">提交任务</a></li>
-                                <li role="separator" class="divider"></li>
                                 {% if box_type == 'char' %}
-                                <li><a href="/task/do/char_order_proof/{{name}}?from={{'' if 'from' in request.uri else request.uri}}">字序校对</a></li>
                                 <li role="separator" class="divider"></li>
+                                <li><a href="/task/do/char_order_proof/{{name}}?from={{'' if 'from' in request.uri else request.uri}}">字序校对</a></li>
                                 {% end %}
-                                <li><a id="return-task">退回任务</a></li>
+
 
                                 {% if box_type != 'block' %}
                                 <li role="separator" class="divider"></li>
@@ -106,15 +105,10 @@
                                 <li><a class="ed-box" id="ed-{{type}}-box">修改{{text}}</a></li>
                                 {% end %}
                                 {% end %}
-                              </ul>
-                            </div>
+                                <li role="separator" class="divider"></li>
+                                <li><a id="return-task">退回任务</a></li>
 
-                            {% elif box_type != 'block' %}
-                            <div class="btn-group">
-                              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                更多 <span class="caret"></span>
-                              </button>
-                              <ul class="dropdown-menu">
+                                {% else %}
                                 {% if box_type == 'char' %}
                                 <li><a href="/task/do/char_order_proof/{{name}}?view=1&from={{'' if 'from' in request.uri else request.uri}}">字序校对</a></li>
                                 <li role="separator" class="divider"></li>
@@ -123,9 +117,9 @@
                                 {% for type,text in ([('block', '栏框')] if box_type == 'column' else [('block', '栏框'), ('column', '列框')]) %}
                                 <li><a class="ed-box" id="ed-{{type}}-box">查看{{text}}</a></li>
                                 {% end %}
+                                {% end %}
                               </ul>
                             </div>
-                            {% end %}
                           </div>
                           <div class="right fr">
 
