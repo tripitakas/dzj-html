@@ -37,8 +37,14 @@ class GetPagesApi(TaskHandler):
             data = self.get_request_data()
             condition = {}
             page_prefix = data.get('page_prefix')
+            condition['name'] = {}
             if page_prefix:
-                condition.update({'name': {'$regex': '^%s.*' % page_prefix.upper()}})
+                condition['name'].update({'$regex': '^%s.*' % page_prefix.upper()})
+            exclude_pages = data.get('exclude_pages')
+            if exclude_pages:
+                condition['name'].update({'$nin': exclude_pages})
+            if not condition['name']:
+                del condition['name']
             sub_tasks = self.get_sub_tasks(task_type)
             if sub_tasks:
                 condition.update({'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_tasks]})
@@ -49,7 +55,7 @@ class GetPagesApi(TaskHandler):
             count = self.db.page.find(condition, {'name': 1}).count()
             pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size*(page_no-1))
             pages = [p['name'] for p in pages]
-            response = {'pages': pages, 'page_size':page_size, 'page_no':page_no,'total_count':count}
+            response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
         except DbError as e:
             self.send_db_error(e)

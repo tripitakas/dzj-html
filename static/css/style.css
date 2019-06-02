@@ -50,11 +50,11 @@ Date: Jun 2015
     17.7 Maintenance
     17.8 Conatct
  18) RESPONSIVE
-*/
+
 
 @import url(http://fonts.googleapis.com/css?family=Nunito:400,300,700);
 @import url(http://fonts.googleapis.com/css?family=Roboto:400,500,700);
-
+*/
 /******** 1. General ********/
 
 body {
@@ -2960,8 +2960,11 @@ body.fixed-left .side-menu.left {
 
 
 /* Multiple Select */
+.ms-container {
+	width: 100%;
+}
 
-.search-input {
+.ms-container .search-input {
     margin-top: 10px;
 }
 
@@ -2988,12 +2991,11 @@ body.fixed-left .side-menu.left {
 .ms-container .ms-selection li.ms-hover {
 	background-color: #317eeb;
 }
-.ms-container {
-	width: 100%;
-}
+
 .ms-container .search-pagination {
     margin-top: 10px;
 }
+
 .ms-container a {
 	color: #E4C3A8;
 	text-decoration:none;
@@ -3001,11 +3003,21 @@ body.fixed-left .side-menu.left {
     margin-left: 12px;
     cursor: pointer;
 }
-.ms-container .search-pagination a:hover {
+
+.ms-search-pagination a {
+	color: #E4C3A8;
+	text-decoration:none;
+    float: left;
+    margin-left: 12px;
+    cursor: pointer;
+}
+
+.ms-search-pagination a:hover {
 	color: #b33c2b;
 	text-decoration:none;
 }
-.ms-container .search-pagination .cur {
+
+.ms-search-pagination .cur {
     color: #555555;
 }
 
