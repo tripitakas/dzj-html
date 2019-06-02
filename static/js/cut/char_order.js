@@ -419,6 +419,54 @@
           return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
         }).join(' ')).attr({stroke: 'none'});
       });
+    },
+
+    toggleColumns: function (columns) {
+      if (linkData.columns) {
+        linkData.columns.forEach(function (r) {
+          r.animate({opacity: 0}, 200, '>', function () {
+            this.remove();
+          });
+        });
+        delete linkData.columns;
+      } else {
+        var s = data.ratio * data.ratioInitial;
+        linkData.columns = columns.map(function (box, i) {
+          var color = i % 2 ? '#f00' : '#f80';
+          var r = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
+              .attr({stroke: color, fill: color, 'stroke-opacity': 0.6, 'fill-opacity': 0});
+          r.animate({'fill-opacity': 0.1}, 500, '<');
+          return r;
+        });
+      }
+    },
+    
+    showErrorBoxes: function (prompt) {
+      function inRange(texts) {
+        var colNo = parseInt(texts[1]), charNo = parseInt(texts[2]);
+        return colNo >= 1 && colNo <= 100 && charNo >= 1 && charNo <= 100;
+      }
+
+      var shapes = [];
+      data.chars.forEach(function (char) {
+        if (char.shape && !(/^b\d+c\d+c\d+$/.test(char.char_id) && inRange(char.char_id.split('c')) )) {
+          var box = char.shape.getBBox();
+          var r = data.paper.rect(box.x, box.y, box.width, box.height)
+              .attr({stroke: '#f00', fill: 'rgba(255,0,0,.6)'});
+          shapes.push(r);
+        }
+      });
+      if (!shapes.length && prompt) {
+        showSuccess('字框编号正常', '没有待修正编号的字框。')
+      }
+      setTimeout(function () {
+        shapes.forEach(function (r) {
+          r.animate({opacity: 0}, 500, '>', function () {
+            this.remove();
+          });
+        });
+      }, 3000);
+      return shapes.length;
     }
   });
 
@@ -440,29 +488,6 @@
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
     updateOrderLinks();
-  });
-
-  // 显示字序待修正的字框
-  $('#show-err-box').click(function () {
-    var shapes = [];
-    data.chars.forEach(function (char) {
-      if (char.shape && !/^b\d+c\d+c\d+$/.test(char.char_id)) {
-        var box = char.shape.getBBox();
-        var r = data.paper.rect(box.x, box.y, box.width, box.height)
-            .attr({stroke: '#f00', fill: 'rgba(255,0,0,.6)'});
-        shapes.push(r);
-      }
-    });
-    if (!shapes.length) {
-      showSuccess('字框编号正常', '没有待修正编号的字框。')
-    }
-    setTimeout(function () {
-      shapes.forEach(function (r) {
-        r.animate({opacity: 0}, 500, '>', function () {
-          this.remove();
-        });
-      });
-    }, 3000);
   });
 
 }());

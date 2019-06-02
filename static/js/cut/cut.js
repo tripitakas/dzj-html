@@ -647,8 +647,10 @@
 
         if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
           setTimeout(function () {
-            c.shape.attr({fill: data.hoverFill, 'fill-opacity': 0.8});
-            c.shape.show();
+            if (c.shape) {
+              c.shape.attr({fill: data.hoverFill, 'fill-opacity': 0.8});
+              c.shape.show();
+            }
           }, 100);
         }
       });
