@@ -94,7 +94,7 @@ class CharOrderProofHandler(CutDetailBaseHandler):
                 chars[c_i]['char_no'] = c['column_order']
             kwargs['zero_char_id'] = [a.get('char_id') for a in chars if get_char_no(a) > 100 or not get_char_no(a)]
 
-        if kwargs['from_url'].startswith('/task/lobby/'):
+        if kwargs.get('from_url', '').startswith('/task/lobby/'):
             kwargs['from_url'] = self.request.uri.replace('order', 'cut')  # 返回字切分校对
 
         super(CharOrderProofHandler, self).render(template_name, **kwargs)
