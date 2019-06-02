@@ -24,16 +24,25 @@
   <style>
     #info {
       position: fixed;
-      bottom: 20px;
-      right: 50px;
+      bottom: 0;
+      width: 100%;
       padding: 8px;
       background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      opacity: .6;
+      border-top: 1px solid #ddd;
+      opacity: .9;
     }
     #info > span + span {
       margin-left: 8px;
+    }
+    .full-hd {
+      position: fixed;
+      z-index: 1000;
+      width: 100%;
+      margin-top: -1px;
+      background-color: rgba(255,255,255,.9);
+    }
+    .full-bd {
+      padding-top: 40px;
     }
   </style>
 </head>
@@ -109,6 +118,7 @@
                           <!-- holder为显示切分框和页面图的画布容器 -->
                           <div id="holder"></div>
                           <div id="info">
+                            <span class="cur-char"></span>
                             <span class="col-info"></span>
                             <span class="char-info"></span>
                             <span class="target-char"></span>
@@ -168,6 +178,9 @@
     });
 
     $.cut.onBoxChanged(function (char, box, reason) {
+      if (reason === 'navigate') {
+        $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID() || '未选中'));
+      }
       updateUndo();
     });
 

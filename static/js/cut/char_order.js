@@ -106,7 +106,7 @@
 
   function onColChanged(link, lastColId) {
     function run() {
-      if (colChars[linkData.colId]) {
+      if (colChars[linkData.colId] && ++linkData.ballTimes < 3) {
         var ms = 100 * colChars[linkData.colId].length;
         linkData.alongBall.animate({alongColPath: 1}, ms, function () {
           linkData.alongBall.attr({alongColPath: 0});
@@ -136,7 +136,7 @@
         return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
       };
       linkData.alongBall.attr({alongColPath: 0});
-
+      linkData.ballTimes = 0;
       setTimeout(run, 100);
     }
   }
@@ -150,8 +150,8 @@
     if (curLink) {
       linkData.atStart = atStart;
       linkData.handlePt = curLink.data(linkData.atStart ? 'fromPt' : 'toPt');
-      linkText = (linkData.atStart ? '*' : '') + curLink.data('cid1').replace(linkData.colId, '')
-          + '->' + (linkData.atStart ? '' : '*') + curLink.data('cid2').replace(linkData.colId, '');
+      linkText = curLink.data('cid1').replace(linkData.colId, '') + (linkData.atStart ? '(起点)' : '')
+          + '->' + curLink.data('cid2').replace(linkData.colId, '') + (linkData.atStart ? '' : '(终点)');
     } else {
       delete linkData.handlePt;
     }
@@ -182,8 +182,8 @@
     createHandle('curHandle', linkData.handlePt,
         curLink && curLink.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
 
-    $('#info > .col-info').text(linkData.colId ? '栏: ' + linkData.colId : '');
-    $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
+    $('#info > .col-info').text('当前列: ' + (linkData.colId || '未选中'));
+    $('#info > .char-info').text('字框连线: ' + (linkText || '未选中'));
   }
 
   function mouseHover(pt) {
@@ -194,18 +194,21 @@
     }
   }
 
-  function mouseDown(pt) {
+  function mouseDown() {
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 0.2});
     }
     if (linkData.curLink) {
       linkData.curLink.attr({'stroke-opacity': 0.2});
     }
-    mouseDrag(pt);
+    linkData.dragging = false;
   }
 
   function mouseDrag(pt) {
-    if (linkData.curLink) {
+    if (linkData.curLink && !linkData.dragging) {
+      linkData.dragging = getDistance(state.downOrigin, pt) > linkData.avgLen / 3;
+    }
+    if (linkData.dragging) {
       linkData.dragTarget = $.cut.findBoxByPoint(pt);
       if (linkData.dragTarget) {
         pt = getCenter(linkData.dragTarget);
@@ -280,6 +283,7 @@
   }
 
   function mouseUp(pt, e) {
+    linkData.dragging = false;
     if (linkData.draggingHandle) {
       var cidNew = linkData.draggingHandle.data('cid');
       var cidOld = linkData.curHandle.data('cid');
@@ -421,6 +425,13 @@
       });
     },
 
+    bindCharOrderKeys: function () {
+      var self = this;
+      var on = function (key, func) {
+        $.mapKey(key, func, {direction: 'down'});
+      };
+    },
+
     toggleColumns: function (columns) {
       if (linkData.columns) {
         linkData.columns.forEach(function (r) {
@@ -452,7 +463,8 @@
         if (char.shape && !(/^b\d+c\d+c\d+$/.test(char.char_id) && inRange(char.char_id.split('c')) )) {
           var box = char.shape.getBBox();
           var r = data.paper.rect(box.x, box.y, box.width, box.height)
-              .attr({stroke: '#f00', fill: 'rgba(255,0,0,.6)'});
+              .attr({stroke: '#f00', fill: '#f00', 'fill-opacity': 1});
+          r.animate({'fill-opacity': 0.5}, 500, '<');
           shapes.push(r);
         }
       });
