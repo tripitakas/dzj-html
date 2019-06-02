@@ -9,20 +9,24 @@
 
   var data = $.cut.data;
   var state = $.cut.state;
-  var colChars = {};    // 每列的字框 {colId: [[char_no, box]...]
-  var boxLinks = [];    // 字框连线
-  var texts = [];       // 字框编号文本图形
-  var colPaths = {};    // 每列的连通线
+  var colChars = {};      // 每列的字框 {colId: [[char_no, box]...]
+  var boxLinks = [];      // 字框连线，由 buildBoxLink 创建
+  var texts = [];         // 字框编号文本图形
+  var colPaths = {};      // 每列的连通线
   var linkData = {
-    normalWidth: 3,
-    curColWidth: 4.5,
-    curLinkWidth: 8,
-    curLink: null,
-    dragTarget: null,
-    draggingHandle: null,
-    curHandle: null,
-    avgLen: 0,
-    textVisible: false
+    normalWidth: 3,       // 非当前列的连线宽
+    curColWidth: 4.5,     // 当前列的连线宽
+    curLinkWidth: 8,      // 当前列的当前连线的宽度
+    colId: null,          // 当前列的列号
+    curLink: null,        // 当前连线
+    alongBall: null,      // 在列路径上运动的小球
+    dragTarget: null,     // 拖放目标字框
+    draggingHandle: null, // 拖放目标位置的圆点
+    curHandle: null,      // 当前选中的拖放起点处的圆点
+    handlePt: null,       // curHandle 的坐标，不显示则为空
+    atStart: false,       // curHandle 位于 curLink 的头部还是尾部
+    avgLen: 0,            // 字框连线的平均长度
+    textVisible: false    // 是否显示字框编号
   };
   var getDistance = $.cut.getDistance;
 
@@ -30,7 +34,7 @@
     return Math.round(num * 100) / 100;
   }
 
-  function buildArrayLink(fromPt, toPt, tol, c1, c2, colId, color) {
+  function buildBoxLink(fromPt, toPt, tol, c1, c2, colId, color) {
     var path = 'M' + round(fromPt.x) + ',' + round(fromPt.y) + 'L' + round(toPt.x) + ',' + round(toPt.y);
     var link = data.paper.path(path)
         .initZoom().setAttr({
@@ -40,7 +44,8 @@
           'stroke-dasharray': fromPt.y < toPt.y - tol ? '' : '.'    // 向上或水平就显示虚线，否则为实线
         })
         .data('fromPt', fromPt)
-        .data('toPt', toPt);
+        .data('toPt', toPt)
+        .data('color', color);
 
     if (c1 && c2) {
       link.data('c1', c1)
@@ -57,8 +62,8 @@
   }
 
   function getHeight(char) {
-    var box = char.shape.getBBox();
-    return box.height;
+    var box = char && (char.shape || char).getBBox();
+    return box ? box.height : 10;
   }
 
   function pointToSegmentDistance(pt, pa, pb) {
@@ -103,8 +108,8 @@
     function run() {
       if (colChars[linkData.colId]) {
         var ms = 100 * colChars[linkData.colId].length;
-        linkData.alongBall.animate({along: 1}, ms, function () {
-          linkData.alongBall.attr({along: 0});
+        linkData.alongBall.animate({alongColPath: 1}, ms, function () {
+          linkData.alongBall.attr({alongColPath: 0});
           setTimeout(run, 100);
         });
       }
@@ -123,14 +128,14 @@
     }
     var alongPath = colPaths[linkData.colId];
     if (alongPath) {
-      linkData.alongLen = alongPath.getTotalLength();
+      var alongLen = alongPath.getTotalLength();
       linkData.alongBall = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff'});
 
-      data.paper.customAttributes.along = function (v) {
-        var point = alongPath.getPointAtLength(v * linkData.alongLen);
+      data.paper.customAttributes.alongColPath = function (v) {
+        var point = alongPath.getPointAtLength(v * alongLen);
         return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
       };
-      linkData.alongBall.attr({along: 0});
+      linkData.alongBall.attr({alongColPath: 0});
 
       setTimeout(run, 100);
     }
@@ -214,7 +219,7 @@
       }
       var startPt = linkData.atStart ? pt : linkData.curLink.data('fromPt');
       var toPt = linkData.atStart ? linkData.curLink.data('toPt') : pt;
-      linkData.dynLink = buildArrayLink(startPt, toPt, 10, null, null, null, '#f00');
+      linkData.dynLink = buildBoxLink(startPt, toPt, getHeight(state.edit) / 4, null, null, null, '#f00');
       linkData.dynLink.setAttr({
         'stroke-width': linkData.curLinkWidth / data.ratioInitial,
         'stroke-opacity': 0.7
@@ -286,7 +291,8 @@
       linkData.dynLink.remove();
       delete linkData.dynLink;
 
-      // 直接拖动就将目标字框插入当前列，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就交换字框编号
+      // 直接拖动就将目标字框插入当前列，拖到空白处就原字框解除连接；
+      // 按下shift键拖动就改连接到目标字框上，原字框解除连接；按下alt键拖动就交换字框编号
       if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
         onLinkChanged(charOld, charNew, e.shiftKey, !e.altKey && !e.shiftKey);
         setTimeout(function () {
@@ -401,10 +407,9 @@
             var toPt = getCenter(c.char);
 
             avgLen += getDistance(fromPt, toPt);
-            c.link = buildArrayLink(fromPt, toPt, h / 4,
+            c.link = buildBoxLink(fromPt, toPt, h / 4,
                 column[i - 1].char, c.char, colId, color);
-            c.link.data('color', color)
-                .data('dash', c.link.attr('stroke-dasharray'));
+            c.link.data('dash', c.link.attr('stroke-dasharray'));
             boxLinks.push(c.link);
             points.push(toPt);
           }
@@ -435,6 +440,29 @@
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
     updateOrderLinks();
+  });
+
+  // 显示字序待修正的字框
+  $('#show-err-box').click(function () {
+    var shapes = [];
+    data.chars.forEach(function (char) {
+      if (char.shape && !/^b\d+c\d+c\d+$/.test(char.char_id)) {
+        var box = char.shape.getBBox();
+        var r = data.paper.rect(box.x, box.y, box.width, box.height)
+            .attr({stroke: '#f00', fill: 'rgba(255,0,0,.6)'});
+        shapes.push(r);
+      }
+    });
+    if (!shapes.length) {
+      showSuccess('字框编号正常', '没有待修正编号的字框。')
+    }
+    setTimeout(function () {
+      shapes.forEach(function (r) {
+        r.animate({opacity: 0}, 500, '>', function () {
+          this.remove();
+        });
+      });
+    }, 3000);
   });
 
 }());
