@@ -53,9 +53,9 @@ def body_producer(boundary, files, params, write):
         write(crlf)
 
     for arg_name in params:
-        value = params[arg_name]
+        value = str(params[arg_name])
         write(b'--%s%s' % (boundary_bytes, crlf))
-        write(b'Content-Disposition: form-data; name="%s"{0}{0}%s{0}'.format(crlf) %
+        write(b'Content-Disposition: form-data; name="%s"{}{}%s{}'.replace(b'{}', crlf) %
               (arg_name.encode(), value.encode()))
 
     write(b'--%s--%s' % (boundary_bytes, crlf))
@@ -106,9 +106,12 @@ class APITestCase(AsyncHTTPTestCase):
             self.assertEqual(code, r_code, msg=msg)
 
     def fetch(self, url, **kwargs):
-        files = kwargs.pop('files', None)
-        if not files and isinstance(kwargs.get('body'), dict):
-            kwargs['body'] = json_util.dumps(kwargs['body'])
+        files = kwargs.pop('files', None)  # files包含字段名和文件名，例如 files={'img': img_path}
+        if isinstance(kwargs.get('body'), dict):
+            if not files:
+                kwargs['body'] = json_util.dumps(kwargs['body'])
+            elif 'data' in kwargs['body']:  # 可以同时指定files和body={'data': {...}}，在API内取 self.get_request_data()
+                kwargs['body']['data'] = json_util.dumps(kwargs['body']['data'])
         if 'body' in kwargs or files:
             kwargs['method'] = kwargs.get('method', 'POST')
 
@@ -124,7 +127,8 @@ class APITestCase(AsyncHTTPTestCase):
             request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
 
         self.http_client.fetch(request, self.stop)
-        response = self.wait()
+
+        response = self.wait(timeout=60)
         headers = response.headers
         try:
             sc = headers._dict.get('Set-Cookie') if hasattr(headers, '_dict') else headers.get('Set-Cookie')

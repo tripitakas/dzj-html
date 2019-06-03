@@ -54,7 +54,7 @@
                 <!-- Add Modals BAT UPLOAD-->
                 <div class="panel-body" style="padding-bottom: 2px;">
                     <!-- modal content -->
-                    <div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                    <div id="fileModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
                          aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
@@ -63,30 +63,30 @@
                                     <h4 class="modal-title" id="upload-pages">上传页编码</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="">
+                                    <div class="priority-list">
                                         <h4 class="control-label">优先级</h4>
                                         <select class="form-control">
-                                            <option>高</option>
-                                            <option>中</option>
-                                            <option>低</option>
+                                            <option value="3">高</option>
+                                            <option value="2">中</option>
+                                            <option value="1">低</option>
                                         </select>
                                     </div>
                                     <br/>
-                                    <i>支持上传CSV或TXT格式文件，一次上传1个，大小不超过10M</i>
-                                    <input type="file" class="form-control"/>
-                                    <div class="progress progress-lg">
-                                        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">
-                                            86%
-                                        </div>
-                                    </div>
-                                    <div class="">
-                                        <h4>备注</h4>
-                                        <input type="text" class="form-control" placeholder="填写备注">
-                                    </div>
+                                    <i>请选择CSV或TXT格式文件，大小不超过10M</i>
+                                    <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
+                                    <!--<div class="progress progress-lg">-->
+                                        <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
+                                            <!--86%-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                    <!--<div class="">-->
+                                        <!--<h4>备注</h4>-->
+                                        <!--<input type="text" class="form-control" placeholder="填写备注">-->
+                                    <!--</div>-->
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-                                    <button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+                                    <button type="button" class="btn btn-primary waves-effect waves-light" id="file_modal_btn">确定</button>
                                 </div>
                             </div>
                             <!-- /.modal-content -->
@@ -188,7 +188,7 @@
                                             <ul class="dropdown-menu" role="menu">
                                                 <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
                                                 <li class="divider"></li>
-                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">上传页编码</a></li>
+                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#fileModal">上传页编码</a></li>
                                             </ul>
                                         </div>
                                         <span onclick="revoke(100)">批量撤销任务</span>
@@ -288,12 +288,12 @@
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 <script type="text/javascript">
-			// ---发布任务/选择页编码---
+			<!---------发布任务/选择页编码--------->
 			var $modal = $('#selectModal');
 			var pages = [];
 			var searchStr = '';
 
-			// 点击确定
+			<!--选择页编码-点击确定-发布任务-->
 			$modal.find('#select_modal_btn').click(function () {
 				var taskTypes = []
 				var $subTasks = $('.sub-tasks input');
@@ -302,8 +302,9 @@
 						if ($(el).is(':checked'))
 							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
 					});
-					if (taskTypes.length < 1)
+					if (taskTypes.length < 1) {
 						return showError('未选择任务类型', '请勾选要发布的任务类型。')
+					}
 				} else {
 				    taskTypes.push('{{task_type}}')
 				}
@@ -312,8 +313,11 @@
 				selections.each(function(){
 				    selectedPages.push($(this).text());
 				})
+				if (selectedPages.length < 1) {
+				    return showError('未选择页面', '请选择要发布的页面。')
+				}
 				var data = {
-					priority: $('.priority-list select').val(),
+					priority: $modal.find('.priority-list select').val(),
 					pages: selectedPages.join(','),
 					task_type: taskTypes,
 				};
@@ -337,7 +341,7 @@
                },
             });
 
-            // display pagination html
+            <!--display pagination html-->
 			function displayPagination(pageNo, pageSize, totalCount){
 				var pageCount = Math.ceil(totalCount/pageSize);
 				if (pageCount <= 1)
@@ -374,12 +378,12 @@
                 });
 			}
 
-            // 待选对象-全选
+            <!--待选对象-全选-->
 			$("#select_all_btn").on("click", function(){
                 $('#my_multi_select').multiSelect('select_all');
 			});
 
-			// 待选对象-搜索
+			<!--待选对象-搜索-->
 			$(".ms-selectable .ser-btn").on('click', function(){
 			    var selectedPages = []
 				$(".ms-selection .ms-selected").each(function(){
@@ -396,7 +400,7 @@
 
 			});
 
-			// 待选对象-搜索-添加回车响应
+			<!--待选对象-搜索-添加回车响应-->
 			$('.ms-selectable').on("keydown", function(event){
 				var keyCode = event.keyCode || event.which;
 				if(keyCode == "13"){
@@ -405,7 +409,7 @@
 				}
 			});
 
-			// 已选对象-搜索
+			<!--已选对象-搜索-->
 			$("#selected_input").on('input propertychange',function(){
 				var inputval = $(this).val().trim();
 				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
@@ -419,22 +423,22 @@
 				})
 			});
 
-			// 已选对象-全删
+			<!--已选对象-全删-->
 			$("#deselect_all_btn").click(function(){
 				$('#my_multi_select').multiSelect('deselect_all');
 			});
 
 
-			// show modal
+			<!--show modal-->
 			function showModal(pageNo, pageSize, totalCount) {
-			    <!--初始化select节点数据-->
+			    // 初始化select节点数据
                 $('#my_multi_select').html(pages.map(function (p) {
                     return '<option value="'+ p + '">'+ p +'</option>';
                 }).join('\n'));
 
                 $('#my_multi_select').multiSelect('refresh');
 
-                <!--分页-->
+                // 分页
                 displayPagination(pageNo, pageSize, totalCount);
 			}
 
@@ -445,19 +449,75 @@
 				});
             });
 
-			// 优先级-排序
+            <!---------发布任务/上传页编码--------->
+            <!--上传页编码文件-点击确定-发布任务-->
+			$('#fileModal').find('#file_modal_btn').click(function () {
+			    // 任务类型
+			    var taskTypes = []
+				var $subTasks = $('.sub-tasks input');
+				if ($subTasks.length) {
+					$subTasks.each(function (i, el) {
+						if ($(el).is(':checked'))
+							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
+					});
+					if (taskTypes.length < 1) {
+						return showError('未选择任务类型', '请勾选要发布的任务类型。')
+					}
+				} else {
+				    taskTypes.push('{{task_type}}')
+				}
+
+                // 文件
+				if(typeof $('#upload')[0].files[0] == "undefined") {
+					return showError('请选择文件');
+				}
+				txtFile = $('#upload')[0].files[0];
+				txtStr = /\.(csv|txt)$/;
+				if(!txtStr.test(txtFile.name)) {
+					return showError('文件不是CSV或TXT类型');
+				}
+				if(txtFile.size > (10 * 1024 * 1024 )) {
+					return showError('文件大小不能超过10M');
+				}
+
+				var formData = new FormData();
+				formData.append('task_type', taskTypes);
+				formData.append('priority', $('#fileModal').find('.priority-list select').val());
+				formData.append('txt_file', txtFile);
+                console.log(formData);
+                $.ajax({
+					url:'/api/task/publish_file',
+					type:'POST',
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(res) {
+                        if (res.status === 'failed') {
+                            showError('错误', res.message);
+                        } else {
+                            showSuccess('已发布任务', (res.data.published || res.data.pending || []).length + ' 个页面已发布。');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        }
+					}
+				});
+			});
+
+            <!---------任务管理--------->
+			<!--按优先级排序-->
 			$("#priority.sort").click(function(){
 				$(this).toggleClass('toggle');
 				$(this).next().toggleClass('toggle');
 			});
 
-			// 发布时间-排序
+			<!--按发布时间排序-->
 			$("#publish_time.sort").click(function(){
 				$(this).toggleClass('toggle');
 				$(this).next().toggleClass('toggle');
 			});
 
-			// 撤销任务
+			<!--撤销任务-->
 			function revoke(task_type, name) {
 				swal({
 						title: "确定撤回任务吗？",
