@@ -148,7 +148,7 @@ class ChangeUserProfileApi(BaseHandler):
         """ 修改用户基本信息: 姓名，手机，邮箱，性别"""
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name', '_id'),
+            (v.not_empty, 'name', '_id', 'email_code'),
             (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
@@ -378,15 +378,15 @@ class SendUserEmailCodeHandler(BaseHandler):
 
     def send_email(self, receiver, content, subject="如是藏经邮箱验证"):  # email_list邮件列表，content邮件内容，subject：发送标题
         msg = MIMEText('<html><h1>验证码：'+content+'</h1></html>', 'html', 'utf-8')
-        sender = 'tripitakas@163.com'
-        pwd = 'rstripitaka2019'  # 使用的是授权码
+        sender = '240144200@qq.com'  # 备用'tripitakas@163.com'
+        pwd = 'oxlaqjdxlvzlcagf' # 备用'rstripitaka2019'  使用的是授权码
         msg['from'] = sender
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
 
-        mail_host = "smtp.163.com"
-        mail_port = 465
-        server = smtplib.SMTP_SSL(mail_host, mail_port)
+        mail_host = "smtp.qq.com"  # 备用"smtp.163.com"
+        mail_port = 25
+        server = smtplib.SMTP(mail_host, mail_port)
         #邮箱引擎
         server.login(sender, pwd)  # 邮箱名，密码
         server.sendmail(sender, receiver, msg.as_string())
