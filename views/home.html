@@ -5,6 +5,7 @@
     <title>{{site['description']}}</title>
     {% include _base_meta.html %}
     {% include _base_css.html %}
+    <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
@@ -25,7 +26,7 @@
                                <div class="left fl">
                                  <p class="title"><img src="{{ static_url('imgs/person.png') }}" alt=""></p>
                                  <div class="person clearfix">
-                                   <img class="ava fl" src="{{ static_url(current_user.get('img', 'imgs/ava1.png')) }}" alt="">
+                                   <img class="ava fl" src="{{ static_url((current_user or {}).get('img', 'imgs/ava1.png')) }}" alt="">
                                    <dl class="fl">
                                      <dt>上午好，{{current_user['name']}}</dt>
                                      <dd>访问情况：今日访问6次</dd>

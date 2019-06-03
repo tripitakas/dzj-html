@@ -31,7 +31,7 @@ class CharProofDetailHandler(TaskHandler):
                 self.send_db_error(e, render=True)
 
         from_url = self.get_query_argument('from', None)
-        readonly = self.get_query_argument('view', 0)
+        readonly = int(self.get_query_argument('view', 0))
         if readonly:
             handle_response({})
         else:

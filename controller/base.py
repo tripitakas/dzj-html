@@ -57,12 +57,13 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 检查用户是否已登录
         api = '/api/' in p
+        login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
-            return self.send_error_response(e.need_login) if api else self.redirect(self.get_login_url())
+            return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
         if not user_in_db:
-            return self.send_error_response(e.no_user) if api else self.redirect(self.get_login_url())
+            return self.send_error_response(e.no_user) if api else self.redirect(login_url)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -126,7 +127,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
         if 'data' not in self.request.body_arguments:
-            body = json_util.loads(self.request.body).get('data')
+            body = b'{"data":' in self.request.body and json_util.loads(self.request.body).get('data')
         else:
             body = json_util.loads(self.get_body_argument('data'))
         return body or {}

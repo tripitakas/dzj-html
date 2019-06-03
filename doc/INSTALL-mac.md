@@ -30,6 +30,5 @@
 
 如果提示端口被占用，可以按如下结束端口上的进程：
 ```sh
-sudo lsof -i:8000
-sudo kill -9 PID号
+kill -9 `sudo lsof -i:8000 | grep Python | awk -F" " {'print $2'}`
 ```

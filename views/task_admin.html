@@ -2,289 +2,326 @@
 {% from controller.task.base import TaskHandler as th %}
 {% set cur_task_type = th.task_types.get(task_type, {}) %}
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8">
-		<title>任务管理-{{cur_task_type.get('name')}}</title>
-		{% include _base_meta.html %}
-		<!-- DataTables -->
-		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css" />
-		{% include _base_css.html %}
-		<!-- Custom Files -->
-		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
+<head>
+    <meta charset="UTF-8">
+    <title>任务管理-{{cur_task_type.get('name')}}</title>
+    {% include _base_meta.html %}
+    <!-- DataTables -->
+    <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css"/>
+    {% include _base_css.html %}
+    <!-- Custom Files -->
+    <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
 
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-        <![endif]-->
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
 
-		<style>
-			.collate-history .collate-list table tbody tr td.status_none {
-				color: #999;
-			}
-			.collate-history .collate-list table tbody tr td.status_pending {
-				color: #666;
-			}
-			.collate-history .collate-list table tbody tr td.status_ended {
-				color: #0f0;
-			}
-			.collate-history .collate-list table tbody tr td.status_opened {
-				color: #007;
-			}
-		</style>
-	</head>
+    <style>
+	    .collate-history .collate-list table tbody tr td.status_none {
+	        color: #999;
+	    }
+		.collate-history .collate-list table tbody tr td.status_pending {
+		    color: #666;
+		}
+		.collate-history .collate-list table tbody tr td.status_ended {
+		    color: #0f0;
+		}
+		.collate-history .collate-list table tbody tr td.status_opened {
+		    color: #007;
+		}
 
-	<body>
-		<div class="app-main">
-			<div class="main">
-				<!--模拟出左边菜单，方便写样式-->
-				{% module CommonLeft(title="data-management", sub="data-management-sty" ) %}
-				<div class="main-content">
-					{% module CommonHead() %}
-					<div class="single-page-con">
-						<!-- Add Modals BAT UPLOAD-->
-						<div class="panel-body" style="padding-bottom: 2px;">
-							<!-- modal content -->
-							<div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-								<div class="modal-dialog">
-									<div class="modal-content">
-										<div class="modal-header">
-											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-											<h4 class="modal-title" id="upload-pages">上传页编码</h4>
-										</div>
-										<div class="modal-body">
-											<div class="">
-												<h4 class="control-label">优先级</h4>
-												<select class="form-control">
-                                                    <option>高</option>
-                                                    <option>中</option>
-                                                    <option>低</option>
-                                                </select>
-											</div>
-											<br />
-											<i>支持上传CSV或TXT格式文件，一次上传1个，大小不超过10M</i>
-											<input type="file" class="form-control" />
-											<div class="progress progress-lg">
-												<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
-													86%
-												</div>
-											</div>
-											<div class="">
-												<h4>备注</h4>
-												<input type="text" class="form-control" placeholder="填写备注">
-											</div>
-										</div>
-										<div class="modal-footer">
-											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-											<button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
-										</div>
-									</div>
-									<!-- /.modal-content -->
-								</div>
-								<!-- /.modal-dialog -->
-							</div>
-							<!-- /.modal -->
-						</div>
-						<!-- End BootStrap Modal -->
-						<!-- SELECT Modals -->
-						<div class="panel-body" style="padding-bottom: 2px;">
-							<!-- modal content -->
-							<div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
-								<div class="modal-dialog">
-									<div class="modal-content">
-										<div class="modal-header">
-											<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-											<h4 class="modal-title" id="choose-pages">选择页编码</h4>
-										</div>
-										<div class="modal-body">
-                                            {% if 'sub_task_types' in cur_task_type %}
-											<div class="sub-tasks">
-												<h4 class="control-label">选择任务类型</h4>
-												<div>
-													{% for st, v in cur_task_type['sub_task_types'].items() %}
-														<label class="checkbox-inline">
-															<input type="checkbox" id="task{{st}}">{{v['name']}}
-														</label>
+
+
+
+
+
+    </style>
+</head>
+
+<body>
+<div class="app-main">
+    <div class="main">
+        <!--模拟出左边菜单，方便写样式-->
+        {% module CommonLeft(title="data-management", sub="data-management-sty" ) %}
+        <div class="main-content">
+            {% module CommonHead() %}
+            <div class="single-page-con">
+                <!-- Add Modals BAT UPLOAD-->
+                <div class="panel-body" style="padding-bottom: 2px;">
+                    <!-- modal content -->
+                    <div id="fileModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title" id="upload-pages">上传页编码</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="priority-list">
+                                        <h4 class="control-label">优先级</h4>
+                                        <select class="form-control">
+                                            <option value="3">高</option>
+                                            <option value="2">中</option>
+                                            <option value="1">低</option>
+                                        </select>
+                                    </div>
+                                    <br/>
+                                    <i>请选择CSV或TXT格式文件，大小不超过10M</i>
+                                    <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
+                                    <!--<div class="progress progress-lg">-->
+                                        <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
+                                            <!--86%-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                    <!--<div class="">-->
+                                        <!--<h4>备注</h4>-->
+                                        <!--<input type="text" class="form-control" placeholder="填写备注">-->
+                                    <!--</div>-->
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                                    <button type="button" class="btn btn-primary waves-effect waves-light" id="file_modal_btn">确定</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                        <!-- /.modal-dialog -->
+                    </div>
+                    <!-- /.modal -->
+                </div>
+                <!-- End BootStrap Modal -->
+                <!-- SELECT Modals -->
+                <div class="panel-body" style="padding-bottom: 2px;">
+                    <!-- modal content -->
+                    <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h4 class="modal-title" id="choose-pages">选择页编码</h4>
+                                </div>
+                                <div class="modal-body">
+                                    {% if 'sub_task_types' in cur_task_type %}
+                                    <div class="sub-tasks">
+                                        <h4 class="control-label">选择任务类型</h4>
+                                        <div>
+                                            {% for st, v in cur_task_type['sub_task_types'].items() %}
+                                            <label class="checkbox-inline">
+                                                <input type="checkbox" id="task{{st}}">{{v['name']}}
+                                            </label>
+                                            {% end %}
+                                        </div>
+                                    </div>
+                                    {% end %}
+
+                                    <div class="priority-list">
+                                        <h4 class="control-label">优先级</h4>
+                                        <select class="form-control">
+                                            <option value="3">高</option>
+                                            <option value="2">中</option>
+                                            <option value="1">低</option>
+                                        </select>
+                                    </div>
+                                    <br/>
+                                    <div class="form-group">
+                                        <div>
+                                            <div style="background: url()" class="ms-container">
+                                                <div class="ms-selectable">
+                                                    <div class="selectableHeader">
+                                                        待选对象
+                                                        <a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a>
+                                                    </div>
+                                                    <div>
+                                                        <i class="ser-btn"></i>
+                                                        <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，搜索服务器">
+                                                    </div>
+
+                                                </div>
+                                                <div class="ms-selection">
+                                                    <div class="selectionHeader">
+                                                        已选对象
+                                                        <a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a>
+                                                    </div>
+                                                    <div>
+                                                        <input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，搜索已选对象">
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
+                                                <option value=""></option>
+                                            </select>
+                                            <div id="pagination" class="ms-search-pagination"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                                    <button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                        <!-- /.modal-dialog -->
+                    </div>
+                    <!-- /.modal -->
+                </div>
+                <!-- End BootStrap Modal -->
+
+                <div class="layout">
+                    <div class="layout-content">
+                        <div class="collate-history">
+                            <div class="wrapper">
+                                <div class="collate-list">
+                                    <div class="operation bat-upload">
+                                        <div class="btn-group dropdown">
+                                            <button type="button" class="btn btn-default waves-effect">发布任务</button>
+                                            <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
+                                                <i class="caret"></i>
+                                            </button>
+                                            <ul class="dropdown-menu" role="menu">
+                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
+                                                <li class="divider"></li>
+                                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#fileModal">上传页编码</a></li>
+                                            </ul>
+                                        </div>
+                                        <span onclick="revoke(100)">批量撤销任务</span>
+                                    </div>
+                                    <div class="search fr">
+                                        <input type="text" placeholder="搜索">
+                                        <i class="ser-btn"></i>
+                                    </div>
+                                    <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                                        <thead>
+                                        <tr>
+                                            <th><span><input type="checkbox" name="" id="check" value=""/></span></th>
+                                            <th><span>页编码</span></th>
+                                            <th><span>类型</span></th>
+                                            <th><span>
+											    <div class="btn-group">
+												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span>
+                                                    <span class="ion-android-sort "></span>
+					                                <ul class="dropdown-menu" role="menu">
+													{% for k, v in th.task_statuses.items() %}
+													    <li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
 													{% end %}
+													</ul>
 												</div>
-											</div>
-											{% end %}
+                                            </span></th>
+                                            <th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
+                                            <th><span>发布时间</span></th>
+                                            <th><span>更新时间</span></th>
+                                            <th><span>领取人</span></th>
+                                            <th><span>领取时间</span></th>
+                                            <th><span>完成时间</span></th>
+                                            <th><span>操作</span></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% if not 'has_sub_tasks' in cur_task_type%}
+                                        {% for t in tasks %}
+                                        <tr id="{{t['name']}}">
+                                            <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
+                                            <td>{{t['name']}}</td>
+                                            <td>{{th.task_types.get(task_type, {}).get('name','')}}</td>
+                                            <td>{{th.task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
+                                            <td>{{th.priorities.get(th.get_obj_property(t, task_type + '.priority')) or ''}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
+                                            <td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
+                                            <td>
+                                                <a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
+                                                {% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
+                                                <a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
+                                                {% end %}
+                                            </td>
+                                        </tr>
+                                        {% end %}
+                                        {% else %}
+                                        {% for t in tasks %}
+                                        {% for k, st in t.get(task_type, {}).items() %}
+                                        {% if isinstance(st, dict) %}
+                                        <tr id="{{t['name']+'-'+k}}">
+                                            <th><span><input type="checkbox" name="" value=""/></span></th>
+                                            <td>{{t['name']}}</td>
+                                            <td>{{th.task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
+                                            <td>{{th.task_statuses.get(st.get('status','') or '')}}</td>
+                                            <td>{{th.priorities.get(st.get('priority')) or ''}}</td>
+                                            <td>{{to_date_str(st.get('publish_time'))}}</td>
+                                            <td>{{to_date_str(st.get('last_updated_time'))}}</td>
+                                            <td>{{st.get('picked_by') or ''}}</td>
+                                            <td>{{to_date_str(st.get('picked_time'))}}</td>
+                                            <td>{{to_date_str(st.get('finished_time'))}}</td>
+                                            <td>
+                                                <a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
+                                                {% if st.get('status','') not in [None, 'unready', 'ready'] %}
+                                                <a class="withdraw" onclick="revoke('{{task_type}}.{{k}}', '{{t['name']}}')">撤回</a>
+                                                {% end %}
+                                            </td>
+                                        </tr>
+                                        {% end %}
+                                        {% end %}
+                                        {% end %}
+                                        {% end %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% module Pager(pager) %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-											<div class="priority-list">
-												<h4 class="control-label">优先级</h4>
-												<select class="form-control">
-													<option value="3">高</option>
-													<option value="2">中</option>
-													<option value="1">低</option>
-												</select>
-											</div>
-											<br />
-											<div class="form-group">
-												<div class="row">
-													<select name="my-select[]" style="width: 500px;" class="multi-select" multiple="multiple" id="my_multi_select" >
-														<option value="Afghanistan">Afghanistan</option>
-														<option value="Algeria">Algeria</option>
-														<option value="Andorra">Andorra</option>
-														<option value="Bahamas">Bahamas</option>
-														<option value="Belarus">Belarus</option>
-														<option value="Bclize">Belize</option>
-													</select>
-												</div>
-											</div>
-										</div>
-										<div class="modal-footer">
-											<button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-											<button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
-										</div>
-									</div>
-									<!-- /.modal-content -->
-								</div>
-								<!-- /.modal-dialog -->
-							</div>
-							<!-- /.modal -->
-						</div>
-						<!-- End BootStrap Modal -->
-
-						<div class="layout">
-							<div class="layout-content">
-								<div class="collate-history">
-									<div class="wrapper">
-										<div class="collate-list">
-											<div class="operation bat-upload">
-												<div class="btn-group dropdown">
-														<button type="button" class="btn btn-default waves-effect">发布任务</button>
-														<button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
-														<ul class="dropdown-menu" role="menu">
-																<li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">选择页编码</a></li>
-																<li class="divider"></li>
-																<li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">上传页编码</a></li>
-														</ul>
-												</div>
-												<span onclick="revoke(100)">批量撤销任务</span>
-											</div>
-											<div class="search fr">
-												<input type="text" placeholder="搜索">
-												<i class="ser-btn"></i>
-											</div>
-											<table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
-												<thead>
-													<tr>
-														<th><span><input type="checkbox" name="" id="check" value="" /></span></th>
-														<th><span>页编码</span></th>
-														<th><span>类型</span></th>
-														<th><span>
-															<div class="btn-group">
-																<span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span><span class="ion-android-sort " ></span>
-					                                            <ul class="dropdown-menu" role="menu">
-																	{% for k, v in th.task_statuses.items() %}
-																	<li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
-																	{% end %}
-																</ul>
-															</div>
-														</span></th>
-														<th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
-														<th><span>发布时间</span></th>
-														<th><span>更新时间</span></th>
-														<th><span>领取人</span></th>
-														<th><span>领取时间</span></th>
-														<th><span>完成时间</span></th>
-														<th><span>操作</span></th>
-													</tr>
-												</thead>
-												<tbody>
-												{% if not 'has_sub_tasks' in cur_task_type%}
-													{% for t in tasks %}
-														<tr id="{{t['name']}}">
-															<th><span><input type="checkbox" name="{{t['name']}}" value="" /></span></th>
-															<td>{{t['name']}}</td>
-															<td>{{th.task_types.get(task_type, {}).get('name','')}}</td>
-															<td>{{th.task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
-															<td>{{th.priorities.get(th.get_obj_property(t, task_type + '.priority')) or ''}}</td>
-															<td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
-															<td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
-															<td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
-															<td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
-															<td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
-															<td>
-																<a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
-																{% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
-																<a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
-																{% end %}
-															</td>
-														</tr>
-													{% end %}
-												{% else %}
-													{% for t in tasks %}
-														{% for k, st in t.get(task_type, {}).items() %}
-												      {% if isinstance(st, dict) %}
-															<tr id="{{t['name']+'-'+k}}">
-																<th><span><input type="checkbox" name="" value="" /></span></th>
-																<td>{{t['name']}}</td>
-																<td>{{th.task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
-																<td>{{th.task_statuses.get(st.get('status','') or '')}}</td>
-																<td>{{th.priorities.get(st.get('priority')) or ''}}</td>
-																<td>{{to_date_str(st.get('publish_time'))}}</td>
-																<td>{{to_date_str(st.get('last_updated_time'))}}</td>
-																<td>{{st.get('picked_by') or ''}}</td>
-																<td>{{to_date_str(st.get('picked_time'))}}</td>
-																<td>{{to_date_str(st.get('finished_time'))}}</td>
-																<td>
-																	<a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
-																	{% if st.get('status','') not in [None, 'unready', 'ready'] %}
-																	<a class="withdraw" onclick="revoke('{{task_type}}.{{k}}', '{{t['name']}}')">撤回</a>
-																	{% end %}
-																</td>
-															</tr>
-															{% end %}
-														{% end %}
-													{% end %}
-												{% end %}
-
-												</tbody>
-											</table>
-										</div>
-										{% module Pager(pager) %}
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{% include _base_js.html %}
-		<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
-        <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
-		<script type="text/javascript">
-			// ---发布任务/选择页编码---
-			var pages = [];
+{% include _base_js.html %}
+<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
+<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
+<script type="text/javascript">
+			<!---------发布任务/选择页编码--------->
 			var $modal = $('#selectModal');
+			var pages = [];
+			var searchStr = '';
 
-			// 点击确定
-			$modal.find('.btn-primary').click(function () {
-				var task_types = []
+			<!--选择页编码-点击确定-发布任务-->
+			$modal.find('#select_modal_btn').click(function () {
+				var taskTypes = []
 				var $subTasks = $('.sub-tasks input');
 				if ($subTasks.length) {
 					$subTasks.each(function (i, el) {
-						if ($(el).is(':checked')) {
-							task_types.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
-						}
+						if ($(el).is(':checked'))
+							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
 					});
-					if (task_types.length < 1) {
+					if (taskTypes.length < 1) {
 						return showError('未选择任务类型', '请勾选要发布的任务类型。')
 					}
 				} else {
-				    task_types.push('{{task_type}}')
+				    taskTypes.push('{{task_type}}')
+				}
+				var selectedPages = []
+				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
+				selections.each(function(){
+				    selectedPages.push($(this).text());
+				})
+				if (selectedPages.length < 1) {
+				    return showError('未选择页面', '请选择要发布的页面。')
 				}
 				var data = {
-					priority: $('.priority-list select').val(),
-					pages: pages.join(','),
-					task_type: task_types,
+					priority: $modal.find('.priority-list select').val(),
+					pages: selectedPages.join(','),
+					task_type: taskTypes,
 				};
-
+                console.log(data);
 				postApi('/task/publish', {data: data}, function (res) {
 					showSuccess('已发布任务', (res.published || res.pending || []).length + ' 个页面已发布。');
 					setTimeout(function () {
@@ -293,170 +330,194 @@
 				});
 			});
 
-			// pagination html
-			function get_pagination(page_no, page_size, total_count){
-				var page_count = Math.ceil(total_count/page_size);
-				var display_count = 5;	// 显示多少个页码
-				var start = page_no - parseInt(page_count/2);
+		    <!--初始化选择模块-->
+            $('#my_multi_select').multiSelect({
+               selectableOptgroup:true,
+               afterSelect: function(val){
+                   console.log(val);
+               },
+               afterDeselect: function(val){
+                   console.log(val);
+               },
+            });
+
+            <!--display pagination html-->
+			function displayPagination(pageNo, pageSize, totalCount){
+				var pageCount = Math.ceil(totalCount/pageSize);
+				if (pageCount <= 1)
+				    return;
+				var displayCount = 5;	// 显示多少个页码
+				var start = pageNo - parseInt(displayCount/2);
 				start = start < 1 ? 1 : start;
-				var end = start + display_count;
-				end = end > page_count ? page_count : end;
-				var html = start > 1 ? "<a title='1'>首页</a>" : "";  // 首页
-				html = start > 1 ? html + "<a value='" + (page_no - 1) + "'><</a>" : html;	// 上一页
-				for (var i=1; i<=page_count; i++) {
-					if (i==page_no)
+				var end = start + displayCount - 1;
+				end = end > pageCount ? pageCount : end;
+				var html = "<a title='1'>首页</a>";  // 首页
+				for (var i=start; i<=end; i++) {
+					if (i==pageNo)
 						html += "<a class='cur' title='" + i + "'>" + i + "</a>";
 					else
 						html += "<a title='" + i + "'>" + i + "</a>";
 				}
-				html = page_no + 1 < page_count ? html + "<a title='" + (page_no + 1) + "'>></a>" : html  // 下一页
-				html = end < page_count ? html + "<a title='" + page_count + "'>未页</a>" : html
-				return page_count > 1 ? html : '';
+				html += "<a title='" + pageCount + "'>未页</a>"
+                $('#pagination').html(html);
+				// 待选对象-翻页
+                $("#pagination a").on("click", function(){
+                    var page = $(this).attr('title').trim();
+                    var selectedPages = []
+                    $(".ms-selection .ms-selected").each(function(){
+                        selectedPages.push($(this).text());
+                    });
+                    data = {page_prefix: searchStr, page: page, exclude_pages: selectedPages}
+                    console.log(data)
+                    postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
+                        pages = selectedPages.concat(res.data.pages);
+                        $('#my_multi_select').multiSelect('refresh')
+                        showModal(page, res.data.page_size, res.data.total_count);
+                        $('#my_multi_select').multiSelect('select', selectedPages)
+                    });
+                });
 			}
 
-			// 初始化multiSelect
-	    	$('#my_multi_select').multiSelect({
-            	selectableHeader:  "<div class='selectableHeader'>待选对象<a href='javascript:void(0);' class='right_btn' id='select_all_btn'>全选</a></div>" +
-            	                   "<div><i class='ser-btn'></i><input type='text' class='form-control search-input' id='selectable_input'  placeholder='请输入关键字，搜索服务器'></div>",
-            	selectionHeader: "<div class='selectionHeader'>已选对象<a href='javascript:void(0);' class='right_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a></div>" +
-            	                 "<div><input type='text' class='form-control search-input' id='selected_input' placeholder='请输入关键字，搜索已选对象'></div>",
-            	selectableFooter: "<div id ='pagination' class='search-pagination'></div>",
-            	selectionFooter: "",
-            	selectableOptgroup:true,
-            	afterSelect: function(val){
-                	console.log(val);
-                },
-                afterDeselect: function(val){
-                	console.log(val);
-                },
-            });
-
-            // 显示模态框
-			$modal.on('shown.bs.modal', function () {
-				postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
-					pages = res.data.pages;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-					var html = get_pagination(1, res.data.page_size, res.data.total_count);
-					$('#pagination').html(html);
-				});
+            <!--待选对象-全选-->
+			$("#select_all_btn").on("click", function(){
+                $('#my_multi_select').multiSelect('select_all');
 			});
 
-			var search_str = ''
-            var selectableArr = [];
-            var deSelectableArr = [];
-
-            // 待选对象-全选
-			$("#select_all_btn").click(function(){
-				$('#my_multi_select').multiSelect('select_all');
-			});
-
-            // 待选对象-单选
-			$(".ms-elem-selectable").click(function(){
-				var itemValue = $(this).children('span').text().trim();
-				alert(itemValue)
-			});
-
-            // 待选对象-搜索
-            $(".ms-selectable .ser-btn").on('click', function(){
-            	var selectable_input = $('#selectable_input').val().trim();
-            	postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectable_input}}, function (res) {
-            		search_str = selectable_input  // 设置全局变量
-					pages = res.data.pages;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-					var html = get_pagination(1, res.data.page_size, res.data.total_count);
-					$('#pagination').html(html);
+			<!--待选对象-搜索-->
+			$(".ms-selectable .ser-btn").on('click', function(){
+			    var selectedPages = []
+				$(".ms-selection .ms-selected").each(function(){
+					selectedPages.push($(this).text());
+			    });
+				var selectableInput = $('#selectable_input').val().trim();
+				postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectableInput, exclude_pages: selectedPages}}, function (res) {
+					searchStr = selectableInput  // 设置全局变量
+					pages = selectedPages.concat(res.data.pages);
+					$('#my_multi_select').multiSelect('refresh')
+					showModal(1, res.data.page_size, res.data.total_count);
+					$('#my_multi_select').multiSelect('select', selectedPages)
 				});
 
-            });
-
-			// 待选对象-搜索-添加回车响应
-            $(document).ready(function(e) {
-				$('.ms-selectable').on("keydown", function(event){
-					var keyCode = event.keyCode || event.which;
-					if(keyCode == "13"){
-						$(".ms-selectable .ser-btn").click();
-						event.preventDefault();
-					}
-				});
 			});
 
-			// 待选对象-翻页
-			$(".search-pagination a").on("click", function(){
-				var page = $(this).text().trim();
-				data = {page_prefix: search_str, page: page}
-				console.log(data)
-				postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
-					pages = res.data.pages;
-					$('#selectModal .ms-selectable:first-of-type ul').html(pages.map(function (p) {
-						return '<li class="ms-elem-selectable" id="' + p + '"><span>' + p + '</span></li>';
-					}).join('\n'));
-					var html = get_pagination(res.data.page_no, res.data.page_size, res.data.total_count);
-					$('#pagination').html(html);
-				});
-			});
-
-			// 已选对象-搜索
-            $("#selected_input").on('input propertychange',function(){
-            	var inputval = $(this).val().trim();
-            	var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
-            	deSelectableArr = [];
-            	selections.each(function(){
-            		var item_value = $(this).text();
-            		if(item_value.match(inputval)){
-            			$(this).show();
-            			deSelectableArr.push(item_value);
-            		}else{
-            			$(this).hide();
-            		}
-            	})
-            	console.log(deSelectableArr);
-            });
-
-			// 已选对象-删除所有搜索结果
-			$('#deselect_all_search_btn').click(function(){
-				if(selectableArr.length>0){
-					$('#my_multi_select').multiSelect('deselect',deSelectableArr);
-				}else{
-					alert("没有搜索结果");
+			<!--待选对象-搜索-添加回车响应-->
+			$('.ms-selectable').on("keydown", function(event){
+				var keyCode = event.keyCode || event.which;
+				if(keyCode == "13"){
+					$(".ms-selectable .ser-btn").click();
+					event.preventDefault();
 				}
 			});
 
-			// 已选对象-全删
+			<!--已选对象-搜索-->
+			$("#selected_input").on('input propertychange',function(){
+				var inputval = $(this).val().trim();
+				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+				selections.each(function(){
+					var item_value = $(this).text();
+					if(item_value.match(inputval)){
+						$(this).show();
+					}else{
+						$(this).hide();
+					}
+				})
+			});
+
+			<!--已选对象-全删-->
 			$("#deselect_all_btn").click(function(){
 				$('#my_multi_select').multiSelect('deselect_all');
 			});
 
-			// 选择页编码-确定
-			$("#select_modal_btn").click(function(){
-				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
-            	deSelectableArr = [];
-            	selections.each(function(){
-            		var item_value = $(this).text();
-            		deSelectableArr.push(item_value);
-            	})
-            	console.log(deSelectableArr);
-			})
 
-			// 优先级-排序
+			<!--show modal-->
+			function showModal(pageNo, pageSize, totalCount) {
+			    // 初始化select节点数据
+                $('#my_multi_select').html(pages.map(function (p) {
+                    return '<option value="'+ p + '">'+ p +'</option>';
+                }).join('\n'));
+
+                $('#my_multi_select').multiSelect('refresh');
+
+                // 分页
+                displayPagination(pageNo, pageSize, totalCount);
+			}
+
+			$modal.on('shown.bs.modal', function () {
+                postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
+					pages = res.data.pages;
+                    showModal(1, res.data.page_size, res.data.total_count);
+				});
+            });
+
+            <!---------发布任务/上传页编码--------->
+            <!--上传页编码文件-点击确定-发布任务-->
+			$('#fileModal').find('#file_modal_btn').click(function () {
+			    // 任务类型
+			    var taskTypes = []
+				var $subTasks = $('.sub-tasks input');
+				if ($subTasks.length) {
+					$subTasks.each(function (i, el) {
+						if ($(el).is(':checked'))
+							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
+					});
+					if (taskTypes.length < 1) {
+						return showError('未选择任务类型', '请勾选要发布的任务类型。')
+					}
+				} else {
+				    taskTypes.push('{{task_type}}')
+				}
+
+                // 文件
+				if(typeof $('#upload')[0].files[0] == "undefined") {
+					return showError('请选择文件');
+				}
+				txtFile = $('#upload')[0].files[0];
+				txtStr = /\.(csv|txt)$/;
+				if(!txtStr.test(txtFile.name)) {
+					return showError('文件不是CSV或TXT类型');
+				}
+				if(txtFile.size > (10 * 1024 * 1024 )) {
+					return showError('文件大小不能超过10M');
+				}
+
+				var formData = new FormData();
+				formData.append('task_type', taskTypes);
+				formData.append('priority', $('#fileModal').find('.priority-list select').val());
+				formData.append('txt_file', txtFile);
+                console.log(formData);
+                $.ajax({
+					url:'/api/task/publish_file',
+					type:'POST',
+					data: formData,
+					processData: false,
+					contentType: false,
+					success: function(res) {
+                        if (res.status === 'failed') {
+                            showError('错误', res.message);
+                        } else {
+                            showSuccess('已发布任务', (res.data.published || res.data.pending || []).length + ' 个页面已发布。');
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        }
+					}
+				});
+			});
+
+            <!---------任务管理--------->
+			<!--按优先级排序-->
 			$("#priority.sort").click(function(){
 				$(this).toggleClass('toggle');
 				$(this).next().toggleClass('toggle');
 			});
 
-			// 发布时间-排序
+			<!--按发布时间排序-->
 			$("#publish_time.sort").click(function(){
 				$(this).toggleClass('toggle');
 				$(this).next().toggleClass('toggle');
 			});
 
-			/**
-			 * 撤销任务
-			 * @param {Object} name 任务的标记名
-			 */
+			<!--撤销任务-->
 			function revoke(task_type, name) {
 				swal({
 						title: "确定撤回任务吗？",
@@ -479,8 +540,39 @@
 				);
 			}
 
-		</script>
 
 
-	</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+</body>
 </html>

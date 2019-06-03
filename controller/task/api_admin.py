@@ -4,6 +4,7 @@
 @time: 2018/12/27
 """
 import math
+from bson import json_util
 from datetime import datetime
 import controller.errors as e
 import controller.validate as v
@@ -11,39 +12,7 @@ from controller.base import DbError
 from controller.task.base import TaskHandler
 
 
-class PublishTasksApi(TaskHandler):
-    URL = r'/api/task/publish'
-
-    def post(self):
-        """ 发布任务。
-        @param task_type str或list，如text_review/text_proof.1或[text_proof.1, text_proof.2, text_proof.3]
-        @param pages str，待发布的页面名称
-        @param priority str，1/2/3，数字越大优先级越高
-        """
-        data = self.get_request_data()
-        rules = [
-            (v.not_empty, 'task_type', 'pages'),
-            (v.is_priority, 'priority'),
-            (v.in_list, 'task_type', self.all_task_types())
-        ]
-        err = v.validate(data, rules)
-        if err:
-            return self.send_error_response(err)
-
-        task_type = data.get('task_type')
-        task_type = [task_type] if isinstance(task_type, str) else task_type
-        priority = data.get('priority') or 1
-        page_names = data['pages'].split(',') if data.get('pages') else []
-
-        if len(page_names) > self.MAX_PUBLISH_RECORDS:
-            return self.send_error_response(e.task_exceed_max, message='任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
-
-        if len(task_type) == 1:
-            log = self.publish_task(page_names, task_type[0], priority)
-        else:
-            log = {t: self.publish_task(page_names, t, priority) for t in task_type}
-        self.send_data_response({k: v for k, v in log.items() if v})
-
+class PublishTasksBaseHandler(TaskHandler):
     def publish_task(self, page_names, task_type, priority):
         """
         发布某个任务类型的任务。
@@ -107,7 +76,7 @@ class PublishTasksApi(TaskHandler):
                 condition = {'name': {'$in': _page_names}}
                 r = self.db.page.update_many(condition, {'$set': {
                     '%s.status' % task_type: status,
-                    '%s.priority' % task_type: priority,
+                    '%s.priority' % task_type: int(priority),
                     '%s.publish_time' % task_type: datetime.now(),
                     '%s.publish_user_id' % task_type: self.current_user['_id'],
                     '%s.publish_by' % task_type: self.current_user['name'],
@@ -167,3 +136,77 @@ class PublishTasksApi(TaskHandler):
             _pages = self.db.page.find({'name': {'$in': _page_names}}, {field: 1 for field in fields})
             pages.extend(list(_pages))
         return pages
+
+
+class PublishTasksApi(PublishTasksBaseHandler):
+    URL = r'/api/task/publish'
+
+    def post(self):
+        """ 发布任务。
+        @param task_type str或list，如text_review/text_proof.1或[text_proof.1, text_proof.2, text_proof.3]
+        @param pages str，待发布的页面名称
+        @param priority str，1/2/3，数字越大优先级越高
+        """
+        data = self.get_request_data()
+        rules = [
+            (v.not_empty, 'task_type', 'pages'),
+            (v.is_priority, 'priority'),
+            (v.in_list, 'task_type', self.all_task_types())
+        ]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        task_type = data.get('task_type')
+        task_type = [task_type] if isinstance(task_type, str) else task_type
+        priority = data.get('priority') or 1
+        page_names = data['pages'].split(',') if data.get('pages') else []
+
+        if len(page_names) > self.MAX_PUBLISH_RECORDS:
+            return self.send_error_response(e.task_exceed_max, message='任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
+
+        if len(task_type) == 1:
+            log = self.publish_task(page_names, task_type[0], priority)
+        else:
+            log = {t: self.publish_task(page_names, t, priority) for t in task_type}
+        self.send_data_response({k: v for k, v in log.items() if v})
+
+
+class PublishTasksFileApi(PublishTasksBaseHandler):
+    URL = r'/api/task/publish_file'
+
+    def post(self):
+        """ 发布任务。
+        @param task_type str或list，如text_review/text_proof.1或[text_proof.1, text_proof.2, text_proof.3]
+        @param txt_file file，待发布的页面文件
+        @param priority str，1/2/3，数字越大优先级越高
+        """
+        txt_file = self.request.files.get('txt_file')
+        txt_str = str(txt_file[0]['body'], encoding='utf-8')
+        page_names = [p.strip('\r') for p in txt_str.split('\n') if p]
+        data = {
+            'page_names': page_names,
+            'task_type': self.get_body_argument('task_type', ''),
+            'priority': self.get_body_argument('priority', 1)
+        }
+        rules = [
+            (v.not_empty, 'task_type', 'page_names'),
+            (v.is_priority, 'priority'),
+            (v.in_list, 'task_type', self.all_task_types())
+        ]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        task_type = data['task_type']
+        task_type = [task_type] if isinstance(task_type, str) else task_type
+        priority = data['priority']
+
+        if len(page_names) > self.MAX_PUBLISH_RECORDS:
+            return self.send_error_response(e.task_exceed_max, message='任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
+
+        if len(task_type) == 1:
+            log = self.publish_task(page_names, task_type[0], priority)
+        else:
+            log = {t: self.publish_task(page_names, t, priority) for t in task_type}
+        self.send_data_response({k: v for k, v in log.items() if v})

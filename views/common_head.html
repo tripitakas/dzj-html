@@ -13,8 +13,13 @@
 			</div>
 
 			<div class="main-header-right">
-				<span class="welcome">欢迎您：{{current_user['name'] if current_user else '访客'}}</span>
-				<span><a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心"><img src="{{ static_url('imgs/frame/user.png') }}" alt=""></a></span>
+				<span class="welcome">欢迎您：<a href="/user/my/profile" title="个人中心">{{current_user['name'] if current_user else '访客'}}</a></span>
+				<span>
+					<a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心">
+					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img', 'imgs/frame/user.png')) }}" style="margin-top: 10px;" alt="">
+					</a>
+				</span>
+
 				<!--<span><img src="{{ static_url('imgs/frame/message.png') }}" alt=""></span>
 				<span><img src="{{ static_url('imgs/frame/help.png') }}" alt=""></span>-->
 				<span><a id="logout" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="退出系统"><img src="{{ static_url('imgs/frame/logout.png') }}" alt="" title="退出系统"></a></span>

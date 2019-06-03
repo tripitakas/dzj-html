@@ -24,16 +24,25 @@
   <style>
     #info {
       position: fixed;
-      bottom: 20px;
-      right: 50px;
+      bottom: 0;
+      width: 100%;
       padding: 8px;
       background-color: #fff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      opacity: .6;
+      border-top: 1px solid #ddd;
+      opacity: .9;
     }
     #info > span + span {
       margin-left: 8px;
+    }
+    .full-hd {
+      position: fixed;
+      z-index: 1000;
+      width: 100%;
+      margin-top: -1px;
+      background-color: rgba(255,255,255,.9);
+    }
+    .full-bd {
+      padding-top: 40px;
     }
   </style>
 </head>
@@ -58,18 +67,34 @@
                             <span class="slice_title">
                               <a onclick="leave('{{from_url}}')">返回</a>
                             </span>
-                            <span class="slice_info">页编码：{{page['name']}}</span>
+                            <span class="slice_info">字序校对：{{page['name']}}</span>
                             <div class="slice_btn_group">
                               <div class="btn-group m-b-10">
                               </div>
                               <div class="btn-group m-b-10">
-                                <button type="button" class="btn btn-default" id="switch-image" title="显示或隐藏页面图">显隐背景</button>
-                                <button type="button" class="btn btn-default" id="switch-char-no" title="显示或隐藏字框编号">显隐编号</button>
+                                <button type="button" class="btn btn-default" id="switch-image" title="显示或隐藏页面图">背景</button>
+                                <button type="button" class="btn btn-default" id="switch-char-no" title="显示或隐藏字框编号">编号</button>
+                                <button type="button" class="btn btn-default" id="show-err-box" title="显示字序待修正的字框">纠错</button>
                               </div>
                               <div class="btn-group m-b-10">
                                 <button type="button" class="btn btn-default" id="undo" title="撤销"><i class="md md-undo"></i></button>
                                 <button type="button" class="btn btn-default" id="redo" title="重做"><i class="md md-redo"></i></button>
                               </div>
+                            </div>
+
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-default dropdown-toggle waves-effect m-b-5" data-toggle="dropdown"
+                                      aria-haspopup="true" aria-expanded="false">
+                                重排 <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu">
+                                {% for i,t in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
+                                <li><a style="{{'font-weight: 700' if layout == i else ''}}"
+                                       href="/task/do/char_order_proof/{{name}}?layout={{i}}{{'&view=1' if readonly else ''}}{{'&from=' + from_url if from_url else ''}}">{{t}}</a></li>
+                                {% end %}
+                                <li role="separator" class="divider"></li>
+                                <li><a id="toggle-columns">显隐列框</a></li>
+                              </ul>
                             </div>
 
                             {% if not readonly %}
@@ -81,10 +106,7 @@
                                 <span class="sr-only">Toggle Dropdown</span>
                               </button>
                               <ul class="dropdown-menu">
-                                <li><a id="submit">提交任务</a></li>
-                                <li role="separator" class="divider"></li>
-                                <li><a id="order-mode">字序校对</a></li>
-                                <li><a id="box-mode">字框校对</a></li>
+                                <li><a href="/task/do/char_cut_{{stage}}/{{name}}">转到 字框校对</a></li>
                               </ul>
                             </div>
                             {% end %}
@@ -96,6 +118,7 @@
                           <!-- holder为显示切分框和页面图的画布容器 -->
                           <div id="holder"></div>
                           <div id="info">
+                            <span class="cur-char"></span>
                             <span class="col-info"></span>
                             <span class="char-info"></span>
                             <span class="target-char"></span>
@@ -126,6 +149,7 @@
   <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
   <script>
+    var columns = decodeJSON('{{page["columns"]}}');
     $.cut.create({
       readonly: true,
       name: '{{name}}_order',
@@ -152,7 +176,13 @@
       $.cut.redo();
       updateUndo();
     });
-    updateUndo();
+
+    $.cut.onBoxChanged(function (char, box, reason) {
+      if (reason === 'navigate') {
+        $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID() || '未选中'));
+      }
+      updateUndo();
+    });
 
     $('#switch-image').click(function () {
       var style = $.cut.data.image.node.style;
@@ -184,6 +214,21 @@
     }
     $('#save').click(save.bind(null, false));
     $('#submit').click(save.bind(null, true));
+
+    updateUndo();
+
+    // 显示字序待修正的字框
+    $('#show-err-box').click(function () {
+      $.cut.showErrorBoxes(true);
+    });
+    setTimeout(function () {
+      $.cut.showErrorBoxes();
+    }, 100);
+
+    // 显隐列框
+    $('#toggle-columns').click(function () {
+      $.cut.toggleColumns(columns);
+    });
   </script>
 
 </body>

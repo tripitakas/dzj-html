@@ -186,12 +186,12 @@
 						setTimeout(function () {
 							window.location.reload();
 						}, 1500);
-					}, function (msg, code) {
-						if (code === 1009) {
+					}, function (err) {
+						if (err.code === 1009) {
 							showSuccess('修改成功', '用户信息没有发生改变。');
 							return $dlg.modal('hide');
 						}
-						showError('修改失败', msg);
+						showError('修改失败', err.message);
 					});
 				});
 			}

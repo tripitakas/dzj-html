@@ -15,5 +15,5 @@ handlers = [
     api_common.PickTextProofTaskApi, api_common.PickTextReviewTaskApi,
     api_common.SaveCutProofApi, api_common.SaveCutReviewApi,
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
-    api_admin.PublishTasksApi,
+    api_admin.PublishTasksApi, api_admin.PublishTasksFileApi,
 ]

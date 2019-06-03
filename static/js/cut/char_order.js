@@ -1,7 +1,7 @@
 /*
  * char_order.js
  *
- * Date: 2019-05-29
+ * Date: 2019-06-01
  * global $
  */
 (function () {
@@ -9,16 +9,24 @@
 
   var data = $.cut.data;
   var state = $.cut.state;
-  var colChars = {};    // 每列的字框 {colId: [[char_no, box]...]
-  var colLinks = [];    // 字框连线
-  var texts = [];       // 字框编号文本图形
-  var colPaths = {};    // 每列的连通线
+  var colChars = {};      // 每列的字框 {colId: [[char_no, box]...]
+  var boxLinks = [];      // 字框连线，由 buildBoxLink 创建
+  var texts = [];         // 字框编号文本图形
+  var colPaths = {};      // 每列的连通线
   var linkData = {
-    normalWidth: 2, curColWidth: 3, curLinkWidth: 6,
-    draggingHandle: null,
-    curHandle: null,
-    avgLen: 0,
-    textVisible: false
+    normalWidth: 3,       // 非当前列的连线宽
+    curColWidth: 4.5,     // 当前列的连线宽
+    curLinkWidth: 8,      // 当前列的当前连线的宽度
+    colId: null,          // 当前列的列号
+    curLink: null,        // 当前连线
+    alongBall: null,      // 在列路径上运动的小球
+    dragTarget: null,     // 拖放目标字框
+    draggingHandle: null, // 拖放目标位置的圆点
+    curHandle: null,      // 当前选中的拖放起点处的圆点
+    handlePt: null,       // curHandle 的坐标，不显示则为空
+    atStart: false,       // curHandle 位于 curLink 的头部还是尾部
+    avgLen: 0,            // 字框连线的平均长度
+    textVisible: false    // 是否显示字框编号
   };
   var getDistance = $.cut.getDistance;
 
@@ -26,7 +34,7 @@
     return Math.round(num * 100) / 100;
   }
 
-  function buildArrayLink(fromPt, toPt, tol, c1, c2, colId, color) {
+  function buildBoxLink(fromPt, toPt, tol, c1, c2, colId, color) {
     var path = 'M' + round(fromPt.x) + ',' + round(fromPt.y) + 'L' + round(toPt.x) + ',' + round(toPt.y);
     var link = data.paper.path(path)
         .initZoom().setAttr({
@@ -36,7 +44,8 @@
           'stroke-dasharray': fromPt.y < toPt.y - tol ? '' : '.'    // 向上或水平就显示虚线，否则为实线
         })
         .data('fromPt', fromPt)
-        .data('toPt', toPt);
+        .data('toPt', toPt)
+        .data('color', color);
 
     if (c1 && c2) {
       link.data('c1', c1)
@@ -53,8 +62,8 @@
   }
 
   function getHeight(char) {
-    var box = char.shape.getBBox();
-    return box.height;
+    var box = char && (char.shape || char).getBBox();
+    return box ? box.height : 10;
   }
 
   function pointToSegmentDistance(pt, pa, pb) {
@@ -83,9 +92,9 @@
 
   function hitTestLink(pt) {
     var minDist = 1e5, minPath = null;
-    colLinks.forEach(function (link) {
+    boxLinks.forEach(function (link) {
       var dist = pointToSegmentDistance(pt, link.data('fromPt'), link.data('toPt'));
-      var diff = link === linkData.link ? 10 : 0;  // 当前连线段优先捕捉
+      var diff = link === linkData.curLink ? 10 : 0;  // 当前连线段优先捕捉
 
       if (minDist > dist - diff && dist < linkData.avgLen) {
         minDist = dist - diff;
@@ -97,16 +106,16 @@
 
   function onColChanged(link, lastColId) {
     function run() {
-      if (colChars[linkData.colId]) {
-        var ms = 150 * colChars[linkData.colId].length;
-        linkData.alongBall.animate({along: 1}, ms, function () {
-          linkData.alongBall.attr({along: 0});
-          setTimeout(run);
+      if (colChars[linkData.colId] && ++linkData.ballTimes < 3) {
+        var ms = 100 * colChars[linkData.colId].length;
+        linkData.alongBall.animate({alongColPath: 1}, ms, function () {
+          linkData.alongBall.attr({alongColPath: 0});
+          setTimeout(run, 100);
         });
       }
     }
 
-    colLinks.forEach(function (p) {
+    boxLinks.forEach(function (p) {
       if (p.data('colId') === lastColId) {
         p.setAttr({'stroke-width': linkData.normalWidth / data.ratioInitial});
       }
@@ -119,68 +128,87 @@
     }
     var alongPath = colPaths[linkData.colId];
     if (alongPath) {
-      linkData.alongLen = alongPath.getTotalLength();
+      var alongLen = alongPath.getTotalLength();
       linkData.alongBall = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff'});
 
-      data.paper.customAttributes.along = function (v) {
-        var point = alongPath.getPointAtLength(v * linkData.alongLen);
+      data.paper.customAttributes.alongColPath = function (v) {
+        var point = alongPath.getPointAtLength(v * alongLen);
         return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
       };
-      linkData.alongBall.attr({along: 0});
-
-      setTimeout(run);
+      linkData.alongBall.attr({alongColPath: 0});
+      linkData.ballTimes = 0;
+      setTimeout(run, 100);
     }
   }
 
-  function mouseHover(pt) {
-    if (linkData.draggingHandle) {
-      return;
-    }
-
-    var link = hitTestLink(pt);
+  function selectLink(curLink, atStart) {
     var lastColId = linkData.colId;
-    var lastLink = linkData.link;
-    var lastStart = linkData.atStart;
-    var linkText, handleChanged;
+    var lastLink = linkData.curLink;
+    var handleChanged = linkData.curLink !== curLink || atStart !== linkData.atStart;
+    var linkText;
 
-    if (link) {
-      linkData.atStart = getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
-      linkData.handlePt = link.data(linkData.atStart ? 'fromPt' : 'toPt');
-      linkText = (linkData.atStart ? '*' : '') + link.data('cid1').replace(linkData.colId, '')
-          + '->' + (linkData.atStart ? '' : '*') + link.data('cid2').replace(linkData.colId, '');
+    if (curLink) {
+      linkData.atStart = atStart;
+      linkData.handlePt = curLink.data(linkData.atStart ? 'fromPt' : 'toPt');
+      linkText = curLink.data('cid1').replace(linkData.colId, '') + (linkData.atStart ? '(起点)' : '')
+          + '->' + curLink.data('cid2').replace(linkData.colId, '') + (linkData.atStart ? '' : '(终点)');
+    } else {
+      delete linkData.handlePt;
     }
-    handleChanged = linkData.link !== link || lastStart !== linkData.atStart;
-    if (linkData.link !== link) {
-      linkData.link = link;
-      linkData.colId = link && link.data('colId') || '';
+    if (linkData.curLink !== curLink) {
+      linkData.curLink = curLink;
+      linkData.colId = curLink && curLink.data('colId') || '';
 
       if (lastLink) {
-        lastLink.setAttr({'stroke-width': linkData.curColWidth / data.ratioInitial, 'stroke-opacity': 0.9});
+        lastLink.setAttr({
+          'stroke': lastLink.data('color'),
+          'stroke-width': linkData.curColWidth / data.ratioInitial,
+          'stroke-dasharray': lastLink.data('dash'),
+          'stroke-opacity': 0.9
+        });
       }
       if (linkData.colId !== lastColId) {
-        onColChanged(link, lastColId);
+        onColChanged(curLink, lastColId);
       }
-      if (link) {
-        link.setAttr({'stroke-width': linkData.curLinkWidth / data.ratioInitial, 'stroke-opacity': 0.8});
+      if (curLink) {
+        curLink.setAttr({
+          'stroke': '#04f',
+          'stroke-width': linkData.curLinkWidth / data.ratioInitial,
+          'stroke-dasharray': '',
+          'stroke-opacity': 0.8
+        });
       }
     }
     createHandle('curHandle', linkData.handlePt,
-        link && link.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
+        curLink && curLink.data(linkData.atStart ? 'cid1' : 'cid2'), handleChanged);
 
-    $('#info > .col-info').text(linkData.colId ? '栏: ' + linkData.colId : '');
-    $('#info > .char-info').text(linkText ? '字: ' + linkText : '');
+    $('#info > .col-info').text('当前列: ' + (linkData.colId || '未选中'));
+    $('#info > .char-info').text('字框连线: ' + (linkText || '未选中'));
   }
 
-  function mouseDown(pt) {
+  function mouseHover(pt) {
+    if (!linkData.draggingHandle) {
+      var link = hitTestLink(pt);
+      var atStart = link && getDistance(pt, link.data('fromPt')) < getDistance(pt, link.data('toPt'));
+      selectLink(link, atStart);
+    }
+  }
+
+  function mouseDown() {
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 0.2});
-      linkData.link.attr({'stroke-opacity': 0.2});
     }
-    mouseDrag(pt);
+    if (linkData.curLink) {
+      linkData.curLink.attr({'stroke-opacity': 0.2});
+    }
+    linkData.dragging = false;
   }
 
   function mouseDrag(pt) {
-    if (linkData.link) {
+    if (linkData.curLink && !linkData.dragging) {
+      linkData.dragging = getDistance(state.downOrigin, pt) > linkData.avgLen / 3;
+    }
+    if (linkData.dragging) {
       linkData.dragTarget = $.cut.findBoxByPoint(pt);
       if (linkData.dragTarget) {
         pt = getCenter(linkData.dragTarget);
@@ -192,9 +220,9 @@
       if (linkData.dynLink) {
         linkData.dynLink.remove();
       }
-      var startPt = linkData.atStart ? pt : linkData.link.data('fromPt');
-      var toPt = linkData.atStart ? linkData.link.data('toPt') : pt;
-      linkData.dynLink = buildArrayLink(startPt, toPt, 10, null, null, null, '#f00');
+      var startPt = linkData.atStart ? pt : linkData.curLink.data('fromPt');
+      var toPt = linkData.atStart ? linkData.curLink.data('toPt') : pt;
+      linkData.dynLink = buildBoxLink(startPt, toPt, getHeight(state.edit) / 4, null, null, null, '#f00');
       linkData.dynLink.setAttr({
         'stroke-width': linkData.curLinkWidth / data.ratioInitial,
         'stroke-opacity': 0.7
@@ -210,7 +238,7 @@
 
     if (insertTarget && linkData.dragTarget) {
       chars = data.chars.filter(function (box) {
-        if (box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
+        if (box.shape && box !== charNew && box.char_id && box.char_id.indexOf(linkData.colId + 'c') === 0) {
           box.char_no = parseInt(box.char_id.replace(linkData.colId + 'c', ''));
           return true;
         }
@@ -255,6 +283,7 @@
   }
 
   function mouseUp(pt, e) {
+    linkData.dragging = false;
     if (linkData.draggingHandle) {
       var cidNew = linkData.draggingHandle.data('cid');
       var cidOld = linkData.curHandle.data('cid');
@@ -266,11 +295,12 @@
       linkData.dynLink.remove();
       delete linkData.dynLink;
 
-      // 直接拖动就将目标字框插入当前列，按下shift键拖动就改连接到目标字框上，原字框解除连接，按下alt键拖动就交换字框编号
+      // 直接拖动就将目标字框插入当前列，拖到空白处就原字框解除连接；
+      // 按下shift键拖动就改连接到目标字框上，原字框解除连接；按下alt键拖动就交换字框编号
       if (charOld && (charNew && cidNew !== cidOld || !linkData.dragTarget)) {
         onLinkChanged(charOld, charNew, e.shiftKey, !e.altKey && !e.shiftKey);
         setTimeout(function () {
-          $.cut.addCharOrderLinks();
+          updateOrderLinks(linkData.dragTarget ? cidOld : cidNew);
         }, 500);
       }
       if (linkData.dragTarget) {
@@ -280,6 +310,14 @@
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 1})
     }
+  }
+  
+  function updateOrderLinks(cid) {
+    cid = cid || linkData.curLink && linkData.curLink.data('cid2');
+    $.cut.addCharOrderLinks();
+    selectLink(boxLinks.filter(function (link) {
+      return link.data('cid1') === cid || link.data('cid2') === cid;
+    })[0], linkData.atStart);
   }
 
   function createHandle(name, pt, cid, switched) {
@@ -291,9 +329,9 @@
     if (linkData[name] && pt) {
       linkData[name].animate({cx: pt.x, cy: pt.y, r: r}, 300, 'elastic');
     }
-    else if (linkData.link && pt) {
+    else if (linkData.curLink && pt) {
       linkData[name] = data.paper.circle(pt.x, pt.y, switched ? 8 : r)
-          .attr({fill: 'rgba(0,255,0,.4)'});
+          .attr({fill: 'rgba(0,255,0,.6)'});
       if (switched) {
         linkData[name].animate({r: r}, 1000, 'elastic');
       }
@@ -307,11 +345,11 @@
     removeCharOrderLinks: function () {
       delete linkData.colId;
 
-      colLinks.forEach(function (link) {
+      boxLinks.forEach(function (link) {
         link.remove();
       });
       colChars = {};
-      colLinks.length = 0;
+      boxLinks.length = 0;
 
       texts.forEach(function (text) {
         text.remove();
@@ -346,6 +384,7 @@
           var colId = nums.slice(0, 2).join('c');
           colChars[colId] = colChars[colId] || [];
           colChars[colId].push([parseInt(nums[2]), box]);
+
           if (linkData.textVisible) {
             var cen = getCenter(box);
             texts.push(data.paper.text(cen.x, cen.y, nums.slice(1, 3).join('c'))
@@ -363,6 +402,8 @@
 
         var avgLen = 0;
         var points = [getCenter(column[0].char)];
+        var color = colIndex % 2 ? '#00f' : '#08f';
+
         column.forEach(function (c, i) {
           if (i > 0) {
             var h = Math.min(getHeight(column[i - 1].char), getHeight(c.char));
@@ -370,9 +411,10 @@
             var toPt = getCenter(c.char);
 
             avgLen += getDistance(fromPt, toPt);
-            c.link = buildArrayLink(fromPt, toPt, h / 4,
-                column[i - 1].char, c.char, colId, colIndex % 2 ? '#00f' : '#07f');
-            colLinks.push(c.link);
+            c.link = buildBoxLink(fromPt, toPt, h / 4,
+                column[i - 1].char, c.char, colId, color);
+            c.link.data('dash', c.link.attr('stroke-dasharray'));
+            boxLinks.push(c.link);
             points.push(toPt);
           }
         });
@@ -381,27 +423,83 @@
           return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
         }).join(' ')).attr({stroke: 'none'});
       });
+    },
+
+    bindCharOrderKeys: function () {
+      var self = this;
+      var on = function (key, func) {
+        $.mapKey(key, func, {direction: 'down'});
+      };
+    },
+
+    toggleColumns: function (columns) {
+      if (linkData.columns) {
+        linkData.columns.forEach(function (r) {
+          r.animate({opacity: 0}, 200, '>', function () {
+            this.remove();
+          });
+        });
+        delete linkData.columns;
+      } else {
+        var s = data.ratio * data.ratioInitial;
+        linkData.columns = columns.map(function (box, i) {
+          var color = i % 2 ? '#f00' : '#f80';
+          var r = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
+              .attr({stroke: color, fill: color, 'stroke-opacity': 0.6, 'fill-opacity': 0});
+          r.animate({'fill-opacity': 0.1}, 500, '<');
+          return r;
+        });
+      }
+    },
+    
+    showErrorBoxes: function (prompt) {
+      function inRange(texts) {
+        var colNo = parseInt(texts[1]), charNo = parseInt(texts[2]);
+        return colNo >= 1 && colNo <= 100 && charNo >= 1 && charNo <= 100;
+      }
+
+      var shapes = [];
+      data.chars.forEach(function (char) {
+        if (char.shape && !(/^b\d+c\d+c\d+$/.test(char.char_id) && inRange(char.char_id.split('c')) )) {
+          var box = char.shape.getBBox();
+          var r = data.paper.rect(box.x, box.y, box.width, box.height)
+              .attr({stroke: '#f00', fill: '#f00', 'fill-opacity': 1});
+          r.animate({'fill-opacity': 0.5}, 500, '<');
+          shapes.push(r);
+        }
+      });
+      if (!shapes.length && prompt) {
+        showSuccess('字框编号正常', '没有待修正编号的字框。')
+      }
+      setTimeout(function () {
+        shapes.forEach(function (r) {
+          r.animate({opacity: 0}, 500, '>', function () {
+            this.remove();
+          });
+        });
+      }, 3000);
+      return shapes.length;
     }
   });
 
   // 放缩后重新生成图形
   state.onZoomed = function () {
-    if (colLinks.length) {
-      $.cut.addCharOrderLinks();
+    if (boxLinks.length) {
+      updateOrderLinks();
     }
   };
 
   // Undo/Redo后重新生成图形
   $.cut.onBoxChanged(function(info, box, reason) {
-    if (colLinks.length && reason === 'undo') {
-      $.cut.addCharOrderLinks();
+    if (boxLinks.length && reason === 'undo') {
+      updateOrderLinks();
     }
   });
 
   // 显隐字框编号
   $('#switch-char-no').click(function () {
     linkData.textVisible = !linkData.textVisible;
-    $.cut.addCharOrderLinks();
+    updateOrderLinks();
   });
 
 }());
