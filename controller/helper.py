@@ -8,6 +8,7 @@
 import re
 import logging
 import inspect
+import random
 from datetime import datetime, timedelta
 from hashids import Hashids
 
@@ -41,6 +42,18 @@ def my_framer():
             f0 = f
             f = f.f_back
     return f0
+
+
+def random_code():
+    code = ''
+    for i in range(4):
+        current = random.randrange(0, 4)
+        if current != i:
+            temp = chr(random.randint(65, 90))
+        else:
+            temp = random.randint(0, 9)
+        code += str(temp)
+    return code
 
 
 old_framer = logging.currentframe

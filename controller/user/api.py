@@ -7,7 +7,11 @@
 import logging
 import random
 import os.path
-
+import smtplib
+from email.header import Header
+# 邮件文本
+from email.mime.text import MIMEText
+from datetime import datetime
 from bson import objectid, json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
@@ -102,13 +106,14 @@ class RegisterApi(BaseHandler):
         """ 注册 """
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name', 'password'),
+            (v.not_empty, 'name', 'password', 'email_code'),
             (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
-            (v.not_existed, self.db.user, 'phone', 'email')
+            (v.not_existed, self.db.user, 'phone', 'email'),
+            (v.code_verify_timeout, self.db.email, 'email', 'email_code')
         ]
         err = v.validate(user, rules)
         if err:
@@ -350,3 +355,39 @@ class UploadUserImageHandler(BaseHandler):
         self.current_user['img'] = img
         self.set_secure_cookie('user', json_util.dumps(self.current_user))
         self.send_data_response()
+
+
+class SendUserEmailCodeHandler(BaseHandler):
+    URL = '/api/user/send_email_code'
+
+    def post(self):
+        email = self.get_argument('email', None)
+        if email:
+            code = hlp.random_code()  # 获取随机验证码
+            self.send_email(email, code)  # 发送验证码到邮箱
+            email_exist = self.db.email.find_one(dict(email=email))
+            try:
+                if not email_exist:
+                    self.db.email.insert_one(dict(email=email, code=code, stime=datetime.now()))
+                else:
+                    self.db.email.update_one(dict(email=email), {'$set': dict(code=code, stime=datetime.now())})
+            except DbError as e:
+                return self.send_db_error(e)
+
+        self.send_data_response()
+
+    def send_email(self, receiver, content, subject="如是藏经邮箱验证"):  # email_list邮件列表，content邮件内容，subject：发送标题
+        msg = MIMEText('<html><h1>验证码：'+content+'</h1></html>', 'html', 'utf-8')
+        sender = 'tripitakas@163.com'
+        pwd = 'rstripitaka2019'  # 使用的是授权码
+        msg['from'] = sender
+        msg['to'] = receiver
+        msg['Subject'] = Header(subject, 'utf-8')
+
+        mail_host = "smtp.163.com"
+        mail_port = 465
+        server = smtplib.SMTP_SSL(mail_host, mail_port)
+        #邮箱引擎
+        server.login(sender, pwd)  # 邮箱名，密码
+        server.sendmail(sender, receiver, msg.as_string())
+        server.quit()

@@ -48,9 +48,14 @@
                             <i class="ion-ios7-email-outline"></i>
                         </div>
                         <div class="item">
-                            <input type="text" placeholder='请输入验证码' class="register_code_input">
+                            <input type="text" placeholder='请输入手机验证码' class="phone_code_input">
                             <i class="ion-ios7-checkmark-outline"></i>
-                            <a class="register_code_btn">获取验证码</a>
+                            <a class="phone_code_btn">获取验证码</a>
+                        </div>
+                        <div class="item">
+                            <input type="text" placeholder='请输入邮箱验证码' id="email_code">
+                            <i class="ion-ios7-checkmark-outline"></i>
+                            <a id="email_code_btn" class="email_code_btn">获取验证码</a>
                         </div>
                     </div>
                     <div class="register_agreement">
@@ -83,13 +88,50 @@
         name: $('#name').val(),
         gender: $('#gender').val(),
         email: $('#email').val(),
+        email_code:$('#email_code').val(),
         password: password,
         phone: $('#phone').val()
       }}, function (data) {
         window.location = '{{next}}';
-      }, function (error, code, errors) {
-        return showError(code, error);
+      }, function (error) {
+        return showError(error.code, error.message);
       });
     });
+
+    $("#email_code_btn").click(function(){
+               var email = $('#email').val(); //获取邮箱地址
+               if(email.trim().length == 0){  //判断是否输入邮箱
+                   return showError('邮箱出错', '请输入注册邮箱');
+               }
+               if($(this).hasClass('sending')){  //判断是否已经发送
+                   return;
+               }
+               var ths = $(this);
+               var time = 60; //设置倒计时时间为60s
+
+               $.ajax({
+                   url: "/api/user/send_email_code",
+                   type: 'POST',
+                   data: {email: email},
+                   dataType: 'json',
+                   success: function(arg){
+                       if(!arg.status){  //是否发送成功
+                           return showError(code, error);
+                       }else{
+                           ths.addClass('sending');      //成功后显示已发送状态
+                           var interval = setInterval(function(){
+                           ths.text("已发送(" + time + ")");
+                           time -= 1;　　　　//定时器每运行一次，计数器减1
+                           if(time <= 0){
+                               clearInterval(interval); //一分钟过完，清除定时器
+                               ths.removeClass('sending');//移除已发送状态
+                               ths.text("获取验证码");//恢复未发送状态
+                           }
+                       }, 1000);//定时器每隔1s运行一次
+                       }
+                   }
+               });
+
+           });
 </script>
 </html>

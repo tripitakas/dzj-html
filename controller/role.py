@@ -41,6 +41,7 @@ role_maps = {
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
             '/api/user/upload_img': ['POST'],
+            '/api/user/send_email_code': ['POST'],
             '/task/do/char_order_proof/@task_id': ['GET'],  # 实现后再移到切字校对员里
         }
     },

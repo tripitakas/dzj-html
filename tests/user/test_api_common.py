@@ -5,6 +5,7 @@
 """
 import tests.users as u
 import controller.errors as e
+from os import path
 from tests.testcase import APITestCase
 
 
@@ -142,4 +143,13 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/my/profile', body={
             'data': dict(name='张三', phone='13800000000', email='user1_new@test.com', gender='男')
         })
+        self.assert_code(200, r)
+
+    def test_api_upload_user_image(self):
+        img_path = path.join(self._app.IMAGE_PATH, '..', 'imgs', 'ava1.png')
+        self.assertTrue(path.exists(img_path))
+
+        r = self.register_and_login(dict(email=u.user1[0], password=u.user1[1], name=u.user1[2]))
+        self.assert_code(200, r)
+        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={})
         self.assert_code(200, r)

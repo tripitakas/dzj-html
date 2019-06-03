@@ -7,7 +7,7 @@
 
 import re
 import controller.errors as e
-
+from datetime import datetime,timedelta
 
 def validate(data, rules):
     """
@@ -34,6 +34,7 @@ def i18n_trans(key):
         'name': '姓名',
         'phone': '手机',
         'email': '邮箱',
+        'email_code': '邮箱验证码',
         'phone_or_email': '手机或邮箱',
         'password': '密码',
         'old_password': '原始密码',
@@ -190,4 +191,24 @@ def is_unique(collection=None, **kw):
         for k, v in kw.items():
             if v is not None and collection.find({k: v}).count() > 1:
                 errs[k] = code, message % i18n_trans(k)
+    return errs or None
+
+
+def code_verify_timeout(collection=None, **kw):
+    errs = {}
+    email = ""
+    emailcode = ""
+    if collection:
+        current_date = datetime.now()
+        limit_day = current_date - timedelta(minutes=1)
+        for k, v in kw.items():
+            if k == 'email':
+                email = v
+            elif k == 'email_code':
+                emailcode = v.upper()
+        if collection.name == 'email':
+            code, message = e.email_code_timeout
+            r = collection.find_one({"email": email, "code": emailcode, "stime": {"$gt": limit_day}})
+            if not r:
+                errs['email_code'] = code, message % i18n_trans('email_code')
     return errs or None
