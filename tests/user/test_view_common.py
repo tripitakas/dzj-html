@@ -5,8 +5,6 @@
 """
 import tests.users as u
 from tests.testcase import APITestCase
-from os import path
-import requests
 
 
 class TestUserCommonViews(APITestCase):
@@ -64,14 +62,3 @@ class TestUserCommonViews(APITestCase):
 
             r2 = self.fetch('/api/code/%s?_raw=1' % (func,))
             self.assertEqual(self.parse_response(r2).get('name'), func)
-
-    def test_api_upload_user_image(self):
-        img_path = path.join(self._app.IMAGE_PATH, '..', 'imgs', 'ava1.png')
-        self.assertTrue(path.exists(img_path))
-
-        r = self.register_and_login(dict(email=u.user1[0], password=u.user1[1], name=u.user1[2]))
-        self.assert_code(200, r)
-        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={})
-        self.assert_code(200, r)
-        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={'data': dict(x=10, y=10, w=400, h=400)})
-        self.assert_code(200, r)
