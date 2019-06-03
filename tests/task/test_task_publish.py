@@ -119,3 +119,28 @@ class TestTaskPublish(APITestCase):
 
         # 测试超大规模
         # self._publish_many_tasks('block_cut_proof', 10000)
+
+    def _publish_file(self, task_type, txt_file, priority=1):
+        body = dict(task_type=task_type, priority=priority)
+        return self.fetch('/api/task/publish_file', files=dict(txt_file=txt_file), body=body)
+
+    def test_publish_tasks_file(self):
+        """ 测试发布审校任务 """
+        self.add_first_user_as_admin_then_login()
+        pages = ['GL_1056_5_6', 'JX_165_7_12']
+        self._set_page_status(pages, {'block_cut_proof': 'ready'})
+        filename = './static/upload/file2upload.txt'
+        with open(filename, 'w') as f:
+            for page in pages:
+                f.write(page+'\n')
+            f.close()
+
+        filename = os.path.join(self._app.BASE_DIR, 'static', 'upload', 'file2upload.txt')
+        self.assertTrue(os.path.exists(filename))
+
+        r = self.parse_response(self._publish_file(task_type='block_cut_proof', txt_file=filename))
+        self.assertEqual(set(r.get('published')), set(pages))
+
+        # 任务类型有误
+        r = self.parse_response(self._publish_file(task_type='error_task_type', txt_file=filename))
+        self.assertIn('task_type', r['error'])

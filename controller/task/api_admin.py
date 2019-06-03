@@ -183,7 +183,7 @@ class PublishTasksFileApi(PublishTasksBaseHandler):
         """
         txt_file = self.request.files.get('txt_file')
         txt_str = str(txt_file[0]['body'], encoding='utf-8')
-        page_names = txt_str.split('\r\n')
+        page_names = [p.strip('\r') for p in txt_str.split('\n') if p]
         data = {
             'page_names': page_names,
             'task_type': self.get_body_argument('task_type', ''),
