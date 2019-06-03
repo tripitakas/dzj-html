@@ -37,8 +37,14 @@ class GetPagesApi(TaskHandler):
             data = self.get_request_data()
             condition = {}
             page_prefix = data.get('page_prefix')
+            condition['name'] = {}
             if page_prefix:
-                condition.update({'name': {'$regex': '^%s.*' % page_prefix.upper()}})
+                condition['name'].update({'$regex': '^%s.*' % page_prefix.upper()})
+            exclude_pages = data.get('exclude_pages')
+            if exclude_pages:
+                condition['name'].update({'$nin': exclude_pages})
+            if not condition['name']:
+                del condition['name']
             sub_tasks = self.get_sub_tasks(task_type)
             if sub_tasks:
                 condition.update({'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_tasks]})
@@ -49,7 +55,7 @@ class GetPagesApi(TaskHandler):
             count = self.db.page.find(condition, {'name': 1}).count()
             pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size*(page_no-1))
             pages = [p['name'] for p in pages]
-            response = {'pages': pages, 'page_size':page_size, 'page_no':page_no,'total_count':count}
+            response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
         except DbError as e:
             self.send_db_error(e)
@@ -94,6 +100,9 @@ class UnlockTasksApi(TaskHandler):
         lock_name = 'lock_' + task_type.split('_')[0]
         locked_type = self.get_obj_property(page, lock_name + '.task_type')
         if locked_type != task_type:
+            from_exit = 'exit' in self.request.body_arguments
+            if from_exit:
+                self.send_data_response([])
             return self.send_error_response(errors.task_changed, page_name=page['name'])
         if self.get_obj_property(page, lock_name + '.picked_user_id') not in [self.current_user['_id'], None]:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
@@ -106,7 +115,6 @@ class UnlockTasksApi(TaskHandler):
 
         lock_name = 'lock_' + task_type.split('_')[0]
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
-        from_exit = 'exit' in self.request.body_arguments
 
         unset[lock_name] = None  # 删除锁定信息
         if self.get_obj_property(page, lock_name + '.jump_from_task'):

@@ -6,9 +6,9 @@
 		{% include _base_meta.html %}
 
 		<!-- Custom Files -->
+		{% include _base_css.html %}
 		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
 		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
-		{% include _base_css.html %}
 
 		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -19,7 +19,18 @@
 
 	</head>
 	<style>
-
+		.avatar-holder {
+			width: 60px;
+			height: 60px;
+		}
+		.avatar-holder > simg {
+			width: 100%;
+			height: 0;
+			padding-bottom: 100%;
+			overflow: hidden;
+			margin: 0;
+			position: relative;
+		}
 	</style>
 
 	<body>
@@ -44,33 +55,34 @@
 													<div class="form-group">
 														<label class="col-sm-2 control-label"></label>
 														<div class="profile-info-name">
-						                                    <img src="{{ static_url(current_user.get('img', 'imgs/ava1.png'))}}" class="thumb-lg img-circle img-thumbnail" alt="profile-image">
+															<img src="{{ static_url(current_user.get('img', 'imgs/ava1.png'))}}"
+																	 class="thumb-lg img-circle img-thumbnail" alt="profile-image" onclick="upload_img()">
 															<a href="javascript:upload_img();" style="vertical-align:bottom;">上传头像</a>
-						                                </div>
-						                                
+														</div>
+
 													</div>
 													
 													<div class="form-group">
 														<label class="col-sm-2 control-label">姓名</label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<input type="text" id="name" class="form-control" value="{{current_user['name']}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">手机</label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<input type="text" id = "phone" class="form-control" value="{{current_user.get('phone') or ''}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">邮箱</label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<input type="text" id="email" class="form-control" value="{{current_user.get('email')}}">
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label">性别</label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<select id="gender" class="form-control">
 																<option {{"selected=selected" if not current_user.get('gender') else '' }}></option>
 																<option {{"selected=selected" if current_user.get('gender')=='男' else '' }}>男</option>
@@ -80,13 +92,13 @@
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label"></label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<a class="btn btn-success btn-block" onclick="save_profile()">保存</a>
 														</div>
 													</div>
 													<div class="form-group">
 														<label class="col-sm-2 control-label"></label>
-														<div class="col-sm-3">
+														<div class="col-sm-5">
 															<a class="btn btn-block btn-warning" onclick="change_pwd()">修改密码</a>
 														</div>
 													</div>
@@ -161,7 +173,7 @@
 						</div>
 						<div class="modal-body">
 							<form id="myform" enctype="multipart/form-data">
-    							<span>选择上传的头像图片</span><input type="file" id="upload" name="img" ><br/>
+    							<span>选择上传的头像图片，宽高相同，不超过1MB</span><input type="file" id="upload" name="img" accept="image/*"><br/>
 							</form>
 						</div>
 						<div class="modal-footer">
@@ -186,11 +198,11 @@
 				postApi('/user/my/profile', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。');
 					location.reload();
-				}, function (msg, code) {
-					if (code === 1009) {
+				}, function (err) {
+					if (err.code === 1009) {
 						showSuccess('修改成功', '个人信息没有发生改变。');
 					}
-					showError('修改失败', msg);
+					showError('修改失败', err.message);
 				});
 			}
 
@@ -208,11 +220,11 @@
 				var info = {old_password: $('#old_password').val(), password: $('#password').val()};
 				postApi('/user/my/pwd', {data: info}, function () {
 					showSuccess('修改成功', $('#name').val() + ' 的密码已修改。');
-				}, function (msg, code) {
-					if (code === 1009) {
+				}, function (err) {
+					if (err.code === 1009) {
 						showSuccess('修改成功', '密码没有发生改变。');
 					} else {
-						showError('修改失败', msg);
+						showError('修改失败', err.message);
 					}
 				});
 				$('#modifyModal').modal('hide');

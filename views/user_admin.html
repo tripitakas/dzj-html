@@ -69,7 +69,7 @@
 														<td><input type="checkbox" name="" value="" /></td>
 														<td>
 															{% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
-															<img src="{{ static_url('imgs/' + ava) }}" alt="" class="thumb-md img-circle">
+															<img src="{{ static_url(p.get('img', 'imgs/' + ava)) }}" alt="" class="thumb-md img-circle">
 														</td>
 														<td>{{p['name']}}</td>
 														<td>{{p.get('phone') or ''}}</td>
@@ -191,12 +191,12 @@
 						setTimeout(function () {
 							window.location.reload();
 						}, 1500);
-					}, function (msg, code) {
-						if (code === 1009) {
+					}, function (err) {
+						if (err.code === 1009) {
 							showSuccess('修改成功', '用户信息没有发生改变。');
 							return $dlg.modal('hide');
 						}
-						showError('修改失败', msg);
+						showError('修改失败', err.message);
 					});
 				});
 			}
@@ -218,10 +218,12 @@
 					},
 					function() {
 						postApi('/user/reset_pwd', {data:{_id: _id}}, function(data){
-							var psw = data.password ? data.password : ''
-							showSuccess('密码重置成功', '新密码是' + psw, 4000);
-						}, function (msg, code) {
-							showError('修改失败', msg);
+							if (data.password) {
+								swal({title: '密码重置成功', text: '新密码是 <b>' + data.password + '</b><br>请转告用此密码登录，然后修改密码。',
+									type: 'success', html: true, showConfirmButton: false, allowOutsideClick: true});
+							}
+						}, function (err) {
+							showError('修改失败', err.message);
 						});
 					}
 				);
@@ -247,8 +249,8 @@
 						postApi('/user/delete', {data:{_id: user._id}}, function(data){
 							showSuccess('删除用户' + user.name + '成功');
 							window.location.reload();
-						}, function (msg, code) {
-							showError('删除失败', msg);
+						}, function (err) {
+							showError('删除失败', err.message);
 						});
 					}
 				);
