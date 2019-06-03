@@ -113,7 +113,7 @@ class RegisterApi(BaseHandler):
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
             (v.not_existed, self.db.user, 'phone', 'email'),
-            (v.code_verify_timeout, self.db.email, 'email', 'email_code')
+            (v.code_verify_timeout, self.db.verify, 'email', 'email_code')
         ]
         err = v.validate(user, rules)
         if err:
@@ -365,12 +365,12 @@ class SendUserEmailCodeHandler(BaseHandler):
         if email:
             code = hlp.random_code()  # 获取随机验证码
             self.send_email(email, code)  # 发送验证码到邮箱
-            email_exist = self.db.email.find_one(dict(email=email))
+            email_exist = self.db.verify.find_one(dict(type='email', data=email))
             try:
                 if not email_exist:
-                    self.db.email.insert_one(dict(email=email, code=code, stime=datetime.now()))
+                    self.db.verify.insert_one(dict(type='email', data=email, code=code, stime=datetime.now()))
                 else:
-                    self.db.email.update_one(dict(email=email), {'$set': dict(code=code, stime=datetime.now())})
+                    self.db.verify.update_one(dict(type='email', data=email), {'$set': dict(code=code, stime=datetime.now())})
             except DbError as e:
                 return self.send_db_error(e)
 

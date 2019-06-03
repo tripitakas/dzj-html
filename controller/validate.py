@@ -7,7 +7,8 @@
 
 import re
 import controller.errors as e
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
+
 
 def validate(data, rules):
     """
@@ -196,19 +197,12 @@ def is_unique(collection=None, **kw):
 
 def code_verify_timeout(collection=None, **kw):
     errs = {}
-    email = ""
-    emailcode = ""
-    if collection:
-        current_date = datetime.now()
-        limit_day = current_date - timedelta(minutes=1)
-        for k, v in kw.items():
-            if k == 'email':
-                email = v
-            elif k == 'email_code':
-                emailcode = v.upper()
-        if collection.name == 'email':
-            code, message = e.email_code_timeout
-            r = collection.find_one({"email": email, "code": emailcode, "stime": {"$gt": limit_day}})
-            if not r:
-                errs['email_code'] = code, message % i18n_trans('email_code')
+    email, email_code = kw.get('email'), kw.get('email_code', '').upper()
+    if email_code and collection:
+        code, message = e.email_code_timeout
+        r = collection.find_one(
+            {"type": 'email', "data": email, "code": email_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+        )
+        if not r:
+            errs['email_code'] = code, message % i18n_trans('email_code')
     return errs or None

@@ -181,7 +181,7 @@
 .register_code{
 	float: left;
 }
-.phone_code_btn{
+.phone-code-btn{
 	float: right;
     margin:0 auto;
     width:30%;
@@ -195,7 +195,7 @@
     font-size:14px;
 	margin-top: 10px;
 }
-.email_code_btn{
+.email-code-btn{
 	float: right;
     margin:0 auto;
     width:30%;
