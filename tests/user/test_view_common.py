@@ -73,3 +73,5 @@ class TestUserCommonViews(APITestCase):
         self.assert_code(200, r)
         r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={})
         self.assert_code(200, r)
+        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={'data': dict(x=10, y=10, w=400, h=400)})
+        self.assert_code(200, r)
