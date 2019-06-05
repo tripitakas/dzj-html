@@ -370,24 +370,26 @@ class SendUserEmailCodeHandler(BaseHandler):
                 if not email_exist:
                     self.db.verify.insert_one(dict(type='email', data=email, code=code, stime=datetime.now()))
                 else:
-                    self.db.verify.update_one(dict(type='email', data=email), {'$set': dict(code=code, stime=datetime.now())})
+                    update = dict(code=code, stime=datetime.now())
+                    self.db.verify.update_one(dict(type='email', data=email), {'$set': update})
             except DbError as e:
                 return self.send_db_error(e)
             self.send_data_response({'code': code})
 
-
-    def send_email(self, receiver, content, subject="如是藏经邮箱验证"):  # email_list邮件列表，content邮件内容，subject：发送标题
-        msg = MIMEText('<html><h1>验证码：'+content+'</h1></html>', 'html', 'utf-8')
-        sender = '240144200@qq.com'  # 备用'tripitakas@163.com'
-        pwd = 'oxlaqjdxlvzlcagf' # 备用'rstripitaka2019'  使用的是授权码
-        msg['from'] = sender
+    def send_email(self, receiver, content, subject="如是藏经邮箱验证"):
+        """email_list邮件列表，content邮件内容，subject发送标题"""
+        msg = MIMEText('<html><h1>验证码：' + content + '</h1></html>', 'html', 'utf-8')
+        account = self.config['email']['account']
+        pwd = self.config['email']['key']  # 授权码
+        msg['from'] = account
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
-
-        mail_host = "smtp.qq.com"  # 备用"smtp.163.com"
+        mail_host = "smtp.qq.com"
         mail_port = 25
-        server = smtplib.SMTP(mail_host, mail_port)
-        #邮箱引擎
-        server.login(sender, pwd)  # 邮箱名，密码
-        server.sendmail(sender, receiver, msg.as_string())
-        server.quit()
+        try:
+            server = smtplib.SMTP(mail_host, mail_port)
+            server.login(account, pwd)  # 邮箱名，密码
+            server.sendmail(account, receiver, msg.as_string())
+            server.quit()
+        except Exception as e:
+            return self.send_db_error(e)

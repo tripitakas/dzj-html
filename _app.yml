@@ -20,6 +20,10 @@ img:
   host: 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
 
+email:
+  account: '待配置'
+  key: '待配置'
+
 pager:
   page_size: 10
   display_count: 5
