@@ -361,7 +361,7 @@ class SendUserEmailCodeHandler(BaseHandler):
     URL = '/api/user/send_email_code'
 
     def post(self):
-        email = self.get_argument('email', None)
+        email = self.get_argument('email', None) or self.get_request_data().get("email")
         if email:
             code = hlp.random_code()  # 获取随机验证码
             self.send_email(email, code)  # 发送验证码到邮箱
@@ -373,8 +373,8 @@ class SendUserEmailCodeHandler(BaseHandler):
                     self.db.verify.update_one(dict(type='email', data=email), {'$set': dict(code=code, stime=datetime.now())})
             except DbError as e:
                 return self.send_db_error(e)
+            self.send_data_response({'code': code})
 
-        self.send_data_response()
 
     def send_email(self, receiver, content, subject="如是藏经邮箱验证"):  # email_list邮件列表，content邮件内容，subject：发送标题
         msg = MIMEText('<html><h1>验证码：'+content+'</h1></html>', 'html', 'utf-8')

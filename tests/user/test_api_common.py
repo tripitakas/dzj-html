@@ -156,3 +156,20 @@ class TestUserCommonApi(APITestCase):
         self.assert_code(200, r)
         r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={'data': dict(x=10, y=10, w=400, h=400)})
         self.assert_code(200, r)
+
+    def test_api_send_email_code(self):
+        self._app.db.user.drop()
+        email='goldennova@163.com'
+        r = self.fetch('/api/user/send_email_code', body={'data': dict(email=email)})
+        data = self.parse_response(r)
+        code=data.get('code')
+        # 测试验证码错误时的结果
+        r = self.fetch('/api/user/register', body={
+            'data': dict(email=email, password=u.user1[1], name=u.user1[2],email_code='jskl')
+        })
+        self.assert_code(e.email_code_timeout, r)
+        # 测试验证码正确时的结果
+        r = self.fetch('/api/user/register', body={
+            'data': dict(email=email, password=u.user1[1], name=u.user1[2], email_code=code)
+        })
+        self.assert_code(200, r)
