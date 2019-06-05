@@ -2,12 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-from datetime import datetime, date
 import tests.users as u
 from tests.testcase import APITestCase
-from controller import errors
 from controller.task.base import TaskHandler
-from tornado.escape import json_encode
 
 
 class TestTaskPublish(APITestCase):

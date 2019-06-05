@@ -402,7 +402,7 @@
 
         var avgLen = 0;
         var points = [getCenter(column[0].char)];
-        var color = colIndex % 2 ? '#00f' : '#08f';
+        var color = colIndex % 2 ? '#00f' : '#09f';
 
         column.forEach(function (c, i) {
           if (i > 0) {

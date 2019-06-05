@@ -5,7 +5,6 @@
 """
 import tests.users as u
 import controller.errors as e
-from os import path
 from tests.testcase import APITestCase
 from os import path
 
