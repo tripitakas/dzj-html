@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller import errors as e
 import re
 
 
@@ -17,13 +16,19 @@ class TestCharOrder(APITestCase):
         self.assertEqual(r.get('zero_char_id'), [])
 
     def test_gen_char_id(self):
-        self.assert_code(e.not_allowed_empty, self.fetch('/api/data/gen_char_id', body={}))
-        self.assert_code(e.not_allowed_empty, self.fetch('/api/data/gen_char_id',
-                                                         body={'data': dict(blocks=[], columns=[], chars=[])}))
+        r = self.parse_response(self.fetch('/api/data/gen_char_id', body={}))
+        self.assertIn('KeyError', r.get('message'))
+        r = self.fetch('/api/data/gen_char_id', body={'data': dict(blocks=[], columns=[], chars=[])})
+        self.assert_code(200, r)
+
         p = self.parse_response(self.fetch('/api/task/page/GL_924_2_35'))  # 单栏
         err_ids = [c['char_id'] for c in p['chars'] if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
         self.assertTrue(err_ids)
-        r = self.fetch('/api/data/gen_char_id', body={'data': p})
-        self.assert_code(200, r)
-        chars = self.parse_response(r)['chars']
-        self.assertFalse([c['char_id'] for c in chars if not re.match(r'^b\d+c\d+c\d+', c['char_id'])])
+        r = self.parse_response(self.fetch('/api/data/gen_char_id', body={'data': p}))
+        self.assertEqual(p['blocks'], r['blocks'])
+        self.assertEqual(p['columns'], r['columns'])
+        chars = r['chars']
+        err_ids = [c['char_id'] for c in chars if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
+        self.assertEqual(r.get('zero_char_id'), err_ids)
+        self.assertFalse(err_ids)
+        # self.assertEqual(len(r.get('chars_col', [])), len(p['columns']))

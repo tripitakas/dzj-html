@@ -20,6 +20,7 @@ from controller import errors
 from controller.base import BaseHandler, DbError
 import controller.helper as hlp
 import controller.validate as v
+from tornado.options import options
 
 
 class LoginApi(BaseHandler):
@@ -108,18 +109,23 @@ class RegisterApi(BaseHandler):
     def post(self):
         """ 注册 """
         user = self.get_request_data()
+        email_code, phone_code = user.get('email_code'), user.get('phone_code')
         rules = [
-            (v.not_empty, 'name', 'password'),
-            (v.not_both_empty, 'email', 'phone'),
+            (v.not_empty, 'name', 'password'),            (v.not_both_empty, 'email', 'phone'),
             (v.not_both_empty, 'email_code', 'phone_code'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
-            (v.not_existed, self.db.user, 'phone', 'email'),
-            (v.code_verify_timeout, self.db.verify, 'email', 'email_code'),
-            (v.code_verify_timeout, self.db.verify, 'phone', 'phone_code')
-        ]
+            (v.not_existed, self.db.user, 'phone', 'email')        ]
+        if email_code:
+            rules.append((v.not_empty, 'email'))
+            rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
+
+        if phone_code:
+            rules.append((v.not_empty, 'phone'))
+            rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
+
         err = v.validate(user, rules)
         if err:
             return self.send_error_response(err)
@@ -366,6 +372,7 @@ class SendUserEmailCodeHandler(BaseHandler):
     URL = '/api/user/send_email_code'
 
     def post(self):
+        """发送邮箱验证码"""
         email = self.get_argument('email', None) or self.get_request_data().get("email")
         if email:
             code = hlp.random_code()  # 获取随机验证码

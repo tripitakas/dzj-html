@@ -200,13 +200,6 @@ def code_verify_timeout(collection=None, **kw):
     errs = {}
     email, email_code = kw.get('email'), kw.get('email_code')
     phone, phone_code = kw.get('phone'), kw.get('phone_code')
-    if email_code and not email:
-        code, message = e.not_allowed_empty
-        errs['email'] = code, message % i18n_trans('email')
-
-    if phone_code and not phone:
-        code, message = e.not_allowed_empty
-        errs['phone'] = code, message % i18n_trans('phone')
 
     if email and email_code and collection:
         code, message = e.code_timeout

@@ -7,8 +7,7 @@
 
 from controller import errors
 from controller.task.base import TaskHandler
-from controller.layout.v1 import calc as calc_old
-from controller.layout.v2 import calc as calc_new
+from controller.data.api_algorithm import GenerateCharIdApi as GenApi
 
 
 class CutDetailBaseHandler(TaskHandler):
@@ -70,29 +69,11 @@ class CharOrderProofHandler(CutDetailBaseHandler):
                    zero_char_id=[])
 
     def render(self, template_name, **kwargs):
-        def get_char_no(char):
-            try:
-                p = char.get('char_id').split('c')
-                return int(p[2])
-            except TypeError:
-                return 0
-
-        if kwargs.get('layout') in [1, 2]:
-            page = kwargs['page']
-            chars = page['chars']
-            new_chars = (calc_new if kwargs['layout'] == 2 else calc_old)(chars, page['blocks'], page['columns'])
-            ids0 = {}
-
-            for c_i, c in enumerate(new_chars):
-                if not c['column_order']:
-                    zero_key = 'b%dc%d' % (c['block_id'], c['column_id'])
-                    ids0[zero_key] = ids0.get(zero_key, 100) + 1
-                    c['column_order'] = ids0[zero_key]
-                chars[c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
-                chars[c_i]['block_no'] = c['block_id']
-                chars[c_i]['line_no'] = c['column_id']
-                chars[c_i]['char_no'] = c['column_order']
-            kwargs['zero_char_id'] = [a.get('char_id') for a in chars if get_char_no(a) > 100 or not get_char_no(a)]
+        page = kwargs['page']
+        layout = kwargs.get('layout')
+        if layout in [1, 2] or GenApi.get_invalid_char_ids(page['chars']):
+            kwargs['zero_char_id'], page['layout_type'] = GenApi.sort_chars(
+                page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
 
         if kwargs.get('from_url', '').startswith('/task/lobby/'):
             kwargs['from_url'] = self.request.uri.replace('order', 'cut')  # 返回字切分校对

@@ -185,14 +185,18 @@ class BaseHandler(CorsMixin, RequestHandler):
         """拦截系统错误，不允许API调用"""
         assert isinstance(status_code, int)
         message = kwargs.get('message') or kwargs.get('reason') or self._reason
+        exc = kwargs.get('exc_info')
+        exc = exc and len(exc) == 3 and exc[1]
         message = message if message != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
             str(self).split('.')[-1].split(' ')[0],
-            str(kwargs.get('exc_info', (0, '', 0))[1])
+            '%s(%s)' % (exc.__class__.__name__, re.sub(r"^'|'$", '', str(exc)))
         )
         self.send_error_response((status_code, message), **kwargs)
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
+        if not isinstance(code, int):
+            code = 0
         reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
         if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))

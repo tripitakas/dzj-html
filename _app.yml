@@ -24,6 +24,10 @@ email:
   account: '待配置'
   key: '待配置'
 
+phone:
+  account: '待配置'
+  key: '待配置'
+
 pager:
   page_size: 10
   display_count: 5
