@@ -21,14 +21,15 @@ class CutDetailBaseHandler(TaskHandler):
                 if not body.get('name') and not readonly:  # 锁定失败
                     return self.send_error_response(errors.task_locked, render=True, reason=name)
 
-                template_name = kwargs.pop('template_name', 'task_cut_detail.html')
+                kwargs2 = self.char_render(page, task_type, **kwargs) if box_type == 'char' else kwargs
+                template_name = kwargs2.pop('template_name', 'task_cut_detail.html')
                 self.render(template_name, page=page, name=page['name'], readonly=readonly,
                             boxes=page[box_type + 's'],
                             title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
                             from_url=from_url or '/task/lobby/' + task_type,
                             can_return=from_url,
-                            box_type=box_type, stage=stage, task_type=task_type, task_name=task_name, **kwargs)
+                            box_type=box_type, stage=stage, task_type=task_type, task_name=task_name, **kwargs2)
             except Exception as e:
                 self.send_db_error(e, render=True)
 
@@ -41,6 +42,18 @@ class CutDetailBaseHandler(TaskHandler):
         else:
             pick_from = '?from=' + from_url if from_url else ''
             self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
+
+    def char_render(self, page, task_type, **kwargs):
+        layout = int(self.get_query_argument('layout', 0))
+        need_ren = GenApi.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
+        if need_ren:
+            page['chars'][0]['char_id'] = ''  # 强制重新生成编号
+        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
+            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
+
+        if 'cut' not in task_type and kwargs.get('from_url', '').startswith('/task/lobby/'):
+            kwargs['from_url'] = self.request.uri.replace('order', 'cut')  # 返回字切分校对
+        return kwargs
 
 
 class CutProofDetailHandler(CutDetailBaseHandler):
@@ -64,18 +77,4 @@ class CharOrderProofHandler(CutDetailBaseHandler):
 
     def get(self, name):
         """ 进入字序校对页面 """
-        self.enter('char', 'proof', name, template_name='task_char_order.html',
-                   layout=int(self.get_query_argument('layout', 0)),
-                   zero_char_id=[])
-
-    def render(self, template_name, **kwargs):
-        page = kwargs['page']
-        layout = kwargs.get('layout')
-        if layout in [1, 2] or GenApi.get_invalid_char_ids(page['chars']):
-            kwargs['zero_char_id'], page['layout_type'] = GenApi.sort_chars(
-                page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
-
-        if kwargs.get('from_url', '').startswith('/task/lobby/'):
-            kwargs['from_url'] = self.request.uri.replace('order', 'cut')  # 返回字切分校对
-
-        super(CharOrderProofHandler, self).render(template_name, **kwargs)
+        self.enter('char', 'proof', name, template_name='task_char_order.html')

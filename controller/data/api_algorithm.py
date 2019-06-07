@@ -35,31 +35,37 @@ class GenerateCharIdApi(BaseHandler):
 
         zero_char_id, layout_type = [], data.get('layout_type')
         if reorder.get('chars') and chars:
-            if not chars_col:
-                if self.get_invalid_char_ids(chars):
-                    zero_char_id, layout_type = self.sort_chars(chars, columns, blocks, layout_type)
-                chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
-                col_ids = sorted(list(set([c['block_no'] * 100 + c['line_no'] for c in chars])))
-                chars_col = [[chars.index(c) for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
-                             for col_id in col_ids]
-            else:
-                assert blocks
-                col_ids, indexes = {}, set()
-                for char_indexes in chars_col:
-                    for i, char_index in enumerate(char_indexes):
-                        c = chars[char_index]
-                        if i == 0:
-                            block_no = c.get('block_no') or self.get_block_index(c, blocks) + 1
-                            line_no = col_ids[block_no] = col_ids.get(block_no, 0) + 1
-                        c['block_no'] = block_no
-                        c['line_no'] = line_no
-                        c['char_no'] = c['no'] = i + 1
-                        c['char_id'] = 'b%dc%dc%d' % (block_no, line_no, c['no'])
-                        indexes.add(char_index)
-                assert len(indexes) == len(chars)
+            zero_char_id, layout_type, chars_col = self.sort(chars, columns, blocks, layout_type, chars_col)
 
         self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
                                      zero_char_id=zero_char_id, layout_type=layout_type))
+
+    @staticmethod
+    def sort(chars, columns, blocks, layout_type=None, chars_col=None):
+        zero_char_id = []
+        if not chars_col:
+            if GenerateCharIdApi.get_invalid_char_ids(chars):
+                zero_char_id, layout_type = GenerateCharIdApi.sort_chars(chars, columns, blocks, layout_type)
+            chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
+            col_ids = sorted(list(set([c['block_no'] * 100 + c['line_no'] for c in chars])))
+            chars_col = [[chars.index(c) for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
+                         for col_id in col_ids]
+        else:
+            assert blocks
+            col_ids, indexes = {}, set()
+            for char_indexes in chars_col:
+                for i, char_index in enumerate(char_indexes):
+                    c = chars[char_index]
+                    if i == 0:
+                        block_no = c.get('block_no') or GenerateCharIdApi.get_block_index(c, blocks) + 1
+                        line_no = col_ids[block_no] = col_ids.get(block_no, 0) + 1
+                    c['block_no'] = block_no
+                    c['line_no'] = line_no
+                    c['char_no'] = c['no'] = i + 1
+                    c['char_id'] = 'b%dc%dc%d' % (block_no, line_no, c['no'])
+                    indexes.add(char_index)
+            assert len(indexes) == len(chars)
+        return zero_char_id, layout_type, chars_col
 
     @staticmethod
     def sort_blocks(blocks):

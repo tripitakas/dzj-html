@@ -6,3 +6,4 @@ pyconvert
 pyyaml
 Pillow
 fire
+aliyun-python-sdk-core

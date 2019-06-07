@@ -310,6 +310,9 @@
     if (linkData.curHandle) {
       linkData.curHandle.attr({'stroke-opacity': 1})
     }
+    if (linkData.curLink) {
+      linkData.curLink.attr({'stroke-opacity': 1})
+    }
   }
   
   function updateOrderLinks(cid) {
@@ -371,11 +374,13 @@
       }
     },
 
-    addCharOrderLinks: function () {
+    addCharOrderLinks: function (chars_col) {
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;
       state.mouseDrag = mouseDrag;
       state.mouseUp = mouseUp;
+
+      linkData.chars_col = chars_col || linkData.chars_col;
 
       this.removeCharOrderLinks();
       data.chars.forEach(function (box) {

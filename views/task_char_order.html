@@ -89,7 +89,7 @@
                               </button>
                               <ul class="dropdown-menu">
                                 {% for i,t in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                                <li><a style="{{'font-weight: 700' if layout == i else ''}}"
+                                <li><a style="{{'font-weight: 700' if page.get('layout_type') == i else ''}}"
                                        href="/task/do/char_order_proof/{{name}}?layout={{i}}{{'&view=1' if readonly else ''}}{{'&from=' + from_url if from_url else ''}}">{{t}}</a></li>
                                 {% end %}
                                 <li role="separator" class="divider"></li>
@@ -163,7 +163,7 @@
 
     $.cut.bindKeys();
     $.cut.bindCharOrderKeys();
-    $.cut.addCharOrderLinks();
+    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
     function updateUndo() {
       $('#undo').toggleClass('disabled', !$.cut.canUndo());
