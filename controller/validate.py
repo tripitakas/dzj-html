@@ -197,7 +197,7 @@ def is_unique(collection=None, **kw):
 
 def code_verify_timeout(collection=None, **kw):
     errs = {}
-    email, email_code = kw.get('email'), kw.get('email_code', '').upper()
+    email, email_code = kw.get('email'), str(kw.get('email_code', '')).upper()
     if email_code and collection:
         code, message = e.email_code_timeout
         r = collection.find_one(
