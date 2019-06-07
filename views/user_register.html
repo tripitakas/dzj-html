@@ -111,7 +111,7 @@
        var time = 60;
 
        $.ajax({
-           url: "/api/user/send_email_code",
+           url: "/api/user/email_code",
            type: 'POST',
            data: {email: email},
            dataType: 'json',
@@ -147,7 +147,7 @@
        var time = 60;
 
        $.ajax({
-           url: "/api/user/send_phone_code",
+           url: "/api/user/phone_code",
            type: 'POST',
            data: {phone: phone},
            dataType: 'json',

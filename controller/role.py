@@ -40,9 +40,9 @@ role_maps = {
             '/api/user/logout': ['GET'],
             '/user/register': ['GET'],
             '/api/user/register': ['POST'],
-            '/api/user/upload_img': ['POST'],
-            '/api/user/send_email_code': ['POST'],
-            '/api/user/send_phone_code': ['POST'],
+            '/api/user/avatar': ['POST'],
+            '/api/user/email_code': ['POST'],
+            '/api/user/phone_code': ['POST'],
             '/task/do/char_order_proof/@task_id': ['GET'],  # 实现后再移到切字校对员里
             '/api/data/gen_char_id': ['POST'],
         }

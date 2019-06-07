@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re
 from tests.testcase import APITestCase
 from controller.diff import Diff
 
@@ -29,7 +28,6 @@ class TestDiff(APITestCase):
             lbl.update(label)
 
         # 检查文本没有遗漏
-
         base_str = Diff.pre_cmp(''.join([d[lbl['base']] for d in diff]))
         base = Diff.pre_cmp(base)
         self.assertEqual(base_str, base)
@@ -47,7 +45,6 @@ class TestDiff(APITestCase):
             cmp3_str = Diff.pre_cmp(''.join([d.get(lbl['cmp3'], '') for d in diff]))
             cmp3 = Diff.pre_cmp(cmp3)
             self.assertEqual(cmp3_str, cmp3)
-
 
     def test_diff_one_line(self):
         base = """天地玄黄宇  宙洪荒日月盈昃辰宿列张寒  来  暑  往秋收冬藏闰余成岁律吕调阳""".replace(' ', '')

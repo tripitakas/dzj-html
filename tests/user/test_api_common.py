@@ -101,7 +101,8 @@ class TestUserCommonApi(APITestCase):
         self.assert_code(e.incorrect_old_password, r)
 
         # 原始密码和新密码一致
-        r = self.fetch('/api/user/my/pwd', body={'data': dict(old_password=user1['password'], password=user1['password'])})
+        r = self.fetch('/api/user/my/pwd',
+                       body={'data': dict(old_password=user1['password'], password=user1['password'])})
         self.assert_code(e.not_allow_equal, r)
 
         # 正常修改
@@ -151,42 +152,43 @@ class TestUserCommonApi(APITestCase):
 
         r = self.register_and_login(dict(email=u.user1[0], password=u.user1[1], name=u.user1[2]))
         self.assert_code(200, r)
-        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={})
+        r = self.fetch('/api/user/avatar', files={'img': img_path}, body={})
         self.assert_code(200, r)
-        r = self.fetch('/api/user/upload_img', files={'img': img_path}, body={'data': dict(x=10, y=10, w=400, h=400)})
+        r = self.fetch('/api/user/avatar', files={'img': img_path}, body={'data': dict(x=10, y=10, w=400, h=400)})
         self.assert_code(200, r)
 
     def test_api_send_email_code(self):
-        self._app.db.user.drop()
-        email='goldennova@163.com'
-        r = self.fetch('/api/user/send_email_code', body={'data': dict(email=email)})
-        data = self.parse_response(r)
-        code = data.get('code')
-        # 测试验证码错误时的结果
-        r = self.fetch('/api/user/register', body={
-            'data': dict(email=email, password=u.user1[1], name=u.user1[2],email_code='jskl')
-        })
-        self.assert_code(e.email_code_timeout, r)
-        # 测试验证码正确时的结果
-        r = self.fetch('/api/user/register', body={
-            'data': dict(email=email, password=u.user1[1], name=u.user1[2], email_code=code)
-        })
-        self.assert_code(200, r)
+        account = self._app.config.get('email', {}).get('account')
+        if account and '待配置' not in account:
+            email = 'goldennova@163.com'
+            r = self.fetch('/api/user/email_code', body={'data': dict(email=email)})
+            data = self.parse_response(r)
+            code = data.get('code')
+            # 测试验证码错误时的结果
+            r = self.fetch('/api/user/register', body={
+                'data': dict(email=email, password=u.user1[1], name=u.user1[2], email_code='jskl')
+            })
+            self.assert_code(e.code_timeout, r)
+            # 测试验证码正确时的结果
+            r = self.fetch('/api/user/register', body={
+                'data': dict(email=email, password=u.user1[1], name=u.user1[2], email_code=code)
+            })
+            self.assert_code(200, r)
 
     def test_api_send_phone_code(self):
-        self._app.db.user.drop()
-        phone='13436121388'
-        r = self.fetch('/api/user/send_phone_code', body={'data': dict(phone=phone)})
-        data = self.parse_response(r)
-        code = data.get('code')
-        # 测试验证码错误时的结果
-        r = self.fetch('/api/user/register', body={
-            'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code='3564')
-        })
-        self.assert_code(e.code_timeout, r)
-        # 测试验证码正确时的结果
-        r = self.fetch('/api/user/register', body={
-            'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code=code)
-        })
-        self.assert_code(200, r)
-
+        account = self._app.config.get('phone', {}).get('accessKey')
+        if account and '待配置' not in account:
+            phone = '13436121388'
+            r = self.fetch('/api/user/phone_code', body={'data': dict(phone=phone)})
+            data = self.parse_response(r)
+            code = data.get('code')
+            # 测试验证码错误时的结果
+            r = self.fetch('/api/user/register', body={
+                'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code='3564')
+            })
+            self.assert_code(e.code_timeout, r)
+            # 测试验证码正确时的结果
+            r = self.fetch('/api/user/register', body={
+                'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code=code)
+            })
+            self.assert_code(200, r)

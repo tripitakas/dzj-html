@@ -39,7 +39,8 @@ class TestTextTaskSegment(APITestCase):
     def test_gen_segments_mismatch_lines(self):
         """测试文字校对生成标记文本--图文不匹配"""
         page = self._app.db.page.find_one(dict(name='YB_24_119'))  # 小字与相邻大字误在同一列
-        self.assertIn('chars', page)
-        params = dict(page=page, mismatch_lines=[])
-        Proof.gen_segments(page['txt'], page['chars'], params)
-        self.assertEqual(set(params['mismatch_lines']), {'b1c6', 'b1c7'})
+        if page:
+            self.assertIn('chars', page)
+            params = dict(page=page, mismatch_lines=[])
+            Proof.gen_segments(page['txt'], page['chars'], params)
+            self.assertEqual(set(params['mismatch_lines']), {'b1c6', 'b1c7'})

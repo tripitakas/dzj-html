@@ -22,6 +22,7 @@ class TestCharOrder(APITestCase):
         self.assert_code(200, r)
 
         p = self.parse_response(self.fetch('/api/task/page/GL_924_2_35'))  # 单栏
+        self.assertEqual(p.get('status'), 'success')
         err_ids = [c['char_id'] for c in p['chars'] if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
         self.assertTrue(err_ids)
         r = self.parse_response(self.fetch('/api/data/gen_char_id', body={'data': p}))

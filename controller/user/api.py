@@ -9,7 +9,6 @@ import random
 import os.path
 import smtplib
 from email.header import Header
-# 邮件文本
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
@@ -109,23 +108,20 @@ class RegisterApi(BaseHandler):
     def post(self):
         """ 注册 """
         user = self.get_request_data()
-        email_code, phone_code = user.get('email_code'), user.get('phone_code')
         rules = [
-            (v.not_empty, 'name', 'password'),            (v.not_both_empty, 'email', 'phone'),
-            (v.not_both_empty, 'email_code', 'phone_code'),
+            (v.not_empty, 'name', 'password'),
+            (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
-            (v.not_existed, self.db.user, 'phone', 'email')        ]
-        if email_code:
-            rules.append((v.not_empty, 'email'))
+            (v.not_existed, self.db.user, 'phone', 'email')]
+        if not options.testing and user.get('email'):
+            rules.append((v.not_empty, 'email_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
-
-        if phone_code:
-            rules.append((v.not_empty, 'phone'))
+        if not options.testing and user.get('phone'):
+            rules.append((v.not_empty, 'phone_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
-
         err = v.validate(user, rules)
         if err:
             return self.send_error_response(err)
@@ -159,12 +155,12 @@ class ChangeUserProfileApi(BaseHandler):
         """ 修改用户基本信息: 姓名，手机，邮箱，性别"""
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name', '_id', 'email_code'),
+            (v.not_empty, 'name'),
             (v.not_both_empty, 'email', 'phone'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
-            (v.not_existed, self.db.user, user['_id'], 'phone', 'email')
+            (v.not_existed, self.db.user, self.current_user['_id'], 'phone', 'email')
         ]
         err = v.validate(user, rules)
         if err:
@@ -346,11 +342,10 @@ class ChangeMyProfileApi(BaseHandler):
         self.send_data_response()
 
 
-class UploadUserImageHandler(BaseHandler):
-    URL = '/api/user/upload_img'
+class UploadUserAvatarHandler(BaseHandler):
+    URL = '/api/user/avatar'
 
     def post(self):
-
         """上传用户头像"""
         upload_img = self.request.files.get('img')
         img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
@@ -369,24 +364,26 @@ class UploadUserImageHandler(BaseHandler):
 
 
 class SendUserEmailCodeHandler(BaseHandler):
-    URL = '/api/user/send_email_code'
+    URL = '/api/user/email_code'
 
     def post(self):
-        """发送邮箱验证码"""
-        email = self.get_argument('email', None) or self.get_request_data().get("email")
-        if email:
-            code = hlp.random_code()  # 获取随机验证码
-            self.send_email(email, code)  # 发送验证码到邮箱
-            email_exist = self.db.verify.find_one(dict(type='email', data=email))
-            try:
-                if not email_exist:
-                    self.db.verify.insert_one(dict(type='email', data=email, code=code, stime=datetime.now()))
-                else:
-                    update = dict(code=code, stime=datetime.now())
-                    self.db.verify.update_one(dict(type='email', data=email), {'$set': update})
-            except DbError as e:
-                return self.send_db_error(e)
-            self.send_data_response({'code': code})
+        """用户注册时，发送邮箱验证码"""
+        data = self.get_request_data()
+        rules = [(v.not_empty, 'email')]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        email = data.get('email')
+        code = hlp.random_code()
+        self.send_email(email, code)
+        try:
+            self.db.verify.find_one_and_update(
+                dict(type='email', data=email), dict(code=code, stime=datetime.now()), upsert=True
+            )
+        except DbError as e:
+            return self.send_db_error(e)
+        self.send_data_response()
 
     def send_email(self, receiver, content, subject="如是藏经邮箱验证"):
         """email_list邮件列表，content邮件内容，subject发送标题"""
@@ -406,42 +403,47 @@ class SendUserEmailCodeHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e)
 
+
 class SendUserPhoneCodeHandler(BaseHandler):
-    URL = '/api/user/send_phone_code'
+    URL = '/api/user/phone_code'
 
     def post(self):
-        phone = self.get_argument('phone', None) or self.get_request_data().get("phone")
-        if phone:
-            code = "%04d" % random.randint(1000, 9999)  # 获取随机验证码
-            self.send_sms(phone, code)  # 发送验证码到手机
-            phone_exist = self.db.verify.find_one(dict(type='phone', data=phone))
-            try:
-                if not phone_exist:
-                    self.db.verify.insert_one(dict(type='phone', data=phone, code=code, stime=datetime.now()))
-                else:
-                    update = dict(code=code, stime=datetime.now())
-                    self.db.verify.update_one(dict(type='phone', data=phone), {'$set': update})
-            except DbError as e:
-                return self.send_db_error(e)
-            self.send_data_response({'code': code})
+        """用户注册时，发送手机验证码"""
+        data = self.get_request_data()
+        rules = [(v.not_empty, 'phone')]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
 
-    def send_sms(self, phone_numbers,  phone_code):
-        key = self.config['phone']['accessKey']
-        secret = self.config['phone']['accessKeySecret']
+        phone = data['phone']
+        code = "%04d" % random.randint(1000, 9999) 
+        self.send_sms(phone, code)
+        try:
+            self.db.verify.find_one_and_update(
+                dict(type='email', data=phone), dict(code=code, stime=datetime.now()), upsert=True
+            )
+        except DbError as e:
+            return self.send_db_error(e)
+
+        self.send_data_response()
+    
+    def send_sms(self, phone, code):
+        """发送手机验证码"""
+        account = self.config['phone']['accessKey']
+        key = self.config['phone']['accessKeySecret']
         template_code = self.config['phone']['template_code']
         sign_name = self.config['phone']['sign_name']
 
-        client = AcsClient(key, secret, 'default')
-        request = CommonRequest()
-        request.set_domain('dysmsapi.aliyuncs.com')
-        request.set_action_name('SendSms')
-        request.set_version('2017-05-25')
-        request.add_query_param('SignName', sign_name)
-        request.add_query_param('PhoneNumbers', phone_numbers)
-        request.add_query_param('TemplateCode', template_code)
-        request.add_query_param('TemplateParam', '{"code": ' + phone_code + '}')
-
         try:
+            client = AcsClient(account, key, 'default')
+            request = CommonRequest()
+            request.set_domain('dysmsapi.aliyuncs.com')
+            request.set_action_name('SendSms')
+            request.set_version('2017-05-25')
+            request.add_query_param('SignName', sign_name)
+            request.add_query_param('PhoneNumbers', phone)
+            request.add_query_param('TemplateCode', template_code)
+            request.add_query_param('TemplateParam', '{"code": ' + code + '}')
             response = client.do_action_with_exception(request)
             response = response.decode()
             resp = json_util.loads(response)
