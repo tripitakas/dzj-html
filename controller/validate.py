@@ -36,6 +36,7 @@ def i18n_trans(key):
         'phone': '手机',
         'email': '邮箱',
         'email_code': '邮箱验证码',
+        'phone_code': '手机验证码',
         'phone_or_email': '手机或邮箱',
         'password': '密码',
         'old_password': '原始密码',
@@ -197,12 +198,31 @@ def is_unique(collection=None, **kw):
 
 def code_verify_timeout(collection=None, **kw):
     errs = {}
-    email, email_code = kw.get('email'), kw.get('email_code', '').upper()
-    if email_code and collection:
-        code, message = e.email_code_timeout
+    email, email_code = kw.get('email'), kw.get('email_code')
+    phone, phone_code = kw.get('phone'), kw.get('phone_code')
+    if email_code and not email:
+        code, message = e.not_allowed_empty
+        errs['email'] = code, message % i18n_trans('email')
+
+    if phone_code and not phone:
+        code, message = e.not_allowed_empty
+        errs['phone'] = code, message % i18n_trans('phone')
+
+    if email and email_code and collection:
+        code, message = e.code_timeout
+        email_code = email_code.upper()
         r = collection.find_one(
             {"type": 'email', "data": email, "code": email_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
         )
         if not r:
             errs['email_code'] = code, message % i18n_trans('email_code')
+
+    if phone and phone_code and collection:
+        code, message = e.code_timeout
+        phone_code = phone_code.upper()
+        r = collection.find_one(
+            {"type": 'phone', "data": phone, "code": phone_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+        )
+        if not r:
+            errs['phone_code'] = code, message % i18n_trans('phone_code')
     return errs or None

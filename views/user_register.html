@@ -48,9 +48,9 @@
                             <i class="ion-ios7-email-outline"></i>
                         </div>
                         <div class="item">
-                            <input type="text" placeholder='请输入手机验证码' class="phone-code-input">
+                            <input type="text" placeholder='请输入手机验证码' id="phone-code">
                             <i class="ion-ios7-checkmark-outline"></i>
-                            <a class="phone-code-btn">获取验证码</a>
+                            <a id="phone-code-btn" class="phone-code-btn">获取验证码</a>
                         </div>
                         <div class="item">
                             <input type="text" placeholder='请输入邮箱验证码' id="email-code">
@@ -89,6 +89,7 @@
         gender: $('#gender').val(),
         email: $('#email').val(),
         email_code:$('#email-code').val(),
+        phone_code:$('#phone-code').val(),
         password: password,
         phone: $('#phone').val()
       }}, function (data) {
@@ -113,6 +114,42 @@
            url: "/api/user/send_email_code",
            type: 'POST',
            data: {email: email},
+           dataType: 'json',
+           success: function(arg){
+               if(!arg.status){
+                   return showError(code, error);
+               }else{
+                   ths.addClass('sending');      //成功后显示已发送状态
+                   var interval = setInterval(function(){
+                   ths.text("已发送(" + time + ")");
+                   time -= 1;
+                   if(time <= 0){
+                       clearInterval(interval);
+                       ths.removeClass('sending');
+                       ths.text("获取验证码");
+                   }
+               }, 1000);
+               }
+           }
+       });
+
+     });
+
+     $("#phone-code-btn").click(function(){
+       var phone = $('#phone').val();
+       if(phone.trim().length == 0){
+           return showError('手机号出错', '请输入手机号码');
+       }
+       if($(this).hasClass('sending')){  //判断是否已经发送
+           return;
+       }
+       var ths = $(this);
+       var time = 60;
+
+       $.ajax({
+           url: "/api/user/send_phone_code",
+           type: 'POST',
+           data: {phone: phone},
            dataType: 'json',
            success: function(arg){
                if(!arg.status){

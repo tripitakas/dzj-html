@@ -11,6 +11,9 @@ import smtplib
 from email.header import Header
 # 邮件文本
 from email.mime.text import MIMEText
+from aliyunsdkcore.client import AcsClient
+from aliyunsdkcore.request import CommonRequest
+from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
 from datetime import datetime
 from bson import objectid, json_util
 from controller import errors
@@ -106,14 +109,16 @@ class RegisterApi(BaseHandler):
         """ 注册 """
         user = self.get_request_data()
         rules = [
-            (v.not_empty, 'name', 'password', 'email_code'),
+            (v.not_empty, 'name', 'password'),
             (v.not_both_empty, 'email', 'phone'),
+            (v.not_both_empty, 'email_code', 'phone_code'),
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
             (v.not_existed, self.db.user, 'phone', 'email'),
-            (v.code_verify_timeout, self.db.verify, 'email', 'email_code')
+            (v.code_verify_timeout, self.db.verify, 'email', 'email_code'),
+            (v.code_verify_timeout, self.db.verify, 'phone', 'phone_code')
         ]
         err = v.validate(user, rules)
         if err:
@@ -393,3 +398,47 @@ class SendUserEmailCodeHandler(BaseHandler):
             server.quit()
         except Exception as e:
             return self.send_db_error(e)
+
+class SendUserPhoneCodeHandler(BaseHandler):
+    URL = '/api/user/send_phone_code'
+
+    def post(self):
+        phone = self.get_argument('phone', None) or self.get_request_data().get("phone")
+        if phone:
+            code = "%04d" % random.randint(1000, 9999)  # 获取随机验证码
+            self.send_sms(phone, code)  # 发送验证码到手机
+            phone_exist = self.db.verify.find_one(dict(type='phone', data=phone))
+            try:
+                if not phone_exist:
+                    self.db.verify.insert_one(dict(type='phone', data=phone, code=code, stime=datetime.now()))
+                else:
+                    update = dict(code=code, stime=datetime.now())
+                    self.db.verify.update_one(dict(type='phone', data=phone), {'$set': update})
+            except DbError as e:
+                return self.send_db_error(e)
+            self.send_data_response({'code': code})
+
+    def send_sms(self, phone_numbers,  phone_code):
+        key = self.config['phone']['accessKey']
+        secret = self.config['phone']['accessKeySecret']
+        template_code = self.config['phone']['template_code']
+        sign_name = self.config['phone']['sign_name']
+
+        client = AcsClient(key, secret, 'default')
+        request = CommonRequest()
+        request.set_domain('dysmsapi.aliyuncs.com')
+        request.set_action_name('SendSms')
+        request.set_version('2017-05-25')
+        request.add_query_param('SignName', sign_name)
+        request.add_query_param('PhoneNumbers', phone_numbers)
+        request.add_query_param('TemplateCode', template_code)
+        request.add_query_param('TemplateParam', '{"code": ' + phone_code + '}')
+
+        try:
+            response = client.do_action_with_exception(request)
+            response = response.decode()
+            resp = json_util.loads(response)
+        except ServerException as e:
+            return e
+        except ClientException as e:
+            return e
