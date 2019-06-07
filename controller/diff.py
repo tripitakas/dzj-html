@@ -11,7 +11,7 @@ from controller.variant import variants
 
 
 class Diff(object):
-    junk_str = r'[0-9a-zA-Z_「」\.\n\s\[\]\{\}，、：；。？！“”‘’@#￥%……&*（）]'
+    junk_str = r'[0-9a-zA-Z_「」\.\f\t\v \u3000\[\]\{\}，、：；。？！“”‘’@#￥%……&*（）]'
 
     @classmethod
     def find(cls, find, from_str, limit=1):
@@ -61,6 +61,14 @@ class Diff(object):
             # print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(tag, i1, i2, j1, j2, t1, t2))
             if '\n' in t1:  # 换行符
                 lst1 = t1.split('\n')
+                if tag == 'equal':
+                    for r in lst1:
+                        r = {'line_no': line_no, 'seg_no': seg_no, 'is_same': True, lbl['base']: r, lbl['cmp']: r}
+                        ret.append(r)
+                        line_no += 1
+                        seg_no = 1
+                    continue
+
                 for k, _t1 in enumerate(lst1):
                     if _t1 != '':
                         r = {'line_no': line_no, 'seg_no': seg_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2}
@@ -73,7 +81,7 @@ class Diff(object):
                         seg_no += 1
                     if k < len(lst1) - 1:
                         r = {'line_no': line_no, 'seg_no': seg_no, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'}
-                        ret.append(r)
+                        # ret.append(r)
                         line_no += 1
                         seg_no = 1
             else:
@@ -317,7 +325,7 @@ class Diff(object):
     @classmethod
     def pre_ocr(cls, ocr):
         """OCR预处理"""
-        return ocr
+        return re.sub(Diff.junk_str, '', ocr)
 
     @classmethod
     def pre_cmp(cls, cmp):

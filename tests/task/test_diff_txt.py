@@ -58,21 +58,34 @@ class TestDiff(APITestCase):
     ]
 
     base_lines = """一二三四五六七八九十
-    二三四五六七八九十一
-    三四五六七八九十一二
-    四五六七八九十一二三"""
-    cmp_lines1 = """一二三四五六七八九十
-    二三四五六七八九十一
-    三四五六七八九十一二
-    四五六七八九十一二三"""
-    cmp_lines2 = """一二三四五六七八九十
-    二三四五六七八九十一
-    三四五六七八九十一二
-    四五六七八九十一二三"""
+        二三四五六七八九十一
+        三四五六七八九十一二
+        四五六七八九十一二三"""
+    cmp_lines1 = """一二三四五六七八九
+        十二三四五六七八九十一
+        三四五六七八九十一二
+        四五六七八九十一二三"""
+    cmp_lines2 = """二三四五六七八九十一
+        三四五六七八九十一二"""
     cmp_lines3 = """一二三四五六七八九十
-    二三四五六七八九十一
-    三四五六七八九十一二
-    四五六七八九十一二三"""
+        二三四五六七八九十一
+        三四五六七八九十一二
+        四五六七八九十一二三"""
+
+    diffs1 = [
+        {'line_no': 1, 'seg_no': 1, 'is_same': True, 'base': '一二三四五六七八九', 'cmp1': '一二三四五六七八九'},
+        {'line_no': 1, 'seg_no': 2, 'is_same': False, 'base': '', 'cmp1': '\n'},
+        {'line_no': 1, 'seg_no': 3, 'is_same': True, 'base': '十', 'cmp1': '十'},
+        {'line_no': 2, 'seg_no': 1, 'is_same': True, 'base': '二三四五六七八九十一', 'cmp1': '二三四五六七八九十一'},
+        {'line_no': 3, 'seg_no': 1, 'is_same': True, 'base': '三四五六七八九十一二', 'cmp1': '三四五六七八九十一二'},
+        {'line_no': 4, 'seg_no': 1, 'is_same': True, 'base': '四五六七八九十一二三', 'cmp1': '四五六七八九十一二三'}
+    ]
+    diffs2 = [
+        {'line_no': 1, 'seg_no': 1, 'is_same': False, 'base': '一二三四五六七八九十', 'cmp1': ''},
+        {'line_no': 2, 'seg_no': 1, 'is_same': True, 'base': '二三四五六七八九十一', 'cmp1': '二三四五六七八九十一'},
+        {'line_no': 3, 'seg_no': 1, 'is_same': True, 'base': '三四五六七八九十一二', 'cmp1': '三四五六七八九十一二'},
+        {'line_no': 4, 'seg_no': 1, 'is_same': False, 'base': '四五六七八九十一二三', 'cmp1': ''}
+    ]
 
     def test_merge_diff_pos(self):
         diff_pos1 = [(3, 5), (8, 10), (11, 14)]
@@ -99,4 +112,7 @@ class TestDiff(APITestCase):
         self.assertEqual(ret123, self.merge123)
 
     def test_diff_lines(self):
-        pass
+        #ret1, err1 = Diff.diff(self.base_lines, self.cmp_lines1)
+        #self.assertEqual(ret1, self.diffs1)
+        ret2, err2 = Diff.diff(self.base_lines, self.cmp_lines2)
+        self.assertEqual(ret2, self.diffs2)
