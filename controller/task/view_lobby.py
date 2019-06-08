@@ -37,7 +37,7 @@ class TaskLobbyHandler(TaskHandler):
         return tasks
 
     def get_tasks(self, task_type):
-        return self.get_lobby_tasks(task_type)
+        return self.get_lobby_tasks_by_type(task_type)
 
 
 class TextProofTaskLobbyHandler(TaskLobbyHandler):
@@ -50,7 +50,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
     def get_tasks(self, task_type):
         sub_types = self.get_sub_tasks(task_type)
         not_me = {'%s.%s.picked_by' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_lobby_tasks(task_type, more_conditions=not_me)
+        tasks = self.get_lobby_tasks_by_type(task_type, more_conditions=not_me)
         return tasks
 
 

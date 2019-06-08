@@ -142,7 +142,7 @@ class TaskHandler(BaseHandler):
             recursion(task_type)
         return pre_types
 
-    def get_lobby_tasks(self, task_type, page_size=0, more_conditions=None):
+    def get_lobby_tasks_by_type(self, task_type, page_size=0, more_conditions=None):
         """获取任务大厅任务列表，按优先级排序后随机获取"""
         assert task_type in self.all_task_types()
         s = page_size or self.config['pager']['page_size']
@@ -193,7 +193,7 @@ class TaskHandler(BaseHandler):
             page_size * (page_no - 1))
         return list(pages)
 
-    def get_tasks_info_by_type(self, task_type, task_status=None, page_size=0, page_no=1):
+    def get_tasks_by_type(self, task_type, task_status=None, page_size=0, page_no=1):
         """
         根据task_type，task_status等参数，获取任务列表
         :param task_type: str，任务类型。如text_proof、text_proof.1等
@@ -262,7 +262,7 @@ class TaskHandler(BaseHandler):
             if pick_new_task:
                 task = pick_new_task(task_type)
             else:
-                task = self.get_lobby_tasks(task_type, page_size=1)
+                task = self.get_lobby_tasks_by_type(task_type, page_size=1)
                 task = task and task[0]
             if task:
                 name = task['name']
