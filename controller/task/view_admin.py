@@ -14,13 +14,16 @@ class TaskAdminHandler(TaskHandler):
     def get(self, task_type):
         """ 任务管理 """
         try:
-            item_count = self.db.user.count_documents({})
+            status = self.get_query_argument('status', '')
+            order = self.get_query_argument('order', '')
+            q = self.get_query_argument('q', '').upper()
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
-            tasks = self.get_tasks_info_by_type(task_type)
-            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager)
+            tasks, total_count = self.get_tasks_by_type(
+                task_type, task_status=status, order=order, name=q, page_size=page_size, page_no=cur_page
+            )
+            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
+            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
         except Exception as e:
             return self.send_db_error(e, render=True)
 

@@ -193,11 +193,13 @@ class TaskHandler(BaseHandler):
             page_size * (page_no - 1))
         return list(pages)
 
-    def get_tasks_by_type(self, task_type, task_status=None, page_size=0, page_no=1):
+    def get_tasks_by_type(self, task_type, task_status=None, order=None, name=None, page_size=0, page_no=1):
         """
         根据task_type，task_status等参数，获取任务列表
         :param task_type: str，任务类型。如text_proof、text_proof.1等
         :param task_status: str或list，任务状态，或多个任务状态的列表
+        :param order: str，排序方式
+        :param name: str，页面代码
         :param page_size: 分页大小
         :param page_no: 第几页，默认为1
         :return: 页面列表
@@ -205,21 +207,25 @@ class TaskHandler(BaseHandler):
         assert task_type in self.all_task_types()
         assert task_status is None or type(task_status) in [str, list]
 
-        if type(task_status) == list:
-            task_status = {"$in": task_status}
-
-        sub_types = self.get_sub_tasks(task_type)
-        if not task_status:
-            condition = {}
-        elif sub_types:
-            condition = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
-        else:
-            condition = {'%s.status' % task_type: task_status}
-
-        fields = {'name': 1, task_type: 1}
+        condition = {}
+        task_status = {"$in": task_status} if type(task_status) == list else task_status
+        if task_status:
+            sub_types = self.get_sub_tasks(task_type)
+            if sub_types:
+                condition = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
+            else:
+                condition = {'%s.status' % task_type: task_status}
+        if name:
+            condition['name'] = {'$regex': '.*%s.*' % name}
+        query = self.db.page.find(condition, {'name': 1, task_type: 1})
+        total_count = query.count()
+        if order:
+            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort("%s.%s" % (task_type, order), asc)
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(condition, fields).skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages)
+        page_no = page_no if page_no >= 1 else 1
+        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(pages), total_count
 
     def submit_task(self, result, data, page, task_type, pick_new_task=None):
         lock_name = 'lock_' + task_type.split('_')[0]

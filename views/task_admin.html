@@ -40,6 +40,7 @@
 
 
 
+
     </style>
 </head>
 
@@ -75,13 +76,13 @@
                                     <i>请选择CSV或TXT格式文件，大小不超过10M</i>
                                     <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
                                     <!--<div class="progress progress-lg">-->
-                                        <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
-                                            <!--86%-->
-                                        <!--</div>-->
+                                    <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
+                                    <!--86%-->
+                                    <!--</div>-->
                                     <!--</div>-->
                                     <!--<div class="">-->
-                                        <!--<h4>备注</h4>-->
-                                        <!--<input type="text" class="form-control" placeholder="填写备注">-->
+                                    <!--<h4>备注</h4>-->
+                                    <!--<input type="text" class="form-control" placeholder="填写备注">-->
                                     <!--</div>-->
                                 </div>
                                 <div class="modal-footer">
@@ -194,7 +195,7 @@
                                         <span onclick="revoke(100)">批量撤销任务</span>
                                     </div>
                                     <div class="search fr">
-                                        <input type="text" placeholder="搜索">
+                                        <input id="search-name" type="text" placeholder="搜索">
                                         <i class="ser-btn"></i>
                                     </div>
                                     <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
@@ -205,8 +206,9 @@
                                             <th><span>类型</span></th>
                                             <th><span>
 											    <div class="btn-group">
-												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态</span>
-                                                    <span class="ion-android-sort "></span>
+												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态
+                                                        <span class="ion-android-sort "></span>
+                                                    </span>
 					                                <ul class="dropdown-menu" role="menu">
 													{% for k, v in th.task_statuses.items() %}
 													    <li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
@@ -214,8 +216,12 @@
 													</ul>
 												</div>
                                             </span></th>
-                                            <th><span class="sort">优先级</span><span class="ion-arrow-down-b"></span></th>
-                                            <th><span>发布时间</span></th>
+                                            <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
+                                                优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
+                                            </span></th>
+                                            <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
+                                                发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
+                                            </span></th>
                                             <th><span>更新时间</span></th>
                                             <th><span>领取人</span></th>
                                             <th><span>领取时间</span></th>
@@ -505,17 +511,42 @@
 			});
 
             <!---------任务管理--------->
+            function getUrlParam(name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+                var r = window.location.search.substr(1).match(reg);
+                return r != null ? unescape(r[2]) : null;
+            }
+
 			<!--按优先级排序-->
 			$("#priority.sort").click(function(){
-				$(this).toggleClass('toggle');
-				$(this).next().toggleClass('toggle');
+			    var order = getUrlParam('order');
+			    if (order && order == '-priority')
+			        order = 'priority';
+			    else
+			        order = '-priority';
+				window.location = "{{current_url}}?order="+order;
 			});
 
 			<!--按发布时间排序-->
 			$("#publish_time.sort").click(function(){
-				$(this).toggleClass('toggle');
-				$(this).next().toggleClass('toggle');
+				var order = getUrlParam('order');
+			    if (order && order == '-publish_time')
+			        order = 'publish_time';
+			    else
+			        order = '-publish_time';
+				window.location = "{{current_url}}?order="+order;
 			});
+
+			<!--搜索-->
+			$('#search-name').on("keydown", function(event){
+				var keyCode = event.keyCode || event.which;
+				if(keyCode == "13"){
+				    var q = $(this).val().trim();
+				    var url = q=='' ? "{{current_url}}" : "{{current_url}}?q="+q;
+					window.location = url;
+				}
+			});
+
 
 			<!--撤销任务-->
 			function revoke(task_type, name) {
@@ -541,38 +572,7 @@
 			}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
-
 
 </body>
 </html>

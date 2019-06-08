@@ -1223,7 +1223,7 @@ span.active a {
 	transition: all 0.3s ease-in-out;
 }
 
-.sort.toggle{
+.sort.active{
 	color: #317EEB;
 }
 .ion-arrow-down-b.toggle:before {
