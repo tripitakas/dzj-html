@@ -64,54 +64,54 @@ class TaskHandler(BaseHandler):
 
     priorities = {3: '高', 2: '中', 1: '低', '3': '高', '2': '中', '1': '低'}
 
-    @staticmethod
-    def get_sub_tasks(task_type):
-        task = TaskHandler.get_obj_property(TaskHandler.task_types, task_type)
+    @classmethod
+    def get_sub_tasks(cls, task_type):
+        task = cls.get_obj_property(cls.task_types, task_type)
         if task and 'sub_task_types' in task:
             return list(task['sub_task_types'].keys())
 
-    @staticmethod
-    def get_obj_property(obj, key):
+    @classmethod
+    def get_obj_property(cls, obj, key):
         for s in key.split('.'):
             obj = obj.get(s) if isinstance(obj, dict) else None
             # 子对象不存在就算不匹配，None
         return obj
 
-    @staticmethod
-    def all_task_types():
+    @classmethod
+    def all_task_types(cls):
         """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
         types = []
-        for k, v in TaskHandler.task_types.items():
+        for k, v in cls.task_types.items():
             types.append(k)
             if 'sub_task_types' in v:
                 types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
         return types
 
-    @staticmethod
-    def task_type_names():
+    @classmethod
+    def task_type_names(cls):
         type_names = {}
-        for k, v in TaskHandler.task_types.items():
+        for k, v in cls.task_types.items():
             type_names[k] = v['name']
             if 'sub_task_types' in v:
                 for k1, v1 in v['sub_task_types'].items():
                     type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
         return type_names
 
-    @staticmethod
-    def cut_task_names():
-        task_type_names = TaskHandler.task_type_names()
+    @classmethod
+    def cut_task_names(cls):
+        task_type_names = cls.task_type_names()
         return {k: v for k, v in task_type_names.items() if 'cut_' in k}
 
-    @staticmethod
-    def text_task_names():
-        task_type_names = TaskHandler.task_type_names()
+    @classmethod
+    def text_task_names(cls):
+        task_type_names = cls.task_type_names()
         return {k: v for k, v in task_type_names.items() if 'text_' in k}
 
-    @staticmethod
-    def post_tasks():
+    @classmethod
+    def post_tasks(cls):
         """ 后置任务类型 """
         post_types = {}
-        for task_type, v in TaskHandler.task_types.items():
+        for task_type, v in cls.task_types.items():
             if 'pre_tasks' in v:
                 post_types.update({t: task_type for t in v['pre_tasks']})
             elif 'sub_task_types' in v:
@@ -120,8 +120,8 @@ class TaskHandler(BaseHandler):
                         post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
         return post_types
 
-    @staticmethod
-    def pre_tasks():
+    @classmethod
+    def pre_tasks(cls):
         """ 前置任务类型 """
 
         def recursion(cur):
@@ -131,7 +131,7 @@ class TaskHandler(BaseHandler):
             return pre_types.get(cur, [])
 
         pre_types = {}
-        for task_type, v in TaskHandler.task_types.items():
+        for task_type, v in cls.task_types.items():
             if 'pre_tasks' in v:
                 pre_types[task_type] = v['pre_tasks']
             elif 'sub_task_types' in v:
