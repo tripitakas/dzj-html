@@ -3,17 +3,16 @@
     <span>当前&nbsp;<em>{{pager['cur_page']}}</em>/{{pager['page_count']}}&nbsp;页，共&nbsp;<em>{{pager['item_count']}}</em>&nbsp;条</span>
     <ul>
         <li><a href="{{pager['path']}}">首页</a></li>
-        {% set link = '&' if '?' in pager['path'] else '?'  %}
         {% if pager['cur_page'] > 1 %}
-        <li><a href="{{pager['path']+link+'page='+str(pager['cur_page'] - 1)}}">上一页</a></li>
+        <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page'] - 1)}}">上一页</a></li>
         {% end %}
         {% for i in pager['display_range'] %}
-        <li class="{{'active' if i == pager['cur_page'] else '' }}"><a href="{{pager['path']+link+'page='+str(i)}}">{{i}}</a></li>
+        <li class="{{'active' if i == pager['cur_page'] else '' }}"><a href="{{pager['path']+pager['link']+'page='+str(i)}}">{{i}}</a></li>
         {% end %}
         {% if pager['cur_page'] < pager['page_count'] %}
-        <li><a href="{{pager['path']+link+'page='+str(pager['cur_page']+1)}}">下一页</a></li>
+        <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page']+1)}}">下一页</a></li>
         {% end %}
-        <li><a href="{{pager['path']+link+'page='+str(pager['page_count'])}}">末页</a></li>
+        <li><a href="{{pager['path']+pager['link']+'page='+str(pager['page_count'])}}">末页</a></li>
         <li>跳至&nbsp;<input id="page-no" type="text">&nbsp;页</li>
     </ul>
 </div>
@@ -26,7 +25,7 @@
     	if(keyCode == "13"){
     	    var page = $(this).val().trim();
     	    page = page > 1 ? page : 1;
-    	    var url = "{{pager['path'] + link}}" + "page=" + page;
+    	    var url = "{{pager['path'] + pager['link']}}" + "page=" + page;
     		window.location = url.replace(/&amp;/g, "&");
     	}
     });
