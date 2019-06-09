@@ -70,7 +70,7 @@
 																<span class="ion-android-sort "></span>
 																<ul class="dropdown-menu" role="menu">
 																	{% for k, v in th.task_statuses.items() %}
-																	<li><a href="{{current_url}}?t={{['text_proof.1', 'text_proof.2', 'text_proof.3', 'text_review'][i]}}&s={{k}}">{{v}}</a></li>
+																	<li><a href="{{current_url}}?type={{['text_proof.1', 'text_proof.2', 'text_proof.3', 'text_review'][i]}}&status={{k}}">{{v}}</a></li>
 																	{% end %}
 																</ul>
 															</div>
