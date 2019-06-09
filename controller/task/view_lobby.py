@@ -12,10 +12,11 @@ class TaskLobbyHandler(TaskHandler):
 
     def show_tasks(self, task_type):
         try:
-            tasks = self.get_tasks(task_type)
+            tasks, total_count = self.get_tasks(task_type)
             tasks = self.pack_tasks(tasks, task_type)
             task_name = self.task_types[task_type]['name']
-            self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name)
+            self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name,
+                        total_count=total_count)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -50,8 +51,7 @@ class TextProofTaskLobbyHandler(TaskLobbyHandler):
     def get_tasks(self, task_type):
         sub_types = self.get_sub_tasks(task_type)
         not_me = {'%s.%s.picked_by' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        tasks = self.get_lobby_tasks_by_type(task_type, more_conditions=not_me)
-        return tasks
+        return self.get_lobby_tasks_by_type(task_type, more_conditions=not_me)
 
 
 class TextReviewTaskLobbyHandler(TaskLobbyHandler):

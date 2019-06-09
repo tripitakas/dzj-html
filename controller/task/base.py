@@ -144,9 +144,9 @@ class TaskHandler(BaseHandler):
 
     def get_lobby_tasks_by_type(self, task_type, page_size=0, more_conditions=None):
         """获取任务大厅任务列表，按优先级排序后随机获取"""
-        assert task_type in self.all_task_types()
-        s = page_size or self.config['pager']['page_size']
-        fields = {'name': 1, task_type: 1}
+        if task_type not in self.all_task_types():
+            return [], 0
+
         sub_tasks = self.get_sub_tasks(task_type)
         if sub_tasks:
             condition = {'$or': [{'%s.%s.status' % (task_type, s): self.STATUS_OPENED} for s in sub_tasks]}
@@ -157,6 +157,7 @@ class TaskHandler(BaseHandler):
             condition.update(more_conditions)
 
         # 获取随机skip值
+        s = page_size or self.config['pager']['page_size']
         t = '%s.%s' % (task_type, sub_tasks[0]) if sub_tasks else task_type
         n = self.db.page.count_documents(condition)
         n1 = self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 1})
@@ -165,8 +166,8 @@ class TaskHandler(BaseHandler):
         rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
         skip = random.randint(0, rand_end)
 
-        pages = self.db.page.find(condition, fields).sort("%s.priority" % t, -1).limit(s).skip(skip)
-        return list(pages)
+        pages = self.db.page.find(condition, {'name': 1, task_type: 1}).sort("%s.priority" % t, -1).limit(s).skip(skip)
+        return list(pages), n
 
     def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
         """ 获取我的任务列表 """
@@ -193,7 +194,6 @@ class TaskHandler(BaseHandler):
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
-
 
     def get_tasks_by_type(self, task_type=None, type_status=None, order=None, name=None, fields=None, page_size=0,
                           page_no=1):
