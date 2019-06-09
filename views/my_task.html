@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -36,13 +37,18 @@
                         <div class="collate-history">
                             <div class="wrapper">
                                 <div class="collate-list">
-
+                                    <div class="search fr">
+                                        <input id="search-name" type="text" placeholder="搜索">
+                                        <i class="ser-btn"></i>
+                                    </div>
                                     <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
                                         <thead>
                                         <tr>
                                             <th><span>页编码</span></th>
                                             <th><span>任务状态</span></th>
-                                            <th><span>领取时间</span></th>
+                                            <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+                                                领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+                                            </span></th>
                                             <th><span>完成时间</span></th>
                                             <th><span>操作</span></th>
                                         </tr>
@@ -52,7 +58,7 @@
                                         {% for t in tasks %}
                                         <tr>
                                             <td>{{t['name']}}</td>
-                                            <td>{{task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
+                                            <td>{{th.task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
                                             <td>{{t.get(task_type, {}).get('picked_time','')}}</td>
                                             <td>{{t.get(task_type, {}).get('finished_time','')}}</td>
                                             <td>
@@ -64,7 +70,7 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                {% module Pager(pager='TODO') %}
+                                {% module Pager(pager) %}
                             </div>
                         </div>
                     </div>
@@ -74,7 +80,35 @@
     </div>
 </div>
 {% include _base_js.html %}
+<script type="text/javascript">
+    <!--获取url参数-->
+    function getUrlParam(name) {
+       var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+       var r = window.location.search.substr(1).match(reg);
+       return r != null ? unescape(r[2]) : null;
+    }
+
+    <!--按领取时间排序-->
+    $("#picked_time.sort").click(function(){
+    	var order = getUrlParam('order');
+        if (order && order == '-picked_time')
+            order = 'picked_time';
+        else
+            order = '-picked_time';
+    	window.location = "{{current_url}}?order="+order;
+    });
+
+    <!--搜索-->
+    $('#search-name').on("keydown", function(event){
+    	var keyCode = event.keyCode || event.which;
+    	if(keyCode == "13"){
+    	    var q = $(this).val().trim();
+    	    var url = q=='' ? "{{current_url}}" : "{{current_url}}?q="+q;
+    		window.location = url;
+    	}
+    });
+
+</script>
 
 </body>
-
 </html>

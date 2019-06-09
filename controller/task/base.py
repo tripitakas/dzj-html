@@ -168,21 +168,32 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(condition, fields).sort("%s.priority" % t, -1).limit(s).skip(skip)
         return list(pages)
 
-    def get_my_tasks_by_type(self, task_type, page_size=0, page_no=1):
+    def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
         """ 获取我的任务列表 """
-        assert task_type in self.all_task_types()
+        if task_type not in self.all_task_types():
+            return [], 0
 
-        sub_types = self.get_sub_tasks(task_type)
         user_id = self.current_user['_id']
+        sub_types = self.get_sub_tasks(task_type)
         if sub_types:
-            conditions = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): user_id} for t in sub_types]}
+            condition = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): user_id} for t in sub_types]}
         else:
-            conditions = {'%s.picked_user_id' % task_type: user_id}
+            condition = {'%s.picked_user_id' % task_type: user_id}
 
-        fields = {'name': 1, task_type: 1}
+        if name:
+            condition['name'] = {'$regex': '.*%s.*' % name}
+        query = self.db.page.find(condition, {'name': 1, task_type: 1})
+        total_count = query.count()
+
+        if order:
+            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort("%s.%s" % (task_type, order), asc)
+
         page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages)
+        page_no = page_no if page_no >= 1 else 1
+        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(pages), total_count
+
 
     def get_tasks_by_type(self, task_type=None, type_status=None, order=None, name=None, fields=None, page_size=0,
                           page_no=1):

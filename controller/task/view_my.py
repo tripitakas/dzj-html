@@ -13,12 +13,15 @@ class MyTaskHandler(TaskHandler):
     def get(self, task_type):
         """ 我的任务 """
         try:
-            tasks = list(self.get_my_tasks_by_type(task_type))
+            q = self.get_query_argument('q', '').upper()
+            order = self.get_query_argument('order', '')
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            tasks, total_count = self.get_my_tasks_by_type(
+               task_type=task_type, name=q, page_size=page_size, page_no=cur_page
+            )
+            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             task_name = self.task_types[task_type]['name']
-            has_sub_tasks = 'sub_task_types' in self.task_types[task_type]
-
-            self.render('my_task.html',
-                        tasks=tasks, task_type=task_type, task_name=task_name, has_sub_tasks=has_sub_tasks,
-                        task_types=self.task_types, task_statuses=self.task_statuses)
+            self.render('my_task.html', tasks=tasks, task_type=task_type, task_name=task_name, pager=pager, order=order)
         except Exception as e:
             self.send_db_error(e, render=True)
