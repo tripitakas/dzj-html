@@ -20,7 +20,7 @@ class TaskAdminHandler(TaskHandler):
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             tasks, total_count = self.get_tasks_by_type(
-                task_type, task_status=status, order=order, name=q, page_size=page_size, page_no=cur_page
+                task_type, type_status=status, order=order, name=q, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
@@ -35,12 +35,16 @@ class TaskCutStatusHandler(TaskHandler):
         """ 切分任务状态 """
 
         try:
-            item_count = self.db.user.count_documents({})
+            s = self.get_query_argument('s', '')
+            t = self.get_query_argument('t', '')
+            q = self.get_query_argument('q', '').upper()
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
-            tasks = self.get_all_tasks()
-            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            fields = {i: 1 for i in self.all_task_types()}
+            tasks, total_count = self.get_tasks_by_type(
+                task_type=t, type_status=s, fields=fields, name=q, page_size=page_size, page_no=cur_page
+            )
+            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_cut_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)
@@ -53,12 +57,16 @@ class TaskTextStatusHandler(TaskHandler):
         """ 文字任务状态 """
 
         try:
-            item_count = self.db.user.count_documents({})
+            s = self.get_query_argument('s', '')
+            t = self.get_query_argument('t', '')
+            q = self.get_query_argument('q', '').upper()
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
-            tasks = self.get_all_tasks()
-            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            fields = {i: 1 for i in self.all_task_types()}
+            tasks, total_count = self.get_tasks_by_type(
+                task_type=t, type_status=s, fields=fields, name=q, page_size=page_size, page_no=cur_page
+            )
+            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_text_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)

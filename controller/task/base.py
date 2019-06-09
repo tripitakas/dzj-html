@@ -184,44 +184,37 @@ class TaskHandler(BaseHandler):
         pages = self.db.page.find(conditions, fields).skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages)
 
-    def get_all_tasks(self, page_size=0, page_no=1):
-        """ 获取所有任务列表"""
-        fields = {'name': 1}
-        fields.update({k: 1 for k in self.all_task_types()})
-        page_size = page_size or self.config['pager']['page_size']
-        pages = self.db.page.find({}, fields).sort('last_updated_time', -1).limit(page_size).skip(
-            page_size * (page_no - 1))
-        return list(pages)
-
-    def get_tasks_by_type(self, task_type, task_status=None, order=None, name=None, page_size=0, page_no=1):
+    def get_tasks_by_type(self, task_type=None, type_status=None, order=None, name=None, fields=None, page_size=0,
+                          page_no=1):
         """
         根据task_type，task_status等参数，获取任务列表
         :param task_type: str，任务类型。如text_proof、text_proof.1等
-        :param task_status: str或list，任务状态，或多个任务状态的列表
+        :param type_status: str或list，task_type对应的任务状态，或多个任务状态的列表
         :param order: str，排序方式
-        :param name: str，页面代码
-        :param page_size: 分页大小
-        :param page_no: 第几页，默认为1
+        :param name: str，页码
         :return: 页面列表
         """
-        assert task_type in self.all_task_types()
-        assert task_status is None or type(task_status) in [str, list]
+        assert type_status is None or type(type_status) in [str, list]
 
         condition = {}
-        task_status = {"$in": task_status} if type(task_status) == list else task_status
-        if task_status:
+        if task_type and type_status and task_type in self.all_task_types():
+            type_status = {"$in": type_status} if type(type_status) == list else type_status
             sub_types = self.get_sub_tasks(task_type)
             if sub_types:
-                condition = {'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_types]}
+                condition = {'$or': [{'%s.%s.status' % (task_type, t): type_status} for t in sub_types]}
             else:
-                condition = {'%s.status' % task_type: task_status}
+                condition = {'%s.status' % task_type: type_status}
+
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
-        query = self.db.page.find(condition, {'name': 1, task_type: 1})
+        fields = {task_type: 1} if not fields else fields
+        query = self.db.page.find(condition, {'name': 1, **fields})
         total_count = query.count()
+
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort("%s.%s" % (task_type, order), asc)
+
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
