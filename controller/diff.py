@@ -237,4 +237,3 @@ class Diff(object):
         variants_str = r'#%s#' % '#'.join(variants)
         m = re.search(r'#[^#]*%s[^#]*#' % a, variants_str)
         return a != b and m and b in m.group(0)
-

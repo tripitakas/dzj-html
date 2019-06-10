@@ -416,7 +416,7 @@ class SendUserPhoneCodeHandler(BaseHandler):
             return self.send_error_response(err)
 
         phone = data['phone']
-        code = "%04d" % random.randint(1000, 9999) 
+        code = "%04d" % random.randint(1000, 9999)
         self.send_sms(phone, code)
         try:
             self.db.verify.find_one_and_update(
@@ -426,7 +426,7 @@ class SendUserPhoneCodeHandler(BaseHandler):
             return self.send_db_error(e)
 
         self.send_data_response()
-    
+
     def send_sms(self, phone, code):
         """发送手机验证码"""
         account = self.config['phone']['accessKey']

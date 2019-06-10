@@ -9,7 +9,6 @@ from tornado.escape import json_decode
 from controller.base import DbError
 from controller import errors
 from controller.task.base import TaskHandler
-import controller.validate  as v
 
 
 class GetPageApi(TaskHandler):
@@ -59,6 +58,7 @@ class GetPagesApi(TaskHandler):
             self.send_data_response(response)
         except DbError as e:
             self.send_db_error(e)
+
 
 class UnlockTasksApi(TaskHandler):
     URL = '/api/task/unlock/@task_type/@page_prefix'

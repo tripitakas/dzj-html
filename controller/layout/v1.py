@@ -30,7 +30,7 @@ def calc(chars, blocks, columns, sort_after_notecheck=False):
                 flag_changed = False
                 for char in chars:
                     if char['column_id'] == i_c + 1 and char['block_id'] == i_b + 1:
-                        char_indices_in_column.append(i)
+                        char_indices_in_column.append(i_c)
                         changed = char.get('is_small')
                         if changed is not None:
                             flag_changed = True

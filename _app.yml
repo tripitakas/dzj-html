@@ -1,5 +1,7 @@
+# 用于 set_secure_cookie 的秘钥, 生成方法: https://www.v2ex.com/t/12646
 cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
+# MongoDB 连接配置
 database:
   host: 127.0.0.1
   name: tripitaka
@@ -7,6 +9,7 @@ database:
   password:
 
 
+# 网页公共参数
 site:
   name: 如是我闻古籍数字化平台
   keywords: 大藏经,古籍数字化,tripitaka
@@ -16,18 +19,22 @@ site:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
 
+# OSS 连接配置
 img:
   host: 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
 
+# 邮件服务器的配置
 email:
   account: '待配置'
   key: '待配置'
 
+# 短信验证的配置
 phone:
   account: '待配置'
   key: '待配置'
 
+# 列表页面的分页配置
 pager:
   page_size: 10
   display_count: 5

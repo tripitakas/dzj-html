@@ -205,7 +205,8 @@ def code_verify_timeout(collection=None, **kw):
         code, message = e.code_timeout
         email_code = email_code.upper()
         r = collection.find_one(
-            {"type": 'email', "data": email, "code": email_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+            {"type": 'email', "data": email, "code": email_code,
+             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
         )
         if not r:
             errs['email_code'] = code, message % i18n_trans('email_code')

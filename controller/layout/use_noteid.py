@@ -5,7 +5,8 @@ def calc_order(char_list, indices):
         flag = 0
         for cnddt in candidates:
             for i in indices:
-                if char_list[i]['ch_id'] == cnddt['ch_id'] and char_list[i]['subcolumn_id'] == cnddt['subcolumn_id'] and \
+                if char_list[i]['ch_id'] == cnddt['ch_id'] and \
+                                char_list[i]['subcolumn_id'] == cnddt['subcolumn_id'] and \
                                 char_list[i]['note_id'] == cnddt['note_id']:
                     flag = 1
                     char_list[i]['column_order'] = order + 1

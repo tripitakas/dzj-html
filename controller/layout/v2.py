@@ -208,7 +208,7 @@ def mark_column_id(char_list, connection, coordinate_char_list, idx, marker, dir
             if len(b_c['Up']) >= 2:
                 idx_sorted = sorted(range(len(b_c['Up'])),
                                     key=lambda k: coordinate_char_list[b_c['Up'][k]]['x']
-                                                  + coordinate_char_list[b_c['Up'][k]]['w'],
+                                    + coordinate_char_list[b_c['Up'][k]]['w'],
                                     reverse=True)
                 for i in range(0, len(idx_sorted)):
                     subidx = b_c['Up'][idx_sorted[i]]
@@ -218,7 +218,7 @@ def mark_column_id(char_list, connection, coordinate_char_list, idx, marker, dir
         elif len(a_c['Down']) >= 2:
             idx_sorted = sorted(range(len(a_c['Down'])),
                                 key=lambda k: coordinate_char_list[a_c['Down'][k]]['x']
-                                              + coordinate_char_list[a_c['Down'][k]]['w'],
+                                + coordinate_char_list[a_c['Down'][k]]['w'],
                                 reverse=True)
             for i in range(0, len(idx_sorted)):
                 subidx = a_c['Down'][idx_sorted[i]]
@@ -239,7 +239,7 @@ def mark_column_id(char_list, connection, coordinate_char_list, idx, marker, dir
             if len(b_c['Down']) >= 2:
                 idx_sorted = sorted(range(len(b_c['Down'])),
                                     key=lambda k: coordinate_char_list[b_c['Down'][k]]['x']
-                                                  + coordinate_char_list[b_c['Down'][k]]['w'],
+                                    + coordinate_char_list[b_c['Down'][k]]['w'],
                                     reverse=True)
                 for i in range(0, len(idx_sorted)):
                     subidx = b_c['Down'][idx_sorted[i]]
@@ -360,7 +360,8 @@ def calc_order(char_list, indices):
         flag = 0
         for cnddt in candidates:
             for i in indices:
-                if char_list[i]['ch_id'] == cnddt['ch_id'] and char_list[i]['subcolumn_id'] == cnddt['subcolumn_id'] and \
+                if char_list[i]['ch_id'] == cnddt['ch_id'] and \
+                                char_list[i]['subcolumn_id'] == cnddt['subcolumn_id'] and \
                                 char_list[i]['note_id'] == cnddt['note_id']:
                     flag = 1
                     char_list[i]['column_order'] = order + 1
@@ -452,7 +453,8 @@ def show2(char_list, coordinate_char_list, indices, ax, filename):
             plt.plot([xleft, xright], [-ydown, -ydown], 'r-')
             plt.plot([xleft, xleft], [-yup, -ydown], 'r-')
             plt.plot([xright, xright], [-yup, -ydown], 'r-')
-            # rect = plt.Rectangle((xleft, yup), coordinate_char_list[i]['w'], coordinate_char_list[i]['h'], color='r', alpha=0.1)
+            # rect = plt.Rectangle((xleft, yup), coordinate_char_list[i]['w'], coordinate_char_list[i]['h'],
+            #  color='r', alpha=0.1)
             # ax.add_patch(rect)
         else:
             radius = min([coordinate_char_list[i]['h'], coordinate_char_list[i]['w']]) / 2
@@ -468,7 +470,6 @@ def show2(char_list, coordinate_char_list, indices, ax, filename):
 #    plt.show()
 
 # ----------------------------------------------------------------------------------------#
-
 
 
 # 显示连线
@@ -491,7 +492,6 @@ def show_downconnection(coordinate, connection, indices):
 
 
 # ----------------------------------------------------------------------------------------#
-
 
 
 # 显示连线

@@ -96,8 +96,8 @@ def mark_subcolumns(coordinate, char_list, indices):
                             break
                     if len(last_common_row) == 1:
                         # 如果前字为单列小字，则比较字宽
-                        if coordinate[indices[i]]['w'] > coordinate[last_common_row[0]][
-                            'w'] / threshold_widest_note_ratio:
+                        if coordinate[last_common_row[0]]['w'] / threshold_widest_note_ratio \
+                                < coordinate[indices[i]]['w']:
                             flag = 1
                         else:
                             # print('I don''t want to see this')
