@@ -7,3 +7,4 @@ pyyaml
 Pillow
 fire
 aliyun-python-sdk-core
+elasticsearch

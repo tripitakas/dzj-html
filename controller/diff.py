@@ -10,15 +10,8 @@ from controller.variant import variants
 
 
 class Diff(object):
-
-    junk_ocr_str = r'[0-9a-zA-Z_「」\.\[\]\{\}，、：；。？！“”‘’@#￥%……&*（）]'
-    junk_cmp_str = r'[0-9a-zA-Z_「」\.\[\]\{\}，、：；。？！“”‘’@#￥%……&*（）\n\s\f\t\v \u3000]'
-
-    @classmethod
-    def find(cls, find, from_str, limit=1):
-        # s = [m for m in process.extract(find, from_str, limit=limit)]
-        # return s[0][0] if s else ''
-        pass
+    junk_ocr_str = '[%s]' % r'0-9a-zA-Z_#「」『』,\.\{\}…,，、：；。？！“”‘’￥%……&*（）◎'
+    junk_cmp_str = '[%s%s]' % (junk_ocr_str, r' \n\s\f\t\v\u3000')
 
     @classmethod
     def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):
