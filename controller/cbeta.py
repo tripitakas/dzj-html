@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# nohup python3 /home/sm/tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
 
 import re
 from os import path
-from glob import glob
+from glob2 import glob
 from datetime import datetime
 from functools import partial
+import sys
+
+sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
+
 from controller.diff import Diff
 from elasticsearch import Elasticsearch
 
@@ -15,16 +20,16 @@ BM_PATH = r'/home/sm/cbeta/BM_u8'
 def scan_txt(add, root_path):
     def add_page():
         if rows:
-            add(body=dict(page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1), volume_no=volume_no,
+            add(body=dict(page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1),
                           book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
-                          rows=last_rows + rows))
+                          rows=last_rows + rows, volume_no=volume_no))
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
-    for fn in sorted(glob(path.join(root_path, '**', r'new.txt'))):
-        print('processing file: %s' % fn)
+    for i, fn in enumerate(sorted(glob(path.join(root_path, '**',  r'new.txt')))):
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
+        print('processing file %d: %s, %d lines' % (i + 1, fn, len(lines)))
         for row in lines:
             texts = re.split('#{1,3}', row.strip(), 1)
             if len(texts) != 2:
@@ -58,7 +63,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False):
         }
         es.indices.put_mapping(index=index, body=mapping)
 
-    scan_txt(partial(es.index, index=index, ignore=400), root_path or BM_PATH)
+    scan_txt(partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH)
 
 
 def pre_filter(txt):
