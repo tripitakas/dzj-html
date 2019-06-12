@@ -13,6 +13,7 @@ sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
 from controller.diff import Diff
 from elasticsearch import Elasticsearch
 
+# nohup python3 tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
 BM_PATH = r'/home/sm/cbeta/BM_u8'
 
 
