@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# nohup python3 /home/sm/tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
 
 import re
 from os import path
@@ -21,10 +22,10 @@ def scan_txt(add, root_path):
     def add_page():
         if rows:
             try:
-                add(body=dict(page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1),
-                              book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
+                page_code = page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1)
+                add(body=dict(page_code, book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
                               rows=last_rows + rows, volume_no=volume_no))
-                print('processing file\t%d: %s\t%d lines' % (i + 1, fn, len(rows)))
+                print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(rows)))
             except ElasticsearchException as e:
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
 
