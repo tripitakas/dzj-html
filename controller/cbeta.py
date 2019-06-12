@@ -19,9 +19,9 @@ BM_PATH = r'/home/sm/cbeta/BM_u8'
 def scan_txt(add, root_path):
     def add_page():
         if rows:
-            add(body=dict(page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1), volume_no=volume_no,
+            add(body=dict(page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1),
                           book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
-                          rows=last_rows + rows))
+                          rows=last_rows + rows, volume_no=volume_no))
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
@@ -62,7 +62,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False):
         }
         es.indices.put_mapping(index=index, body=mapping)
 
-    scan_txt(partial(es.index, index=index, ignore=400), root_path or BM_PATH)
+    scan_txt(partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH)
 
 
 def pre_filter(txt):

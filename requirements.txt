@@ -6,5 +6,6 @@ pyconvert
 pyyaml
 Pillow
 fire
+glob2
 aliyun-python-sdk-core
 elasticsearch
