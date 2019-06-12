@@ -13,10 +13,13 @@ from operator import itemgetter
 
 
 class CharProofDetailHandler(TaskHandler):
-    URL = '/task/do/text_proof/@num/@task_id'
+    URL = ['/task/do/text_proof/@num/@task_id', '/task/do/text_proof/@task_id']
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
+        if not name and not re.match(r'^\d$', proof_num):  # for readonly mode
+            name = proof_num
+            proof_num = '1'
         self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
 
     @staticmethod
@@ -31,7 +34,7 @@ class CharProofDetailHandler(TaskHandler):
                 self.send_db_error(e, render=True)
 
         from_url = self.get_query_argument('from', None)
-        readonly = int(self.get_query_argument('view', 0))
+        readonly = int(self.get_query_argument('view', 0)) != 0
         if readonly:
             handle_response({})
         else:
