@@ -22,8 +22,8 @@ def scan_txt(add, root_path):
     def add_page():
         if rows:
             try:
-                page_code = page_code='%sn%sp%s' % (volume_no, book_no, page_no - 1)
-                add(body=dict(page_code, book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
+                page_code ='%sn%sp%s' % (volume_no, book_no, page_no - 1)
+                add(body=dict(page_code=page_code, book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
                               rows=last_rows + rows, volume_no=volume_no))
                 print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(rows)))
             except ElasticsearchException as e:
