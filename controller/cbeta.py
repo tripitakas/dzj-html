@@ -75,15 +75,18 @@ def pre_filter(txt):
 
 
 def find(ocr):
-    es = Elasticsearch()
+    if not ocr:
+        return []
+    match = {'page_code': ocr.replace('_', '')} if re.match(r'^[0-9a-zA-Z_]+', ocr) else {'rows': pre_filter(ocr)}
     dsl = {
-        'query': {'match': {'rows': pre_filter(ocr)}},
+        'query': {'match': match},
         'highlight': {
             'pre_tags': ['<kw>'],
             'post_tags': ['</kw>'],
             'fields': {'rows': {}}
         }
     }
+    es = Elasticsearch()
     return es.search(index='cbeta4ocr', body=dsl)['hits']['hits']
 
 
@@ -125,4 +128,6 @@ def find_one(ocr):
 
 if __name__ == '__main__':
     import fire
+
     fire.Fire(build_db)
+
