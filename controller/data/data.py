@@ -4,7 +4,8 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
-
+import re
+from controller.cbeta import find
 from controller.base import BaseHandler
 
 
@@ -54,3 +55,13 @@ class DataPageHandler(BaseHandler):
     def get(self):
         """ 数据管理-实体页 """
         self.render('data_page.html')
+
+
+class DataSearchCbetaHandler(BaseHandler):
+    URL = '/data/search_cbeta'
+
+    def get(self):
+        """ 检索cbeta库 """
+        q = self.get_query_argument('q', '').strip()
+        matches = find(q)
+        self.render('data_search_cbeta.html', q=q, matches=matches)
