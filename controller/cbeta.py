@@ -3,7 +3,7 @@
 
 import re
 from os import path
-from glob import glob
+from glob2 import glob
 from datetime import datetime
 from functools import partial
 import sys
@@ -25,8 +25,8 @@ def scan_txt(add, root_path):
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
-    for fn in sorted(glob(path.join(root_path, '*', '*',  r'new.txt'))):
-        print('processing file: %s' % fn)
+    for i, fn in enumerate(sorted(glob(path.join(root_path, '**',  r'new.txt')))):
+        print('processing file %d: %s' % (i + 1, fn))
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for row in lines:
