@@ -25,7 +25,7 @@ def scan_txt(add, root_path):
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
-    for fn in sorted(glob(path.join(root_path, '*', r'new.txt'))):
+    for fn in sorted(glob(path.join(root_path, '*', '*',  r'new.txt'))):
         print('processing file: %s' % fn)
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
