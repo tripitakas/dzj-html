@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# nohup python3 /home/sm/tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
 
 import re
 from os import path
@@ -13,7 +14,6 @@ sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
 from controller.diff import Diff
 from elasticsearch import Elasticsearch
 
-# nohup python3 tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
 BM_PATH = r'/home/sm/cbeta/BM_u8'
 
 
@@ -27,9 +27,9 @@ def scan_txt(add, root_path):
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
     for i, fn in enumerate(sorted(glob(path.join(root_path, '**',  r'new.txt')))):
-        print('processing file %d: %s' % (i + 1, fn))
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
+        print('processing file %d: %s, %d lines' % (i + 1, fn, len(lines)))
         for row in lines:
             texts = re.split('#{1,3}', row.strip(), 1)
             if len(texts) != 2:
