@@ -6,6 +6,10 @@ from os import path
 from glob import glob
 from datetime import datetime
 from functools import partial
+import sys
+
+sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
+
 from controller.diff import Diff
 from elasticsearch import Elasticsearch
 
