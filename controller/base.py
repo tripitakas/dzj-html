@@ -9,6 +9,7 @@ import re
 import logging
 import traceback
 import hashlib
+from os import path
 
 from bson import json_util
 from bson.errors import BSONError
@@ -235,7 +236,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         host = self.config.get('img', {}).get('host')
         salt = self.config.get('img', {}).get('salt')
         if not host or salt in [None, '', '待配置'] or force_local:
-            return '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
+            fn = '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
+            if not path.exists(path.join(self.application.BASE_DIR, fn)):
+                fn += '?err=1'  # cut.js 据此不显示图
+            return fn
         md5 = hashlib.md5()
         md5.update((page_code + salt).encode('utf-8'))
         hash_value = md5.hexdigest()

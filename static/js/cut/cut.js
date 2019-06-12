@@ -518,7 +518,7 @@
       state.focus = true;
       state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function(){};
 
-      data.image = p.image && data.paper.image(p.image, 0, 0, p.width, p.height);
+      data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
         .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 

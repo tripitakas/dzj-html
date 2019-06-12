@@ -274,7 +274,7 @@ class TaskHandler(BaseHandler):
             else:
                 task = self.get_lobby_tasks_by_type(task_type, page_size=1)
                 task = task and task[0]
-            if task:
+            if task and 'name' in task:
                 name = task['name']
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
                 result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), name)
