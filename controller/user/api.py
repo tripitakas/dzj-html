@@ -116,10 +116,10 @@ class RegisterApi(BaseHandler):
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
             (v.not_existed, self.db.user, 'phone', 'email')]
-        if not options.testing and user.get('email'):
+        if not options.testing and not options.debug and user.get('email'):
             rules.append((v.not_empty, 'email_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
-        if not options.testing and user.get('phone'):
+        if not options.testing and not options.debug and user.get('phone'):
             rules.append((v.not_empty, 'phone_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
         err = v.validate(user, rules)

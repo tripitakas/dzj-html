@@ -22,18 +22,21 @@
     <![endif]-->
 
     <style>
-	    .collate-history .collate-list table tbody tr td.status_none {
-	        color: #999;
-	    }
-		.collate-history .collate-list table tbody tr td.status_pending {
-		    color: #666;
-		}
-		.collate-history .collate-list table tbody tr td.status_ended {
-		    color: #0f0;
-		}
-		.collate-history .collate-list table tbody tr td.status_opened {
-		    color: #007;
-		}
+        .collate-history .collate-list table tbody tr td.status_none {
+            color: #999;
+        }
+
+        .collate-history .collate-list table tbody tr td.status_pending {
+            color: #666;
+        }
+
+        .collate-history .collate-list table tbody tr td.status_ended {
+            color: #0f0;
+        }
+
+        .collate-history .collate-list table tbody tr td.status_opened {
+            color: #007;
+        }
     </style>
 </head>
 
@@ -69,9 +72,9 @@
                                     <i>请选择CSV或TXT格式文件，大小不超过10M</i>
                                     <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
                                     <!--<div class="progress progress-lg">-->
-                                        <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
-                                            <!--86%-->
-                                        <!--</div>-->
+                                    <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
+                                    <!--86%-->
+                                    <!--</div>-->
                                     <!--</div>-->
                                 </div>
                                 <div class="modal-footer">
@@ -283,282 +286,282 @@
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 <script type="text/javascript">
-			<!---------发布任务/选择页编码--------->
-			var $modal = $('#selectModal');
-			var pages = [];
-			var searchStr = '';
+    // <!---------发布任务/选择页编码--------->
+    var $modal = $('#selectModal');
+    var pages = [];
+    var searchStr = '';
 
-			<!--选择页编码-点击确定-发布任务-->
-			$modal.find('#select_modal_btn').click(function () {
-				var taskTypes = []
-				var $subTasks = $('.sub-tasks input');
-				if ($subTasks.length) {
-					$subTasks.each(function (i, el) {
-						if ($(el).is(':checked'))
-							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
-					});
-					if (taskTypes.length < 1) {
-						return showError('未选择任务类型', '请勾选要发布的任务类型。')
-					}
-				} else {
-				    taskTypes.push('{{task_type}}')
-				}
-				var selectedPages = []
-				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
-				selections.each(function(){
-				    selectedPages.push($(this).text());
-				})
-				if (selectedPages.length < 1) {
-				    return showError('未选择页面', '请选择要发布的页面。')
-				}
-				var data = {
-					priority: $modal.find('.priority-list select').val(),
-					pages: selectedPages.join(','),
-					task_type: taskTypes,
-				};
-                console.log(data);
-				postApi('/task/publish', {data: data}, function (res) {
-					showSuccess('已发布任务', (res.published || res.pending || []).length + ' 个页面已发布。');
-					setTimeout(function () {
-						location.reload();
-					}, 1000);
-				});
-			});
-
-		    <!--初始化选择模块-->
-            $('#my_multi_select').multiSelect({
-               selectableOptgroup:true,
-               afterSelect: function(val){
-                   console.log(val);
-               },
-               afterDeselect: function(val){
-                   console.log(val);
-               },
+    <!--选择页编码-点击确定-发布任务-->
+    $modal.find('#select_modal_btn').click(function () {
+        var taskTypes = []
+        var $subTasks = $('.sub-tasks input');
+        if ($subTasks.length) {
+            $subTasks.each(function (i, el) {
+                if ($(el).is(':checked'))
+                    taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
             });
-
-            <!--display pagination html-->
-			function displayPagination(pageNo, pageSize, totalCount){
-				var pageCount = Math.ceil(totalCount/pageSize);
-				if (pageCount <= 1)
-				    return;
-				var displayCount = 5;	// 显示多少个页码
-				var start = pageNo - parseInt(displayCount/2);
-				start = start < 1 ? 1 : start;
-				var end = start + displayCount - 1;
-				end = end > pageCount ? pageCount : end;
-				var html = "<a title='1'>首页</a>";  // 首页
-				for (var i=start; i<=end; i++) {
-					if (i==pageNo)
-						html += "<a class='cur' title='" + i + "'>" + i + "</a>";
-					else
-						html += "<a title='" + i + "'>" + i + "</a>";
-				}
-				html += "<a title='" + pageCount + "'>未页</a>"
-                $('#pagination').html(html);
-				// 待选对象-翻页
-                $("#pagination a").on("click", function(){
-                    var page = $(this).attr('title').trim();
-                    var selectedPages = []
-                    $(".ms-selection .ms-selected").each(function(){
-                        selectedPages.push($(this).text());
-                    });
-                    data = {page_prefix: searchStr, page: page, exclude_pages: selectedPages}
-                    console.log(data)
-                    postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
-                        pages = selectedPages.concat(res.data.pages);
-                        $('#my_multi_select').multiSelect('refresh')
-                        showModal(page, res.data.page_size, res.data.total_count);
-                        $('#my_multi_select').multiSelect('select', selectedPages)
-                    });
-                });
-			}
-
-            <!--待选对象-全选-->
-			$("#select_all_btn").on("click", function(){
-                $('#my_multi_select').multiSelect('select_all');
-			});
-
-			<!--待选对象-搜索-->
-			$(".ms-selectable .ser-btn").on('click', function(){
-			    var selectedPages = []
-				$(".ms-selection .ms-selected").each(function(){
-					selectedPages.push($(this).text());
-			    });
-				var selectableInput = $('#selectable_input').val().trim();
-				postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectableInput, exclude_pages: selectedPages}}, function (res) {
-					searchStr = selectableInput  // 设置全局变量
-					pages = selectedPages.concat(res.data.pages);
-					$('#my_multi_select').multiSelect('refresh')
-					showModal(1, res.data.page_size, res.data.total_count);
-					$('#my_multi_select').multiSelect('select', selectedPages)
-				});
-
-			});
-
-			<!--待选对象-搜索-添加回车响应-->
-			$('.ms-selectable').on("keydown", function(event){
-				var keyCode = event.keyCode || event.which;
-				if(keyCode == "13"){
-					$(".ms-selectable .ser-btn").click();
-					event.preventDefault();
-				}
-			});
-
-			<!--已选对象-搜索-->
-			$("#selected_input").on('input propertychange',function(){
-				var inputval = $(this).val().trim();
-				var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
-				selections.each(function(){
-					var item_value = $(this).text();
-					if(item_value.match(inputval)){
-						$(this).show();
-					}else{
-						$(this).hide();
-					}
-				})
-			});
-
-			<!--已选对象-全删-->
-			$("#deselect_all_btn").click(function(){
-				$('#my_multi_select').multiSelect('deselect_all');
-			});
-
-
-			<!--show modal-->
-			function showModal(pageNo, pageSize, totalCount) {
-			    // 初始化select节点数据
-                $('#my_multi_select').html(pages.map(function (p) {
-                    return '<option value="'+ p + '">'+ p +'</option>';
-                }).join('\n'));
-
-                $('#my_multi_select').multiSelect('refresh');
-
-                // 分页
-                displayPagination(pageNo, pageSize, totalCount);
-			}
-
-			$modal.on('shown.bs.modal', function () {
-                postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
-					pages = res.data.pages;
-                    showModal(1, res.data.page_size, res.data.total_count);
-				});
-            });
-
-            <!---------发布任务/上传页编码--------->
-            <!--上传页编码文件-点击确定-发布任务-->
-			$('#fileModal').find('#file_modal_btn').click(function () {
-			    // 任务类型
-			    var taskTypes = []
-				var $subTasks = $('.sub-tasks input');
-				if ($subTasks.length) {
-					$subTasks.each(function (i, el) {
-						if ($(el).is(':checked'))
-							taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
-					});
-					if (taskTypes.length < 1) {
-						return showError('未选择任务类型', '请勾选要发布的任务类型。')
-					}
-				} else {
-				    taskTypes.push('{{task_type}}')
-				}
-
-                // 文件
-				if(typeof $('#upload')[0].files[0] == "undefined") {
-					return showError('请选择文件');
-				}
-				txtFile = $('#upload')[0].files[0];
-				txtStr = /\.(csv|txt)$/;
-				if(!txtStr.test(txtFile.name)) {
-					return showError('文件不是CSV或TXT类型');
-				}
-				if(txtFile.size > (10 * 1024 * 1024 )) {
-					return showError('文件大小不能超过10M');
-				}
-
-				var formData = new FormData();
-				formData.append('task_type', taskTypes);
-				formData.append('priority', $('#fileModal').find('.priority-list select').val());
-				formData.append('txt_file', txtFile);
-                console.log(formData);
-                $.ajax({
-					url:'/api/task/publish_file',
-					type:'POST',
-					data: formData,
-					processData: false,
-					contentType: false,
-					success: function(res) {
-                        if (res.status === 'failed') {
-                            showError('错误', res.message);
-                        } else {
-                            showSuccess('已发布任务', (res.data.published || res.data.pending || []).length + ' 个页面已发布。');
-                            setTimeout(function () {
-                                location.reload();
-                            }, 1000);
-                        }
-					}
-				});
-			});
-
-            <!---------任务管理--------->
-            function getUrlParam(name) {
-                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-                var r = window.location.search.substr(1).match(reg);
-                return r != null ? unescape(r[2]) : null;
+            if (taskTypes.length < 1) {
+                return showError('未选择任务类型', '请勾选要发布的任务类型。')
             }
+        } else {
+            taskTypes.push('{{task_type}}')
+        }
+        var selectedPages = []
+        var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
+        selections.each(function () {
+            selectedPages.push($(this).text());
+        })
+        if (selectedPages.length < 1) {
+            return showError('未选择页面', '请选择要发布的页面。')
+        }
+        var data = {
+            priority: $modal.find('.priority-list select').val(),
+            pages: selectedPages.join(','),
+            task_type: taskTypes,
+        };
+        console.log(data);
+        postApi('/task/publish', {data: data}, function (res) {
+            showSuccess('已发布任务', (res.published || res.pending || []).length + ' 个页面已发布。');
+            setTimeout(function () {
+                location.reload();
+            }, 1000);
+        });
+    });
 
-			<!--按优先级排序-->
-			$("#priority.sort").click(function(){
-			    var order = getUrlParam('order');
-			    if (order && order == '-priority')
-			        order = 'priority';
-			    else
-			        order = '-priority';
-				window.location = "{{current_url}}?order="+order;
-			});
+    <!--初始化选择模块-->
+    $('#my_multi_select').multiSelect({
+        selectableOptgroup: true,
+        afterSelect: function (val) {
+            console.log(val);
+        },
+        afterDeselect: function (val) {
+            console.log(val);
+        },
+    });
 
-			<!--按发布时间排序-->
-			$("#publish_time.sort").click(function(){
-				var order = getUrlParam('order');
-			    if (order && order == '-publish_time')
-			        order = 'publish_time';
-			    else
-			        order = '-publish_time';
-				window.location = "{{current_url}}?order="+order;
-			});
+    <!--display pagination html-->
+    function displayPagination(pageNo, pageSize, totalCount) {
+        var pageCount = Math.ceil(totalCount / pageSize);
+        if (pageCount <= 1)
+            return;
+        var displayCount = 5;	// 显示多少个页码
+        var start = pageNo - parseInt(displayCount / 2);
+        start = start < 1 ? 1 : start;
+        var end = start + displayCount - 1;
+        end = end > pageCount ? pageCount : end;
+        var html = "<a title='1'>首页</a>";  // 首页
+        for (var i = start; i <= end; i++) {
+            if (i == pageNo)
+                html += "<a class='cur' title='" + i + "'>" + i + "</a>";
+            else
+                html += "<a title='" + i + "'>" + i + "</a>";
+        }
+        html += "<a title='" + pageCount + "'>未页</a>"
+        $('#pagination').html(html);
+        // 待选对象-翻页
+        $("#pagination a").on("click", function () {
+            var page = $(this).attr('title').trim();
+            var selectedPages = []
+            $(".ms-selection .ms-selected").each(function () {
+                selectedPages.push($(this).text());
+            });
+            data = {page_prefix: searchStr, page: page, exclude_pages: selectedPages}
+            console.log(data)
+            postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
+                pages = selectedPages.concat(res.data.pages);
+                $('#my_multi_select').multiSelect('refresh')
+                showModal(page, res.data.page_size, res.data.total_count);
+                $('#my_multi_select').multiSelect('select', selectedPages)
+            });
+        });
+    }
 
-			<!--搜索-->
-			$('#search-name').on("keydown", function(event){
-				var keyCode = event.keyCode || event.which;
-				if(keyCode == "13"){
-				    var q = $(this).val().trim();
-				    var url = q=='' ? "{{current_url}}" : "{{current_url}}?q="+q;
-					window.location = url;
-				}
-			});
+    <!--待选对象-全选-->
+    $("#select_all_btn").on("click", function () {
+        $('#my_multi_select').multiSelect('select_all');
+    });
+
+    <!--待选对象-搜索-->
+    $(".ms-selectable .ser-btn").on('click', function () {
+        var selectedPages = []
+        $(".ms-selection .ms-selected").each(function () {
+            selectedPages.push($(this).text());
+        });
+        var selectableInput = $('#selectable_input').val().trim();
+        postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectableInput, exclude_pages: selectedPages}}, function (res) {
+            searchStr = selectableInput  // 设置全局变量
+            pages = selectedPages.concat(res.data.pages);
+            $('#my_multi_select').multiSelect('refresh')
+            showModal(1, res.data.page_size, res.data.total_count);
+            $('#my_multi_select').multiSelect('select', selectedPages)
+        });
+
+    });
+
+    <!--待选对象-搜索-添加回车响应-->
+    $('.ms-selectable').on("keydown", function (event) {
+        var keyCode = event.keyCode || event.which;
+        if (keyCode == "13") {
+            $(".ms-selectable .ser-btn").click();
+            event.preventDefault();
+        }
+    });
+
+    <!--已选对象-搜索-->
+    $("#selected_input").on('input propertychange', function () {
+        var inputval = $(this).val().trim();
+        var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+        selections.each(function () {
+            var item_value = $(this).text();
+            if (item_value.match(inputval)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        })
+    });
+
+    <!--已选对象-全删-->
+    $("#deselect_all_btn").click(function () {
+        $('#my_multi_select').multiSelect('deselect_all');
+    });
 
 
-			<!--撤销任务-->
-			function revoke(task_type, name) {
-				swal({
-						title: "确定撤回任务吗？",
-						text: "页面编码：" + name + "\n撤回后无法恢复！",
-						type: "warning",
-						showCancelButton: true,
-						confirmButtonColor: "#b8906f",
-						confirmButtonText: "确定撤回",
-						cancelButtonText: "取消",
-						closeOnConfirm: true
-					},
-					function() {
-						//此处调用后台删除逻辑(ajax)
-						getApi('/task/unlock/' + task_type + '/' + name, function (res) {
-							if (res.data.length) {
-								window.location.reload();
-							}
-						});
-					}
-				);
-			}
+    <!--show modal-->
+    function showModal(pageNo, pageSize, totalCount) {
+        // 初始化select节点数据
+        $('#my_multi_select').html(pages.map(function (p) {
+            return '<option value="' + p + '">' + p + '</option>';
+        }).join('\n'));
+
+        $('#my_multi_select').multiSelect('refresh');
+
+        // 分页
+        displayPagination(pageNo, pageSize, totalCount);
+    }
+
+    $modal.on('shown.bs.modal', function () {
+        postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
+            pages = res.data.pages;
+            showModal(1, res.data.page_size, res.data.total_count);
+        });
+    });
+
+    // <!---------发布任务/上传页编码--------->
+    <!--上传页编码文件-点击确定-发布任务-->
+    $('#fileModal').find('#file_modal_btn').click(function () {
+        // 任务类型
+        var taskTypes = []
+        var $subTasks = $('.sub-tasks input');
+        if ($subTasks.length) {
+            $subTasks.each(function (i, el) {
+                if ($(el).is(':checked'))
+                    taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
+            });
+            if (taskTypes.length < 1) {
+                return showError('未选择任务类型', '请勾选要发布的任务类型。')
+            }
+        } else {
+            taskTypes.push('{{task_type}}')
+        }
+
+        // 文件
+        if (typeof $('#upload')[0].files[0] == "undefined") {
+            return showError('请选择文件');
+        }
+        txtFile = $('#upload')[0].files[0];
+        txtStr = /\.(csv|txt)$/;
+        if (!txtStr.test(txtFile.name)) {
+            return showError('文件不是CSV或TXT类型');
+        }
+        if (txtFile.size > (10 * 1024 * 1024)) {
+            return showError('文件大小不能超过10M');
+        }
+
+        var formData = new FormData();
+        formData.append('task_type', taskTypes);
+        formData.append('priority', $('#fileModal').find('.priority-list select').val());
+        formData.append('txt_file', txtFile);
+        console.log(formData);
+        $.ajax({
+            url: '/api/task/publish_file',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.status === 'failed') {
+                    showError('错误', res.message);
+                } else {
+                    showSuccess('已发布任务', (res.data.published || res.data.pending || []).length + ' 个页面已发布。');
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                }
+            }
+        });
+    });
+
+    // <!---------任务管理--------->
+    function getUrlParam(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        return r != null ? unescape(r[2]) : null;
+    }
+
+    <!--按优先级排序-->
+    $("#priority.sort").click(function () {
+        var order = getUrlParam('order');
+        if (order && order == '-priority')
+            order = 'priority';
+        else
+            order = '-priority';
+        window.location = "{{current_url}}?order=" + order;
+    });
+
+    <!--按发布时间排序-->
+    $("#publish_time.sort").click(function () {
+        var order = getUrlParam('order');
+        if (order && order == '-publish_time')
+            order = 'publish_time';
+        else
+            order = '-publish_time';
+        window.location = "{{current_url}}?order=" + order;
+    });
+
+    <!--搜索-->
+    $('#search-name').on("keydown", function (event) {
+        var keyCode = event.keyCode || event.which;
+        if (keyCode == "13") {
+            var q = $(this).val().trim();
+            var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+            window.location = url;
+        }
+    });
+
+
+    <!--撤销任务-->
+    function revoke(task_type, name) {
+        swal({
+                title: "确定撤回任务吗？",
+                text: "页面编码：" + name + "\n撤回后无法恢复！",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b8906f",
+                confirmButtonText: "确定撤回",
+                cancelButtonText: "取消",
+                closeOnConfirm: true
+            },
+            function () {
+                //此处调用后台删除逻辑(ajax)
+                getApi('/task/unlock/' + task_type + '/' + name, function (res) {
+                    if (res.data.length) {
+                        window.location.reload();
+                    }
+                });
+            }
+        );
+    }
 
 </script>
 
