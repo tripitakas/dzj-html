@@ -17,3 +17,4 @@ handlers = [
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
     api_admin.PublishTasksApi, api_admin.PublishTasksFileApi,
 ]
+modules = {'TextArea': api_text.TextArea}

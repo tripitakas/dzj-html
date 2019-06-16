@@ -6,6 +6,7 @@
 import re
 
 from datetime import datetime
+from tornado.web import UIModule
 from controller import errors
 from operator import itemgetter
 from controller.base import DbError
@@ -14,6 +15,39 @@ from controller.cbeta import find_one
 from controller.task.base import TaskHandler
 from tornado.escape import url_escape, json_decode
 
+
+class TextArea(UIModule):
+    """文字校对的文字区"""
+
+    def render(self, segments, raw=False):
+        cur_line_no = 0
+        items = []
+        lines = []
+        blocks = [dict(block_no=1, lines=lines)]
+
+        for item in segments:
+            if isinstance(item.get('ocr'), list):
+                item['unicode'] = item['ocr']
+                item['ocr'] = ''.join(c if re.match('^[A-Za-z0-9?*]$', c) else url_escape(c) if len(c) > 2 else ' '
+                                      for c in item['ocr'])
+
+            if 'block_no' in item and item['block_no'] != blocks[-1]['block_no']:
+                lines = []
+                blocks.append(dict(block_no=blocks[-1]['block_no'] + 1, lines=lines))
+            if item['line_no'] != cur_line_no:
+                cur_line_no = item['line_no']
+                items = [item]
+                lines.append(dict(line_no=cur_line_no, items=items))
+                item['offset'] = 0
+            else:
+                item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
+                items.append(item)
+            item['block_no'] = blocks[-1]['block_no']
+
+        cmp_names = dict(base='基准', cmp='外源', cmp1='校一', cmp2='校二', cmp3='校三')
+        if raw:
+            return dict(blocks=blocks, cmp_names=cmp_names)
+        return self.render_string('text_proof_area.html', blocks=blocks, cmp_names=cmp_names)
 
 
 class CharProofDetailHandler(TaskHandler):
@@ -50,14 +84,14 @@ class CharProofDetailHandler(TaskHandler):
         try:
             p = self.db.page.find_one(dict(name=name))
             if not p:
-                return self.render('_404.håtml')
+                return self.render('_404.html')
 
             for c in p['chars']:
                 c.pop('txt', 0)
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
-            txt = p.get('ocr').replace('|', '\n')
+            txt = p.get('ocr', p.get('txt')).replace('|', '\n')
             cmp = self.get_obj_property(p, task_type + '.cmp')
-            cmp_data = Diff.diff(txt, cmp, label=dict(cmp1='cmp')) if cmp else ''
+            cmp_data = Diff.diff(txt, cmp or txt, label=dict(cmp1='cmp'))[0]
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'

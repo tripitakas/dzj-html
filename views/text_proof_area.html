@@ -1,0 +1,23 @@
+{% for blk in blocks %}
+<ul class= "block" id="block-{{blk['block_no']}}">
+  {% for ln in blk['lines'] %}
+  <li class= "line{{'' if ln['items'] else ' emptyline'}}" id="line-{{ln['line_no']}}">
+    {% for s in ln['items'] %}
+    <span contentEditable="false"
+          class="{{'same' if s['is_same'] else 'not-same diff'}}{{' variant' if s['is_variant'] else ''}}"
+
+          {% for field in ['base', 'cmp', 'cmp1', 'cmp2', 'cmp3', 'offset'] %}
+          {% if field in s %}
+          {{field}}="{{s[field]}}"
+          {% end %}
+          {% end %}
+
+          {% if s.get('unicode') %}
+          unicode="{{s['unicode'].join(',')}}"
+          {% end %}
+    >{{s['base']}}</span>
+    {% end %}
+  </li>
+  {% end %}
+</ul>
+{% end %}

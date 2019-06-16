@@ -7,5 +7,5 @@ from controller.com import invalid
 views = com.views + task.views + data.views + user.views + tripitaka.views
 handlers = com.handlers + task.handlers + data.handlers + user.handlers + [
     invalid.ApiTable, invalid.ApiSourceHandler]
-modules = com.modules
+modules = dict(com.modules.items() | task.modules.items())
 InvalidPageHandler = invalid.InvalidPageHandler
