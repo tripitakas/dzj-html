@@ -237,7 +237,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         salt = self.config.get('img', {}).get('salt')
         if not host or salt in [None, '', '待配置'] or force_local:
             fn = '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
-            if not path.exists(path.join(self.application.BASE_DIR, fn)):
+            if not path.exists(path.join(self.application.BASE_DIR, fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
         md5 = hashlib.md5()
