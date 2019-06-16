@@ -4,7 +4,7 @@
   <li class= "line{{'' if ln['items'] else ' emptyline'}}" id="line-{{ln['line_no']}}">
     {% for s in ln['items'] %}
     <span contentEditable="false"
-          class="{{'same' if s['is_same'] else 'not-same diff'}}{{' variant' if s['is_variant'] else ''}}"
+          class="{{'same' if s['is_same'] else 'not-same diff'}}{{' variant' if s.get('is_variant') else ''}}"
 
           {% for field in ['base', 'cmp', 'cmp1', 'cmp2', 'cmp3', 'offset'] %}
           {% if field in s %}

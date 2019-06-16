@@ -143,62 +143,8 @@ function unicodeValuesToText(values) {
 }
 
 $(document).ready(function () {
-  // 根据json生成html
-  var contentHtml = "";
-  var diffCounts = 0, variantCounts = 0;
-  var curBlockNo = 0, curLineNo = 0;
-  var adjustLineNo = 0, offset = 0;
-
-  function genHtmlByJson(item) {
-    var cls;
-    if (Array.isArray(item.ocr)) {
-      item.unicode = item.ocr;
-      item.ocr = unicodeValuesToText(item.ocr);
-    }
-    if (item.block_no !== curBlockNo) {
-      if (item.block_no !== 1) {
-        contentHtml += "</ul>";
-      }
-      contentHtml += "<ul class= 'block' id='block-" + item.block_no + "'>";
-      curBlockNo = item.block_no;
-      adjustLineNo = 0;
-    }
-    if (item.line_no !== curLineNo) {
-      if (item.line_no !== 1) {
-        contentHtml += "</li>";
-      }
-      cls = item.type === 'emptyline' ? 'line emptyline' : 'line';
-      contentHtml += "<li class='" + cls + "' id='line-" + (item.line_no - adjustLineNo) + "'>";
-      curLineNo = item.line_no;
-      offset = 0;
-      lineNos.push([curBlockNo, item.line_no - adjustLineNo]);
-    }
-    if (item.type === 'same') {
-      contentHtml += "<span contentEditable='false' class='same' ocr='" + item.ocr +
-          (item.unicode ? "' unicode='" + item.unicode.join(',') : '') +
-          "' cmp='" + item.ocr + "' offset=" + offset + ">" + item.ocr + "</span>";
-    } else if (item.type === 'diff') {
-      cls = item.ocr === '' ? 'not-same diff emptyplace' : 'not-same diff';
-      contentHtml += "<span contentEditable='false' class='" + cls + "' ocr='" + item.ocr +
-          "' cmp='" + item.cmp + "' offset=" + offset + ">" + item.ocr + "</span>";
-      diffCounts++;
-    } else if (item.type === 'variant') {
-      contentHtml += "<span contentEditable='false' class='not-same variant' ocr='" + item.ocr +
-          (item.unicode ? "' unicode='" + item.unicode.join(',') : '') +
-          "' cmp='" + item.cmp + "' offset=" + offset + ">" + item.ocr + "</span>";
-      variantCounts++;
-    } else if (item.type === 'emptyline') {
-      // adjustLineNo++;
-    }
-    offset += item.ocr ? item.ocr.length : 0;
-  }
-
-  (cmp_data.segments || []).forEach(genHtmlByJson);
-  contentHtml += "</li></ul>";
-  $('#sutra-text').html(contentHtml);
-
   // 设置异文提示信息
-  $('#not-same-info').attr('title', '异文' + diffCounts + '，异体字' + variantCounts);
+  $('#not-same-info').attr('title', '异文' + $('span.diff').length + '，异体字' + $('span.variant').length);
   setNotSameTips();
 
   checkMismatch();

@@ -108,7 +108,9 @@
           <div id="holder"></div>
         </div>
         <div class="main-right-content right">
-            <div class="sutra-text" id="sutra-text"></div>
+            <div class="sutra-text" id="sutra-text">
+              {% module TextArea(segments=cmp_data) %}
+            </div>
             <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
               <div class="dlg-before"></div>
               <dl class="item">
