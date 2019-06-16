@@ -91,7 +91,9 @@ class CharProofDetailHandler(TaskHandler):
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
             txt = p.get('ocr', p.get('txt')).replace('|', '\n')
             cmp = self.get_obj_property(p, task_type + '.cmp')
-            cmp_data = Diff.diff(txt, cmp or txt, label=dict(cmp1='cmp'))[0]
+            params['label'] = dict(cmp1='cmp')
+            cmp_data = CharProofDetailHandler.gen_segments(txt, p['chars'], params, cmp)
+
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
@@ -120,60 +122,31 @@ class CharProofDetailHandler(TaskHandler):
             c.pop('char_no', 0)
 
     @staticmethod
-    def gen_segments(txt, chars, params=None):
-        def get_column_boxes():
-            """得到当前栏中当前列的所有字框"""
-            return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (1 + blk_i, line_no))]
+    def gen_segments(txt, chars, params=None, cmp=None):
 
-        segments = []
-        chars_segment = 0
+        def get_column_boxes(blk_no):
+            """得到当前栏中当前列的所有字框"""
+            return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (blk_no, line_no))]
+
         params = params or {}
+        segments = Diff.diff(txt, cmp or txt, label=params.get('label'))[0]
         CharProofDetailHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
 
-        # 处理每个栏的文本，相邻栏用两个空行隔开，数据库存储时是用竖号代替多行分隔符
-        txt = re.sub(r'\n+$', '', txt.replace('|', '\n'))
-        for blk_i, block_txt in enumerate(txt.split('\n\n\n')):
-            col_diff = 1
-            block_txt = re.sub(r'\n{2}', '\n', block_txt, flags=re.M)  # 栏内的多余空行视为一个空行
-            for col_i, column_txt in enumerate(block_txt.strip().split('\n')):  # 处理栏的每行文本
-                column_txt = column_txt.strip().replace('\ufeff', '')  # 去掉特殊字符
-                line_no = col_diff + col_i
-                if not column_txt:  # 遇到空行则记录，空行不改变列号
-                    segments.append(dict(block_no=1 + blk_i, line_no=line_no, type='emptyline', ocr=''))
-                    continue
-                while col_diff < 50 and not get_column_boxes():  # 跳过不存在的列号
-                    col_diff += 1
-                    line_no = col_diff + col_i
+        line_no = 0
+        blk_no = 1
+        for seg in segments:
+            if line_no != seg['line_no']:
+                line_no = seg['line_no']
+                boxes = get_column_boxes(blk_no)
+                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == seg['line_no'])
+                column_strip = re.sub(r'\s', '', column_txt)
 
-                boxes = get_column_boxes()
-                chars_segment += len(boxes)
-                CharProofDetailHandler.fill_segments(blk_i + 1, line_no, column_txt, params, boxes, segments)
+                if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
+                    params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
+                for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
+                    c['txt'] = column_strip[i] if i < len(column_strip) else '?'
 
         return segments
-
-    @staticmethod
-    def fill_segments(blk_no, line_no, column_txt, params, boxes, segments):
-        def apply_span():
-            if items:
-                segments.append(dict(block_no=blk_no, line_no=line_no, type='same', ocr=items))
-
-        column_strip = re.sub(r'\s', '', column_txt)
-        if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
-            params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
-
-        for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-            c['txt'] = column_strip[i] if i < len(column_strip) else '?'
-
-        column_txt = [url_escape(c) for c in list(column_txt)]
-        items = []
-        for c in column_txt:
-            if len(c) > 9:  # utf8mb4大字符，例如 '%F0%AE%8D%8F'
-                apply_span()
-                items = []
-                segments.append(dict(block_no=blk_no, line_no=line_no, type='variant', ocr=[c], cmp=''))
-            else:
-                items.append(c)
-        apply_span()
 
 
 class CharReviewDetailHandler(TaskHandler):
