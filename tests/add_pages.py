@@ -147,22 +147,20 @@ def add_texts(src_path, pages, db):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
             add_texts(filename, pages, db)
-        elif fn.endswith('.txt') and fn[:-4] in pages:
+        elif fn.endswith('.ocr') and fn[:-4] in pages:
             with open_file(filename) as f:
-                txt = f.read().strip().replace('\n', '|')
+                text = f.read().strip().replace('\n', '|')
+            with open_file(filename.replace('.ocr', '.cb')) as f:
+                cmp = f.read().strip().replace('\n', '')
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
             r = list(db.page.find(cond))
             if r and not r[0].get('text'):
                 meta = {
-                    'txt': txt,  # 本应为 text.ocr，先兼容此字段
-                    'text': {
-                        'proof': {'1': '', '2': '', '3': ''},
-                        'review': ''
-                    },
+                    'ocr': text,
                     'text_proof': {
-                        '1': {'status': task.STATUS_READY},
-                        '2': {'status': task.STATUS_READY},
-                        '3': {'status': task.STATUS_READY},
+                        '1': {'status': task.STATUS_READY, 'cmp': cmp},
+                        '2': {'status': task.STATUS_READY, 'cmp': cmp},
+                        '3': {'status': task.STATUS_READY, 'cmp': cmp},
                     },
                     'text_review': {'status': task.STATUS_READY},
                 }

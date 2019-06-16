@@ -4,12 +4,16 @@
 @time: 2019/5/13
 """
 import re
+
 from datetime import datetime
-from tornado.escape import url_escape, json_decode
-from controller.base import DbError
 from controller import errors
-from controller.task.base import TaskHandler
 from operator import itemgetter
+from controller.base import DbError
+from controller.diff import Diff
+from controller.cbeta import find_one
+from controller.task.base import TaskHandler
+from tornado.escape import url_escape, json_decode
+
 
 
 class CharProofDetailHandler(TaskHandler):
@@ -46,13 +50,14 @@ class CharProofDetailHandler(TaskHandler):
         try:
             p = self.db.page.find_one(dict(name=name))
             if not p:
-                return self.render('_404.html')
+                return self.render('_404.håtml')
 
             for c in p['chars']:
                 c.pop('txt', 0)
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
-            txt = self.get_obj_property(p, task_type.replace('text_', 'text.')) or p['txt']
-            cmp_data = dict(segments=CharProofDetailHandler.gen_segments(txt, p['chars'], params))
+            txt = p.get('ocr').replace('|', '\n')
+            cmp = self.get_obj_property(p, task_type + '.cmp')
+            cmp_data = Diff.diff(txt, cmp, label=dict(cmp1='cmp')) if cmp else ''
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
