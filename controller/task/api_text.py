@@ -86,8 +86,6 @@ class CharProofDetailHandler(TaskHandler):
             if not p:
                 return self.render('_404.html')
 
-            for c in p['chars']:
-                c.pop('txt', 0)
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
             txt = p.get('ocr', p.get('txt')).replace('|', '\n')
             cmp = self.get_obj_property(p, task_type + '.cmp')
@@ -124,27 +122,38 @@ class CharProofDetailHandler(TaskHandler):
     @staticmethod
     def gen_segments(txt, chars, params=None, cmp=None):
 
-        def get_column_boxes(blk_no):
-            """得到当前栏中当前列的所有字框"""
-            return [c1 for c1 in chars if c1.get('char_id', '').startswith('b%dc%dc' % (blk_no, line_no))]
-
+        # 先比对文本(diff)得到行号连续的文本片段元素 segments
         params = params or {}
-        segments = Diff.diff(txt, cmp or txt, label=params.get('label'))[0]
+        segments = Diff.diff(re.sub(' ', '', txt), re.sub(' ', '', cmp or txt), label=params.get('label'))[0]
+        # 按列对字框分组，提取列号
         CharProofDetailHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
+        column_ids = sorted(list(set((c['block_no'], c['line_no']) for c in chars)))
 
+        # 然后逐行对应并分配栏列号，匹配时不做文字比较
+        # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
         line_no = 0
-        blk_no = 1
+        matched_boxes = []
         for seg in segments:
+            if seg['line_no'] > len(column_ids):
+                break
             if line_no != seg['line_no']:
                 line_no = seg['line_no']
-                boxes = get_column_boxes(blk_no)
-                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == seg['line_no'])
+                boxes = [c for c in chars if (c['block_no'], c['line_no']) == column_ids[line_no - 1]]
+                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == line_no)
                 column_strip = re.sub(r'\s', '', column_txt)
 
                 if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
-                    params['mismatch_lines'].append('b%dc%d' % (blk_no, line_no))
+                    params['mismatch_lines'].append('b%dc%d' % (boxes[0]['block_no'], boxes[0]['line_no']))
                 for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
                     c['txt'] = column_strip[i] if i < len(column_strip) else '?'
+                    matched_boxes.append(c)
+            seg['txt_line_no'] = seg.get('txt_line_no', seg['line_no'])
+            seg['line_no'] = boxes[0]['line_no']
+            seg['block_no'] = boxes[0]['block_no']
+
+        for c in chars:
+            if c not in matched_boxes:
+                c.pop('txt', 0)
 
         return segments
 
