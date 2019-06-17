@@ -87,7 +87,8 @@ def find(ocr):
             'fields': {'rows': {}}
         }
     }
-    es = Elasticsearch()
+    host = [dict(host='47.95.216.233', port=9200), dict(host='localhost', port=9200)]
+    es = Elasticsearch(hosts=host)
     return es.search(index='cbeta4ocr', body=dsl)['hits']['hits']
 
 
