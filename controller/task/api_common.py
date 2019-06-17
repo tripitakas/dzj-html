@@ -159,7 +159,7 @@ class PickTaskApi(TaskHandler):
             # 不重复领取同一任务 (这两种领取任务方式都会设置 page.lock_<type>.picked_user_id)
             page = self.db.page.find_one({'name': name, lock_user: cur_user, lock_type: task_type})
             if page:
-                response = dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name)
+                response = dict(url='/task/do/%s/%s' % (task_type, name), name=name)
                 self.send_data_response(response)
                 return response
 
@@ -168,7 +168,7 @@ class PickTaskApi(TaskHandler):
                 task_user: cur_user, task_status: self.STATUS_PICKED
             })
             if task_uncompleted and task_uncompleted['name'] != name:
-                url = '/task/do/%s/%s' % (task_type.replace('.', '/'), task_uncompleted['name'])
+                url = '/task/do/%s/%s' % (task_type, task_uncompleted['name'])
                 return self.error_has_uncompleted(url, task_uncompleted)
 
             page = self.db.page.find_one({'name': name})
@@ -212,7 +212,7 @@ class PickTaskApi(TaskHandler):
                 })
                 assert r.matched_count
 
-            response = dict(url='/task/do/%s/%s' % (task_type.replace('.', '/'), name), name=name)
+            response = dict(url='/task/do/%s/%s' % (task_type, name), name=name)
             self.send_data_response(response)
             return response
 

@@ -1,4 +1,4 @@
-from . import api_common, api_admin, api_text, view_admin, view_do, view_lobby, view_my
+from . import api_common, api_admin, api_text, view_admin, view_do, view_lobby, view_my, view_text
 
 views = [
     view_lobby.LobbyBlockCutProofHandler, view_lobby.LobbyColumnCutProofHandler, view_lobby.LobbyCharCutProofHandler,
@@ -6,7 +6,7 @@ views = [
     view_lobby.TextProofTaskLobbyHandler, view_lobby.TextReviewTaskLobbyHandler, view_lobby.TextHardTaskLobbyHandler,
     view_admin.TaskAdminHandler, view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler,
     view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler, view_do.CharOrderProofHandler,
-    api_text.CharProofDetailHandler, api_text.CharReviewDetailHandler,
+    view_text.TextProofHandler, view_text.TextReviewHandler,
     view_my.MyTaskHandler,
 ]
 handlers = [
@@ -17,4 +17,4 @@ handlers = [
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
     api_admin.PublishTasksApi, api_admin.PublishTasksFileApi,
 ]
-modules = {'TextArea': api_text.TextArea}
+modules = {'TextArea': view_text.TextArea}

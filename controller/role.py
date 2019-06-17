@@ -61,6 +61,7 @@ role_maps = {
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/data/search_cbeta': ['GET'],
+            '/task/@task_type/@task_id': ['GET'],
             '/api/task/unlock/@task_type/@page_prefix': ['POST'],
         }
     },
@@ -140,7 +141,7 @@ role_maps = {
         'routes': {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
-            '/task/do/text_proof/@num/@task_id': ['GET'],
+            '/task/do/text_proof.@num/@task_id': ['GET'],
             '/task/do/text_proof/@task_id': ['GET'],
             '/api/task/pick/text_proof([.][123])?/@task_id': ['GET'],
             '/api/task/save/text_proof/@num': ['POST'],

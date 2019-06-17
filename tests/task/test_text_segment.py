@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.task.api_text import CharProofDetailHandler as Proof
+from controller.task.view_text import TextProofHandler as Proof
 
 
 class TestTextTaskSegment(APITestCase):
