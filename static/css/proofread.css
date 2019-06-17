@@ -30,11 +30,11 @@
 
 .pfread .bd {
   overflow: auto;
-  height: calc(100% - 130px);
+  /*height: calc(100% - 130px);*/
 }
 
 .pfread .left {
-  width: 59%;
+  width: 54%;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
@@ -80,7 +80,7 @@
 }
 
 .pfread .right {
-  width: 39%;
+  width: 44%;
   margin: 1%;
   margin-left: 0;
   border: 1px solid #ccc;

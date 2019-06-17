@@ -282,7 +282,7 @@ $(document).on('dblclick', '.same', function () {
 
 
 // 单击文本区的空白区域
-$(document).on('click', '.pfread .right .bd', function (e) {
+$(document).on('click', '.pfread .right', function (e) {
   // 隐藏对话框
   var _con1 = $('#pfread-dialog');
   if (!_con1.is(e.target) && _con1.has(e.target).length === 0) {
