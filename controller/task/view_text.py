@@ -35,7 +35,7 @@ class TextArea(UIModule):
                 items = [item]
                 lines.append(dict(line_no=cur_line_no, items=items))
                 item['offset'] = 0
-            else:
+            elif items:
                 item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
                 items.append(item)
             item['block_no'] = blocks[-1]['block_no']

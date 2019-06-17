@@ -57,12 +57,13 @@
                                         <tbody>
                                         {% for t in tasks %}
                                         <tr>
+                                            {% set _task_type = '%s.%s' % (task_type, t['my_sub_task']) if 'my_sub_task' in t else task_type %}
                                             <td>{{t['name']}}</td>
-                                            <td>{{th.task_statuses.get(t.get(task_type, {}).get('status'),'')}}</td>
-                                            <td>{{t.get(task_type, {}).get('picked_time','')}}</td>
-                                            <td>{{t.get(task_type, {}).get('finished_time','')}}</td>
+                                            <td>{{th.task_statuses.get(th.get_obj_property(t, '%s.status' % _task_type))}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, '%s.picked_time' % _task_type))}}</td>
+                                            <td>{{to_date_str(th.get_obj_property(t, '%s.finished_time' % _task_type))}}</td>
                                             <td>
-                                                <a class="view" href="/task/do/{{task_type}}/{{t['name']}}">查看</a>
+                                                <a class="view" href="/task/do/{{_task_type}}/{{t['name']}}">查看</a>
                                             </td>
                                         </tr>
 

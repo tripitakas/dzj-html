@@ -4,6 +4,7 @@
 @desc: 我的任务
 @time: 2018/12/26
 """
+from bson import objectid
 from controller.task.base import TaskHandler
 
 
@@ -12,6 +13,13 @@ class MyTaskHandler(TaskHandler):
 
     def get(self, task_type):
         """ 我的任务 """
+        def set_sub_task(tasks):
+            for t in tasks:
+                for i in ['1', '2', '3']:
+                    if t['text_proof'].get(i).get('picked_user_id') == objectid.ObjectId(self.current_user['_id']):
+                        t['my_sub_task'] = i
+                        continue
+
         try:
             q = self.get_query_argument('q', '').upper()
             order = self.get_query_argument('order', '')
@@ -20,6 +28,8 @@ class MyTaskHandler(TaskHandler):
             tasks, total_count = self.get_my_tasks_by_type(
                task_type=task_type, name=q, page_size=page_size, page_no=cur_page
             )
+            if 'text_proof' in task_type:
+                set_sub_task(tasks)
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             task_name = self.task_types[task_type]['name']
             self.render('my_task.html', tasks=tasks, task_type=task_type, task_name=task_name, pager=pager, order=order)
