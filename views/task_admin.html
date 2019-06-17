@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 {% from controller.task.base import TaskHandler as th %}
-{% set cur_task_type = th.task_types.get(task_type, {}) %}
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>任务管理-{{cur_task_type.get('name')}}</title>
+    <title>任务管理-{{th.task_type_names().get(task_type)}}</title>
     {% include _base_meta.html %}
     <!-- DataTables -->
     <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
@@ -100,19 +99,6 @@
                                     <h4 class="modal-title" id="choose-pages">选择页编码</h4>
                                 </div>
                                 <div class="modal-body">
-                                    {% if 'sub_task_types' in cur_task_type %}
-                                    <div class="sub-tasks">
-                                        <h4 class="control-label">选择任务类型</h4>
-                                        <div>
-                                            {% for st, v in cur_task_type['sub_task_types'].items() %}
-                                            <label class="checkbox-inline">
-                                                <input type="checkbox" id="task{{st}}">{{v['name']}}
-                                            </label>
-                                            {% end %}
-                                        </div>
-                                    </div>
-                                    {% end %}
-
                                     <div class="priority-list">
                                         <h4 class="control-label">优先级</h4>
                                         <select class="form-control">
@@ -124,7 +110,7 @@
                                     <br/>
                                     <div class="form-group">
                                         <div>
-                                            <div style="background: url()" class="ms-container">
+                                            <div class="ms-container">
                                                 <div class="ms-selectable">
                                                     <div class="selectableHeader">
                                                         待选对象
@@ -222,7 +208,6 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        {% if not 'has_sub_tasks' in cur_task_type%}
                                         {% for t in tasks %}
                                         <tr id="{{t['name']}}">
                                             <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
@@ -236,38 +221,12 @@
                                             <td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
                                             <td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
                                             <td>
-                                                <a class="view" href="/task/do/{{task_type}}/{{t['name']}}?view=1">查看</a>
+                                                <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
                                                 {% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
-                                                <a class="withdraw" onclick="revoke('{{task_type}}', '{{t['name']}}')">撤回</a>
+                                                <a class="withdraw" onclick=revoke('{{task_type}}','{{t["name"]}}')>撤回</a>
                                                 {% end %}
                                             </td>
                                         </tr>
-                                        {% end %}
-                                        {% else %}
-                                        {% for t in tasks %}
-                                        {% for k, st in t.get(task_type, {}).items() %}
-                                        {% if isinstance(st, dict) %}
-                                        <tr id="{{t['name']+'-'+k}}">
-                                            <th><span><input type="checkbox" name="" value=""/></span></th>
-                                            <td>{{t['name']}}</td>
-                                            <td>{{th.task_types.get(task_type, {}).get('sub_task_types', {}).get(k, {}).get('name')}}</td>
-                                            <td>{{th.task_statuses.get(st.get('status','') or '')}}</td>
-                                            <td>{{th.priorities.get(st.get('priority')) or ''}}</td>
-                                            <td>{{to_date_str(st.get('publish_time'))}}</td>
-                                            <td>{{to_date_str(st.get('last_updated_time'))}}</td>
-                                            <td>{{st.get('picked_by') or ''}}</td>
-                                            <td>{{to_date_str(st.get('picked_time'))}}</td>
-                                            <td>{{to_date_str(st.get('finished_time'))}}</td>
-                                            <td>
-                                                <a class="view" href="/task/do/{{task_type}}/{{k}}/{{t['name']}}?view=1">查看</a>
-                                                {% if st.get('status','') not in [None, 'unready', 'ready'] %}
-                                                <a class="withdraw" onclick="revoke('{{task_type}}.{{k}}', '{{t['name']}}')">撤回</a>
-                                                {% end %}
-                                            </td>
-                                        </tr>
-                                        {% end %}
-                                        {% end %}
-                                        {% end %}
                                         {% end %}
                                         </tbody>
                                     </table>
@@ -293,19 +252,7 @@
 
     <!--选择页编码-点击确定-发布任务-->
     $modal.find('#select_modal_btn').click(function () {
-        var taskTypes = []
-        var $subTasks = $('.sub-tasks input');
-        if ($subTasks.length) {
-            $subTasks.each(function (i, el) {
-                if ($(el).is(':checked'))
-                    taskTypes.push('{{task_type}}.' + $(el).attr('id').replace('task', ''));
-            });
-            if (taskTypes.length < 1) {
-                return showError('未选择任务类型', '请勾选要发布的任务类型。')
-            }
-        } else {
-            taskTypes.push('{{task_type}}')
-        }
+        var taskTypes = ['{{task_type}}']
         var selectedPages = []
         var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
         selections.each(function () {

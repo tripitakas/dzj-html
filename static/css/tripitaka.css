@@ -1417,6 +1417,7 @@ span.active a {
 }
 .main-left-tab1.active{
     background:var(--Color_Brown_Dark);
+	color: #fff;
 }
 .main-left-search{
     float:left;
