@@ -1387,7 +1387,8 @@ span.active a {
 }
 
 .m-header-font {
-    margin-top: 5px;
+    font-size: 18px;
+    margin-top: 3px;
     margin-left: 20px;
     margin-right: 10px;
 }
@@ -1399,19 +1400,21 @@ span.active a {
 }
 
 .m-header-font-reduce {
-    border: 1px solid var(--Color_Brown_Darker);
+    border: 0px solid var(--Color_Brown_Darker);
     border-radius: 15px 0 0 15px;
+    cursor: pointer;
 }
 
 .m-header-font-current {
-    border-top: 1px solid var(--Color_Brown_Darker);
-    border-bottom: 1px solid var(--Color_Brown_Darker);
+    border-top: 0px solid var(--Color_Brown_Darker);
+    border-bottom: 0px solid var(--Color_Brown_Darker);
     width: 24px;
 }
 
 .m-header-font-enlarge {
-    border: 1px solid var(--Color_Brown_Darker);
+    border: 0px solid var(--Color_Brown_Darker);
     border-radius: 0 15px 15px 0;
+    cursor: pointer;
 }
 
 .m-header-font-reduce > a, .m-header-font-enlarge > a {

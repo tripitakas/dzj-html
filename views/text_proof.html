@@ -21,6 +21,7 @@
 
     {% include _base_css.html %}
     {% include _font.html %}
+    <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/> 
     <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
 </head>
@@ -87,9 +88,8 @@
                 <div class="m-header-right" style="float:right; margin-right: 10px;">
                     <div class="m-header-txt">
                         <div class="m-header-font">
-                            <div class="m-header-font-reduce" style="cursor: pointer">A-</div>
-                            <div class="m-header-font-current">20</div>
-                            <div class="m-header-font-enlarge" style="cursor: pointer">A+</div>
+                            <div class="m-header-font-reduce">A-</div>
+                            <div class="m-header-font-enlarge">A+</div>
                         </div>
                     </div>
                     <div class="m-header-edit-btn">
@@ -110,7 +110,7 @@
             </header>
 
             <div class="flex-content">
-                <div class="left bd" id="canvas-bd" >
+                <div class="left bd" id="canvas-bd">
                     <div id="holder"></div>
                 </div>
                 <div class="main-right-content right bd">
@@ -214,140 +214,150 @@
 
 <!-- CUSTOM JS -->
 <script type="text/javascript">
-  $('#table_toggle_btn').click(function () {
-    $(this).toggleClass('active');
-    $('.char-list-table').toggleClass('hidden');
-    $(this).find('img').toggle();
-  });
-  // 显示左边页面图和字框
-  var char_data = decodeJSON('{{page["chars"]}}');
-  var columns = decodeJSON('{{page["columns"]}}');
-  var blocks = decodeJSON('{{page["blocks"]}}');
-  function createPage() {
-    $.cut.create({
-      readonly: true,
-      scrollContainer: '#canvas-bd',
-      name: '{{name}}',
-      width: {{page['width']}},
-      height: {{page['height']}},
-      holder: 'holder',
-      scrollContainer: '#canvas-bd',
-      image: '{{get_img(page.get("img_name", name), page.get("use_local_img"))}}',
-      chars: char_data
+    $('#table_toggle_btn').click(function () {
+        $(this).toggleClass('active');
+        $('.char-list-table').toggleClass('hidden');
+        $(this).find('img').toggle();
     });
-    $.cut.bindMatchingKeys();
-    $.cut.toggleBox(false);
-    $.cut.switchCurrentBox(null);
-  }
-  createPage();
-  // 文本区的字号调整
-  $('.m-header-font-reduce').click(function () {
-    var $div = $('.right .sutra-text');
-    var size = parseInt($div.css('font-size'));
-    if (size > 8) {
-      size--;
-      $('.m-header-font-current').text(size);
-      $div.css('font-size', size + 'px');
+
+    // 显示左边页面图和字框
+    var char_data = decodeJSON('{{page["chars"]}}');
+    var columns = decodeJSON('{{page["columns"]}}');
+    var blocks = decodeJSON('{{page["blocks"]}}');
+    function createPage() {
+        $.cut.create({
+            readonly: true,
+            scrollContainer: '#canvas-bd',
+            name: '{{name}}',
+            width: {{page['width']}},
+            height: {{page['height']}},
+            holder: 'holder',
+            scrollContainer: '#canvas-bd',
+            image: '{{get_img(page.get("img_name", name), page.get("use_local_img"))}}',
+            chars: char_data
+        });
+        $.cut.bindMatchingKeys();
+        $.cut.toggleBox(false);
+        $.cut.switchCurrentBox(null);
     }
-  });
-  $('.m-header-font-enlarge').click(function () {
-    var $div = $('.right .sutra-text');
-    var size = parseInt($div.css('font-size'));
-    if (size < 36) {
-      size++;
-      $('.m-header-font-current').text(size);
-      $div.css('font-size', size + 'px');
-    }
-  });
-  $('.btn-ed-box').click(function () {
-    $('.ed-box-group').toggleClass('hidden');
-    {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
-      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
-      $('{{cls}}').unbind('click').click(function () {
-        if (!$(this).hasClass('disabled')) {
-          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
+    createPage();
+
+    // 文本区的字号调整
+    $('.m-header-font-reduce').click(function () {
+        var $div = $('.right .sutra-text');
+        var size = parseInt($div.css('font-size'));
+        if (size > 8) {
+            size--;
+            $('.m-header-font-current').text(size);
+            $div.css('font-size', size + 'px');
         }
-      });
-    {% end %}
-  });
-  // 回退任务
-  $('.btn-return-back').click(function () {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
-      if (res.data.length === 1 && res.data[0] === '{{name}}') {
-        window.location = '/task/lobby/text_proof';
-      }
     });
-  });
-  window.leave = function (url) {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
-      window.location = url;
+
+    $('.m-header-font-enlarge').click(function () {
+        var $div = $('.right .sutra-text');
+        var size = parseInt($div.css('font-size'));
+        if (size < 36) {
+            size++;
+            $('.m-header-font-current').text(size);
+            $div.css('font-size', size + 'px');
+        }
     });
-  };
-  // 保存和提交
-  function save_(data, onSuccess) {
-    postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
-      showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
-           (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
-      if (res.jump) {
-        setTimeout(function () {
-          window.location = res.jump;
-        }, 1000);
-      }
-      if (onSuccess) {
-        onSuccess(res);
-      }
+
+    $('.btn-ed-box').click(function () {
+        $('.ed-box-group').toggleClass('hidden');
+        {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
+            $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
+            $('{{cls}}').unbind('click').click(function () {
+                if (!$(this).hasClass('disabled')) {
+                    window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
+                }
+            });
+        {% end %}
     });
-  }
-  function save(submit) {
-    var txt = $('#sutra-text').find('.block').map(function (i, block) {
-      return $(block).find('.line:not(.delete)').map(function (line, el) {
-        return $(el).text();
-      }).get().join('\n');
-    }).get().join('\n\n\n');
-    save_({
-      submit: submit,
-      name: '{{name}}',
-      from_url: '{{from_url}}',
-      txt: JSON.stringify(txt),
-      chars: JSON.stringify($.cut.exportBoxes())
+
+    // 回退任务
+    $('.btn-return-back').click(function () {
+        postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
+            if (res.data.length === 1 && res.data[0] === '{{name}}') {
+                window.location = '/task/lobby/text_proof';
+            }
+        });
     });
-  }
-  $('.btn-save').click(save.bind(null, false));
-  $('.btn-submit').click(save.bind(null, true));
-  // 原文等对话框允许拖动
-  $('.modal-header').on('mousedown', function (mousedownEvt) {
-    var $draggable = $(this);
-    var x = mousedownEvt.pageX - $draggable.offset().left,
-        y = mousedownEvt.pageY - $draggable.offset().top;
-    $('body').on('mousemove.draggable', function (mousemoveEvt) {
-      $draggable.closest('.modal-dialog').offset({
-        left: mousemoveEvt.pageX - x,
-        top: mousemoveEvt.pageY - y
-      });
+
+    window.leave = function (url) {
+        postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
+            window.location = url;
+        });
+    };
+
+    // 保存和提交
+    function save_(data, onSuccess) {
+        postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
+            showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
+                     (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
+            if (res.jump) {
+                setTimeout(function () {
+                    window.location = res.jump;
+                }, 1000);
+            }
+            if (onSuccess) {
+                onSuccess(res);
+            }
+        });
+    }
+
+    function save(submit) {
+        var txt = $('#sutra-text').find('.block').map(function (i, block) {
+            return $(block).find('.line:not(.delete)').map(function (line, el) {
+                return $(el).text();
+            }).get().join('\n');
+        }).get().join('\n\n\n');
+        save_({
+            submit: submit,
+            name: '{{name}}',
+            from_url: '{{from_url}}',
+            txt: JSON.stringify(txt),
+            chars: JSON.stringify($.cut.exportBoxes())
+        });
+    }
+
+    $('.btn-save').click(save.bind(null, false));
+    $('.btn-submit').click(save.bind(null, true));
+
+    // 原文等对话框允许拖动
+    $('.modal-header').on('mousedown', function (mousedownEvt) {
+        var $draggable = $(this);
+        var x = mousedownEvt.pageX - $draggable.offset().left, y = mousedownEvt.pageY - $draggable.offset().top;
+        $('body').on('mousemove.draggable', function (mousemoveEvt) {
+            $draggable.closest('.modal-dialog').offset({
+                left: mousemoveEvt.pageX - x,
+                top: mousemoveEvt.pageY - y
+            });
+        });
+        $('body').one('mouseup', function () {
+            $('body').off('mousemove.draggable');
+        });
+        $draggable.closest('.modal').one('bs.modal.hide', function () {
+            $('body').off('mousemove.draggable');
+        });
     });
-    $('body').one('mouseup', function () {
-      $('body').off('mousemove.draggable');
+
+    // 原文的保存
+    $('#save-txt').click(function () {
+        var txt = $('#txtModal .modal-body > textarea').val().replace(/-/g, '');
+        save_({
+            name: '{{name}}',
+            txt: JSON.stringify(txt)
+        }, function (res) {
+            if (res.changed) {
+                window.location.reload();
+            } else {
+                setTimeout(function () {
+                    $('#txtModal [data-dismiss]').click();
+                }, 1000);
+            }
+        });
     });
-    $draggable.closest('.modal').one('bs.modal.hide', function () {
-      $('body').off('mousemove.draggable');
-    });
-  });
-  // 原文的保存
-  $('#save-txt').click(function () {
-    var txt = $('#txtModal .modal-body > textarea').val().replace(/-/g, '');
-    save_({
-      name: '{{name}}',
-      txt: JSON.stringify(txt)
-    }, function (res) {
-      if (res.changed) {
-        window.location.reload();
-      } else {
-        setTimeout(function () {
-          $('#txtModal [data-dismiss]').click();
-        }, 1000);
-      }
-    });
-  });
 </script>
 
 </body>

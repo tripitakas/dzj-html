@@ -96,10 +96,10 @@ function highlightBox($span, first) {
       }, highlightBox);
 
   // 显示当前栏框和列框
-  if ($.cut.showColumn) {
-    $.cut.showColumn('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
-    $.cut.showColumn('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
-  }
+  // if ($.cut.showColumn) {
+  //   $.cut.showColumn('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
+  //   $.cut.showColumn('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
+  // }
 
   $.cut.switchCurrentBox(((boxes.length ? boxes : all)[0] || {}).shape);
 }
@@ -132,7 +132,7 @@ function getCursorPosition(element) {
 }
 
 var lineNos = [];
-var showOrder = true;
+var showOrder = false;
 var showText = false;
 var currentSpan = [];
 
@@ -199,15 +199,6 @@ $('.btn-check').click(function () {
   checkMismatch(true);
 });
 
-// 双击异文删除，临时用
-$(document).on('dblclick', '.not-same', function (e) {
-  e.stopPropagation();
-  var cmp = $(this).attr("cmp");
-  if (!cmp) {
-    swal('已删除此字', '在保存前此字还未彻底删除，保存或提交后将彻底删除。', 'info', {timer: 2000, buttons: false});
-    $(this).remove();
-  }
-});
 
 // 单击异文
 $(document).on('click', '.not-same', function (e) {
@@ -314,7 +305,7 @@ $('.pfread .right .bd').scroll(function () {
 });
 
 // -- 对话框 --
-$(document).on('click', '#pfread-dialog-ocr, #pfread-dialog-cmp', function () {
+$(document).on('click', '#pfread-dialog-base, #pfread-dialog-cmp', function () {
   $('.current-not-same').text($(this).text());
   if ($(this).text() === '') {
     $('.current-not-same').addClass('emptyplace');
