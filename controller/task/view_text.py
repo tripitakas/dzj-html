@@ -51,7 +51,7 @@ class TextProofHandler(TaskHandler):
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
-        readonly = True if 'do' not in self.URL else False
+        readonly = True if 'do' not in self.request.uri else False
         self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'), readonly)
 
     @staticmethod

@@ -220,7 +220,7 @@ $(document).on('click', '.not-same', function (e) {
   }
   var $dlg = $("#pfread-dialog");
   $("#pfread-dialog-cmp").text($(this).attr("cmp"));
-  $("#pfread-dialog-ocr").text($(this).attr("ocr"));
+  $("#pfread-dialog-base").text($(this).attr("base"));
   $("#pfread-dialog-slct").text("");
   $dlg.offset({top: $(this).offset().top + 40, left: $(this).offset().left - 4});
   $dlg.show();
