@@ -21,22 +21,11 @@
 
     {% include _base_css.html %}
     {% include _font.html %}
-    <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/> 
+    <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
 </head>
 <style>
-    .left {
-        width: 55%;
-        max-height: 680px;
-        overflow: auto;
-    }
-    .right {
-        width: 45%;
-        max-height: 680px;
-        overflow: auto;
-    }
-
     .m-header {
         position: fixed;
         z-index: 1000;
@@ -64,13 +53,13 @@
 <body>
 <div class="app-main">
     <div class="main pfread">
-
         <div class="main-content hd">
+
             <header class="m-header">
                 <div style="margin-left: 10px;">
                     <a onclick="leave('{{from_url}}')" title="{{home_title}}">
                         <img src="{{ static_url('imgs/%s.png' % ('icon_back' if '返回' in home_title else 'frame/icon_task_lobby')) }}"
-                            class="m-header-img"/>
+                             class="m-header-img"/>
                     </a>
                 </div>
                 <div class="m-header-title" title="{{name}}">{{stage[1]}}</div>
@@ -110,71 +99,74 @@
                     </div>
                 </div>
             </header>
-
             <div class="flex-content">
-                <div class="left bd" id="canvas-bd">
-                    <div id="holder"></div>
+                <div class="left fl">
+                    <div class="bd" id="canvas-bd">
+                        <div id="holder"></div>
+                    </div>
                 </div>
-                <div class="main-right-content right bd">
-                    <div class="sutra-text" id="sutra-text">
-                        {% module TextArea(segments=cmp_data) %}
-                    </div>
-                    <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
-                        <div class="dlg-before"></div>
-                        <dl class="item">
-                            <dt>OCR</dt>
-                            <dd class="text" id="pfread-dialog-base">&nbsp;</dd>
-                        </dl>
-                        <dl class="item">
-                            <dt>比对本</dt>
-                            <dd class="text" id="pfread-dialog-cmp">&nbsp;</dd>
-                        </dl>
-                        <dl class="item">
-                            <dt>选择结果</dt>
-                            <dd class="text"><span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span></dd>
-                        </dl>
-                        <div class="dlg-after"></div>
-                    </div>
-                    <div class="char-list">
-                        <div class="char-list-tab">
-                            <div class="char-list-tab-item active">存疑列表</div>
-                            <div class="char-list-tab-arrow" id="table_toggle_btn">
-                                <img src="{{ static_url('imgs/up_arrow.png') }}">
-                                <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
-                            </div>
+                <div class="right fr">
+                    <div class="bd">
+                        <div class="sutra-text" id="sutra-text">
+                            {% module TextArea(segments=cmp_data) %}
                         </div>
-                        <table class="char-list-table">
-                            <tr>
-                                <td>行号</td>
-                                <td>存疑文本</td>
-                                <td>存疑理由</td>
-                                <td>操作</td>
-                            </tr>
-                            <tr class="tr-odd">
-                                <td>1</td>
-                                <td>鍀</td>
-                                <td>存疑理由</td>
-                                <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>鍀</td>
-                                <td>存疑理由</td>
-                                <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                            </tr>
-                            <tr class="tr-odd">
-                                <td>3</td>
-                                <td>鍀</td>
-                                <td>存疑理由</td>
-                                <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>鍀</td>
-                                <td>存疑理由</td>
-                                <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
-                            </tr>
-                        </table>
+                        <div class="pfread-dialog dialog-common" id="pfread-dialog" style="display:none">
+                            <div class="dlg-before"></div>
+                            <dl class="item">
+                                <dt>OCR</dt>
+                                <dd class="text" id="pfread-dialog-base">&nbsp;</dd>
+                            </dl>
+                            <dl class="item">
+                                <dt>比对本</dt>
+                                <dd class="text" id="pfread-dialog-cmp">&nbsp;</dd>
+                            </dl>
+                            <dl class="item">
+                                <dt>选择结果</dt>
+                                <dd class="text"><span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span></dd>
+                            </dl>
+                            <div class="dlg-after"></div>
+                        </div>
+                        <div class="char-list">
+                            <div class="char-list-tab">
+                                <div class="char-list-tab-item active">存疑列表</div>
+                                <div class="char-list-tab-arrow" id="table_toggle_btn">
+                                    <img src="{{ static_url('imgs/up_arrow.png') }}">
+                                    <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
+                                </div>
+                            </div>
+                            <table class="char-list-table">
+                                <tr>
+                                    <td>行号</td>
+                                    <td>存疑文本</td>
+                                    <td>存疑理由</td>
+                                    <td>操作</td>
+                                </tr>
+                                <tr class="tr-odd">
+                                    <td>1</td>
+                                    <td>鍀</td>
+                                    <td>存疑理由</td>
+                                    <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>鍀</td>
+                                    <td>存疑理由</td>
+                                    <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                </tr>
+                                <tr class="tr-odd">
+                                    <td>3</td>
+                                    <td>鍀</td>
+                                    <td>存疑理由</td>
+                                    <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>鍀</td>
+                                    <td>存疑理由</td>
+                                    <td><img src="{{ static_url('imgs/del_icon.png') }}"></td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -188,17 +180,14 @@
     <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: blue">×</button>
-                    <h4 class="modal-title" id="txtModalLabel">原文
-                        <button class="btn btn-default" style="margin-left: 10px" id="save-txt">保存</button>
-                    </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: var(--Color_Brown_Darker); margin-top: -25px; margin-right: -20px;">×</button>
+                <div class="modal-header" style="height: 40px;padding-bottom: 0px;">
+                    <span style="font-size: 16px;">原文</span>
+                    <button class="btn btn-default" style="float:right; margin-right: 10px" id="save-txt">保存</button>
                 </div>
                 <div class="modal-body">
-          <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">
-            {{'\n'.join(origin_txt)}}
-          </textarea>
-                    <p><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
+                    <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">{{'\n'.join(origin_txt)}}</textarea>
+                    <p style="font-style: italic"><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
                 </div>
             </div>
         </div>
@@ -216,25 +205,20 @@
 
 <!-- CUSTOM JS -->
 <script type="text/javascript">
-    $('#table_toggle_btn').click(function () {
-        $(this).toggleClass('active');
-        $('.char-list-table').toggleClass('hidden');
-        $(this).find('img').toggle();
-    });
-
+    /*-----------左侧图像区域-----------*/
     // 显示左边页面图和字框
     var char_data = decodeJSON('{{page["chars"]}}');
     var columns = decodeJSON('{{page["columns"]}}');
     var blocks = decodeJSON('{{page["blocks"]}}');
+
     function createPage() {
         $.cut.create({
             readonly: true,
             scrollContainer: '#canvas-bd',
             name: '{{name}}',
-            width: {{page['width']}},
-            height: {{page['height']}},
+            width: '{{page["width"]}}',
+            height: '{{page["height"]}}',
             holder: 'holder',
-            scrollContainer: '#canvas-bd',
             image: '{{get_img(page.get("img_name", name), page.get("use_local_img"))}}',
             chars: char_data
         });
@@ -242,29 +226,18 @@
         $.cut.toggleBox(false);
         $.cut.switchCurrentBox(null);
     }
+
     createPage();
 
-    // 文本区的字号调整
-    $('.m-header-font-reduce').click(function () {
-        var $div = $('.right .sutra-text');
-        var size = parseInt($div.css('font-size'));
-        if (size > 8) {
-            size--;
-            $('.m-header-font-current').text(size);
-            $div.css('font-size', size + 'px');
-        }
+    /*-----------导航区域-----------*/
+    // 文本区底部-存疑列表
+    $('#table_toggle_btn').click(function () {
+        $(this).toggleClass('active');
+        $('.char-list-table').toggleClass('hidden');
+        $(this).find('img').toggle();
     });
 
-    $('.m-header-font-enlarge').click(function () {
-        var $div = $('.right .sutra-text');
-        var size = parseInt($div.css('font-size'));
-        if (size < 36) {
-            size++;
-            $('.m-header-font-current').text(size);
-            $div.css('font-size', size + 'px');
-        }
-    });
-
+    // 修改切分框
     $('.btn-ed-box').click(function () {
         $('.ed-box-group').toggleClass('hidden');
         {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
@@ -286,6 +259,7 @@
         });
     });
 
+    // 离开页面时解锁任务
     window.leave = function (url) {
         postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
             window.location = url;
@@ -295,8 +269,10 @@
     // 保存和提交
     function save_(data, onSuccess) {
         postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
-            showSuccess(res.changed ? '保存成功' : '没有改变', '{{name}} ' +
-                     (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。'));
+            showSuccess(
+                res.changed ? '保存成功' : '没有改变',
+                '{{name}} ' + (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。')
+            );
             if (res.jump) {
                 setTimeout(function () {
                     window.location = res.jump;

@@ -99,18 +99,18 @@
       });
     },
     
-    showColumn: function (field, columns, id) {
+    showBox: function (field, boxs, id) {
       var self = this, data = this.data;
       if (self[field]) {
         self[field].remove();
         delete self[field];
       }
-      var column = columns && id && columns.filter(function (c) {
-        return id.indexOf('c') < 0 ? c.block_id === id : c.column_id === id;
+      var box = boxs && id && boxs.filter(function (c) {
+        return id.indexOf('c') < 0 ? c.block_id === id : c.box_id === id;
       })[0];
-      if (column) {
+      if (box) {
         var s = data.ratio * data.ratioInitial;
-        self[field] = data.paper.rect(column.x * s, column.y * s, column.w * s, column.h * s)
+        self[field] = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
           .attr({fill: id.indexOf('c') < 0 ? 'none' : 'rgba(0,128,0,.01)', stroke: 'rgba(0,0,255,.3)'});
       }
     },
