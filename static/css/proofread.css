@@ -40,6 +40,7 @@
     box-sizing: border-box;
     margin: 1%;
     background: var(--Color_Grey_Content);
+    height:calc(100% - 100px);
 }
 
 .pfread .left .hd {
@@ -88,6 +89,8 @@
     border-radius: 5px;
     box-sizing: border-box;
     background: var(--Color_Grey_Content);
+    height:calc(100% - 100px);
+
 }
 
 .pfread .right .hd {
@@ -260,6 +263,8 @@
     margin-left: 10px;
     letter-spacing: 1px;
     line-height: 40px;
+    height:calc(100% - 300px);
+    overflow:scroll;
 }
 
 .right .not-same {

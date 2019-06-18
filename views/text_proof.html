@@ -322,6 +322,10 @@
             }
         });
     });
+
+    //右侧文字区动态高度计算
+    var h = $(document.body).height();
+    $("#sutra-text").height(h-$('.char-list').height()-70);
 </script>
 
 </body>

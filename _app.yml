@@ -3,10 +3,11 @@ cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
 # MongoDB 连接配置
 database:
-  host: 127.0.0.1
   name: tripitaka
-  user:
-  password:
+  port: 27017
+  host: q.tripitakas.net
+  user: tripitaka
+  password: sm2019321-321
 
 
 # 网页公共参数
