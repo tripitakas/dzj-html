@@ -63,6 +63,8 @@ role_maps = {
             '/data/search_cbeta': ['GET'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/unlock/@task_type/@page_prefix': ['POST'],
+            '/task/text_proof.@num/@task_id': ['GET'],
+            '/task/text_review/@task_id': ['GET'],
         }
     },
     '切栏校对员': {
@@ -142,7 +144,6 @@ role_maps = {
             '/task/lobby/text_proof': ['GET'],
             '/task/my/text_proof': ['GET'],
             '/task/do/text_proof.@num/@task_id': ['GET'],
-            '/task/do/text_proof/@task_id': ['GET'],
             '/api/task/pick/text_proof([.][123])?/@task_id': ['GET'],
             '/api/task/save/text_proof/@num': ['POST'],
         }

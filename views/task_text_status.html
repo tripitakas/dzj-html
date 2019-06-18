@@ -35,11 +35,11 @@
 			.collate-history .collate-list table tbody tr td.status_opened {
 				color: #007;
 			}
+			.sty_table td a {
+				font-size: 14px;
+			}
 		</style>
 	</head>
-	<style>
-
-	</style>
 
 	<body>
 		<div class="app-main">
@@ -84,10 +84,14 @@
 													<tr id="{{t['name']}}">
 														<td><input type="checkbox" name="" id="" value="" /></td>
 														<td>{{t['name']}}</td>
-														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.1.status')) or ''}}</td>
-														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.2.status')) or ''}}</td>
-														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.3.status')) or ''}}</td>
-														<td class="">{{th.task_statuses.get(th.get_obj_property(t, 'text_review.status')) or ''}}</td>
+														{% for i in range(1,4) %}
+														<td><a href="/task/text_proof.{{i}}/{{t['name']}}">
+															{{th.task_statuses.get(th.get_obj_property(t, 'text_proof.%d.status' % i)) or ''}}
+														</a></td>
+														{% end %}
+														<td><a href="/task/text_review/{{t['name']}}">
+															{{th.task_statuses.get(th.get_obj_property(t, 'text_review.status')) or ''}}
+														</a></td>
 													</tr>
 												  {% end %}
 												</tbody>

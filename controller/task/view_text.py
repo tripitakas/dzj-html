@@ -51,7 +51,7 @@ class TextProofHandler(TaskHandler):
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
-        readonly = True if 'do' not in self.request.uri else False
+        readonly = 'do' not in self.request.uri
         self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'), readonly)
 
     @staticmethod
@@ -152,8 +152,9 @@ class TextProofHandler(TaskHandler):
 
 
 class TextReviewHandler(TaskHandler):
-    URL = '/task/do/text_review/@task_id'
+    URL = ['/task/text_review/@task_id', '/task/do/text_review/@task_id']
 
     def get(self, name=''):
         """ 进入文字审定页面 """
-        TextProofHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'))
+        readonly = 'do' not in self.request.uri
+        TextProofHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'), readonly)
