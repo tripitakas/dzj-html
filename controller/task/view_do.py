@@ -43,13 +43,14 @@ class CutDetailBaseHandler(TaskHandler):
             pick_from = '?from=' + from_url if from_url else ''
             self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
 
-    def char_render(self, page, task_type, **kwargs):
+    @staticmethod
+    def char_render(self, p, task_type, **kwargs):
         layout = int(self.get_query_argument('layout', 0))
-        need_ren = GenApi.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
+        need_ren = GenApi.get_invalid_char_ids(p['chars']) or layout and layout != p.get('layout_type')
         if need_ren:
-            page['chars'][0]['char_id'] = ''  # 强制重新生成编号
-        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
-            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
+            p['chars'][0]['char_id'] = ''  # 强制重新生成编号
+        kwargs['zero_char_id'], p['layout_type'], kwargs['chars_col'] = GenApi.sort(
+            p['chars'], p['columns'], p['blocks'], layout or p.get('layout_type'))
 
         if 'cut' not in task_type and kwargs.get('from_url', '').startswith('/task/lobby/'):
             kwargs['from_url'] = self.request.uri.replace('order', 'cut')  # 返回字切分校对

@@ -10,6 +10,7 @@ from operator import itemgetter
 from controller.diff import Diff
 from controller.task.base import TaskHandler
 from tornado.escape import url_escape
+from controller.task.view_do import CutDetailBaseHandler
 
 
 class TextArea(UIModule):
@@ -80,6 +81,7 @@ class TextProofHandler(TaskHandler):
                 return self.render('_404.html')
 
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
+            CutDetailBaseHandler.char_render(self, p, task_type, **params)
             txt = p.get('ocr', p.get('txt')).replace('|', '\n')
             cmp = self.get_obj_property(p, task_type + '.cmp')
             params['label'] = dict(cmp1='cmp')
