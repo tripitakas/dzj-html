@@ -30,17 +30,15 @@
 
 .pfread .bd {
     overflow: auto;
-    height: calc(100% - 130px);
+    height: calc(100% - 70px);
 }
 
 .pfread .left {
-    width: 54%;
+    width: 50%;
     border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box;
-    margin: 1%;
     background: var(--Color_Grey_Content);
-    height:calc(100% - 100px);
 }
 
 .pfread .left .hd {
@@ -76,20 +74,13 @@
     position: relative;
 }
 
-.pfread .left .bd {
-    overflow: auto;
-    height: calc(100% - 130px);
-}
-
 .pfread .right {
-    width: 44%;
-    margin: 1%;
-    margin-left: 0;
+    width: 49%;
+    margin-left: 1%;
     border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box;
     background: var(--Color_Grey_Content);
-    height:calc(100% - 100px);
 
 }
 
@@ -263,8 +254,6 @@
     margin-left: 10px;
     letter-spacing: 1px;
     line-height: 40px;
-    height:calc(100% - 300px);
-    overflow:scroll;
 }
 
 .right .not-same {

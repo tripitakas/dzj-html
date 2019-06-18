@@ -20,28 +20,16 @@
     <![endif]-->
 
     {% include _base_css.html %}
-    {% include _font.html %}
     <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
 </head>
-<style>
-    .m-header {
-        position: fixed;
-        z-index: 1000;
-    }
-    .flex-content {
-        padding-top: 40px;
-    }
-
-</style>
 
 <body>
-<div class="app-main">
-    <div class="main pfread">
-        <div class="main-content hd">
+<div class="main">
+    <div class="pfread">
 
-            <header class="m-header">
+        <header class="m-header">
                 <div style="margin-left: 10px;">
                     <a onclick="leave('{{from_url}}')" title="{{home_title}}">
                         <img src="{{ static_url('imgs/%s.png' % ('icon_back' if '返回' in home_title else 'frame/icon_task_lobby')) }}"
@@ -85,13 +73,14 @@
                     </div>
                 </div>
             </header>
-            <div class="flex-content">
-                <div class="left fl">
+
+        <div class="pfread-in">
+            <div class="left fl">
                     <div class="bd" id="canvas-bd">
                         <div id="holder"></div>
                     </div>
                 </div>
-                <div class="right fr">
+            <div class="right fr">
                     <div class="bd">
                         <div class="sutra-text" id="sutra-text">
                             {% module TextArea(segments=cmp_data) %}
@@ -155,9 +144,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
         </div>
+
     </div>
 </div>
 
@@ -179,6 +167,8 @@
         </div>
     </div>
 </div>
+
+</body>
 
 {% include _base_js.html %}
 <script src="{{ static_url('js/cut/raphael.js') }}"></script>
@@ -325,9 +315,9 @@
 
     //右侧文字区动态高度计算
     var h = $(document.body).height();
-    $("#sutra-text").height(h-$('.char-list').height()-70);
-</script>
+    $(".pfread .bd").height(h-70);
+    $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
 
-</body>
+</script>
 
 </html>
