@@ -118,14 +118,24 @@
     position: relative;
 }
 
-.pfread .m-header-img,
+.btn-emptyplaces {
+    font-size: 20px;
+    width: 0;
+    line-height: 24px;
+    padding: 0 4px;
+    background-color: var(--Color_Brown_Darker);
+    margin-left: 0;
+}
+
+.pfread .m-header-img, m-header-font-enlarge, m-header-font-reduce, .btn-emptyplaces,
 .btn-cut-show, .btn-cut-hidden, .btn-num-show, .btn-num-hidden, .btn-txt-show, .btn-txt-hidden, .btn-reduce, .btn-enlarge,
-.btn-fullscrean, .btn-add-up-line, .btn-add-down-line, .btn-previous, .btn-next, .btn-variants-highlight, .btn-variants-normal, .btn-delete-line, .btn-emptyplaces-show, .btn-emptyplaces-hidden, .btn-doubts, .btn-check, .btn-ok, .btn-help, .btn-return-back {
+.btn-fullscrean, .btn-add-up-line, .btn-add-down-line, .btn-previous, .btn-next, .btn-variants-highlight, .btn-variants-normal,
+.btn-delete-line, .btn-emptyplaces-show, .btn-emptyplaces-hidden, .btn-doubts, .btn-check, .btn-ok, .btn-help, .btn-return-back {
     transition: all 0.2s;
     cursor: pointer;
 }
 
-.pfread .m-header-img:hover,
+.pfread .m-header-img:hover, m-header-font-enlarge:hover, m-header-font-reduce:hover, .btn-emptyplaces:hover,
 .btn-cut-show:hover, .btn-cut-hidden:hover, .btn-num-show:hover, .btn-num-hidden:hover, .btn-txt-show:hover,
 .btn-txt-hidden:hover, .btn-reduce:hover, .btn-enlarge:hover, .btn-fullscrean:hover, .btn-add-up-line:hover,
 .btn-add-down-line:hover, .btn-previous:hover, .btn-next:hover, .btn-variants-highlight:hover,
@@ -133,6 +143,7 @@
 .btn-doubts:hover, .btn-check:hover, .btn-ok:hover, .btn-help:hover, .btn-return-back:hover {
     transform: scale(1.2);
 }
+
 
 /*选择框*/
 
@@ -248,9 +259,13 @@
 
 /* 文本区域 */
 
-.right .sutra-text {
+.right .sutra-text span{
     font-size: 20px;
-    font-weight: 320;
+}
+
+.right .sutra-text {
+    font-size: 0px;
+    font-weight: 300;
     margin-left: 10px;
     letter-spacing: 1px;
     line-height: 40px;
@@ -283,7 +298,7 @@
 }
 
 .right .add {
-    margin-right: 10px;
+    padding-right: 10px;
 }
 
 .right .variant-highlight {

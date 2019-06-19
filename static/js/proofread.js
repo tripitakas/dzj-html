@@ -203,7 +203,7 @@ $(document).on('click', '.not-same', function (e) {
     var $dlg = $("#pfread-dialog");
     $("#pfread-dialog-cmp").text($(this).attr("cmp"));
     $("#pfread-dialog-base").text($(this).attr("base"));
-    $("#pfread-dialog-slct").text("");
+    $("#pfread-dialog-slct").text($(this).text());
     $dlg.offset({top: $(this).offset().top + 40, left: $(this).offset().left - 4});
     $dlg.show();
 
@@ -283,8 +283,6 @@ $(document).on('click', '.pfread .right', function (e) {
     if (!_con2.is(e.target) && _con2.has(e.target).length === 0) {
         $curSpan.attr("contentEditable", "false");
         $curSpan.removeClass("current-span");
-        if ($curSpan.hasClass("add"))
-            $curSpan.text($curSpan.text().trim())
     }
 });
 
@@ -294,17 +292,19 @@ $('.pfread .right').scroll(function () {
     $("#pfread-dialog").hide();
 });
 
-// 点击对话框的input
+// 点击异文选择框的各个选项
 $(document).on('click', '#pfread-dialog-base, #pfread-dialog-cmp', function () {
+    $('#pfread-dialog-slct').text($(this).text());
+});
+
+$(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function() {
     $('.current-not-same').text($(this).text());
     if ($(this).text() === '') {
         $('.current-not-same').addClass('emptyplace');
     } else {
         $('.current-not-same').removeClass('emptyplace');
     }
-    $('#pfread-dialog-slct').text($(this).text());
 });
-
 
 /*-----------导航条----------------*/
 // 缩小画布
@@ -371,9 +371,36 @@ $(document).on('click', '.btn-txt-hidden', function () {
     highlightBox();
 });
 
+
+// 上一条异文
+function previousDiff () {
+  var current = $('.current-not-same');
+  var idx;
+  idx = $('.pfread .right .not-same').index(current);
+  if (idx < 1) {
+      return;
+  }
+  $('.pfread .right .not-same').eq(idx - 1).click();
+
+}
+$(document).on('click', '.btn-previous', previousDiff);
+$.mapKey('tab', previousDiff);
+
+
+// 下一条异文
+function nextDiff () {
+  var current = $('.current-not-same');
+  var idx, $notSame;
+  $notSame = $('.pfread .right .not-same');
+  idx = $notSame.index(current);
+  $notSame.eq(idx + 1).click();
+}
+$(document).on('click', '.btn-next', nextDiff);
+$.mapKey('shift+tab', nextDiff);
+
 // 减少文本字号
 $(document).on('click', '.m-header-font-reduce', function () {
-    var $div = $('.right .sutra-text');
+    var $div = $('.right .sutra-text span');
     var size = parseInt($div.css('font-size'));
     if (size > 8) {
         size--;
@@ -384,7 +411,7 @@ $(document).on('click', '.m-header-font-reduce', function () {
 
 // 增加文本字号
 $(document).on('click', '.m-header-font-enlarge', function () {
-    var $div = $('.right .sutra-text');
+    var $div = $('.right .sutra-text span');
     var size = parseInt($div.css('font-size'));
     if (size < 36) {
         size++;
@@ -421,7 +448,7 @@ $(document).on('click', '.btn-add-up-line', function (e) {
     }
     var $currentLine = $curSpan.parent(".line");
     $curSpan.removeClass("current-span");
-    var newline = "<li class='line'><span contentEditable='true' class='same add current-span'>&nbsp;&nbsp;</span></li>";
+    var newline = "<li class='line'><span contentEditable='true' class='same add current-span'></span></li>";
     $currentLine.before(newline);
 });
 
@@ -434,7 +461,7 @@ $(document).on('click', '.btn-add-down-line', function (e) {
     }
     var $currentLine = $curSpan.parent(".line");
     $curSpan.removeClass("current-span");
-    var newline = "<li class='line'><span contentEditable='true' class='same add current-span'>&nbsp;&nbsp;</span></li>";
+    var newline = "<li class='line'><span contentEditable='true' class='same add current-span'></span></li>";
     $currentLine.after(newline);
 });
 
@@ -452,20 +479,9 @@ $(document).on('click', '.btn-variants-normal', function () {
     $(this).addClass("btn-variants-highlight");
 });
 
-// 隐藏空位符
-$(document).on('click', '.btn-emptyplaces-show', function () {
-    // 隐藏所有空位符
-    $('.emptyplace').addClass("hidden");
-    // 修改按钮状态
-    $(this).removeClass("btn-emptyplaces-show");
-    $(this).addClass("btn-emptyplaces-hidden");
-});
-
 // 显示空位符
-$(document).on('click', '.btn-emptyplaces-hidden', function () {
-    $('.emptyplace').removeClass("hidden");
-    $(this).removeClass("btn-emptyplaces-hidden");
-    $(this).addClass("btn-emptyplaces-show");
+$(document).on('click', '.btn-emptyplaces', function () {
+    $('.emptyplace').toggleClass("hidden");
 });
 
 // 弹出原文

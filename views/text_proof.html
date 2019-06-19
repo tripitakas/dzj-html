@@ -27,7 +27,7 @@
 
 <body>
 <div class="main">
-    <div class="pfread">
+    <div class="main-content pfread">
 
         <header class="m-header">
                 <div style="margin-left: 10px;">
@@ -50,15 +50,18 @@
                     <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
                     {% end %}
                 </div>
-                <div class="m-header-right" style="float:right; margin-right: 10px;">
+                <div class="m-header-right" style="float:right; margin-right: 10px;user-select: none;">
                     <div class="m-header-txt">
                         <div class="m-header-font">
-                            <div class="m-header-font-reduce">A-</div>
-                            <div class="m-header-font-enlarge">A+</div>
+                            <div class="m-header-font-enlarge" title="增加字号">A+</div>
+                            <div class="m-header-font-reduce" title="减少字号">A-</div>
+                            <div class="btn-previous" title="上一条异文"><</div>
+                            <div class="btn-next" title="下一条异文">></div>
                         </div>
                     </div>
                     <div class="m-header-edit-btn">
                         <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>-->
+                        <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-emptyplaces" title="显示空位符"/>
                         <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
                         <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
                         <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
@@ -313,10 +316,17 @@
         });
     });
 
-    //右侧文字区动态高度计算
+    // 右侧文字区动态高度计算
     var h = $(document.body).height();
     $(".pfread .bd").height(h-70);
     $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
+
+    // 浏览器调整大小时自适应
+    $(window).resize(function() {
+        var h = $(document.body).height();
+        $(".pfread .bd").height(h-70);
+        $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
+    });
 
 </script>
 
