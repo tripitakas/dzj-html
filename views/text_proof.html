@@ -65,9 +65,9 @@
                         <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
                         <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
                         <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
+                        <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img" title="存疑"/>
                         <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
-                        <!--<img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img"/>-->
-                        <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-help" title="帮助"/>
+                        <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-help" title="帮助"/>
                         {% if not readonly %}
                         <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存" style="margin-left: 40px"/>
                         <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
@@ -213,7 +213,7 @@
     $('#table_toggle_btn').click(function () {
         $(this).toggleClass('active');
         $('.char-list-table').toggleClass('hidden');
-        $(this).find('img').toggle();
+        // $(this).find('img').toggle();
     });
 
     // 修改切分框

@@ -200,6 +200,12 @@ $(document).on('click', '.not-same', function (e) {
     if ($(this).hasClass('variant') && !$(this).hasClass('variant-highlight')) {
         return;
     }
+
+    // 设置当前异文
+    $('.not-same').removeClass('current-not-same');
+    $(this).addClass('current-not-same');
+
+
     var $dlg = $("#pfread-dialog");
     $("#pfread-dialog-cmp").text($(this).attr("cmp"));
     $("#pfread-dialog-base").text($(this).attr("base"));
@@ -244,10 +250,6 @@ $(document).on('click', '.not-same', function (e) {
         $mark.attr('last-left', ml);
         $mark.css('marginLeft', parseInt(ml) - offset);
     }
-
-    // 设置当前异文
-    $('.not-same').removeClass('current-not-same');
-    $(this).addClass('current-not-same');
 
     // 隐藏当前可编辑同文
     var $curSpan = $('.current-span');
