@@ -5,13 +5,13 @@
 @time: 2019/6/4
 """
 import re
-from difflib import SequenceMatcher
+from cdifflib import CSequenceMatcher
 from controller.variant import variants
 
 
 class Diff(object):
-    junk_ocr_str = r'[0-9a-zA-Z_#Ω「」『』,\.\{\}…,，、：；。？！“”‘’￥%……&*（）◎]'
-    junk_cmp_str = r'[0-9a-zA-Z_#Ω「」『』,\.\{\}…,，、：；。？！“”‘’￥%……&*（）◎ \n\s\f\t\v\u3000]'
+    junk_ocr_str = r'[0-9a-zA-Z_#Ω「」『』,\.\{\}\(\)…,，、：；。？！“”‘’￥%……&*（）◎]'
+    junk_cmp_str = r'[0-9a-zA-Z_#Ω「」『』,\.\{\}\(\)…,，、：；。？！“”‘’￥%……&*（）◎ \n\s\f\t\v\u3000]'
 
     @classmethod
     def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):
@@ -44,10 +44,10 @@ class Diff(object):
         if label:
             lbl.update(label)
         ret, line_no = [], 1
-        s = SequenceMatcher(None, base, cmp)
+        s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]
-            # print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(tag, i1, i2, j1, j2, t1, t2))
+            print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(tag, i1, i2, j1, j2, t1, t2))
             if '\n' in t1:  # 换行符
                 lst1 = t1.split('\n')
                 for k, _t1 in enumerate(lst1):

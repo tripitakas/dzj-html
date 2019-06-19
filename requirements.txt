@@ -7,5 +7,6 @@ pyyaml
 Pillow
 fire
 glob2
+cdifflib
 aliyun-python-sdk-core
 elasticsearch
