@@ -6,8 +6,8 @@ database:
   name: tripitaka
   port: 27017
   host: q.tripitakas.net
-  user: tripitaka
-  password: sm2019321-321
+  user:
+  password:
 
 
 # 网页公共参数
