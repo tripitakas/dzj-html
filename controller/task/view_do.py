@@ -21,7 +21,7 @@ class CutDetailBaseHandler(TaskHandler):
                 if not body.get('name') and not readonly:  # 锁定失败
                     return self.send_error_response(errors.task_locked, render=True, reason=name)
 
-                kwargs2 = self.char_render(page, task_type, **kwargs) if box_type == 'char' else kwargs
+                kwargs2 = self.char_render(self, page, task_type, **kwargs) if box_type == 'char' else kwargs
                 template_name = kwargs2.pop('template_name', 'task_cut_detail.html')
                 self.render(template_name, page=page, name=page['name'], readonly=readonly,
                             boxes=page[box_type + 's'],
@@ -34,7 +34,7 @@ class CutDetailBaseHandler(TaskHandler):
                 self.send_db_error(e, render=True)
 
         task_type = '%s_cut_%s' % (box_type, stage)
-        task_name = '%s切分' % dict(block='栏', column='列', char='字')[box_type]
+        task_name = '切%s' % dict(block='栏', column='列', char='字')[box_type]
         from_url = self.get_query_argument('from', None)
         readonly = int(self.get_query_argument('view', 0)) or 'do' not in self.request.uri
         if readonly:
