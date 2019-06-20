@@ -36,7 +36,7 @@ class CutDetailBaseHandler(TaskHandler):
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '切%s' % dict(block='栏', column='列', char='字')[box_type]
         from_url = self.get_query_argument('from', None)
-        readonly = int(self.get_query_argument('view', 0))
+        readonly = int(self.get_query_argument('view', 0)) or 'do' not in self.request.uri
         if readonly:
             handle_response({})
         else:
@@ -58,7 +58,7 @@ class CutDetailBaseHandler(TaskHandler):
 
 
 class CutProofDetailHandler(CutDetailBaseHandler):
-    URL = '/task/do/@box_type_cut_proof/@task_id'
+    URL = ['/task/do/@box_type_cut_proof/@task_id', '/task/@box_type_cut_proof/@task_id']
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
@@ -66,7 +66,7 @@ class CutProofDetailHandler(CutDetailBaseHandler):
 
 
 class CutReviewDetailHandler(CutDetailBaseHandler):
-    URL = '/task/do/@box_type_cut_review/@task_id'
+    URL = ['/task/do/@box_type_cut_review/@task_id', '/task/@box_type_cut_review/@task_id']
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
@@ -74,7 +74,7 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
 
 
 class CharOrderProofHandler(CutDetailBaseHandler):
-    URL = '/task/do/char_order_proof/@task_id'
+    URL = ['/task/do/char_order_proof/@task_id', '/task/char_order_proof/@task_id']
 
     def get(self, name):
         """ 进入字序校对页面 """

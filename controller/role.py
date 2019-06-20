@@ -65,6 +65,9 @@ role_maps = {
             '/api/task/unlock/@task_type/@page_prefix': ['POST'],
             '/task/text_proof.@num/@task_id': ['GET'],
             '/task/text_review/@task_id': ['GET'],
+            '/task/@box_type_cut_proof/@task_id': ['GET'],
+            '/task/@box_type_cut_review/@task_id': ['GET'],
+            '/task/char_order_proof/@task_id': ['GET'],
         }
     },
     '切栏校对员': {

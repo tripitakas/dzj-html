@@ -93,7 +93,7 @@ class TextProofHandler(TaskHandler):
             self.render('text_proof.html', task_type=task_type,
                         from_url=from_url, home_title=home_title,
                         origin_txt=re.split(r'[\n|]', txt.strip()),
-                        cmp_txt=re.split(r'[\n|]', cmp.strip()),
+                        cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
                         readonly=readonly or picked_user_id != self.current_user['_id'],
                         get_img=self.get_img, cmp_data=cmp_data, **params)
         except Exception as e:
