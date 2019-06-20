@@ -401,7 +401,7 @@ $(document).on('click', '.btn-next', nextDiff);
 $.mapKey('shift+tab', nextDiff);
 
 // 减少文本字号
-$(document).on('click', '.m-header-font-reduce', function () {
+$(document).on('click', '.btn-font-reduce', function () {
     var $div = $('.right .sutra-text span');
     var size = parseInt($div.css('font-size'));
     if (size > 8) {
@@ -412,7 +412,7 @@ $(document).on('click', '.m-header-font-reduce', function () {
 });
 
 // 增加文本字号
-$(document).on('click', '.m-header-font-enlarge', function () {
+$(document).on('click', '.btn-font-enlarge', function () {
     var $div = $('.right .sutra-text span');
     var size = parseInt($div.css('font-size'));
     if (size < 36) {

@@ -1326,12 +1326,18 @@ span.active a {
 
 }
 
+.m-header .back {
+    margin-left: 12px;
+}
+
 .m-header div {
     float: left;
 }
 
-.m-header .right {
+.m-header .m-header-right {
     float: right;
+    margin-right: 10px;
+    user-select: none;
 }
 
 .m-header-img {
@@ -1341,12 +1347,12 @@ span.active a {
     cursor: pointer;
 }
 
-.m-header-img, m-header-txt {
+.m-header-img, .m-header-txt {
     transition: all 0.2s;
     cursor: pointer;
 }
 
-.m-header-img:hover, m-header-txt:hover {
+.m-header-img:hover, .m-header-txt:hover {
     transform: scale(1.2);
 }
 
@@ -1354,7 +1360,7 @@ span.active a {
     width: 90px;
     font-size: 20px;
     font-weight: 500;
-    margin: 3px 15px 0 15px;
+    margin: 4px 10px 0 10px;
     color: var(--Color_333);
 }
 
@@ -1396,13 +1402,16 @@ span.active a {
     margin-left: 40px;
 }
 
-.m-header-right {
-    float:right;
-    margin-right: 10px;
-    user-select: none;
+.m-header .ed-box-group {
+    margin-top: 4px;
 }
+
 .m-header-txt {
-    margin-left: 40px;
+    color: var(--Color_Brown_Darker);
+    font-weight: 400;
+    height: 20px;
+    margin: 3px 6px;
+    font-size: 20px;
 }
 
 .m-header-font {
