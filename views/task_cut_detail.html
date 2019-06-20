@@ -187,14 +187,17 @@
     $('.btn-ed-box').click(function () {
       $('.ed-box-group').toggleClass('hidden');
     });
+
     // 修改栏框
     $('.ed-block-box').click(function () {
       window.location = '/task/do/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
     });
+
     // 修改列框
     $('.ed-column-box').click(function () {
       window.location = '/task/do/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
     });
+
     // 修改字序
     $('.ed-order-box').click(function () {
       window.location = '/task/do/char_order_proof/{{name}}?from={{request.uri}}';

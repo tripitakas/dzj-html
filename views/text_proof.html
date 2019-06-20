@@ -209,7 +209,7 @@
 <!-- CUSTOM JS -->
 <script type="text/javascript">
   /*-----------自适应高度-----------*/
-  // 右侧文字区动态高度计算
+  // 右侧文字区动态计算高度
   var h = $(document.body).height();
   $(".pfread .bd").height(h - 70);
   $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
@@ -252,24 +252,29 @@
   $('#table_toggle_btn').click(function () {
     $(this).toggleClass('active');
     $('.char-list-table').toggleClass('hidden');
-    // $(this).find('img').toggle();
   });
 
-  // 修改切分框
+  // 更多操作
   $('.btn-ed-box').click(function () {
     $('.ed-box-group').toggleClass('hidden');
-    {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
-      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
-      $('{{cls}}').unbind('click').click(function () {
-        if (!$(this).hasClass('disabled')) {
-          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
-        }
-      });
-    {% end %}
   });
 
+  // 修改栏框
+  $('.ed-block-box').click(function () {
+    window.location = '/task/do/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+  });
 
-  // 回退任务
+  // 修改列框
+  $('.ed-column-box').click(function () {
+    window.location = '/task/do/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+  });
+
+  // 修改字框
+  $('.ed-char-box').click(function () {
+    window.location = '/task/do/char_cut_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+  });
+
+  // 退回任务
   $('.btn-return-back').click(function () {
     postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
       if (res.data.length === 1 && res.data[0] === '{{name}}') {
