@@ -125,15 +125,20 @@
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
+
+
+  // 更新Undo
   function updateUndo() {
-    $('#undo').toggleClass('disabled', !$.cut.canUndo());
-    $('#redo').toggleClass('disabled', !$.cut.canRedo());
+    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
+       : "{{ static_url('imgs/icon_lr_not.png') }}");
+    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
+       : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
-  $('#undo').click(function () {
+  $('.btn-undo').click(function () {
     $.cut.undo();
     updateUndo();
   });
-  $('#redo').click(function () {
+  $('.btn-redo').click(function () {
     $.cut.redo();
     updateUndo();
   });

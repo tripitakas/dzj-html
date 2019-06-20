@@ -66,7 +66,7 @@
         <div class="more">
           <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="更多"/>
           <span class="btn-group ed-box-group hidden" role="group" aria-label="更多">
-            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框')] %}
+            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('char-order', '字序')] %}
             <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
             {% end %}
           </span>
@@ -274,6 +274,11 @@
   // 修改字框
   $('.ed-char-box').click(function () {
     window.location = '/task{{"/do" if "do" in current_url else ""}}/char_cut_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+  });
+
+  // 修改字序
+  $('.ed-char-order-box').click(function () {
+    window.location = '/task{{"/do" if "do" in current_url else ""}}/char_order_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
   });
 
   // 退回任务
