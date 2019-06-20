@@ -398,36 +398,37 @@
         }
       });
 
+      var avgLen = 0;
+
       Object.keys(colChars).forEach(function (colId, colIndex) {
-        var column = colChars[colId] = colChars[colId].sort(function (a, b) {
-          return a[0] - b[0];
+        var charsInColumn = colChars[colId] = colChars[colId].sort(function (a, b) {
+          return a[0] - b[0]; // 列内序号升序
         }).map(function (a) {
           return {char: a[1], link: null};
         });
 
-        var avgLen = 0;
-        var points = [getCenter(column[0].char)];
+        var points = [getCenter(charsInColumn[0].char)];
         var color = colIndex % 2 ? '#00f' : '#09f';
 
-        column.forEach(function (c, i) {
+        charsInColumn.forEach(function (c, i) {
           if (i > 0) {
-            var h = Math.min(getHeight(column[i - 1].char), getHeight(c.char));
-            var fromPt = getCenter(column[i - 1].char);
+            var h = Math.min(getHeight(charsInColumn[i - 1].char), getHeight(c.char));
+            var fromPt = getCenter(charsInColumn[i - 1].char);
             var toPt = getCenter(c.char);
 
             avgLen += getDistance(fromPt, toPt);
             c.link = buildBoxLink(fromPt, toPt, h / 4,
-                column[i - 1].char, c.char, colId, color);
+                charsInColumn[i - 1].char, c.char, colId, color);
             c.link.data('dash', c.link.attr('stroke-dasharray'));
             boxLinks.push(c.link);
             points.push(toPt);
           }
         });
-        linkData.avgLen = avgLen && avgLen / (column.length - 1);
         colPaths[colId] = data.paper.path(points.map(function (pt, i) {
           return (i > 0 ? 'L' : 'M') + round(pt.x) + ',' + round(pt.y);
         }).join(' ')).attr({stroke: 'none'});
       });
+      linkData.avgLen = avgLen && avgLen / boxLinks.length;
     },
 
     bindCharOrderKeys: function () {

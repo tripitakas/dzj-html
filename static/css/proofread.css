@@ -129,8 +129,17 @@
 
 /*选择框*/
 
+/*选择框*/
+#pfread-dialog{
+    display:none;
+}
 .pfread .pfread-dialog {
-    padding: 10px;
+    
+
+    position:relative;
+    width:350px;
+
+
 }
 
 .pfread .pfread-dialog > .dlg-before {
@@ -201,8 +210,6 @@
     border: 1px solid transparent;
     background-color: #fff;
     top: -6px;
-    left: 50%;
-    margin-left: -103px;
     border-top: none;
     border-left: none;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
@@ -232,8 +239,6 @@
     border: 1px solid transparent;
     background-color: #fff;
     bottom: -6px;
-    left: 32%;
-    margin-left: -103px;
     border-top: none;
     border-left: none;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);

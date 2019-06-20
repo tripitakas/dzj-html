@@ -117,7 +117,6 @@
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    scrollContainer: '.full-bd',
     image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
     chars: '{{page["chars"]}}'
   });
@@ -126,15 +125,20 @@
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
+
+
+  // 更新Undo
   function updateUndo() {
-    $('#undo').toggleClass('disabled', !$.cut.canUndo());
-    $('#redo').toggleClass('disabled', !$.cut.canRedo());
+    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
+       : "{{ static_url('imgs/icon_lr_not.png') }}");
+    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
+       : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
-  $('#undo').click(function () {
+  $('.btn-undo').click(function () {
     $.cut.undo();
     updateUndo();
   });
-  $('#redo').click(function () {
+  $('.btn-redo').click(function () {
     $.cut.redo();
     updateUndo();
   });
@@ -187,15 +191,28 @@
     $.cut.showErrorBoxes();
   }, 100);
 
+  // 缩小画布
+  $('.btn-reduce').click(function () {
+    if ($.cut.data.ratio > 0.5) {
+      $.cut.setRatio($.cut.data.ratio * 0.9);
+    }
+  });
+  // 放大画布
+  $('.btn-enlarge').click(function () {
+    if ($.cut.data.ratio < 5) {
+      $.cut.setRatio($.cut.data.ratio * 1.5);
+    }
+  });
+
   // 显隐列框
   $('#toggle-columns').click(function () {
     $.cut.toggleColumns(columns);
-  })
+  });
 
   // 显隐字框
   $('#toggle-chars').click(function () {
     $.cut.toggleBox('hide');
-  })
+  });
 
   // 更多操作
   $('.btn-ed-box').click(function () {
