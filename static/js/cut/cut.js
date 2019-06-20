@@ -531,7 +531,7 @@
       data.columnMode = p.columnMode;
       data.charMode = p.charMode;
       data.orderMode = p.orderMode;
-      data.ratioInitial = ($(data.holder).width() - 20) / p.width;
+      data.ratioInitial = ($(data.holder).width()) / p.width;
       if (p.blockMode || p.columnMode || p.charMode || p.orderMode) {
         data.activeFillOpacity = 0.3;
         data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 40) / p.height)
