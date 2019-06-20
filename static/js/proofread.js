@@ -387,6 +387,10 @@ function previousDiff () {
   }
   $('.pfread .right .not-same').eq(idx - 1).click();
 
+  if($('.dialog-abs').offset().top<50){
+    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top+100}, 500);
+  }
+
 }
 $(document).on('click', '.btn-previous', previousDiff);
 $.mapKey('tab', previousDiff);
@@ -399,6 +403,11 @@ function nextDiff () {
   $notSame = $('.pfread .right .not-same');
   idx = $notSame.index(current);
   $notSame.eq(idx + 1).click();
+
+  if($('.dialog-abs').offset().top+$('.dialog-abs').height()>$('.bd').height()){
+    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top-100}, 500);
+  }
+
 }
 $(document).on('click', '.btn-next', nextDiff);
 $.mapKey('shift+tab', nextDiff);
