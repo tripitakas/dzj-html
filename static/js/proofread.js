@@ -87,7 +87,7 @@ function highlightBox($span, first) {
     var offset0 = parseInt($span.attr('offset'));
     var offsetInSpan = first ? 0 : getCursorPosition($span[0]);
     var offsetInLine = offsetInSpan + offset0;
-    var ocrCursor = ($span.attr('ocr') || '')[offsetInSpan];
+    var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
     var cmpCursor = ($span.attr('cmp') || '')[offsetInSpan];
     var text = $span.text().replace(/\s/g, '');
     var i, chTmp, all;
