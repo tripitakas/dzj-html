@@ -523,18 +523,18 @@
         .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
-      data.blockMode = p.blockMode;
-      data.columnMode = p.columnMode;
       if (p.blockMode || p.columnMode) {
         data.activeFillOpacity = 0.3;
       }
-      data.ratioInitial = ($(data.holder).width() - 20) / p.width;
+
       data.blockMode = p.blockMode;
       data.columnMode = p.columnMode;
       data.charMode = p.charMode;
-      if (p.blockMode || p.columnMode || p.charMode) {
+      data.orderMode = p.orderMode;
+      data.ratioInitial = ($(data.holder).width() - 20) / p.width;
+      if (p.blockMode || p.columnMode || p.charMode || p.orderMode) {
         data.activeFillOpacity = 0.3;
-        data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 30) / p.height)
+        data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 40) / p.height)
       }
 
       data.scrollContainer = p.scrollContainer && $(p.scrollContainer);

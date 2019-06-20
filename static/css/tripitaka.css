@@ -1323,7 +1323,8 @@ span.active a {
     background: var(--Color_Grey_Light);
     width: 100%;
     height: 40px;
-
+    position: fixed;
+    z-index: 1000;
 }
 
 .m-header .back {
@@ -1343,7 +1344,7 @@ span.active a {
 .m-header-img {
     width: 20px;
     height: 20px;
-    margin: 8px 6px;
+    margin: 9px 6px;
     cursor: pointer;
 }
 
@@ -1457,7 +1458,7 @@ span.active a {
 }
 
 .full-bd {
-    padding-top: 40px;
+    padding-top: 45px;
 }
 
 .main-left {

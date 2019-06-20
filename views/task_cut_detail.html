@@ -22,12 +22,6 @@
   {% include _base_css.html %}
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
 
-  <style>
-    .m-header {
-        position: fixed;
-        z-index: 1000;
-    }
-  </style>
 </head>
 
 <body class="widescreen">
@@ -87,7 +81,7 @@
           </div><!--right-->
         </div>
 
-        <div class="full-bd {{box_type}}">
+        <div class="full-bd">
           <!-- holder为显示切分框和页面图的画布容器 -->
           <div id="holder"></div>
         </div>
@@ -190,14 +184,21 @@
     };
 
     // 更多操作
-    {% for cut, cls in [('block', '#ed-block-box'), ('column', '#ed-column-box')] %}
-      $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
-      $('{{cls}}').unbind('click').click(function () {
-        if (!$(this).hasClass('disabled')) {
-          window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?view={{int(readonly)}}&from={{request.uri}}';
-        }
-      });
-    {% end %}
+    $('.btn-ed-box').click(function () {
+      $('.ed-box-group').toggleClass('hidden');
+    });
+    // 修改栏框
+    $('.ed-block-box').click(function () {
+      window.location = '/task/do/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    });
+    // 修改列框
+    $('.ed-column-box').click(function () {
+      window.location = '/task/do/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    });
+    // 修改字序
+    $('.ed-order-box').click(function () {
+      window.location = '/task/do/char_order_proof/{{name}}?from={{request.uri}}';
+    });
 
     // 保存任务
     function save(submit) {
@@ -219,19 +220,6 @@
     }
     $('#save').click(save.bind(null, false));
     $('#submit').click(save.bind(null, true));
-
-    // 修改切分框
-    $('.btn-ed-box').click(function () {
-      $('.ed-box-group').toggleClass('hidden');
-      {% for cut, cls in [('block', '.ed-block-box'), ('column', '.ed-column-box'), ('char', '.ed-char-box')] %}
-        $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
-        $('{{cls}}').unbind('click').click(function () {
-          if (!$(this).hasClass('disabled')) {
-            window.location = '/task/do/{{cut}}_cut_{{"proof" if can_access("/task/my/%s_cut_proof" % cut) else "review"}}/{{name}}?from={{request.uri}}';
-          }
-        });
-      {% end %}
-    });
 
   </script>
 
