@@ -1330,10 +1330,24 @@ span.active a {
     float: left;
 }
 
+.m-header .right {
+    float: right;
+}
+
 .m-header-img {
     width: 20px;
     height: 20px;
     margin: 8px 6px;
+    cursor: pointer;
+}
+
+.m-header-img, m-header-txt {
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.m-header-img:hover, m-header-txt:hover {
+    transform: scale(1.2);
 }
 
 .m-header-title {
@@ -1382,6 +1396,11 @@ span.active a {
     margin-left: 40px;
 }
 
+.m-header-right {
+    float:right;
+    margin-right: 10px;
+    user-select: none;
+}
 .m-header-txt {
     margin-left: 40px;
 }

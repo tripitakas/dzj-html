@@ -36,7 +36,7 @@
   height: 100%;
 }
 
-.slice_title {
+.slice-title {
   display: inline-block;
   float: left;
   line-height: 37px;
@@ -48,23 +48,23 @@
   margin-right: 12px;
 }
 
-.slice_btn_group {
+.slice-btn-group {
   display: inline-block;
   float: left;
-  margin-right: 10px;
+  margin: 4px 10px;
 }
 
-.slice_info {
+.slice-info {
   display: inline-block;
   float: left;
   padding: 0 10px;
 }
 
-.s_h_count {
+.s-h-count {
   font-size: 75%;
 }
 
-.slice_title a:hover {
+.slice-title a:hover {
   color: #fff;
 }
 

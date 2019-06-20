@@ -50,7 +50,7 @@
                     <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
                     {% end %}
                 </div>
-                <div class="m-header-right" style="float:right; margin-right: 10px;user-select: none;">
+                <div class="m-header-right">
                     <div class="m-header-txt">
                         <div class="m-header-font">
                             <div class="m-header-font-enlarge" title="增加字号">A+</div>
@@ -184,6 +184,20 @@
 
 <!-- CUSTOM JS -->
 <script type="text/javascript">
+    /*-----------自适应高度-----------*/
+    // 右侧文字区动态高度计算
+    var h = $(document.body).height();
+    $(".pfread .bd").height(h-70);
+    $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
+
+    // 浏览器调整大小时自适应
+    $(window).resize(function() {
+        var h = $(document.body).height();
+        $(".pfread .bd").height(h-70);
+        $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
+    });
+
+
     /*-----------左侧图像区域-----------*/
     // 显示左边页面图和字框
     var char_data = decodeJSON('{{page["chars"]}}');
@@ -208,6 +222,7 @@
     }
 
     createPage();
+    $('#canvas-bd').focus();
 
     /*-----------导航区域-----------*/
     // 文本区底部-存疑列表
@@ -315,18 +330,6 @@
                 }, 1000);
             }
         });
-    });
-
-    // 右侧文字区动态高度计算
-    var h = $(document.body).height();
-    $(".pfread .bd").height(h-70);
-    $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
-
-    // 浏览器调整大小时自适应
-    $(window).resize(function() {
-        var h = $(document.body).height();
-        $(".pfread .bd").height(h-70);
-        $("#sutra-text").css('min-height', h-$('.char-list').height()-70);
     });
 
 </script>
