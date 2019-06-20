@@ -22,7 +22,19 @@
     {% include _base_css.html %}
     <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
-
+    <style>
+        #txtModal textarea {
+            width: 100%;
+            font-size: 1.2em;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        #txtModal.show-all textarea {
+            width: calc(50% - 2px);
+            display: inline-block;
+        }
+    </style>
 </head>
 
 <body>
@@ -159,11 +171,17 @@
             <div class="modal-content">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="color: var(--Color_Brown_Darker); margin-top: -25px; margin-right: -20px;">×</button>
                 <div class="modal-header" style="height: 40px;padding-bottom: 0px;">
-                    <span style="font-size: 16px;">原文</span>
-                    <button class="btn btn-default" style="float:right; margin-right: 10px" id="save-txt">保存</button>
+                    <div class="btn-group" role="group">
+                      <button class="btn btn-default" id="show-ocr">OCR</button>
+                      <button class="btn btn-default" id="show-cmp">比对本</button>
+                      <button class="btn btn-default" id="show-all">两者</button>
+                    </div>
+                    <button class="btn btn-default m-l-10" id="save-txt">保存</button>
+                    <span class="m-l-10">{{name}}</span>
                 </div>
                 <div class="modal-body">
-                    <textarea style="width: 100%; font-size: 1.2em; border: none; margin-bottom: 10px" rows="26">{{'\n'.join(origin_txt)}}</textarea>
+                    <textarea id="ocr" rows="26" readonly>{{'\n'.join(origin_txt)}}</textarea>
+                    <textarea id="cmp" rows="26">{{'\n'.join(cmp_txt)}}</textarea>
                     <p style="font-style: italic"><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
                 </div>
             </div>
@@ -298,14 +316,18 @@
     $('.btn-submit').click(save.bind(null, true));
 
     // 原文等对话框允许拖动
-    $('.modal-header').on('mousedown', function (mousedownEvt) {
-        var $draggable = $(this);
-        var x = mousedownEvt.pageX - $draggable.offset().left, y = mousedownEvt.pageY - $draggable.offset().top;
-        $('body').on('mousemove.draggable', function (mousemoveEvt) {
-            $draggable.closest('.modal-dialog').offset({
-                left: mousemoveEvt.pageX - x,
-                top: mousemoveEvt.pageY - y
-            });
+    $('.modal-header').on('mousedown', function (downEvt) {
+        var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
+        var x = downEvt.pageX - $txtModel.offset().left;
+        var y = downEvt.pageY - $txtModel.offset().top;
+        $('body').on('mousemove.draggable', function (moveEvt) {
+            dragging = dragging || Math.hypot(moveEvt.pageX - downX, moveEvt.pageY - downY) > 10;
+            if (dragging) {
+              $txtModel.offset({
+                left: moveEvt.pageX - x,
+                top: moveEvt.pageY - y
+              });
+            }
         });
         $('body').one('mouseup', function () {
             $('body').off('mousemove.draggable');
@@ -315,9 +337,41 @@
         });
     });
 
+    var $txtModel = $('#txtModal');
+    var $ocrBtn = $txtModel.find('#show-ocr'), $cmpBtn = $txtModel.find('#show-cmp');
+    var $ocrArea = $txtModel.find('#ocr'), $cmpArea = $txtModel.find('#cmp');
+    var $saveTxtBtn = $txtModel.find('#save-txt'), $showAll = $txtModel.find('#show-all');
+
+    function switchModalText(txtType) {
+      $ocrBtn.toggleClass('btn-primary', txtType === 'ocr');
+      $ocrBtn.toggleClass('btn-default', txtType !== 'ocr');
+      $cmpBtn.toggleClass('btn-primary', txtType === 'cmp');
+      $cmpBtn.toggleClass('btn-default', txtType !== 'cmp');
+      $showAll.toggleClass('btn-primary', txtType === 'all');
+      $showAll.toggleClass('btn-default', txtType !== 'all');
+      $ocrArea.toggle(txtType === 'ocr' || txtType === 'all');
+      $cmpArea.toggle(txtType === 'cmp' || txtType === 'all');
+      $saveTxtBtn.toggleClass('disabled', txtType === 'ocr');
+      $txtModel.toggleClass('show-all', txtType === 'all');
+    }
+
+    $ocrBtn.click(function () {
+      switchModalText('ocr');
+    });
+    $cmpBtn.click(function () {
+      switchModalText('cmp');
+    });
+    $showAll.click(function () {
+      switchModalText('all');
+    });
+    switchModalText('all');
+
     // 原文的保存
-    $('#save-txt').click(function () {
-        var txt = $('#txtModal .modal-body > textarea').val().replace(/-/g, '');
+    $saveTxtBtn.click(function () {
+        if ($saveTxtBtn.hasClass('disabled')) {
+          return;
+        }
+        var txt = $cmpArea.val().replace(/-/g, '');
         save_({
             name: '{{name}}',
             txt: JSON.stringify(txt)
