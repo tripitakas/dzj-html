@@ -37,7 +37,7 @@
     }
 
     #txtModal.show-all textarea {
-      width: calc(50% - 2px);
+      width: calc(50% - 4px);
       display: inline-block;
     }
   </style>
@@ -179,7 +179,9 @@
             <div class="btn-group" role="group">
               <button class="btn btn-default" id="show-ocr">OCR</button>
               <button class="btn btn-default" id="show-cmp">比对本</button>
+              {% if origin_txt != cmp_txt %}
               <button class="btn btn-default" id="show-all">两者</button>
+              {% end %}
             </div>
             <button class="btn btn-default m-l-10" id="save-txt">保存</button>
             <span class="m-l-10">{{name}}</span>
@@ -261,17 +263,17 @@
 
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '/task/do/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    window.location = '/task{{"/do" if "do" in current_url else ""}}/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
   });
 
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '/task/do/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    window.location = '/task{{"/do" if "do" in current_url else ""}}/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
   });
 
   // 修改字框
   $('.ed-char-box').click(function () {
-    window.location = '/task/do/char_cut_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    window.location = '/task{{"/do" if "do" in current_url else ""}}/char_cut_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
   });
 
   // 退回任务
@@ -375,7 +377,7 @@
   $showAll.click(function () {
     switchModalText('all');
   });
-  switchModalText('all');
+  switchModalText('{{"all" if origin_txt != cmp_txt else "cmp"}}');
 
   // 原文的保存
   $saveTxtBtn.click(function () {
