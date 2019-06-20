@@ -27,18 +27,6 @@
         position: fixed;
         z-index: 1000;
     }
-    .full-bd.block {
-      margin: auto;
-      width: 40%;
-    }
-    .full-bd.column {
-      margin: auto;
-      width: 40%;
-    }
-    .full-bd.char {
-      margin: auto;
-      width: 90%;
-    }
   </style>
 </head>
 
@@ -58,13 +46,13 @@
             </div>
             <div class="m-header-title" title="{{page['name']}}">{{title}}</div>
             <div class="m-header-edit-btn">
-              <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="全屏"/>
               <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
               <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
-              <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img undo" title="撤销"/>
-              <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img redo" title="重做"/>
+              <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>
+              <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>
             </div>
             <div class="slice-btn-group">
+              <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
               <div class="btn-group hl-btn">
                 <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
                 <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
@@ -119,10 +107,10 @@
   <script>
     $.cut.create({
       '{{box_type}}Mode': true,
-      removeSmallBoxes: {{int(box_type == 'char' and name[:2] in ['JX'])}},
+      removeSmallBoxes: '{{int(box_type == "char" and name[:2] in ["JX"])}}',
       name: '{{box_type}}_{{name}}',
-      width: {{page['width']}},
-      height: {{page['height']}},
+      width: '{{page["width"]}}',
+      height: '{{page["height"]}}',
       holder: 'holder',
       scrollContainer: '.full-bd',
       image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
@@ -131,20 +119,22 @@
 
     $.cut.bindKeys();
 
+    // 更新Undo
     function updateUndo() {
-      $('#undo').toggleClass('disabled', !$.cut.canUndo());
-      $('#redo').toggleClass('disabled', !$.cut.canRedo());
+      $('#btn-undo').toggleClass('disabled', !$.cut.canUndo());
+      $('#btn-redo').toggleClass('disabled', !$.cut.canRedo());
     }
-    $('#undo').click(function () {
+    $('#btn-undo').click(function () {
       $.cut.undo();
       updateUndo();
     });
-    $('#redo').click(function () {
+    $('#btn-redo').click(function () {
       $.cut.redo();
       updateUndo();
     });
     updateUndo();
 
+    // 显示各种类型字框数量
     function showHighLightCount() {
       $('.hl-btn > button').each(function (i, btn) {
         if (i > 0 || {{int(box_type != "char")}}) {
@@ -155,11 +145,22 @@
       });
     }
     showHighLightCount();
+
+    // 切换切分框状态
     $('.hl-btn > button').click(function () {
       var type = this.getAttribute('id').replace(/^.*-/, '');
       $.cut.switchHighlightBoxes(type);
     });
 
+    // 显示隐藏图片
+    $('#hl-pic').click(function () {
+      if ( $('#holder image').css('visibility') == 'hidden' )
+        $('#holder image').css('visibility','visible');
+      else
+        $('#holder image').css('visibility','hidden');
+    });
+
+    // 操作切分框
     $.cut.onBoxChanged(function (char, box, reason) {
       if (reason === 'removed' || reason === 'added' || reason === 'changed') {
         var type = $.cut.data.hlType;
@@ -172,6 +173,7 @@
       updateUndo();
     });
 
+    // 退回任务
     $('#return-task').click(function () {
       postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
         if (res.data.length === 1 && res.data[0] === '{{name}}') {
@@ -180,12 +182,14 @@
       });
     });
 
+    // 离开时解锁
     window.leave = function (url) {
       postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
         window.location = url;
       });
     };
 
+    // 更多操作
     {% for cut, cls in [('block', '#ed-block-box'), ('column', '#ed-column-box')] %}
       $('{{cls}}').toggleClass('disabled', {{'false' if can_access('/task/my/%s_cut_proof' % cut) or can_access('/task/my/%s_cut_review' % cut) else 'true'}});
       $('{{cls}}').unbind('click').click(function () {
@@ -195,6 +199,7 @@
       });
     {% end %}
 
+    // 保存任务
     function save(submit) {
       postApi('/task/save/{{task_type}}', {data: {
         submit: submit,

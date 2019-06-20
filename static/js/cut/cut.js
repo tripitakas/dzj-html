@@ -529,6 +529,14 @@
         data.activeFillOpacity = 0.3;
       }
       data.ratioInitial = ($(data.holder).width() - 20) / p.width;
+      data.blockMode = p.blockMode;
+      data.columnMode = p.columnMode;
+      data.charMode = p.charMode;
+      if (p.blockMode || p.columnMode || p.charMode) {
+        data.activeFillOpacity = 0.3;
+        data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 30) / p.height)
+      }
+
       data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       $(data.holder)
         .mousedown(mouseDown)

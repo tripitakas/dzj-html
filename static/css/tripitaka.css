@@ -1456,6 +1456,10 @@ span.active a {
     margin-right: 15px;
 }
 
+.full-bd {
+    padding-top: 40px;
+}
+
 .main-left {
     float: left;
     width: 276px;
