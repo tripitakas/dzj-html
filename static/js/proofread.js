@@ -523,7 +523,11 @@ $(document).on('click', '#doubt_save_btn', function () {
     var rows = $(".char-list-table").find("tr").length ;
     var txt = $('#doubt_input').val().trim();
     var reason = $('#doubt_reason').val().trim();
-    $('.char-list-table').append("<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='./imgs/del_icon.png')></td></tr>");
+    if(reason.length<=0){
+        $('#doubt_tip').show();
+        return;
+    }
+    $('.char-list-table').append("<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='imgs/icon_aim.png'')></td></tr>");
     $('#doubtModal').modal('hide');
 
 });
@@ -531,4 +535,8 @@ $(document).on('click', '#doubt_save_btn', function () {
 $('#doubtModal').on('hide.bs.modal', function () {
   $('#doubt_input').val('');
   $('#doubt_reason').val('');
+  $('#doubt_tip').hide();
 })
+$('.del-doubt').click(function(){
+    $(this).parent().remove();
+});
