@@ -41,6 +41,7 @@
       display: inline-block;
     }
 
+
     </style>
 </head>
 
@@ -134,7 +135,7 @@
                         </div>
                         <div class="char-list">
                             <div class="char-list-tab">
-                                <div class="char-list-tab-item active">存疑列表</div>
+                                <div class="char-list-tab-item active" id="a_demo">存疑列表</div>
                                 <div class="char-list-tab-arrow" id="table_toggle_btn">
                                     <img src="{{ static_url('imgs/up_arrow.png') }}">
                                     <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
@@ -147,7 +148,7 @@
                                     <td>存疑理由</td>
                                     <td>操作</td>
                                 </tr>
-                                <tr class="tr-odd">
+                                <tr>
                                     <td>1</td>
                                     <td>鍀</td>
                                     <td>存疑理由</td>
@@ -159,7 +160,7 @@
                                     <td>存疑理由</td>
                                     <td class="del-doubt"><img src="{{ static_url('imgs/del_icon.png') }}"></td>
                                 </tr>
-                                <tr class="tr-odd">
+                                <tr>
                                     <td>3</td>
                                     <td>鍀</td>
                                     <td>存疑理由</td>
@@ -208,6 +209,41 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="panel-body" style="padding-bottom: 2px;">
+        <!-- modal content -->
+        <div id="doubtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="choose-pages">提交存疑文字</h4>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="form-group">
+                            <table>
+                                <tr><td>存疑文字：</td><td><input type="text" class="form-control search-input" id="doubt_input" ></td></tr>
+
+                                <tr><td>存疑文字：</td><td><textarea id="doubt_reason" class="form-control search-input" rows="4" cols="40"></textarea></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span id="doubt_tip">请填写存疑理由</span>
+                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary waves-effect waves-light" id="doubt_save_btn">
+                            确定
+                        </button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
     </div>
 
 </div>
@@ -417,6 +453,7 @@
       }
     });
   });
+
 
 
 </script>

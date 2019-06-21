@@ -134,7 +134,7 @@
     display:none;
 }
 .pfread .pfread-dialog {
-    
+
 
     position:relative;
     width:350px;
@@ -243,6 +243,17 @@
     border-left: none;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
 }
+
+/* 存疑提交框 */
+#doubtModal table{
+    border-collapse:separate; border-spacing:0px 20px;
+}
+#doubt_tip{
+    float:left;
+    color:red;
+    display:none;
+}
+
 
 /* 文本区域 */
 
@@ -372,7 +383,7 @@
     margin-top: 5px;
 }
 
-.char-list-table .tr-odd {
+.char-list-table tr:nth-child(odd) {
     background: var(--Color_White);
 }
 

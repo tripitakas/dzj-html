@@ -52,20 +52,20 @@ class TextProofHandler(TaskHandler):
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
-        readonly = 'do' not in self.request.uri
-        self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'), readonly)
+        self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
 
     @staticmethod
-    def lock_enter(self, task_type, name, stage, readonly):
+    def lock_enter(self, task_type, name, stage, review=None):
         def handle_response(body):
             try:
                 if not body.get('name') and not readonly:  # 锁定失败
                     return self.send_error_response(errors.task_locked, render=True, reason=name)
 
-                TextProofHandler.enter(self, task_type, name, stage, readonly)
+                TextProofHandler.enter(self, task_type, name, stage, readonly, review)
             except Exception as e:
                 self.send_db_error(e, render=True)
 
+        readonly = 'do' not in self.request.uri
         if readonly:
             handle_response({})
         else:
@@ -74,7 +74,7 @@ class TextProofHandler(TaskHandler):
             self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
 
     @staticmethod
-    def enter(self, task_type, name, stage, readonly=False):
+    def enter(self, task_type, name, stage, readonly, review):
         try:
             p = self.db.page.find_one(dict(name=name))
             if not p:
@@ -90,7 +90,7 @@ class TextProofHandler(TaskHandler):
             picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
-            self.render('text_proof.html', task_type=task_type,
+            self.render('text_proof.html', task_type=task_type, review=review,
                         from_url=from_url, home_title=home_title,
                         origin_txt=re.split(r'[\n|]', txt.strip()),
                         cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
@@ -159,5 +159,5 @@ class TextReviewHandler(TaskHandler):
 
     def get(self, name=''):
         """ 进入文字审定页面 """
-        readonly = 'do' not in self.request.uri
-        TextProofHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'), readonly)
+        TextProofHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'), {
+        })
