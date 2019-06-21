@@ -4,10 +4,10 @@
 			<div class="main-header-left">
 				<div class="title">
 					<!-- <div class="title">
-						<span class="toggle"><img src="{{ static_url('imgs/frame/toggle.png') }}" alt="收起左侧菜单栏" title="收起左侧菜单栏"></span>
-						<span class="platform"><img src="{{ static_url('imgs/frame/platform.png') }}" alt=""></span>
+						<span class="toggle"><img src="{{ static_url('imgs/toggle.png') }}" alt="收起左侧菜单栏" title="收起左侧菜单栏"></span>
+						<span class="platform"><img src="{{ static_url('imgs/platform.png') }}" alt=""></span>
 					</div> -->
-					<span class="platform"><img src="{{ static_url('imgs/frame/platform.png') }}" alt=""></span>
+					<span class="platform"><img src="{{ static_url('imgs/platform.png') }}" alt=""></span>
 				</div>
 				<div class="line"></div>
 			</div>
@@ -16,13 +16,13 @@
 				<span class="welcome">欢迎您：<a href="/user/my/profile" title="个人中心">{{current_user['name'] if current_user else '访客'}}</a></span>
 				<span>
 					<a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心">
-					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img', 'imgs/frame/user.png')) }}" style="margin-top: 10px;" alt="">
+					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img', 'imgs/user.png')) }}" style="margin-top: 10px;" alt="">
 					</a>
 				</span>
 
-				<!--<span><img src="{{ static_url('imgs/frame/message.png') }}" alt=""></span>
-				<span><img src="{{ static_url('imgs/frame/help.png') }}" alt=""></span>-->
-				<span><a id="logout" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="退出系统"><img src="{{ static_url('imgs/frame/logout.png') }}" alt="" title="退出系统"></a></span>
+				<!--<span><img src="{{ static_url('imgs/message.png') }}" alt=""></span>
+				<span><img src="{{ static_url('imgs/help.png') }}" alt=""></span>-->
+				<span><a id="logout" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="退出系统"><img src="{{ static_url('imgs/logout.png') }}" alt="" title="退出系统"></a></span>
 			</div>
 
 		</div>

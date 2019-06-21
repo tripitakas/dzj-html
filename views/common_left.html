@@ -9,13 +9,13 @@
             {% if item.get('sub_items') %}
             <li>
                 <div class="submenu-title" id="{{item['id']}}">
-                    <i><img src='{{ static_url("imgs/frame/%s.png" % item["icon"]) }}' style="margin-top:9px;"></i>
+                    <i><img src='{{ static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:9px;"></i>
                     <span>{{item['name']}}</span>
                 </div>
                 <ul class="sub-ul sub-ul-hidden">
                     {% for sub_item in item.get('sub_items') %}
                     <li class="" id="{{sub_item['id']}}">
-                        <i><img src='{{ static_url("imgs/frame/%s.png" % sub_item["icon"]) }}' class="sub-img"/></i>
+                        <i><img src='{{ static_url("imgs/%s.png" % sub_item["icon"]) }}' class="sub-img"/></i>
                         <span><a href="{{sub_item['link']}}">{{sub_item['name']}}</a></span>
                     </li>
                     {% end %}
@@ -23,7 +23,7 @@
             </li>
             {% else %}
             <li class="menu-item" id="{{item['id']}}">
-                <i><img src='{{ static_url("imgs/frame/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
+                <i><img src='{{ static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
                 <span><a href="{{item['link']}}">{{item['name']}}</a></span>
             </li>
             {% end %}

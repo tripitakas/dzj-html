@@ -136,7 +136,7 @@ a:hover {
     background: #f4f4f4 url(../imgs/bg.png) no-repeat !important;
     background-size: 100%;
     width: 100%;
-    min-height: 100%;
+    height: 100%;
 
 }
 
