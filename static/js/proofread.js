@@ -537,6 +537,7 @@ $('#doubtModal').on('hide.bs.modal', function () {
   $('#doubt_reason').val('');
   $('#doubt_tip').hide();
 })
-$('.del-doubt').click(function(){
+//点击删除按钮，删除该行
+$(document).on('click', '.del-doubt', function () {
     $(this).parent().remove();
 });
