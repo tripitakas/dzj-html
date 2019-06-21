@@ -966,9 +966,9 @@
       this.cancelDrag();
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
-      if (data.blockMode && ratio !== 1) {
-        return;
-      }
+      // if (data.blockMode && ratio !== 1) {
+      //   return;
+      // }
 
       data.ratio = ratio;
       ratio *= data.ratioInitial;
