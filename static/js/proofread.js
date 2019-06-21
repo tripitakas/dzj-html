@@ -527,7 +527,7 @@ $(document).on('click', '#doubt_save_btn', function () {
         $('#doubt_tip').show();
         return;
     }
-    $('.char-list-table').append("<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='imgs/icon_aim.png'')></td></tr>");
+    $('.char-list-table').append("<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>");
     $('#doubtModal').modal('hide');
 
 });
