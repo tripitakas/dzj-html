@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-05-29
+ * Date: 2019-06-20
  */
 (function() {
   'use strict';
@@ -569,6 +569,7 @@
         if (!b.char_id) {
           b.char_id = 'org' + idx;
         }
+        b.ch = b.ch || b.txt;
       });
       data.width = p.width;
       data.height = p.height;
