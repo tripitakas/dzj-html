@@ -1,102 +1,95 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8">
-		<title>人员管理-数据管理</title>
-		{% include _base_meta.html %}
+<head>
+  <meta charset="UTF-8">
+  <title>人员管理-数据管理</title>
+  {% include _base_meta.html %}
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
 
-		<!-- DataTables -->
-		<link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css" />
-		<!-- Custom Files -->
-		<link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css" />
-		<link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css" />
-		{% include _base_css.html %}
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="user-management", sub="user-management-data" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="operation">
+                    <span>下载数据</span>
+                  </div>
+                  <div class="search fr">
+                    <input type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;">
+                    <thead>
+                    <tr>
+                      <th><input type="checkbox" name="" value=""/></th>
+                      <th>姓名</th>
+                      <th>手机</th>
+                      <th><span class="sort">切分校对</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">切分审定</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">文字校对</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">文字审定</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">文字难字</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">文字反馈</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">格式标注</span><span class="ion-arrow-down-b"></span></th>
+                      <th><span class="sort">格式审定</span><span class="ion-arrow-down-b"></span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in users %}
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>{{r['name']}}</td>
+                      <td>{{r.get('phone', '')}}</td>
+                      <td>{{r['cut_proof_count']}}</td>
+                      <td>{{r['cut_review_count']}}</td>
+                      <td>{{r['text_proof_count']}}</td>
+                      <td>{{r['text_review_count']}}</td>
+                      <td>{{r['text_difficult_count']}}</td>
+                      <td>{{r['text_feedback_count']}}</td>
+                      <td>{{r['fmt_proof_count']}}</td>
+                      <td>{{r['fmt_review_count']}}</td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% include _base_js.html %}
 
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-        <![endif]-->
+<script type="text/javascript">
+  //排序图标
+  $(".sort").click(function () {
+    $(this).next().toggleClass('toggle');
+  });
+</script>
 
-	</head>
-	
-
-	<body>
-		<div class="app-main">
-			<div class="main">
-				<!--模拟出左边菜单，方便写样式-->
-				{% module CommonLeft(title="user-management", sub="user-management-data" ) %}
-				<div class="main-content">
-					{% module CommonHead() %}
-					<div class="single-page-con">
-						<div class="layout">
-							<div class="layout-content">
-								<div class="collate-history">
-									<div class="wrapper">
-										<div class="collate-list">
-											<div class="operation">
-												<span>下载数据</span>
-											</div>
-											<div class="search fr">
-												<input type="text" placeholder="搜索">
-												<i class="ser-btn"></i>
-											</div>
-											<table style="border-collapse:separate; border-spacing:0px 10px;">
-												<thead>
-													<tr>
-														<th><input type="checkbox" name="" value="" /></th>
-														<th>姓名</th>
-														<th>手机</th>
-														<th><span class="sort">切分校对</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">切分审定</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">文字校对</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">文字审定</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">文字难字</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">文字反馈</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">格式标注</span><span class="ion-arrow-down-b"></span></th>
-														<th><span class="sort">格式审定</span><span class="ion-arrow-down-b"></span></th>
-													</tr>
-												</thead>
-												<tbody>
-												  {% for r in users %}
-													<tr>
-														<td><input type="checkbox" name="" id="" value="" /></td>
-														<td>{{r['name']}}</td>
-														<td>{{r.get('phone', '')}}</td>
-														<td>{{r['cut_proof_count']}}</td>
-														<td>{{r['cut_review_count']}}</td>
-														<td>{{r['text_proof_count']}}</td>
-														<td>{{r['text_review_count']}}</td>
-														<td>{{r['text_difficult_count']}}</td>
-														<td>{{r['text_feedback_count']}}</td>
-														<td>{{r['fmt_proof_count']}}</td>
-														<td>{{r['fmt_review_count']}}</td>
-													</tr>
-													{% end %}
-												</tbody>
-											</table>
-										</div>
-										{% module Pager(pager) %}
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		{% include _base_js.html %}
-
-		<script type="text/javascript">
-			
-			//排序图标
-			$(".sort").click(function(){
-				$(this).next().toggleClass('toggle');
-			});
-			
-		</script>
-		
-	</body>
-
+</body>
 </html>

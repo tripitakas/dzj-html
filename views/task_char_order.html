@@ -42,63 +42,63 @@
 </head>
 
 <body class="widescreen">
-  <div class="app-main">
-    <div class="main">
-      <div class="main-content">
+<div class="app-main">
+  <div class="main">
+    <div class="main-content">
 
-        <div class="m-header">
-          <div class="left">
-            <div class="back">
-              <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('{{from_url}}')"/>
-            </div>
-            <div class="m-header-title" title="{{page['name']}}">字序校对</div>
-            <div class="m-header-edit-btn">
-              <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
-              <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
-              <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>
-              <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>
-            </div>
-            <div class="slice-btn-group">
-              <div class="btn-group">
-                <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">背景</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-columns" title="显示列框">列框</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
-                <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
-                <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显示待修正的字框">查漏</button>
-              </div>
-            </div>
+      <div class="m-header">
+        <div class="left">
+          <div class="back">
+            <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('{{from_url}}')"/>
           </div>
-          <div class="m-header-right">
-            <div class="m-header-edit-btn">
-              <div class="more">
-                <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
-                  {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                  {% set suffix = '?layout=%s%s%s' % (i, '&view=1' if readonly else '', '&from=' + from_url if from_url else '') %}
-                  <a class="btn btn-default btn-sm" href='/task/do/char_order_proof/{{name}}{{suffix}}'>{{txt}}</a>
-                  {% end %}
-                </div>
-                <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
-              </div>
-              {% if not readonly %}
-                <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
-              {% end %}
+          <div class="m-header-title" title="{{page['name']}}">字序校对</div>
+          <div class="m-header-edit-btn">
+            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
+            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
+            <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>
+            <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>
+          </div>
+          <div class="slice-btn-group">
+            <div class="btn-group">
+              <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">背景</button>
+              <button type="button" class="btn btn-default btn-sm" id="toggle-columns" title="显示列框">列框</button>
+              <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
+              <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
+              <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显示待修正的字框">查漏</button>
             </div>
           </div>
         </div>
-        <div class="full-bd">
-          <!-- holder为显示切分框和页面图的画布容器 -->
-          <div id="holder"></div>
-          <div id="info">
-            <span class="cur-char"></span>
-            <span class="col-info"></span>
-            <span class="char-info"></span>
-            <span class="target-char"></span>
+        <div class="m-header-right">
+          <div class="m-header-edit-btn">
+            <div class="more">
+              <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
+                {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
+                {% set suffix = '?layout=%s%s%s' % (i, '&view=1' if readonly else '', '&from=' + from_url if from_url else '') %}
+                <a class="btn btn-default btn-sm" href='/task/do/char_order_proof/{{name}}{{suffix}}'>{{txt}}</a>
+                {% end %}
+              </div>
+              <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
+            </div>
+            {% if not readonly %}
+            <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
+            {% end %}
           </div>
         </div>
-
       </div>
+      <div class="full-bd">
+        <!-- holder为显示切分框和页面图的画布容器 -->
+        <div id="holder"></div>
+        <div id="info">
+          <span class="cur-char"></span>
+          <span class="col-info"></span>
+          <span class="char-info"></span>
+          <span class="target-char"></span>
+        </div>
+      </div>
+
     </div>
   </div>
+</div>
 
 {% include _base_js.html %}
 <script src="{{ static_url('js/cut/raphael.js') }}"></script>
@@ -125,15 +125,14 @@
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
-
-
   // 更新Undo
   function updateUndo() {
     $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-       : "{{ static_url('imgs/icon_lr_not.png') }}");
+        : "{{ static_url('imgs/icon_lr_not.png') }}");
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-       : "{{ static_url('imgs/icon_rr_not.png') }}");
+        : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
+
   $('.btn-undo').click(function () {
     $.cut.undo();
     updateUndo();
@@ -145,7 +144,7 @@
 
   $.cut.onBoxChanged(function (char, box, reason) {
     if (reason === 'navigate') {
-    $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID() || '未选中'));
+      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID() || '未选中'));
     }
     updateUndo();
   });
@@ -157,27 +156,30 @@
 
   window.leave = function (url) {
     postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
-    window.location = url;
+      window.location = url;
     });
   };
 
   function save(submit) {
-    postApi('/task/save/{{task_type}}', {data: {
-    submit: submit,
-    name: '{{name}}',
-    from_url: '{{from_url}}',
-    box_type: '{{box_type}}',
-    boxes: JSON.stringify($.cut.exportBoxes())
-    }}, function (res) {
-    showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
-       (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
-    if (res.jump) {
-      setTimeout(function () {
-      window.location = res.jump;
-      }, 1000);
-    }
+    postApi('/task/save/{{task_type}}', {
+      data: {
+        submit: submit,
+        name: '{{name}}',
+        from_url: '{{from_url}}',
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
+      }
+    }, function (res) {
+      showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
+          (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
+      if (res.jump) {
+        setTimeout(function () {
+          window.location = res.jump;
+        }, 1000);
+      }
     });
   }
+
   $('#save').click(save.bind(null, false));
   $('#submit').click(save.bind(null, true));
 

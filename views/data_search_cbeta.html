@@ -1,103 +1,99 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>检索CBETA</title>
-    {% include _base_meta.html %}
-
-    <!-- Plugins css -->
-    <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-
-    <!-- Custom Files -->
-    <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-    <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
-
-    {% include _base_css.html %}
-
+  <meta charset="UTF-8">
+  <title>检索CBETA</title>
+  {% include _base_meta.html %}
+  <!-- Plugins css -->
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  {% include _base_css.html %}
 </head>
+
 <style>
-    .search-input {
-        width: 50%;
-        margin: auto;
-        margin-top: 100px;
-    }
-    .search-input input {
-        height: 40px;
-        font-size: 16px;
-    }
-    .ser-btn {
-        position: absolute;
-        margin-top: 10px;
-        margin-left: 41%;
-        background: url(../imgs/search-icon.png) no-repeat;
-        width: 15px;
-        height: 17px;
-        cursor: pointer;
-    }
-    .search-result {
-        width: 80%;
-        margin: auto;
-    }
-    .item .title{
-        color: red;
-        margin-top: 20px;
-    }
-    .item .content{
-        font-size: 16px;
-    }
+  .search-input {
+    width: 50%;
+    margin: auto;
+    margin-top: 100px;
+  }
+
+  .search-input input {
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .ser-btn {
+    position: absolute;
+    margin-top: 10px;
+    margin-left: 41%;
+    background: url(../imgs/search-icon.png) no-repeat;
+    width: 15px;
+    height: 17px;
+    cursor: pointer;
+  }
+
+  .search-result {
+    width: 80%;
+    margin: auto;
+  }
+
+  .item .title {
+    color: red;
+    margin-top: 20px;
+  }
+
+  .item .content {
+    font-size: 16px;
+  }
 
 
 </style>
 
 <body>
 <div class="app-main">
-    <div class="main">
-        <div class="main-content">
+  <div class="main">
+    <div class="main-content">
 
-            <div class="search-input" style="margin-top: {{50 if matches else 200}}px;">
-                <i class="ser-btn"></i>
-                <input type="text" class="form-control" id="search-input" placeholder="请输入页码或文本" value="{{q}}">
-            </div>
+      <div class="search-input" style="margin-top: {{50 if matches else 200}}px;">
+        <i class="ser-btn"></i>
+        <input type="text" class="form-control" id="search-input" placeholder="请输入页码或文本" value="{{q}}">
+      </div>
 
-            <div class="search-result">
-
-                {% for item in matches %}
-                <div class="item">
-                    <div class="title">{{item['_source']['page_code']}}</div>
-                    <div class="content">{{''.join(item['_source']['rows'])}}</div>
-                </div>
-                {% end %}
-
-            </div>
-
+      <div class="search-result">
+        {% for item in matches %}
+        <div class="item">
+          <div class="title">{{item['_source']['page_code']}}</div>
+          <div class="content">{{''.join(item['_source']['rows'])}}</div>
         </div>
+        {% end %}
+      </div>
+
     </div>
+  </div>
 </div>
 
 {% include _base_js.html %}
 
 <!-- CUSTOM JS -->
 <script type="text/javascript">
-    <!--搜索-->
-    $('#search-input').on("keydown", function(event){
-    	var keyCode = event.keyCode || event.which;
-    	if(keyCode == "13"){
-    	    var q = $(this).val().trim();
-    	    var url = q=='' ? "{{current_url}}" : "{{current_url}}?q="+q;
-    		window.location = url;
-    	}
-    });
-
+  <!--搜索-->
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+      window.location = url;
+    }
+  });
 </script>
 
-
 </body>
-
 </html>

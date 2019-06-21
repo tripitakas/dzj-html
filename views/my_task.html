@@ -2,112 +2,113 @@
 {% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>我的任务-{{task_name}}</title>
-    {% include _base_meta.html %}
+  <meta charset="UTF-8">
+  <title>我的任务-{{task_name}}</title>
+  {% include _base_meta.html %}
 
-    <!-- DataTables -->
-    <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
-    <!-- Custom Files -->
-    <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-    <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-    {% include _base_css.html %}
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
 
 </head>
 
 
 <body>
 <div class="app-main">
-    <div class="main">
-        <!--公共左侧导航栏 -->
-        {% module CommonLeft(title="task_history", sub="task-cut") %}
-        <div class="main-content">
-            <!--公共头部 -->
-            {% module CommonHead() %}
-            <div class="single-page-con">
-                <div class="layout">
-                    <div class="layout-content">
-                        <div class="collate-history">
-                            <div class="wrapper">
-                                <div class="collate-list">
-                                    <div class="search fr">
-                                        <input id="search-name" type="text" placeholder="搜索">
-                                        <i class="ser-btn"></i>
-                                    </div>
-                                    <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
-                                        <thead>
-                                        <tr>
-                                            <th><span>页编码</span></th>
-                                            <th><span>任务状态</span></th>
-                                            <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
-                                                领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
-                                            </span></th>
-                                            <th><span>完成时间</span></th>
-                                            <th><span>操作</span></th>
-                                        </tr>
-                                        </thead>
+  <div class="main">
+    <!--公共左侧导航栏 -->
+    {% module CommonLeft(title="task_history", sub="task-cut") %}
+    <div class="main-content">
+      <!--公共头部 -->
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="search fr">
+                    <input id="search-name" type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                    <thead>
+                    <tr>
+                      <th><span>页编码</span></th>
+                      <th><span>任务状态</span></th>
+                      <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+                        领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+                      </span></th>
+                      <th><span>完成时间</span></th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
 
-                                        <tbody>
-                                        {% for t in tasks %}
-                                        <tr>
-                                            {% set _task_type = '%s.%s' % (task_type, t['my_sub_task']) if 'my_sub_task' in t else task_type %}
-                                            <td>{{t['name']}}</td>
-                                            <td>{{th.task_statuses.get(th.get_obj_property(t, '%s.status' % _task_type))}}</td>
-                                            <td>{{to_date_str(th.get_obj_property(t, '%s.picked_time' % _task_type))}}</td>
-                                            <td>{{to_date_str(th.get_obj_property(t, '%s.finished_time' % _task_type))}}</td>
-                                            <td>
-                                                <a class="view" href="/task/do/{{_task_type}}/{{t['name']}}">查看</a>
-                                            </td>
-                                        </tr>
+                    <tbody>
+                    {% for t in tasks %}
+                    <tr>
+                      {% set _task_type = '%s.%s' % (task_type, t['my_sub_task']) if 'my_sub_task' in t else task_type %}
+                      <td>{{t['name']}}</td>
+                      <td>{{th.task_statuses.get(th.get_obj_property(t, '%s.status' % _task_type))}}</td>
+                      <td>{{to_date_str(th.get_obj_property(t, '%s.picked_time' % _task_type))}}</td>
+                      <td>{{to_date_str(th.get_obj_property(t, '%s.finished_time' % _task_type))}}</td>
+                      <td>
+                        <a class="view" href="/task/do/{{_task_type}}/{{t['name']}}">查看</a>
+                      </td>
+                    </tr>
 
-                                        {% end %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                {% module Pager(pager) %}
-                            </div>
-                        </div>
-                    </div>
+                    {% end %}
+                    </tbody>
+                  </table>
                 </div>
+                {% module Pager(pager) %}
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>
+
 {% include _base_js.html %}
 <script type="text/javascript">
-    <!--获取url参数-->
-    function getUrlParam(name) {
-       var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-       var r = window.location.search.substr(1).match(reg);
-       return r != null ? unescape(r[2]) : null;
+  // 获取url参数
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    return r != null ? unescape(r[2]) : null;
+  }
+
+  // 按领取时间排序
+  $("#picked_time.sort").click(function () {
+    var order = getUrlParam('order');
+    if (order && order == '-picked_time')
+      order = 'picked_time';
+    else
+      order = '-picked_time';
+    window.location = "{{current_url}}?order=" + order;
+  });
+
+  // 搜索
+  $('#search-name').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+      window.location = url;
     }
-
-    <!--按领取时间排序-->
-    $("#picked_time.sort").click(function(){
-    	var order = getUrlParam('order');
-        if (order && order == '-picked_time')
-            order = 'picked_time';
-        else
-            order = '-picked_time';
-    	window.location = "{{current_url}}?order="+order;
-    });
-
-    <!--搜索-->
-    $('#search-name').on("keydown", function(event){
-    	var keyCode = event.keyCode || event.which;
-    	if(keyCode == "13"){
-    	    var q = $(this).val().trim();
-    	    var url = q=='' ? "{{current_url}}" : "{{current_url}}?q="+q;
-    		window.location = url;
-    	}
-    });
+  });
 
 </script>
 
