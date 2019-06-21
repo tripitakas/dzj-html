@@ -507,3 +507,28 @@ $(document).on('click', '.btn-txt', function () {
 $(document).on('click', '.btn-help', function () {
     window.open('/task/do/proofread/help', '_blank');
 });
+// 存疑对话框
+$(document).on('click', '.btn-doubt', function () {
+    var word = window.getSelection().toString();
+    if(word.length<=0){
+        return showError('请先选择存疑文字', '');
+    }
+    //return showError('请先选择存疑文字', '');
+    $('#doubtModal').modal();
+    $('#doubt_input').val(word);
+});
+// 存疑提交
+$(document).on('click', '#doubt_save_btn', function () {
+
+    var rows = $(".char-list-table").find("tr").length ;
+    var txt = $('#doubt_input').val().trim();
+    var reason = $('#doubt_reason').val().trim();
+    $('.char-list-table').append("<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='./imgs/del_icon.png')></td></tr>");
+    $('#doubtModal').modal('hide');
+
+});
+//关闭对话框时，输入框内容置空
+$('#doubtModal').on('hide.bs.modal', function () {
+  $('#doubt_input').val('');
+  $('#doubt_reason').val('');
+})
