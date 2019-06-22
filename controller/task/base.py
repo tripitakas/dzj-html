@@ -66,10 +66,10 @@ class TaskHandler(BaseHandler):
     MAX_RECORDS = 10000
 
     @classmethod
-    def get_sub_tasks(cls, task_type):
-        task = cls.prop(cls.task_types, task_type)
-        if task and 'sub_task_types' in task:
-            return list(task['sub_task_types'].keys())
+    def all_types(cls):
+        all_types = {'text_proof': '文字校对'}
+        all_types.update(cls.task_types)
+        return all_types
 
     @classmethod
     def prop(cls, obj, key):
@@ -78,100 +78,43 @@ class TaskHandler(BaseHandler):
         return obj
 
     @classmethod
-    def all_task_types(cls):
-        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
-        types = []
-        for k, v in cls.task_types.items():
-            types.append(k)
-            if 'sub_task_types' in v:
-                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
-        return types
-
-    @classmethod
-    def task_type_names(cls):
-        type_names = {}
-        for k, v in cls.task_types.items():
-            type_names[k] = v['name']
-            if 'sub_task_types' in v:
-                for k1, v1 in v['sub_task_types'].items():
-                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
-        return type_names
-
-    @classmethod
-    def cut_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'cut_' in k}
-
-    @classmethod
-    def text_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'text_' in k}
-
-    @classmethod
-    def post_tasks(cls):
-        """ 后置任务类型 """
-        post_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                post_types.update({t: task_type for t in v['pre_tasks']})
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
-        return post_types
-
-    @classmethod
-    def pre_tasks(cls):
-        """ 前置任务类型 """
-
-        def recursion(cur):
-            """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
-            for k in pre_types.get(cur, [])[:]:
-                pre_types[cur].extend(recursion(k))
-            return pre_types.get(cur, [])
-
-        pre_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                pre_types[task_type] = v['pre_tasks']
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        pre_types[task_type + '.' + sub_type] = v['pre_tasks']
-        for task_type in pre_types:
-            recursion(task_type)
-        return pre_types
-
-    @classmethod
     def simple_fileds(cls):
-        fields = {'name': 1, 'tasks': 1}
-        # fields.update({'tasks.text_proof_%s.%s' % (i, typ): 0 for i in [1, 2, 3] for typ in ['cmp', 'result']})
-        return fields
+        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
+        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
+        return {prop: 0 for prop in exclude}
+
+    @classmethod
+    def select_text_proof(cls, page):
+        """从已发布的文字校对任务中，选择优先级最高的任务"""
+        text_proof, priority = '', -1
+        for i in range(1, 4):
+            s = cls.prop(page, 'tasks.text_proof_%s.status' % i)
+            p = cls.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
+            if s == cls.STATUS_OPENED and p > priority:
+                text_proof, priority = 'text_proof_%s' % i, p
+        return text_proof
 
     def get_lobby_tasks_by_type(self, task_type, page_size=0):
         """获取任务大厅/任务列表，按优先级排序后随机获取"""
 
         def get_priority(page):
-            if task_type == 'text_proof':
-                priority = max([
-                    self.prop(page, 'tasks.text_proof_%s.priority' % i) for i in [1, 2, 3]
-                    if self.prop(page, 'tasks.text_proof_%s.status' % i) == self.STATUS_OPENED
-                ])
-            else:
-                priority = self.prop(page, 'tasks.%s.priority' % task_type)
+            t = self.select_text_proof(page) if task_type == 'text_proof' else task_type
+            priority = self.prop(page, 'tasks.%s.priority' % t) or 0
             return priority
 
-        if task_type not in self.task_types.keys() and task_type != 'text_proof':
+        if task_type not in self.all_types():
             return [], 0
         if task_type == 'text_proof':
-            condition = {'$or': [{'text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
-            condition.update({'text_proof_%s.picked_by' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]})
+            condition = {'$or': [{'tasks.text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
+            condition.update(
+                {'tasks.text_proof_%s.picked_by' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]})
         else:
-            condition = {'%s.status' % task_type: self.STATUS_OPENED}
+            condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
         total_count = self.db.page.count_documents(condition)
         pages = list(self.db.page.find(condition, self.simple_fileds()))
         random.shuffle(pages)
         pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)))
+        page_size = page_size or self.config['pager']['page_size']
         return pages[:page_size], total_count
 
     def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
@@ -268,3 +211,74 @@ class TaskHandler(BaseHandler):
                 name = task['name']
                 self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
                 result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), name)
+
+    @classmethod
+    def get_sub_tasks(cls, task_type):
+        task = cls.prop(cls.task_types, task_type)
+        if task and 'sub_task_types' in task:
+            return list(task['sub_task_types'].keys())
+
+    @classmethod
+    def all_task_types(cls):
+        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
+        types = []
+        for k, v in cls.task_types.items():
+            types.append(k)
+            if 'sub_task_types' in v:
+                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
+        return types
+
+    @classmethod
+    def task_type_names(cls):
+        type_names = {}
+        for k, v in cls.task_types.items():
+            type_names[k] = v['name']
+            if 'sub_task_types' in v:
+                for k1, v1 in v['sub_task_types'].items():
+                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
+        return type_names
+
+    @classmethod
+    def cut_task_names(cls):
+        task_type_names = cls.task_type_names()
+        return {k: v for k, v in task_type_names.items() if 'cut_' in k}
+
+    @classmethod
+    def text_task_names(cls):
+        task_type_names = cls.task_type_names()
+        return {k: v for k, v in task_type_names.items() if 'text_' in k}
+
+    @classmethod
+    def post_tasks(cls):
+        """ 后置任务类型 """
+        post_types = {}
+        for task_type, v in cls.task_types.items():
+            if 'pre_tasks' in v:
+                post_types.update({t: task_type for t in v['pre_tasks']})
+            elif 'sub_task_types' in v:
+                for sub_type, sub_v in v['sub_task_types'].items():
+                    if 'pre_tasks' in sub_v:
+                        post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
+        return post_types
+
+    @classmethod
+    def pre_tasks(cls):
+        """ 前置任务类型 """
+
+        def recursion(cur):
+            """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
+            for k in pre_types.get(cur, [])[:]:
+                pre_types[cur].extend(recursion(k))
+            return pre_types.get(cur, [])
+
+        pre_types = {}
+        for task_type, v in cls.task_types.items():
+            if 'pre_tasks' in v:
+                pre_types[task_type] = v['pre_tasks']
+            elif 'sub_task_types' in v:
+                for sub_type, sub_v in v['sub_task_types'].items():
+                    if 'pre_tasks' in sub_v:
+                        pre_types[task_type + '.' + sub_type] = v['pre_tasks']
+        for task_type in pre_types:
+            recursion(task_type)
+        return pre_types

@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务管理-{{th.task_types.get(task_type)}}</title>
+  <title>任务管理-{{th.all_types().get(task_type)}}</title>
   {% include _base_meta.html %}
   <!-- DataTables -->
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
