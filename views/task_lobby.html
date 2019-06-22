@@ -44,7 +44,7 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="lobby-tips fr">大厅里总共有 {{total_count}} 条任务</div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                  <table class="sty_table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
                       <th><span>页编码</span></th>
@@ -66,7 +66,7 @@
                     <tr id="{{t['name']}}">
                       <td>{{t['name']}}</td>
                       <td>{{th.priorities.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
-                      <td><a href = "/task/pick/{{th.select_text_proof(t) if task_type == 'text_proof' else task_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
+                      <td><a class="pick-task" href = "/task/pick/{{select_lobby_text_proof(t) if task_type == 'text_proof' else task_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
                     </tr>
                     {% end %}
                     </tbody>
@@ -82,17 +82,19 @@
 </div>
 
 {% include _base_js.html %}
+
 {% import controller.errors as e %}
 <script type="text/javascript">
 	// 领取任务
-	function pick(url) {
+  $('.pick-task').on("click", function (e) {
+    e.stopPropagation();
 		getApi(
-		  url, 
+		  $(this).attr('href'),
 		  function (data) {
 		    if (data && data.url) {
 		      window.location = data.url
 		    }
-		  }, 
+		  },
 		  function (data) {
 		    if (data.code == {{e.task_uncompleted[0]}}) {
 		      swal({
@@ -106,7 +108,7 @@
 		        closeOnConfirm: false
 		        },
 		        function() {
-		  		  window.location = data.url;
+		  		    window.location = data.url;
 		        }
 		      );
 			  } else if (data.code == {{e.task_changed[0]}}) {
@@ -136,7 +138,9 @@
 			  }
 		  }
     );
-	}
+
+		return false;
+	});
 </script>
 
 </body>

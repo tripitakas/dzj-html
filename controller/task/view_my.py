@@ -13,25 +13,16 @@ class MyTaskHandler(TaskHandler):
 
     def get(self, task_type):
         """ 我的任务 """
-        def set_sub_task(tasks):
-            for t in tasks:
-                for i in ['1', '2', '3']:
-                    if t['text_proof'].get(i).get('picked_user_id') == objectid.ObjectId(self.current_user['_id']):
-                        t['my_sub_task'] = i
-                        continue
-
         try:
             q = self.get_query_argument('q', '').upper()
             order = self.get_query_argument('order', '')
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             tasks, total_count = self.get_my_tasks_by_type(
-               task_type=task_type, name=q, page_size=page_size, page_no=cur_page
+                task_type=task_type, name=q, page_size=page_size, page_no=cur_page
             )
-            if 'text_proof' in task_type:
-                set_sub_task(tasks)
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            task_name = self.task_types[task_type]['name']
-            self.render('my_task.html', tasks=tasks, task_type=task_type, task_name=task_name, pager=pager, order=order)
+            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
+                        select_my_text_proof=self.select_my_text_proof)
         except Exception as e:
-            self.send_db_error(e, render=True)
+            return self.send_db_error(e, render=True)

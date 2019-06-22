@@ -83,14 +83,13 @@ class TaskHandler(BaseHandler):
         exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
         return {prop: 0 for prop in exclude}
 
-    @classmethod
-    def select_text_proof(cls, page):
-        """从已发布的文字校对任务中，选择优先级最高的任务"""
+    def select_lobby_text_proof(self, page):
+        """从一个page中，选择已发布且优先级最高的文字校对任务"""
         text_proof, priority = '', -1
         for i in range(1, 4):
-            s = cls.prop(page, 'tasks.text_proof_%s.status' % i)
-            p = cls.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
-            if s == cls.STATUS_OPENED and p > priority:
+            s = self.prop(page, 'tasks.text_proof_%s.status' % i)
+            p = self.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
+            if s == self.STATUS_OPENED and p > priority:
                 text_proof, priority = 'text_proof_%s' % i, p
         return text_proof
 
@@ -98,7 +97,7 @@ class TaskHandler(BaseHandler):
         """获取任务大厅/任务列表，按优先级排序后随机获取"""
 
         def get_priority(page):
-            t = self.select_text_proof(page) if task_type == 'text_proof' else task_type
+            t = self.select_lobby_text_proof(page) if task_type == 'text_proof' else task_type
             priority = self.prop(page, 'tasks.%s.priority' % t) or 0
             return priority
 
@@ -117,15 +116,21 @@ class TaskHandler(BaseHandler):
         page_size = page_size or self.config['pager']['page_size']
         return pages[:page_size], total_count
 
+    def select_my_text_proof(self, page):
+        """从一个page中，选择我的文字校对任务"""
+        for i in range(1, 4):
+            if self.prop(page, 'tasks.text_proof_%s.picked_user_id' % i) == self.current_user['_id']:
+                return 'text_proof_%s' % i
+
     def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
         """获取我的任务/任务列表"""
         if task_type not in self.task_types.keys() and task_type != 'text_proof':
             return [], 0
 
         if task_type == 'text_proof':
-            condition = {'$or': [{'text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
+            condition = {'$or': [{'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
         else:
-            condition = {'%s.picked_user_id' % task_type: self.current_user['_id']}
+            condition = {'tasks.%s.picked_user_id' % task_type: self.current_user['_id']}
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
