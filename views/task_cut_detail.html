@@ -132,11 +132,7 @@
   // 显示各种类型字框数量
   function showHighLightCount() {
     $('.hl-btn > button').each(function (i, btn) {
-      if (i > 0 || {{
-        int(box_type != "char")
-      }
-    })
-      {
+      if (i > 0 || {{ int(box_type != "char") }}) {
         var type = btn.getAttribute('id').replace(/^.*-/, '');
         var boxes = $.cut.highlightBoxes(type, true);
         $(btn).find('.s-h-count').text(boxes.length);
