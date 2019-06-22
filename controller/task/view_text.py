@@ -83,11 +83,11 @@ class TextProofHandler(TaskHandler):
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
             CutDetailBaseHandler.char_render(self, p, task_type, **params)
             txt = p.get('ocr', p.get('txt')).replace('|', '\n')
-            cmp = self.get_obj_property(p, task_type + '.cmp')
+            cmp = self.prop(p, task_type + '.cmp')
             params['label'] = dict(cmp1='cmp')
             cmp_data = TextProofHandler.gen_segments(txt, p['chars'], params, cmp)
 
-            picked_user_id = self.get_obj_property(p, task_type + '.picked_user_id')
+            picked_user_id = self.prop(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
             self.render('text_proof.html', task_type=task_type, review=review,

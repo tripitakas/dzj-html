@@ -107,7 +107,7 @@ class PublishTasksBaseHandler(TaskHandler):
             for task_type, status in conditions.items():
                 assert type(status) in [str, list]
                 status = [status] if isinstance(status, str) else status
-                task_status = self.get_obj_property(page, '%s.status' % task_type)
+                task_status = self.prop(page, '%s.status' % task_type)
                 if equal:
                     satisfied[task_type] = True if task_status in status else False
                 else:

@@ -98,13 +98,13 @@ class UnlockTasksApi(TaskHandler):
         if not page:
             return self.send_error_response(errors.no_object)
         lock_name = 'lock_' + task_type.split('_')[0]
-        locked_type = self.get_obj_property(page, lock_name + '.task_type')
+        locked_type = self.prop(page, lock_name + '.task_type')
         if locked_type != task_type:
             from_exit = 'exit' in self.request.body_arguments
             if from_exit:
                 self.send_data_response([])
             return self.send_error_response(errors.task_changed, page_name=page['name'])
-        if self.get_obj_property(page, lock_name + '.picked_user_id') not in [self.current_user['_id'], None]:
+        if self.prop(page, lock_name + '.picked_user_id') not in [self.current_user['_id'], None]:
             return self.send_error_response(errors.task_locked, page_name=page['name'])
         self.get(task_type, prefix, returned=True)
 
@@ -117,7 +117,7 @@ class UnlockTasksApi(TaskHandler):
         fields = ['picked_user_id', 'picked_by', 'picked_time', 'finished_time']
 
         unset[lock_name] = None  # 删除锁定信息
-        if self.get_obj_property(page, lock_name + '.jump_from_task'):
+        if self.prop(page, lock_name + '.jump_from_task'):
             return
 
         if returned:
@@ -172,9 +172,9 @@ class PickTaskApi(TaskHandler):
                 return self.error_has_uncompleted(url, task_uncompleted)
 
             page = self.db.page.find_one({'name': name})
-            status = self.get_obj_property(page, task_status)
-            picked_by = self.get_obj_property(page, lock_name + '.picked_by')
-            picked_task_type = self.get_obj_property(page, lock_type)
+            status = self.prop(page, task_status)
+            picked_by = self.prop(page, lock_name + '.picked_by')
+            picked_task_type = self.prop(page, lock_type)
             jump_or_edit = jump_from_task or status in [self.STATUS_READY, self.STATUS_PENDING, self.STATUS_FINISHED]
 
             # 锁定任务
@@ -319,12 +319,12 @@ class SaveCutApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
 
-            status = self.get_obj_property(page, task_type + '.status')
+            status = self.prop(page, task_type + '.status')
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=page['name'])
 
             task_user = task_type + '.picked_user_id'
-            page_user = self.get_obj_property(page, task_user)
+            page_user = self.prop(page, task_user)
             if page_user != self.current_user['_id']:
                 return self.send_error_response(errors.task_locked, reason=page['name'])
 

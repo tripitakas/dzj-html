@@ -23,19 +23,19 @@ class SaveTextApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
 
-            status = self.get_obj_property(page, task_type + '.status')
+            status = self.prop(page, task_type + '.status')
             if status != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
 
             task_user = task_type + '.picked_user_id'
-            page_user = self.get_obj_property(page, task_user)
+            page_user = self.prop(page, task_user)
             if page_user != self.current_user['_id']:
                 return self.send_error_response(errors.task_locked, reason=name)
 
             result = dict(name=name)
             txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
             txt_field = task_type.replace('text_', 'text.')
-            old_txt = self.get_obj_property(page, txt_field) or page['txt']
+            old_txt = self.prop(page, txt_field) or page['txt']
             if txt and txt != old_txt:
                 assert isinstance(txt, str)
                 result['changed'] = True
