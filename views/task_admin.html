@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务管理-{{th.task_type_names().get(task_type)}}</title>
+  <title>任务管理-{{th.task_types.get(task_type)}}</title>
   {% include _base_meta.html %}
   <!-- DataTables -->
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
@@ -205,17 +205,17 @@
                     <tr id="{{t['name']}}">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
                       <td>{{t['name']}}</td>
-                      <td>{{th.task_types.get(task_type, {}).get('name','')}}</td>
-                      <td>{{th.task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
-                      <td>{{th.priorities.get(th.get_obj_property(t, task_type + '.priority')) or ''}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
-                      <td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
+                      <td>{{th.task_types.get(task_type)}}</td>
+                      <td>{{th.task_statuses.get(th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
+                      <td>{{th.priorities.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
+                      <td>{{th.prop(t, task_type + 'tasks.%s.picked_by' % task_type) or ''}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.picked_time' % task_type))}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
                       <td>
                         <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
-                        {% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
+                        {% if th.prop(t, task_type + '.status') in ['opened', 'picked', 'pending'] %}
                         <a class="withdraw" onclick=revoke('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>

@@ -23,21 +23,21 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-    """任务类型配置表"""
+    # 任务类型表
     task_types = {
-        'block_cut_proof': {'name': '切栏校对'},
-        'block_cut_review': {'name': '切栏审定'},
-        'column_cut_proof': {'name': '切列校对'},
-        'column_cut_review': {'name': '切列审定'},
-        'char_cut_proof': {'name': '切字校对'},
-        'char_cut_review': {'name': '切字审定'},
-        'char_order_proof': {'name': '字序校对'},
-        'char_order_review': {'name': '字序审定'},
-        'text_proof_1': {'name': '文字校一'},
-        'text_proof_2': {'name': '文字校二'},
-        'text_proof_3': {'name': '文字校三'},
-        'text_review': {'name': '文字审定'},
-        'text_hard': {'name': '难字处理'},
+        'block_cut_proof': '切栏校对',
+        'block_cut_review': '切栏审定',
+        'column_cut_proof': '切列校对',
+        'column_cut_review': '切列审定',
+        'char_cut_proof': '切字校对',
+        'char_cut_review': '切字审定',
+        'char_order_proof': '字序校对',
+        'char_order_review': '字序审定',
+        'text_proof_1': '文字校一',
+        'text_proof_2': '文字校二',
+        'text_proof_3': '文字校三',
+        'text_review': '文字审定',
+        'text_hard': '难字处理',
     }
 
     # 任务状态表
@@ -49,8 +49,12 @@ class TaskHandler(BaseHandler):
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
     task_statuses = {
-        STATUS_UNREADY: '数据未就绪', STATUS_READY: '数据已就绪', STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回',
+        STATUS_UNREADY: '数据未就绪',
+        STATUS_READY: '数据已就绪',
+        STATUS_OPENED: '已发布未领取',
+        STATUS_PENDING: '等待前置任务',
+        STATUS_PICKED: '进行中',
+        STATUS_RETURNED: '已退回',
         STATUS_FINISHED: '已完成',
     }
 
@@ -141,7 +145,7 @@ class TaskHandler(BaseHandler):
     @classmethod
     def simple_fileds(cls):
         fields = {'name': 1, 'tasks': 1}
-        fields.update({'tasks.text_proof_%s.%s' % (i, typ): 0 for i in [1, 2, 3] for typ in ['cmp', 'result']})
+        # fields.update({'tasks.text_proof_%s.%s' % (i, typ): 0 for i in [1, 2, 3] for typ in ['cmp', 'result']})
         return fields
 
     def get_lobby_tasks_by_type(self, task_type, page_size=0):
@@ -196,12 +200,12 @@ class TaskHandler(BaseHandler):
 
     def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
         """获取任务管理/任务列表"""
-        if task_type not in self.task_types.keys():
+        if task_type and task_type not in self.task_types.keys():
             return [], 0
 
         condition = dict()
         if task_type and type_status:
-            condition['task.%s.status' % task_type] = type_status
+            condition['tasks.%s.status' % task_type] = type_status
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 

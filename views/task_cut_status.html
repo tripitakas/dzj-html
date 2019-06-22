@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务管理-切分任务状态</title>
+  <title>任务管理-切分状态</title>
   {% include _base_meta.html %}
 
   <!-- DataTables -->
@@ -23,19 +23,19 @@
   <![endif]-->
 
   <style>
-    .collate-history .collate-list table tbody tr td.status_none {
+    .collate-history table tr td.status_none {
       color: #999;
     }
 
-    .collate-history .collate-list table tbody tr td.status_pending {
+    .collate-history table tr td.status_pending {
       color: #666;
     }
 
-    .collate-history .collate-list table tbody tr td.status_ended {
+    .collate-history table tr td.status_ended {
       color: #0f0;
     }
 
-    .collate-history .collate-list table tbody tr td.status_opened {
+    .collate-history table tr td.status_opened {
       color: #007;
     }
 
@@ -95,7 +95,9 @@
                       {% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
                       <td class="">
                         <a href="/task/{{item}}/{{t['name']}}">
-                          {{th.task_statuses.get(t.get(item, {}).get('status'), '')}}</a></td>
+                          {{th.task_statuses.get(th.prop(t, 'tasks.%s.status' % item))}}
+                        </a>
+                      </td>
                       {% end %}
                     </tr>
                     {% end %}

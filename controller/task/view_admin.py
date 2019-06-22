@@ -39,9 +39,8 @@ class TaskCutStatusHandler(TaskHandler):
             q = self.get_query_argument('q', '').upper()
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            fields = {i: 1 for i in self.all_task_types()}
             tasks, total_count = self.get_tasks_by_type(
-                task_type=task_type, type_status=status, fields=fields, name=q, page_size=page_size, page_no=cur_page
+                task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_cut_status.html', tasks=tasks, pager=pager)
@@ -61,9 +60,8 @@ class TaskTextStatusHandler(TaskHandler):
             q = self.get_query_argument('q', '').upper()
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            fields = {i: 1 for i in self.all_task_types()}
             tasks, total_count = self.get_tasks_by_type(
-                task_type=task_type, type_status=status, fields=fields, name=q, page_size=page_size, page_no=cur_page
+                task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_text_status.html', tasks=tasks, pager=pager)
