@@ -10,6 +10,14 @@ from controller.task.base import TaskHandler
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
+    # 默认前置任务，发布任务时供管理员参考
+    default_pre_tasks = {
+        'block_cut_review': ['block_cut_proof'],
+        'column_cut_review': ['column_cut_proof'],
+        'char_cut_review': ['column_cut_proof'],
+        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+    }
+
     def get(self, task_type):
         """ 任务管理 """
         try:
@@ -22,7 +30,8 @@ class TaskAdminHandler(TaskHandler):
                 task_type, type_status=status, order=order, name=q, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
+            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
+                        default_pre_tasks=self.default_pre_tasks)
         except Exception as e:
             return self.send_db_error(e, render=True)
 

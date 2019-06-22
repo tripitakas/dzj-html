@@ -15,7 +15,7 @@ class GetPageApi(TaskHandler):
     URL = '/api/task/page/@task_id'
 
     def get(self, name):
-        """ 获取单个页面数据 """
+        """ 获取单个页面 """
         try:
             page = self.db.page.find_one(dict(name=name))
             if not page:
@@ -25,31 +25,26 @@ class GetPageApi(TaskHandler):
             self.send_db_error(e)
 
 
-class GetPagesApi(TaskHandler):
-    URL = '/api/task/pages/@task_type'
+class GetReadyPagesApi(TaskHandler):
+    URL = '/api/task/ready_pages/@task_type'
 
     def post(self, task_type):
-        """ 获取已就绪的页面列表数据 """
-        assert task_type in self.all_task_types()
+        """ 获取已就绪的页面列表 """
+        assert task_type in self.task_types.keys()
         try:
-            task_status = self.STATUS_READY
             data = self.get_request_data()
-            condition = {}
-            page_prefix = data.get('page_prefix')
-            condition['name'] = {}
-            if page_prefix:
-                condition['name'].update({'$regex': '^%s.*' % page_prefix.upper()})
-            exclude_pages = data.get('exclude_pages')
-            if exclude_pages:
-                condition['name'].update({'$nin': exclude_pages})
+
+            condition = {'name': {}}
+            if data.get('prefix'):
+                condition['name'].update({'$regex': '^%s.*' % data.get('prefix').upper()})
+            if data.get('exclude'):
+                condition['name'].update({'$nin': data.get('exclude')})
             if not condition['name']:
                 del condition['name']
-            sub_tasks = self.get_sub_tasks(task_type)
-            if sub_tasks:
-                condition.update({'$or': [{'%s.%s.status' % (task_type, t): task_status} for t in sub_tasks]})
-            else:
-                condition.update({'%s.status' % task_type: task_status})
-            page_no = int(data['page']) if data.get('page') else 1
+
+            condition.update({'tasks.%s.status' % task_type: self.STATUS_READY})
+
+            page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
             count = self.db.page.find(condition, {'name': 1}).count()
             pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size*(page_no-1))

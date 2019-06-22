@@ -31,8 +31,6 @@ class TaskHandler(BaseHandler):
         'column_cut_review': '切列审定',
         'char_cut_proof': '切字校对',
         'char_cut_review': '切字审定',
-        'char_order_proof': '字序校对',
-        'char_order_review': '字序审定',
         'text_proof_1': '文字校一',
         'text_proof_2': '文字校二',
         'text_proof_3': '文字校三',
@@ -60,22 +58,19 @@ class TaskHandler(BaseHandler):
 
     priorities = {3: '高', 2: '中', 1: '低', '3': '高', '2': '中', '1': '低'}
 
-    MAX_PUBLISH_RECORDS = 250000  # 用户单次发布任务最大值
-    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
-    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
     MAX_RECORDS = 10000
-
-    @classmethod
-    def all_types(cls):
-        all_types = {'text_proof': '文字校对'}
-        all_types.update(cls.task_types)
-        return all_types
 
     @classmethod
     def prop(cls, obj, key):
         for s in key.split('.'):
             obj = obj.get(s) if isinstance(obj, dict) else None
         return obj
+
+    @classmethod
+    def all_types(cls):
+        all_types = {'text_proof': '文字校对'}
+        all_types.update(cls.task_types)
+        return all_types
 
     @classmethod
     def simple_fileds(cls):
@@ -128,7 +123,8 @@ class TaskHandler(BaseHandler):
             return [], 0
 
         if task_type == 'text_proof':
-            condition = {'$or': [{'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
+            condition = {
+                '$or': [{'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
         else:
             condition = {'tasks.%s.picked_user_id' % task_type: self.current_user['_id']}
         if name:

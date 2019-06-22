@@ -25,7 +25,7 @@ role_maps = {
     '单元测试用户': {
         'routes': {
             '/api/task/page/@task_id': ['GET'],
-            '/api/task/pages/@task_type': ['POST'],
+            '/api/task/ready_pages/@task_type': ['POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
@@ -176,7 +176,7 @@ role_maps = {
             '/task/admin/@task_type': ['GET'],
             '/task/admin/cut/status': ['GET'],
             '/task/admin/text/status': ['GET'],
-            '/api/task/pages/@task_type': ['POST'],
+            '/api/task/ready_pages/@task_type': ['POST'],
             '/api/task/publish': ['POST'],
             '/api/task/publish_file': ['POST'],
             '/api/task/unlock/@task_type/@page_prefix': ['GET'],
