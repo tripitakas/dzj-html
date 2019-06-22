@@ -16,38 +16,29 @@
 @time: 2019/3/11
 """
 
-from controller.base import BaseHandler
-from datetime import datetime
 import random
+from datetime import datetime
+from functools import cmp_to_key
+from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-    """
-    任务类型配置表。
-    @name 任务名称
-    @pre_tasks 前置任务列表
-    @sub_task_types 子任务列表
-    """
+    """任务类型配置表"""
     task_types = {
         'block_cut_proof': {'name': '切栏校对'},
-        'block_cut_review': {'name': '切栏审定', 'pre_tasks': ['block_cut_proof']},
+        'block_cut_review': {'name': '切栏审定'},
         'column_cut_proof': {'name': '切列校对'},
-        'column_cut_review': {'name': '切列审定', 'pre_tasks': ['column_cut_proof']},
+        'column_cut_review': {'name': '切列审定'},
         'char_cut_proof': {'name': '切字校对'},
-        'char_cut_review': {'name': '切字审定', 'pre_tasks': ['char_cut_proof']},
-        'char_order_proof': {'name': '字序校对', 'pre_tasks': ['char_cut_review']},
-        'char_order_review': {'name': '字序审定', 'pre_tasks': ['char_order_proof']},
-        'text_proof': {'name': '文字校对', 'sub_task_types': {
-            '1': {'name': '校一'}, '2': {'name': '校二'}, '3': {'name': '校三'},
-        }},
-        'text_review': {'name': '文字审定', 'pre_tasks': ['text_proof.1', 'text_proof.2', 'text_proof.3']},
-        'text_hard': {'name': '难字处理', 'pre_tasks': ['text_review']},
+        'char_cut_review': {'name': '切字审定'},
+        'char_order_proof': {'name': '字序校对'},
+        'char_order_review': {'name': '字序审定'},
+        'text_proof_1': {'name': '文字校一'},
+        'text_proof_2': {'name': '文字校二'},
+        'text_proof_3': {'name': '文字校三'},
+        'text_review': {'name': '文字审定'},
+        'text_hard': {'name': '难字处理'},
     }
-
-    MAX_PUBLISH_RECORDS = 250000  # 用户单次发布任务最大值
-    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
-    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
-    MAX_RECORDS = 10000
 
     # 任务状态表
     STATUS_UNREADY = 'unready'
@@ -59,22 +50,27 @@ class TaskHandler(BaseHandler):
     STATUS_FINISHED = 'finished'
     task_statuses = {
         STATUS_UNREADY: '数据未就绪', STATUS_READY: '数据已就绪', STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回', STATUS_FINISHED: '已完成',
+        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回',
+        STATUS_FINISHED: '已完成',
     }
 
     priorities = {3: '高', 2: '中', 1: '低', '3': '高', '2': '中', '1': '低'}
 
+    MAX_PUBLISH_RECORDS = 250000  # 用户单次发布任务最大值
+    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
+    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
+    MAX_RECORDS = 10000
+
     @classmethod
     def get_sub_tasks(cls, task_type):
-        task = cls.get_obj_property(cls.task_types, task_type)
+        task = cls.prop(cls.task_types, task_type)
         if task and 'sub_task_types' in task:
             return list(task['sub_task_types'].keys())
 
     @classmethod
-    def get_obj_property(cls, obj, key):
+    def prop(cls, obj, key):
         for s in key.split('.'):
             obj = obj.get(s) if isinstance(obj, dict) else None
-            # 子对象不存在就算不匹配，None
         return obj
 
     @classmethod
@@ -142,48 +138,51 @@ class TaskHandler(BaseHandler):
             recursion(task_type)
         return pre_types
 
-    def get_lobby_tasks_by_type(self, task_type, page_size=0, more_conditions=None):
-        """获取任务大厅任务列表，按优先级排序后随机获取"""
-        if task_type not in self.all_task_types():
-            return [], 0
+    @classmethod
+    def simple_fileds(cls):
+        fields = {'name': 1, 'tasks': 1}
+        fields.update({'tasks.text_proof_%s.%s' % (i, typ): 0 for i in [1, 2, 3] for typ in ['cmp', 'result']})
+        return fields
 
-        sub_tasks = self.get_sub_tasks(task_type)
-        if sub_tasks:
-            condition = {'$or': [{'%s.%s.status' % (task_type, s): self.STATUS_OPENED} for s in sub_tasks]}
+    def get_lobby_tasks_by_type(self, task_type, page_size=0):
+        """获取任务大厅/任务列表，按优先级排序后随机获取"""
+
+        def get_priority(page):
+            if task_type == 'text_proof':
+                priority = max([
+                    self.prop(page, 'tasks.text_proof_%s.priority' % i) for i in [1, 2, 3]
+                    if self.prop(page, 'tasks.text_proof_%s.status' % i) == self.STATUS_OPENED
+                ])
+            else:
+                priority = self.prop(page, 'tasks.%s.priority' % task_type)
+            return priority
+
+        if task_type not in self.task_types.keys() and task_type != 'text_proof':
+            return [], 0
+        if task_type == 'text_proof':
+            condition = {'$or': [{'text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
+            condition.update({'text_proof_%s.picked_by' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]})
         else:
             condition = {'%s.status' % task_type: self.STATUS_OPENED}
-
-        if more_conditions:
-            condition.update(more_conditions)
-
-        # 获取随机skip值
-        s = page_size or self.config['pager']['page_size']
-        t = '%s.%s' % (task_type, sub_tasks[0]) if sub_tasks else task_type
-        n = self.db.page.count_documents(condition)
-        n1 = self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 1})
-        n2 = n1 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 2})
-        n3 = n2 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 3})
-        rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
-        skip = random.randint(0, rand_end)
-
-        pages = self.db.page.find(condition, {'name': 1, task_type: 1}).sort("%s.priority" % t, -1).limit(s).skip(skip)
-        return list(pages), n
+        total_count = self.db.page.count_documents(condition)
+        pages = list(self.db.page.find(condition, self.simple_fileds()))
+        random.shuffle(pages)
+        pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)))
+        return pages[:page_size], total_count
 
     def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
-        """ 获取我的任务列表 """
-        if task_type not in self.all_task_types():
+        """获取我的任务/任务列表"""
+        if task_type not in self.task_types.keys() and task_type != 'text_proof':
             return [], 0
 
-        user_id = self.current_user['_id']
-        sub_types = self.get_sub_tasks(task_type)
-        if sub_types:
-            condition = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): user_id} for t in sub_types]}
+        if task_type == 'text_proof':
+            condition = {'$or': [{'text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
         else:
-            condition = {'%s.picked_user_id' % task_type: user_id}
-
+            condition = {'%s.picked_user_id' % task_type: self.current_user['_id']}
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
-        query = self.db.page.find(condition, {'name': 1, task_type: 1})
+
+        query = self.db.page.find(condition, self.simple_fileds())
         total_count = query.count()
 
         if order:
@@ -195,31 +194,18 @@ class TaskHandler(BaseHandler):
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
 
-    def get_tasks_by_type(self, task_type=None, type_status=None, order=None, name=None, fields=None, page_size=0,
-                          page_no=1):
-        """
-        根据task_type，task_status等参数，获取任务列表
-        :param task_type: str，任务类型。如text_proof、text_proof.1等
-        :param type_status: str或list，task_type对应的任务状态，或多个任务状态的列表
-        :param order: str，排序方式
-        :param name: str，页码
-        :return: 页面列表
-        """
-        assert type_status is None or type(type_status) in [str, list]
+    def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
+        """获取任务管理/任务列表"""
+        if task_type not in self.task_types.keys():
+            return [], 0
 
-        condition = {}
-        if task_type and type_status and task_type in self.all_task_types():
-            type_status = {"$in": type_status} if type(type_status) == list else type_status
-            sub_types = self.get_sub_tasks(task_type)
-            if sub_types:
-                condition = {'$or': [{'%s.%s.status' % (task_type, t): type_status} for t in sub_types]}
-            else:
-                condition = {'%s.status' % task_type: type_status}
-
+        condition = dict()
+        if task_type and type_status:
+            condition['task.%s.status' % task_type] = type_status
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
-        fields = {task_type: 1} if not fields else fields
-        query = self.db.page.find(condition, {'name': 1, **fields})
+
+        query = self.db.page.find(condition, self.simple_fileds())
         total_count = query.count()
 
         if order:
@@ -233,7 +219,7 @@ class TaskHandler(BaseHandler):
 
     def submit_task(self, result, data, page, task_type, pick_new_task=None):
         lock_name = 'lock_' + task_type.split('_')[0]
-        jump_from_task = self.get_obj_property(page, lock_name + '.jump_from_task')
+        jump_from_task = self.prop(page, lock_name + '.jump_from_task')
         cur_user = self.current_user['_id']
 
         r = self.db.page.update_one({'name': page['name'], lock_name + '.picked_user_id': cur_user},
@@ -259,7 +245,7 @@ class TaskHandler(BaseHandler):
             post_task = self.post_tasks().get(task_type)
             while post_task:
                 next_status = post_task + '.status'
-                status = self.get_obj_property(page, next_status)
+                status = self.prop(page, next_status)
                 if status:
                     r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
                                                 {'$set': {next_status: self.STATUS_OPENED}})
