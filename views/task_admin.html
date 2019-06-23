@@ -208,12 +208,11 @@
                     <tr>
                       <th><span><input type="checkbox" name="" id="check" value=""/></span></th>
                       <th><span>页编码</span></th>
-                      <th><span>类型</span></th>
                       <th><span>
 											    <div class="btn-group">
 												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态<span class="ion-android-sort "></span></span>
                             <ul class="dropdown-menu" role="menu">
-                            {% for k, v in th.task_statuses.items() %}
+                            {% for k, v in th.status_names.items() %}
                               <li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
@@ -222,6 +221,7 @@
                       <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">优先级
                         <span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
                       </span></th>
+                      <th><span>前置任务</span></th>
                       <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">发布时间
                         <span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                       </span></th>
@@ -237,9 +237,12 @@
                     <tr id="{{t['name']}}">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
                       <td>{{t['name']}}</td>
-                      <td>{{th.task_types.get(task_type)}}</td>
-                      <td>{{th.task_statuses.get(th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
-                      <td>{{th.priorities.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>{{th.status_names.get(th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
+                      <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>
+                        {% set pre_tasks = th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
+                        {{'/'.join([th.task_types.get(p) for p in pre_tasks])}}
+                      </td>
                       <td>{{to_date_str(th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
                       <td>{{to_date_str(th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
                       <td>{{th.prop(t, 'tasks.%s.picked_by' % task_type) or ''}}</td>

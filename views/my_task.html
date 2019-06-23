@@ -59,7 +59,7 @@
                     <tr>
                       {% set t = select_my_text_proof(task) if task_type == 'text_proof' else task_type %}
                       <td>{{task['name']}}</td>
-                      <td>{{th.task_statuses.get(th.prop(task, 'tasks.%s.status' % t))}}</td>
+                      <td>{{th.status_names.get(th.prop(task, 'tasks.%s.status' % t))}}</td>
                       <td>{{to_date_str(th.prop(task, 'tasks.%s.picked_time' % t))}}</td>
                       <td>{{to_date_str(th.prop(task, 'tasks.%s.finished_time' % t))}}</td>
                       <td>

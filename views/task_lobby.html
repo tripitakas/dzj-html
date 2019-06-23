@@ -65,7 +65,7 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}">
                       <td>{{t['name']}}</td>
-                      <td>{{th.priorities.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                       <td><a class="pick-task" href = "/task/pick/{{select_lobby_text_proof(t) if task_type == 'text_proof' else task_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
                     </tr>
                     {% end %}
