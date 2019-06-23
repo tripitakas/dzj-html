@@ -44,7 +44,7 @@ class TextArea(UIModule):
         cmp_names = dict(base='基准', cmp='外源', cmp1='校一', cmp2='校二', cmp3='校三')
         if raw:
             return dict(blocks=blocks, cmp_names=cmp_names)
-        return self.render_string('text_proof_area.html', blocks=blocks, cmp_names=cmp_names)
+        return self.render_string('task_text_area.html', blocks=blocks, cmp_names=cmp_names)
 
 
 class TextProofHandler(TaskHandler):
@@ -90,7 +90,7 @@ class TextProofHandler(TaskHandler):
             picked_user_id = self.prop(p, task_type + '.picked_user_id')
             from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
             home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
-            self.render('text_proof.html', task_type=task_type, review=review,
+            self.render('task_text_proof.html', task_type=task_type, review=review,
                         from_url=from_url, home_title=home_title,
                         origin_txt=re.split(r'[\n|]', txt.strip()),
                         cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
