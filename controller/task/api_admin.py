@@ -11,7 +11,37 @@ from controller.base import DbError
 from controller.task.base import TaskHandler
 
 
-class PublishTasksBaseHandler(TaskHandler):
+class GetReadyPagesApi(TaskHandler):
+    URL = '/api/task/ready_pages/@task_type'
+
+    def post(self, task_type):
+        """ 任务管理中，获取已就绪的页面列表 """
+        assert task_type in self.task_types.keys()
+        try:
+            data = self.get_request_data()
+
+            condition = {'name': {}}
+            if data.get('prefix'):
+                condition['name'].update({'$regex': '^%s.*' % data.get('prefix').upper()})
+            if data.get('exclude'):
+                condition['name'].update({'$nin': data.get('exclude')})
+            if not condition['name']:
+                del condition['name']
+
+            condition.update({'tasks.%s.status' % task_type: self.STATUS_READY})
+
+            page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
+            page_size = int(self.config['pager']['page_size'])
+            count = self.db.page.find(condition, {'name': 1}).count()
+            pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size * (page_no - 1))
+            pages = [p['name'] for p in pages]
+            response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
+            self.send_data_response(response)
+        except DbError as err:
+            self.send_db_error(err)
+
+
+class PublishTasksApi(TaskHandler):
 
     MAX_IN_FIND_RECORDS = 50000     # Mongodb单次in查询的最大值
     MAX_UPDATE_RECORDS = 10000      # Mongodb单次update的最大值
@@ -144,7 +174,7 @@ class PublishTasksBaseHandler(TaskHandler):
         return pages
 
 
-class PublishTasksApi(PublishTasksBaseHandler):
+class PublishTasksPageNamesApi(PublishTasksApi):
     URL = r'/api/task/publish'
 
     def post(self):
@@ -173,7 +203,7 @@ class PublishTasksApi(PublishTasksBaseHandler):
         self.send_data_response({k: v for k, v in log.items() if v})
 
 
-class PublishTasksFileApi(PublishTasksBaseHandler):
+class PublishTasksFileApi(PublishTasksApi):
     URL = r'/api/task/publish_file'
 
     def post(self):
@@ -193,7 +223,7 @@ class PublishTasksFileApi(PublishTasksBaseHandler):
         rules = [
             (v.not_empty, 'task_type', 'page_names'),
             (v.is_priority, 'priority'),
-            (v.in_list, 'task_type', self.all_task_types())
+            (v.in_list, 'task_type', self.task_types.key())
         ]
         err = v.validate(data, rules)
         if err:
@@ -211,3 +241,12 @@ class PublishTasksFileApi(PublishTasksBaseHandler):
         else:
             log = {t: self.publish_task(page_names, t, priority) for t in task_type}
         self.send_data_response({k: v for k, v in log.items() if v})
+
+
+class WithDrawTasksApi(TaskHandler):
+    URL = '/api/task/withdraw/@task_type'
+
+    def post(self, task_type):
+        """ 管理员批量撤回任务 """
+        page_names = self.get_request_data().get('page_names')
+        pass

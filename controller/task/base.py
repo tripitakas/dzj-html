@@ -62,9 +62,11 @@ class TaskHandler(BaseHandler):
     MAX_RECORDS = 10000
 
     # 数据锁授权机制。以下两种情况可以分配数据锁：
-    # 1.tasks，同一page的同阶（如block_cut_proor对blocks而言）以及高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
-    #   对数据进行编辑；
-    # 2.roles，专家角色对所拥有的数据进行编辑；
+    # 1.tasks。
+    #   同一page的同阶任务（如block_cut_proor对blocks而言），通过'/task/do/@task_type/@page_name'的方式修改数据。
+    #   同一page的高阶任务（如column_cut_proof/char_cut_proof对blocks而言），通过'/task/edit/@task_type/@page_name'的方式修改数据。
+    # 2.roles。
+    #   专家角色对所拥有的数据有修改权限，通过'/task/edit/@task_type/@page_name'的方式修改数据。
     data_lock_maps = {
         'blocks': {
             'tasks': [
@@ -104,6 +106,47 @@ class TaskHandler(BaseHandler):
         },
     }
 
+    @classmethod
+    def prop(cls, obj, key):
+        for s in key.split('.'):
+            obj = obj.get(s) if isinstance(obj, dict) else None
+        return obj
+
+    @classmethod
+    def all_types(cls):
+        all_types = {'text_proof': '文字校对'}
+        all_types.update(cls.task_types)
+        return all_types
+
+    @classmethod
+    def simple_fileds(cls):
+        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
+        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
+        return {prop: 0 for prop in exclude}
+
+    @classmethod
+    def get_data_type(cls, task_type):
+        """根据task_type获取data_type"""
+        data_type_maps = {
+            'block_cut_proof': 'blocks',
+            'block_cut_review': 'blocks',
+            'column_cut_proof': 'columns',
+            'column_cut_review': 'columns',
+            'char_cut_proof': 'chars',
+            'char_cut_review': 'chars',
+            'text_review': 'text',
+            'text_hard': 'text',
+        }
+        return data_type_maps.get(task_type)
+
+    @classmethod
+    def cut_task_names(cls):
+        return {k: v for k, v in cls.task_types.items() if 'cut_' in k}
+
+    @classmethod
+    def text_task_names(cls):
+        return {k: v for k, v in cls.task_types.items() if 'text_' in k}
+
     def prepare(self):
         super(TaskHandler, self).prepare()
 
@@ -112,7 +155,7 @@ class TaskHandler(BaseHandler):
         if match:
             task_type, page_name = match.group(1), match.group(2)
             if not self.is_my_task(page_name, task_type):   #
-                return self.send_error_response(errors.task_unauthorized)
+                return self.send_error_response(errors.unauthorized)
 
         # 针对'/task/edit'的get/post请求
         match = re.match(r'.*/task/edit/(%s)/(%s)' % (holder['data_type'], holder['page_name']), self.request.path)
@@ -172,6 +215,9 @@ class TaskHandler(BaseHandler):
 
         assert data_type in self.data_lock_maps
 
+        if self.has_data_lock(page_name, data_type):
+            return True
+
         # 检查是否有数据编辑对应的roles（有一个角色即可）
         roles = set(self.current_user['roles']) & set(self.data_lock_maps[data_type]['roles'])
         if roles:
@@ -187,30 +233,48 @@ class TaskHandler(BaseHandler):
                 return True if assign_lock(('tasks', tasks)) else self.send_error_response(errors.data_lock_failed)
             else:
                 return self.send_error_response(errors.data_is_locked)
+
         return self.send_error_response(errors.data_lock_failed)
 
     def release_data_lock(self, page_name, data_type):
-        """将page_name对应的page中，data_type对应的数据锁释放"""
-        if self.has_data_lock(page_name, data_type):
+        """ 将page_name对应的page中，data_type对应的数据锁释放
+        :param data_type 如果data_type为task_type类型，则计算其data_type
+        """
+        page_name, data_type = page_name.strip(), data_type.strip()
+        if data_type in self.task_types:
+            data_type = self.get_data_type(data_type)
+
+        if data_type and data_type in self.data_lock_maps and self.has_data_lock(page_name, data_type):
             self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': None}})
 
-    @classmethod
-    def prop(cls, obj, key):
-        for s in key.split('.'):
-            obj = obj.get(s) if isinstance(obj, dict) else None
-        return obj
+    def update_post_tasks(self, page_name, task_type):
+        """page_name对应的task_type任务完成的时候，更新后置任务的状态"""
+        def find_post_tasks():
+            post_tasks = []
+            for k, task in page.get('tasks'):
+                if task_type in task.get('pre_tasks'):
+                    post_tasks.append(k)
+            return post_tasks
 
-    @classmethod
-    def all_types(cls):
-        all_types = {'text_proof': '文字校对'}
-        all_types.update(cls.task_types)
-        return all_types
+        def pre_tasks_all_finished(task):
+            pre_tasks = self.prop(page, 'tasks.%s.pre_tasks' % task)
+            for pre_task in pre_tasks:
+                if self.STATUS_FINISHED != self.prop(page, 'tasks.%s.status' % pre_task):
+                    return False
+            return True
 
-    @classmethod
-    def simple_fileds(cls):
-        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
-        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
-        return {prop: 0 for prop in exclude}
+        page = self.db.page.find_one({
+            'name': page_name,
+            'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
+            'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+        })
+        if page:
+            update = {}
+            for t in find_post_tasks():
+                if self.prop(page, 'tasks.%s.status' % t) == self.STATUS_PENDING and pre_tasks_all_finished(t):
+                    update.update({'tasks.%s.status' % t: self.STATUS_OPENED})
+            if update:
+                self.db.page.update_one({'name': page_name}, {'$set': update})
 
     def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
         """获取任务管理/任务列表"""
@@ -234,122 +298,3 @@ class TaskHandler(BaseHandler):
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
-
-    def submit_task(self, result, data, page, task_type, pick_new_task=None):
-        lock_name = 'lock_' + task_type.split('_')[0]
-        jump_from_task = self.prop(page, lock_name + '.jump_from_task')
-        cur_user = self.current_user['_id']
-
-        r = self.db.page.update_one({'name': page['name'], lock_name + '.picked_user_id': cur_user},
-                                    {'$unset': {lock_name: None}})
-        if r.modified_count:
-            result['box_changed'] = True
-            result['submitted'] = True
-            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
-            if 'from_url' in data:
-                result['jump'] = data['from_url']
-        if not r.modified_count or jump_from_task:
-            return
-
-        end_info = {
-            task_type + '.status': self.STATUS_FINISHED,
-            task_type + '.finished_time': datetime.now(),
-            task_type + '.last_updated_time': datetime.now()
-        }
-        r = self.db.page.update_one({'name': page['name'], task_type + '.picked_user_id': cur_user},
-                                    {'$set': end_info})
-        if r.modified_count:
-            # 激活后置任务，没有相邻后置任务则继续往后激活任务
-            post_task = self.post_tasks().get(task_type)
-            while post_task:
-                next_status = post_task + '.status'
-                status = self.prop(page, next_status)
-                if status:
-                    r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
-                                                {'$set': {next_status: self.STATUS_OPENED}})
-                    if r.modified_count:
-                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
-                        result['resume_next'] = post_task
-                post_task = not status and self.post_tasks().get(post_task)
-
-            # 随机分配新任务
-            if pick_new_task:
-                task = pick_new_task(task_type)
-            else:
-                task = self.get_lobby_tasks_by_type(task_type, page_size=1)
-                task = task and task[0]
-            if task and 'name' in task:
-                name = task['name']
-                self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
-                result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), name)
-
-    @classmethod
-    def get_sub_tasks(cls, task_type):
-        task = cls.prop(cls.task_types, task_type)
-        if task and 'sub_task_types' in task:
-            return list(task['sub_task_types'].keys())
-
-    @classmethod
-    def all_task_types(cls):
-        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
-        types = []
-        for k, v in cls.task_types.items():
-            types.append(k)
-            if 'sub_task_types' in v:
-                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
-        return types
-
-    @classmethod
-    def task_type_names(cls):
-        type_names = {}
-        for k, v in cls.task_types.items():
-            type_names[k] = v['name']
-            if 'sub_task_types' in v:
-                for k1, v1 in v['sub_task_types'].items():
-                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
-        return type_names
-
-    @classmethod
-    def cut_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'cut_' in k}
-
-    @classmethod
-    def text_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'text_' in k}
-
-    @classmethod
-    def post_tasks(cls):
-        """ 后置任务类型 """
-        post_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                post_types.update({t: task_type for t in v['pre_tasks']})
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
-        return post_types
-
-    @classmethod
-    def pre_tasks(cls):
-        """ 前置任务类型 """
-
-        def recursion(cur):
-            """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
-            for k in pre_types.get(cur, [])[:]:
-                pre_types[cur].extend(recursion(k))
-            return pre_types.get(cur, [])
-
-        pre_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                pre_types[task_type] = v['pre_tasks']
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        pre_types[task_type + '.' + sub_type] = v['pre_tasks']
-        for task_type in pre_types:
-            recursion(task_type)
-        return pre_types

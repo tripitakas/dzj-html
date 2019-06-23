@@ -13,7 +13,7 @@ import re
 url_placeholder = {
     'task_type': r'[a-z0-9_.]+',
     'page_name': r'[A-Za-z0-9_]+',
-    'data_type': 'blocks|columns|chars|text|ocr',
+    'data_type': '[a-z0-9_.]+',
     'box_type': 'block|column|char',
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
