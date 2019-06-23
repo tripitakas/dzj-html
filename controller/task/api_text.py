@@ -25,7 +25,7 @@ class SaveTextApi(TaskHandler):
 
             status = self.prop(page, task_type + '.status')
             if status != self.STATUS_PICKED:
-                return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
+                return self.send_error_response(errors.task_changed, reason=self.status_names.get(status))
 
             task_user = task_type + '.picked_user_id'
             page_user = self.prop(page, task_user)

@@ -12,7 +12,7 @@ from controller.task.base import TaskHandler
 
 
 class GetPageApi(TaskHandler):
-    URL = '/api/task/page/@task_id'
+    URL = '/api/task/page/@page_name'
 
     def get(self, name):
         """ 获取单个页面 """
@@ -190,7 +190,7 @@ class PickTaskApi(TaskHandler):
             if not r.matched_count:
                 reason = '页面不存在' if not page else (
                     '已被 %s 领走(%s)' % (picked_by, picked_task_type) if picked_by
-                    else '任务状态为 ' + self.task_statuses[status])
+                    else '任务状态为 ' + self.status_names[status])
                 return self.error_picked_by_other_user(from_url, reason)
 
             # 在任务大厅领取任务，则改变任务状态
@@ -230,7 +230,7 @@ class PickTaskApi(TaskHandler):
 
 
 class PickCutProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/@box_type_cut_proof/@task_id'
+    URL = '/api/task/pick/@box_type_cut_proof/@page_name'
 
     def get(self, kind, name):
         """ 取切分校对任务 """
@@ -238,7 +238,7 @@ class PickCutProofTaskApi(PickTaskApi):
 
 
 class PickCutReviewTaskApi(PickTaskApi):
-    URL = '/api/task/pick/@box_type_cut_review/@task_id'
+    URL = '/api/task/pick/@box_type_cut_review/@page_name'
 
     def get(self, kind, name):
         """ 取切分审定任务 """
@@ -246,7 +246,7 @@ class PickCutReviewTaskApi(PickTaskApi):
 
 
 class PickTextProofTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_proof([.][123])?/@task_id'
+    URL = '/api/task/pick/text_proof([.][123])?/@page_name'
 
     def get(self, num, name):
         """ 取文字校对任务 """
@@ -288,7 +288,7 @@ class PickTextProofTaskApi(PickTaskApi):
 
 
 class PickTextReviewTaskApi(PickTaskApi):
-    URL = '/api/task/pick/text_review/@task_id'
+    URL = '/api/task/pick/text_review/@page_name'
 
     def get(self, name):
         """ 取文字审定任务 """

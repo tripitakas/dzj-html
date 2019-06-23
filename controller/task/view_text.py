@@ -48,7 +48,7 @@ class TextArea(UIModule):
 
 
 class TextProofHandler(TaskHandler):
-    URL = ['/task/text_proof.@num/@task_id', '/task/do/text_proof.@num/@task_id']
+    URL = ['/task/text_proof.@num/@page_name', '/task/do/text_proof.@num/@page_name']
 
     def get(self, proof_num, name=''):
         """ 进入文字校对页面 """
@@ -155,7 +155,7 @@ class TextProofHandler(TaskHandler):
 
 
 class TextReviewHandler(TaskHandler):
-    URL = ['/task/text_review/@task_id', '/task/do/text_review/@task_id']
+    URL = ['/task/text_review/@page_name', '/task/do/text_review/@page_name']
 
     def get(self, name=''):
         """ 进入文字审定页面 """

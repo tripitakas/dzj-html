@@ -99,7 +99,7 @@
 		    if (data.code == {{e.task_uncompleted[0]}}) {
 		      swal({
 		        title: "是否继续未完成的任务？",
-		        text: "您还有未完成的任务(" + data.uncompleted_name + ")，不能领取新任务！",
+		        text: "您还有未完成的任务" + data.uncompleted_name + "，不能领取新任务！",
 		        type: "warning",
 		        showCancelButton: true,
 		        confirmButtonColor: "#b8906f",
@@ -112,10 +112,10 @@
 		        }
 		      );
 			  } else if (data.code == {{e.task_changed[0]}}) {
-		      showError('没有领取新任务', data.message);
+		      showError('领取失败', data.message);
 		      setTimeout(function () {
 		        window.location.reload();
-		      }, 1500);
+		      },1500);
 			  } else if (data.code == {{e.task_locked[0]}} || data.code == {{e.task_picked[0]}}) {
 		      swal({
 		  		  title: "是否领取其它任务？",

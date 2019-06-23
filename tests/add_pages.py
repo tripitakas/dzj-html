@@ -85,18 +85,21 @@ def _add_range_pages(name, info, db, start, end, use_local_img):
             blocks=info.get('blocks', []),
             columns=info.get('columns', []),
             chars=info.get('chars', []),
+            text=None,
+            ocr=None,
+            tasks=None,
             create_time=datetime.now()
         )
         if use_local_img:
             meta['use_local_img'] = True
         # initialize task
         meta.update(dict(tasks={
-            'block_cut_proof': {'status': task.STATUS_READY},
-            'block_cut_review': {'status': task.STATUS_READY},
-            'column_cut_proof': {'status': task.STATUS_READY},
-            'column_cut_review': {'status': task.STATUS_READY},
-            'char_cut_proof': {'status': task.STATUS_READY},
-            'char_cut_review': {'status': task.STATUS_READY},
+            'block_cut_proof': {'status': task.STATUS_READY[0]},
+            'block_cut_review': {'status': task.STATUS_READY[0]},
+            'column_cut_proof': {'status': task.STATUS_READY[0]},
+            'column_cut_review': {'status': task.STATUS_READY[0]},
+            'char_cut_proof': {'status': task.STATUS_READY[0]},
+            'char_cut_review': {'status': task.STATUS_READY[0]},
         }))
         meta_list.append(meta)
     db.page.insert_many(meta_list)
@@ -130,12 +133,12 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
             meta['use_local_img'] = True
         # initialize task
         meta.update(dict(tasks={
-            'block_cut_proof': {'status': task.STATUS_READY},
-            'block_cut_review': {'status': task.STATUS_READY},
-            'column_cut_proof': {'status': task.STATUS_READY},
-            'column_cut_review': {'status': task.STATUS_READY},
-            'char_cut_proof': {'status': task.STATUS_READY},
-            'char_cut_review': {'status': task.STATUS_READY},
+            'block_cut_proof': {'status': task.STATUS_READY[0]},
+            'block_cut_review': {'status': task.STATUS_READY[0]},
+            'column_cut_proof': {'status': task.STATUS_READY[0]},
+            'column_cut_review': {'status': task.STATUS_READY[0]},
+            'char_cut_proof': {'status': task.STATUS_READY[0]},
+            'char_cut_review': {'status': task.STATUS_READY[0]},
         }))
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
@@ -161,10 +164,10 @@ def add_texts(src_path, pages, db):
                 meta = {
                     'ocr': text,
                     'text': '',
-                    'tasks.text_proof_1': {'status': task.STATUS_READY, 'cmp': cmp},
-                    'tasks.text_proof_2': {'status': task.STATUS_READY, 'cmp': cmp},
-                    'tasks.text_proof_3': {'status': task.STATUS_READY, 'cmp': cmp},
-                    'tasks.text_review': {'status': task.STATUS_READY}
+                    'tasks.text_proof_1': {'status': task.STATUS_READY[0], 'cmp': cmp},
+                    'tasks.text_proof_2': {'status': task.STATUS_READY[0], 'cmp': cmp},
+                    'tasks.text_proof_3': {'status': task.STATUS_READY[0], 'cmp': cmp},
+                    'tasks.text_review': {'status': task.STATUS_READY[0]}
                 }
                 db.page.update_many(cond, {'$set': meta})
 

@@ -58,7 +58,7 @@ class CutDetailBaseHandler(TaskHandler):
 
 
 class CutProofDetailHandler(CutDetailBaseHandler):
-    URL = ['/task/do/@box_type_cut_proof/@task_id', '/task/@box_type_cut_proof/@task_id']
+    URL = ['/task/do/@box_type_cut_proof/@page_name', '/task/@box_type_cut_proof/@page_name']
 
     def get(self, box_type, name):
         """ 进入切分校对页面 """
@@ -66,7 +66,7 @@ class CutProofDetailHandler(CutDetailBaseHandler):
 
 
 class CutReviewDetailHandler(CutDetailBaseHandler):
-    URL = ['/task/do/@box_type_cut_review/@task_id', '/task/@box_type_cut_review/@task_id']
+    URL = ['/task/do/@box_type_cut_review/@page_name', '/task/@box_type_cut_review/@page_name']
 
     def get(self, box_type, name):
         """ 进入切分审定页面 """
@@ -74,7 +74,7 @@ class CutReviewDetailHandler(CutDetailBaseHandler):
 
 
 class CharOrderProofHandler(CutDetailBaseHandler):
-    URL = ['/task/do/char_order_proof/@task_id', '/task/char_order_proof/@task_id']
+    URL = ['/task/do/char_order_proof/@page_name', '/task/char_order_proof/@page_name']
 
     def get(self, name):
         """ 进入字序校对页面 """
