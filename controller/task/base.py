@@ -172,9 +172,9 @@ class TaskHandler(BaseHandler):
     def is_my_task(self, page_name, task_type):
         """检查page_name对应的page中，task_type对应的任务是否分配给当前用户"""
         n = self.db.page.count_documents({
-            'name': page_name, 'tasks.%s.picked_by' % task_type: self.current_user['_id']
+            'name': page_name, 'tasks.%s.picked_user_id' % task_type: self.current_user['_id']
         })
-        return True if n > 0 else False
+        return n > 0
 
     def find_my_tasks(self, page_name):
         """检查page_name对应的page中，当前用户有哪些任务"""
