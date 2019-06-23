@@ -26,7 +26,7 @@ class TaskLobbyHandler(TaskHandler):
         """按优先级排序后随机获取任务大厅/任务列表"""
 
         def get_priority(page):
-            t = self.select_lobby_text_proof(self, page) if task_type == 'text_proof' else task_type
+            t = self.select_lobby_text_proof(page) if task_type == 'text_proof' else task_type
             priority = self.prop(page, 'tasks.%s.priority' % t) or 0
             return priority
 
@@ -46,12 +46,12 @@ class TaskLobbyHandler(TaskHandler):
         return pages[:page_size], total_count
 
     @staticmethod
-    def select_lobby_text_proof(self, page):
+    def select_lobby_text_proof(page):
         """从一个page中，选择已发布且优先级最高的文字校对任务"""
         text_proof, priority = '', -1
         for i in range(1, 4):
-            s = self.prop(page, 'tasks.text_proof_%s.status' % i)
-            p = self.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
-            if s == self.STATUS_OPENED and p > priority:
+            s = TaskHandler.prop(page, 'tasks.text_proof_%s.status' % i)
+            p = TaskHandler.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
+            if s == TaskHandler.STATUS_OPENED and p > priority:
                 text_proof, priority = 'text_proof_%s' % i, p
         return text_proof

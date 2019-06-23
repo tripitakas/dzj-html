@@ -26,6 +26,11 @@
       margin-bottom: 20px;
       color: #B8906F;
     }
+    .pick-task {
+      font-size: 12px;
+      margin-right: 10px;
+      color: #B8906F;
+    }
   </style>
 </head>
 
@@ -66,7 +71,8 @@
                     <tr id="{{t['name']}}">
                       <td>{{t['name']}}</td>
                       <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
-                      <td><a class="pick-task" href = "/task/pick/{{select_lobby_text_proof(t) if task_type == 'text_proof' else task_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
+                      {% set _type = select_lobby_text_proof(t) if task_type == 'text_proof' else task_type %}
+                      <td><div class="pick-task" title = "/task/pick/{{_type}}/{{t['name']}}" style="cursor:pointer">领取</div></td>
                     </tr>
                     {% end %}
                     </tbody>
@@ -85,14 +91,13 @@
 
 {% import controller.errors as e %}
 <script type="text/javascript">
-	// 领取任务
-  $('.pick-task').on("click", function (e) {
-    e.stopPropagation();
-		getApi(
-		  $(this).attr('href'),
+  function pick(url) {
+    getApi(
+		  url,
 		  function (data) {
+		    console.log(data);
 		    if (data && data.url) {
-		      window.location = data.url
+		      window.location = data.url;
 		    }
 		  },
 		  function (data) {
@@ -111,15 +116,10 @@
 		  		    window.location = data.url;
 		        }
 		      );
-			  } else if (data.code == {{e.task_changed[0]}}) {
-		      showError('领取失败', data.message);
-		      setTimeout(function () {
-		        window.location.reload();
-		      },1500);
-			  } else if (data.code == {{e.task_locked[0]}} || data.code == {{e.task_picked[0]}}) {
+			  } else {
 		      swal({
 		  		  title: "是否领取其它任务？",
-		  		  text: "当期任务已被领取！",
+		  		  text: "领取失败。",
 		  		  type: "warning",
 		  		  showCancelButton: true,
 		  		  confirmButtonColor: "#b8906f",
@@ -128,19 +128,24 @@
 		  		  closeOnConfirm: false
 		        },
 		        function() {
-              if (data.url) {
-                window.location = data.url;
-              } else {
-                window.location.reload();
-              }
+              pick_another();
 		        }
 				  );
 			  }
 		  }
     );
+  }
 
-		return false;
+  // 领取新任务
+  function pick_another() {
+    pick("/task/pick/{{task_type}}");
+  }
+
+	// 领取任务
+  $('.pick-task').on("click", function (e) {
+    pick($(this).attr('title'));
 	});
+
 </script>
 
 </body>

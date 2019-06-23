@@ -31,7 +31,9 @@ class PickTaskApi(TaskHandler):
                     return self.send_error_response(errors.task_none_to_pick)
                 else:
                     self.add_op_log('pick_' + task_type, context=task['name'])
-                    return self.send_data_response({'page_name': task['name']})
+                    task_type = Lobby.select_lobby_text_proof(task) if task_type == 'text_proof' else task_type
+                    url = '/task/do/%s/%s' % (task_type, task['name'])
+                    return self.send_data_response({'url': url})
 
             # 检查是否有未完成的任务
             task_uncompleted = self.db.page.find_one({
@@ -40,14 +42,16 @@ class PickTaskApi(TaskHandler):
             })
             if task_uncompleted and task_uncompleted['name'] != page_name:
                 message = '您还有未完成的任务(%s)，请完成后再领取新任务' % task_uncompleted['name']
+                url = '/task/do/%s/%s' % (task_type, task_uncompleted['name'])
                 return self.send_error_response(
-                    (errors.task_uncompleted[0], message), **{'page_name': task_uncompleted['name']}
+                    (errors.task_uncompleted[0], message),
+                    **{'uncompleted_name': task_uncompleted['name'], 'url': url}
                 )
 
             # 检查页面是否存在
             task = self.db.page.find_one({'name': page_name}, self.simple_fileds())
             if not task:
-                return self.send_error_response(errors.task_not_existed)
+                return self.send_error_response(errors.no_object)
 
             # 检查页面状态是否为已发布（如未就绪、未发布、已领取等等）
             if self.prop(task, 'tasks.%s.status' % task_type) != self.STATUS_OPENED:
@@ -65,23 +69,24 @@ class PickTaskApi(TaskHandler):
                         return self.send_error_response(errors.task_text_proof_duplicated)
 
             # 将任务和数据锁分配给用户
-            r = self.db.user.update_one({'name': page_name}, {'$set': {
-                'lock.%s' % data_type: {
+            task_field, lock_field = 'tasks.' + task_type, 'lock.' + data_type
+            r = self.db.page.update_one({'name': page_name}, {'$set': {
+                lock_field: {
                     "lock_type": ('tasks', task_type),
                     "locked_by": self.current_user['name'],
                     "locked_user_id": self.current_user['_id'],
                     "locked_time": datetime.now()
                 },
-                'tasks.%s' % task_type: {
-                    'picked_user_id': self.current_user['_id'],
-                    'picked_by': self.current_user['name'],
-                    'picked_time': datetime.now(),
-                    'updated_time': datetime.now(),
-                }
+                task_field + '.picked_user_id': self.current_user['_id'],
+                task_field + '.picked_by': self.current_user['name'],
+                task_field + '.status': self.STATUS_PICKED,
+                task_field + '.picked_time': datetime.now(),
+                task_field + '.updated_time': datetime.now(),
             }})
             if r.matched_count:
                 self.add_op_log('pick_' + task_type, context=page_name)
-                return self.send_data_response({'page_name': page_name})
+                url = '/task/do/%s/%s' % (task_type, page_name)
+                return self.send_data_response({'url': url})
 
         except DbError as e:
             self.send_db_error(e)
