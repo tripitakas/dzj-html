@@ -64,9 +64,9 @@ class TaskHandler(BaseHandler):
     # 数据锁授权机制。以下两种情况可以分配数据锁：
     # 1.tasks。
     #   同一page的同阶任务（如block_cut_proor对blocks而言），通过'/task/do/@task_type/@page_name'的方式修改数据。
-    #   同一page的高阶任务（如column_cut_proof/char_cut_proof对blocks而言），通过'/task/edit/@task_type/@page_name'的方式修改数据。
+    #   同一page的高阶任务（如column_cut_proof/char_cut_proof对blocks而言），通过'/task/edit/@data_type/@page_name'的方式修改数据。
     # 2.roles。
-    #   专家角色对所拥有的数据有修改权限，通过'/task/edit/@task_type/@page_name'的方式修改数据。
+    #   专家角色对所拥有的数据有修改权限，通过'/task/edit/@data_type/@page_name'的方式修改数据。
     data_lock_maps = {
         'blocks': {
             'tasks': [
@@ -190,14 +190,12 @@ class TaskHandler(BaseHandler):
         n = self.db.page.count_documents({
             'name': page_name, 'lock.%s.locked_user_id' % data_type: self.current_user['_id']
         })
-        return True if n > 0 else False
+        return n > 0
 
     def is_data_locked(self, page_name, data_type):
         """检查page_name对应的page中，data_type对应的数据是否已经被锁定"""
         page = self.db.page.find({'name': page_name}, self.simple_fileds())
-        if page and self.prop(page, 'lock.%s.locked_user_id' % data_type):
-            return True
-        return False
+        return self.prop(page, 'lock.%s.locked_user_id' % data_type) is not None
 
     def get_data_lock(self, page_name, data_type):
         """将page_name对应的page中，data_type对应的数据锁分配给当前用户"""
@@ -276,25 +274,3 @@ class TaskHandler(BaseHandler):
             if update:
                 self.db.page.update_one({'name': page_name}, {'$set': update})
 
-    def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
-        """获取任务管理/任务列表"""
-        if task_type and task_type not in self.task_types.keys():
-            return [], 0
-
-        condition = dict()
-        if task_type and type_status:
-            condition['tasks.%s.status' % task_type] = type_status
-        if name:
-            condition['name'] = {'$regex': '.*%s.*' % name}
-
-        query = self.db.page.find(condition, self.simple_fileds())
-        total_count = query.count()
-
-        if order:
-            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
-
-        page_size = page_size or self.config['pager']['page_size']
-        page_no = page_no if page_no >= 1 else 1
-        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages), total_count
