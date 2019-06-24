@@ -33,9 +33,17 @@ class MyTaskHandler(TaskHandler):
 
         if task_type == 'text_proof':
             condition = {
-                '$or': [{'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id']} for i in [1, 2, 3]]}
+                '$or': [{
+                    'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id'],
+                    'tasks.text_proof_%s.status' % i: {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]},
+                } for i in [1, 2, 3]]
+            }
         else:
-            condition = {'tasks.%s.picked_user_id' % task_type: self.current_user['_id']}
+            condition = {
+                'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
+                'tasks.%s.status' % task_type: {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]},
+            }
+
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
