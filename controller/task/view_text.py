@@ -4,13 +4,13 @@
 @time: 2019/5/13
 """
 import re
-from tornado.web import UIModule
 from controller import errors
 from operator import itemgetter
+from tornado.web import UIModule
 from controller.diff import Diff
-from controller.task.base import TaskHandler
 from tornado.escape import url_escape
-from controller.task.view_do import CutDetailBaseHandler
+from controller.task.base import TaskHandler
+from controller.task.view_do import CutBaseHandler
 
 
 class TextArea(UIModule):
@@ -81,7 +81,7 @@ class TextProofHandler(TaskHandler):
                 return self.render('_404.html')
 
             params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
-            CutDetailBaseHandler.char_render(self, p, task_type, **params)
+            CutBaseHandler.char_render(self, p, task_type, **params)
             txt = p.get('ocr', p.get('txt')).replace('|', '\n')
             cmp = self.prop(p, task_type + '.cmp')
             params['label'] = dict(cmp1='cmp')

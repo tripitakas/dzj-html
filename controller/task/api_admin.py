@@ -197,7 +197,7 @@ class PublishTasksPageNamesApi(PublishTasksApi):
 
         page_names = data['pages'].split(',') if data.get('pages') else []
         if len(page_names) > self.MAX_PUBLISH_RECORDS:
-            return self.send_error_response(e.task_exceed_max, message='任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
+            return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
         log = self.publish_task(page_names, data.get('task_type'), data.get('priority') or 1, data.get('pre_tasks'))
         self.send_data_response({k: v for k, v in log.items() if v})
@@ -234,7 +234,7 @@ class PublishTasksFileApi(PublishTasksApi):
         priority = data['priority']
 
         if len(page_names) > self.MAX_PUBLISH_RECORDS:
-            return self.send_error_response(e.task_exceed_max, message='任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
+            return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
         if len(task_type) == 1:
             log = self.publish_task(page_names, task_type[0], priority)

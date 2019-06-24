@@ -1327,6 +1327,12 @@ span.active a {
     z-index: 1000;
 }
 
+.m-header .tips {
+    color: red;
+    font-size: 14px;
+    font-style: italic;
+}
+
 .m-header .back {
     margin-left: 12px;
 }

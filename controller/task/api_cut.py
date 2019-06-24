@@ -55,9 +55,10 @@ class SaveCutProofApi(SaveCutApi):
 
     def post(self, kind, page_name):
         """ 保存或提交切分校对任务 """
-        self.save(kind + '_cut_proof')
+        self.save(kind + '_cut_proof', page_name)
         if self.get_request_data().get('submit'):
             Pick.pick(self, kind + '_cut_proof')
+        self.send_data_response()
 
 
 class SaveCutReviewApi(SaveCutApi):
@@ -65,6 +66,7 @@ class SaveCutReviewApi(SaveCutApi):
 
     def post(self, kind, page_name):
         """ 保存或提交切分审定任务 """
-        self.save(kind + '_cut_review')
+        self.save(kind + '_cut_review', page_name)
         if self.get_request_data().get('submit'):
             Pick.pick(self, kind + '_cut_review')
+        self.send_data_response()

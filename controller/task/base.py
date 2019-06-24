@@ -119,10 +119,11 @@ class TaskHandler(BaseHandler):
         return all_types
 
     @classmethod
-    def simple_fileds(cls):
+    def simple_fileds(cls, include=None):
         exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
         exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
-        return {prop: 0 for prop in exclude}
+        include = [] if include is None else include
+        return {prop: 0 for prop in set(exclude) - set(include)}
 
     @classmethod
     def get_data_type(cls, task_type):
@@ -147,46 +148,17 @@ class TaskHandler(BaseHandler):
     def text_task_names(cls):
         return {k: v for k, v in cls.task_types.items() if 'text_' in k}
 
-    def prepare(self):
-        super(TaskHandler, self).prepare()
-
-        # 针对'/task/do'的请求，检查本任务是否已分配给当前用户（在领取任务的时候已分配数据权限，因此不必检查数据权限）
-        match = re.match(r'.*/task/do/(%s)/(%s)' % (holder['task_type'], holder['page_name']), self.request.path)
-        if match:
-            task_type, page_name = match.group(1), match.group(2)
-            if not self.is_my_task(page_name, task_type):   #
-                return self.send_error_response(errors.unauthorized)
-
-        # 针对'/task/edit'的get/post请求
-        match = re.match(r'.*/task/edit/(%s)/(%s)' % (holder['data_type'], holder['page_name']), self.request.path)
-        if match:
-            if self.request.method == 'GET':    # 针对GET请求，将数据锁分配给当前用户
-                data_type, page_name = match.group(1), match.group(2)
-                return self.get_data_lock(page_name, data_type)
-
-            if self.request.method == 'POST':   # 针对POST请求，检查数据锁是否已分配给当前用户
-                data_type, page_name = match.group(1), match.group(2)
-                if not self.has_data_lock(page_name, data_type):
-                    return self.send_error_response(errors.data_unauthorized)
-
-    def is_my_task(self, page_name, task_type):
-        """检查page_name对应的page中，task_type对应的任务是否分配给当前用户"""
-        n = self.db.page.count_documents({
-            'name': page_name, 'tasks.%s.picked_user_id' % task_type: self.current_user['_id']
-        })
-        return n > 0
-
     def find_my_tasks(self, page_name):
-        """检查page_name对应的page中，当前用户有哪些任务"""
+        """ 检查page_name对应的page中，当前用户有哪些任务 """
         page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
         tasks = []
         for k, task in page['tasks'].items():
             if task.get('picked_by') == self.current_user['_id']:
                 tasks.append(k)
         return tasks
-    
+
     def has_data_lock(self, page_name, data_type):
-        """检查page_name对应的page中，当前用户是否拥有data_type对应的数据"""
+        """ 检查page_name对应的page中，当前用户是否拥有data_type对应的数据 """
         n = self.db.page.count_documents({
             'name': page_name, 'lock.%s.locked_user_id' % data_type: self.current_user['_id']
         })
@@ -198,7 +170,10 @@ class TaskHandler(BaseHandler):
         return self.prop(page, 'lock.%s.locked_user_id' % data_type) is not None
 
     def get_data_lock(self, page_name, data_type):
-        """将page_name对应的page中，data_type对应的数据锁分配给当前用户"""
+        """ 将page_name对应的page中，data_type对应的数据锁分配给当前用户
+            成功时返回True，失败时返回errors.xxx
+        """
+
         def assign_lock(lock_type):
             # lock_type指的是来自哪个任务或者哪个角色
             r = self.db.user.update_one({'name': page_name}, {'$set': {
@@ -220,37 +195,33 @@ class TaskHandler(BaseHandler):
         roles = set(self.current_user['roles']) & set(self.data_lock_maps[data_type]['roles'])
         if roles:
             if not self.is_data_locked(page_name, data_type):
-                return True if assign_lock(('roles', roles)) else self.send_error_response(errors.data_lock_failed)
+                return True if assign_lock(('roles', roles)) else errors.data_lock_failed
             else:
-                return self.send_error_response(errors.data_is_locked)
+                return errors.data_is_locked
+
         # 检查是否有同一page的同阶或高阶tasks
         my_tasks = self.find_my_tasks(page_name)
         tasks = set(my_tasks) & set(self.data_lock_maps[data_type]['tasks'])
         if tasks:
             if not self.is_data_locked(page_name, data_type):
-                return True if assign_lock(('tasks', tasks)) else self.send_error_response(errors.data_lock_failed)
+                return True if assign_lock(('tasks', tasks)) else errors.data_lock_failed
             else:
-                return self.send_error_response(errors.data_is_locked)
+                return errors.data_is_locked
 
-        return self.send_error_response(errors.data_lock_failed)
+        return errors.data_unauthorized
 
     def release_data_lock(self, page_name, data_type):
-        """ 将page_name对应的page中，data_type对应的数据锁释放
-        :param data_type 如果data_type为task_type类型，则计算其data_type
-        """
-        page_name, data_type = page_name.strip(), data_type.strip()
-        if data_type in self.task_types:
-            data_type = self.get_data_type(data_type)
-
+        """ 将page_name对应的page中，data_type对应的数据锁释放 """
         if data_type and data_type in self.data_lock_maps and self.has_data_lock(page_name, data_type):
             self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': None}})
 
     def update_post_tasks(self, page_name, task_type):
         """page_name对应的task_type任务完成的时候，更新后置任务的状态"""
+
         def find_post_tasks():
             post_tasks = []
-            for k, task in page.get('tasks'):
-                if task_type in task.get('pre_tasks'):
+            for k, task in page.get('tasks').items():
+                if task_type in task.get('pre_tasks', []):
                     post_tasks.append(k)
             return post_tasks
 
@@ -273,4 +244,3 @@ class TaskHandler(BaseHandler):
                     update.update({'tasks.%s.status' % t: self.STATUS_OPENED})
             if update:
                 self.db.page.update_one({'name': page_name}, {'$set': update})
-

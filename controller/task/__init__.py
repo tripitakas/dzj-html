@@ -3,7 +3,7 @@ from . import api_common, api_admin, api_text, api_cut, view_admin, view_do, vie
 views = [
     view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
     view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler, view_admin.TaskAdminHandler,
-    view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler, view_do.CharOrderProofHandler,
+    view_do.CutProofHandler, view_do.CutReviewHandler, view_do.CharOrderProofHandler, view_do.CutEditHandler,
     view_text.TextProofHandler, view_text.TextReviewHandler,
 
 ]
