@@ -15,12 +15,11 @@
     一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（page_name）
 @time: 2019/3/11
 """
-
-import re
+import random
+from functools import cmp_to_key
 from datetime import datetime
 import controller.errors as errors
 from controller.base import BaseHandler
-from controller.role import url_placeholder as holder
 
 
 class TaskHandler(BaseHandler):
@@ -120,9 +119,10 @@ class TaskHandler(BaseHandler):
 
     @classmethod
     def simple_fileds(cls, include=None):
+        """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
         exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
         exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
-        include = [] if include is None else include
+        include = [] if not include else include
         return {prop: 0 for prop in set(exclude) - set(include)}
 
     @classmethod
@@ -153,7 +153,7 @@ class TaskHandler(BaseHandler):
         page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
         tasks = []
         for k, task in page['tasks'].items():
-            if task.get('picked_by') == self.current_user['_id']:
+            if task.get('picked_user_id') == self.current_user['_id']:
                 tasks.append(k)
         return tasks
 
@@ -176,15 +176,15 @@ class TaskHandler(BaseHandler):
 
         def assign_lock(lock_type):
             # lock_type指的是来自哪个任务或者哪个角色
-            r = self.db.user.update_one({'name': page_name}, {'$set': {
+            r = self.db.page.update_one({'name': page_name}, {'$set': {
                 'lock.' + data_type: {
                     "lock_type": lock_type,
                     "locked_by": self.current_user['name'],
                     "locked_user_id": self.current_user['_id'],
-                    "locked_time": datetime.now()
+                    "locked_time": datetime.now(),
                 }
             }})
-            return True if r.matched_count > 0 else False
+            return r.matched_count > 0
 
         assert data_type in self.data_lock_maps
 
@@ -201,7 +201,7 @@ class TaskHandler(BaseHandler):
 
         # 检查是否有同一page的同阶或高阶tasks
         my_tasks = self.find_my_tasks(page_name)
-        tasks = set(my_tasks) & set(self.data_lock_maps[data_type]['tasks'])
+        tasks = list(set(my_tasks) & set(self.data_lock_maps[data_type]['tasks']))
         if tasks:
             if not self.is_data_locked(page_name, data_type):
                 return True if assign_lock(('tasks', tasks)) else errors.data_lock_failed
@@ -244,3 +244,102 @@ class TaskHandler(BaseHandler):
                     update.update({'tasks.%s.status' % t: self.STATUS_OPENED})
             if update:
                 self.db.page.update_one({'name': page_name}, {'$set': update})
+
+    def get_my_tasks_by_type(self, task_type, status=None, name=None, order=None, page_size=0, page_no=1):
+        """获取我的任务/任务列表"""
+        if task_type not in self.task_types.keys() and task_type != 'text_proof':
+            return [], 0
+
+        assert status is None or isinstance(status, list)
+
+        status = [self.STATUS_PICKED, self.STATUS_FINISHED] if not status else status
+        if task_type == 'text_proof':
+            condition = {
+                '$or': [{
+                    'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id'],
+                    'tasks.text_proof_%s.status' % i: {"$in": status},
+                } for i in [1, 2, 3]]
+            }
+        else:
+            condition = {
+                'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
+                'tasks.%s.status' % task_type: {"$in": status},
+            }
+
+        if name:
+            condition['name'] = {'$regex': '.*%s.*' % name}
+
+        query = self.db.page.find(condition, self.simple_fileds())
+        total_count = query.count()
+
+        if order:
+            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort("%s.%s" % (task_type, order), asc)
+
+        page_size = page_size or self.config['pager']['page_size']
+        page_no = page_no if page_no >= 1 else 1
+        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(pages), total_count
+
+    def select_my_text_proof(self, page):
+        """从一个page中，选择我的文字校对任务"""
+        for i in range(1, 4):
+            if self.prop(page, 'tasks.text_proof_%s.picked_user_id' % i) == self.current_user['_id']:
+                return 'text_proof_%s' % i
+
+    def get_lobby_tasks_by_type(self, task_type, page_size=0):
+        """按优先级排序后随机获取任务大厅/任务列表"""
+
+        def get_priority(page):
+            t = self.select_lobby_text_proof(page) if task_type == 'text_proof' else task_type
+            priority = self.prop(page, 'tasks.%s.priority' % t) or 0
+            return priority
+
+        if task_type not in self.all_types():
+            return [], 0
+        if task_type == 'text_proof':
+            condition = {'$or': [{'tasks.text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
+            condition.update(
+                {'tasks.text_proof_%s.picked_user_id' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]}
+            )
+        else:
+            condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
+        total_count = self.db.page.count_documents(condition)
+        pages = list(self.db.page.find(condition, self.simple_fileds()).limit(self.MAX_RECORDS))
+        random.shuffle(pages)
+        pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)))
+        page_size = page_size or self.config['pager']['page_size']
+        return pages[:page_size], total_count
+
+    def select_lobby_text_proof(self, page):
+        """从一个page中，选择已发布且优先级最高的文字校对任务"""
+        text_proof, priority = '', -1
+        for i in range(1, 4):
+            s = self.prop(page, 'tasks.text_proof_%s.status' % i)
+            p = self.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
+            if s == self.STATUS_OPENED and p > priority:
+                text_proof, priority = 'text_proof_%s' % i, p
+        return text_proof
+
+    def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
+        """获取任务管理/任务列表"""
+        if task_type and task_type not in self.task_types.keys():
+            return [], 0
+
+        condition = dict()
+        if task_type and type_status:
+            condition['tasks.%s.status' % task_type] = type_status
+        if name:
+            condition['name'] = {'$regex': '.*%s.*' % name}
+
+        query = self.db.page.find(condition, self.simple_fileds())
+        total_count = query.count()
+
+        if order:
+            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort("%s.%s" % (task_type, order), asc)
+
+        page_size = page_size or self.config['pager']['page_size']
+        page_no = page_no if page_no >= 1 else 1
+        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(pages), total_count

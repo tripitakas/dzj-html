@@ -30,62 +30,62 @@
     <div class="main-content">
 
       <div class="m-header">
-        <div class="left">
-          <div class="back">
-            <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('/task/lobby/{{task_type}}')"/>
+      <div class="left">
+        <div class="back">
+          <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('/task/lobby/{{task_type}}')"/>
+        </div>
+        <div class="m-header-title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
+        <div class="m-header-edit-btn">
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>
+          <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>
+        </div>
+        <div class="slice-btn-group">
+          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
+          <div class="btn-group hl-btn">
+            <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
+            {% if box_type == 'char' %}
+            <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
+            {% end %}
           </div>
-          <div class="m-header-title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-          <div class="m-header-edit-btn">
-            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
-            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
-            <img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>
-            <img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>
-          </div>
-          <div class="slice-btn-group">
-            <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
-            <div class="btn-group hl-btn">
-              <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
-              {% if box_type == 'char' %}
-              <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
-              {% end %}
+        </div>
+      </div><!--left-->
+      <div class="m-header-right">
+        <!--申请编辑但是只读（没有获得数据锁）时，进行提示-->
+        {% if mode in ['do', 'edit'] and readonly %}
+        <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
+        {% end %}
+        <div class="m-header-edit-btn">
+          <!--do/edit模式时，打开更多按钮-->
+          {% if mode in ['do', 'edit'] and box_type in ['column', 'char'] %}
+          <div class="more">
+            <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
+            {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
+            {% for type,text in more[box_type] %}
+            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
+            {% end %}
             </div>
+            <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
           </div>
-        </div><!--left-->
-        <div class="m-header-right">
-          <!--申请编辑但是只读（没有获得数据锁）时，进行提示-->
-          {% if mode in ['do', 'edit'] and readonly %}
-          <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
           {% end %}
-          <div class="m-header-edit-btn">
-            <!--do/edit模式时，打开更多按钮-->
-            {% if mode in ['do', 'edit'] and box_type in ['column', 'char'] %}
-            <div class="more">
-              <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
-                {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
-                {% for type,text in more[box_type] %}
-                <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
-                {% end %}
-              </div>
-              <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
-            </div>
-            {% end %}
-            <!--可写情况下，打开保存等按钮-->
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
-            <img src="{{ static_url('imgs/char_icon9.png') }}" id="submit" class="m-header-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/char_icon12.png') }}" id="return-task" class="m-header-img btn-return-back" title="退回"/>
-            {% end %}
-          </div>
-        </div><!--right-->
+          <!--可写情况下，打开保存等按钮-->
+          {% if not readonly %}
+          <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
+          <img src="{{ static_url('imgs/char_icon9.png') }}" id="submit" class="m-header-img btn-submit" title="提交"/>
+          <img src="{{ static_url('imgs/char_icon12.png') }}" id="return-task" class="m-header-img btn-return-back" title="退回"/>
+          {% end %}
+        </div>
+      </div><!--right-->
       </div>
 
       <div class="full-bd">
-        <!-- holder为显示切分框和页面图的画布容器 -->
-        <div id="holder"></div>
+      <!-- holder为显示切分框和页面图的画布容器 -->
+      <div id="holder"></div>
       </div>
 
     </div>
@@ -119,9 +119,9 @@
   // 更新Undo
   function updateUndo() {
     $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-        : "{{ static_url('imgs/icon_lr_not.png') }}");
+      : "{{ static_url('imgs/icon_lr_not.png') }}");
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-        : "{{ static_url('imgs/icon_rr_not.png') }}");
+      : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
 
   $('.btn-undo').click(function () {
@@ -138,9 +138,9 @@
   function showHighLightCount() {
     $('.hl-btn > button').each(function (i, btn) {
       if (i > 0 || {{ int(box_type != "char") }}) {
-        var type = btn.getAttribute('id').replace(/^.*-/, '');
-        var boxes = $.cut.highlightBoxes(type, true);
-        $(btn).find('.s-h-count').text(boxes.length);
+      var type = btn.getAttribute('id').replace(/^.*-/, '');
+      var boxes = $.cut.highlightBoxes(type, true);
+      $(btn).find('.s-h-count').text(boxes.length);
       }
     });
   }
@@ -179,33 +179,13 @@
     if (reason === 'removed' || reason === 'added' || reason === 'changed') {
       var type = $.cut.data.hlType;
       if (type) {
-        $.cut.clearHighlight();
-        $.cut.highlightBoxes(type, false, true);
+      $.cut.clearHighlight();
+      $.cut.highlightBoxes(type, false, true);
       }
     }
     showHighLightCount();
     updateUndo();
   });
-
-  // 退回任务
-  $('#return-task').click(function () {
-    postApi('/task/return/{{task_type}}/{{name}}', {}, function (res) {
-      console.log(res);
-      // if (res.data.length === 1 && res.data[0] === '{{name}}') {
-      // }
-    });
-  });
-
-  // edit模式下，离开时解锁
-  window.leave = function (url) {
-    if (mode == 'edit') {
-      getApi('/task/data/unlock/{{data_type}}/{{name}}', function () {
-        window.location = url;
-      });
-    } else {
-      window.location = url;
-    }
-  };
 
   // 更多操作
   $('.btn-ed-box').click(function () {
@@ -231,15 +211,15 @@
   function save(submit) {
     postApi('/task/do/{{task_type}}/{{name}}', {
       data: {
-        submit: submit,
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
+      submit: submit,
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
       }
-    }, function (res) {
+    }, function (data) {
       showSuccess('保存成功', '{{name}} ' + (submit ? '已提交成功。' : '已保存成功。'));
       setTimeout(function () {
-        if (res.url)
-          window.location = res.url;
+        if (data.url)
+          window.location = data.url;
         else
           window.location.reload();
       }, 1000);
@@ -248,6 +228,22 @@
 
   $('#save').click(save.bind(null, false));
   $('#submit').click(save.bind(null, true));
+
+
+  // 退回任务
+  $('#return-task').click(function () {
+    postApi('/task/return/{{task_type}}/{{name}}', {}, function (res) {
+      showSuccess('退回成功', '{{name}} ' + '已退回成功。');
+      setTimeout(function () {
+      window.location = '/task/lobby/{{task_type}}';
+      }, 1000);
+    });
+  });
+
+  // 离开
+  window.leave = function (url) {
+    window.location = url;
+  };
 
 </script>
 

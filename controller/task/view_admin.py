@@ -7,32 +7,7 @@
 from controller.task.base import TaskHandler
 
 
-class TaskAdminBaseHandler(TaskHandler):
-    def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
-        """获取任务管理/任务列表"""
-        if task_type and task_type not in self.task_types.keys():
-            return [], 0
-
-        condition = dict()
-        if task_type and type_status:
-            condition['tasks.%s.status' % task_type] = type_status
-        if name:
-            condition['name'] = {'$regex': '.*%s.*' % name}
-
-        query = self.db.page.find(condition, self.simple_fileds())
-        total_count = query.count()
-
-        if order:
-            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
-
-        page_size = page_size or self.config['pager']['page_size']
-        page_no = page_no if page_no >= 1 else 1
-        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages), total_count
-
-
-class TaskAdminHandler(TaskAdminBaseHandler):
+class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
     # 默认前置任务，发布任务时供管理员参考
@@ -61,7 +36,7 @@ class TaskAdminHandler(TaskAdminBaseHandler):
             return self.send_db_error(e, render=True)
 
 
-class TaskCutStatusHandler(TaskAdminBaseHandler):
+class TaskCutStatusHandler(TaskHandler):
     URL = '/task/admin/cut/status'
 
     def get(self):
@@ -82,7 +57,7 @@ class TaskCutStatusHandler(TaskAdminBaseHandler):
             self.send_db_error(e, render=True)
 
 
-class TaskTextStatusHandler(TaskAdminBaseHandler):
+class TaskTextStatusHandler(TaskHandler):
     URL = '/task/admin/text/status'
 
     def get(self):

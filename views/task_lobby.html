@@ -21,64 +21,64 @@
   <![endif]-->
 
   <style>
-    .lobby-tips {
-      font-size: 14px;
-      margin-bottom: 20px;
-      color: #B8906F;
-    }
+   .lobby-tips {
+    font-size: 14px;
+    margin-bottom: 20px;
+    color: #B8906F;
+   }
   </style>
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--公共左侧导航栏 -->
-    {% module CommonLeft(title="task-lobby", sub="task-lobby-cut") %}
-    <div class="main-content">
-      <!--公共头部 -->
-      {% module CommonHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="lobby-tips fr">大厅里总共有 {{total_count}} 条任务</div>
-                  <table class="sty_table" style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><span>页编码</span></th>
-                      <th>
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
-                          <ul class="dropdown-menu" role="menu">
-                            <li><a href="#" val="3">高</a></li>
-                            <li><a href="#" val="2">中</a></li>
-                            <li><a href="#" val="1">低</a></li>
-                          </ul>
-                        </div>
-                      </th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr id="{{t['name']}}">
-                      <td>{{t['name']}}</td>
-                      <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
-                      {% set _type = select_lobby_text_proof(t) if task_type == 'text_proof' else task_type %}
-                      <td><a class="pick-task" href="/task/pick/{{_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+   <!--公共左侧导航栏 -->
+   {% module CommonLeft(title="task-lobby", sub="task-lobby-cut") %}
+   <div class="main-content">
+    <!--公共头部 -->
+    {% module CommonHead() %}
+    <div class="single-page-con">
+      <div class="layout">
+       <div class="layout-content">
+        <div class="collate-history">
+          <div class="wrapper">
+           <div class="collate-list">
+            <div class="lobby-tips fr">大厅里总共有 {{total_count}} 条任务</div>
+            <table class="sty_table" style="border-collapse:separate; border-spacing:0px 10px;">
+              <thead>
+              <tr>
+               <th><span>页编码</span></th>
+               <th>
+                <div class="btn-group">
+                  <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
+                  <ul class="dropdown-menu" role="menu">
+                   <li><a href="#" val="3">高</a></li>
+                   <li><a href="#" val="2">中</a></li>
+                   <li><a href="#" val="1">低</a></li>
+                  </ul>
                 </div>
-              </div>
-            </div>
+               </th>
+               <th><span>操作</span></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for t in tasks %}
+              <tr id="{{t['name']}}">
+               <td>{{t['name']}}</td>
+               <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+               {% set _type = select_lobby_text_proof(t) if task_type == 'text_proof' else task_type %}
+               <td><a class="pick-task" href="/task/pick/{{_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
+              </tr>
+              {% end %}
+              </tbody>
+            </table>
+           </div>
           </div>
         </div>
+       </div>
       </div>
     </div>
+   </div>
   </div>
 </div>
 
@@ -86,61 +86,68 @@
 
 {% import controller.errors as e %}
 <script type="text/javascript">
+  // 领取任务
+  $('.pick-task').on("click", function (e) {
+    e.preventDefault();
+    pick($(this).attr('href'));
+	});
+
+
   function pick(url) {
     getApi(
 		  url,
 		  function (data) {
-		    console.log(data);
 		    if (data && data.url) {
 		      window.location = data.url;
 		    }
 		  },
 		  function (data) {
-		    if (data.code == {{e.task_uncompleted[0]}}) {
-		      swal({
-		        title: "是否继续未完成的任务？",
-		        text: "您还有未完成的任务" + data.uncompleted_name + "，不能领取新任务！",
-		        type: "warning",
-		        showCancelButton: true,
-		        confirmButtonColor: "#b8906f",
-		        confirmButtonText: "确定继续",
-		        cancelButtonText: "取消",
-		        closeOnConfirm: false
-		        },
-		        function() {
-		  		    window.location = data.url;
-		        }
-		      );
-			  } else {
-		      swal({
-		  		  title: "是否领取其它任务？",
-		  		  text: "领取失败。",
-		  		  type: "warning",
-		  		  showCancelButton: true,
-		  		  confirmButtonColor: "#b8906f",
-		  		  confirmButtonText: "确定领取",
-		  		  cancelButtonText: "取消",
-		  		  closeOnConfirm: false
-		        },
-		        function() {
+        console.log(data);
+        if (data.code == {{e.task_uncompleted[0]}}) {
+          swal({
+            title: "是否继续未完成的任务？",
+            text: "您还有未完成的任务" + data.uncompleted_name + "，不能领取新任务！",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#b8906f",
+            confirmButtonText: "确定继续",
+            cancelButtonText: "取消",
+            closeOnConfirm: false
+            },
+            function() {
+             window.location = data.url;
+            }
+          );
+        } else if (data.code == {{e.no_task_to_pick[0]}}) {
+          showError('没有新任务', data.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        } else {
+          swal({
+             title: "是否领取其它任务？",
+             text: data.message,
+             type: "warning",
+             showCancelButton: true,
+             confirmButtonColor: "#b8906f",
+             confirmButtonText: "确定领取",
+             cancelButtonText: "取消",
+             closeOnConfirm: false
+            },
+            function() {
               pick_another();
-		        }
-				  );
-			  }
-		  }
-    );
+            }
+          );
+        }
+      } // error_callback
+   );
   }
+
 
   // 领取新任务
   function pick_another() {
-    pick("/task/pick/{{task_type}}");
+   pick("/task/pick/{{task_type}}");
   }
-
-	// 领取任务
-  $('.pick-task').on("click", function (e) {
-    e.preventDefault();
-    pick($(this).attr('href'));
-	});
 
 </script>
 

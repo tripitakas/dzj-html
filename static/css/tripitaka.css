@@ -1327,10 +1327,10 @@ span.active a {
     z-index: 1000;
 }
 
-.m-header .tips {
-    color: red;
+.m-header-tips {
+    color: var(--Color_Brown_Darker);
     font-size: 14px;
-    font-style: italic;
+    margin: 9px 6px;
 }
 
 .m-header .back {

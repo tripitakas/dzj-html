@@ -7,39 +7,35 @@ from controller import errors
 from datetime import datetime
 from controller.base import DbError
 from controller.task.base import TaskHandler
-from controller.task.view_lobby import TaskLobbyHandler as Lobby
 
 
 class PickTaskApi(TaskHandler):
-    URL = '/api/task/pick/@task_type/@page_name'
+    URL = '/api/task/pick/@task_type'
 
-    def get(self, task_type, page_name):
+    def post(self, task_type):
         """ 领取任务 """
-        self.pick(self, task_type, page_name)
+        self.pick(self, task_type, self.get_request_data().get('page_name'))
 
     @staticmethod
     def pick(self, task_type, page_name=None):
         """ 领取任务。
-        :param task_type: 任务类型。比如block_cut_proof/text_proof_1等，也可以为text_proof
+        :param task_type: 任务类型。可以是block_cut_proof/text_proof_1等，也可以为text_proof
         :param page_name: 任务名称。如果为空，则任取一个。
         """
         try:
+            # 检查是否有未完成的任务
+            uncompleted = self.get_my_tasks_by_type(task_type, status=[self.STATUS_PICKED])
+            if uncompleted:
+                message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleted['name']
+                url = '/task/do/%s/%s' % (task_type, uncompleted['name'])
+                return self.send_error_response(
+                    (errors.task_uncompleted[0], message),
+                    **{'uncompleted_name': uncompleted['name'], 'url': url}
+                )
+
             # 如果page_name为空，则任取一个任务
             if not page_name:
                 return PickTaskApi.pick_one(self, task_type)
-
-            # 检查是否有未完成的任务
-            task_uncompleted = self.db.page.find_one({
-                'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
-                'tasks.%s.status' % task_type: self.STATUS_PICKED
-            })
-            if task_uncompleted and task_uncompleted['name'] != page_name:
-                message = '您还有未完成的任务(%s)，请完成后再领取新任务' % task_uncompleted['name']
-                url = '/task/do/%s/%s' % (task_type, task_uncompleted['name'])
-                return self.send_error_response(
-                    (errors.task_uncompleted[0], message),
-                    **{'uncompleted_name': task_uncompleted['name'], 'url': url}
-                )
 
             # 检查页面是否存在
             task = self.db.page.find_one({'name': page_name}, self.simple_fileds())
@@ -94,11 +90,11 @@ class PickTaskApi(TaskHandler):
     @staticmethod
     def pick_one(self, task_type):
         """ 从任务大厅中随机领取一个任务"""
-        tasks = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)[0]
+        tasks = self.get_lobby_tasks_by_type(self, task_type, page_size=1)[0]
         if not tasks:
             return self.send_error_response(errors.no_task_to_pick)
         else:
-            task_type = Lobby.select_lobby_text_proof(tasks[0]) if task_type == 'text_proof' else task_type
+            task_type = self.select_lobby_text_proof(tasks[0]) if task_type == 'text_proof' else task_type
             return PickTaskApi.assign_task(self, tasks[0]['name'], task_type)
 
 
@@ -119,28 +115,33 @@ class ReturnTaskApi(TaskHandler):
 
     def post(self, task_type, page_name):
         """ 用户主动退回当前任务 """
-        page = self.db.page.find_one({'name': page_name})
-        if not page:
-            return self.send_error_response(errors.no_object)
-        elif self.prop(page, 'tasks.%s.picked_user_id' % task_type) != self.current_user['_id']:
-            return self.send_error_response(errors.unauthorized)
-        elif self.prop(page, 'tasks.%s.status' % task_type) != self.STATUS_PICKED:
-            return self.send_error_response(errors.task_return_only_picked)
+        try:
+            page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+            if not page:
+                return self.send_error_response(errors.no_object)
+            elif self.prop(page, 'tasks.%s.picked_user_id' % task_type) != self.current_user['_id']:
+                return self.send_error_response(errors.unauthorized)
+            elif self.prop(page, 'tasks.%s.status' % task_type) == self.STATUS_FINISHED:
+                return self.send_error_response(errors.task_return_only_picked)
+            elif self.prop(page, 'tasks.%s.status' % task_type) != self.STATUS_PICKED:
+                return self.send_error_response(errors.task_return_only_picked)
 
-        r = self.db.user.update_one({'name': page_name}, {'$set': {
-            'tasks.%s' % task_type: {
-                'status': self.STATUS_RETURNED,
-                'updated_time': datetime.now(),
-                'returned_reason': self.get_request_data().get('reason'),
-            }
-        }})
-        if r.matched_count:
-            self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
+            task_field = 'tasks.' + task_type
+            r = self.db.page.update_one({'name': page_name}, {'$set': {
+                task_field + '.status': self.STATUS_RETURNED,
+                task_field + '.updated_time': datetime.now(),
+                task_field + '.returned_reason': self.get_request_data().get('reason'),
+            }})
+            if r.matched_count:
+                self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
 
-        # 释放数据锁
-        self.release_data_lock(page_name, self.get_data_type(task_type))
+            # 释放数据锁
+            self.release_data_lock(page_name, self.get_data_type(task_type))
 
-        return self.send_data_response({'page_name': page_name})
+            return self.send_data_response()
+
+        except DbError as e:
+            self.send_db_error(e)
 
 
 class GetPageApi(TaskHandler):
@@ -153,5 +154,6 @@ class GetPageApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
             self.send_data_response(page)
+
         except DbError as e:
             self.send_db_error(e)

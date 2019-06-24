@@ -7,7 +7,6 @@ from datetime import datetime
 from controller.base import DbError
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
-from controller.task.api_common import PickTaskApi as Pick
 
 
 class SaveCutApi(TaskHandler):
@@ -30,7 +29,7 @@ class SaveCutApi(TaskHandler):
                     'tasks.%s.status' % task_type: self.STATUS_FINISHED,
                     'tasks.%s.updated_time' % task_type: datetime.now(),
                     'tasks.%s.finished_time' % task_type: datetime.now(),
-                    'lock.%s' % data_type: None,
+                    'lock.%s' % data_type: {},
                 }
             else:
                 update = {
@@ -46,6 +45,8 @@ class SaveCutApi(TaskHandler):
                 # 处理后置任务
                 self.update_post_tasks(page_name, task_type)
 
+            self.send_data_response()
+
         except DbError as e:
             self.send_db_error(e)
 
@@ -56,9 +57,6 @@ class SaveCutProofApi(SaveCutApi):
     def post(self, kind, page_name):
         """ 保存或提交切分校对任务 """
         self.save(kind + '_cut_proof', page_name)
-        if self.get_request_data().get('submit'):
-            Pick.pick(self, kind + '_cut_proof')
-        self.send_data_response()
 
 
 class SaveCutReviewApi(SaveCutApi):
@@ -67,6 +65,3 @@ class SaveCutReviewApi(SaveCutApi):
     def post(self, kind, page_name):
         """ 保存或提交切分审定任务 """
         self.save(kind + '_cut_review', page_name)
-        if self.get_request_data().get('submit'):
-            Pick.pick(self, kind + '_cut_review')
-        self.send_data_response()

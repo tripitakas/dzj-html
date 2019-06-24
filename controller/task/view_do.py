@@ -30,10 +30,9 @@ class CutBaseHandler(TaskHandler):
 
             # 检查数据锁（已完成后没有数据锁，需要重新申请）
             readonly = True
-            if mode in ['do', 'edit'] and (
-                    self.has_data_lock(name, data_type) or self.get_data_lock(name, data_type) is True
-            ):
-                readonly = False
+            if mode in ['do', 'edit']:
+                if self.has_data_lock(name, data_type) or self.get_data_lock(name, data_type) is True:
+                    readonly = False
 
             kwargs = self.char_render(self, page, **kwargs) if box_type == 'char' else kwargs
             template_name = kwargs.pop('template_name', 'task_cut_detail.html')

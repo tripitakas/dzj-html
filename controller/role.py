@@ -62,11 +62,7 @@ role_maps = {
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/data/search_cbeta': ['GET'],
-            '/task/text_proof_@num/@page_name': ['GET'],
-            '/task/text_review/@page_name': ['GET'],
-            '/task/@box_type_cut_proof/@page_name': ['GET'],
-            '/task/@box_type_cut_review/@page_name': ['GET'],
-            '/task/char_order_proof/@page_name': ['GET'],
+            '/task/@task_type/@page_name': ['GET'],
         }
     },
     '切栏校对员': {
@@ -74,10 +70,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_proof': ['GET'],
+            '/api/task/pick/block_cut_proof': ['POST'],
             '/task/my/block_cut_proof': ['GET'],
-            '/api/task/pick/block_cut_proof/@page_name': ['GET'],
             '/task/do/block_cut_proof/@page_name': ['GET'],
             '/api/task/do/block_cut_proof/@page_name': ['POST'],
+            '/api/task/return/block_cut_proof/@page_name': ['POST'],
         }
     },
     '切栏审定员': {
@@ -85,10 +82,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
+            '/api/task/pick/block_cut_review': ['POST'],
             '/task/my/block_cut_review': ['GET'],
-            '/api/task/pick/block_cut_review/@page_name': ['GET'],
             '/task/do/block_cut_review/@page_name': ['GET'],
             '/api/task/do/block_cut_review/@page_name': ['POST'],
+            '/api/task/return/block_cut_review/@page_name': ['POST'],
         }
     },
     '切列校对员': {
@@ -96,10 +94,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_proof': ['GET'],
+            '/api/task/pick/column_cut_proof': ['POST'],
             '/task/my/column_cut_proof': ['GET'],
-            '/api/task/pick/column_cut_proof/@page_name': ['GET'],
             '/task/do/column_cut_proof/@page_name': ['GET'],
             '/api/task/do/column_cut_proof/@page_name': ['POST'],
+            '/api/task/return/column_cut_proof/@page_name': ['POST'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
         }
@@ -109,10 +108,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/column_cut_review': ['GET'],
+            '/api/task/pick/column_cut_review': ['POST'],
             '/task/my/column_cut_review': ['GET'],
-            '/api/task/pick/column_cut_review/@page_name': ['GET'],
             '/task/do/column_cut_review/@page_name': ['GET'],
             '/api/task/do/column_cut_review/@page_name': ['POST'],
+            '/api/task/return/column_cut_review/@page_name': ['POST'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
         }
@@ -122,10 +122,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_proof': ['GET'],
+            '/api/task/pick/char_cut_proof': ['POST'],
             '/task/my/char_cut_proof': ['GET'],
-            '/api/task/pick/char_cut_proof/@page_name': ['GET'],
             '/task/do/char_cut_proof/@page_name': ['GET'],
             '/api/task/do/char_cut_proof/@page_name': ['POST'],
+            '/api/task/return/char_cut_proof/@page_name': ['POST'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
             '/data/edit/columns/@page_name': ['GET'],
@@ -137,10 +138,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
+            '/api/task/pick/char_cut_review': ['POST'],
             '/task/my/char_cut_review': ['GET'],
-            '/api/task/pick/char_cut_review/@page_name': ['GET'],
             '/task/do/char_cut_review/@page_name': ['GET'],
             '/api/task/do/char_cut_review/@page_name': ['POST'],
+            '/api/task/return/char_cut_review/@page_name': ['POST'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
             '/data/edit/columns/@page_name': ['GET'],
@@ -160,11 +162,12 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_proof': ['GET'],
+            '/api/task/pick/text_proof_@num': ['POST'],
+            '/api/task/pick/text_proof': ['POST'],
             '/task/my/text_proof': ['GET'],
-            '/api/task/pick/text_proof_@num/@page_name': ['GET'],
-            '/api/task/pick/text_proof': ['GET'],
             '/task/do/text_proof_@num/@page_name': ['GET'],
             '/api/task/do/text_proof_@num/@page_name': ['POST'],
+            '/api/task/return/text_proof_@num/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -172,10 +175,11 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
+            '/api/task/pick/text_review': ['POST'],
             '/task/my/text_review': ['GET'],
-            '/api/task/pick/text_review/@page_name': ['GET'],
             '/task/do/text_review/@page_name': ['GET'],
             '/api/task/do/text_review/@page_name': ['POST'],
+            '/api/task/edit/text_review/@page_name': ['POST'],
         }
     },
     '文字专家': {
