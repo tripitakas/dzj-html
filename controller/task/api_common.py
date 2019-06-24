@@ -18,22 +18,49 @@ class PickTaskApi(TaskHandler):
         self.pick(self, task_type, page_name)
 
     @staticmethod
+    def assign_task(self, page_name, task_type):
+        """ 将任务和数据锁分配给当前用户 """
+        data_type = self.get_data_type(task_type)
+        task_field, lock_field = 'tasks.' + task_type, 'lock.' + data_type
+        r = self.db.page.update_one({'name': page_name}, {'$set': {
+            lock_field: {
+                "lock_type": ('tasks', task_type),
+                "locked_by": self.current_user['name'],
+                "locked_user_id": self.current_user['_id'],
+                "locked_time": datetime.now()
+            },
+            task_field + '.picked_user_id': self.current_user['_id'],
+            task_field + '.picked_by': self.current_user['name'],
+            task_field + '.status': self.STATUS_PICKED,
+            task_field + '.picked_time': datetime.now(),
+            task_field + '.updated_time': datetime.now(),
+        }})
+        if r.matched_count:
+            self.add_op_log('pick_' + task_type, context=page_name)
+            return self.send_data_response({'url': '/task/do/%s/%s' % (task_type, page_name)})
+        else:
+            return self.send_error_response(errors.no_object)
+
+    @staticmethod
+    def pick_one(self, task_type):
+        """ 从任务大厅中随机领取一个任务"""
+        task = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)
+        if not task:
+            return self.send_error_response(errors.task_none_to_pick)
+        else:
+            task_type = Lobby.select_lobby_text_proof(task) if task_type == 'text_proof' else task_type
+            return self.assign_task(task['name'], task_type)
+
+    @staticmethod
     def pick(self, task_type, page_name=None):
         """ 领取任务。
         :param task_type: 任务类型。比如block_cut_proof/text_proof_1等
         :param page_name: 任务名称。如果为空，则任取一个。
         """
         try:
-            # page_name为空，任取一个任务
+            # 如果page_name为空，任取一个任务
             if not page_name:
-                task = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)
-                if not task:
-                    return self.send_error_response(errors.task_none_to_pick)
-                else:
-                    self.add_op_log('pick_' + task_type, context=task['name'])
-                    task_type = Lobby.select_lobby_text_proof(task) if task_type == 'text_proof' else task_type
-                    url = '/task/do/%s/%s' % (task_type, task['name'])
-                    return self.send_data_response({'url': url})
+                return self.pick_one(self, task_type)
 
             # 检查是否有未完成的任务
             task_uncompleted = self.db.page.find_one({
@@ -53,7 +80,7 @@ class PickTaskApi(TaskHandler):
             if not task:
                 return self.send_error_response(errors.no_object)
 
-            # 检查页面状态是否为已发布（如未就绪、未发布、已领取等等）
+            # 检查页面状态是否为已发布（不可为其它状态，如未就绪、未发布、已领取等等）
             if self.prop(task, 'tasks.%s.status' % task_type) != self.STATUS_OPENED:
                 return self.send_error_response(errors.task_cannot_pick)
 
@@ -69,24 +96,7 @@ class PickTaskApi(TaskHandler):
                         return self.send_error_response(errors.task_text_proof_duplicated)
 
             # 将任务和数据锁分配给用户
-            task_field, lock_field = 'tasks.' + task_type, 'lock.' + data_type
-            r = self.db.page.update_one({'name': page_name}, {'$set': {
-                lock_field: {
-                    "lock_type": ('tasks', task_type),
-                    "locked_by": self.current_user['name'],
-                    "locked_user_id": self.current_user['_id'],
-                    "locked_time": datetime.now()
-                },
-                task_field + '.picked_user_id': self.current_user['_id'],
-                task_field + '.picked_by': self.current_user['name'],
-                task_field + '.status': self.STATUS_PICKED,
-                task_field + '.picked_time': datetime.now(),
-                task_field + '.updated_time': datetime.now(),
-            }})
-            if r.matched_count:
-                self.add_op_log('pick_' + task_type, context=page_name)
-                url = '/task/do/%s/%s' % (task_type, page_name)
-                return self.send_data_response({'url': url})
+            return self.assign_task(self, page_name, task_type)
 
         except DbError as e:
             self.send_db_error(e)
