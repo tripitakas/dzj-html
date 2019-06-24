@@ -24,13 +24,13 @@ class PickTaskApi(TaskHandler):
         """
         try:
             # 检查是否有未完成的任务
-            uncompleted = self.get_my_tasks_by_type(task_type, status=[self.STATUS_PICKED])
-            if uncompleted:
-                message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleted['name']
-                url = '/task/do/%s/%s' % (task_type, uncompleted['name'])
+            uncompleteds = self.get_my_tasks_by_type(task_type, status=[self.STATUS_PICKED])[0]
+            if uncompleteds:
+                message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleteds[0]['name']
+                url = '/task/do/%s/%s' % (task_type, uncompleteds[0]['name'])
                 return self.send_error_response(
                     (errors.task_uncompleted[0], message),
-                    **{'uncompleted_name': uncompleted['name'], 'url': url}
+                    **{'uncompleted_name': uncompleteds[0]['name'], 'url': url}
                 )
 
             # 如果page_name为空，则任取一个任务

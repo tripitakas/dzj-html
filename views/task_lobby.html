@@ -63,11 +63,11 @@
               </thead>
               <tbody>
               {% for t in tasks %}
-              <tr id="{{t['name']}}">
+              <tr>
                <td>{{t['name']}}</td>
                <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                {% set _type = select_lobby_text_proof(t) if task_type == 'text_proof' else task_type %}
-               <td><a class="pick-task" href="/task/pick/{{_type}}/{{t['name']}}" style="cursor:pointer">领取</a></td>
+               <td><a class="pick-task" id="{{t['name']}}" href="/task/pick/{{_type}}" style="cursor:pointer">领取</a></td>
               </tr>
               {% end %}
               </tbody>
@@ -89,13 +89,13 @@
   // 领取任务
   $('.pick-task').on("click", function (e) {
     e.preventDefault();
-    pick($(this).attr('href'));
+    pick($(this).attr('href'), $(this).attr('id'));
 	});
 
-
-  function pick(url) {
-    getApi(
+  function pick(url, page_name) {
+    postApi(
 		  url,
+      page_name ? {page_name: page_name} : {},
 		  function (data) {
 		    if (data && data.url) {
 		      window.location = data.url;
@@ -143,10 +143,9 @@
    );
   }
 
-
   // 领取新任务
   function pick_another() {
-   pick("/task/pick/{{task_type}}");
+    pick("/task/pick/{{task_type}}", null);
   }
 
 </script>
