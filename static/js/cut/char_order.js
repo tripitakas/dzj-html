@@ -43,7 +43,7 @@
     return 2 * s / c;
   }
 
-  // 销毁所有图形
+  // 销毁所有图形，obj 可为图形对象的容器对象或数组，或有remove方法的对象
   function removeShapes(obj) {
     if (!obj) {
     }
@@ -76,8 +76,8 @@
 
   var LET_RADIUS = 3;
   var colors = {
-    link: ['#00f', '#08f', '#f00'],
-    sel: '#00f'
+    link: ['#00f', '#08f', '#f00'], // 两个交替列的线色、改动色
+    sel: '#00f'   // 选中对象的颜色
   };
   var data = $.cut.data;
   var state = $.cut.state;
@@ -96,6 +96,11 @@
       return this.char.char_id;
     },
 
+    // 是否为合法的字框编号
+    isValidId: function () {
+      return /^b[1-9]c\d{1,2}c\d{1,2}$/.test(this.char.char_id);
+    },
+
     // 得到字框矩形
     getBox: function () {
       return this.char.shape.getBBox();
@@ -103,7 +108,7 @@
 
     // 得到字框中心坐标
     getCenter: function () {
-      return $.cut.getHandle(char.shape, 8);
+      return $.cut.getHandle(this.char.shape, 8);
     },
 
     // 得到左边的入点和右边的出点坐标
@@ -170,10 +175,10 @@
     }
   };
 
-  // 字框连线类(出点->入点)
+  // 字框连线类(c1出点->c2入点)
   function Link(c1, c2) {
     if (c1 instanceof Link) {
-      this.source = c1;
+      this.source = c1;   // source 为原始连接对象
       c2 = c1.c2;
       c1 = c1.c1;
     }
@@ -186,7 +191,10 @@
   Link.prototype = {
     // 得到编号
     getId: function () {
-      return this.c1.getId() + '-' + this.c2.getId();
+      if (this.c1 && this.c2) {
+        var a = this.c1.getId().split('c'), b = this.c2.getId().split('c');
+        return this.c1.getId() + '-' + (a.length == 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
+      }
     },
 
     // 销毁所有图形
@@ -211,6 +219,7 @@
 
     // 指定端点坐标创建亮显连线
     createLineWith: function (a, b, color, zoomed) {
+      var remove = zoomed === 'remove';
       var up = a.y > b.y + (this.c2 || this.c1).getBox().height * 0.3;
       var line = data.paper.path('M' + a.x + ',' + a.y + 'L' + b.x + ',' + b.y)
           .initZoom()
@@ -221,13 +230,20 @@
             'stroke-linecap': up && !zoomed ? 'butt' : 'round'
           })
           .data('link', this);
-      if (up && !zoomed) {
+
+      if (remove) {
+        line.setAttr({
+          'stroke-dasharray': '.',
+          'stroke-width': 1 / data.ratioInitial
+        });
+      }
+      else if (up && !zoomed) {
         line.setAttr({
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
         });
       }
-      if (zoomed) {
+      if (zoomed && !remove) {
         line.animate({'stroke-width': 6 * data.ratio}, 500, 'elastic');
       }
       return line;
@@ -240,8 +256,9 @@
       }
       var a = this.getStartPos(), b = this.getEndPos();
       var dist = pointToSegmentDistance(pt, a, b);
+      var awayFromLet = LET_RADIUS * 2 + 5;
       if (dist < tol) {
-        if (getDistance(pt, a) > LET_RADIUS * 2 + 5 && getDistance(pt, b) > LET_RADIUS * 2 + 5) {
+        if (getDistance(pt, a) > awayFromLet && getDistance(pt, b) > awayFromLet) {
           return {dist: dist, obj: this, type: 'link'};
         }
       }
@@ -251,29 +268,23 @@
   // 字框集类
   function CharNodes(src) {
     this.shapes = {};
-    this.columns = [];  // [[Link...], ]
-    this.hover = {};
-    this.drag = {};
-    this.errNodes = [];
-    this.links = [];
+    this.linksOfCol = [];   // [[Link...], links_of_another_column...]
+    this.hover = {};        // 鼠标掠过时的动态图形
+    this.drag = {};         // 拖拽过程中的动态图形
+    this.errNodes = [];     // 有问题的字框的高亮矩形
+    this.label = [];        // 字框编号文字
+    this.links = [];        // linksOfCol中的连线，及新增连线
     this.state = {tol: 1};
 
     // 创建字框节点
-    if (src instanceof CharNodes) {
-      this.nodes = src.chars.map(function (char) {
+    console.assert(src instanceof Array);
+    this.nodes = src.map(function (char) {
+      if (char.shape && char.char_id) {
         return new CharNode(char);
-      });
-      this.chars_col = JSON.parse(JSON.stringify(src.chars_col));
-    } else {
-      console.assert(src instanceof Array);
-      this.nodes = src.map(function (char) {
-        if (char.shape && char.char_id) {
-          return new CharNode(char);
-        }
-      }).filter(function (char) {
-        return char;
-      });
-    }
+      }
+    }).filter(function (char) {
+      return char;
+    });
   }
 
 
@@ -281,11 +292,11 @@
     // 销毁所有图形
     remove: function () {
       removeShapes(this.shapes);
-      removeShapes(this.columns);
+      removeShapes(this.links);   // links已经包含了linksOfCol里的连线
       removeShapes(this.hover);
       removeShapes(this.drag);
       removeShapes(this.errNodes);
-      this.links.length = 0;
+      removeShapes(this.label);
     },
 
     // 根据每列的字框序号构建分列图形
@@ -293,18 +304,39 @@
       var self = this;
       self.state.avgLen = 0;
       this.remove();
-      this.chars_col = chars_col;
-      this.columns = chars_col.map(function (indexes, colIndex) {
+      this.chars_col = chars_col || this.chars_col;
+      this.linksOfCol = this.chars_col.map(function (indexes, colIndex) {
         return indexes.slice(1).map(function (index, i) {
+          if (!self.nodes[indexes[i]].isValidId() || !self.nodes[index].isValidId()) {
+            return;
+          }
           var link = new Link(self.nodes[indexes[i]], self.nodes[index]);
           link.shapes.line = link.createLine(colors.link[colIndex % 2]);
           self.links.push(link);
           self.state.avgLen += getDistance(link.getStartPos(), link.getEndPos());
           return link;
+        }).filter(function (link) {
+          return link;
         });
       });
       self.state.avgLen /= Math.max(1, self.links.length);
       self.checkLinks();
+      self.updateLabel();
+    },
+
+    // 更新字框编号文字
+    updateLabel: function () {
+      removeShapes(this.label);
+      var self = this;
+      if (this.state.labelVisible) {
+        this.nodes.forEach(function (node) {
+          if (node.isValidId()) {
+            var cen = node.getCenter(), nums = node.getId().split('c');
+            self.label.push(data.paper.text(cen.x, cen.y, nums[1] + 'c' + nums[2])
+                .attr({'font-size': '13px'}));
+          }
+        });
+      }
     },
 
     // 根据字框图形或坐标查找 CharNode 对象
@@ -371,7 +403,7 @@
     // 鼠标掠过时捕捉和高亮显示. 如果字框没有连线，则捕捉出入点，否则捕捉连线
     mouseHover: function (pt) {
       var hit = this.hitTest(pt, null);
-      var links;
+      var links, changed;
 
       // 如果字框没有连线，则捕捉出入点，否则捕捉连线
       if (hit && hit.type !== 'link') {
@@ -386,36 +418,53 @@
       }
 
       // 捕捉并高亮显示，如果为出入点则该点没有连线
-      if (getId(hit) !== getId(this.state.hit) || hit && hit.type !== this.state.hit.type) {
+      if (!hit || getId(hit) !== getId(this.state.hit) || hit.type !== this.state.hit.type) {
         removeShapes(this.hover);
         this.state.hit = hit;
-        if (hit) {
-          if (hit.type === 'link') {
-            this.hover.link = hit.obj.createLine(colors.sel, true);
-          } else {
-            this.hover.inlet = hit.type === 'inlet' && hit.obj.createLet(true, true);
-            this.hover.outlet = hit.type === 'outlet' && hit.obj.createLet(false, true);
-          }
+        changed = true;
+        if (hit && hit.type !== 'link') {
+          this.hover.inlet = hit.type === 'inlet' && hit.obj.createLet(true, true);
+          this.hover.outlet = hit.type === 'outlet' && hit.obj.createLet(false, true);
         }
       }
 
       if (hit && hit.type === 'link') {
-        var inletHit = getDistance(pt, hit.obj.getEndPos()) < getDistance(pt, hit.obj.getStartPos());
-        var outletHit = !inletHit;
-
-        if (!this.hover.inlet || inletHit !== this.state.inletHit) {
-          this.state.inletHit = inletHit;
-          removeShapes(this.hover.inlet);
-          this.hover.inlet = hit.obj.c2.createLet(true, inletHit);
-        }
-        if (!this.hover.outlet || outletHit !== this.state.outletHit) {
-          this.state.outletHit = outletHit;
-          removeShapes(this.hover.outlet);
-          this.hover.outlet = hit.obj.c1.createLet(false, outletHit);
-        }
+        this._updateCurrentLink(hit.obj, pt);
       } else {
         this.state.inletHit = hit && hit.type !== 'inlet';
         this.state.outletHit = hit && hit.type !== 'outlet';
+      }
+
+      if (changed) {
+        this.linkSwitched();
+      }
+    },
+
+    linkSwitched: function (link) {
+      var self = this;
+      link = getId(this.state.dragLink) && this.state.dragLink || this.state.hit || link;
+      var run = function () {
+        var alongPath = self.drag.line || self.hover.line;
+        if (self.hover.ball && alongPath) {
+          var ms = Math.max(alongPath.getTotalLength() / self.state.avgLen - 1, 0) * 100 + 200;
+          self.hover.ball.attr({alongLink: 0});
+          self.hover.ball.animate({alongLink: 1}, ms, function () {
+            setTimeout(run, 100);
+          });
+        }
+      };
+
+      $('#info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
+          (this.state.inletHit ? '，可改终点' : this.state.outletHit ? '，可改起点' : ''));
+      removeShapes(this.hover.ball);
+      if (link) {
+        data.paper.customAttributes.alongLink = function (v) {
+          var alongPath = self.drag.line || self.hover.line;
+          var point = alongPath && alongPath.getPointAtLength(v * alongPath.getTotalLength());
+          return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
+        };
+        self.hover.ball = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff', 'z-order': 1000});
+        setTimeout(run, 100);
       }
     },
 
@@ -426,10 +475,10 @@
         if (!this.state.dragging) {
           return;
         }
-        this.state.dragLink = this.hover.link ? new Link(this.state.hit.obj)
+        this.state.dragLink = this.hover.line ? new Link(this.state.hit.obj)
             : new Link(this.state.hit.obj, this.state.hit.obj);
-        if (this.hover.link) {
-          this.hover.link.attr({'stroke-opacity': 0.05});
+        if (this.hover.line) {
+          this.hover.line.attr({'stroke-opacity': 0.05});
           var srcLink = this.findLinkBetween(this.state.dragLink.c1, this.state.dragLink.c2);
           srcLink.shapes.line.attr({'opacity': 0.05});
         }
@@ -446,8 +495,8 @@
         });
         var node = hit && hit.obj;
 
-        if (!node || getId(node) !== getId(this.state.dragNode)) {
-          this.state.dragNode = node;
+        if (!node || getId(node) !== getId(this.state.targetNode)) {
+          this.state.targetNode = node;
           if (this.state.inletHit) {
             this.state.dragLink.c2 = node;
           } else {
@@ -455,26 +504,24 @@
           }
           removeShapes(this.drag);
           if (hit) {
-            this.drag.node = node && node.createBox(colors.sel);
-            this.drag.dynLet = hit && hit.obj.createLet(hit.type === 'inlet');
-            this.drag.link = this.state.dragLink.createLine(colors.sel);
+            this.drag.box = node && node.createBox(colors.sel);
+            this.drag.dot = hit && hit.obj.createLet(hit.type === 'inlet');
+            this.drag.line = this.state.dragLink.createLine(colors.sel);
           }
           else {
-            this.drag.link = this.state.dragLink.createLineWith(
+            this.drag.line = this.state.dragLink.createLineWith(
                 this.state.outletHit ? pt : this.state.dragLink.getStartPos(),
                 this.state.inletHit ? pt : this.state.dragLink.getEndPos(),
-                colors.sel);
+                colors.sel, 'remove');
           }
-        }
-        else if (getId(node) !== getId(this.state.dragNode)) {
-          this.state.dragNode = node;
-          removeShapes(this.drag.node);
-          this.drag.node = node && node.createBox(colors.sel);
+          if (this.hover.ball) {
+            this.hover.ball.toFront();
+          }
         }
       }
     },
 
-    mouseUp: function () {
+    mouseUp: function (pt) {
       var link = this.state.dragLink, srcLink = link && link.source;
       var changed;
 
@@ -498,11 +545,37 @@
       }
       this.state.dragging = false;
       removeShapes(this.drag);
-      delete this.state.dragNode;
+      delete this.state.targetNode;
       delete this.state.dragLink;
 
       if (changed) {
         this.checkLinks();
+        this._updateCurrentLink(changed, pt);
+        this.linkSwitched(changed instanceof Link && changed);
+      }
+    },
+
+    // 更新当前连接
+    _updateCurrentLink: function (link, pt) {
+      removeShapes(this.hover.line);
+      this.hover.line = link instanceof Link && link.createLine(colors.sel, true);
+
+      var inletHit = pt && getDistance(pt, link.getEndPos()) < getDistance(pt, link.getStartPos());
+      var outletHit = pt && getDistance(pt, link.getEndPos()) > getDistance(pt, link.getStartPos());
+
+      if (!this.hover.inlet || inletHit !== this.state.inletHit || !pt) {
+        this.state.inletHit = inletHit;
+        removeShapes(this.hover.inlet);
+        this.hover.inlet = link.c2.createLet(true, inletHit);
+      }
+      if (!this.hover.outlet || outletHit !== this.state.outletHit || !pt) {
+        this.state.outletHit = outletHit;
+        removeShapes(this.hover.outlet);
+        this.hover.outlet = link.c1.createLet(false, outletHit);
+      }
+
+      if (this.hover.ball) {
+        this.hover.ball.toFront();
       }
     },
 
@@ -523,7 +596,7 @@
         link = new Link(c1, c2);
         link.shapes.line = link.createLine(colors.link[2]);
         this.links.push(link);
-        return true;
+        return link;
       }
     },
 
@@ -535,7 +608,19 @@
         link.c1 = c1New;
         link.c2 = c2New;
         link.shapes.line = link.createLine(colors.link[2]);
-        return true;
+        return link;
+      }
+    },
+
+    // 当前连接反向
+    reverseLink: function () {
+      var link = (this.state.hit || {}).obj;
+      if (link instanceof Link && !this.drag.line) {
+        var tmp = link.c1;
+        link.c1 = link.c2;
+        link.c2 = tmp;
+        this._updateCurrentLink(link);
+        this.linkSwitched(link);
       }
     },
 
@@ -575,6 +660,7 @@
           pass(links[0], route);
         }
       }
+
       heads.forEach(function (node) {
         var route = [];
         pass(node, route);
@@ -635,14 +721,43 @@
       var on = function (key, func) {
         $.mapKey(key, func, {direction: 'down'});
       };
+
+      on('r', function () {
+        cs.reverseLink();
+      });
     },
 
     toggleColumns: function (columns) {
     },
 
     showErrorBoxes: function (prompt) {
-
+      var r = cs.checkLinks();
+      if (prompt) {
+        if (r) {
+          showSuccess('字框连接正常', '没有待修正的字框连线。');
+        } else {
+          showError('字框连接待修正', '请修正高亮绿框的字框连线。')
+        }
+      }
     }
+  });
+
+  // 放缩后重新生成图形
+  state.onZoomed = function () {
+    cs && cs.buildColumns();
+  };
+
+  // Undo/Redo后重新生成图形
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (cs && reason === 'undo') {
+      cs.buildColumns();
+    }
+  });
+
+  // 显隐字框编号
+  $('#switch-char-no').click(function () {
+    cs.state.labelVisible = !cs.state.labelVisible;
+    cs.updateLabel();
   });
 
 }());
