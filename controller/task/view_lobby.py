@@ -35,7 +35,8 @@ class TaskLobbyHandler(TaskHandler):
         if task_type == 'text_proof':
             condition = {'$or': [{'tasks.text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
             condition.update(
-                {'tasks.text_proof_%s.picked_by' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]})
+                {'tasks.text_proof_%s.picked_user_id' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]}
+            )
         else:
             condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
         total_count = self.db.page.count_documents(condition)
