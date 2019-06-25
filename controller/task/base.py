@@ -126,10 +126,9 @@ class TaskHandler(BaseHandler):
     @classmethod
     def simple_fileds(cls, include=None):
         """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
-        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
-        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
+        simple = ['name', 'width', 'height', 'tasks', 'lock']
         include = [] if not include else include
-        return {prop: 0 for prop in set(exclude) - set(include)}
+        return {prop: 1 for prop in set(simple + include)}
 
     def find_my_tasks(self, page_name):
         """ 检查page_name对应的page中，当前用户有哪些任务 """
@@ -260,12 +259,12 @@ class TaskHandler(BaseHandler):
 
     def get_my_tasks_by_type(self, task_type, status=None, name=None, order=None, page_size=0, page_no=1):
         """获取我的任务/任务列表"""
-        if task_type not in self.task_types.keys() and task_type != 'text_proof':
+        if task_type not in self.all_types():
             return [], 0
 
-        assert status is None or isinstance(status, list)
+        assert status is None or status in [self.STATUS_PICKED, self.STATUS_FINISHED]
 
-        status = [self.STATUS_PICKED, self.STATUS_FINISHED] if not status else status
+        status = [self.STATUS_PICKED, self.STATUS_FINISHED] if not status else [status]
         if task_type == 'text_proof':
             condition = {
                 '$or': [{
@@ -287,7 +286,7 @@ class TaskHandler(BaseHandler):
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
+            query.sort("tasks.%s.%s" % (task_type, order), asc)
 
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1
@@ -350,7 +349,7 @@ class TaskHandler(BaseHandler):
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
+            query.sort("tasks.%s.%s" % (task_type, order), asc)
 
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1

@@ -16,11 +16,11 @@ class CutBaseHandler(TaskHandler):
             task_type = '%s_cut_%s' % (box_type, stage)
             data_field = self.get_protected_data_field(task_type)
 
-            page = self.db.page.find_one(dict(name=name), self.simple_fileds(include=[data_field]))
+            page = self.db.page.find_one(dict(name=name), self.simple_fileds(include=['blocks', 'columns', 'chars']))
             if not page:
                 return self.render('_404.html')
 
-            readonly = self.check_auth(mode, page, task_type)
+            readonly = not self.check_auth(mode, page, task_type)
             layout = int(self.get_query_argument('layout', 0))
             kwargs = self.char_render(page, layout, **kwargs) if box_type == 'char' else kwargs
             template_name = kwargs.pop('template_name', 'task_cut_detail.html')

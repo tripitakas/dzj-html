@@ -27,7 +27,7 @@ class TextBaseHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
-            readonly = self.check_auth(mode, page, task_type)
+            readonly = not self.check_auth(mode, page, task_type)
             params = dict(name=page_name, mismatch_lines=[], columns=page['columns'])
             layout = int(self.get_query_argument('layout', 0))
             CutBaseHandler.char_render(page, layout, **params)

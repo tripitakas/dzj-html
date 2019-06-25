@@ -24,7 +24,7 @@ class PickTaskApi(TaskHandler):
         """
         try:
             # 检查是否有未完成的任务
-            uncompleteds = self.get_my_tasks_by_type(task_type, status=[self.STATUS_PICKED])[0]
+            uncompleteds = self.get_my_tasks_by_type(task_type, status=self.STATUS_PICKED)[0]
             if uncompleteds:
                 message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleteds[0]['name']
                 url = '/task/do/%s/%s' % (task_type, uncompleteds[0]['name'])

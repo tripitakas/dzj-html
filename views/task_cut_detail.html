@@ -81,7 +81,7 @@
           {% if not readonly %}
           <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
           {% end %}
-          {% if not readonly and mode = 'do' %}
+          {% if not readonly and mode == 'do' %}
           <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
           <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
           {% end %}
@@ -327,7 +327,7 @@
     } else if ('{{mode}}' === 'view') {
       window.history.back();
     } else {
-      window.location = '/task/lobby/{{task_type}';
+      window.location = '/task/lobby/{{task_type}}';
     }
   };
 

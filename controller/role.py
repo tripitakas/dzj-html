@@ -107,7 +107,7 @@ role_maps = {
             '/api/task/do/column_cut_proof/@page_name': ['POST'],
             '/task/update/column_cut_proof/@page_name': ['GET'],
             '/api/task/update/column_cut_proof/@page_name': ['POST'],
-            '/api/task/return/column_cut_proof/@page_name': ['POST'],
+            '/api/task/return/column_cut_proof/@page_name': ['GET'],
             '/api/data/unlock/column_cut_proof/@page_name': ['GET'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
