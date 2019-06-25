@@ -93,7 +93,7 @@
 	});
 
   function pick(url, page_name) {
-    var data = page_name !== undefined ? {} : {data: {page_name: page_name}};
+    var data = page_name == undefined ? {} : {data: {page_name: page_name}};
     postApi(
 		  url,
       data,

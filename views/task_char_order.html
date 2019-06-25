@@ -155,7 +155,7 @@
   });
 
   window.leave = function (url) {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
+    postApi('/data/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
       window.location = url;
     });
   };

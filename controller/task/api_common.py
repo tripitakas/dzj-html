@@ -46,9 +46,9 @@ class PickTaskApi(TaskHandler):
             if self.prop(task, 'tasks.%s.status' % task_type) != self.STATUS_OPENED:
                 return self.send_error_response(errors.task_not_published)
 
-            # 检查任务对应的数据是否被锁定
-            data_type = self.get_data_type(task_type)
-            if self.prop(task, 'lock.%s.locked_user_id' % data_type):
+            # 检查任务对应的数据是否被锁定。如果没有申明要保护，则直接跳过。
+            data_field = self.get_protected_data_field(task_type)
+            if data_field and self.prop(task, 'lock.%s.locked_user_id' % data_field):
                 return self.send_error_response(errors.data_is_locked)
 
             # 文字校对中，不能领取同一page不同校次的两个任务
@@ -65,22 +65,24 @@ class PickTaskApi(TaskHandler):
 
     @staticmethod
     def assign_task(self, page_name, task_type):
-        """ 将任务和数据锁分配给当前用户 """
-        data_type = self.get_data_type(task_type)
-        task_field, lock_field = 'tasks.' + task_type, 'lock.' + data_type
-        r = self.db.page.update_one({'name': page_name}, {'$set': {
-            lock_field: {
-                "lock_type": ('tasks', task_type),
-                "locked_by": self.current_user['name'],
-                "locked_user_id": self.current_user['_id'],
-                "locked_time": datetime.now()
-            },
+        """ 将任务和数据锁（如果有的话）分配给当前用户 """
+        task_field = 'tasks.' + task_type
+        update = {
             task_field + '.picked_user_id': self.current_user['_id'],
             task_field + '.picked_by': self.current_user['name'],
             task_field + '.status': self.STATUS_PICKED,
             task_field + '.picked_time': datetime.now(),
             task_field + '.updated_time': datetime.now(),
-        }})
+        }
+        data_field = self.get_protected_data_field(task_type)
+        if data_field:
+            update['lock.' + data_field] = {
+                "lock_type": ('tasks', task_type),
+                "locked_by": self.current_user['name'],
+                "locked_user_id": self.current_user['_id'],
+                "locked, 'lock.' + data_field_time": datetime.now()
+            }
+        r = self.db.page.update_one({'name': page_name}, {'$set': update})
         if r.matched_count:
             self.add_op_log('pick_' + task_type, context=page_name)
             return self.send_data_response({'url': '/task/do/%s/%s' % (task_type, page_name)})
@@ -98,14 +100,15 @@ class PickTaskApi(TaskHandler):
             return self.assign_task(self, tasks[0]['name'], task_type)
 
 
-class UnlockDataApi(TaskHandler):
-    URL = '/api/task/data/unlock/@data_type/@page_name'
+class UnlockTaskDataApi(TaskHandler):
+    URL = '/api/data/unlock/@task_type/@page_name'
 
-    def get(self, data_type, page_name):
-        """ 释放数据锁。这里仅仅释放由临时的数据编辑而申请的数据锁，对于领取任务获得的数据锁，在提交任务时释放。"""
+    def get(self, task_type, page_name):
+        """ 释放数据锁。仅能释放由临时数据编辑而申请的数据锁，不能释放任务进行时数据锁。"""
         try:
-            self.release_data_lock(page_name, data_type)
-            self.send_data_response({'page_name': page_name})
+            data_field = self.get_protected_data_field(task_type)
+            self.release_data_lock(page_name, data_field)
+            self.send_data_response()
         except DbError as e:
             self.send_db_error(e)
 
@@ -113,7 +116,7 @@ class UnlockDataApi(TaskHandler):
 class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_type/@page_name'
 
-    def post(self, task_type, page_name):
+    def get(self, task_type, page_name):
         """ 用户主动退回当前任务 """
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
@@ -136,7 +139,8 @@ class ReturnTaskApi(TaskHandler):
                 self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
 
             # 释放数据锁
-            self.release_data_lock(page_name, self.get_data_type(task_type))
+            data_field = self.get_protected_data_field(task_type)
+            self.release_data_lock(page_name, data_field)
 
             return self.send_data_response()
 

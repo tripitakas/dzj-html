@@ -13,7 +13,7 @@ import re
 url_placeholder = {
     'task_type': r'[a-z0-9_.]+',
     'page_name': r'[A-Za-z0-9_]+',
-    'data_type': 'blocks|columns|chars|text|ocr',
+    'data_field': 'blocks|columns|chars|text|ocr',
     'box_type': 'block|column|char',
     'num': r'\d+',
     'page_prefix': r'[A-Za-z0-9_]*',
@@ -21,13 +21,11 @@ url_placeholder = {
     'tripitaka_id': r'[a-z]{3,}'
 }
 
-""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 role_maps = {
     '单元测试用户': {
         'routes': {
             '/api/task/page/@page_name': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],
-            '/api/task/unlock/@task_type/@page_prefix': ['GET'],
             '/api/user/list': ['GET'],
         }
     },
@@ -72,21 +70,29 @@ role_maps = {
             '/task/lobby/block_cut_proof': ['GET'],
             '/api/task/pick/block_cut_proof': ['POST'],
             '/task/my/block_cut_proof': ['GET'],
+            '/task/block_cut_proof/@page_name': ['GET'],
             '/task/do/block_cut_proof/@page_name': ['GET'],
             '/api/task/do/block_cut_proof/@page_name': ['POST'],
-            '/api/task/return/block_cut_proof/@page_name': ['POST'],
+            '/task/update/block_cut_proof/@page_name': ['GET'],
+            '/api/task/update/block_cut_proof/@page_name': ['POST'],
+            '/api/task/return/block_cut_proof/@page_name': ['GET'],
+            '/api/data/unlock/block_cut_proof/@page_name': ['GET'],
         }
     },
     '切栏审定员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['普通用户', '切栏校对员'],
         'routes': {
             '/task/lobby/block_cut_review': ['GET'],
             '/api/task/pick/block_cut_review': ['POST'],
             '/task/my/block_cut_review': ['GET'],
+            '/task/block_cut_review/@page_name': ['GET'],
             '/task/do/block_cut_review/@page_name': ['GET'],
             '/api/task/do/block_cut_review/@page_name': ['POST'],
-            '/api/task/return/block_cut_review/@page_name': ['POST'],
+            '/task/update/block_cut_review/@page_name': ['GET'],
+            '/api/task/update/block_cut_review/@page_name': ['POST'],
+            '/api/task/return/block_cut_review/@page_name': ['GET'],
+            '/api/data/unlock/block_cut_review/@page_name': ['GET'],
         }
     },
     '切列校对员': {
@@ -96,9 +102,13 @@ role_maps = {
             '/task/lobby/column_cut_proof': ['GET'],
             '/api/task/pick/column_cut_proof': ['POST'],
             '/task/my/column_cut_proof': ['GET'],
+            '/task/column_cut_proof/@page_name': ['GET'],
             '/task/do/column_cut_proof/@page_name': ['GET'],
             '/api/task/do/column_cut_proof/@page_name': ['POST'],
+            '/task/update/column_cut_proof/@page_name': ['GET'],
+            '/api/task/update/column_cut_proof/@page_name': ['POST'],
             '/api/task/return/column_cut_proof/@page_name': ['POST'],
+            '/api/data/unlock/column_cut_proof/@page_name': ['GET'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
         }
@@ -110,9 +120,13 @@ role_maps = {
             '/task/lobby/column_cut_review': ['GET'],
             '/api/task/pick/column_cut_review': ['POST'],
             '/task/my/column_cut_review': ['GET'],
+            '/task/column_cut_review/@page_name': ['GET'],
             '/task/do/column_cut_review/@page_name': ['GET'],
             '/api/task/do/column_cut_review/@page_name': ['POST'],
-            '/api/task/return/column_cut_review/@page_name': ['POST'],
+            '/task/update/column_cut_review/@page_name': ['GET'],
+            '/api/task/update/column_cut_review/@page_name': ['POST'],
+            '/api/task/return/column_cut_review/@page_name': ['GET'],
+            '/api/data/unlock/column_cut_review/@page_name': ['GET'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
         }
@@ -124,9 +138,13 @@ role_maps = {
             '/task/lobby/char_cut_proof': ['GET'],
             '/api/task/pick/char_cut_proof': ['POST'],
             '/task/my/char_cut_proof': ['GET'],
+            '/task/char_cut_proof/@page_name': ['GET'],
             '/task/do/char_cut_proof/@page_name': ['GET'],
             '/api/task/do/char_cut_proof/@page_name': ['POST'],
-            '/api/task/return/char_cut_proof/@page_name': ['POST'],
+            '/task/update/char_cut_proof/@page_name': ['GET'],
+            '/api/task/update/char_cut_proof/@page_name': ['POST'],
+            '/api/task/return/char_cut_proof/@page_name': ['GET'],
+            '/api/data/unlock/char_cut_proof/@page_name': ['GET'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
             '/data/edit/columns/@page_name': ['GET'],
@@ -135,14 +153,18 @@ role_maps = {
     },
     '切字审定员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['普通用户', '切字校对员'],
         'routes': {
             '/task/lobby/char_cut_review': ['GET'],
             '/api/task/pick/char_cut_review': ['POST'],
             '/task/my/char_cut_review': ['GET'],
+            '/task/char_cut_review/@page_name': ['GET'],
             '/task/do/char_cut_review/@page_name': ['GET'],
             '/api/task/do/char_cut_review/@page_name': ['POST'],
-            '/api/task/return/char_cut_review/@page_name': ['POST'],
+            '/task/update/char_cut_review/@page_name': ['GET'],
+            '/api/task/update/char_cut_review/@page_name': ['POST'],
+            '/api/task/return/char_cut_review/@page_name': ['GET'],
+            '/api/data/unlock/char_cut_review/@page_name': ['GET'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
             '/data/edit/columns/@page_name': ['GET'],
@@ -152,10 +174,6 @@ role_maps = {
     '切分专家': {
         'is_assignable': True,
         'roles': ['普通用户', '切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
-        'routes': {
-            '/data/edit/chars/@page_name': ['GET'],
-            '/api/data/edit/chars/@page_name': ['POST'],
-        }
     },
     '文字校对员': {
         'is_assignable': True,
@@ -165,21 +183,44 @@ role_maps = {
             '/api/task/pick/text_proof_@num': ['POST'],
             '/api/task/pick/text_proof': ['POST'],
             '/task/my/text_proof': ['GET'],
+            '/task/text_proof_@num/@page_name': ['GET'],
             '/task/do/text_proof_@num/@page_name': ['GET'],
             '/api/task/do/text_proof_@num/@page_name': ['POST'],
-            '/api/task/return/text_proof_@num/@page_name': ['POST'],
+            '/task/update/text_proof_@num/@page_name': ['GET'],
+            '/api/task/update/text_proof_@num/@page_name': ['POST'],
+            '/api/task/return/text_proof_@num/@page_name': ['GET'],
+            '/data/edit/blocks/@page_name': ['GET'],
+            '/api/data/edit/blocks/@page_name': ['POST'],
+            '/data/edit/columns/@page_name': ['GET'],
+            '/api/data/edit/columns/@page_name': ['POST'],
+            '/data/edit/chars/@page_name': ['GET'],
+            '/api/data/edit/chars/@page_name': ['POST'],
+            '/data/edit/char_order/@page_name': ['GET'],
+            '/api/data/edit/char_order/@page_name': ['POST'],
         }
     },
     '文字审定员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['普通用户', '文字校对员'],
         'routes': {
             '/task/lobby/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
             '/task/my/text_review': ['GET'],
+            '/task/text_review/@page_name': ['GET'],
             '/task/do/text_review/@page_name': ['GET'],
             '/api/task/do/text_review/@page_name': ['POST'],
-            '/api/task/edit/text_review/@page_name': ['POST'],
+            '/task/update/text_review/@page_name': ['GET'],
+            '/api/task/update/text_review/@page_name': ['POST'],
+            '/api/task/return/text_review/@page_name': ['GET'],
+            '/api/data/unlock/text_review/@page_name': ['GET'],
+            '/data/edit/blocks/@page_name': ['GET'],
+            '/api/data/edit/blocks/@page_name': ['POST'],
+            '/data/edit/columns/@page_name': ['GET'],
+            '/api/data/edit/columns/@page_name': ['POST'],
+            '/data/edit/chars/@page_name': ['GET'],
+            '/api/data/edit/chars/@page_name': ['POST'],
+            '/data/edit/char_order/@page_name': ['GET'],
+            '/api/data/edit/char_order/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -228,6 +269,7 @@ role_maps = {
         }
     },
 }
+""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]

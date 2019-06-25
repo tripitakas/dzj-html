@@ -60,50 +60,48 @@ class TaskHandler(BaseHandler):
 
     MAX_RECORDS = 10000
 
-    # 数据锁授权机制。以下两种情况可以分配数据锁：
-    # 1.tasks。
-    #   同一page的同阶任务（如block_cut_proor对blocks而言），通过'/task/do/@task_type/@page_name'的方式修改数据。
-    #   同一page的高阶任务（如column_cut_proof/char_cut_proof对blocks而言），通过'/task/edit/@data_type/@page_name'的方式修改数据。
-    # 2.roles。
-    #   专家角色对所拥有的数据有修改权限，通过'/task/edit/@data_type/@page_name'的方式修改数据。
-    data_lock_maps = {
+    # 通过数据锁机制对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
+    # 1.tasks。 同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
+    # 2.roles。 数据专家角色对所有page的授权字段
+    # 共享字段的数据锁授权表如下：
+    data_auth_maps = {
         'blocks': {
-            'tasks': [
-                'block_cut_proof', 'block_cut_review',
-                'column_cut_proof', 'column_cut_review',
-                'char_cut_proof', 'char_cut_review',
-                'text_proof_1', 'text_proof_2', 'text_proof_3',
-                'text_review', 'text_hard',
-            ],
+            'tasks': ['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
+                      'char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2',
+                      'text_proof_3', 'text_review', 'text_hard'],
             'roles': ['切分专家']
         },
         'columns': {
-            'tasks': [
-                'column_cut_proof', 'column_cut_review',
-                'char_cut_proof', 'char_cut_review',
-                'text_proof_1', 'text_proof_2', 'text_proof_3',
-                'text_review', 'text_hard',
-            ],
+            'tasks': ['column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review',
+                      'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
             'roles': ['切分专家']
         },
         'chars': {
-            'tasks': [
-                'char_cut_proof', 'char_cut_review',
-                'text_proof_1', 'text_proof_2', 'text_proof_3',
-                'text_review', 'text_hard',
-            ],
+            'tasks': ['char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
+                      'text_review', 'text_hard'],
             'roles': ['切分专家']
         },
         'text': {
-            'tasks': [
-                'text_review', 'text_hard',
-            ],
+            'tasks': ['text_review', 'text_hard'],
             'roles': ['文字专家']
         },
-        'ocr': {
-            'roles': ['数据管理员']
-        },
+
     }
+
+    @classmethod
+    def get_protected_data_field(cls, task_type):
+        """ 获取任务保护的共享字段 """
+        task_data_fields = {
+            'block_cut_proof': 'blocks',
+            'block_cut_review': 'blocks',
+            'column_cut_proof': 'columns',
+            'column_cut_review': 'columns',
+            'char_cut_proof': 'chars',
+            'char_cut_review': 'chars',
+            'text_review': 'text',
+            'text_hard': 'text',
+        }
+        return task_data_fields.get(task_type)
 
     @classmethod
     def prop(cls, obj, key):
@@ -118,35 +116,20 @@ class TaskHandler(BaseHandler):
         return all_types
 
     @classmethod
-    def simple_fileds(cls, include=None):
-        """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
-        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
-        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
-        include = [] if not include else include
-        return {prop: 0 for prop in set(exclude) - set(include)}
-
-    @classmethod
-    def get_data_type(cls, task_type):
-        """根据task_type获取data_type"""
-        data_type_maps = {
-            'block_cut_proof': 'blocks',
-            'block_cut_review': 'blocks',
-            'column_cut_proof': 'columns',
-            'column_cut_review': 'columns',
-            'char_cut_proof': 'chars',
-            'char_cut_review': 'chars',
-            'text_review': 'text',
-            'text_hard': 'text',
-        }
-        return data_type_maps.get(task_type)
-
-    @classmethod
     def cut_task_names(cls):
         return {k: v for k, v in cls.task_types.items() if 'cut_' in k}
 
     @classmethod
     def text_task_names(cls):
         return {k: v for k, v in cls.task_types.items() if 'text_' in k}
+
+    @classmethod
+    def simple_fileds(cls, include=None):
+        """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
+        exclude = ['blocks', 'columns', 'chars', 'ocr', 'text']
+        exclude += ['tasks.text_proof_%s.%s' % (i, typ) for i in [1, 2, 3] for typ in ['cmp', 'result']]
+        include = [] if not include else include
+        return {prop: 0 for prop in set(exclude) - set(include)}
 
     def find_my_tasks(self, page_name):
         """ 检查page_name对应的page中，当前用户有哪些任务 """
@@ -157,27 +140,27 @@ class TaskHandler(BaseHandler):
                 tasks.append(k)
         return tasks
 
-    def has_data_lock(self, page_name, data_type):
-        """ 检查page_name对应的page中，当前用户是否拥有data_type对应的数据 """
+    def has_data_lock(self, page_name, data_field):
+        """ 检查page_name对应的page中，当前用户是否拥有data_field对应的数据 """
         n = self.db.page.count_documents({
-            'name': page_name, 'lock.%s.locked_user_id' % data_type: self.current_user['_id']
+            'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']
         })
         return n > 0
 
-    def is_data_locked(self, page_name, data_type):
-        """检查page_name对应的page中，data_type对应的数据是否已经被锁定"""
+    def is_data_locked(self, page_name, data_field):
+        """检查page_name对应的page中，data_field对应的数据是否已经被锁定"""
         page = self.db.page.find({'name': page_name}, self.simple_fileds())
-        return self.prop(page, 'lock.%s.locked_user_id' % data_type) is not None
+        return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
 
-    def get_data_lock(self, page_name, data_type):
-        """ 将page_name对应的page中，data_type对应的数据锁分配给当前用户
+    def get_data_lock(self, page_name, data_field):
+        """ 将page_name对应的page中，data_field对应的数据锁分配给当前用户
             成功时返回True，失败时返回errors.xxx
         """
 
         def assign_lock(lock_type):
-            # lock_type指的是来自哪个任务或者哪个角色
+            """ lock_type指的是来自哪个任务或者哪个角色 """
             r = self.db.page.update_one({'name': page_name}, {'$set': {
-                'lock.' + data_type: {
+                'lock.' + data_field: {
                     "lock_type": lock_type,
                     "locked_by": self.current_user['name'],
                     "locked_user_id": self.current_user['_id'],
@@ -186,37 +169,67 @@ class TaskHandler(BaseHandler):
             }})
             return r.matched_count > 0
 
-        assert data_type in self.data_lock_maps
+        assert data_field in self.data_auth_maps
 
-        if self.has_data_lock(page_name, data_type):
+        if self.has_data_lock(page_name, data_field):
             return True
 
         # 检查是否有数据编辑对应的roles（有一个角色即可）
-        roles = set(self.current_user['roles']) & set(self.data_lock_maps[data_type]['roles'])
+        roles = list(set(self.current_user['roles']) & set(self.data_auth_maps[data_field]['roles']))
         if roles:
-            if not self.is_data_locked(page_name, data_type):
+            if not self.is_data_locked(page_name, data_field):
                 return True if assign_lock(('roles', roles)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
 
         # 检查是否有同一page的同阶或高阶tasks
         my_tasks = self.find_my_tasks(page_name)
-        tasks = list(set(my_tasks) & set(self.data_lock_maps[data_type]['tasks']))
+        tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
         if tasks:
-            if not self.is_data_locked(page_name, data_type):
+            if not self.is_data_locked(page_name, data_field):
                 return True if assign_lock(('tasks', tasks)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
 
         return errors.data_unauthorized
 
-    def release_data_lock(self, page_name, data_type):
-        """ 将page_name对应的page中，data_type对应的数据锁释放 """
-        if data_type and data_type in self.data_lock_maps and self.has_data_lock(page_name, data_type):
-            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': None}})
+    def release_data_lock(self, page_name, data_field):
+        """ 将page_name对应的page中，data_field对应的数据锁释放。 """
+        if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field):
+            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': {}}})
+        return True
+
+    def check_auth(self, mode, page, task_type):
+        """ 检查任务权限以及数据锁 """
+        if isinstance(page, str):
+            page = self.db.page.find_one({'name': page})
+        if not page:
+            return False
+
+        # do/update模式下，需要检查任务权限，直接抛出错误
+        if mode in ['do', 'update']:
+            render = '/api' in self.request.path
+            # 检查任务是否已分配给当前用户
+            task_field = 'tasks.' + task_type
+            if self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
+            # 检查任务状态是否为已领取或已完成（已退回的任务不可以do）
+            if self.prop(page, task_field + '.status') not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
+
+        # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
+        auth = False
+        if mode in ['do', 'update', 'edit']:
+            data_field = self.get_protected_data_field(task_type)
+            if not data_field or data_field not in self.data_auth_maps:
+                auth = True
+            elif self.has_data_lock(page['name'], data_field) or self.get_data_lock(page['name'], data_field) is True:
+                auth = True
+
+        return auth
 
     def update_post_tasks(self, page_name, task_type):
-        """page_name对应的task_type任务完成的时候，更新后置任务的状态"""
+        """ 任务完成的时候，更新后置任务的状态 """
 
         def find_post_tasks():
             post_tasks = []

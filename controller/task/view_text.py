@@ -10,7 +10,94 @@ from tornado.web import UIModule
 from controller.diff import Diff
 from tornado.escape import url_escape
 from controller.task.base import TaskHandler
-from controller.task.view_do import CutBaseHandler
+from controller.task.view_cut import CutBaseHandler
+
+
+class TextBaseHandler(TaskHandler):
+    cmp_fields = {
+        'text_proof_1': 'cmp1',
+        'text_proof_2': 'cmp2',
+        'text_proof_3': 'cmp3',
+    }
+
+    def enter(self, task_type, page_name, mode='view'):
+        assert task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3']
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            readonly = self.check_auth(mode, page, task_type)
+            params = dict(name=page_name, mismatch_lines=[], columns=page['columns'])
+            layout = int(self.get_query_argument('layout', 0))
+            CutBaseHandler.char_render(page, layout, **params)
+            txt = page.get('ocr').replace('|', '\n')
+            cmp = self.prop(page, self.cmp_fields.get(task_type))
+            params['label'] = dict(cmp1='cmp')
+            cmp_data = self.gen_segments(txt, page['chars'], params, cmp)
+            self.render(
+                'task_text_proof.html', task_type=task_type, page=page, cmp_data=cmp_data, mode=mode, readonly=readonly,
+                origin_txt=re.split(r'[\n|]', txt.strip()), cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
+                get_img=self.get_img,
+                **params
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+    @staticmethod
+    def normalize_boxes(page):
+        for c in page.get('chars', []):
+            cid = c.get('char_id', '')[1:].split('c')
+            if len(cid) == 3:
+                c['no'] = c['char_no'] = int(cid[2])
+                c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
+            else:
+                c['no'] = c['char_no'] = c.get('char_no') or c.get('no', 0)
+                c['block_no'] = c.get('block_no', 0)
+                c['line_no'] = c.get('line_no', 0)
+                c['char_id'] = 'b%dc%dc%d' % (c.get('block_no'), c.get('line_no'), c.get('no'))
+        for c in page.get('columns', []):
+            c.pop('char_id', 0)
+            c.pop('char_no', 0)
+
+    @staticmethod
+    def gen_segments(txt, chars, params=None, cmp=None):
+        # 先比对文本(diff)得到行号连续的文本片段元素 segments
+        params = params or {}
+        segments = Diff.diff(txt, cmp or txt, label=params.get('label'))[0]
+
+        # 按列对字框分组，提取列号
+        TextProofHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
+        column_ids = sorted(list(set((c['block_no'], c['line_no']) for c in chars)))
+
+        # 然后逐行对应并分配栏列号，匹配时不做文字比较
+        # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
+        line_no = 0
+        matched_boxes = []
+        for seg in segments:
+            if seg['line_no'] > len(column_ids):
+                break
+            if line_no != seg['line_no']:
+                line_no = seg['line_no']
+                boxes = [c for c in chars if (c['block_no'], c['line_no']) == column_ids[line_no - 1]]
+                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == line_no)
+                column_strip = re.sub(r'\s', '', column_txt)
+
+                if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
+                    params['mismatch_lines'].append('b%dc%d' % (boxes[0]['block_no'], boxes[0]['line_no']))
+                for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
+                    c['txt'] = column_strip[i] if i < len(column_strip) else '?'
+                    matched_boxes.append(c)
+            seg['txt_line_no'] = seg.get('txt_line_no', seg['line_no'])
+            seg['line_no'] = boxes[0]['line_no']
+            seg['block_no'] = boxes[0]['block_no']
+
+        for c in chars:
+            if c not in matched_boxes:
+                c.pop('txt', 0)
+
+        return segments
 
 
 class TextArea(UIModule):
@@ -47,117 +134,25 @@ class TextArea(UIModule):
         return self.render_string('task_text_area.html', blocks=blocks, cmp_names=cmp_names)
 
 
-class TextProofHandler(TaskHandler):
-    URL = ['/task/text_proof.@num/@page_name', '/task/do/text_proof.@num/@page_name']
+class TextProofHandler(TextBaseHandler):
+    URL = ['/task/text_proof_@num/@page_name',
+           '/task/do/text_proof_@num/@page_name',
+           '/task/update/text_proof_@num/@page_name']
 
-    def get(self, proof_num, name=''):
+    def get(self, num, page_name):
         """ 进入文字校对页面 """
-        self.lock_enter(self, 'text_proof.' + proof_num, name, ('proof', '文字校对'))
-
-    @staticmethod
-    def lock_enter(self, task_type, name, stage, review=None):
-        def handle_response(body):
-            try:
-                if not body.get('name') and not readonly:  # 锁定失败
-                    return self.send_error_response(errors.task_locked, render=True, reason=name)
-
-                TextProofHandler.enter(self, task_type, name, stage, readonly, review)
-            except Exception as e:
-                self.send_db_error(e, render=True)
-
-        readonly = 'do' not in self.request.uri
-        if readonly:
-            handle_response({})
-        else:
-            from_url = self.get_query_argument('from', None)
-            pick_from = '?from=' + from_url if from_url else ''
-            self.call_back_api('/api/task/pick/{0}/{1}{2}'.format(task_type, name, pick_from), handle_response)
-
-    @staticmethod
-    def enter(self, task_type, name, stage, readonly, review):
-        try:
-            p = self.db.page.find_one(dict(name=name))
-            if not p:
-                return self.render('_404.html')
-
-            params = dict(page=p, name=name, stage=stage, mismatch_lines=[], columns=p['columns'])
-            CutBaseHandler.char_render(self, p, task_type, **params)
-            txt = p.get('ocr', p.get('txt')).replace('|', '\n')
-            cmp = self.prop(p, task_type + '.cmp')
-            params['label'] = dict(cmp1='cmp')
-            cmp_data = TextProofHandler.gen_segments(txt, p['chars'], params, cmp)
-
-            picked_user_id = self.prop(p, task_type + '.picked_user_id')
-            from_url = self.get_query_argument('from', 0) or '/task/lobby/' + task_type.split('.')[0]
-            home_title = '任务大厅' if re.match(r'^/task/lobby/', from_url) else '返回'
-            self.render('task_text_proof.html', task_type=task_type, review=review,
-                        from_url=from_url, home_title=home_title,
-                        origin_txt=re.split(r'[\n|]', txt.strip()),
-                        cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
-                        readonly=readonly or picked_user_id != self.current_user['_id'],
-                        get_img=self.get_img, cmp_data=cmp_data, **params)
-        except Exception as e:
-            self.send_db_error(e, render=True)
-
-    @staticmethod
-    def normalize_boxes(page):
-        for c in page.get('chars', []):
-            cid = c.get('char_id', '')[1:].split('c')
-            if len(cid) == 3:
-                c['no'] = c['char_no'] = int(cid[2])
-                c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
-            else:
-                c['no'] = c['char_no'] = c.get('char_no') or c.get('no', 0)
-                c['block_no'] = c.get('block_no', 0)
-                c['line_no'] = c.get('line_no', 0)
-                c['char_id'] = 'b%dc%dc%d' % (c.get('block_no'), c.get('line_no'), c.get('no'))
-        for c in page.get('columns', []):
-            c.pop('char_id', 0)
-            c.pop('char_no', 0)
-
-    @staticmethod
-    def gen_segments(txt, chars, params=None, cmp=None):
-
-        # 先比对文本(diff)得到行号连续的文本片段元素 segments
-        params = params or {}
-        segments = Diff.diff(re.sub(' ', '', txt), re.sub(' ', '', cmp or txt), label=params.get('label'))[0]
-        # 按列对字框分组，提取列号
-        TextProofHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
-        column_ids = sorted(list(set((c['block_no'], c['line_no']) for c in chars)))
-
-        # 然后逐行对应并分配栏列号，匹配时不做文字比较
-        # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
-        line_no = 0
-        matched_boxes = []
-        for seg in segments:
-            if seg['line_no'] > len(column_ids):
-                break
-            if line_no != seg['line_no']:
-                line_no = seg['line_no']
-                boxes = [c for c in chars if (c['block_no'], c['line_no']) == column_ids[line_no - 1]]
-                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == line_no)
-                column_strip = re.sub(r'\s', '', column_txt)
-
-                if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
-                    params['mismatch_lines'].append('b%dc%d' % (boxes[0]['block_no'], boxes[0]['line_no']))
-                for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-                    c['txt'] = column_strip[i] if i < len(column_strip) else '?'
-                    matched_boxes.append(c)
-            seg['txt_line_no'] = seg.get('txt_line_no', seg['line_no'])
-            seg['line_no'] = boxes[0]['line_no']
-            seg['block_no'] = boxes[0]['block_no']
-
-        for c in chars:
-            if c not in matched_boxes:
-                c.pop('txt', 0)
-
-        return segments
+        p = self.request.path
+        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'view'
+        self.enter('text_proof_' + num, page_name, mode=mode)
 
 
-class TextReviewHandler(TaskHandler):
-    URL = ['/task/text_review/@page_name', '/task/do/text_review/@page_name']
+class TextReviewHandler(TextBaseHandler):
+    URL = ['/task/text_review/@page_name',
+           '/task/do/text_review/@page_name',
+           '/task/update/text_review/@page_name']
 
-    def get(self, name=''):
+    def get(self, page_name):
         """ 进入文字审定页面 """
-        TextProofHandler.lock_enter(self, 'text_review', name, ('review', '文字审定'), {
-        })
+        p = self.request.path
+        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'view'
+        self.enter('text_review', page_name, mode=mode)

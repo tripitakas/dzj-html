@@ -540,7 +540,7 @@
         },
         function () {
           //此处调用后台删除逻辑(ajax)
-          getApi('/task/unlock/' + task_type + '/' + name, function (res) {
+          getApi('/task/withdraw/' + task_type + '/' + name, function (res) {
             if (res.data.length) {
               window.location.reload();
             }

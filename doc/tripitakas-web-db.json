@@ -6,8 +6,14 @@
     "blocks":[],
     "columns":[],
     "chars":[],
-    "text":"",
     "ocr": "",
+    "cmp1": "",
+    "txt1": "",
+    "cmp2": "",
+    "txt2": "",
+    "cmp3": "",
+    "txt3": "",
+    "text":"",
     "lock":{
         "blocks":{
             "task_type": "cut_block_review",
@@ -56,8 +62,6 @@
             "picked_by": "贤二",
             "picked_user_id": "aXYFJzsmzh6JhQDf",
             "picked_time": "2019-03-12T08:58:01.422Z",
-            "cmp":"",
-            "result":"",
             "doubts":""
         },
         "text_proof_2": {

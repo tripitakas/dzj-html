@@ -32,7 +32,10 @@
       <div class="m-header">
       <div class="left">
         <div class="back">
-          <img src='{{ static_url("imgs/icon_task_lobby.png") }}' class="m-header-img fl" onclick="leave('/task/lobby/{{task_type}}')"/>
+          {% set title, img = ('任务大厅', 'icon_task_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+          <a onclick="leave()" title="{{title}}">
+            <img src="{{ static_url('imgs/%s.png' % img) }}" class="m-header-img"/>
+          </a>
         </div>
         <div class="m-header-title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
         <div class="m-header-edit-btn">
@@ -56,13 +59,15 @@
         </div>
       </div><!--left-->
       <div class="m-header-right">
-        <!--申请编辑但是只读（没有获得数据锁）时，进行提示-->
-        {% if mode  == 'do' and readonly %}
-        <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
+        {% if readonly %}
+          {% if mode in ['do', 'update', 'edit']  %}
+            <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
+          {% else %}
+            <div class="m-header-tips">当前为查看模式，不能提交修改。</div>
+          {% end %}
         {% end %}
         <div class="m-header-edit-btn">
-          <!--do模式时，打开更多按钮-->
-          {% if mode  == 'do' and box_type in ['column', 'char'] %}
+          {% if box_type in ['column', 'char'] %}
           <div class="more">
             <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
             {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
@@ -73,11 +78,12 @@
             <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
           </div>
           {% end %}
-          <!--可写情况下，打开保存等按钮-->
           {% if not readonly %}
-          <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
-          <img src="{{ static_url('imgs/char_icon9.png') }}" id="submit" class="m-header-img btn-submit" title="提交"/>
-          <img src="{{ static_url('imgs/char_icon12.png') }}" id="return-task" class="m-header-img btn-return-back" title="退回"/>
+          <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+          {% end %}
+          {% if not readonly and mode = 'do' %}
+          <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
+          <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
           {% end %}
         </div>
       </div><!--right-->
@@ -194,28 +200,31 @@
 
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '/task/edit/blocks/{{name}}';
+    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{name}}';
   });
 
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '/task/edit/columns/{{name}}';
+    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{name}}';
+  });
+
+  // 修改字框
+  $('.ed-char-box').click(function () {
+   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
   });
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '/task/do/char_order_proof/{{name}}';
+    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{name}}';
   });
 
-
-
   // 保存任务
-  $('#save').on("click", function () {
+  $('.btn-save').on("click", function () {
     postApi('/task/do/{{task_type}}/{{name}}', {
       data: {
-      submit: false,
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
+        submit: false,
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
       }
     }, function (data) {
       showSuccess('保存成功', '{{name}} ' + '已保存成功');
@@ -226,14 +235,14 @@
 	});
 
   // 提交任务
-  $('#submit').on("click", function () {
+  $('.btn-submit').on("click", function () {
     postApi('/task/do/{{task_type}}/{{name}}', {
       data: {
       submit: true,
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
       }
-    }, function (data) {
+    }, function () {
       // showSuccess('提交成功', '{{name}} ' + '已提交成功');
       pick('/task/pick/{{task_type}}');
     });
@@ -243,7 +252,7 @@
   // 领取新任务（从任务大厅领取任务的js中拷贝）
   {% import controller.errors as e %}
   function pick(url, page_name) {
-    var data = page_name !== undefined ? {} : {data: {page_name: page_name}};
+    var data = page_name == undefined ? {} : {data: {page_name: page_name}};
     postApi(
 		  url,
       data,
@@ -300,18 +309,26 @@
   }
 
   // 退回任务
-  $('#return-task').click(function () {
-    postApi('/task/return/{{task_type}}/{{name}}', {}, function (res) {
+  $('.btn-return-back').click(function () {
+    getApi('/task/return/{{task_type}}/{{name}}', function () {
       showSuccess('退回成功', '{{name}} ' + '已退回成功。');
       setTimeout(function () {
-      window.location = '/task/lobby/{{task_type}}';
+        window.location = '/task/lobby/{{task_type}}';
       }, 1000);
     });
   });
 
-  // 离开
-  window.leave = function (url) {
-    window.location = url;
+  // 离开页面时解锁任务
+  window.leave = function () {
+    if ('{{mode}}' === 'edit') {
+      getApi('/data/unlock/{{task_type}}/{{name}}', function () {
+        window.history.back();
+      });
+    } else if ('{{mode}}' === 'view') {
+      window.history.back();
+    } else {
+      window.location = '/task/lobby/{{task_type}';
+    }
   };
 
 </script>

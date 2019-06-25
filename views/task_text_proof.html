@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{stage[1]}}</title>
+  {% set stage = '文字校对' if 'proof' in task_type else '文字审定' %}
+  <title>{{stage}}</title>
   {% include _base_meta.html %}
 
   <!-- Plugins css -->
@@ -52,12 +53,12 @@
 
       <header class="m-header">
         <div class="back">
-          <a onclick="leave('{{from_url}}')" title="{{home_title}}">
-            <img src="{{ static_url('imgs/%s.png' % ('icon_back' if '返回' in home_title else 'icon_task_lobby')) }}"
-                 class="m-header-img"/>
+          {% set title, img = ('任务大厅', 'icon_task_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+          <a onclick="leave()" title="{{title}}">
+            <img src="{{ static_url('imgs/%s.png' % img) }}" class="m-header-img"/>
           </a>
         </div>
-        <div class="m-header-title" title="{{name}}">{{stage[1]}}</div>
+        <div class="m-header-title" title="{{name}}">{{stage}}</div>
         <div class="m-header-edit-btn">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
@@ -68,12 +69,19 @@
         <div class="more">
           <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="更多"/>
           <span class="btn-group ed-box-group hidden" role="group" aria-label="更多">
-            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('char-order', '字序')] %}
-            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
+            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
+              <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="{{text}}">{{text}}</button>
             {% end %}
           </span>
         </div>
         <div class="m-header-right">
+          {% if readonly %}
+            {% if mode in ['do', 'update', 'edit']  %}
+              <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
+            {% else %}
+              <div class="m-header-tips">当前为查看模式，不能提交修改。</div>
+            {% end %}
+          {% end %}
           <div class="m-header-edit-btn">
             <div class="m-header-txt btn-font-enlarge" title="增加字号">A+</div>
             <div class="m-header-txt btn-font-reduce" title="减少字号">A-</div>
@@ -81,20 +89,18 @@
             <div class="m-header-txt btn-next" title="下一条异文">></div>
             <div class="m-header-txt btn-emptyplaces" title="显示空位符"></div>
             <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>-->
-            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line"
-                 title="删除该行"/>
-            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line"
-                 title="向上增行"/>
-            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line"
-                 title="向下增行"/>
+            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
+            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
+            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
             <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-doubt" title="存疑"/>
             <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
             <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-help" title="帮助"/>
             {% if not readonly %}
             <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+            {% end %}
+            {% if not readonly and mode == 'do' %}
             <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back"
-                 title="退回"/>
+            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
             {% end %}
           </div>
         </div>
@@ -293,75 +299,84 @@
 
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '/task{{"/do" if "do" in current_url else ""}}/block_cut_{{"proof" if can_access("/task/my/block_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{name}}';
   });
 
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '/task{{"/do" if "do" in current_url else ""}}/column_cut_{{"proof" if can_access("/task/my/column_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{name}}';
   });
 
   // 修改字框
   $('.ed-char-box').click(function () {
-    window.location = '/task{{"/do" if "do" in current_url else ""}}/char_cut_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
   });
 
   // 修改字序
-  $('.ed-char-order-box').click(function () {
-    window.location = '/task{{"/do" if "do" in current_url else ""}}/char_order_{{"proof" if can_access("/task/my/char_cut_proof") else "review"}}/{{name}}?from={{request.uri}}';
+  $('.ed-order-box').click(function () {
+    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{name}}';
   });
 
   // 退回任务
   $('.btn-return-back').click(function () {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {}, function (res) {
-      if (res.data.length === 1 && res.data[0] === '{{name}}') {
-        window.location = '/task/lobby/text_proof';
-      }
+    getApi('/data/return/{{task_type}}/{{name}}', {}, function () {
+      showSuccess('退回成功', '{{name}} ' + '已退回成功。');
+      setTimeout(function () {
+        window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";
+      }, 1000);
     });
   });
 
-  // 离开页面时解锁任务
-  window.leave = function (url) {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
-      window.location = url;
-    });
+  // 离开页面
+  window.leave = function () {
+    if ('{{mode}}' === 'do') {
+      window.location = '/task/lobby/{{task_type}';
+    } else {
+      window.history.back();
+    }
   };
 
-  // 保存和提交
-  function save_(data, onSuccess) {
-    postApi('/task/save/{{task_type.replace(".", "/")}}', {data: data}, function (res) {
-      showSuccess(
-          res.changed ? '保存成功' : '没有改变',
-          '{{name}} ' + (!res.changed ? '的内容没有改变。' : data.submit ? '已提交成功。' : '已保存成功。')
-      );
-      if (res.jump) {
-        setTimeout(function () {
-          window.location = res.jump;
-        }, 1000);
-      }
-      if (onSuccess) {
-        onSuccess(res);
-      }
-    });
-  }
-
-  function save(submit) {
-    var txt = $('#sutra-text').find('.block').map(function (i, block) {
-      return $(block).find('.line:not(.delete)').map(function (line, el) {
-        return $(el).text();
-      }).get().join('\n');
-    }).get().join('\n\n\n');
-    save_({
+  // 获取数据
+  function getData(submit) {
+    var txt = $('#sutra-text').find('.block').map(
+        function (i, block) {
+          return $(block).find('.line:not(.delete)').map(
+              function (line, el) {
+                return $(el).text();
+              }
+          ).get().join('\n');
+        }
+    ).get().join('\n\n\n');
+    var data = {
       submit: submit,
       name: '{{name}}',
-      from_url: '{{from_url}}',
       txt: JSON.stringify(txt),
       chars: JSON.stringify($.cut.exportBoxes())
-    });
+    };
+    return data;
   }
 
-  $('.btn-save').click(save.bind(null, false));
-  $('.btn-submit').click(save.bind(null, true));
+  // 保存任务
+  $('.btn-save').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{name}}', {
+      data: getData(false)
+    }, function () {
+      showSuccess('保存成功', '{{name}} ' + '已保存成功');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
+    });
+	});
+
+  // 提交任务
+  $('.btn-submit').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{name}}', {
+      data: getData(true)
+    }, function () {
+      // showSuccess('提交成功', '{{name}} ' + '已提交成功');
+      pick('/task/pick/{{task_type}}');
+    });
+  });
 
   // 原文等对话框允许拖动
   $('.modal-header').on('mousedown', function (downEvt) {
