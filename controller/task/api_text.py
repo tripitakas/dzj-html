@@ -55,6 +55,8 @@ class SaveTextApi(TaskHandler):
                 # 处理后置任务
                 self.update_post_tasks(page_name, task_type)
 
+            self.send_data_response()
+
         except DbError as e:
             self.send_db_error(e)
 
