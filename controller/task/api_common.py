@@ -35,7 +35,7 @@ class PickTaskApi(TaskHandler):
 
             # 如果page_name为空，则任取一个任务
             if not page_name:
-                return PickTaskApi.pick_one(self, task_type)
+                return self.pick_one_from_lobby(self, task_type)
 
             # 检查页面是否存在
             task = self.db.page.find_one({'name': page_name}, self.simple_fileds())
@@ -52,7 +52,7 @@ class PickTaskApi(TaskHandler):
                 return self.send_error_response(errors.data_is_locked)
 
             # 文字校对中，不能领取同一page不同校次的两个任务
-            if 'text_proof_' in task_type:
+            if 'text_proof' in task_type:
                 for i in range(1, 4):
                     if self.prop(task, 'tasks.text_proof_%s.picked_user_id' % i) == self.current_user['_id']:
                         return self.send_error_response(errors.task_text_proof_duplicated)
@@ -88,14 +88,14 @@ class PickTaskApi(TaskHandler):
             return self.send_error_response(errors.no_object)
 
     @staticmethod
-    def pick_one(self, task_type):
+    def pick_one_from_lobby(self, task_type):
         """ 从任务大厅中随机领取一个任务"""
-        tasks = self.get_lobby_tasks_by_type(self, task_type, page_size=1)[0]
+        tasks = self.get_lobby_tasks_by_type(task_type, page_size=1)[0]
         if not tasks:
             return self.send_error_response(errors.no_task_to_pick)
         else:
             task_type = self.select_lobby_text_proof(tasks[0]) if task_type == 'text_proof' else task_type
-            return PickTaskApi.assign_task(self, tasks[0]['name'], task_type)
+            return self.assign_task(self, tasks[0]['name'], task_type)
 
 
 class UnlockDataApi(TaskHandler):

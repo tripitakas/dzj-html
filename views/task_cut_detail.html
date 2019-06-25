@@ -32,7 +32,7 @@
       <div class="m-header">
       <div class="left">
         <div class="back">
-          <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('/task/lobby/{{task_type}}')"/>
+          <img src='{{ static_url("imgs/icon_task_lobby.png") }}' class="m-header-img fl" onclick="leave('/task/lobby/{{task_type}}')"/>
         </div>
         <div class="m-header-title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
         <div class="m-header-edit-btn">
@@ -57,12 +57,12 @@
       </div><!--left-->
       <div class="m-header-right">
         <!--申请编辑但是只读（没有获得数据锁）时，进行提示-->
-        {% if mode in ['do', 'edit'] and readonly %}
+        {% if mode  == 'do' and readonly %}
         <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
         {% end %}
         <div class="m-header-edit-btn">
-          <!--do/edit模式时，打开更多按钮-->
-          {% if mode in ['do', 'edit'] and box_type in ['column', 'char'] %}
+          <!--do模式时，打开更多按钮-->
+          {% if mode  == 'do' and box_type in ['column', 'char'] %}
           <div class="more">
             <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
             {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
@@ -101,7 +101,7 @@
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 
 <script>
-  // 当前页面的模式，包括：view(查看)、do(任务)、edit(编辑)三种
+  // 当前页面的模式，包括：view(查看)、do(任务)两种
   var mode = '{{mode}}';
 
   $.cut.create({
@@ -204,31 +204,100 @@
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '/task/{{"do" if "do" in current_url else "edit"}}/char_order_proof/{{name}}';
+    window.location = '/task/do/char_order_proof/{{name}}';
   });
 
+
+
   // 保存任务
-  function save(submit) {
+  $('#save').on("click", function () {
     postApi('/task/do/{{task_type}}/{{name}}', {
       data: {
-      submit: submit,
+      submit: false,
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
       }
     }, function (data) {
-      showSuccess('保存成功', '{{name}} ' + (submit ? '已提交成功。' : '已保存成功。'));
+      showSuccess('保存成功', '{{name}} ' + '已保存成功');
       setTimeout(function () {
-        if (data.url)
-          window.location = data.url;
-        else
-          window.location.reload();
+        window.location.reload();
       }, 1000);
     });
+	});
+
+  // 提交任务
+  $('#submit').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{name}}', {
+      data: {
+      submit: true,
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+      }
+    }, function (data) {
+      // showSuccess('提交成功', '{{name}} ' + '已提交成功');
+      pick('/task/pick/{{task_type}}');
+    });
+  });
+
+
+  // 领取新任务（从任务大厅领取任务的js中拷贝）
+  {% import controller.errors as e %}
+  function pick(url, page_name) {
+    var data = page_name !== undefined ? {} : {data: {page_name: page_name}};
+    postApi(
+		  url,
+      data,
+		  function (res) {
+		    if (res && res.url) {
+		      window.location = res.url;
+		    }
+		  },
+		  function (res) {
+        console.log(res);
+        if (res.code == {{e.task_uncompleted[0]}}) {
+          swal({
+            title: "是否继续未完成的任务？",
+            text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#b8906f",
+            confirmButtonText: "确定继续",
+            cancelButtonText: "取消",
+            closeOnConfirm: false
+            },
+            function() {
+             window.location = res.url;
+            }
+          );
+        } else if (res.code == {{e.no_task_to_pick[0]}}) {
+          showError('暂无新任务', res.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        } else if (res.code != 500) {
+          swal({
+             title: "是否领取其它任务？",
+             text: res.message,
+             type: "warning",
+             showCancelButton: true,
+             confirmButtonColor: "#b8906f",
+             confirmButtonText: "确定领取",
+             cancelButtonText: "取消",
+             closeOnConfirm: false
+            },
+            function() {
+              pick("/task/pick/{{task_type}}");
+            }
+          );
+        } else {
+          showError('发生错误', res.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        }
+      } // error_callback
+   );
   }
-
-  $('#save').click(save.bind(null, false));
-  $('#submit').click(save.bind(null, true));
-
 
   // 退回任务
   $('#return-task').click(function () {

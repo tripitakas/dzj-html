@@ -93,20 +93,21 @@
 	});
 
   function pick(url, page_name) {
+    var data = page_name !== undefined ? {} : {data: {page_name: page_name}};
     postApi(
 		  url,
-      page_name ? {page_name: page_name} : {},
-		  function (data) {
-		    if (data && data.url) {
-		      window.location = data.url;
+      data,
+		  function (res) {
+		    if (res && res.url) {
+		      window.location = res.url;
 		    }
 		  },
-		  function (data) {
-        console.log(data);
-        if (data.code == {{e.task_uncompleted[0]}}) {
+		  function (res) {
+        console.log(res);
+        if (res.code == {{e.task_uncompleted[0]}}) {
           swal({
             title: "是否继续未完成的任务？",
-            text: "您还有未完成的任务" + data.uncompleted_name + "，不能领取新任务！",
+            text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
             type: "warning",
             showCancelButton: true,
             confirmButtonColor: "#b8906f",
@@ -115,18 +116,18 @@
             closeOnConfirm: false
             },
             function() {
-             window.location = data.url;
+             window.location = res.url;
             }
           );
-        } else if (data.code == {{e.no_task_to_pick[0]}}) {
-          showError('没有新任务', data.message);
+        } else if (res.code == {{e.no_task_to_pick[0]}}) {
+          showError('暂无新任务', res.message);
           setTimeout(function () {
             window.location.reload();
           }, 1500);
-        } else {
+        } else if (res.code != 500) {
           swal({
              title: "是否领取其它任务？",
-             text: data.message,
+             text: res.message,
              type: "warning",
              showCancelButton: true,
              confirmButtonColor: "#b8906f",
@@ -135,18 +136,19 @@
              closeOnConfirm: false
             },
             function() {
-              pick_another();
+              pick("/task/pick/{{task_type}}");
             }
           );
+        } else {
+          showError('发生错误', res.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
         }
       } // error_callback
    );
   }
 
-  // 领取新任务
-  function pick_another() {
-    pick("/task/pick/{{task_type}}", null);
-  }
 
 </script>
 
