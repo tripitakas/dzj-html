@@ -229,6 +229,7 @@
             'stroke-width': 3 / data.ratioInitial,
             'stroke-linecap': up && !zoomed ? 'butt' : 'round'
           })
+          .data('id', this.getId())
           .data('link', this);
 
       if (remove) {
@@ -437,15 +438,22 @@
 
       if (changed) {
         this.linkSwitched();
+      } else {
+        this._updateCharInfo(this.state.hit);
       }
     },
 
-    linkSwitched: function (link) {
+    _updateCharInfo: function (link) {
+      $('#info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
+          (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? '，可改起点' : '')));
+    },
+
+    linkSwitched: function (link, ballTimes) {
       var self = this;
       link = getId(this.state.dragLink) && this.state.dragLink || this.state.hit || link;
       var run = function () {
         var alongPath = self.drag.line || self.hover.line;
-        if (self.hover.ball && alongPath) {
+        if (self.hover.ball && alongPath && --self.state.ballTimes >= 0) {
           var ms = Math.max(alongPath.getTotalLength() / self.state.avgLen - 1, 0) * 100 + 200;
           self.hover.ball.attr({alongLink: 0});
           self.hover.ball.animate({alongLink: 1}, ms, function () {
@@ -454,8 +462,7 @@
         }
       };
 
-      $('#info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
-          (this.state.inletHit ? '，可改终点' : this.state.outletHit ? '，可改起点' : ''));
+      this._updateCharInfo(link);
       removeShapes(this.hover.ball);
       if (link) {
         data.paper.customAttributes.alongLink = function (v) {
@@ -464,6 +471,7 @@
           return point && {transform: "t" + [point.x, point.y] + "r" + point.alpha};
         };
         self.hover.ball = data.paper.circle(0, 0, 2).attr({stroke: '#f00', fill: '#fff', 'z-order': 1000});
+        self.state.ballTimes = ballTimes || 5;
         setTimeout(run, 100);
       }
     },
@@ -488,6 +496,7 @@
         if (this.hover.outlet && this.state.outletHit) {
           this.hover.outlet.attr({'fill-opacity': 0});
         }
+        this.linkSwitched(null, 200);
       }
       if (this.state.dragging) {
         var hit = this.hitTest(pt, this.findNode(pt), {
@@ -557,8 +566,10 @@
 
     // 更新当前连接
     _updateCurrentLink: function (link, pt) {
-      removeShapes(this.hover.line);
-      this.hover.line = link instanceof Link && link.createLine(colors.sel, true);
+      if (!pt || !this.hover.line || !link || this.hover.line.data('id') !== link.getId()) {
+        removeShapes(this.hover.line);
+        this.hover.line = link instanceof Link && link.createLine(colors.sel, true);
+      }
 
       var inletHit = pt && getDistance(pt, link.getEndPos()) < getDistance(pt, link.getStartPos());
       var outletHit = pt && getDistance(pt, link.getEndPos()) > getDistance(pt, link.getStartPos());
