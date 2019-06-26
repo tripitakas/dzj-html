@@ -29,26 +29,24 @@ class SaveCutApi(TaskHandler):
         try:
             assert task_type in self.cut_task_names() and mode in ['do', 'update', 'edit']
 
-            data = self.get_request_data()
-            boxes = json_decode(data.get('boxes', '[]'))
-
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)
 
+            data, ret = self.get_request_data(), {'updated': True}
+            boxes = json_decode(data.get('boxes', '[]'))
             data_field = self.save_fields.get(task_type)
-            update = {
-                data_field: boxes,
-                'tasks.%s.updated_time' % task_type: datetime.now()
-            }
+            update = {data_field: boxes, 'tasks.%s.updated_time' % task_type: datetime.now()}
             if mode == 'do' and data.get('submit'):
                 # 更新任务
                 update.update({
                     'tasks.%s.status' % task_type: self.STATUS_FINISHED,
                     'tasks.%s.finished_time' % task_type: datetime.now(),
                 })
+                ret['submitted'] = True
                 # 释放数据锁
                 if data_field in self.data_auth_maps:
                     update.update({'lock.%s' % data_field: {}})
+                    ret['data_lock_released'] = True
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
@@ -56,8 +54,9 @@ class SaveCutApi(TaskHandler):
 
             if mode == 'do' and data.get('submit'):
                 self.update_post_tasks(page_name, task_type)  # 处理后置任务
+                ret['post_tasks_updated'] = True
 
-            self.send_data_response()
+            self.send_data_response(ret)
 
         except DbError as e:
             self.send_db_error(e)

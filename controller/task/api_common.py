@@ -87,7 +87,7 @@ class PickTaskApi(TaskHandler):
         r = self.db.page.update_one({'name': page_name}, {'$set': update})
         if r.matched_count:
             self.add_op_log('pick_' + task_type, context=page_name)
-            return self.send_data_response({'url': '/task/do/%s/%s' % (task_type, page_name)})
+            return self.send_data_response({'page_name': page_name, 'url': '/task/do/%s/%s' % (task_type, page_name)})
         else:
             return self.send_error_response(errors.no_object)
 
@@ -118,7 +118,7 @@ class UnlockTaskDataApi(TaskHandler):
 class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_type/@page_name'
 
-    def get(self, task_type, page_name):
+    def post(self, task_type, page_name):
         """ 用户主动退回当前任务 """
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
@@ -131,20 +131,22 @@ class ReturnTaskApi(TaskHandler):
             elif self.prop(page, 'tasks.%s.status' % task_type) != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_return_only_picked)
 
+            data_field, ret = 'tasks.' + task_type, {'returned': True}
             update = {
-                'tasks.' + task_type + '.status': self.STATUS_RETURNED,
-                'tasks.' + task_type + '.updated_time': datetime.now(),
-                'tasks.' + task_type + '.returned_reason': self.get_request_data().get('reason'),
+                data_field + '.status': self.STATUS_RETURNED,
+                data_field + '.updated_time': datetime.now(),
+                data_field + '.returned_reason': self.get_request_data().get('reason'),
             }
             # 检查数据锁
             data_field = self.get_shared_data_field(task_type)
             if data_field and data_field in self.data_auth_maps:
                 update.update({'lock.' + data_field: dict()})
+                ret['data_lock_released'] = True
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.matched_count:
                 self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
 
-            return self.send_data_response()
+            return self.send_data_response(ret)
 
         except DbError as e:
             self.send_db_error(e)

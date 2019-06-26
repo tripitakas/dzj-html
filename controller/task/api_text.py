@@ -27,7 +27,7 @@ class SaveTextApi(TaskHandler):
         try:
             assert task_type in self.text_task_names() and mode in ['do', 'update', 'edit']
 
-            data = self.get_request_data()
+            data, ret = self.get_request_data(), {'updated': True}
             txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
             doubt = self.get_request_data().get('doubt')
 
@@ -46,6 +46,7 @@ class SaveTextApi(TaskHandler):
                     'tasks.%s.status' % task_type: self.STATUS_FINISHED,
                     'tasks.%s.finished_time' % task_type: datetime.now(),
                 })
+                ret['submitted'] = True
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
@@ -54,8 +55,9 @@ class SaveTextApi(TaskHandler):
             if mode == 'do' and data.get('submit'):
                 # 处理后置任务
                 self.update_post_tasks(page_name, task_type)
+                ret['post_tasks_updated'] = True
 
-            self.send_data_response()
+            self.send_data_response(ret)
 
         except DbError as e:
             self.send_db_error(e)

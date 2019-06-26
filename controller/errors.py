@@ -46,9 +46,9 @@ task_uncompleted = 3002, '您还有未完成的任务，请完成后再领取新
 no_task_to_pick = 3003, '目前没有新任务可领取，请关注任务动态'
 task_exceed_max = 3004, '任务数量超过上限'
 task_not_published = 3005, '任务状态不是已发布'
-task_text_proof_duplicated = 3006, '您已领取本页面的文字校对任务，不能领取其它校次任务'
-task_return_no_finished = 3007, '不能退回已完成的任务'
-task_return_only_picked = 3008, '只能退回进行中的任务'
+task_text_proof_duplicated = 3006, '您曾领取过本页面的文字校对任务，不能再领取其它校次任务'
+task_return_only_picked = 3007, '只能退回进行中的任务'
+task_finished_not_allowed_do = 3008, '任务已完成，不可以继续做任务，可以选择更新'
 
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'

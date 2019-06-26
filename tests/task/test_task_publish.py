@@ -8,6 +8,18 @@ from controller.task.base import TaskHandler as th
 
 
 class TestTaskPublish(APITestCase):
+    pre_tasks = {
+        'block_cut_proof': '',
+        'block_cut_review': 'block_cut_proof',
+        'column_cut_proof': '',
+        'column_cut_review': 'column_cut_proof',
+        'char_cut_proof': '',
+        'char_cut_review': 'char_cut_proof',
+        'text_proof_1': '',
+        'text_proof_2': '',
+        'text_proof_3': '',
+        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+    }
 
     def setUp(self):
         super(TestTaskPublish, self).setUp()
@@ -28,6 +40,8 @@ class TestTaskPublish(APITestCase):
         super(TestTaskPublish, self).tearDown()
 
     def _publish(self, data):
+        if 'task_type' in data and 'pre_tasks' not in data:
+            data['pre_tasks'] = self.pre_tasks.get(data['task_type'])
         return self.fetch('/api/task/publish', body={'data': data})
 
     def _set_page_status(self, page_names, task_type_status_dict):
@@ -42,13 +56,13 @@ class TestTaskPublish(APITestCase):
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(set(pages), set(_pages))
 
-    def _publish_many_tasks(self, task_type, pre_tasks, size):
+    def _publish_many_tasks(self, task_type, size):
         pages = self._app.db.page.find({}, {'name': 1}).limit(size)
         page_names = [page['name'] for page in pages]
         self._set_page_status(page_names, {task_type: th.STATUS_READY})
-        r = self.parse_response(
-            self._publish(dict(task_type=task_type, pre_tasks=pre_tasks, pages=','.join(page_names))))
+        r = self.parse_response(self._publish(dict(task_type=task_type, pages=','.join(page_names))))
         self.assertIn(['pending', 'published'], r['data'])
+
 
     def _publish_task(self, task_type):
         # 测试不存在的页面
@@ -91,15 +105,19 @@ class TestTaskPublish(APITestCase):
 
     def _publish_pre_tasks(self):
         # 测试前置任务
-        pages_pre_tasks = ['YB_22_713', 'YB_22_759', 'YB_22_816']
-        self._set_page_status(pages_pre_tasks, {'block_cut_review': th.STATUS_READY})
-        self._set_page_status(pages_pre_tasks, {'block_cut_proof': th.STATUS_READY})
-        r = self.parse_response(self._publish(dict(task_type='block_cut_review', pre_tasks=['block_cut_proof'],
-                                                   pages=','.join(pages_pre_tasks))))
-        self._assert_response(pages_pre_tasks, r, {'block_cut_review': 'pending'})
+        page_names = ['YB_22_713', 'YB_22_759', 'YB_22_816']
+        for t, pre in self.pre_tasks.items():
+            if pre:
+                self._set_page_status(page_names, {t: th.STATUS_READY})
+                if isinstance(pre, list):
+                    pre = pre[0]
+                self._set_page_status(page_names, {pre: th.STATUS_READY})
+                r = self.parse_response(self._publish(dict(task_type=t, pages=','.join(page_names))))
+                pending = r.get('data', {}).get('pending')
+                self.assertEqual(set(page_names), set(pending))
 
     def _publish_file(self, task_type, txt_file, priority=1):
-        body = dict(task_type=task_type, priority=priority)
+        body = dict(task_type=task_type, priority=priority, pre_tasks=self.pre_tasks.get(task_type))
         return self.fetch('/api/task/publish_file', files=dict(txt_file=txt_file), body=body)
 
     def _publish_tasks_file(self):
@@ -142,8 +160,8 @@ class TestTaskPublish(APITestCase):
         self._publish_task('block_cut_proof')
         self._publish_pre_tasks()
 
+        # 测试发布文件
+        self._publish_tasks_file()
+
         # 测试超大规模
         # self._publish_many_tasks('block_cut_proof', 10000)
-
-        # 测试发布文件
-        # self._publish_tasks_file()

@@ -219,9 +219,12 @@ class TaskHandler(BaseHandler):
             task_field = 'tasks.' + task_type
             if self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
-            # 检查任务状态是否为已领取或已完成
-            if self.prop(page, task_field + '.status') not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
+            # 检查任务状态以及是否与mode匹配
+            status = self.prop(page, task_field + '.status')
+            if status not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
+            if status == self.STATUS_FINISHED and mode == 'do':
+                return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=page['name'])
 
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
         auth = False
@@ -241,7 +244,7 @@ class TaskHandler(BaseHandler):
         def find_post_tasks():
             post_tasks = []
             for k, task in page.get('tasks').items():
-                if task_type in task.get('pre_tasks', []):
+                if task_type in (task.get('pre_tasks') or []):
                     post_tasks.append(k)
             return post_tasks
 
@@ -290,7 +293,7 @@ class TaskHandler(BaseHandler):
             condition['name'] = {'$regex': '.*%s.*' % name}
 
         query = self.db.page.find(condition, self.simple_fileds())
-        total_count = query.count()
+        total_count = self.db.page.count_documents(condition)
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
@@ -327,7 +330,7 @@ class TaskHandler(BaseHandler):
         total_count = self.db.page.count_documents(condition)
         pages = list(self.db.page.find(condition, self.simple_fileds()).limit(self.MAX_RECORDS))
         random.shuffle(pages)
-        pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)))
+        pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)), reverse=True)
         page_size = page_size or self.config['pager']['page_size']
         return pages[:page_size], total_count
 

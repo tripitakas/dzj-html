@@ -309,7 +309,7 @@
 
   // 退回任务
   $('.btn-return-back').click(function () {
-    getApi('/task/return/{{task_type}}/{{name}}', function () {
+    postApi('/task/return/{{task_type}}/{{name}}', {data: {}}, function () {
       showSuccess('退回成功', '{{name}} ' + '已退回成功。');
       setTimeout(function () {
         window.location = '/task/lobby/{{task_type}}';

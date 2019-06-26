@@ -6,11 +6,24 @@ from datetime import datetime, date
 import tests.users as u
 from tests.testcase import APITestCase
 from controller import errors
-from controller.task.base import TaskHandler
+from controller.task.base import TaskHandler as th
 from tornado.escape import json_encode
 
 
 class TestTaskFlow(APITestCase):
+    pre_tasks = {
+        'block_cut_proof': None,
+        'block_cut_review': 'block_cut_proof',
+        'column_cut_proof': None,
+        'column_cut_review': 'column_cut_proof',
+        'char_cut_proof': None,
+        'char_cut_review': 'char_cut_proof',
+        'text_proof_1': None,
+        'text_proof_2': None,
+        'text_proof_3': None,
+        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+    }
+
     def setUp(self):
         super(TestTaskFlow, self).setUp()
         # 创建几个专家用户（权限足够），用于审校流程的测试
@@ -18,87 +31,90 @@ class TestTaskFlow(APITestCase):
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]], '切分专家,文字专家'
         )
+        self._revert()
 
     def tearDown(self):
-        # 退回所有任务，还原改动
-        for task_type in TaskHandler.task_types.keys():
-            self.assert_code(200, self.fetch('/api/task/unlock/%s/' % task_type))
-        for i in range(1, 4):
-            self.assert_code(200, self.fetch('/api/task/unlock/text_proof.%d/' % i))
         super(TestTaskFlow, self).tearDown()
 
+    def _revert(self, status=th.STATUS_READY):
+        """ 还原所有任务的状态 """
+        pages = self._app.db.page.find()
+        for page in pages:
+            update = dict(tasks={}, lock={})
+            for task_key, v in page.get('tasks').items():
+                update['tasks'][task_key] = dict(status=status)
+            for lock_key, v in page.get('lock').items():
+                update['lock'][lock_key] = dict()
+            self._app.db.page.update_one({'name': page['name']}, {'$set': update})
+
     def _publish(self, data):
+        if 'task_type' in data and 'pre_tasks' not in data:
+            data['pre_tasks'] = self.pre_tasks.get(data['task_type'])
         return self.fetch('/api/task/publish', body={'data': data})
 
     def _set_page_status(self, page_names, task_type_status_dict):
         update_value = dict()
         for task_type, status in task_type_status_dict.items():
-            sub_tasks = TaskHandler.get_sub_tasks(task_type)
-            if sub_tasks:
-                update_value.update({'%s.%s.status' % (task_type, t): status for t in sub_tasks})
-            else:
-                update_value.update({'%s.status' % task_type: status})
+            update_value.update({'tasks.%s.status' % task_type: status})
         self._app.db.page.update_many({'name': {'$in': page_names}}, {'$set': update_value})
 
     def test_task_lobby(self):
         """ 测试任务大厅 """
 
         self.login_as_admin()
-        for task_type in [
-            'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review', 'text_proof', 'text_review',
-        ]:
+        for task_type in self.pre_tasks.keys():
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
             self._set_page_status(page_names, {task_type: 'ready'})
-            _task_type = ['text_proof.1', 'text_proof.2', 'text_proof.3'] if task_type == 'text_proof' else task_type
-            r = self.parse_response(self._publish(dict(task_type=_task_type, pages=','.join(page_names))))
+            r = self.parse_response(self._publish(
+                dict(task_type=task_type, pages=','.join(page_names))))
             published = r.get('data', {}).get('published')
             pending = r.get('data', {}).get('pending')
-            if 'cut_proof' in task_type:
+            if 'proof' in task_type:
                 self.assertIsInstance(published, list, msg=task_type)
                 self.assertEqual(set(page_names), set(published), msg=task_type)
-            elif 'cut_review' in task_type:
+            elif 'review' in task_type:
                 self.assertIsInstance(pending, list, msg=task_type)
                 self.assertEqual(set(page_names), set(pending), msg=task_type)
-
-            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
+            lobby_type = 'text_proof' if 'text_proof' in task_type else task_type
+            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % lobby_type)
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             if published:
                 self.assertEqual(set(page_names), set([t['name'] for t in r['tasks']]), msg=task_type)
 
-            self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
-            self.assert_code(200, self.fetch('/api/task/unlock/text/'))
-
     def test_cut_proof(self):
-        """ 测试切分校对的任务领取、保存和提交 """
-
-        for task_type in TaskHandler.cut_task_names():
-            # 发布任务
+        """ 测试切分校对的任务领取、保存和提交和前后置任务关系 """
+        for task_type in [
+            'block_cut_proof', 'block_cut_review',
+            'column_cut_proof', 'column_cut_review',
+            'char_cut_proof', 'char_cut_review'
+        ]:
             self.login_as_admin()
-            self.assert_code(200, self.fetch('/api/task/unlock/cut/'))
-            self.assert_code(200, self._publish(dict(task_type=task_type, pages='GL_1056_5_6,JX_165_7_12')))
+            # 发布任务
+            page_names = ['GL_1056_5_6', 'JX_165_7_12']
+            self.assert_code(200, self._publish(dict(
+                task_type=task_type, pages=','.join(page_names))))
 
             # 任务大厅
             self.login(u.expert1[0], u.expert1[1])
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))
             tasks = r.get('tasks')
-            if 'cut_review' in task_type:
-                self.assertEqual(tasks, [], msg=task_type)
-                continue
-            self.assertEqual({'GL_1056_5_6', 'JX_165_7_12'}, set([t['name'] for t in tasks]), msg=task_type)
+            if 'review' in task_type:
+                self.assertIn(page_names[0], [t['name'] for t in tasks], msg=task_type)
+            else:
+                self.assertEqual(set(page_names), set([t['name'] for t in tasks]), msg=task_type)
 
-            # 领取任务
-            r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
-            self.assertIn('url', r)
-            r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
-            page = r.get('page')
-            self.assertIn(task_type, page)
-            self.assertEqual(page[task_type]['status'], 'picked')
-            self.assertEqual(page[task_type]['picked_by'], u.expert1[2])
+            # 领取第一个页面
+            url = '/api/task/pick/' + task_type
+            r = self.parse_response(self.fetch(url, body={'data': {'page_name': page_names[0]}}))
+            self.assertEqual(page_names[0], r.get('page_name'), msg=task_type)
+            page = self._app.db.page.find_one({'name': page_names[0]})
+            self.assertIn(task_type, page['tasks'])
+            self.assertEqual(page['tasks'][task_type]['status'], 'picked')
+            self.assertEqual(page['tasks'][task_type]['picked_by'], u.expert1[2])
 
-            # 再领取新任务就提示有未完成任务
-            r = self.parse_response(self.fetch('/api%s' % tasks[1]['pick_url']))
+            # 再领取新任务时，提示有未完成任务
+            r = self.parse_response(self.fetch(url, body={}))
             self.assertEqual(errors.task_uncompleted[0], r.get('code'))
 
             # 其他人不能领取此任务
@@ -106,164 +122,155 @@ class TestTaskFlow(APITestCase):
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))
             self.assertNotIn(page['name'], [t['name'] for t in r.get('tasks')])
             r = self.fetch('/task/do/%s/%s?_raw=1' % (task_type, page['name']))
-            self.assert_code(errors.task_picked, r)
+            self.assert_code(errors.task_unauthorized, r)
 
-            # 保存
+            # 保存任务
             self.login(u.expert1[0], u.expert1[1])
             box_type = task_type.split('_')[0]
             boxes = page[box_type + 's']
             r = self.fetch(
-                '/api/task/save/%s?_raw=1' % (task_type,),
-                body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))}
+                '/api/task/do/%s/%s?_raw=1' % (task_type, page['name']),
+                body={'data': dict(box_type=box_type, boxes=json_encode(boxes))}
             )
             self.assert_code(200, r)
-            self.assertFalse(self.parse_response(r).get('box_changed'))
+            self.assertTrue(self.parse_response(r).get('updated'))
 
-            boxes[0]['w'] += 1
-            r = self.fetch(
-                '/api/task/save/%s?_raw=1' % (task_type,),
-                body={'data': dict(name=page['name'], box_type=box_type, boxes=json_encode(boxes))}
-            )
-            self.assertTrue(self.parse_response(r).get('box_changed'))
-
-            # 提交
+            # 提交任务，保证review有任务可领取
             boxes[0]['w'] -= 1
             r = self.fetch(
-                '/api/task/save/%s?_raw=1' % task_type,
-                body={'data': dict(name=page['name'], submit=True, box_type=box_type, boxes=json_encode(boxes))}
+                '/api/task/do/%s/%s?_raw=1' % (task_type, page['name']),
+                body={'data': dict(submit=True, box_type=box_type, boxes=json_encode(boxes))}
             )
             self.assert_code(200, r)
             self.assertTrue(self.parse_response(r).get('submitted'))
 
+            if 'proof' in task_type:
+                # 领取第二个任务
+                url = '/api/task/pick/' + task_type
+                r = self.parse_response(self.fetch(url, body={}))
+                page = self._app.db.page.find_one({'name': r.get('page_name')})
+                self.assertIn(task_type, page['tasks'])
+                self.assertEqual(page['tasks'][task_type]['status'], 'picked')
+                self.assertEqual(page['tasks'][task_type]['picked_by'], u.expert1[2])
+
+                # 退回第二个任务
+                url = '/api/task/return/%s/%s' % (task_type, page['name'])
+                r = self.parse_response(self.fetch(url, body={}))
+                self.assertTrue(r.get('returned'))
+
     def test_cut_relation(self):
         """ 测试切分审校的前后依赖关系 """
+        cut_pre_tasks = {
+            'block_cut_review': 'block_cut_proof',
+            'column_cut_review': 'column_cut_proof',
+            'char_cut_review': 'char_cut_proof',
+        }
 
-        # 发布两个栏切分审校任务
-        self.login_as_admin()
-        self.assert_code(200, self._publish(dict(task_type='block_cut_proof', pages='GL_1056_5_6,JX_165_7_12')))
-        tasks = self.parse_response(self.fetch('/task/lobby/block_cut_proof?_raw=1'))['tasks']
-        self.assert_code(200, self._publish(dict(task_type='block_cut_review', pages='GL_1056_5_6,JX_165_7_12')))
+        for t1, t2 in cut_pre_tasks.items():
+            # 发布t2，领取t2并提交
+            self.login_as_admin()
+            page_names = ['GL_1056_5_6', 'JX_165_7_12']
+            r = self._publish(dict(task_type=t2, pre_tasks=self.pre_tasks.get(t2), pages=','.join(page_names)))
+            self.assert_code(200, r)
+            self.login(u.expert1[0], u.expert1[1])
+            self.parse_response(self.fetch('/api/task/pick/' + t2, body={'data': {'page_name': page_names[0]}}))
+            page = self._app.db.page.find_one({'name': page_names[0]})
+            box_type = t2.split('_')[0]
+            boxes = page[box_type + 's']
+            r = self.fetch(
+                '/api/task/do/%s/%s?_raw=1' % (t2, page['name']),
+                body={'data': dict(submit=True, box_type=box_type, boxes=json_encode(boxes))}
+            )
+            self.assertTrue(self.parse_response(r).get('submitted'))
 
-        # 领取并提交
-        self.login(u.expert1[0], u.expert1[1])
-        r = self.parse_response(self.fetch('/api%s' % tasks[0]['pick_url']))
-        self.assertIn('url', r, str(r))
-        r = self.parse_response(self.fetch('%s?_raw=1' % r['url']))
-        page = r['page']
-        self.assertIn('name', page)
-        r = self.fetch(
-            '/api/task/save/block_cut_proof?_raw=1',
-            body={'data': dict(name=page['name'], submit=True, box_type='block', boxes=json_encode(page['blocks']))}
-        )
-        r = self.parse_response(r)
-        self.assertRegex(r.get('jump'), r'^/task/do/')
-        self.assertIn(tasks[1]['name'], r.get('jump'))
-        self.assertEqual(r.get('resume_next'), 'block_cut_review')
+            # 发布t1，任务大厅应有任务
+            self.login_as_admin()
+            r = self._publish(dict(task_type=t1, pre_tasks=self.pre_tasks.get(t1), pages=','.join(page_names)))
+            self.assert_code(200, r)
+            self.login(u.expert1[0], u.expert1[1])
+            r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % t1))
+            self.assertIn(page_names[0], [t['name'] for t in r.get('tasks')], msg=t1)
 
-    def test_pick_text_proof_task(self):
+    def test_text_proof_task(self):
         """ 测试文字校对任务的领取和提交 """
 
-        # 发布一个页面的校一、校二任务
+        # 发布一个页面的校一、校二、校三任务
         self.login_as_admin()
-        self.fetch('/api/task/unlock/text_proof/')
-        r = self.parse_response(self._publish(dict(task_type=['text_proof.1', 'text_proof.2'], pages='GL_1056_5_6')))
-        self.assertEqual(r.get('text_proof.1').get('published'), ['GL_1056_5_6'])
-        self.assertEqual(r.get('text_proof.2').get('published'), ['GL_1056_5_6'])
+        page_name = 'GL_1056_5_6'
+        for t in ['text_proof_1', 'text_proof_2', 'text_proof_3']:
+            r = self._publish(dict(task_type=t, pre_tasks=self.pre_tasks.get(t), pages=page_name))
+            r = self.parse_response(r)
+            self.assertEqual(r.get('published'), ['GL_1056_5_6'])
 
-        # 多次领取的是同一个任务
+        # 领取一个任务
         self.login(u.expert1[0], u.expert1[1])
-        self.assert_code(200, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
-        r1 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
-        self.assert_code(200, r1)
-        r2 = self.fetch('/api/task/pick/text_proof/GL_1056_5_6')
-        self.assert_code(200, r2)
-        r1, r2 = self.parse_response(r1), self.parse_response(r2)
-        self.assertEqual(r1['url'], r2['url'])
-
-        # 让此任务完成
-        r = self.parse_response(self.fetch('%s?_raw=1' % r1['url']))
-        page = r.get('page')
-        self.assertIn('name', page)
-        r = self.fetch(
-            '/api/task/save/text_proof/%s?_raw=1' % r1['url'].split('/')[-2],
-            body={'data': dict(name=page['name'], submit=True, chars=json_encode(page['chars']))}
-        )
+        r = self.fetch('/api/task/pick/text_proof_1', body={'data': {'page_name': page_name}})
         self.assert_code(200, r)
-        # 页面相同，不能再自动领另一个校次的
-        self.assertFalse(self.parse_response(r).get('jump'))
 
-        # 已完成的任务还可以再次继续编辑，任务状态不变
-        r = self.parse_response(self.fetch('%s?_raw=1' % r1['url']))
-        p2 = r.get('page') or {}
-        self.assertEqual(p2.get('name'), page['name'])
+        # 不能领取同一页面的其它校次任务
+        r = self.fetch('/api/task/pick/text_proof_2', body={'data': {'page_name': page_name}})
+        self.assert_code(errors.task_text_proof_duplicated, r)
 
-        p = self.parse_response(self.fetch('/api/task/page/' + page['name']))
-        self.assertEqual(TaskHandler.prop(p, r['task_type'] + '.status'), TaskHandler.STATUS_FINISHED)
+        # 完成任务
+        page = self._app.db.page.find_one({'name': page_name})
+        r = self.fetch(
+            '/api/task/do/text_proof_1/%s?_raw=1' % page_name,
+            body={'data': dict(submit=True, txt1=json_encode(page['ocr']))}
+        )
+        self.assertTrue(self.parse_response(r).get('submitted'))
 
-    def test_text_returned_pick(self):
-        """测试先退回文字校对任务再领取同一页面的文字校对任务"""
+        # 已完成的任务，不可以do
+        r = self.fetch(
+            '/api/task/do/text_proof_1/%s?_raw=1' % page_name,
+            body={'data': dict(submit=True, txt1=json_encode(page['ocr']))}
+        )
+        self.assert_code(errors.task_finished_not_allowed_do, r)
+
+        # 已完成的任务，可以update进行编辑，完成时间不变
+        finished_time1 = page['tasks']['text_proof_1'].get('finished_time')
+        r = self.fetch(
+            '/api/task/update/text_proof_1/%s?_raw=1' % page_name,
+            body={'data': dict(submit=True, txt1=json_encode(page['ocr']))}
+        )
+        self.assertTrue(self.parse_response(r).get('updated'))
+        finished_time2 = page['tasks']['text_proof_1'].get('finished_time')
+        self.assertEqual(finished_time1, finished_time2)
+
+    def test_text_returned_then_pick(self):
+        """ 测试先退回文字校对任务，再领取同一页面其它校次的文字校对任务 """
 
         # 发布两个校次的文字校对任务
         self.login_as_admin()
         self.fetch('/api/task/unlock/text_proof/')
-        self.assert_code(200, self._publish(dict(task_type='text_proof.1', pages='GL_1056_5_6,JX_165_7_12')))
-        self.assert_code(200, self._publish(dict(task_type='text_proof.2', pages='GL_1056_5_6')))
+        self.assert_code(200, self._publish(dict(task_type='text_proof_1', pages='GL_1056_5_6,JX_165_7_12')))
+        self.assert_code(200, self._publish(dict(task_type='text_proof_2', pages='GL_1056_5_6')))
 
         # 领取一个任务
         self.login(u.expert1[0], u.expert1[1])
-        self.assert_code(200, self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
-        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
-        self.assertEqual(TaskHandler.prop(p, 'text_proof.1.status'), TaskHandler.STATUS_PICKED)
+        self.assert_code(200, self.fetch('/api/task/pick/text_proof_1', body={'data': {'page_name': 'GL_1056_5_6'}}))
 
-        # 再领取相同任务则结果不变
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof.1/GL_1056_5_6'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
+        # 退回任务
+        r = self.parse_response(self.fetch('/api/task/return/text_proof_1/GL_1056_5_6', body={}))
+        self.assertTrue(r.get('returned'))
 
-        # 再领取别的任务则结果不变
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof.1/JX_165_7_12'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof/GL_1056_5_6'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/1/GL_1056_5_6')
-
-        # 退回任务后领取相同页面的其他校次任务
-
-        self.assert_code(200, self.fetch('/api/task/unlock/text_proof.1/GL_1056_5_6'))
-        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
-        self.assertEqual(TaskHandler.prop(p, 'text_proof.1.status'), TaskHandler.STATUS_READY)
-        self.assertIsNone(TaskHandler.prop(p, 'text_proof.1.picked_user_id'))
-        self.assertIsNone(TaskHandler.prop(p, 'text_proof.1.picked_by'))
-
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/2/GL_1056_5_6')
-
-        self.assert_code(200, self.fetch('/api/task/unlock/text_proof.2/GL_1056_5_6', body={}))
-        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
-        self.assertEqual(TaskHandler.prop(p, 'text_proof.2.status'), TaskHandler.STATUS_RETURNED)
-        self.assertIsNone(TaskHandler.prop(p, 'text_proof.2.picked_user_id'))
-        self.assertTrue(TaskHandler.prop(p, 'text_proof.2.picked_by'))
-
-        r = self.parse_response(self.fetch('/api/task/pick/text_proof.2/GL_1056_5_6'))
-        self.assertEqual(r.get('url'), '/task/do/text_proof/2/GL_1056_5_6')
-
-        p = self.parse_response(self.fetch('/api/task/page/GL_1056_5_6'))
-        self.assertEqual(TaskHandler.prop(p, 'text_proof.2.status'), TaskHandler.STATUS_PICKED)
+        # 领取其它校次任务
+        self.login(u.expert1[0], u.expert1[1])
+        r = self.fetch('/api/task/pick/text_proof_2', body={'data': {'page_name': 'GL_1056_5_6'}})
+        self.assert_code(errors.task_text_proof_duplicated, r)
 
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""
         self.login_as_admin()
-        self.fetch('/api/task/unlock/text_proof/')
-        self._publish(dict(task_type='text_proof.1', pages='GL_1056_5_6', priority=2))
-        self._publish(dict(task_type='text_proof.1', pages='JX_165_7_12', priority=1))
-        self._publish(dict(task_type='text_proof.2', pages='JX_165_7_12', priority=3))
-        self._publish(dict(task_type='text_proof.2', pages='JX_165_7_30', priority=2))
-        self._publish(dict(task_type='text_proof.3', pages='JX_165_7_12', priority=1))
+        self._publish(dict(task_type='text_proof_1', pages='GL_1056_5_6', priority=2))
+        self._publish(dict(task_type='text_proof_1', pages='JX_165_7_12', priority=3))
+        self._publish(dict(task_type='text_proof_2', pages='JX_165_7_12', priority=2))
+        self._publish(dict(task_type='text_proof_3', pages='JX_165_7_12', priority=1))
+        self._publish(dict(task_type='text_proof_2', pages='JX_165_7_30', priority=1))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):
             r = self.parse_response(self.fetch('/task/lobby/text_proof?_raw=1'))
             names = [t['name'] for t in r.get('tasks', [])]
             self.assertEqual(set(names), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
-            self.assertEqual(names[:2], ['GL_1056_5_6', 'JX_165_7_12'])  # 校一在前，相同校次的高优先级在前
-            self.assertEqual(names[2], 'JX_165_7_30')  # 不同校次的同名页面只列出一个
+            self.assertEqual(len(names), len(set(names)))  # 不同校次的同名页面只列出一个
+            self.assertEqual(names, ['JX_165_7_12', 'GL_1056_5_6', 'JX_165_7_30'])  # 按优先级顺序排列
