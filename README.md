@@ -8,6 +8,7 @@
 
 - [URL和API介绍](https://github.com/tripitakas/tripitaka-web/wiki/URL-and-API-Introduction)
 - [任务流介绍](https://github.com/tripitakas/tripitaka-web/wiki/Task-Flow-Introduction)
+- [分层权限机制](https://github.com/tripitakas/tripitaka-web/wiki/auth)
 - [RBAC-基于角色的访问控制](https://github.com/tripitakas/tripitaka-web/wiki/RBAC)
 - [前后端数据JSON格式约定](https://github.com/tripitakas/tripitaka-web/wiki/JSON-communication-format)
 
