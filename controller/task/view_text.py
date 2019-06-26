@@ -4,7 +4,6 @@
 @time: 2019/5/13
 """
 import re
-from controller import errors
 from operator import itemgetter
 from tornado.web import UIModule
 from controller.diff import Diff

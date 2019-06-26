@@ -14,7 +14,7 @@ class CutBaseHandler(TaskHandler):
     def enter(self, box_type, stage, name, mode='view', **kwargs):
         try:
             task_type = '%s_cut_%s' % (box_type, stage)
-            data_field = self.get_protected_data_field(task_type)
+            data_field = self.get_shared_data_field(task_type)
 
             page = self.db.page.find_one(dict(name=name), self.simple_fileds(include=['blocks', 'columns', 'chars']))
             if not page:

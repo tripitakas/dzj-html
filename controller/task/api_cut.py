@@ -41,11 +41,14 @@ class SaveCutApi(TaskHandler):
                 'tasks.%s.updated_time' % task_type: datetime.now()
             }
             if mode == 'do' and data.get('submit'):
+                # 更新任务
                 update.update({
                     'tasks.%s.status' % task_type: self.STATUS_FINISHED,
                     'tasks.%s.finished_time' % task_type: datetime.now(),
-                    'lock.%s' % data_field: {},
                 })
+                # 释放数据锁
+                if data_field in self.data_auth_maps:
+                    update.update({'lock.%s' % data_field: {}})
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

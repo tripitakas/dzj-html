@@ -47,8 +47,9 @@ class PickTaskApi(TaskHandler):
                 return self.send_error_response(errors.task_not_published)
 
             # 检查任务对应的数据是否被锁定。如果没有申明要保护，则直接跳过。
-            data_field = self.get_protected_data_field(task_type)
-            if data_field and self.prop(task, 'lock.%s.locked_user_id' % data_field):
+            data_field = self.get_shared_data_field(task_type)
+            if (data_field and data_field in self.data_auth_maps
+                    and self.prop(task, 'lock.%s.locked_user_id' % data_field)):
                 return self.send_error_response(errors.data_is_locked)
 
             # 文字校对中，不能领取同一page不同校次的两个任务
@@ -74,13 +75,14 @@ class PickTaskApi(TaskHandler):
             task_field + '.picked_time': datetime.now(),
             task_field + '.updated_time': datetime.now(),
         }
-        data_field = self.get_protected_data_field(task_type)
+        data_field = self.get_shared_data_field(task_type)
         if data_field:
             update['lock.' + data_field] = {
+                "is_temp": False,
                 "lock_type": ('tasks', task_type),
                 "locked_by": self.current_user['name'],
                 "locked_user_id": self.current_user['_id'],
-                "locked, 'lock.' + data_field_time": datetime.now()
+                "locked_time": datetime.now()
             }
         r = self.db.page.update_one({'name': page_name}, {'$set': update})
         if r.matched_count:
@@ -104,10 +106,10 @@ class UnlockTaskDataApi(TaskHandler):
     URL = '/api/data/unlock/@task_type/@page_name'
 
     def get(self, task_type, page_name):
-        """ 释放数据锁。仅能释放由临时数据编辑而申请的数据锁，不能释放任务进行时数据锁。"""
+        """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
         try:
-            data_field = self.get_protected_data_field(task_type)
-            self.release_data_lock(page_name, data_field)
+            data_field = self.get_shared_data_field(task_type)
+            self.release_temp_data_lock(page_name, data_field)
             self.send_data_response()
         except DbError as e:
             self.send_db_error(e)
@@ -129,18 +131,18 @@ class ReturnTaskApi(TaskHandler):
             elif self.prop(page, 'tasks.%s.status' % task_type) != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_return_only_picked)
 
-            task_field = 'tasks.' + task_type
-            r = self.db.page.update_one({'name': page_name}, {'$set': {
-                task_field + '.status': self.STATUS_RETURNED,
-                task_field + '.updated_time': datetime.now(),
-                task_field + '.returned_reason': self.get_request_data().get('reason'),
-            }})
+            update = {
+                'tasks.' + task_type + '.status': self.STATUS_RETURNED,
+                'tasks.' + task_type + '.updated_time': datetime.now(),
+                'tasks.' + task_type + '.returned_reason': self.get_request_data().get('reason'),
+            }
+            # 检查数据锁
+            data_field = self.get_shared_data_field(task_type)
+            if data_field and data_field in self.data_auth_maps:
+                update.update({'lock.' + data_field: dict()})
+            r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.matched_count:
                 self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
-
-            # 释放数据锁
-            data_field = self.get_protected_data_field(task_type)
-            self.release_data_lock(page_name, data_field)
 
             return self.send_data_response()
 

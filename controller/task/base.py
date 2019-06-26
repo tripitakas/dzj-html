@@ -61,9 +61,11 @@ class TaskHandler(BaseHandler):
     MAX_RECORDS = 10000
 
     # 通过数据锁机制对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-    # 1.tasks。 同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
-    # 2.roles。 数据专家角色对所有page的授权字段
-    # 共享字段的数据锁授权表如下：
+    # 1.tasks。同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
+    # 2.roles。数据专家角色对所有page的授权字段
+
+    # data_auth_maps指的是共享字段的数据锁可以授权给哪些tasks和哪些roles，即数据锁授权配置表。
+    # 在进入数据字段edit操作和保存时，需要检查数据锁资质，以这个表来判断。
     data_auth_maps = {
         'blocks': {
             'tasks': ['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
@@ -88,20 +90,23 @@ class TaskHandler(BaseHandler):
 
     }
 
+    # task_shared_data_fields指的任务拥有哪些共享字段。只有拥有共享字段的任务才涉及到数据锁机制。
+    # 在任务领取、保存、提交、完成、退回等时，需要判断是否要检查数据锁时，以这个表来判断。
+    task_shared_data_fields = {
+        'block_cut_proof': 'blocks',
+        'block_cut_review': 'blocks',
+        'column_cut_proof': 'columns',
+        'column_cut_review': 'columns',
+        'char_cut_proof': 'chars',
+        'char_cut_review': 'chars',
+        'text_review': 'text',
+        'text_hard': 'text',
+    }
+
     @classmethod
-    def get_protected_data_field(cls, task_type):
+    def get_shared_data_field(cls, task_type):
         """ 获取任务保护的共享字段 """
-        task_data_fields = {
-            'block_cut_proof': 'blocks',
-            'block_cut_review': 'blocks',
-            'column_cut_proof': 'columns',
-            'column_cut_review': 'columns',
-            'char_cut_proof': 'chars',
-            'char_cut_review': 'chars',
-            'text_review': 'text',
-            'text_hard': 'text',
-        }
-        return task_data_fields.get(task_type)
+        return cls.task_shared_data_fields.get(task_type)
 
     @classmethod
     def prop(cls, obj, key):
@@ -139,11 +144,13 @@ class TaskHandler(BaseHandler):
                 tasks.append(k)
         return tasks
 
-    def has_data_lock(self, page_name, data_field):
+    def has_data_lock(self, page_name, data_field, is_temp=None):
         """ 检查page_name对应的page中，当前用户是否拥有data_field对应的数据 """
-        n = self.db.page.count_documents({
-            'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']
-        })
+        condition = {'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
+        assert is_temp in [None, True, False]
+        if is_temp is not None:
+            condition.update({'is_temp': is_temp})
+        n = self.db.page.count_documents(condition)
         return n > 0
 
     def is_data_locked(self, page_name, data_field):
@@ -151,15 +158,16 @@ class TaskHandler(BaseHandler):
         page = self.db.page.find({'name': page_name}, self.simple_fileds())
         return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
 
-    def get_data_lock(self, page_name, data_field):
-        """ 将page_name对应的page中，data_field对应的数据锁分配给当前用户
-            成功时返回True，失败时返回errors.xxx
+    def get_temp_data_lock(self, page_name, data_field):
+        """ 将page_name对应的page中，data_field对应的数据锁分配给当前用户，成功时返回True，失败时返回errors.xxx。
+            它提供给update或edit时，分配临时锁，不能获取长时锁（长时锁由系统在任务领取时分配，是任务提交时释放）。
         """
 
         def assign_lock(lock_type):
             """ lock_type指的是来自哪个任务或者哪个角色 """
             r = self.db.page.update_one({'name': page_name}, {'$set': {
                 'lock.' + data_field: {
+                    "is_temp": True,
                     "lock_type": lock_type,
                     "locked_by": self.current_user['name'],
                     "locked_user_id": self.current_user['_id'],
@@ -192,11 +200,10 @@ class TaskHandler(BaseHandler):
 
         return errors.data_unauthorized
 
-    def release_data_lock(self, page_name, data_field):
+    def release_temp_data_lock(self, page_name, data_field):
         """ 将page_name对应的page中，data_field对应的数据锁释放。 """
-        if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field):
+        if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field, is_temp=True):
             self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': {}}})
-        return True
 
     def check_auth(self, mode, page, task_type):
         """ 检查任务权限以及数据锁 """
@@ -207,22 +214,23 @@ class TaskHandler(BaseHandler):
 
         # do/update模式下，需要检查任务权限，直接抛出错误
         if mode in ['do', 'update']:
-            render = '/api' in self.request.path
+            render = '/api' not in self.request.path
             # 检查任务是否已分配给当前用户
             task_field = 'tasks.' + task_type
             if self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
-            # 检查任务状态是否为已领取或已完成（已退回的任务不可以do）
+            # 检查任务状态是否为已领取或已完成
             if self.prop(page, task_field + '.status') not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
 
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
         auth = False
         if mode in ['do', 'update', 'edit']:
-            data_field = self.get_protected_data_field(task_type)
-            if not data_field or data_field not in self.data_auth_maps:
+            data_field = self.get_shared_data_field(task_type)
+            if not data_field or data_field not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
                 auth = True
-            elif self.has_data_lock(page['name'], data_field) or self.get_data_lock(page['name'], data_field) is True:
+            elif (self.has_data_lock(page['name'], data_field)
+                  or self.get_temp_data_lock(page['name'], data_field) is True):
                 auth = True
 
         return auth
