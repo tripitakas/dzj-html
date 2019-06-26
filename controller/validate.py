@@ -158,13 +158,14 @@ def between(min, max, **kw):
 def in_list(lst, **kw):
     """检查是否在lst列表中"""
     k, v = list(kw.items())[0]
-    code, message = e.not_in_list
-    err = code, message % (i18n_trans(k), lst)
-    assert type(v) in [str, list]
-    v = [v] if isinstance(v, str) else v
-    not_in = [i for i in v if i not in lst]
-    if not_in:
-        return {k: err}
+    if v:
+        code, message = e.not_in_list
+        err = code, message % (i18n_trans(k), lst)
+        assert type(v) in [str, list]
+        v = [v] if isinstance(v, str) else v
+        not_in = [i for i in v if i not in lst]
+        if not_in:
+            return {k: err}
 
 
 def not_existed(collection=None, exclude_id=None, **kw):

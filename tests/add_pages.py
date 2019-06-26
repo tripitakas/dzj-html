@@ -130,7 +130,8 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
             cmp3=None,
             txt3=None,
             text=None,
-            tasks=None,
+            lock={},
+            tasks={},
             create_time=datetime.now()
         )
         if img_name:

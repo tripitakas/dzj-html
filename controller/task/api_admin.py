@@ -74,6 +74,7 @@ class PublishTasksApi(TaskHandler):
         # 针对已就绪的页面（状态为READY），进行发布任务
         if pages:
             if pre_tasks:
+                pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
                 for t in pre_tasks:
                     assert t in self.task_types
                 # 针对前置任务已完成的情况进行发布，设置状态为OPENED
