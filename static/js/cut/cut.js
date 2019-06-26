@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-06-20
+ * Date: 2019-06-26
  */
 (function() {
   'use strict';
@@ -98,7 +98,7 @@
 
   function findCharById(id) {
     return id && data.chars.filter(function(box) {
-      return box.char_id === id;
+      return box.char_id === id || box.id === id;
     })[0];
   }
 
@@ -174,10 +174,11 @@
     d: {},
     apply: null,
 
-    load: function (name, apply) {
+    load: function (name, version, apply) {
       console.assert(name && name.length > 1);
       this.apply = apply;
       this.d = JSON.parse(localStorage.getItem('cutUndo') || '{}');
+      name += version || '';
       if (this.d.name !== name) {
         this.d = {name: name, level: 1};
         localStorage.removeItem('cutUndo');
@@ -587,7 +588,8 @@
       self.switchCurrentBox(leftTop);
       self.setRatio(1);
       data.name = p.name;
-      undoData.load(p.name, self._apply.bind(self));
+      data.version = p.version;
+      undoData.load(p.name, p.version, self._apply.bind(self));
 
       return data;
     },
@@ -618,7 +620,7 @@
       this.setRatio();
       state.hover = state.edit = null;
       $.extend(data, pageData);
-      undoData.load(name || data.name, this._apply.bind(this));
+      undoData.load(name || data.name, data.version, this._apply.bind(this));
       this.navigate('left');
     },
 
@@ -652,6 +654,7 @@
             , fill: (data.blockMode || data.columnMode) && data.hoverFill
             , 'fill-opacity': 0.1
           })
+          .data('uid', b.id)
           .data('cid', b.char_id)
           .data('char', b.ch);
 
@@ -711,8 +714,9 @@
       return info.char_id;
     },
 
-    getCurrentCharID: function() {
-      return state.edit && state.edit.data('cid');
+    getCurrentCharID: function(withId) {
+      var uid = withId && state.edit && state.edit.data('uid');
+      return state.edit && state.edit.data('cid') + (uid ? '#' + uid : '');
     },
 
     getCurrentChar: function() {

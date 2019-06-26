@@ -38,6 +38,9 @@
       margin-left: 8px;
     }
 
+    .sweet-overlay {
+      background-color: transparent;
+    }
   </style>
 </head>
 
@@ -120,6 +123,7 @@
     height: '{{page["height"]}}',
     holder: 'holder',
     image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
+    version: '{{box_version}}',
     chars: '{{page["chars"]}}'
   });
 
@@ -146,7 +150,7 @@
 
   $.cut.onBoxChanged(function (char, box, reason) {
     if (reason === 'navigate') {
-      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID() || '未选中'));
+      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
     }
     updateUndo();
   });

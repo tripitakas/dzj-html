@@ -1,7 +1,7 @@
 /*
  * char_order.js
  * 字序调整的显示、交互和计算
- * Date: 2019-06-22
+ * Date: 2019-06-26
  * global $
  */
 (function () {
@@ -93,7 +93,7 @@
   CharNode.prototype = {
     // 得到编号
     getId: function () {
-      return this.char.char_id;
+      return this.char.char_id + (this.char.id ? '#' + this.char.id : '');
     },
 
     // 是否为合法的字框编号
@@ -306,12 +306,13 @@
       self.state.avgLen = 0;
       this.remove();
       this.chars_col = chars_col || this.chars_col;
-      this.linksOfCol = this.chars_col.map(function (indexes, colIndex) {
-        return indexes.slice(1).map(function (index, i) {
-          if (!self.nodes[indexes[i]].isValidId() || !self.nodes[index].isValidId()) {
+      this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
+        return ids.slice(1).map(function (id, i) {
+          var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
+          if (!c1 || !c2 || !c1.isValidId() || !c2.isValidId()) {
             return;
           }
-          var link = new Link(self.nodes[indexes[i]], self.nodes[index]);
+          var link = new Link(c1, c2);
           link.shapes.line = link.createLine(colors.link[colIndex % 2]);
           self.links.push(link);
           self.state.avgLen += getDistance(link.getStartPos(), link.getEndPos());
@@ -340,9 +341,9 @@
       }
     },
 
-    // 根据字框图形或坐标查找 CharNode 对象
+    // 根据字框编号、字框图形或坐标查找 CharNode 对象
     findNode: function (c) {
-      c = c.x || c.y ? $.cut.findBoxByPoint(c) : c;
+      c = typeof c === 'number' ? $.cut.findCharById(c) : (c.x || c.y) ? $.cut.findBoxByPoint(c) : c;
       return this.nodes.filter(function (node) {
         return node.char === c || node.char.shape === c;
       })[0];
@@ -629,19 +630,19 @@
     reverseLink: function () {
       var link = (this.state.hit || {}).obj;
       if (link instanceof Link && !this.drag.line) {
-        var tmp = link.c1;
-        link.c1 = link.c2;
-        link.c2 = tmp;
+        this.moveLink(link.c1, link.c2, link.c2, link.c1);
         this._updateCurrentLink(link);
         this.linkSwitched(link);
       }
     },
 
-    checkLinks: function (routes) {
+    checkLinks: function (routes, heads) {
       var self = this;
       var errors = [];
-      var heads = [], tails = [];
+      var tails = [];
       var used = [];
+
+      heads = heads === undefined ? [] : heads;
 
       // 每个字框的出入点至少有一个有连接，一个点最多一个连接
       this.nodes.forEach(function (node) {
@@ -779,33 +780,36 @@
         if (r) {
           showSuccess('字框连接正常', '没有待修正的字框连线。');
         } else {
-          showError('字框连接待修正', '请修正高亮绿框的字框连线。')
+          showError('字框连接待修正', '请修正高亮绿框的字框连线。');
         }
       }
     },
 
     // 调整字框连线后重新设置字框编号
     applyLinks: function (blocks, columns, update) {
-      var routes = [];
-      if (!cs.checkLinks(routes)) {
+      var self = this, routes = [], heads = [];
+
+      if (!cs.checkLinks(routes, heads)) {
         return showError('字框连接待修正', '请修正高亮绿框的字框连线。');
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
-          return $.cut.data.chars.indexOf(char);
+          return char.id;
         });
       });
       postApi('/data/gen_char_id', {data: {
         blocks: blocks, columns: columns, chars_col: chars_col,
         chars: $.cut.exportBoxes()
       }}, function (res) {
-        if (data.chars.map(function (c) {
+        var changed = data.chars.map(function (c) {
               return c.char_id;
-            }).join(',') === res.chars.map(function (c) {
+            }).join(',') !== res.chars.map(function (c) {
               return c.char_id;
-            }).join(',')) {
-          return showSuccess('没有改变', '字框顺序没有改变。');
-        }
+            }).join(',');
+
+        heads = heads.map(function (node) {
+          return node.char.id;
+        });
         data.chars.forEach(function(b) {
           if (b.shape) {
             b.shape.remove();
@@ -821,8 +825,46 @@
         if (update) {
           update(res.data);
         }
-        showSuccess('字序已调整', '已经重新设置字框编号。');
+        if (self.checkInvalidHead(heads) === 0) {
+          if (changed) {
+            showSuccess('字序已调整', '已经重新设置字框编号。');
+          } else {
+            showSuccess('没有改变', '字框顺序没有改变。');
+          }
+        }
       });
+    },
+
+    // 检查不合理的列头字框：每列第一个字框上方不存在同栏、X范围重叠的字框
+    checkInvalidHead: function (headIds) {
+      var errors = [];
+
+      headIds.forEach(function (id) {
+        var node = cs.findNode(id);
+        var box = node.getBox(), c = node.char;
+        var above = $.cut.data.chars.filter(function (char) {
+          if (char.shape && char.block_no === c.block_no) {
+            var box2 = char.shape.getBBox();
+            if (box2.x2 > box.x + box.width / 4 && box2.x < box.x + box.width * 0.75) {
+              return box2.y < box.y;
+            }
+          }
+        });
+        if (above.length) {
+          errors.push(node);
+        }
+      });
+
+      removeShapes(cs.errNodes);
+      errors.forEach(function (node) {
+        var r = node.createBox('#0f0');
+        r.animate({'fill-opacity': 0.7}, 1000, 'elastic');
+        cs.errNodes.push(r);
+      });
+      if (errors.length) {
+        showError('字框连接待修正', '请修正高亮绿框的字框连线，不应为列的第一个字框。');
+      }
+      return errors.length;
     }
   });
 

@@ -24,7 +24,7 @@ class CutDetailBaseHandler(TaskHandler):
                 kwargs2 = self.char_render(self, page, task_type, **kwargs) if box_type == 'char' else kwargs
                 template_name = kwargs2.pop('template_name', 'task_cut_detail.html')
                 self.render(template_name, page=page, name=page['name'], readonly=readonly,
-                            boxes=page[box_type + 's'],
+                            boxes=page[box_type + 's'], box_version=1,
                             title=task_name + ('校对' if stage == 'proof' else '审定'),
                             get_img=self.get_img,
                             from_url=from_url or '/task/lobby/' + task_type,
