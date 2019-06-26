@@ -144,9 +144,9 @@
   function showHighLightCount() {
     $('.hl-btn > button').each(function (i, btn) {
       if (i > 0 || {{ int(box_type != "char") }}) {
-      var type = btn.getAttribute('id').replace(/^.*-/, '');
-      var boxes = $.cut.highlightBoxes(type, true);
-      $(btn).find('.s-h-count').text(boxes.length);
+        var type = btn.getAttribute('id').replace(/^.*-/, '');
+        var boxes = $.cut.highlightBoxes(type, true);
+        $(btn).find('.s-h-count').text(boxes.length);
       }
     });
   }
@@ -185,8 +185,8 @@
     if (reason === 'removed' || reason === 'added' || reason === 'changed') {
       var type = $.cut.data.hlType;
       if (type) {
-      $.cut.clearHighlight();
-      $.cut.highlightBoxes(type, false, true);
+        $.cut.clearHighlight();
+        $.cut.highlightBoxes(type, false, true);
       }
     }
     showHighLightCount();
