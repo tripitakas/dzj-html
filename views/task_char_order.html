@@ -65,6 +65,7 @@
               <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
               <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
               <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显示待修正的字框">查漏</button>
+              <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后重新设置字框编号">应用</button>
             </div>
           </div>
         </div>
@@ -109,6 +110,7 @@
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
 <script>
+  var blocks = decodeJSON('{{page["blocks"]}}');
   var columns = decodeJSON('{{page["columns"]}}');
   $.cut.create({
     orderMode: true,
@@ -204,6 +206,11 @@
     if ($.cut.data.ratio < 5) {
       $.cut.setRatio($.cut.data.ratio * 1.5);
     }
+  });
+
+  // 调整字框连线后重新设置字框编号
+  $('#apply').click(function () {
+    $.cut.applyLinks(blocks, columns);
   });
 
   // 显隐列框

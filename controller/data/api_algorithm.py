@@ -26,7 +26,8 @@ class GenerateCharIdApi(BaseHandler):
         assert isinstance(blocks, list)
         assert isinstance(columns, list)
         assert isinstance(chars, list)
-        assert not chars_col or isinstance(chars_col, list) and isinstance(chars_col[0], int)
+        assert not chars_col or isinstance(chars_col, list) and isinstance(chars_col[0], list) \
+            and isinstance(chars_col[0][0], int)
 
         if reorder.get('blocks'):
             blocks = self.sort_blocks(blocks)
@@ -55,6 +56,9 @@ class GenerateCharIdApi(BaseHandler):
             col_ids, indexes = {}, set()
             for char_indexes in chars_col:
                 for i, char_index in enumerate(char_indexes):
+                    if char_index < 0 or char_index >= len(chars):
+                        # raise IndexError('字序越界(%d不在[0-%d]内)' % (char_index, len(chars) - 1))
+                        continue
                     c = chars[char_index]
                     if i == 0:
                         block_no = c.get('block_no') or GenerateCharIdApi.get_block_index(c, blocks) + 1
@@ -64,7 +68,7 @@ class GenerateCharIdApi(BaseHandler):
                     c['char_no'] = c['no'] = i + 1
                     c['char_id'] = 'b%dc%dc%d' % (block_no, line_no, c['no'])
                     indexes.add(char_index)
-            assert len(indexes) == len(chars)
+            # assert len(indexes) == len(chars)
         return zero_char_id, layout_type, chars_col
 
     @staticmethod

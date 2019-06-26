@@ -586,6 +586,7 @@
       });
       self.switchCurrentBox(leftTop);
       self.setRatio(1);
+      data.name = p.name;
       undoData.load(p.name, self._apply.bind(self));
 
       return data;
@@ -617,7 +618,7 @@
       this.setRatio();
       state.hover = state.edit = null;
       $.extend(data, pageData);
-      undoData.load(name, this._apply.bind(this));
+      undoData.load(name || data.name, this._apply.bind(this));
       this.navigate('left');
     },
 
@@ -804,6 +805,9 @@
     },
 
     removeBox: function() {
+      if (state.beforeRemove && state.beforeRemove(state.edit)) {
+        return;
+      }
       this.cancelDrag();
       if (state.edit && !state.readonly) {
         var el = state.edit;
@@ -970,8 +974,8 @@
       //   return;
       // }
 
-      data.ratio = ratio;
-      ratio *= data.ratioInitial;
+      data.ratio = ratio || data.ratio;
+      ratio = data.ratio * data.ratioInitial;
       data.paper.setZoom(ratio);
       data.paper.setSize(data.width * ratio, data.height * ratio);
 

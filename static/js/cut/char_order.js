@@ -348,17 +348,19 @@
       })[0];
     },
 
-    // 查找一个字框的入线
+    // 查找一个字框的入线，即连线的终点为指定的字框
     findInLinks: function (node) {
+      var id = getId(node);
       return this.links.filter(function (link) {
-        return link.c2 === node;
+        return getId(link.c2) === id;
       });
     },
 
-    // 查找一个字框的出线
+    // 查找一个字框的出线，即连线的起点为指定的字框
     findOutLinks: function (node) {
+      var id = getId(node);
       return this.links.filter(function (link) {
-        return link.c1 === node;
+        return getId(link.c1) === id;
       });
     },
 
@@ -535,10 +537,10 @@
       var changed;
 
       // 恢复原连接的透明度
-      if (srcLink) {
+      if (srcLink && srcLink.shapes.line) {
         srcLink.shapes.line.attr({'opacity': 1});
       }
-      if (link && link.c1 !== link.c2) {
+      if (link && link.c1 !== link.c2 && (!srcLink || srcLink.shapes.line)) {
         // 改变原连接的端点
         if (srcLink && (link.c1 !== srcLink.c1 || link.c2 !== srcLink.c2)) {
           if (link.c1 && link.c2) {
@@ -577,12 +579,12 @@
       if (!this.hover.inlet || inletHit !== this.state.inletHit || !pt) {
         this.state.inletHit = inletHit;
         removeShapes(this.hover.inlet);
-        this.hover.inlet = link.c2.createLet(true, inletHit);
+        this.hover.inlet = link && link.c2.createLet(true, inletHit);
       }
       if (!this.hover.outlet || outletHit !== this.state.outletHit || !pt) {
         this.state.outletHit = outletHit;
         removeShapes(this.hover.outlet);
-        this.hover.outlet = link.c1.createLet(false, outletHit);
+        this.hover.outlet = link && link.c1.createLet(false, outletHit);
       }
 
       if (this.hover.ball) {
@@ -653,7 +655,7 @@
           heads.push(node);
         }
         else if (!links2.length && links1.length === 1) {
-          tails.push(node);
+          tails.push(node.getId());
         }
       });
 
@@ -664,11 +666,11 @@
           return;
         }
         used.push(node);
-        route.push(node);
+        route.push(node.char);
 
         var links = self.findOutLinks(node);
-        if (links.length == 1 && errors.indexOf(links[0]) < 0) {
-          pass(links[0], route);
+        if (links.length === 1 && errors.indexOf(links[0]) < 0) {
+          pass(links[0].c2, route);
         }
       }
 
@@ -733,14 +735,44 @@
         $.mapKey(key, func, {direction: 'down'});
       };
 
+      // r: 当前连接反向
       on('r', function () {
         cs.reverseLink();
       });
+
+      // DEL: 断开当前连接
+      state.beforeRemove = function () {
+        var link = (cs.state.hit || {}).obj;
+        if (link instanceof Link && cs.delLink(link.c1, link.c2)) {
+          cs._updateCurrentLink();
+          cs.linkSwitched();
+        }
+        return true;
+      };
     },
 
+    // 切换显隐列框
     toggleColumns: function (columns) {
+      if (cs.state.columns) {
+        cs.state.columns.forEach(function (r) {
+          r.animate({opacity: 0}, 200, '>', function () {
+            this.remove();
+          });
+        });
+        delete cs.state.columns;
+      } else {
+        var s = data.ratio * data.ratioInitial;
+        cs.state.columns = columns.map(function (box, i) {
+          var color = i % 2 ? '#f00' : '#f80';
+          var r = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
+              .attr({stroke: color, fill: color, 'stroke-opacity': 0.4, 'fill-opacity': 0});
+          r.animate({'fill-opacity': 0.1}, 500, '<');
+          return r;
+        });
+      }
     },
 
+    // 检查错漏
     showErrorBoxes: function (prompt) {
       var r = cs.checkLinks();
       if (prompt) {
@@ -750,6 +782,47 @@
           showError('字框连接待修正', '请修正高亮绿框的字框连线。')
         }
       }
+    },
+
+    // 调整字框连线后重新设置字框编号
+    applyLinks: function (blocks, columns, update) {
+      var routes = [];
+      if (!cs.checkLinks(routes)) {
+        return showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+      }
+      var chars_col = routes.map(function (route) {
+        return route.map(function (char) {
+          return $.cut.data.chars.indexOf(char);
+        });
+      });
+      postApi('/data/gen_char_id', {data: {
+        blocks: blocks, columns: columns, chars_col: chars_col,
+        chars: $.cut.exportBoxes()
+      }}, function (res) {
+        if (data.chars.map(function (c) {
+              return c.char_id;
+            }).join(',') === res.chars.map(function (c) {
+              return c.char_id;
+            }).join(',')) {
+          return showSuccess('没有改变', '字框顺序没有改变。');
+        }
+        data.chars.forEach(function(b) {
+          if (b.shape) {
+            b.shape.remove();
+            delete b.shape;
+          }
+        });
+        data.chars = res.chars;
+        $.cut._apply(data.chars);
+
+        cs.remove();
+        cs = new CharNodes(data.chars);
+        cs.buildColumns(res.chars_col);
+        if (update) {
+          update(res.data);
+        }
+        showSuccess('字序已调整', '已经重新设置字框编号。');
+      });
     }
   });
 
