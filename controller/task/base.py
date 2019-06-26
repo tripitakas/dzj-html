@@ -217,7 +217,7 @@ class TaskHandler(BaseHandler):
             render = '/api' not in self.request.path
             # 检查任务是否已分配给当前用户
             task_field = 'tasks.' + task_type
-            if self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
+            if not self.current_user or self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
             # 检查任务状态以及是否与mode匹配
             status = self.prop(page, task_field + '.status')
