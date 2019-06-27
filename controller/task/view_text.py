@@ -19,13 +19,14 @@ class TextBaseHandler(TaskHandler):
         'text_proof_3': 'cmp3',
     }
 
-    def enter(self, task_type, page_name, mode='view'):
+    def enter(self, task_type, page_name):
         assert task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3']
         try:
             page = self.db.page.find_one(dict(name=page_name))
             if not page:
                 return self.render('_404.html')
 
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = not self.check_auth(mode, page, task_type)
             params = dict(name=page_name, mismatch_lines=[], columns=page['columns'])
             layout = int(self.get_query_argument('layout', 0))
@@ -140,18 +141,15 @@ class TextProofHandler(TextBaseHandler):
 
     def get(self, num, page_name):
         """ 进入文字校对页面 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'view'
-        self.enter('text_proof_' + num, page_name, mode=mode)
+        self.enter('text_proof_' + num, page_name)
 
 
 class TextReviewHandler(TextBaseHandler):
     URL = ['/task/text_review/@page_name',
            '/task/do/text_review/@page_name',
-           '/task/update/text_review/@page_name']
+           '/task/update/text_review/@page_name',
+           '/data/edit/text/@page_name']
 
     def get(self, page_name):
         """ 进入文字审定页面 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'view'
-        self.enter('text_review', page_name, mode=mode)
+        self.enter('text_review', page_name)
