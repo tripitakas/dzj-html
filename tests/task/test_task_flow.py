@@ -98,7 +98,6 @@ class TestTaskFlow(APITestCase):
             self.assertTrue(self.parse_response(r).get('updated'))
 
             # 提交任务，保证review有任务可领取
-            boxes[0]['w'] -= 1
             r = self.fetch(
                 '/api/task/do/%s/%s?_raw=1' % (task_type, page['name']),
                 body={'data': dict(submit=True, box_type=box_type, boxes=json_encode(boxes))}
