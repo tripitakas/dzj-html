@@ -216,7 +216,8 @@ def code_verify_timeout(collection=None, **kw):
         code, message = e.code_timeout
         phone_code = phone_code.upper()
         r = collection.find_one(
-            {"type": 'phone', "data": phone, "code": phone_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+            {"type": 'phone', "data": phone, "code": phone_code,
+             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
         )
         if not r:
             errs['phone_code'] = code, message % i18n_trans('phone_code')

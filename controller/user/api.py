@@ -349,10 +349,7 @@ class UploadUserAvatarHandler(BaseHandler):
         """上传用户头像"""
         upload_img = self.request.files.get('img')
         img_name = str(self.current_user['_id']) + path.splitext(upload_img[0]['filename'])[-1]
-        img_path = path.join(self.application.BASE_DIR, 'static', 'upload')
-        if not path.exists(img_path):
-            mkdir(img_path)
-        img_path = path.join(img_path, 'avatar')
+        img_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'avatar')
         if not path.exists(img_path):
             mkdir(img_path)
         img = 'upload/avatar/' + img_name
@@ -453,6 +450,7 @@ class SendUserPhoneCodeHandler(BaseHandler):
             response = client.do_action_with_exception(request)
             response = response.decode()
             resp = json_util.loads(response)
+            logging.debug(resp)
         except ServerException as e:
             return e
         except ClientException as e:

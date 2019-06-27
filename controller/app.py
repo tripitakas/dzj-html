@@ -28,21 +28,25 @@ define('port', default=8000, help='run port', type=int)
 
 class Application(web.Application):
     def __init__(self, handlers, **settings):
+        def create_dir(path_name):
+            if not path.exists(path_name):
+                try:
+                    os.mkdir(path_name)
+                except OSError:
+                    pass
+
         self._db = self.config = self.site = None
         self.load_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
-        if not path.exists(self.IMAGE_PATH):
-            try:
-                os.mkdir(self.IMAGE_PATH)
-            except OSError:
-                pass
+        create_dir(self.IMAGE_PATH)
 
         self.version = __version__
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
         handlers = [(r'/upload/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler,
                      dict(path=path.join(BASE_DIR, 'static', 'upload')))]
+        create_dir(path.join(BASE_DIR, 'static', 'upload'))
 
         for cls in self.handlers:
             if isinstance(cls.URL, list):

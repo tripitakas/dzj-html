@@ -22,7 +22,7 @@ def scan_txt(add, root_path):
     def add_page():
         if rows:
             try:
-                page_code ='%sn%sp%s' % (volume_no, book_no, page_no - 1)
+                page_code = '%sn%sp%s' % (volume_no, book_no, page_no - 1)
                 add(body=dict(page_code=page_code, book_no=book_no, page_no=page_no - 1, update_time=datetime.now(),
                               rows=last_rows + rows, volume_no=volume_no))
                 print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(rows)))
@@ -46,7 +46,7 @@ def scan_txt(add, root_path):
                     volume_no, book_no, page_no = volume, book, page
                     rows, last_rows = [], rows
             content = re.sub(r'\[.>(.)\]', lambda m: m.group(1), texts[1])
-            content = re.sub('(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
+            content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
             rows.append(content)
     add_page()
 
@@ -132,4 +132,3 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(build_db)
-
