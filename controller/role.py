@@ -42,8 +42,15 @@ role_maps = {
             '/api/user/avatar': ['POST'],
             '/api/user/email_code': ['POST'],
             '/api/user/phone_code': ['POST'],
-            '/task/do/char_order_proof/@page_name': ['GET'],  # 实现后再移到切字校对员里
             '/api/data/gen_char_id': ['POST'],
+
+            # 下列只读浏览页面暂时允许匿名访问
+            '/task/block_cut_proof/@page_name': ['GET'],
+            '/task/column_cut_proof/@page_name': ['GET'],
+            '/task/char_cut_proof/@page_name': ['GET'],
+            '/task/char_order_proof/@page_name': ['GET'],
+            '/task/text_proof_@num/@page_name': ['GET'],
+            '/task/text_review/@page_name': ['GET'],
         }
     },
     '普通用户': {
@@ -70,7 +77,6 @@ role_maps = {
             '/task/lobby/block_cut_proof': ['GET'],
             '/api/task/pick/block_cut_proof': ['POST'],
             '/task/my/block_cut_proof': ['GET'],
-            '/task/block_cut_proof/@page_name': ['GET'],
             '/task/do/block_cut_proof/@page_name': ['GET'],
             '/api/task/do/block_cut_proof/@page_name': ['POST'],
             '/task/update/block_cut_proof/@page_name': ['GET'],
@@ -102,7 +108,6 @@ role_maps = {
             '/task/lobby/column_cut_proof': ['GET'],
             '/api/task/pick/column_cut_proof': ['POST'],
             '/task/my/column_cut_proof': ['GET'],
-            '/task/column_cut_proof/@page_name': ['GET'],
             '/task/do/column_cut_proof/@page_name': ['GET'],
             '/api/task/do/column_cut_proof/@page_name': ['POST'],
             '/task/update/column_cut_proof/@page_name': ['GET'],
@@ -138,8 +143,8 @@ role_maps = {
             '/task/lobby/char_cut_proof': ['GET'],
             '/api/task/pick/char_cut_proof': ['POST'],
             '/task/my/char_cut_proof': ['GET'],
-            '/task/char_cut_proof/@page_name': ['GET'],
             '/task/do/char_cut_proof/@page_name': ['GET'],
+            '/task/do/char_order_proof/@page_name': ['GET'],
             '/api/task/do/char_cut_proof/@page_name': ['POST'],
             '/task/update/char_cut_proof/@page_name': ['GET'],
             '/api/task/update/char_cut_proof/@page_name': ['POST'],
@@ -183,7 +188,6 @@ role_maps = {
             '/api/task/pick/text_proof_@num': ['POST'],
             '/api/task/pick/text_proof': ['POST'],
             '/task/my/text_proof': ['GET'],
-            '/task/text_proof_@num/@page_name': ['GET'],
             '/task/do/text_proof_@num/@page_name': ['GET'],
             '/api/task/do/text_proof_@num/@page_name': ['POST'],
             '/task/update/text_proof_@num/@page_name': ['GET'],
@@ -206,7 +210,6 @@ role_maps = {
             '/task/lobby/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
             '/task/my/text_review': ['GET'],
-            '/task/text_review/@page_name': ['GET'],
             '/task/do/text_review/@page_name': ['GET'],
             '/api/task/do/text_review/@page_name': ['POST'],
             '/task/update/text_review/@page_name': ['GET'],

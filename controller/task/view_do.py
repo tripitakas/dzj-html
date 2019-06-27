@@ -8,6 +8,7 @@
 from controller import errors
 from controller.task.base import TaskHandler
 from controller.data.api_algorithm import GenerateCharIdApi as GenApi
+import re
 
 
 class CutDetailBaseHandler(TaskHandler):
@@ -36,7 +37,7 @@ class CutDetailBaseHandler(TaskHandler):
         task_type = '%s_cut_%s' % (box_type, stage)
         task_name = '切%s' % dict(block='栏', column='列', char='字')[box_type]
         from_url = self.get_query_argument('from', None)
-        readonly = int(self.get_query_argument('view', 0)) or 'do' not in self.request.uri
+        readonly = not re.search('/(do|update|edit)/', self.request.uri)
         if readonly:
             handle_response({})
         else:
