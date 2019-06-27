@@ -13,6 +13,7 @@ import re
 import controller as c
 import controller.role as role
 from controller.app import Application
+from controller.task.base import TaskHandler as TH
 from tests.users import admin
 
 import uuid
@@ -185,3 +186,41 @@ class APITestCase(AsyncHTTPTestCase):
         """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
+
+    def revert(self, status=TH.STATUS_READY):
+        """ 还原所有任务的状态 """
+        pages = self._app.db.page.find()
+        for page in pages:
+            update = dict(tasks={}, lock={})
+            for task_key, v in page.get('tasks').items():
+                update['tasks'][task_key] = dict(status=status)
+            for lock_key, v in page.get('lock').items():
+                update['lock'][lock_key] = dict()
+            self._app.db.page.update_one({'name': page['name']}, {'$set': update})
+
+    pre_tasks = {
+        'block_cut_proof': '',
+        'block_cut_review': 'block_cut_proof',
+        'column_cut_proof': '',
+        'column_cut_review': 'column_cut_proof',
+        'char_cut_proof': '',
+        'char_cut_review': 'char_cut_proof',
+        'text_proof_1': '',
+        'text_proof_2': '',
+        'text_proof_3': '',
+        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+    }
+
+    def publish(self, data):
+        if 'task_type' in data and 'pre_tasks' not in data:
+            data['pre_tasks'] = self.pre_tasks.get(data['task_type'])
+        return self.fetch('/api/task/publish', body={'data': data})
+
+    def set_task_status(self, task_type_status_maps, page_names=None):
+        """ 设置task_type对应的状态 """
+        update = dict()
+        for task_type, status in task_type_status_maps.items():
+            update.update({'tasks.%s.status' % task_type: status})
+        # page_names为空时，更新所有状态
+        condition = {'name': {'$in': page_names}} if page_names else {}
+        self._app.db.page.update_many(condition, {'$set': update})
