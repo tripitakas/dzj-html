@@ -356,7 +356,7 @@ class TaskHandler(BaseHandler):
             condition['name'] = {'$regex': '.*%s.*' % name}
 
         query = self.db.page.find(condition, self.simple_fileds())
-        total_count = query.count()
+        total_count = self.db.page.count_documents(condition)
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)

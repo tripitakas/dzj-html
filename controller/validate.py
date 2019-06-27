@@ -192,7 +192,7 @@ def is_unique(collection=None, **kw):
     code, message = e.record_existed
     if collection:
         for k, v in kw.items():
-            if v is not None and collection.find({k: v}).count() > 1:
+            if v is not None and collection.count_documents({k: v}) > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 

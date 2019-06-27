@@ -5,7 +5,7 @@ cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 database:
   name: tripitaka
   port: 27017
-  host: q.tripitakas.net
+  host: 127.0.0.1
   user:
   password:
 

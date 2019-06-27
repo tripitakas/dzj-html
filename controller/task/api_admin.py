@@ -32,7 +32,7 @@ class GetReadyPagesApi(TaskHandler):
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
-            count = self.db.page.find(condition, {'name': 1}).count()
+            count = self.db.page.count_documents(condition, {'name': 1})
             pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size * (page_no - 1))
             pages = [p['name'] for p in pages]
             response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
