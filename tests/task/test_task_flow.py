@@ -55,8 +55,7 @@ class TestTaskFlow(APITestCase):
             self.login_as_admin()
             # 发布任务
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
-            self.assert_code(200, self.publish(dict(
-                task_type=task_type, pages=','.join(page_names))))
+            self.assert_code(200, self.publish(dict(task_type=task_type, pages=','.join(page_names))))
 
             # 任务大厅
             self.login(u.expert1[0], u.expert1[1])
@@ -204,7 +203,6 @@ class TestTaskFlow(APITestCase):
 
         # 发布两个校次的文字校对任务
         self.login_as_admin()
-        self.fetch('/api/task/unlock/text_proof/')
         self.assert_code(200, self.publish(dict(task_type='text_proof_1', pages='GL_1056_5_6,JX_165_7_12')))
         self.assert_code(200, self.publish(dict(task_type='text_proof_2', pages='GL_1056_5_6')))
 

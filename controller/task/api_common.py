@@ -79,7 +79,7 @@ class PickTaskApi(TaskHandler):
         if data_field:
             update['lock.' + data_field] = {
                 "is_temp": False,
-                "lock_type": ('tasks', task_type),
+                "lock_type": dict(tasks=task_type),
                 "locked_by": self.current_user['name'],
                 "locked_user_id": self.current_user['_id'],
                 "locked_time": datetime.now()
@@ -105,7 +105,7 @@ class PickTaskApi(TaskHandler):
 class UnlockTaskDataApi(TaskHandler):
     URL = '/api/data/unlock/@task_type/@page_name'
 
-    def get(self, task_type, page_name):
+    def post(self, task_type, page_name):
         """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
         try:
             data_field = self.get_shared_data_field(task_type)

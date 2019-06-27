@@ -215,7 +215,7 @@ role_maps = {
             '/task/update/text_review/@page_name': ['GET'],
             '/api/task/update/text_review/@page_name': ['POST'],
             '/api/task/return/text_review/@page_name': ['POST'],
-            '/api/data/unlock/text_review/@page_name': ['GET'],
+            '/api/data/unlock/text_review/@page_name': ['POST'],
             '/data/edit/blocks/@page_name': ['GET'],
             '/api/data/edit/blocks/@page_name': ['POST'],
             '/data/edit/columns/@page_name': ['GET'],
@@ -319,3 +319,18 @@ def get_route_roles(uri, method):
         if can_access(role, uri, method) and role not in roles:
             roles.append(role)
     return roles
+
+
+def get_all_roles(user_roles):
+    if isinstance(user_roles, str):
+        user_roles = [u.strip() for u in user_roles.split(',')]
+    roles = list(user_roles)
+    for role in user_roles:
+        sub_roles = role_maps.get(role, {}).get('roles')
+        if sub_roles:
+            roles.extend(sub_roles)
+            for _role in sub_roles:
+                roles.extend(get_all_roles(_role))
+    return list(set(roles))
+
+

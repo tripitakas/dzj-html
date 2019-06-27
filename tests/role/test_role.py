@@ -36,3 +36,9 @@ class TestRole(APITestCase):
             self.assertIs(t.__class__, tuple)
             self.assertIs(t[0].__class__, int)
             self.assertIs(t[1].__class__, str)
+
+    def test_all_roles(self):
+        roles = role.get_all_roles('切分专家,文字专家')
+        self.assertEqual(set(roles), set([
+            '切列审定员', '切列校对员', '普通用户', '文字校对员', '切字校对员', '切栏审定员', '文字审定员', '切栏校对员', '切字审定员'
+        ]))

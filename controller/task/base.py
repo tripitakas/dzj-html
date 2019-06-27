@@ -16,8 +16,9 @@
 @time: 2019/3/11
 """
 import random
-from functools import cmp_to_key
 from datetime import datetime
+import controller.role as role
+from functools import cmp_to_key
 import controller.errors as errors
 from controller.base import BaseHandler
 
@@ -149,13 +150,13 @@ class TaskHandler(BaseHandler):
         condition = {'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
         assert is_temp in [None, True, False]
         if is_temp is not None:
-            condition.update({'is_temp': is_temp})
+            condition.update({'lock.%s.is_temp' % data_field: is_temp})
         n = self.db.page.count_documents(condition)
         return n > 0
 
     def is_data_locked(self, page_name, data_field):
         """检查page_name对应的page中，data_field对应的数据是否已经被锁定"""
-        page = self.db.page.find({'name': page_name}, self.simple_fileds())
+        page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
         return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
 
     def get_temp_data_lock(self, page_name, data_field):
@@ -182,10 +183,11 @@ class TaskHandler(BaseHandler):
             return True
 
         # 检查是否有数据编辑对应的roles（有一个角色即可）
-        roles = list(set(self.current_user['roles']) & set(self.data_auth_maps[data_field]['roles']))
+        user_all_roles = role.get_all_roles(self.current_user['roles'])
+        roles = list(set(user_all_roles) & set(self.data_auth_maps[data_field]['roles']))
         if roles:
             if not self.is_data_locked(page_name, data_field):
-                return True if assign_lock(('roles', roles)) else errors.data_lock_failed
+                return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
 
@@ -194,7 +196,7 @@ class TaskHandler(BaseHandler):
         tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
         if tasks:
             if not self.is_data_locked(page_name, data_field):
-                return True if assign_lock(('tasks', tasks)) else errors.data_lock_failed
+                return True if assign_lock(dict(tasks=tasks)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
 
@@ -203,7 +205,7 @@ class TaskHandler(BaseHandler):
     def release_temp_data_lock(self, page_name, data_field):
         """ 将page_name对应的page中，data_field对应的数据锁释放。 """
         if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field, is_temp=True):
-            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': {}}})
+            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s' % data_field: {}}})
 
     def check_auth(self, mode, page, task_type):
         """ 检查任务权限以及数据锁 """
