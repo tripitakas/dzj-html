@@ -7,11 +7,12 @@
 
 from controller.task.base import TaskHandler
 from controller.data.api_algorithm import GenerateCharIdApi as GenApi
+import re
 
 
 class CutBaseHandler(TaskHandler):
 
-    def enter(self, box_type, stage, name, mode='view', **kwargs):
+    def enter(self, box_type, stage, name, **kwargs):
         try:
             task_type = '%s_cut_%s' % (box_type, stage)
             data_field = self.get_shared_data_field(task_type)
@@ -20,6 +21,7 @@ class CutBaseHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = not self.check_auth(mode, page, task_type)
             layout = int(self.get_query_argument('layout', 0))
             kwargs = self.char_render(page, layout, **kwargs) if box_type == 'char' else kwargs
@@ -27,7 +29,7 @@ class CutBaseHandler(TaskHandler):
             self.render(
                 template_name, page=page, name=page['name'], boxes=page[data_field], get_img=self.get_img,
                 data_field=data_field, task_type=task_type, box_type=box_type, readonly=readonly, mode=mode,
-                **kwargs
+                box_version=1, **kwargs
             )
 
         except Exception as e:
@@ -51,9 +53,7 @@ class CutProofHandler(CutBaseHandler):
 
     def get(self, box_type, page_name):
         """ 进入切分校对页面 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'edit' if '/edit' in p else 'view'
-        self.enter(box_type, 'proof', page_name, mode=mode)
+        self.enter(box_type, 'proof', page_name)
 
 
 class CutReviewHandler(CutBaseHandler):
@@ -63,9 +63,7 @@ class CutReviewHandler(CutBaseHandler):
 
     def get(self, box_type, page_name):
         """ 进入切分审定页面 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'edit' if '/edit' in p else 'view'
-        self.enter(box_type, 'review', page_name, mode=mode)
+        self.enter(box_type, 'review', page_name)
 
 
 class CharOrderProofHandler(CutBaseHandler):
@@ -76,6 +74,4 @@ class CharOrderProofHandler(CutBaseHandler):
 
     def get(self, page_name):
         """ 进入字序校对页面 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update' if '/update' in p else 'edit' if '/edit' in p else 'view'
-        self.enter('char', 'proof', page_name, mode=mode, template_name='task_char_order.html')
+        self.enter('char', 'proof', page_name, template_name='task_char_order.html')
