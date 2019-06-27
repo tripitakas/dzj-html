@@ -1,8 +1,9 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务大厅-{{task_name}}</title>
+  <title>任务大厅-{{th.all_types().get(task_type)}}</title>
   {% include _base_meta.html %}
 
   <!-- DataTables -->
@@ -20,122 +21,135 @@
   <![endif]-->
 
   <style>
-    .lobby-tips {
-      font-size: 14px;
-      margin-bottom: 20px;
-      color: #B8906F;
-    }
+   .lobby-tips {
+    font-size: 14px;
+    margin-bottom: 20px;
+    color: #B8906F;
+   }
   </style>
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--公共左侧导航栏 -->
-    {% module CommonLeft(title="task-lobby", sub="task-lobby-cut") %}
-    <div class="main-content">
-      <!--公共头部 -->
-      {% module CommonHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="lobby-tips fr">大厅里总共有 {{total_count}} 条任务</div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
-                    <thead>
-                    <tr>
-                      <th><span>页编码</span></th>
-                      <th>
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
-                          <ul class="dropdown-menu" role="menu">
-                            <li><a href="#" val="3">高</a></li>
-                            <li><a href="#" val="2">中</a></li>
-                            <li><a href="#" val="1">低</a></li>
-                          </ul>
-                        </div>
-                      </th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr id="{{t['name']}}">
-                      <td>{{t['name']}}</td>
-                      <td>{{t.get('priority', '')}}</td>
-                      <td><a onclick="pick('{{t.get('pick_url', '')}}')" style="cursor:pointer">领取</a></td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+   <!--公共左侧导航栏 -->
+   {% module CommonLeft(title="task-lobby", sub="task-lobby-cut") %}
+   <div class="main-content">
+    <!--公共头部 -->
+    {% module CommonHead() %}
+    <div class="single-page-con">
+      <div class="layout">
+       <div class="layout-content">
+        <div class="collate-history">
+          <div class="wrapper">
+           <div class="collate-list">
+            <div class="lobby-tips fr">大厅里总共有 {{total_count}} 条任务</div>
+            <table class="sty_table" style="border-collapse:separate; border-spacing:0px 10px;">
+              <thead>
+              <tr>
+               <th><span>页编码</span></th>
+               <th>
+                <div class="btn-group">
+                  <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
+                  <ul class="dropdown-menu" role="menu">
+                   <li><a href="#" val="3">高</a></li>
+                   <li><a href="#" val="2">中</a></li>
+                   <li><a href="#" val="1">低</a></li>
+                  </ul>
                 </div>
-              </div>
-            </div>
+               </th>
+               <th><span>操作</span></th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for t in tasks %}
+              <tr>
+               <td>{{t['name']}}</td>
+               <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+               {% set _type = select_lobby_text_proof(t) if task_type == 'text_proof' else task_type %}
+               <td><a class="pick-task" id="{{t['name']}}" href="/task/pick/{{_type}}" style="cursor:pointer">领取</a></td>
+              </tr>
+              {% end %}
+              </tbody>
+            </table>
+           </div>
           </div>
         </div>
+       </div>
       </div>
     </div>
+   </div>
   </div>
 </div>
 
 {% include _base_js.html %}
+
 {% import controller.errors as e %}
 <script type="text/javascript">
-	// 领取任务
-	function pick(url) {
-		getApi(
-		  url, 
-		  function (data) {
-		    if (data && data.url) {
-		      window.location = data.url
+  // 领取任务
+  $('.pick-task').on("click", function (e) {
+    e.preventDefault();
+    pick($(this).attr('href'), $(this).attr('id'));
+	});
+
+  function pick(url, page_name) {
+    var data = page_name == undefined ? {} : {data: {page_name: page_name}};
+    postApi(
+		  url,
+      data,
+		  function (res) {
+		    if (res && res.url) {
+		      window.location = res.url;
 		    }
-		  }, 
-		  function (data) {
-		    if (data.code == {{e.task_uncompleted[0]}}) {
-		      swal({
-		        title: "是否继续未完成的任务？",
-		        text: "您还有未完成的任务(" + data.uncompleted_name + ")，不能领取新任务！",
-		        type: "warning",
-		        showCancelButton: true,
-		        confirmButtonColor: "#b8906f",
-		        confirmButtonText: "确定继续",
-		        cancelButtonText: "取消",
-		        closeOnConfirm: false
-		        },
-		        function() {
-		  		  window.location = data.url;
-		        }
-		      );
-			  } else if (data.code == {{e.task_changed[0]}}) {
-		      showError('没有领取新任务', data.message);
-		      setTimeout(function () {
-		        window.location.reload();
-		      }, 1500);
-			  } else if (data.code == {{e.task_locked[0]}} || data.code == {{e.task_picked[0]}}) {
-		      swal({
-		  		  title: "是否领取其它任务？",
-		  		  text: "当期任务已被领取！",
-		  		  type: "warning",
-		  		  showCancelButton: true,
-		  		  confirmButtonColor: "#b8906f",
-		  		  confirmButtonText: "确定领取",
-		  		  cancelButtonText: "取消",
-		  		  closeOnConfirm: false
-		        },
-		        function() {
-              if (data.url) {
-                window.location = data.url;
-              } else {
-                window.location.reload();
-              }
-		        }
-				  );
-			  }
-		  }
-    );
-	}
+		  },
+		  function (res) {
+        console.log(res);
+        if (res.code == {{e.task_uncompleted[0]}}) {
+          swal({
+            title: "是否继续未完成的任务？",
+            text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#b8906f",
+            confirmButtonText: "确定继续",
+            cancelButtonText: "取消",
+            closeOnConfirm: false
+            },
+            function() {
+             window.location = res.url;
+            }
+          );
+        } else if (res.code == {{e.no_task_to_pick[0]}}) {
+          showError('暂无新任务', res.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        } else if (res.code != 500) {
+          swal({
+             title: "是否领取其它任务？",
+             text: res.message,
+             type: "warning",
+             showCancelButton: true,
+             confirmButtonColor: "#b8906f",
+             confirmButtonText: "确定领取",
+             cancelButtonText: "取消",
+             closeOnConfirm: false
+            },
+            function() {
+              pick("/task/pick/{{task_type}}");
+            }
+          );
+        } else {
+          showError('发生错误', res.message);
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        }
+      } // error_callback
+   );
+  }
+
+
 </script>
 
 </body>

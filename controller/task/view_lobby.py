@@ -4,115 +4,18 @@
 @desc: 任务大厅
 @time: 2018/12/26
 """
+
 from controller.task.base import TaskHandler
 
 
 class TaskLobbyHandler(TaskHandler):
-    """ 任务大厅基类 """
+    URL = '/task/lobby/@task_type'
 
-    def show_tasks(self, task_type):
+    def get(self, task_type):
+        """ 任务大厅 """
         try:
-            tasks, total_count = self.get_tasks(task_type)
-            tasks = self.pack_tasks(tasks, task_type)
-            task_name = self.task_types[task_type]['name']
-            self.render('task_lobby.html', tasks=tasks, task_type=task_type, task_name=task_name,
-                        total_count=total_count)
+            tasks, total_count = self.get_lobby_tasks_by_type(task_type)
+            self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
+                        select_lobby_text_proof=self.select_lobby_text_proof)
         except Exception as e:
             self.send_db_error(e, render=True)
-
-    def pack_tasks(self, tasks, task_type):
-        """设置任务的priority、pick_url、status等属性"""
-        for t in tasks:
-            if not self.get_sub_tasks(task_type):  # 一级任务
-                current_task = t.get(task_type, {})
-                t['priority'] = self.priorities.get(current_task.get('priority'), '')
-                t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
-                t['status'] = current_task.get('status')
-            else:  # 二级任务
-                for k, sub_task in t.get(task_type, {}).items():
-                    if sub_task.get('status') == self.STATUS_OPENED:
-                        t['priority'] = self.priorities.get(sub_task.get('priority'), '')
-                        t['pick_url'] = '/task/pick/%s/%s' % (task_type, t['name'])
-                        t['status'] = sub_task.get('status')
-                        continue
-        return tasks
-
-    def get_tasks(self, task_type):
-        return self.get_lobby_tasks_by_type(task_type)
-
-
-class TextProofTaskLobbyHandler(TaskLobbyHandler):
-    URL = '/task/lobby/text_proof'
-
-    def get(self):
-        """ 任务大厅-文字校对 """
-        self.show_tasks('text_proof')
-
-    def get_tasks(self, task_type):
-        sub_types = self.get_sub_tasks(task_type)
-        not_me = {'%s.%s.picked_by' % (task_type, t): {'$ne': self.current_user['_id']} for t in sub_types}
-        return self.get_lobby_tasks_by_type(task_type, more_conditions=not_me)
-
-
-class TextReviewTaskLobbyHandler(TaskLobbyHandler):
-    URL = '/task/lobby/text_review'
-
-    def get(self):
-        """ 任务大厅-文字审定 """
-        self.show_tasks('text_review')
-
-
-class TextHardTaskLobbyHandler(TaskLobbyHandler):
-    URL = '/task/lobby/text_hard'
-
-    def get(self):
-        """ 任务大厅-难字处理 """
-        self.show_tasks('text_hard')
-
-
-class LobbyBlockCutProofHandler(TaskLobbyHandler):
-    URL = '/task/lobby/block_cut_proof'
-
-    def get(self):
-        """ 任务大厅-栏切分校对 """
-        self.show_tasks('block_cut_proof')
-
-
-class LobbyColumnCutProofHandler(TaskLobbyHandler):
-    URL = '/task/lobby/column_cut_proof'
-
-    def get(self):
-        """ 任务大厅-列切分校对 """
-        self.show_tasks('column_cut_proof')
-
-
-class LobbyCharCutProofHandler(TaskLobbyHandler):
-    URL = '/task/lobby/char_cut_proof'
-
-    def get(self):
-        """ 任务大厅-字切分校对 """
-        self.show_tasks('char_cut_proof')
-
-
-class LobbyBlockCutReviewHandler(TaskLobbyHandler):
-    URL = '/task/lobby/block_cut_review'
-
-    def get(self):
-        """ 任务大厅-栏切分审定 """
-        self.show_tasks('block_cut_review')
-
-
-class LobbyColumnCutReviewHandler(TaskLobbyHandler):
-    URL = '/task/lobby/column_cut_review'
-
-    def get(self):
-        """ 任务大厅-列切分审定 """
-        self.show_tasks('column_cut_review')
-
-
-class LobbyCharCutReviewHandler(TaskLobbyHandler):
-    URL = '/task/lobby/char_cut_review'
-
-    def get(self):
-        """ 任务大厅-字切分审定 """
-        self.show_tasks('char_cut_review')

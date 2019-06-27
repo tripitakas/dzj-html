@@ -158,13 +158,14 @@ def between(min, max, **kw):
 def in_list(lst, **kw):
     """检查是否在lst列表中"""
     k, v = list(kw.items())[0]
-    code, message = e.not_in_list
-    err = code, message % (i18n_trans(k), lst)
-    assert type(v) in [str, list]
-    v = [v] if isinstance(v, str) else v
-    not_in = [i for i in v if i not in lst]
-    if not_in:
-        return {k: err}
+    if v:
+        code, message = e.not_in_list
+        err = code, message % (i18n_trans(k), lst)
+        assert type(v) in [str, list]
+        v = [v] if isinstance(v, str) else v
+        not_in = [i for i in v if i not in lst]
+        if not_in:
+            return {k: err}
 
 
 def not_existed(collection=None, exclude_id=None, **kw):
@@ -191,7 +192,7 @@ def is_unique(collection=None, **kw):
     code, message = e.record_existed
     if collection:
         for k, v in kw.items():
-            if v is not None and collection.find({k: v}).count() > 1:
+            if v is not None and collection.count_documents({k: v}) > 1:
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 
@@ -215,7 +216,8 @@ def code_verify_timeout(collection=None, **kw):
         code, message = e.code_timeout
         phone_code = phone_code.upper()
         r = collection.find_one(
-            {"type": 'phone', "data": phone, "code": phone_code, "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+            {"type": 'phone', "data": phone, "code": phone_code,
+             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
         )
         if not r:
             errs['phone_code'] = code, message % i18n_trans('phone_code')

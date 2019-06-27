@@ -75,8 +75,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        self.send_error_response(e.unauthorized, render=not api, message='无权访问，需要申请角色：' + need_roles[0] if len(
-            need_roles) == 1 else '无权访问，需要申请某一种角色：%s' % '、'.join(need_roles))
+        self.send_error_response(e.unauthorized, render=not api, message='无权访问，需要申请角色' + need_roles[0] if len(
+            need_roles) == 1 else '无权访问，需要申请某一种角色 %s' % '、'.join(need_roles))
 
     def can_access(self, path, method='GET'):
         """检查当前用户是否能访问某个(path, method)"""
@@ -156,17 +156,17 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
-        r_type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
-        _error = list(error.values())[0] if r_type == 'multiple' else error
+        _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
+        _error = list(error.values())[0] if _type == 'multiple' else error
         code, message = _error
         # 如果kwargs中含有message，则覆盖error中对应的message
         message = kwargs['message'] if kwargs.get('message') else message
 
-        response = dict(status='failed', type=r_type, code=code, message=message, error=error)
+        response = dict(status='failed', type=_type, code=code, message=message, error=error)
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        if kwargs.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+        if response.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']

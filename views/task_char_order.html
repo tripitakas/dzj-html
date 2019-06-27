@@ -52,7 +52,10 @@
       <div class="m-header">
         <div class="left">
           <div class="back">
-            <img src='{{ static_url("imgs/icon_back.png") }}' class="m-header-img fl" onclick="leave('{{from_url}}')"/>
+            {% set title, img = ('任务大厅', 'icon_task_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+            <a onclick="leave()" title="{{title}}">
+              <img src="{{ static_url('imgs/%s.png' % img) }}" class="m-header-img"/>
+            </a>
           </div>
           <div class="m-header-title" title="{{page['name']}}">字序校对</div>
           <div class="m-header-edit-btn">
@@ -77,14 +80,16 @@
             <div class="more">
               <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
                 {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                {% set suffix = '?layout=%s%s%s' % (i, '&view=1' if readonly else '', '&from=' + from_url if from_url else '') %}
-                <a class="btn btn-default btn-sm" href='/task/do/char_order_proof/{{name}}{{suffix}}'>{{txt}}</a>
+                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_order_proof/{{name}}{{'?layout'=i}}">{{txt}}</a>
                 {% end %}
               </div>
               <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box fl" title="更多" style="margin: 9px;"/>
             </div>
             {% if not readonly %}
-            <img src="{{ static_url('imgs/char_icon8.png') }}" id="save" class="m-header-img btn-save" title="保存"/>
+            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+            {% end %}
+            {% if not readonly and mode == 'do' %}
+            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
             {% end %}
           </div>
         </div>
@@ -160,34 +165,48 @@
     style.display = style.display === 'none' ? '' : 'none';
   });
 
-  window.leave = function (url) {
-    postApi('/task/unlock/{{task_type}}/{{name}}', {exit: true, from_url: url}, function () {
-      window.location = url;
-    });
+  window.leave = function () {
+    if ('{{mode}}' === 'edit') {
+      getApi('/data/unlock/{{task_type}}/{{name}}', function () {
+        window.history.back();
+      });
+    } else if ('{{mode}}' === 'view') {
+      window.history.back();
+    } else {
+      window.location = '/task/lobby/{{task_type}}';
+    }
   };
 
-  function save(submit) {
-    postApi('/task/save/{{task_type}}', {
+
+  // 保存任务
+  $('.btn-save').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{name}}', {
       data: {
-        submit: submit,
-        name: '{{name}}',
-        from_url: '{{from_url}}',
+        submit: false,
         box_type: '{{box_type}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       }
-    }, function (res) {
-      showSuccess(res.box_changed ? '保存成功' : '没有改变', '{{name}} ' +
-          (!res.box_changed ? '的内容没有改变。' : submit ? '已提交成功。' : '已保存成功。'));
-      if (res.jump) {
-        setTimeout(function () {
-          window.location = res.jump;
-        }, 1000);
-      }
+    }, function (data) {
+      showSuccess('保存成功', '{{name}} ' + '已保存成功');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
     });
-  }
+	});
 
-  $('#save').click(save.bind(null, false));
-  $('#submit').click(save.bind(null, true));
+  // 提交任务
+  $('.btn-submit').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{name}}', {
+      data: {
+      submit: true,
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+      }
+    }, function () {
+      // showSuccess('提交成功', '{{name}} ' + '已提交成功');
+      pick('/task/pick/{{task_type}}');
+    });
+  });
 
   updateUndo();
 

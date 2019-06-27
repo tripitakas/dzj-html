@@ -4,7 +4,6 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
-import re
 from controller.cbeta import find
 from controller.base import BaseHandler
 

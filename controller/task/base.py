@@ -12,42 +12,31 @@
     业务管理员在发布任务时，可以对前置任务进行修改，比如文字审定需要两次或者三次校对。发布任务后，任务的前置任务将记录在数据库中。
     如果任务包含前置任务，系统发布任务后，状态为“pending”。当前置任务状态都变为“finished”时，自动将当前任务发布为“opened”。
     3. 发布任务
-    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（task_id）
+    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（page_name）
 @time: 2019/3/11
 """
-
-from controller.base import BaseHandler
-from datetime import datetime
 import random
+from functools import cmp_to_key
+from datetime import datetime
+import controller.errors as errors
+from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-    """
-    任务类型配置表。
-    @name 任务名称
-    @pre_tasks 前置任务列表
-    @sub_task_types 子任务列表
-    """
+    # 任务类型表
     task_types = {
-        'block_cut_proof': {'name': '切栏校对'},
-        'block_cut_review': {'name': '切栏审定', 'pre_tasks': ['block_cut_proof']},
-        'column_cut_proof': {'name': '切列校对'},
-        'column_cut_review': {'name': '切列审定', 'pre_tasks': ['column_cut_proof']},
-        'char_cut_proof': {'name': '切字校对'},
-        'char_cut_review': {'name': '切字审定', 'pre_tasks': ['char_cut_proof']},
-        'char_order_proof': {'name': '字序校对', 'pre_tasks': ['char_cut_review']},
-        'char_order_review': {'name': '字序审定', 'pre_tasks': ['char_order_proof']},
-        'text_proof': {'name': '文字校对', 'sub_task_types': {
-            '1': {'name': '校一'}, '2': {'name': '校二'}, '3': {'name': '校三'},
-        }},
-        'text_review': {'name': '文字审定', 'pre_tasks': ['text_proof.1', 'text_proof.2', 'text_proof.3']},
-        'text_hard': {'name': '难字处理', 'pre_tasks': ['text_review']},
+        'block_cut_proof': '切栏校对',
+        'block_cut_review': '切栏审定',
+        'column_cut_proof': '切列校对',
+        'column_cut_review': '切列审定',
+        'char_cut_proof': '切字校对',
+        'char_cut_review': '切字审定',
+        'text_proof_1': '文字校一',
+        'text_proof_2': '文字校二',
+        'text_proof_3': '文字校三',
+        'text_review': '文字审定',
+        'text_hard': '难字处理',
     }
-
-    MAX_PUBLISH_RECORDS = 250000  # 用户单次发布任务最大值
-    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
-    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
-    MAX_RECORDS = 10000
 
     # 任务状态表
     STATUS_UNREADY = 'unready'
@@ -57,224 +46,323 @@ class TaskHandler(BaseHandler):
     STATUS_PICKED = 'picked'
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
-    task_statuses = {
-        STATUS_UNREADY: '数据未就绪', STATUS_READY: '数据已就绪', STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回', STATUS_FINISHED: '已完成',
+    status_names = {
+        STATUS_UNREADY: '数据未就绪',
+        STATUS_READY: '数据已就绪',
+        STATUS_OPENED: '已发布未领取',
+        STATUS_PENDING: '等待前置任务',
+        STATUS_PICKED: '进行中',
+        STATUS_RETURNED: '已退回',
+        STATUS_FINISHED: '已完成',
     }
 
-    priorities = {3: '高', 2: '中', 1: '低', '3': '高', '2': '中', '1': '低'}
+    prior_names = {3: '高', 2: '中', 1: '低'}
+
+    MAX_RECORDS = 10000
+
+    # 通过数据锁机制对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
+    # 1.tasks。同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
+    # 2.roles。数据专家角色对所有page的授权字段
+
+    # data_auth_maps指的是共享字段的数据锁可以授权给哪些tasks和哪些roles，即数据锁授权配置表。
+    # 在进入数据字段edit操作和保存时，需要检查数据锁资质，以这个表来判断。
+    data_auth_maps = {
+        'blocks': {
+            'tasks': ['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
+                      'char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2',
+                      'text_proof_3', 'text_review', 'text_hard'],
+            'roles': ['切分专家']
+        },
+        'columns': {
+            'tasks': ['column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review',
+                      'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
+            'roles': ['切分专家']
+        },
+        'chars': {
+            'tasks': ['char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
+                      'text_review', 'text_hard'],
+            'roles': ['切分专家']
+        },
+        'text': {
+            'tasks': ['text_review', 'text_hard'],
+            'roles': ['文字专家']
+        },
+
+    }
+
+    # task_shared_data_fields指的任务拥有哪些共享字段。只有拥有共享字段的任务才涉及到数据锁机制。
+    # 在任务领取、保存、提交、完成、退回等时，需要判断是否要检查数据锁时，以这个表来判断。
+    task_shared_data_fields = {
+        'block_cut_proof': 'blocks',
+        'block_cut_review': 'blocks',
+        'column_cut_proof': 'columns',
+        'column_cut_review': 'columns',
+        'char_cut_proof': 'chars',
+        'char_cut_review': 'chars',
+        'text_review': 'text',
+        'text_hard': 'text',
+    }
 
     @classmethod
-    def get_sub_tasks(cls, task_type):
-        task = cls.get_obj_property(cls.task_types, task_type)
-        if task and 'sub_task_types' in task:
-            return list(task['sub_task_types'].keys())
+    def get_shared_data_field(cls, task_type):
+        """ 获取任务保护的共享字段 """
+        return cls.task_shared_data_fields.get(task_type)
 
     @classmethod
-    def get_obj_property(cls, obj, key):
+    def prop(cls, obj, key):
         for s in key.split('.'):
             obj = obj.get(s) if isinstance(obj, dict) else None
-            # 子对象不存在就算不匹配，None
         return obj
 
     @classmethod
-    def all_task_types(cls):
-        """ 将任务类型扁平化后，返回任务类型列表。 如果是二级任务，则表示为task_type.sub_task_type。"""
-        types = []
-        for k, v in cls.task_types.items():
-            types.append(k)
-            if 'sub_task_types' in v:
-                types.extend(['%s.%s' % (k, t) for t in v['sub_task_types']])
-        return types
-
-    @classmethod
-    def task_type_names(cls):
-        type_names = {}
-        for k, v in cls.task_types.items():
-            type_names[k] = v['name']
-            if 'sub_task_types' in v:
-                for k1, v1 in v['sub_task_types'].items():
-                    type_names['%s.%s' % (k, k1)] = '%s.%s' % (v['name'], v1['name'])
-        return type_names
+    def all_types(cls):
+        all_types = {'text_proof': '文字校对'}
+        all_types.update(cls.task_types)
+        return all_types
 
     @classmethod
     def cut_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'cut_' in k}
+        return {k: v for k, v in cls.task_types.items() if 'cut_' in k}
 
     @classmethod
     def text_task_names(cls):
-        task_type_names = cls.task_type_names()
-        return {k: v for k, v in task_type_names.items() if 'text_' in k}
+        return {k: v for k, v in cls.task_types.items() if 'text_' in k}
 
     @classmethod
-    def post_tasks(cls):
-        """ 后置任务类型 """
-        post_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                post_types.update({t: task_type for t in v['pre_tasks']})
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        post_types.update({t: task_type + '.' + sub_type for t in sub_v['pre_tasks']})
-        return post_types
+    def simple_fileds(cls, include=None):
+        """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
+        simple = ['name', 'width', 'height', 'tasks', 'lock']
+        include = [] if not include else include
+        return {prop: 1 for prop in set(simple + include)}
 
-    @classmethod
-    def pre_tasks(cls):
-        """ 前置任务类型 """
+    def find_my_tasks(self, page_name):
+        """ 检查page_name对应的page中，当前用户有哪些任务 """
+        page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+        tasks = []
+        for k, task in page['tasks'].items():
+            if task.get('picked_user_id') == self.current_user['_id']:
+                tasks.append(k)
+        return tasks
 
-        def recursion(cur):
-            """ 对于 pre_types[cur]，对其中每个任务类型再向该列表加入其上一级依赖的任务类型 """
-            for k in pre_types.get(cur, [])[:]:
-                pre_types[cur].extend(recursion(k))
-            return pre_types.get(cur, [])
-
-        pre_types = {}
-        for task_type, v in cls.task_types.items():
-            if 'pre_tasks' in v:
-                pre_types[task_type] = v['pre_tasks']
-            elif 'sub_task_types' in v:
-                for sub_type, sub_v in v['sub_task_types'].items():
-                    if 'pre_tasks' in sub_v:
-                        pre_types[task_type + '.' + sub_type] = v['pre_tasks']
-        for task_type in pre_types:
-            recursion(task_type)
-        return pre_types
-
-    def get_lobby_tasks_by_type(self, task_type, page_size=0, more_conditions=None):
-        """获取任务大厅任务列表，按优先级排序后随机获取"""
-        if task_type not in self.all_task_types():
-            return [], 0
-
-        sub_tasks = self.get_sub_tasks(task_type)
-        if sub_tasks:
-            condition = {'$or': [{'%s.%s.status' % (task_type, s): self.STATUS_OPENED} for s in sub_tasks]}
-        else:
-            condition = {'%s.status' % task_type: self.STATUS_OPENED}
-
-        if more_conditions:
-            condition.update(more_conditions)
-
-        # 获取随机skip值
-        s = page_size or self.config['pager']['page_size']
-        t = '%s.%s' % (task_type, sub_tasks[0]) if sub_tasks else task_type
+    def has_data_lock(self, page_name, data_field, is_temp=None):
+        """ 检查page_name对应的page中，当前用户是否拥有data_field对应的数据 """
+        condition = {'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
+        assert is_temp in [None, True, False]
+        if is_temp is not None:
+            condition.update({'is_temp': is_temp})
         n = self.db.page.count_documents(condition)
-        n1 = self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 1})
-        n2 = n1 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 2})
-        n3 = n2 + self.db.page.count_documents({"%s.status" % t: self.STATUS_OPENED, "%s.priority" % t: 3})
-        rand_end = n1 - s if n1 > s else n2 - s if n2 > s else n3 - s if n3 > s else n - s if n > s else 0
-        skip = random.randint(0, rand_end)
+        return n > 0
 
-        pages = self.db.page.find(condition, {'name': 1, task_type: 1}).sort("%s.priority" % t, -1).limit(s).skip(skip)
-        return list(pages), n
+    def is_data_locked(self, page_name, data_field):
+        """检查page_name对应的page中，data_field对应的数据是否已经被锁定"""
+        page = self.db.page.find({'name': page_name}, self.simple_fileds())
+        return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
 
-    def get_my_tasks_by_type(self, task_type, name=None, order=None, page_size=0, page_no=1):
-        """ 获取我的任务列表 """
-        if task_type not in self.all_task_types():
+    def get_temp_data_lock(self, page_name, data_field):
+        """ 将page_name对应的page中，data_field对应的数据锁分配给当前用户，成功时返回True，失败时返回errors.xxx。
+            它提供给update或edit时，分配临时锁，不能获取长时锁（长时锁由系统在任务领取时分配，是任务提交时释放）。
+        """
+
+        def assign_lock(lock_type):
+            """ lock_type指的是来自哪个任务或者哪个角色 """
+            r = self.db.page.update_one({'name': page_name}, {'$set': {
+                'lock.' + data_field: {
+                    "is_temp": True,
+                    "lock_type": lock_type,
+                    "locked_by": self.current_user['name'],
+                    "locked_user_id": self.current_user['_id'],
+                    "locked_time": datetime.now(),
+                }
+            }})
+            return r.matched_count > 0
+
+        assert data_field in self.data_auth_maps
+
+        if self.has_data_lock(page_name, data_field):
+            return True
+
+        # 检查是否有数据编辑对应的roles（有一个角色即可）
+        roles = list(set(self.current_user['roles']) & set(self.data_auth_maps[data_field]['roles']))
+        if roles:
+            if not self.is_data_locked(page_name, data_field):
+                return True if assign_lock(('roles', roles)) else errors.data_lock_failed
+            else:
+                return errors.data_is_locked
+
+        # 检查是否有同一page的同阶或高阶tasks
+        my_tasks = self.find_my_tasks(page_name)
+        tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
+        if tasks:
+            if not self.is_data_locked(page_name, data_field):
+                return True if assign_lock(('tasks', tasks)) else errors.data_lock_failed
+            else:
+                return errors.data_is_locked
+
+        return errors.data_unauthorized
+
+    def release_temp_data_lock(self, page_name, data_field):
+        """ 将page_name对应的page中，data_field对应的数据锁释放。 """
+        if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field, is_temp=True):
+            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s': {}}})
+
+    def check_auth(self, mode, page, task_type):
+        """ 检查任务权限以及数据锁 """
+        if isinstance(page, str):
+            page = self.db.page.find_one({'name': page})
+        if not page:
+            return False
+
+        # do/update模式下，需要检查任务权限，直接抛出错误
+        if mode in ['do', 'update']:
+            render = '/api' not in self.request.path
+            # 检查任务是否已分配给当前用户
+            task_field = 'tasks.' + task_type
+            if not self.current_user or self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
+            # 检查任务状态以及是否与mode匹配
+            status = self.prop(page, task_field + '.status')
+            if status not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=page['name'])
+            if status == self.STATUS_FINISHED and mode == 'do':
+                return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=page['name'])
+
+        # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
+        auth = False
+        if mode in ['do', 'update', 'edit']:
+            data_field = self.get_shared_data_field(task_type)
+            if not data_field or data_field not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
+                auth = True
+            elif (self.has_data_lock(page['name'], data_field)
+                  or self.get_temp_data_lock(page['name'], data_field) is True):
+                auth = True
+
+        return auth
+
+    def update_post_tasks(self, page_name, task_type):
+        """ 任务完成的时候，更新后置任务的状态 """
+
+        def find_post_tasks():
+            post_tasks = []
+            for k, task in page.get('tasks').items():
+                if task_type in (task.get('pre_tasks') or []):
+                    post_tasks.append(k)
+            return post_tasks
+
+        def pre_tasks_all_finished(task):
+            pre_tasks = self.prop(page, 'tasks.%s.pre_tasks' % task)
+            for pre_task in pre_tasks:
+                if self.STATUS_FINISHED != self.prop(page, 'tasks.%s.status' % pre_task):
+                    return False
+            return True
+
+        page = self.db.page.find_one({
+            'name': page_name,
+            'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
+            'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+        })
+        if page:
+            update = {}
+            for t in find_post_tasks():
+                if self.prop(page, 'tasks.%s.status' % t) == self.STATUS_PENDING and pre_tasks_all_finished(t):
+                    update.update({'tasks.%s.status' % t: self.STATUS_OPENED})
+            if update:
+                self.db.page.update_one({'name': page_name}, {'$set': update})
+
+    def get_my_tasks_by_type(self, task_type, status=None, name=None, order=None, page_size=0, page_no=1):
+        """获取我的任务/任务列表"""
+        if task_type not in self.all_types():
             return [], 0
 
-        user_id = self.current_user['_id']
-        sub_types = self.get_sub_tasks(task_type)
-        if sub_types:
-            condition = {'$or': [{'%s.%s.picked_user_id' % (task_type, t): user_id} for t in sub_types]}
+        assert status is None or status in [self.STATUS_PICKED, self.STATUS_FINISHED]
+
+        status = [self.STATUS_PICKED, self.STATUS_FINISHED] if not status else [status]
+        if task_type == 'text_proof':
+            condition = {
+                '$or': [{
+                    'tasks.text_proof_%s.picked_user_id' % i: self.current_user['_id'],
+                    'tasks.text_proof_%s.status' % i: {"$in": status},
+                } for i in [1, 2, 3]]
+            }
         else:
-            condition = {'%s.picked_user_id' % task_type: user_id}
+            condition = {
+                'tasks.%s.picked_user_id' % task_type: self.current_user['_id'],
+                'tasks.%s.status' % task_type: {"$in": status},
+            }
 
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
-        query = self.db.page.find(condition, {'name': 1, task_type: 1})
-        total_count = query.count()
+
+        query = self.db.page.find(condition, self.simple_fileds())
+        total_count = self.db.page.count_documents(condition)
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
+            query.sort("tasks.%s.%s" % (task_type, order), asc)
 
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
 
-    def get_tasks_by_type(self, task_type=None, type_status=None, order=None, name=None, fields=None, page_size=0,
-                          page_no=1):
-        """
-        根据task_type，task_status等参数，获取任务列表
-        :param task_type: str，任务类型。如text_proof、text_proof.1等
-        :param type_status: str或list，task_type对应的任务状态，或多个任务状态的列表
-        :param order: str，排序方式
-        :param name: str，页码
-        :return: 页面列表
-        """
-        assert type_status is None or type(type_status) in [str, list]
+    def select_my_text_proof(self, page):
+        """从一个page中，选择我的文字校对任务"""
+        for i in range(1, 4):
+            if self.prop(page, 'tasks.text_proof_%s.picked_user_id' % i) == self.current_user['_id']:
+                return 'text_proof_%s' % i
 
-        condition = {}
-        if task_type and type_status and task_type in self.all_task_types():
-            type_status = {"$in": type_status} if type(type_status) == list else type_status
-            sub_types = self.get_sub_tasks(task_type)
-            if sub_types:
-                condition = {'$or': [{'%s.%s.status' % (task_type, t): type_status} for t in sub_types]}
-            else:
-                condition = {'%s.status' % task_type: type_status}
+    def get_lobby_tasks_by_type(self, task_type, page_size=0):
+        """按优先级排序后随机获取任务大厅/任务列表"""
 
+        def get_priority(page):
+            t = self.select_lobby_text_proof(page) if task_type == 'text_proof' else task_type
+            priority = self.prop(page, 'tasks.%s.priority' % t) or 0
+            return priority
+
+        if task_type not in self.all_types():
+            return [], 0
+        if task_type == 'text_proof':
+            condition = {'$or': [{'tasks.text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
+            condition.update(
+                {'tasks.text_proof_%s.picked_user_id' % i: {'$ne': self.current_user['_id']} for i in [1, 2, 3]}
+            )
+        else:
+            condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
+        total_count = self.db.page.count_documents(condition)
+        pages = list(self.db.page.find(condition, self.simple_fileds()).limit(self.MAX_RECORDS))
+        random.shuffle(pages)
+        pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)), reverse=True)
+        page_size = page_size or self.config['pager']['page_size']
+        return pages[:page_size], total_count
+
+    def select_lobby_text_proof(self, page):
+        """从一个page中，选择已发布且优先级最高的文字校对任务"""
+        text_proof, priority = '', -1
+        for i in range(1, 4):
+            s = self.prop(page, 'tasks.text_proof_%s.status' % i)
+            p = self.prop(page, 'tasks.text_proof_%s.priority' % i) or 0
+            if s == self.STATUS_OPENED and p > priority:
+                text_proof, priority = 'text_proof_%s' % i, p
+        return text_proof
+
+    def get_tasks_by_type(self, task_type, type_status=None, name=None, order=None, page_size=0, page_no=1):
+        """获取任务管理/任务列表"""
+        if task_type and task_type not in self.task_types.keys():
+            return [], 0
+
+        condition = dict()
+        if task_type and type_status:
+            condition['tasks.%s.status' % task_type] = type_status
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
-        fields = {task_type: 1} if not fields else fields
-        query = self.db.page.find(condition, {'name': 1, **fields})
-        total_count = query.count()
+
+        query = self.db.page.find(condition, self.simple_fileds())
+        total_count = self.db.page.count_documents(condition)
 
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort("%s.%s" % (task_type, order), asc)
+            query.sort("tasks.%s.%s" % (task_type, order), asc)
 
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
-
-    def submit_task(self, result, data, page, task_type, pick_new_task=None):
-        lock_name = 'lock_' + task_type.split('_')[0]
-        jump_from_task = self.get_obj_property(page, lock_name + '.jump_from_task')
-        cur_user = self.current_user['_id']
-
-        r = self.db.page.update_one({'name': page['name'], lock_name + '.picked_user_id': cur_user},
-                                    {'$unset': {lock_name: None}})
-        if r.modified_count:
-            result['box_changed'] = True
-            result['submitted'] = True
-            self.add_op_log('submit_' + task_type, file_id=page['_id'], context=page['name'])
-            if 'from_url' in data:
-                result['jump'] = data['from_url']
-        if not r.modified_count or jump_from_task:
-            return
-
-        end_info = {
-            task_type + '.status': self.STATUS_FINISHED,
-            task_type + '.finished_time': datetime.now(),
-            task_type + '.last_updated_time': datetime.now()
-        }
-        r = self.db.page.update_one({'name': page['name'], task_type + '.picked_user_id': cur_user},
-                                    {'$set': end_info})
-        if r.modified_count:
-            # 激活后置任务，没有相邻后置任务则继续往后激活任务
-            post_task = self.post_tasks().get(task_type)
-            while post_task:
-                next_status = post_task + '.status'
-                status = self.get_obj_property(page, next_status)
-                if status:
-                    r = self.db.page.update_one({'name': page['name'], next_status: self.STATUS_PENDING},
-                                                {'$set': {next_status: self.STATUS_OPENED}})
-                    if r.modified_count:
-                        self.add_op_log('resume_' + task_type, file_id=page['_id'], context=page['name'])
-                        result['resume_next'] = post_task
-                post_task = not status and self.post_tasks().get(post_task)
-
-            # 随机分配新任务
-            if pick_new_task:
-                task = pick_new_task(task_type)
-            else:
-                task = self.get_lobby_tasks_by_type(task_type, page_size=1)
-                task = task and task[0]
-            if task and 'name' in task:
-                name = task['name']
-                self.add_op_log('jump_' + task_type, file_id=task['_id'], context=name)
-                result['jump'] = '/task/do/%s/%s' % (task_type.replace('.', '/'), name)

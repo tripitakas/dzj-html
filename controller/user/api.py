@@ -6,8 +6,8 @@
 
 import logging
 import random
-import os.path
 import smtplib
+from os import path, mkdir
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
@@ -348,9 +348,12 @@ class UploadUserAvatarHandler(BaseHandler):
     def post(self):
         """上传用户头像"""
         upload_img = self.request.files.get('img')
-        img_name = str(self.current_user['_id']) + os.path.splitext(upload_img[0]['filename'])[-1]
+        img_name = str(self.current_user['_id']) + path.splitext(upload_img[0]['filename'])[-1]
+        img_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'avatar')
+        if not path.exists(img_path):
+            mkdir(img_path)
         img = 'upload/avatar/' + img_name
-        with open('static/' + img, 'wb') as f:
+        with open(path.join(img_path, img_name), 'wb') as f:
             f.write(upload_img[0]['body'])
 
         try:
@@ -447,6 +450,7 @@ class SendUserPhoneCodeHandler(BaseHandler):
             response = client.do_action_with_exception(request)
             response = response.decode()
             resp = json_util.loads(response)
+            logging.debug(resp)
         except ServerException as e:
             return e
         except ClientException as e:

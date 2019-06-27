@@ -5,76 +5,81 @@
 """
 import re
 from datetime import datetime
-from controller import errors
+import controller.errors as errors
 from controller.base import DbError
-from controller.task.base import TaskHandler
 from tornado.escape import json_decode
+from controller.task.base import TaskHandler
 
 
 class SaveTextApi(TaskHandler):
-    def save(self, task_type):
+    """ 保存数据。有do/update两种模式。1. do。做任务时，保存或提交任务。2. update。任务完成后，本任务用户修改数据。
+        不提供其他人修改，因此仅检查任务归属，无需检查数据锁。
+    """
+
+    save_fields = {
+        'text_proof_1': 'txt1',
+        'text_proof_2': 'txt2',
+        'text_proof_3': 'txt3',
+        'text_review': 'text'
+    }
+
+    def save(self, task_type, page_name, mode):
         try:
-            data = self.get_request_data()
-            assert re.match(r'^[A-Za-z0-9_]+$', data.get('name'))
-            assert task_type in self.text_task_names()
+            assert task_type in self.text_task_names() and mode in ['do', 'update', 'edit']
 
-            name = data['name']
-            page = self.db.page.find_one(dict(name=name))
-            if not page:
-                return self.send_error_response(errors.no_object)
-
-            status = self.get_obj_property(page, task_type + '.status')
-            if status != self.STATUS_PICKED:
-                return self.send_error_response(errors.task_changed, reason=self.task_statuses.get(status))
-
-            task_user = task_type + '.picked_user_id'
-            page_user = self.get_obj_property(page, task_user)
-            if page_user != self.current_user['_id']:
-                return self.send_error_response(errors.task_locked, reason=name)
-
-            result = dict(name=name)
+            data, ret = self.get_request_data(), {'updated': True}
             txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
-            txt_field = task_type.replace('text_', 'text.')
-            old_txt = self.get_obj_property(page, txt_field) or page['txt']
-            if txt and txt != old_txt:
-                assert isinstance(txt, str)
-                result['changed'] = True
-                self.db.page.update_one(dict(name=name), {'$set': {
-                    txt_field: txt, '%s.last_updated_time' % task_type: datetime.now()
-                }})
-                self.add_op_log('save_' + task_type, file_id=page['_id'], context=name)
+            doubt = self.get_request_data().get('doubt')
 
-            if data.get('submit'):
-                self.submit_task(result, data, page, task_type, pick_new_task=self.pick_new_task)
+            if not self.check_auth(mode, page_name, task_type):
+                self.send_error_response(errors.data_unauthorized)
 
-            self.send_data_response(result)
+            data_field = self.save_fields.get(task_type)
+            update = {
+                data_field: txt,
+                'tasks.%s.doubt' % task_type: doubt,
+                'tasks.%s.updated_time' % task_type: datetime.now()
+            }
+
+            if mode == 'do' and data.get('submit'):
+                update.update({
+                    'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+                    'tasks.%s.finished_time' % task_type: datetime.now(),
+                })
+                ret['submitted'] = True
+
+            r = self.db.page.update_one({'name': page_name}, {'$set': update})
+            if r.modified_count:
+                self.add_op_log('save_' + task_type, context=page_name)
+
+            if mode == 'do' and data.get('submit'):
+                # 处理后置任务
+                self.update_post_tasks(page_name, task_type)
+                ret['post_tasks_updated'] = True
+
+            self.send_data_response(ret)
+
         except DbError as e:
             self.send_db_error(e)
 
-    def pick_new_task(self, task_type):
-        return self.get_lobby_tasks_by_type(task_type, page_size=1)
-
 
 class SaveTextProofApi(SaveTextApi):
-    URL = '/api/task/save/text_proof/@num'
+    URL = ['/api/task/do/text_proof_@num/@page_name',
+           '/api/task/update/text_proof_@num/@page_name']
 
-    def post(self, num):
+    def post(self, num, page_name):
         """ 保存或提交文字校对任务 """
-        self.save('text_proof.' + num)
-
-    def pick_new_task(self, task_type):
-        tasks = self.get_lobby_tasks_by_type('text_proof')
-        picked = self.db.page.find({'$or': [
-            {'text_proof.%d.picked_user_id' % i: self.current_user['_id']} for i in range(1, 4)
-        ]}, {'name': 1})
-        picked = [page['name'] for page in list(picked)]
-        tasks = [t for t in tasks if t['name'] not in picked]
-        return tasks and tasks[0]
+        p = self.request.path
+        mode = 'do' if '/do' in p else 'update'
+        self.save('text_proof_' + num, page_name, mode=mode)
 
 
 class SaveTextReviewApi(SaveTextApi):
-    URL = '/api/task/save/text_review'
+    URL = ['/api/task/do/text_review/@page_name',
+           '/api/task/update/text_review/@page_name']
 
-    def post(self):
+    def post(self, num, page_name):
         """ 保存或提交文字审定任务 """
-        self.save('text_review')
+        p = self.request.path
+        mode = 'do' if '/do' in p else 'update'
+        self.save('text_review', page_name, mode=mode)

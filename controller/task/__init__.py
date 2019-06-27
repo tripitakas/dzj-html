@@ -1,20 +1,16 @@
-from . import api_common, api_admin, api_text, view_admin, view_do, view_lobby, view_my, view_text
+from . import api_common, api_admin, api_text, api_cut, view_admin, view_cut, view_lobby, view_my, view_text
 
 views = [
-    view_lobby.LobbyBlockCutProofHandler, view_lobby.LobbyColumnCutProofHandler, view_lobby.LobbyCharCutProofHandler,
-    view_lobby.LobbyBlockCutReviewHandler, view_lobby.LobbyColumnCutReviewHandler, view_lobby.LobbyCharCutReviewHandler,
-    view_lobby.TextProofTaskLobbyHandler, view_lobby.TextReviewTaskLobbyHandler, view_lobby.TextHardTaskLobbyHandler,
-    view_admin.TaskAdminHandler, view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler,
-    view_do.CutProofDetailHandler, view_do.CutReviewDetailHandler, view_do.CharOrderProofHandler,
+    view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
+    view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler, view_admin.TaskAdminHandler,
+    view_cut.CutProofHandler, view_cut.CutReviewHandler, view_cut.CharOrderProofHandler,
     view_text.TextProofHandler, view_text.TextReviewHandler,
-    view_my.MyTaskHandler,
+
 ]
 handlers = [
-    api_common.GetPageApi, api_common.GetPagesApi, api_common.UnlockTasksApi,
-    api_common.PickCutProofTaskApi, api_common.PickCutReviewTaskApi,
-    api_common.PickTextProofTaskApi, api_common.PickTextReviewTaskApi,
-    api_common.SaveCutProofApi, api_common.SaveCutReviewApi,
-    api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
-    api_admin.PublishTasksApi, api_admin.PublishTasksFileApi,
+    api_common.GetPageApi, api_common.PickTaskApi, api_common.ReturnTaskApi, api_common.UnlockTaskDataApi,
+    api_cut.SaveCutProofApi, api_cut.SaveCutReviewApi, api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
+    api_admin.PublishTasksPageNamesApi, api_admin.PublishTasksFileApi, api_admin.WithDrawTasksApi,
+    api_admin.GetReadyPagesApi,
 ]
 modules = {'TextArea': view_text.TextArea}

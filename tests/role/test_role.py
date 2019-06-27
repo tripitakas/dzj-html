@@ -14,7 +14,7 @@ class TestRole(APITestCase):
         self.assertEqual(role.get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'), ['切栏校对员', '切分专家'])
 
         routes = role.get_role_routes('切分专家, 数据管理员')
-        self.assertIn('/api/task/page/@task_id', routes)
+        self.assertIn('/api/task/page/@page_name', routes)
         self.assertIn('/data/page', routes)
 
     def test_validate(self):

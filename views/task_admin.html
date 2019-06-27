@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务管理-{{th.task_type_names().get(task_type)}}</title>
+  <title>任务管理-{{th.task_types.get(task_type)}}</title>
   {% include _base_meta.html %}
   <!-- DataTables -->
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
@@ -21,21 +21,26 @@
   <![endif]-->
 
   <style>
-    .collate-history .collate-list table tbody tr td.status_none {
+    .collate-history table tr td.status_none {
       color: #999;
     }
 
-    .collate-history .collate-list table tbody tr td.status_pending {
+    .collate-history table tr td.status_pending {
       color: #666;
     }
 
-    .collate-history .collate-list table tbody tr td.status_ended {
+    .collate-history table tr td.status_ended {
       color: #0f0;
     }
 
-    .collate-history .collate-list table tbody tr td.status_opened {
+    .collate-history table tr td.status_opened {
       color: #007;
     }
+
+    .pre-tasks .checkbox-inline:nth-of-type(1) {
+      margin-right: 10px;
+    }
+
   </style>
 </head>
 
@@ -56,16 +61,29 @@
               <div class="modal-content">
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="upload-pages">上传页编码</h4>
+                  <h4 class="modal-title" id="upload-pages">发布{{th.task_types.get(task_type)}}任务</h4>
                 </div>
                 <div class="modal-body">
                   <div class="priority-list">
-                    <h4 class="control-label">优先级</h4>
+                    <h4 class="control-label">选择优先级</h4>
                     <select class="form-control">
                       <option value="3">高</option>
                       <option value="2">中</option>
                       <option value="1">低</option>
                     </select>
+                  </div>
+                  <br/>
+                  <div class="pre-tasks">
+                    <h4 class="control-label">选择前置任务</h4>
+                    <div>
+                      {% for t, v in th.task_types.items() %}
+                      {% if t != task_type %}
+                      <label class="checkbox-inline">
+                        <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
+                      </label>
+                      {% end %}
+                      {% end %}
+                    </div>
                   </div>
                   <br/>
                   <i>请选择CSV或TXT格式文件，大小不超过10M</i>
@@ -96,16 +114,30 @@
               <div class="modal-content">
                 <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="choose-pages">选择页编码</h4>
+                  <h4 class="modal-title" id="choose-pages">发布{{th.task_types.get(task_type)}}任务</h4>
                 </div>
                 <div class="modal-body">
                   <div class="priority-list">
-                    <h4 class="control-label">优先级</h4>
+                    <h4 class="control-label">选择优先级</h4>
                     <select class="form-control">
                       <option value="3">高</option>
                       <option value="2">中</option>
                       <option value="1">低</option>
                     </select>
+                  </div>
+                  <br/>
+                  <div class="pre-tasks">
+                    <h4 class="control-label">选择前置任务</h4>
+                    <div>
+                      {% for t, v in th.task_types.items() %}
+                      {% if t != task_type %}
+                      <label class="checkbox-inline">
+                        <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}} />
+                        {{v}}
+                      </label>
+                      {% end %}
+                      {% end %}
+                    </div>
                   </div>
                   <br/>
                   <div class="form-group">
@@ -176,12 +208,11 @@
                     <tr>
                       <th><span><input type="checkbox" name="" id="check" value=""/></span></th>
                       <th><span>页编码</span></th>
-                      <th><span>类型</span></th>
                       <th><span>
 											    <div class="btn-group">
 												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态<span class="ion-android-sort "></span></span>
                             <ul class="dropdown-menu" role="menu">
-                            {% for k, v in th.task_statuses.items() %}
+                            {% for k, v in th.status_names.items() %}
                               <li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
@@ -190,6 +221,7 @@
                       <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">优先级
                         <span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
                       </span></th>
+                      <th><span>前置任务</span></th>
                       <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">发布时间
                         <span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                       </span></th>
@@ -205,17 +237,21 @@
                     <tr id="{{t['name']}}">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
                       <td>{{t['name']}}</td>
-                      <td>{{th.task_types.get(task_type, {}).get('name','')}}</td>
-                      <td>{{th.task_statuses.get(th.get_obj_property(t, task_type + '.status')) or ''}}</td>
-                      <td>{{th.priorities.get(th.get_obj_property(t, task_type + '.priority')) or ''}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.publish_time'))}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.last_updated_time'))}}</td>
-                      <td>{{th.get_obj_property(t, task_type + '.picked_by') or ''}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.picked_time'))}}</td>
-                      <td>{{to_date_str(th.get_obj_property(t, task_type + '.finished_time'))}}</td>
+                      <td>{{th.status_names.get(th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
+                      <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>
+                        {% set pre_tasks = th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
+                        {{'/'.join([th.task_types.get(p) for p in pre_tasks])}}
+                      </td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
+                      <td>{{th.prop(t, 'tasks.%s.picked_by' % task_type) or ''}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.picked_time' % task_type))}}</td>
+                      <td>{{to_date_str(th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
                       <td>
                         <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
-                        {% if th.get_obj_property(t, task_type + '.status') not in [None, 'unready', 'ready'] %}
+                        <a class="view" href="/task/update/{{task_type}}/{{t['name']}}">修改</a>
+                        {% if th.prop(t, task_type + '.status') in ['opened', 'picked', 'pending'] %}
                         <a class="withdraw" onclick=revoke('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>
@@ -245,19 +281,24 @@
 
   <!--选择页编码-点击确定-发布任务-->
   $modal.find('#select_modal_btn').click(function () {
-    var taskTypes = ['{{task_type}}']
-    var selectedPages = []
+    var selectedPages = [];
     var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
     selections.each(function () {
       selectedPages.push($(this).text());
-    })
+    });
     if (selectedPages.length < 1) {
-      return showError('未选择页面', '请选择要发布的页面。')
+      return showError('未选择页面', '请选择要发布的页面。');
     }
+    var pre_tasks = [];
+    $("#selectModal .pre-tasks :checkbox").each(function(){
+      if ($(this).is(':checked'))
+        pre_tasks.push($(this).attr('title'));
+    });
     var data = {
       priority: $modal.find('.priority-list select').val(),
       pages: selectedPages.join(','),
-      task_type: taskTypes,
+      task_type: '{{task_type}}',
+      pre_tasks: pre_tasks,
     };
     console.log(data);
     postApi('/task/publish', {data: data}, function (res) {
@@ -282,8 +323,10 @@
   <!--display pagination html-->
   function displayPagination(pageNo, pageSize, totalCount) {
     var pageCount = Math.ceil(totalCount / pageSize);
-    if (pageCount <= 1)
+    if (pageCount <= 1) {
+      $('#pagination').html('');
       return;
+    }
     var displayCount = 5;	// 显示多少个页码
     var start = pageNo - parseInt(displayCount / 2);
     start = start < 1 ? 1 : start;
@@ -301,13 +344,16 @@
     // 待选对象-翻页
     $("#pagination a").on("click", function () {
       var page = $(this).attr('title').trim();
-      var selectedPages = []
+      var selectedPages = [];
       $(".ms-selection .ms-selected").each(function () {
         selectedPages.push($(this).text());
       });
-      data = {page_prefix: searchStr, page: page, exclude_pages: selectedPages}
+      if ($(".ms-selectable .ms-elem-selectable:not(.ms-selected)").length == 0 && page > 1) {
+        page = page - 1;
+      }
+      data = {prefix: searchStr, page: page, exclude: selectedPages}
       console.log(data)
-      postApi('/task/pages/{{task_type}}', {data: data}, function (res) {
+      postApi('/task/ready_pages/{{task_type}}', {data: data}, function (res) {
         pages = selectedPages.concat(res.data.pages);
         $('#my_multi_select').multiSelect('refresh')
         showModal(page, res.data.page_size, res.data.total_count);
@@ -328,7 +374,7 @@
       selectedPages.push($(this).text());
     });
     var selectableInput = $('#selectable_input').val().trim();
-    postApi('/task/pages/{{task_type}}', {data: {page_prefix: selectableInput, exclude_pages: selectedPages}}, function (res) {
+    postApi('/task/ready_pages/{{task_type}}', {data: {prefix: selectableInput, exclude: selectedPages}}, function (res) {
       searchStr = selectableInput  // 设置全局变量
       pages = selectedPages.concat(res.data.pages);
       $('#my_multi_select').multiSelect('refresh')
@@ -381,7 +427,7 @@
   }
 
   $modal.on('shown.bs.modal', function () {
-    postApi('/task/pages/{{task_type}}', {data: {}}, function (res) {
+    postApi('/task/ready_pages/{{task_type}}', {data: {}}, function (res) {
       pages = res.data.pages;
       showModal(1, res.data.page_size, res.data.total_count);
     });
@@ -494,7 +540,7 @@
         },
         function () {
           //此处调用后台删除逻辑(ajax)
-          getApi('/task/unlock/' + task_type + '/' + name, function (res) {
+          getApi('/task/withdraw/' + task_type + '/' + name, function (res) {
             if (res.data.length) {
               window.location.reload();
             }

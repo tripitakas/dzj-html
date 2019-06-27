@@ -1,0 +1,77 @@
+{
+    "name": "GL_1056_5_6",
+    "kind": "GL",
+    "width": 6000,
+    "height": 3900,
+    "blocks":[],
+    "columns":[],
+    "chars":[],
+    "ocr": "",
+    "cmp1": "",
+    "txt1": "",
+    "cmp2": "",
+    "txt2": "",
+    "cmp3": "",
+    "txt3": "",
+    "text":"",
+    "lock":{
+        "blocks":{
+            "task_type": "cut_block_review",
+            "locked_by": "贤四",
+            "locked_user_id": "aXYFJzsmzh6JhQDf",
+            "locked_time": "2019-03-12T08:58:01.422Z"
+        },
+        "columns":{},
+        "chars":{},
+        "text":{},
+        "ocr":{}
+    },
+    "tasks": {
+        "cut_block_proof": {
+            "status": "returned",
+            "priority": "高",
+            "publish_time": "2019-03-12T08:58:01.422Z",
+            "updated_time": "2019-03-12T08:58:01.422Z",
+            "picked_by": "贤二",
+            "picked_user_id": "aXYFJzsmzh6JhQDf",
+            "picked_time": "2019-03-12T08:58:01.422Z",
+            "finished_time": "2019-03-12T08:58:01.422Z",
+            "returned_reason": "页面太复杂"
+        },
+        "cut_block_review": {
+            "status": "pending",
+            "pretasks": ["cut_block_proof"]
+        },
+        "cut_column_proof": {
+            "status": "unready"
+        },
+        "cut_column_review": {
+            "status": "unready"
+        },
+        "cut_char_proof": {
+            "status": "unready"
+        },
+        "cut_char_review": {
+            "status": "unready"
+        },
+        "text_proof_1": {
+            "status": "finished",
+            "priority": "高",
+            "publish_time": "2019-03-12T08:58:01.422Z",
+            "updated_time": "2019-03-12T08:58:01.422Z",
+            "picked_by": "贤二",
+            "picked_user_id": "aXYFJzsmzh6JhQDf",
+            "picked_time": "2019-03-12T08:58:01.422Z",
+            "doubts":""
+        },
+        "text_proof_2": {
+            "status": "unready"
+        },
+        "text_proof_3": {
+            "status": "ready"
+        },
+        "text_review": {
+            "status": "unready"
+        }
+    }
+}
