@@ -78,7 +78,7 @@ class SaveTextReviewApi(SaveTextApi):
     URL = ['/api/task/do/text_review/@page_name',
            '/api/task/update/text_review/@page_name']
 
-    def post(self, num, page_name):
+    def post(self, page_name):
         """ 保存或提交文字审定任务 """
         p = self.request.path
         mode = 'do' if '/do' in p else 'update'

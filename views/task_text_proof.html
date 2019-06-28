@@ -111,34 +111,31 @@
           <div class="bd" id="canvas-bd">
             <div id="holder"></div>
           </div>
-        </div>
+        </div><!--left-->
         <div class="right fr">
           <div class="bd">
             <div class="sutra-text" id="sutra-text">
               {% module TextArea(segments=cmp_data) %}
-            </div>
+            </div> <!--sutra-text-->
             <div class="pfread-dialog" id="pfread-dialog">
-
               <div class="dialog-common dialog-abs">
                 <div class="dlg-before"></div>
+                {% set label = dict(base='OCR',cmp='比对本') if 'proof' in task_type else dict(base='校一',cmp1='校二',cmp2='校三') %}
+                {% for k, v in label.items() %}
                 <dl class="item">
-                  <dt>OCR</dt>
-                  <dd class="text" id="pfread-dialog-base">&nbsp;</dd>
+                  <dt>{{v}}</dt>
+                  <dd class="text" id="pfread-dialog-{{k}}">&nbsp;</dd>
                 </dl>
-                <dl class="item">
-                  <dt>比对本</dt>
-                  <dd class="text" id="pfread-dialog-cmp">&nbsp;</dd>
-                </dl>
+                {% end %}
                 <dl class="item">
                   <dt>选择结果</dt>
-                  <dd class="text"><span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……"
-                                         contenteditable="true"></span></dd>
+                  <dd class="text">
+                    <span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span>
+                  </dd>
                 </dl>
                 <div class="dlg-after"></div>
               </div>
-
-
-            </div>
+            </div> <!--pfread-dialog-->
             <div class="char-list">
               <div class="char-list-tab">
                 <div class="char-list-tab-item active" id="a_demo">存疑列表</div>
@@ -155,9 +152,9 @@
                   <td>操作</td>
                 </tr>
               </table>
-            </div>
+            </div><!--char-list-->
           </div>
-        </div>
+        </div><!--right-->
       </div>
 
     </div>

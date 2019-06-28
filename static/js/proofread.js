@@ -208,6 +208,8 @@ $(document).on('click', '.not-same', function (e) {
 
     var $dlg = $("#pfread-dialog");
     $("#pfread-dialog-cmp").text($(this).attr("cmp"));
+    $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
+    $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
     $("#pfread-dialog-base").text($(this).attr("base"));
     $("#pfread-dialog-slct").text($(this).text());
 
@@ -298,9 +300,11 @@ $('.pfread .right').scroll(function () {
 });
 
 // 点击异文选择框的各个选项
-$(document).on('click', '#pfread-dialog-base, #pfread-dialog-cmp', function () {
-    $('#pfread-dialog-slct').text($(this).text());
-});
+$(document).on('click', '#pfread-dialog-base, #pfread-dialog-cmp, #pfread-dialog-cmp1, #pfread-dialog-cmp2',
+    function () {
+        $('#pfread-dialog-slct').text($(this).text());
+    }
+);
 
 $(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function() {
     $('.current-not-same').text($(this).text());

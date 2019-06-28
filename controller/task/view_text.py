@@ -19,8 +19,32 @@ class TextBaseHandler(TaskHandler):
         'text_proof_3': 'cmp3',
     }
 
+    def get_segments(self, task_type, page):
+        if 'proof' in task_type:
+            base = page.get('ocr').replace('|', '\n')
+            cmp = self.prop(page, self.cmp_fields.get(task_type))
+            segments = Diff.diff(base, cmp or base, label=dict(cmp1='cmp'))[0]
+            txts = dict(base=base, cmp=cmp)
+        elif 'review' in task_type:
+            # review时应对txt1/txt2/txt/3比对，暂时由ocr/cmp1/cmp2替代
+            base = page.get('ocr').replace('|', '\n')
+            cmp1 = self.prop(page, self.cmp_fields.get('text_proof_1'))
+            cmp2 = list(cmp1 or base)
+            # 对cmp2进行变换处理
+            del cmp2[4]
+            del cmp2[-4]
+            mid = int(len(cmp2) / 2)
+            cmp2.insert(mid, '新增')
+            cmp2[mid - 4:mid - 2] = '替换'
+            cmp2[mid + 2:mid + 4] = '修改'
+
+            segments = Diff.diff(base, cmp1 or base, ''.join(cmp2))[0]
+            txts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
+
+        return segments, txts
+
     def enter(self, task_type, page_name):
-        assert task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3']
+        assert task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
         try:
             page = self.db.page.find_one(dict(name=page_name))
             if not page:
@@ -31,13 +55,13 @@ class TextBaseHandler(TaskHandler):
             params = dict(name=page_name, mismatch_lines=[], columns=page['columns'])
             layout = int(self.get_query_argument('layout', 0))
             CutBaseHandler.char_render(page, layout, **params)
-            txt = page.get('ocr').replace('|', '\n')
-            cmp = self.prop(page, self.cmp_fields.get(task_type))
-            params['label'] = dict(cmp1='cmp')
-            cmp_data = self.gen_segments(txt, page['chars'], params, cmp)
+            segments, txts = self.get_segments(task_type, page)
+            cmp_data = self.check_segments(segments, page['chars'], params)
             self.render(
-                'task_text_proof.html', task_type=task_type, page=page, cmp_data=cmp_data, mode=mode, readonly=readonly,
-                origin_txt=re.split(r'[\n|]', txt.strip()), cmp_txt=re.split(r'[\n|]', (cmp or txt).strip()),
+                'task_text_proof.html',
+                task_type=task_type, page=page, cmp_data=cmp_data, mode=mode, readonly=readonly,
+                origin_txt=re.split(r'[\n|]', txts['base'].strip()),
+                cmp_txt=re.split(r'[\n|]', (txts.get('cmp', '')).strip()),
                 get_img=self.get_img,
                 **params
             )
@@ -62,10 +86,9 @@ class TextBaseHandler(TaskHandler):
             c.pop('char_no', 0)
 
     @staticmethod
-    def gen_segments(txt, chars, params=None, cmp=None):
-        # 先比对文本(diff)得到行号连续的文本片段元素 segments
+    def check_segments(segments, chars, params=None):
+        """ 检查segments """
         params = params or {}
-        segments = Diff.diff(txt, cmp or txt, label=params.get('label'))[0]
 
         # 按列对字框分组，提取列号
         TextProofHandler.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
