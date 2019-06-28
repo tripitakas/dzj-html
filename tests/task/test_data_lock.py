@@ -3,9 +3,7 @@
 
 import tests.users as u
 from tests.testcase import APITestCase
-from controller import errors
 from controller.task.base import TaskHandler as Th
-from tornado.escape import json_encode
 
 class TestDataLock(APITestCase):
 
