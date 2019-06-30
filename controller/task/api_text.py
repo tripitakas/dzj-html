@@ -29,7 +29,7 @@ class SaveTextApi(TaskHandler):
 
             data, ret = self.get_request_data(), {'updated': True}
             txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
-            doubt = self.get_request_data().get('doubt').strip('\n')
+            doubt = self.get_request_data().get('doubt', '').strip('\n')
 
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)
