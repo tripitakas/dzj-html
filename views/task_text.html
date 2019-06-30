@@ -58,7 +58,7 @@
             <img src="{{ static_url('imgs/%s.png' % img) }}" class="m-header-img"/>
           </a>
         </div>
-        <div class="m-header-title" title="{{name}}">{{stage}}</div>
+        <div class="m-header-title" title='{{page["name"]}}'>{{stage}}</div>
         <div class="m-header-edit-btn">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
@@ -115,7 +115,11 @@
         <div class="right fr">
           <div class="bd">
             <div class="sutra-text" id="sutra-text">
-              {% module TextArea(segments=cmp_data) %}
+              {% if isinstance(cmp_data, str) %}
+                {% raw cmp_data %}
+              {% else %}
+                {% module TextArea(segments=cmp_data) %}
+              {% end %}
             </div> <!--sutra-text-->
             <div class="pfread-dialog" id="pfread-dialog">
               <div class="dialog-common dialog-abs">
@@ -145,12 +149,17 @@
                 </div>
               </div>
               <table class="char-list-table hidden">
-                <tr>
-                  <td>行号</td>
-                  <td>存疑文本</td>
-                  <td>存疑理由</td>
-                  <td>操作</td>
-                </tr>
+                <thead>
+                  <tr>
+                    <td>行号</td>
+                    <td>存疑文本</td>
+                    <td>存疑理由</td>
+                    <td>操作</td>
+                  </tr>
+                </thead>
+                <tbody>
+                {% raw doubt if doubt else '' %}
+                </tbody>
               </table>
             </div><!--char-list-->
           </div>
@@ -173,16 +182,19 @@
             <div class="btn-group" role="group">
               <button class="btn btn-default" id="show-ocr">OCR</button>
               <button class="btn btn-default" id="show-cmp">比对本</button>
-              {% if origin_txt != cmp_txt %}
+              {% if txts.get('cmp') and txts.get('ocr') != txts.get('cmp') %}
               <button class="btn btn-default" id="show-all">两者</button>
               {% end %}
             </div>
             <button class="btn btn-default m-l-10" id="save-txt">保存</button>
-            <span class="m-l-10">{{name}}</span>
+            <span class="m-l-10">{{page["name"]}}</span>
           </div>
           <div class="modal-body">
-            <textarea id="ocr" rows="26" readonly>{{'\n'.join(origin_txt)}}</textarea>
-            <textarea id="cmp" rows="26">{{'\n'.join(cmp_txt)}}</textarea>
+            {% import re %}
+            {% for k, txt in txts.items() %}
+            <!-- k in ['ocr', 'cmp', 'cmp1', 'cmp2', 'cmp3'] -->
+            <textarea id="{{k}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt))}}</textarea>
+            {% end %}
             <p style="font-style: italic"><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
           </div>
         </div>
@@ -258,19 +270,19 @@
 
   /*-----------左侧图像区域-----------*/
   // 显示左边页面图和字框
-  var char_data = decodeJSON('{{page["chars"]}}');
-  var columns = decodeJSON('{{page["columns"]}}');
-  var blocks = decodeJSON('{{page["blocks"]}}');
+  var char_data = decodeJSON('{{page.get("chars", [])}}');
+  var columns = decodeJSON('{{page.get("columns", [])}}');
+  var blocks = decodeJSON('{{page.get("blocks", [])}}');
 
   function createPage() {
     $.cut.create({
       readonly: true,
       scrollContainer: '#canvas-bd',
-      name: '{{name}}',
+      name: '{{page["name"]}}',
       width: '{{page["width"]}}',
       height: '{{page["height"]}}',
       holder: 'holder',
-      image: '{{get_img(page.get("img_name", name), page.get("use_local_img"))}}',
+      image: '{{get_img(page.get("img_name", page.get("name")), page.get("use_local_img"))}}',
       chars: char_data
     });
     $.cut.bindMatchingKeys();
@@ -296,28 +308,28 @@
 
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{name}}';
+    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{page["name"]}}';
   });
 
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{name}}';
+    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{page["name"]}}';
   });
 
   // 修改字框
   $('.ed-char-box').click(function () {
-   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
+   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{page["name"]}}';
   });
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{name}}';
+    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
   });
 
   // 退回任务
   $('.btn-return-back').click(function () {
-    getApi('/data/return/{{task_type}}/{{name}}', {}, function () {
-      showSuccess('退回成功', '{{name}} ' + '已退回成功。');
+    getApi('/data/return/{{task_type}}/{{page["name"]}}', {}, function () {
+      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
         window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";
       }, 1000);
@@ -335,29 +347,34 @@
 
   // 获取数据
   function getData(submit) {
-    var txt = $('#sutra-text').find('.block').map(
-        function (i, block) {
-          return $(block).find('.line:not(.delete)').map(
-              function (line, el) {
-                return $(el).text();
-              }
-          ).get().join('\n');
-        }
-    ).get().join('\n\n\n');
+    // var txt = $('#sutra-text').find('.block').map(
+    //     function (i, block) {
+    //       return $(block).find('.line:not(.delete)').map(
+    //           function (line, el) {
+    //             return $(el).text();
+    //           }
+    //       ).get().join('\n');
+    //     }
+    // ).get().join('\n\n\n');
+    var txt = $('#sutra-text').html();
+    var doubt = $('.char-list-table tbody').html();
+
     var data = {
       submit: submit,
-      name: '{{name}}',
-      txt: JSON.stringify(txt)
+      name: '{{page["name"]}}',
+      txt: JSON.stringify(txt),
+      doubt: doubt
     };
+    console.log(data);
     return data;
   }
 
   // 保存任务
   $('.btn-save').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{name}}', {
+    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
       data: getData(false)
     }, function () {
-      showSuccess('保存成功', '{{name}} ' + '已保存成功');
+      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
       setTimeout(function () {
         window.location.reload();
       }, 1000);
@@ -366,10 +383,10 @@
 
   // 提交任务
   $('.btn-submit').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{name}}', {
+    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
       data: getData(true)
     }, function () {
-      // showSuccess('提交成功', '{{name}} ' + '已提交成功');
+      // showSuccess('提交成功', '{{page["name"]}} ' + '已提交成功');
       pick("/task/pick/{{'text_proof' if 'proof' in task_type else 'text_review'}}");
     });
   });
@@ -482,7 +499,7 @@
   $showAll.click(function () {
     switchModalText('all');
   });
-  switchModalText('{{"all" if origin_txt != cmp_txt else "cmp"}}');
+  switchModalText('{{"all" if txts.get("ocr") != txts.get("cmp") else "cmp"}}');
 
   // 原文的保存
   $saveTxtBtn.click(function () {
@@ -491,7 +508,7 @@
     }
     var txt = $cmpArea.val().replace(/-/g, '');
     save_({
-      name: '{{name}}',
+      name: '{{page["name"]}}',
       txt: JSON.stringify(txt)
     }, function (res) {
       if (res.changed) {

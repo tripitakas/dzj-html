@@ -539,14 +539,14 @@ $(document).on('click', '#doubt_save_btn', function () {
         $('#table_toggle_btn').click()
 });
 
-//关闭对话框时，输入框内容置空
+// 关闭对话框时，输入框内容置空
 $('#doubtModal').on('hide.bs.modal', function () {
   $('#doubt_input').val('');
   $('#doubt_reason').val('');
   $('#doubt_tip').hide();
 })
 
-//点击删除按钮，删除该行
+// 点击删除按钮，删除该行
 $(document).on('click', '.del-doubt', function () {
     $(this).parent().remove();
 });

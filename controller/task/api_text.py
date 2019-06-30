@@ -17,10 +17,10 @@ class SaveTextApi(TaskHandler):
     """
 
     save_fields = {
-        'text_proof_1': 'txt1',
-        'text_proof_2': 'txt2',
-        'text_proof_3': 'txt3',
-        'text_review': 'text'
+        'text_proof_1': 'txt1_html',
+        'text_proof_2': 'txt2_html',
+        'text_proof_3': 'txt3_html',
+        'text_review': 'txt_review_html'
     }
 
     def save(self, task_type, page_name, mode):
@@ -28,8 +28,8 @@ class SaveTextApi(TaskHandler):
             assert task_type in self.text_task_names() and mode in ['do', 'update', 'edit']
 
             data, ret = self.get_request_data(), {'updated': True}
-            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).replace('\n', '|'))
-            doubt = self.get_request_data().get('doubt')
+            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
+            doubt = self.get_request_data().get('doubt').strip('\n')
 
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)

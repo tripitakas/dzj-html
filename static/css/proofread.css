@@ -383,7 +383,7 @@
     margin-top: 5px;
 }
 
-.char-list-table tr:nth-child(odd) {
+.char-list-table tbody tr:nth-child(odd) {
     background: var(--Color_White);
 }
 

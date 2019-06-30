@@ -129,7 +129,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
             txt2_html='',
             cmp3='',
             txt3_html='',
-            txt0_html='',
+            txt_review_html='',
             text='',
             lock={},
             tasks={},
