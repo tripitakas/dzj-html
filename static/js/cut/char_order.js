@@ -448,7 +448,7 @@
 
     _updateCharInfo: function (link) {
       $('#info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
-          (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? '，可改起点' : '')));
+          (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? this.hover.line ? '，可改起点' : '，起点' : '')));
     },
 
     linkSwitched: function (link, ballTimes) {
@@ -481,7 +481,7 @@
 
     // 拖拽出入点到字框或空白处
     mouseDrag: function (pt) {
-      if (!this.state.dragging && (this.state.inletHit || this.state.outletHit)) {
+      if (!this.state.dragging && (this.state.inletHit || this.state.outletHit && this.hover.line)) {
         this.state.dragging = getDistance(state.downOrigin, pt) > this.state.avgLen / 3;
         if (!this.state.dragging) {
           return;
