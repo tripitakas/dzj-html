@@ -95,7 +95,7 @@
                       {% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
                       <td class="">
                         <a href="/task/{{item}}/{{t['name']}}">
-                          {{th.status_names.get(th.prop(t, 'tasks.%s.status' % item))}}
+                          {{th.status_names.get(th.prop(t, 'tasks.%s.status' % item), '')}}
                         </a>
                       </td>
                       {% end %}
