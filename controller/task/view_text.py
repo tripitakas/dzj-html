@@ -26,7 +26,7 @@ class TextBaseHandler(TaskHandler):
     }
 
     def enter(self, task_type, page_name):
-        assert task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
+        assert task_type in self.text_task_names()
         try:
             page = self.db.page.find_one(dict(name=page_name))
             if not page:
@@ -34,63 +34,67 @@ class TextBaseHandler(TaskHandler):
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = not self.check_auth(mode, page, task_type)
-            doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
+            doubt = self.get_doubt(page, task_type)
             cmp_data = page.get(self.save_fields[task_type])
+            params = dict(mismatch_lines=[])
             if not cmp_data:
-                params = dict(mismatch_lines=[])
                 layout = int(self.get_query_argument('layout', 0))
                 CutBaseHandler.char_render(page, layout, **params)
-                segments = self.get_segments(task_type, page)
+                segments = self.get_segments(page, task_type)
                 cmp_data = self.check_segments(segments, page['chars'], params)
             self.render(
-                'task_text.html', task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt,
-                mode=mode, readonly=readonly, txts=self.get_txts(task_type, page), get_img=self.get_img,
+                'task_text.html',
+                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
+                txts=self.get_txts(page, task_type), get_img=self.get_img,
+                **params
             )
 
         except Exception as e:
             self.send_db_error(e, render=True)
 
-    def get_segments(self, task_type, page):
+    def get_segments(self, page, task_type):
         if 'proof' in task_type:
             base = page.get('ocr').replace('|', '\n')
             cmp = self.prop(page, self.cmp_fields.get(task_type))
             segments = Diff.diff(base, cmp or base, label=dict(cmp1='cmp'))[0]
         elif 'review' in task_type:
-            # review时应对txt1/txt2/txt/3比对，暂时由ocr/cmp1/cmp2替代
-            base = page.get('ocr').replace('|', '\n')
-            cmp1 = self.prop(page, self.cmp_fields.get('text_proof_1'))
-            cmp2 = list(cmp1 or base)
-            # 对cmp2进行变换处理
-            del cmp2[4]
-            del cmp2[-4]
-            mid = int(len(cmp2) / 2)
-            cmp2.insert(mid, '新增')
-            cmp2[mid - 4:mid - 2] = '替换'
-            cmp2[mid + 2:mid + 4] = '修改'
-            segments = Diff.diff(base, cmp1 or base, ''.join(cmp2))[0]
-
+            txt1 = self.get_txt_from_html(page.get('txt1_html'))
+            txt2 = self.get_txt_from_html(page.get('txt2_html'))
+            txt3 = self.get_txt_from_html(page.get('txt3_html'))
+            segments = Diff.diff(txt1, txt2, txt3)[0]
         return segments
 
-    def get_txts(self, task_type, page):
+    def get_doubt(self, page, task_type):
+        if 'proof' in task_type:
+            doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
+        elif 'review' in task_type:
+            doubt = ''
+            for i in range(1, 4):
+                doubt += self.prop(page, 'tasks.text_proof_%s.doubt' % i) or ''
+        return doubt
+
+    def get_txts(self, page, task_type):
         if 'proof' in task_type:
             ocr = page.get('ocr').replace('|', '\n')
             cmp = self.prop(page, self.cmp_fields.get(task_type))
             txts = dict(ocr=ocr, cmp=cmp)
         elif 'review' in task_type:
-            # review时应对txt1/txt2/txt/3比对，暂时由ocr/cmp1/cmp2替代
-            cmp1 = page.get('ocr').replace('|', '\n')
-            cmp2 = self.prop(page, self.cmp_fields.get('text_proof_1'))
-            cmp3 = list(cmp1 or cmp2)
-            # 对cmp3进行变换处理
-            del cmp3[4]
-            del cmp3[-4]
-            mid = int(len(cmp3) / 2)
-            cmp3.insert(mid, '新增')
-            cmp3[mid - 4:mid - 2] = '替换'
-            cmp3[mid + 2:mid + 4] = '修改'
-            txts = dict(cmp1=cmp1, cmp2=cmp2, cmp3=cmp3)
+            txt1 = self.get_txt_from_html(page.get('txt1_html'))
+            txt2 = self.get_txt_from_html(page.get('txt2_html'))
+            txt3 = self.get_txt_from_html(page.get('txt3_html'))
+            txts = dict(cmp1=txt1, cmp2=txt2, cmp3=txt3)
 
         return txts
+
+    @staticmethod
+    def get_txt_from_html(html):
+        lines = []
+        regex = re.compile("<li.*?>.*?</li>", re.M | re.S)
+        for line in regex.findall(html):
+            if 'delete' not in line:
+                txt = re.sub('(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
+                lines.append(txt + '\n')
+        return ''.join(lines)
 
     @staticmethod
     def check_segments(segments, chars, params=None):

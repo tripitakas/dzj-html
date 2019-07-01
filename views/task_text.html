@@ -144,11 +144,11 @@
               <div class="char-list-tab">
                 <div class="char-list-tab-item active" id="a_demo">存疑列表</div>
                 <div class="char-list-tab-arrow" id="table_toggle_btn">
-                  <img src="{{ static_url('imgs/up_arrow.png') }}"  style="display: none">
-                  <img src="{{ static_url('imgs/down_arrow.png') }}">
+                  <img src="{{ static_url('imgs/up_arrow.png') }}">
+                  <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
                 </div>
               </div>
-              <table class="char-list-table hidden">
+              <table class="char-list-table">
                 <thead>
                   <tr>
                     <td>行号</td>
@@ -328,7 +328,7 @@
 
   // 退回任务
   $('.btn-return-back').click(function () {
-    getApi('/data/return/{{task_type}}/{{page["name"]}}', {}, function () {
+    postApi('/task/return/{{task_type}}/{{page["name"]}}', {data: {}}, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
         window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";

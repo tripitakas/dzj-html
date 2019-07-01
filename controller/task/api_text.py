@@ -27,19 +27,20 @@ class SaveTextApi(TaskHandler):
         try:
             assert task_type in self.text_task_names() and mode in ['do', 'update', 'edit']
 
-            data, ret = self.get_request_data(), {'updated': True}
-            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
-            doubt = self.get_request_data().get('doubt', '').strip('\n')
-
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)
 
+            data, ret = self.get_request_data(), {'updated': True}
+            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
+
+            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
             data_field = self.save_fields.get(task_type)
-            update = {
-                data_field: txt,
-                'tasks.%s.doubt' % task_type: doubt,
-                'tasks.%s.updated_time' % task_type: datetime.now()
-            }
+            if txt:
+                update.update({data_field: txt})
+
+            doubt = self.get_request_data().get('doubt', '').strip('\n')
+            if doubt:
+                update.update({'tasks.%s.doubt' % task_type: doubt})
 
             if mode == 'do' and data.get('submit'):
                 update.update({

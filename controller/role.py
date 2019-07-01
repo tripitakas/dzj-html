@@ -231,6 +231,8 @@ role_maps = {
         'roles': ['普通用户', '文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
+            '/data/edit/text/@page_name': ['GET'],
+            '/api/data/edit/text/@page_name': ['POST'],
         }
     },
     '任务管理员': {
