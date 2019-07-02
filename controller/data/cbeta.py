@@ -11,7 +11,7 @@ import sys
 
 sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
 
-from controller.diff import Diff
+from controller.data.diff import Diff
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 

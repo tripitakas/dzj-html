@@ -6,7 +6,7 @@
 import re
 from operator import itemgetter
 from tornado.web import UIModule
-from controller.diff import Diff
+from controller.data.diff import Diff
 from tornado.escape import url_escape
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutBaseHandler
