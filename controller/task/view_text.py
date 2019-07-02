@@ -92,7 +92,7 @@ class TextBaseHandler(TaskHandler):
         regex = re.compile("<li.*?>.*?</li>", re.M | re.S)
         for line in regex.findall(html):
             if 'delete' not in line:
-                txt = re.sub('(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
+                txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
                 lines.append(txt + '\n')
         return ''.join(lines)
 

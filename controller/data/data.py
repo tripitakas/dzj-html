@@ -67,7 +67,7 @@ class DataSearchCbetaHandler(BaseHandler):
         for m in matches:
             regex = '[^\u2000-\u2FFFF]'     # 非汉字的其它字符
             highlights = {
-                re.sub('</?kw>', '', v): re.sub('</kw><kw>', '', re.sub('</kw>(%s)<kw>' % regex, '\g<1>', v))
+                re.sub('</?kw>', '', v): re.sub('</kw><kw>', '', re.sub('</kw>(%s)<kw>' % regex, r'\g<1>', v))
                 for v in m['highlight']['rows']
             }
             hits = [highlights[r] if r in highlights else r for r in m['_source']['rows']]
