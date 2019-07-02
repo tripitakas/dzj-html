@@ -6,7 +6,7 @@
 """
 import re
 from cdifflib import CSequenceMatcher
-from controller.variant import variants
+from controller.variant import is_variant
 
 
 class Diff(object):
@@ -62,7 +62,7 @@ class Diff(object):
             else:
                 is_same = True if tag == 'equal' else False
                 r = {'line_no': line_no, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
-                if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and Diff.is_variant(t1, t2):
+                if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and is_variant(t1, t2):
                     r['is_variant'] = True
                 ret.append(r)
 
@@ -223,10 +223,4 @@ class Diff(object):
         """比对本预处理，过滤其中的非中文字符"""
         return re.sub(Diff.junk_cmp_str, '', cmp)
 
-    @classmethod
-    def is_variant(cls, a, b):
-        """检查a和b是否为异体字关系"""
-        assert len(a) == 1 and len(b) == 1
-        variants_str = r'#%s#' % '#'.join(variants)
-        m = re.search(r'#[^#]*%s[^#]*#' % a, variants_str)
-        return a != b and m and b in m.group(0)
+

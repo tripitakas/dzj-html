@@ -5,6 +5,8 @@
 @time: 2019/6/4
 """
 
+import re
+
 # 第一个字为规范用字，后面为异体字
 variants = [
     '下𠄟丅',
@@ -9971,3 +9973,22 @@ variants = [
     '䫈𩒣',
     '𧒐𧐷',
 ]
+
+
+def is_variant(a, b):
+    """检查a和b是否为异体字关系"""
+    assert len(a) == 1 and len(b) == 1
+    variants_str = r'#%s#' % '#'.join(variants)
+    m = re.search(r'#[^#]*%s[^#]*#' % a, variants_str)
+    return a != b and m and b in m.group(0)
+
+
+def normalize(txt):
+    """ 将文档中的异体字转换为规范汉字 """
+
+    def get_normal(ch):
+        m = re.search(r'#[^#]*%s[^#]*#' % ch, variants_str)
+        return m.group(0).strip('#')[0] if m else ch
+
+    variants_str = r'#%s#' % '#'.join(variants)
+    return ''.join([get_normal(ch) for ch in txt])
