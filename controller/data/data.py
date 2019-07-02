@@ -4,6 +4,7 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
+import re
 from controller.cbeta import find
 from controller.base import BaseHandler
 
@@ -63,4 +64,12 @@ class DataSearchCbetaHandler(BaseHandler):
         """ 检索cbeta库 """
         q = self.get_query_argument('q', '').strip()
         matches = find(q)
+        for m in matches:
+            regex = '[^\u2000-\u2FFFF]'     # 非汉字的其它字符
+            highlights = {
+                re.sub('</?kw>', '', v): re.sub('</kw><kw>', '', re.sub('</kw>(%s)<kw>' % regex, '\g<1>', v))
+                for v in m['highlight']['rows']
+            }
+            hits = [highlights[r] if r in highlights else r for r in m['_source']['rows']]
+            m['hits'] = ''.join(hits)
         self.render('data_search_cbeta.html', q=q, matches=matches)

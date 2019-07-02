@@ -3412,7 +3412,7 @@ div.dataTables_info {
 /************* 17.PAGES ****************/
 
 .bg-img {
-	background: url(../imgs/bg_small.jpg) center;
+	/*background: url(../imgs/bg_small.jpg) center;*/
 }
 
 .bg-overlay {
@@ -4200,6 +4200,7 @@ div.dataTables_info {
 }
 
 @media (min-width: 1200px) {
+	.container-alt {
 		width: 1170px;
 	}
 }

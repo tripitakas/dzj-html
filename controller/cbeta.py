@@ -71,8 +71,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False):
 
 
 def pre_filter(txt):
-    junk_str = r'[0-9a-zA-Z-+/_「」<>『』\(\),\.\[\]\{\}，、：；。？！“”‘’@#￥%……&*（）◎\n\s]'
-    return re.sub(junk_str, '', txt)
+    return re.sub('[\x00-\xff]', '', txt)
 
 
 def find(ocr):
@@ -89,7 +88,8 @@ def find(ocr):
     }
     host = [dict(host='47.95.216.233', port=9200), dict(host='localhost', port=9200)]
     es = Elasticsearch(hosts=host)
-    return es.search(index='cbeta4ocr', body=dsl)['hits']['hits']
+    r = es.search(index='cbeta4ocr', body=dsl)
+    return r['hits']['hits']
 
 
 def _find_one(ocr):
@@ -106,7 +106,6 @@ def _find_one(ocr):
 
 
 def find_one(ocr):
-    ocr = pre_filter(ocr)
     r = find(ocr)
     if not r:
         return ''
