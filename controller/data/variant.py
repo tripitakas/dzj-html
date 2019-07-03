@@ -9979,7 +9979,7 @@ variants_str = r'#%s#' % '#'.join(variants)
 
 
 def is_variant(a, b):
-    """检查a和b是否为异体字关系"""
+    """ 检查a和b是否为异体字关系 """
     assert len(a) == 1 and len(b) == 1
     m = ord(a) > 255 and re.search(r'#[^#]*%s[^#]*#' % a, variants_str)
     return a != b and m and b in m.group(0)

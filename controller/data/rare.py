@@ -26,9 +26,7 @@ def format_rare(txt):
 
     rare = load_rare()
     regex = r'(\[[+-@*\(\)\/\u2000-\u9FFF]+\])'   # 组字式正则式
-    replace = {zzs: get_char(zzs) for zzs in re.findall(regex, txt)}
-    for zzs, ch in replace.items():
-        txt = txt.replace(zzs, ch)
+    txt = re.sub(regex, lambda m: get_char(m.group(1)), txt)
     return txt
 
 
