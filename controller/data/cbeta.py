@@ -30,10 +30,13 @@ def scan_txt(add, root_path, only_missing):
             try:
                 origin = [format_rare(r) for r in rows]
                 normal = [normalize(r) for r in origin]
+                count = sum(len(r) for r in normal)
                 if add:
                     add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
-                                  origin=origin, normal=normal, updated_time=datetime.now()))
-                    print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(normal)))
+                                  origin=origin, normal=normal, lines=len(normal), char_count=count,
+                                  updated_time=datetime.now()))
+                print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
+                    datetime.now().strftime('%H:%M:%S'), i + 1, page_code, len(normal), count))
             except ElasticsearchException as e:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
