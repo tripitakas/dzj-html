@@ -11,14 +11,13 @@ from functools import partial
 from controller.data.variant import normalize
 from controller.data.rare import format_rare
 
-sys.path.append(path.dirname(path.dirname(__file__)))  # to use controller
+sys.path.append(path.dirname(path.dirname(path.dirname(__file__))))  # to use controller
 
 from controller.data.diff import Diff
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
 BM_PATH = '/home/sm/cbeta/BM_u8'
-err_file = path.join(path.dirname(BM_PATH), 'bm_err.log')
 errors = []
 
 
@@ -58,7 +57,7 @@ def scan_txt(add, root_path, only_missing):
             content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
             rows.append(content)
     add_page()
-    with open(err_file, 'w') as f:
+    with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
         f.writelines(errors)
 
 
@@ -67,7 +66,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False)
     if not only_missing:
         es.indices.delete(index=index, ignore=[400, 404])
     else:
-        with open(err_file) as f:
+        with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
             only_missing = [t.split('\t')[0] for t in f.readlines()]
         print('last missing %d pages' % len(only_missing))
     es.indices.create(index=index, ignore=400)
