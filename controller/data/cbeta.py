@@ -8,12 +8,12 @@ from os import path
 from glob2 import glob
 from datetime import datetime
 from functools import partial
-from controller.data.variant import normalize
-from controller.data.rare import format_rare
 
 sys.path.append(path.dirname(path.dirname(path.dirname(__file__))))  # to use controller
 
 from controller.data.diff import Diff
+from controller.data.variant import normalize
+from controller.data.rare import format_rare
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
