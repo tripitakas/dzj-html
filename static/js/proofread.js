@@ -518,7 +518,7 @@ $(document).on('click', '.btn-doubt', function () {
     if(word.length<=0){
         return showError('请先选择存疑文字', '');
     }
-    //return showError('请先选择存疑文字', '');
+
     $('#doubtModal').modal();
     $('#doubt_input').val(word);
 });
@@ -532,12 +532,20 @@ $(document).on('click', '#doubt_save_btn', function () {
         $('#doubt_tip').show();
         return;
     }
-    var line = "<tr><td>"+rows+"</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
+    var line = "<tr><td>"+rows+"</td><td>字号</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
     $('.char-list-table').append(line);
     $('#doubtModal').modal('hide');
-    if (!$('#table_toggle_btn').hasClass('active'))
-        $('#table_toggle_btn').click()
+
+    //提交之后底部村以列表自动展开
+    $('#table_toggle_btn').removeClass('active');
+    $('#table_toggle_btn').addClass('');
+    $('.char-list-table').addClass('');
+    $('.char-list-table').removeClass('hidden');
 });
+$(document).on('click', '#table_toggle_btn', function () {
+    $(this).toggleClass('active');
+    $('.char-list-table').toggleClass('hidden');
+  });
 
 // 关闭对话框时，输入框内容置空
 $('#doubtModal').on('hide.bs.modal', function () {
