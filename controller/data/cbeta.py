@@ -30,9 +30,10 @@ def scan_txt(add, root_path, only_missing):
             try:
                 origin = [format_rare(r) for r in rows]
                 normal = [normalize(r) for r in origin]
-                add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
-                              origin=origin, normal=normal, updated_time=datetime.now()))
-                print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(normal)))
+                if add:
+                    add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
+                                  origin=origin, normal=normal, updated_time=datetime.now()))
+                    print('processing %d file: %s\t%s\t%d lines' % (i + 1, page_code, fn, len(normal)))
             except ElasticsearchException as e:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
@@ -62,27 +63,28 @@ def scan_txt(add, root_path, only_missing):
 
 
 def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False):
-    es = Elasticsearch()
-    if not only_missing:
-        es.indices.delete(index=index, ignore=[400, 404])
-    else:
-        with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
-            only_missing = [t.split('\t')[0] for t in f.readlines()]
-        print('last missing %d pages' % len(only_missing))
-    es.indices.create(index=index, ignore=400)
-    if jieba:
-        mapping = {
-            'properties': {
-                'rows': {
-                    'type': 'text',
-                    'analyzer': 'jieba_index',
-                    'search_analyzer': 'jieba_index'
+    es = index and Elasticsearch()
+    if es:
+        if not only_missing:
+            es.indices.delete(index=index, ignore=[400, 404])
+        else:
+            with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
+                only_missing = [t.split('\t')[0] for t in f.readlines()]
+            print('last missing %d pages' % len(only_missing))
+        es.indices.create(index=index, ignore=400)
+        if jieba:
+            mapping = {
+                'properties': {
+                    'rows': {
+                        'type': 'text',
+                        'analyzer': 'jieba_index',
+                        'search_analyzer': 'jieba_index'
+                    }
                 }
             }
-        }
-        es.indices.put_mapping(index=index, body=mapping)
+            es.indices.put_mapping(index=index, body=mapping)
 
-    scan_txt(partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH, only_missing)
+    scan_txt(es and partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH, only_missing)
 
 
 def pre_filter(txt):
