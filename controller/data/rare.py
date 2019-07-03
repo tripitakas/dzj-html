@@ -7,11 +7,12 @@
 
 import re
 import json
+from os import path
 
 
 def load_rare():
-    fn = open('./gaiji.json', 'r')
-    gaiji = json.load(fn)
+    with open(path.join(path.dirname(__file__), 'gaiji.json'), 'r') as f:
+        gaiji = json.load(f)
     rare = {v.get('zzs'): v for v in gaiji.values() if v.get('zzs')}
     return rare
 
