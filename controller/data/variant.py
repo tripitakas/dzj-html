@@ -9973,6 +9973,7 @@ variants = [
     '䫈𩒣',
     '𧒐𧐷',
 ]
+variants_str = r'#%s#' % '#'.join(variants)
 
 
 def _search_variant(a, b):
@@ -9982,7 +9983,6 @@ def _search_variant(a, b):
 def is_variant(a, b):
     """检查a和b是否为异体字关系"""
     assert len(a) == 1 and len(b) == 1
-    variants_str = r'#%s#' % '#'.join(variants)
     m = _search_variant(a, variants_str)
     return a != b and m and b in m.group(0)
 
@@ -9997,5 +9997,4 @@ def normalize(txt):
             r = r  # for debug
         return r
 
-    variants_str = r'#%s#' % '#'.join(variants)
     return ''.join([get_normal(ch) for ch in txt])

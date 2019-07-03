@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# nohup python3 /home/sm/tripitakas/controller/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
+# nohup python3 /home/sm/tripitakas/controller/data/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
+# nohup python3 /home/sm/tripitakas/controller/data/cbeta.py --only_missing=1 >> /home/sm/cbeta/cbeta.log 2>&1 &
 
 import re
 import sys
@@ -26,6 +27,9 @@ def scan_txt(add, root_path, only_missing):
         if rows:
             page_code = '%sn%sp%s' % (volume_no, book_no, page_no)
             if only_missing and page_code in only_missing:
+                return
+            if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
+                errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
                 return
             try:
                 origin = [format_rare(r) for r in rows]
