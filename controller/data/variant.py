@@ -9973,8 +9973,6 @@ variants = [
     '䫈𩒣',
     '𧒐𧐷',
 ]
-
-
 variants_str = r'#%s#' % '#'.join(variants)
 
 
