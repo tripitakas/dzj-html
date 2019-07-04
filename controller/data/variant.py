@@ -9989,8 +9989,7 @@ def normalize(txt):
     """ 将文档中的异体字转换为规范汉字 """
 
     def get_normal(ch):
-        p = variants_str.find(ch)
-        m = p != -1 and ord(ch) > 255 and re.search(r'#[^#]*%s[^#]*#' % ch, variants_str)
+        m = ord(ch) > 255 and variants_str.find(ch) != -1 and re.search(r'#[^#]*%s[^#]*#' % ch, variants_str)
         r = m.group(0).strip('#')[0] if m else ch
         if r != ch:
             r = r  # for debug
