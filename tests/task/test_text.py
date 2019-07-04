@@ -98,3 +98,29 @@ class TestText(APITestCase):
             body={'data': dict(submit=True)}
         )
         self.assertTrue(self.parse_response(r).get('submitted'))
+
+    def test_test_find_cmp(self):
+        """ 测试寻找比对本 """
+        # 发布一个页面的校一、校二、校三任务
+        page_name = 'GL_1056_5_6'
+        task_type = 'text_proof_1'
+        self.login_as_admin()
+        r = self.publish(dict(task_type=task_type, pre_tasks=self.pre_tasks.get(task_type), pages=page_name))
+        r = self.parse_response(r)
+        self.assertEqual(r.get('published'), ['GL_1056_5_6'])
+
+        # 领取校一
+        self.login(u.expert1[0], u.expert1[1])
+        r = self.fetch('/api/task/pick/%s' % task_type, body={'data': {'page_name': page_name}})
+        self.assert_code(200, r)
+
+        # 进入工作页面
+        r = self.fetch('/task/do/%s/find_cmp/%s?_raw=1' % (task_type, page_name))
+        self.assert_code(200, r)
+
+        # 提交任务
+        r = self.fetch(
+            '/api/task/do/%s/find_cmp/%s?_raw=1' % (task_type, page_name),
+            body={'data': dict(commit=True)}
+        )
+        self.assertTrue(self.parse_response(r).get('committed'))

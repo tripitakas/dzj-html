@@ -4,12 +4,13 @@ views = [
     view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
     view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler, view_admin.TaskAdminHandler,
     view_cut.CutProofHandler, view_cut.CutReviewHandler, view_cut.CharOrderProofHandler,
-    view_text.TextProofHandler, view_text.TextReviewHandler,
+    view_text.TextProofHandler, view_text.TextReviewHandler, view_text.TextFindCmpHandler,
 
 ]
 handlers = [
+    api_cut.SaveCutProofApi, api_cut.SaveCutReviewApi,
+    api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveCmpTextApi,
     api_common.GetPageApi, api_common.PickTaskApi, api_common.ReturnTaskApi, api_common.UnlockTaskDataApi,
-    api_cut.SaveCutProofApi, api_cut.SaveCutReviewApi, api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
     api_admin.PublishTasksPageNamesApi, api_admin.PublishTasksFileApi, api_admin.WithDrawTasksApi,
     api_admin.GetReadyPagesApi,
 ]

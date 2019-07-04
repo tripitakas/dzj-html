@@ -1364,10 +1364,18 @@ span.active a {
 }
 
 .m-header-title {
-    width: 90px;
+    /*width: 90px;*/
     font-size: 20px;
     font-weight: 500;
     margin: 4px 10px 0 10px;
+    color: var(--Color_333);
+}
+
+.m-header-sub-title {
+    /*width: 120px;*/
+    font-size: 16px;
+    font-weight: 500;
+    margin: 8px 10px 0px 0px;
     color: var(--Color_333);
 }
 

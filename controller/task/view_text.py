@@ -8,6 +8,7 @@ from operator import itemgetter
 from tornado.web import UIModule
 from controller.data.diff import Diff
 from tornado.escape import url_escape
+from controller.data.cbeta import find_one
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutBaseHandler
 
@@ -33,6 +34,11 @@ class TextBaseHandler(TaskHandler):
                 return self.render('_404.html')
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            # 做任务时，如果find_cmp没有commit，则跳转find_cmp
+            if mode == 'do' and 'proof' in task_type:
+                committed = self.prop(page,'tasks.%s.committed' % task_type) or []
+                if not committed or 'find_cmp' not in committed:
+                    self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
             readonly = not self.check_auth(mode, page, task_type)
             doubt = self.get_doubt(page, task_type)
             cmp_data = page.get(self.save_fields[task_type])
@@ -191,6 +197,8 @@ class TextProofHandler(TextBaseHandler):
 
     def get(self, num, page_name):
         """ 进入文字校对页面 """
+        # mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+
         self.enter('text_proof_' + num, page_name)
 
 
@@ -203,3 +211,31 @@ class TextReviewHandler(TextBaseHandler):
     def get(self, page_name):
         """ 进入文字审定页面 """
         self.enter('text_review', page_name)
+
+
+class TextFindCmpHandler(TextBaseHandler):
+    URL = ['/task/do/text_proof_@num/find_cmp/@page_name',
+           '/task/update/text_proof_@num/find_cmp/@page_name']
+
+    def get(self, num, page_name):
+        """ 文字校对-选择比对本页面 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
+            task_type = 'text_proof_' + num
+            readonly = not self.check_auth(mode, page, task_type)
+            cmp = page.get(self.cmp_fields.get(task_type))
+            if not cmp:
+                cmp = find_one(page.get('ocr'))
+            self.render(
+                'task_text_find_cmp.html',
+                task_type=task_type, page=page, num=num, cmp=cmp,
+                mode=mode, readonly=readonly, get_img=self.get_img,
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
