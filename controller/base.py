@@ -104,6 +104,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
+        if self._finished:  # check_auth 等处报错返回后就不再渲染
+            return
 
         # 单元测试时，获取传递给页面的数据
         if self.get_query_argument('_raw', 0) == '1':

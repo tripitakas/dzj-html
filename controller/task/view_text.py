@@ -38,7 +38,7 @@ class TextBaseHandler(TaskHandler):
             if mode == 'do' and 'proof' in task_type:
                 committed = self.prop(page,'tasks.%s.committed' % task_type) or []
                 if not committed or 'find_cmp' not in committed:
-                    self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
+                    return self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
             readonly = not self.check_auth(mode, page, task_type)
             doubt = self.get_doubt(page, task_type)
             cmp_data = page.get(self.save_fields[task_type])
