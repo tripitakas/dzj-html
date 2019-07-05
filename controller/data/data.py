@@ -7,6 +7,7 @@
 import re
 from controller.data.cbeta import find
 from controller.base import BaseHandler
+from controller.data.variant import normalize
 
 
 class DataTripitakaHandler(BaseHandler):
@@ -62,14 +63,20 @@ class DataSearchCbetaHandler(BaseHandler):
 
     def get(self):
         """ 检索cbeta库 """
+
+        def merge_kw(txt):
+            # 将<kw>一</kw>，<kw>二</kw>格式替换为<kw>一，二</kw>
+            regex = r'[，、：；。？！“”‘’「」『』（）%&*◎—……]+'
+            txt = re.sub('</kw>(%s)<kw>' % regex, lambda r: r.group(1), txt)
+            # 合并相邻的关键字
+            txt = re.sub('</kw><kw>', '', txt)
+            return txt
+
         q = self.get_query_argument('q', '').strip()
         matches = find(q)
         for m in matches:
-            regex = '[^\u2000-\u2FFFF]'     # 非汉字的其它字符
-            highlights = {
-                re.sub('</?kw>', '', v): re.sub('</kw><kw>', '', re.sub('</kw>(%s)<kw>' % regex, r'\g<1>', v))
-                for v in m['highlight']['rows']
-            }
-            hits = [highlights[r] if r in highlights else r for r in m['_source']['rows']]
+            highlights = {re.sub('</?kw>', '', v): merge_kw(v) for v in m['highlight']['normal']}
+            hits = [highlights.get(normalize(r), r) for r in m['_source']['origin']]
             m['hits'] = ''.join(hits)
+
         self.render('data_search_cbeta.html', q=q, matches=matches)

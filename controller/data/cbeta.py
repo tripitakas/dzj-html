@@ -108,19 +108,25 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False)
 
 
 def pre_filter(txt):
-    return re.sub('[\x00-\xff]', '', txt)
+    txt = re.sub(r'[\x00-\xff]', '', txt)
+    txt = re.sub(Diff.junk_ocr_str, '', txt)
+    txt = normalize(txt)
+    return txt
 
 
 def find(ocr):
     if not ocr:
         return []
-    match = {'page_code': ocr.replace('_', '')} if re.match(r'^[0-9a-zA-Z_]+', ocr) else {'rows': pre_filter(ocr)}
+
+    match = {'normal': pre_filter(ocr)}
+    if re.match(r'^[0-9a-zA-Z_]+', ocr):
+        match = {'page_code': ocr.replace('_', '')}
     dsl = {
         'query': {'match': match},
         'highlight': {
             'pre_tags': ['<kw>'],
             'post_tags': ['</kw>'],
-            'fields': {'rows': {}}
+            'fields': {'normal': {}}
         }
     }
     host = [dict(host='47.95.216.233', port=9200), dict(host='localhost', port=9200)]

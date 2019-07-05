@@ -60,10 +60,13 @@
   }
 
   .search-right .tips {
-    float: right;
     color: #cb9b66;
     font-style: italic;
+  }
+
+  #btn-search {
     clear: both;
+    width: 70px;
   }
 
 
@@ -87,6 +90,7 @@
         </div><!--search-left-->
         <div class="search-right">
           <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码，然后回车进行检索">{{q}}</textarea>
+          <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
           {% if matches %}
           <div class="tips">共检索到{{len(matches)}}个结果。</div>
           {% end %}
@@ -107,13 +111,10 @@
   });
 
   // 搜索
-  $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
-      var q = $(this).val().trim();
-      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
-      window.location = url;
-    }
+  $('#btn-search').on("click", function () {
+    var q = $('#search-input').val().trim();
+    if (q != '')
+      window.location = "{{current_url}}?q=" + q;
   });
 
 
