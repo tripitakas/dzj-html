@@ -12,6 +12,7 @@ var showText = false;                     // 是否显示字框对应文字
 var lineNos = [];
 var currentSpan = [];
 
+var li_id;//行号ID
 
 function findBestBoxes(offset, block_no, line_no, cmp) {
     var minNo = 10;
@@ -532,7 +533,7 @@ $(document).on('click', '#doubt_save_btn', function () {
         $('#doubt_tip').show();
         return;
     }
-    var line = "<tr><td>"+rows+"</td><td>字号</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
+    var line = "<tr class='char-list-tr' data='"+li_id+"'><td>"+rows+"</td><td>字号</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
     $('.char-list-table').append(line);
     $('#doubtModal').modal('hide');
 
@@ -541,6 +542,9 @@ $(document).on('click', '#doubt_save_btn', function () {
     $('#table_toggle_btn').addClass('');
     $('.char-list-table').addClass('');
     $('.char-list-table').removeClass('hidden');
+
+    //记录存疑字的行号
+
 });
 $(document).on('click', '#table_toggle_btn', function () {
     $(this).toggleClass('active');
@@ -557,4 +561,23 @@ $('#doubtModal').on('hide.bs.modal', function () {
 // 点击删除按钮，删除该行
 $(document).on('click', '.del-doubt', function () {
     $(this).parent().remove();
+});
+//获取存疑行行号
+$('.line').mousedown(function(){
+    li_id = $(this).attr('id');
+
+});
+//点击存疑行表格，对应行blink效果
+$(document).on('click', '.char-list-tr', function () {
+
+    var id = $(this).attr('data');
+    $('.right .bd').animate({scrollTop: $('#'+$(this).attr('data')).offset().top+400},100);
+    $('#'+id).css("background-color","#b68856");
+
+    $('#'+id).fadeOut(1000);
+    $('#'+id).fadeIn(1000,function(){
+        $('#'+id).css("background-color","#f2f5fa");
+    });
+
+
 });
