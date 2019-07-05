@@ -20,6 +20,7 @@ from elasticsearch.exceptions import ElasticsearchException
 
 BM_PATH = '/home/sm/cbeta/BM_u8'
 errors = []
+success = []
 
 
 def scan_txt(add, root_path, only_missing):
@@ -30,6 +31,8 @@ def scan_txt(add, root_path, only_missing):
                 return
             if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
+                with open(path.join(path.dirname(root_path), page_code + '.txt'), 'w') as tf:
+                    tf.write('\n'.join(rows))
                 return
             try:
                 origin = [format_rare(r) for r in rows]
@@ -39,6 +42,7 @@ def scan_txt(add, root_path, only_missing):
                     add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
                                   origin=origin, normal=normal, lines=len(normal), char_count=count,
                                   updated_time=datetime.now()))
+                    success.append(page_code)
                 print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
                     datetime.now().strftime('%H:%M:%S'), i + 1, page_code, len(normal), count))
             except ElasticsearchException as e:
@@ -65,8 +69,10 @@ def scan_txt(add, root_path, only_missing):
             content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
             rows.append(content)
     add_page()
-    with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
-        f.writelines(errors)
+    if success:
+        print('%d pages added' % len(success))
+        with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
+            f.writelines(errors)
 
 
 def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False):
