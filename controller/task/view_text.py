@@ -227,12 +227,12 @@ class TextFindCmpHandler(TextBaseHandler):
             mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
             task_type = 'text_proof_' + num
             readonly = not self.check_auth(mode, page, task_type)
-            cmp = page.get(self.cmp_fields.get(task_type))
+            cmp, ocr = page.get(self.cmp_fields.get(task_type)), page.get('ocr')
             if not cmp:
-                cmp = find_one(page.get('ocr'))
+                cmp = find_one(ocr)
             self.render(
                 'task_text_find_cmp.html',
-                task_type=task_type, page=page, num=num, cmp=cmp,
+                task_type=task_type, page=page, num=num, cmp=cmp, ocr=ocr,
                 mode=mode, readonly=readonly, get_img=self.get_img,
             )
 

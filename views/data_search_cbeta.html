@@ -89,7 +89,7 @@
           {% end %}
         </div><!--search-left-->
         <div class="search-right">
-          <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码，然后回车进行检索">{{q}}</textarea>
+          <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码">{{q}}</textarea>
           <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
           {% if matches %}
           <div class="tips">共检索到{{len(matches)}}个结果。</div>

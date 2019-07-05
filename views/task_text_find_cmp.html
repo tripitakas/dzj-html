@@ -27,14 +27,27 @@
     .pfread-in {
       padding-top: 50px;
     }
-
-    .right .cmp-text {
+    .right .bd {
       padding: 10px 25px;
       font-size: 18px;
     }
-
+    .right .bd .selected {
+      font-size: 18px;
+    }
     kw {
-      color: red;
+      color: #cb9b66;
+    }
+    .modal-content .modal-header {
+      height: 40px;
+      padding-bottom: 0px;
+    }
+    .modal-content .close {
+      color: var(--Color_Brown_Darker);
+      margin-top: -25px;
+      margin-right: -20px;
+    }
+    #ocrModal {
+      font-size: 18px;
     }
 
   </style>
@@ -68,11 +81,8 @@
             {% end %}
           {% end %}
           <div class="m-header-edit-btn">
-            <img src="{{ static_url('imgs/icon_edit.png') }}" class="m-header-img btn-edit" title="编辑模式"/>
-            <img src="{{ static_url('imgs/icon_view.png') }}" class="m-header-img btn-view" title="查看模式"/>
-            <img src="{{ static_url('imgs/icon_preview.png') }}" class="m-header-img btn-preview" title="预览模式"/>
             <img src="{{ static_url('imgs/icon_select.png') }}" class="m-header-img btn-select" title="选中"/>
-            <img src="{{ static_url('imgs/icon_cancel.png') }}" class="m-header-img btn-cancel" title="取消选中"/>
+            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-ocr" title="OCR"/>
             <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-help" title="帮助"/>
             {% if not readonly %}
             <img src="{{ static_url('imgs/icon_save.png') }}" class="m-header-img btn-save" title="保存"/>
@@ -93,14 +103,31 @@
         </div><!--left-->
         <div class="right fr">
           <div class="bd">
-            <div class="cmp-text" id="cmp-text" contenteditable="true">
+            <div class="selectable" id="selectable">
               {% raw cmp %}
-            </div> <!--sutra-text-->
+            </div>
+            <hr/>
+            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字，无须修改……">
+            </textarea>
           </div>
         </div><!--right-->
       </div>
 
     </div>
+  </div>
+
+  <div class="panel-body" style="padding: 0">
+    <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true" >×</button>
+          <div class="modal-header">OCR</div>
+          <div class="modal-body">
+            {% raw ocr.replace('|', '<br>') %}
+          </div>
+        </div>
+      </div>
+    </div><!-- modal content -->
   </div>
 
 </div>
@@ -115,7 +142,6 @@
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
 
-<!-- CUSTOM JS -->
 <script type="text/javascript">
   /*-----------自适应高度-----------*/
   // 右侧文字区动态计算高度
@@ -158,23 +184,27 @@
 
   /*-----------操作按钮-----------*/
   // 选中作为比对本
-
-  // 取消选中
-
-  // 编辑模式
-  $('.btn-edit').click(function () {
-    $('#cmp-text').contentEditable = true;
+  $('.btn-select').click(function () {
+    var txt = window.getSelection().toString();
+    $('#selected').val($('#selected').val() + txt);
+    $('#selected').height($('#selected').prop('scrollHeight'));
   });
 
-  // 查看模式
-  $('.btn-edit').click(function () {
-    $('#cmp-text').contentEditable = false;
+  $(document).on('change', '#selected', function () {
+    $('#selected').height($('#selected').prop('scrollHeight'));
   });
 
-  // 预览模式
-  $('.btn-edit').click(function () {
-    $('#cmp-text').contentEditable = true;
+  $('.btn-select').click(function () {
+    var txt = window.getSelection().toString();
+    $('#selected').val($('#selected').val() + txt);
+    $('#selected').height($('#selected').prop('scrollHeight'));
   });
+  
+  // 弹出OCR
+  $(document).on('click', '.btn-ocr', function () {
+    $('#ocrModal').modal();
+  });
+
 
   /*-----------导航区域-----------*/
   // 返回
@@ -188,7 +218,7 @@
 
   // 获取数据
   function getData(commit) {
-    var cmp = $('#cmp-text').html();
+    var cmp = $('#selected').val();
     var data = {
       commit: commit,
       name: '{{page["name"]}}',
