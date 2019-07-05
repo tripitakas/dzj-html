@@ -36,6 +36,9 @@ def scan_txt(add, root_path, only_missing):
                     with open(large_file, 'w') as tf:
                         tf.write('\n'.join(rows))
                 return
+            if errors and 'AuthorizationException' in errors[-1]:
+                errors.append('%s\t%d\t%d\n' % (page_code, i + 1, len(rows)))
+                return
             try:
                 origin = [format_rare(r) for r in rows]
                 normal = [normalize(r) for r in origin]
@@ -76,8 +79,8 @@ def scan_txt(add, root_path, only_missing):
             content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
             rows.append(content)
     add_page()
+    print('%d pages added, %d pages failed' % (len(success), len(errors)))
     if success:
-        print('%d pages added' % len(success))
         with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
             f.writelines(errors)
 
