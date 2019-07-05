@@ -9987,10 +9987,15 @@ def normalize(txt):
     """ 将文档中的异体字转换为规范汉字 """
 
     def get_normal(ch):
-        m = ord(ch) > 255 and variants_str.find(ch) != -1 and re.search(r'#[^#]*%s[^#]*#' % ch, variants_str)
-        r = m.group(0).strip('#')[0] if m else ch
-        if r != ch:
-            r = r  # for debug
-        return r
+        if ord(ch) < 255:
+            return ch
+        p1 = variants_str.find(ch)
+        if p1 == -1:
+            return ch
+        p2 = variants_str.rfind('#', p1 - 100, p1)
+        if p2 == -1:
+            return ch
+        return variants_str[p2 + 1]
 
     return ''.join([get_normal(ch) for ch in txt])
+

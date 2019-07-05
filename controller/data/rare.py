@@ -25,8 +25,6 @@ def format_rare(txt):
         return rare.get(zzs, {}).get('unicode-char') or rare.get(zzs, {}).get('normal') or zzs
 
     rare = load_rare()
-    regex = r'(\[[+-@*\(\)\/\u2000-\u9FFF]+\])'   # 组字式正则式
-    txt = re.sub(regex, lambda m: get_char(m.group(1)), txt)
+    regex = r'\[[+-@*\(\)\/%s-%s]+\]' % (chr(0X2E80), chr(0X2FFFF))   # 组字式正则式
+    txt = re.sub(regex, lambda m: get_char(m.group(0)), txt)
     return txt
-
-
