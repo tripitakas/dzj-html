@@ -546,6 +546,7 @@ $(document).on('click', '#doubt_save_btn', function () {
     //记录存疑字的行号
 
 });
+
 $(document).on('click', '#table_toggle_btn', function () {
     $(this).toggleClass('active');
     $('.char-list-table').toggleClass('hidden');
@@ -562,22 +563,21 @@ $('#doubtModal').on('hide.bs.modal', function () {
 $(document).on('click', '.del-doubt', function () {
     $(this).parent().remove();
 });
-//获取存疑行行号
+
+// 获取存疑行行号
 $('.line').mousedown(function(){
     li_id = $(this).attr('id');
 
 });
-//点击存疑行表格，对应行blink效果
-$(document).on('click', '.char-list-tr', function () {
 
+// 点击存疑行表格，对应行blink效果
+$(document).on('click', '.char-list-tr', function () {
     var id = $(this).attr('data');
     $('.right .bd').animate({scrollTop: $('#'+$(this).attr('data')).offset().top+400},100);
-    $('#'+id).css("background-color","#b68856");
-
-    $('#'+id).fadeOut(1000);
-    $('#'+id).fadeIn(1000,function(){
-        $('#'+id).css("background-color","#f2f5fa");
-    });
-
+    // 闪烁
+    $('#'+id).addClass('blink');
+    setTimeout(function () {
+      $('#'+id).removeClass("blink");
+    }, 800);
 
 });

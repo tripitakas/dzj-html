@@ -28,12 +28,12 @@
     padding: 15px 15px 0 15px;
 }
 
-.pfread .pfread-in .bd {
+.pfread-in .bd {
     overflow: auto;
     height: calc(100% - 70px);
 }
 
-.pfread .pfread-in .left {
+.pfread-in .left {
     width: 50%;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -41,13 +41,13 @@
     background: var(--Color_Grey_Content);
 }
 
-.pfread .pfread-in .left .hd {
+.pfread-in .left .hd {
     line-height: 45px;
     border-bottom: 1px solid #ccc;
     padding: 0 10px;
 }
 
-.pfread .pfread-in .left .hd span i {
+.pfread-in .left .hd span i {
     top: 8px;
     display: block;
     position: relative;
@@ -57,11 +57,11 @@
     height: 25px;
 }
 
-.pfread .pfread-in .left .hd .btns {
+.pfread-in .left .hd .btns {
     display: inline-block;
 }
 
-.pfread .pfread-in .left .hd .btns span {
+.pfread-in .left .hd .btns span {
     display: inline-block;
     width: auto;
     border-radius: 18px;
@@ -74,7 +74,7 @@
     position: relative;
 }
 
-.pfread .pfread-in .right {
+.pfread-in .right {
     width: 49%;
     margin-left: 1%;
     border: 1px solid #ccc;
@@ -84,14 +84,14 @@
 
 }
 
-.pfread .pfread-in .right .hd {
+.pfread-in .right .hd {
     line-height: 45px;
     border-bottom: 1px solid #ccc;
     padding: 0 10px;
     color: #2e363f;
 }
 
-.pfread .pfread-in .right .hd span i {
+.pfread-in .right .hd span i {
     top: 8px;
     display: block;
     position: relative;
@@ -101,11 +101,11 @@
     height: 25px;
 }
 
-.pfread .pfread-in .right .hd .btns {
+.pfread-in .right .hd .btns {
     display: inline-block;
 }
 
-.pfread .pfread-in .right .hd .btns span {
+.pfread-in .right .hd .btns span {
     display: inline-block;
     width: auto;
     border-radius: 18px;
@@ -118,12 +118,12 @@
     position: relative;
 }
 
-.btn-emptyplaces {
+.pfread-in .btn-emptyplaces {
     font-size: 20px;
     width: 0;
     line-height: 24px;
     padding: 0 4px;
-    background-color: var(--Color_Brown_Darker);
+    background-color: #b68856;
     margin: 8px 6px;
 }
 
