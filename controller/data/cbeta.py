@@ -23,11 +23,11 @@ errors = []
 success = []
 
 
-def scan_txt(add, root_path, only_missing):
+def scan_txt(add, root_path, only_missing, exist_ids):
     def add_page():
         if rows:
             page_code = '%sn%sp%s' % (volume_no, book_no, page_no)
-            if only_missing and page_code not in only_missing:
+            if only_missing and page_code not in only_missing or page_code in exist_ids:
                 return
             if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
@@ -48,8 +48,8 @@ def scan_txt(add, root_path, only_missing):
                                   origin=origin, normal=normal, lines=len(normal), char_count=count,
                                   updated_time=datetime.now()))
                     success.append(page_code)
-                print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
-                    datetime.now().strftime('%H:%M:%S'), i + 1, page_code, len(normal), count))
+                    print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
+                        datetime.now().strftime('%d%H:%M:%S'), i + 1, page_code, len(normal), count))
             except ElasticsearchException as e:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
@@ -59,6 +59,8 @@ def scan_txt(add, root_path, only_missing):
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
+    unknown_heads = []
+
     for i, fn in enumerate(sorted(glob(path.join(root_path, '**', r'new.txt')))):
         if only_missing and not in_missing(path.basename(path.dirname(fn)) + 'n'):
             continue
@@ -68,9 +70,13 @@ def scan_txt(add, root_path, only_missing):
             texts = re.split('#{1,3}', row.strip(), 1)
             if len(texts) != 2:
                 continue
-            head = re.search(r'^([A-Z]{1,2}\d+)n(\d+)[A-Za-z_]p(\d+)([abcd]\d+)', texts[0])
+            head = re.search(r'^([A-Z]{1,2}\d+)n(A?\d+)[A-Za-z_]?p(\d+)', texts[0])
+            if not head and re.match(r'^([A-Z]{1,2}\d+)n', texts[0]):
+                if texts[0] not in unknown_heads:
+                    unknown_heads.append(texts[0])
+                    sys.stderr.write('unknown head: %s in %s\n' % (texts[0], fn))
             if head:
-                volume, book, page = head.group(1), int(head.group(2)), int(head.group(3))
+                volume, book, page = head.group(1), int(head.group(2).replace('A', '')), int(head.group(3))
                 if [volume_no, book_no, page_no] != [volume, book, page]:
                     add_page()
                     volume_no, book_no, page_no = volume, book, page
@@ -87,12 +93,20 @@ def scan_txt(add, root_path, only_missing):
 
 def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False):
     es = index and Elasticsearch()
+    ids_file = path.join(root_path or BM_PATH, 'exist_ids.txt')
+    exist_ids = []
+    if path.exists(ids_file):
+        with open(ids_file) as f:
+            exist_ids = f.read().split('\n')
     if es:
-        if not only_missing:
+        if not only_missing and not exist_ids:
             es.indices.delete(index=index, ignore=[400, 404])
         else:
-            with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
-                only_missing = [t.split('\t')[0] for t in f.readlines()]
+            try:
+                with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
+                    only_missing = [t.split('\t')[0] for t in f.readlines()]
+            except OSError:
+                only_missing = []
             print('last missing %d pages' % len(only_missing))
         es.indices.create(index=index, ignore=400)
         if jieba:
@@ -107,7 +121,8 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False)
             }
             es.indices.put_mapping(index=index, body=mapping)
 
-    scan_txt(es and partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH, only_missing)
+    scan_txt(es and partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH,
+             only_missing, exist_ids)
 
 
 def pre_filter(txt):
