@@ -117,6 +117,10 @@
       window.location = "{{current_url}}?q=" + q;
   });
 
+  $(document).on('change', '#search-input', function () {
+    $('#search-input').height($('#search-input').prop('scrollHeight'));
+  });
+
 
 </script>
 
