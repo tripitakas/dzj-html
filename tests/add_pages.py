@@ -65,15 +65,16 @@ def scan_dir(src_path, kind, db, ret, repeat=0, use_local_img=False):
 
 
 def add_repeat_pages(name, info, db, repeat, use_local_img=False):
+    """ 批量插入重复页面 """
     if not db.page.find_one(dict(name=name)):
         start, length = 1, 5000
         while start + length - 1 < repeat:
-            _add_range_pages(name, info, db, start, start + length - 1, use_local_img)
+            _add_repeat_pages(name, info, db, start, start + length - 1, use_local_img)
             start += length
-        _add_range_pages(name, info, db, start, repeat, use_local_img)
+        _add_repeat_pages(name, info, db, start, repeat, use_local_img)
 
 
-def _add_range_pages(name, info, db, start, end, use_local_img):
+def _add_repeat_pages(name, info, db, start, end, use_local_img):
     meta_list = []
     for i in range(start, end + 1):
         meta = dict(
@@ -164,19 +165,11 @@ def add_texts(src_path, pages, db):
         elif fn.endswith('.ocr') and fn[:-4] in pages:
             with open_file(filename) as f:
                 text = f.read().strip().replace('\n', '|')
-            with open_file(filename.replace('.ocr', '.cb')) as f:
-                cmp = f.read().strip().replace('\n', '')
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
             r = list(db.page.find(cond))
             if r and not r[0].get('text'):
                 meta = {
                     'ocr': text,
-                    'cmp1': cmp,
-                    'txt1_html': '',
-                    'cmp2': cmp,
-                    'txt2_html': '',
-                    'cmp3': cmp,
-                    'txt3_html': '',
                     'tasks.text_proof_1': {'status': task.STATUS_READY},
                     'tasks.text_proof_2': {'status': task.STATUS_READY},
                     'tasks.text_proof_3': {'status': task.STATUS_READY},

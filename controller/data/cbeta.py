@@ -135,38 +135,17 @@ def find(ocr):
     return r['hits']['hits']
 
 
-def _find_one(ocr):
-    r = find(ocr)
-    if not r:
-        return ''
-    cb_doc = ''.join(r[0]['_source']['rows'])
-    ret = Diff.diff(ocr, cb_doc, label=dict(base='ocr', cmp1='cbeta'))[0]
-    is_same = [k for k, v in enumerate(ret) if v.get('is_same')]
-    ret[is_same[0]]['cbeta'] = '<start>' + ret[is_same[0]]['cbeta']
-    ret[is_same[-1]]['cbeta'] = ret[is_same[-1]]['cbeta'] + '<end>'
-    cb_doc = ''.join([r['cbeta'] for r in ret])
-    return cb_doc
-
-
 def find_one(ocr):
     r = find(ocr)
     if not r:
         return ''
-    cb_doc = ''.join(r[0]['_source']['rows'])
-    ret = Diff.diff(ocr, cb_doc, label=dict(base='ocr', cmp1='cbeta'))[0]
+    cbeta = ''.join(r[0]['_source']['origin'])
+    # 通过diff来寻找最大相似匹配段落
+    ret = Diff.diff(ocr, cbeta, label=dict(base='ocr', cmp1='cbeta'))[0]
     is_same = [k for k, v in enumerate(ret) if v.get('is_same')]
-    ret[is_same[0]]['cbeta'] = '<start>' + ret[is_same[0]]['cbeta']
-    ret[is_same[-1]]['cbeta'] = ret[is_same[-1]]['cbeta'] + '<end>'
+    ret[is_same[0]]['cbeta'] = '<hit>' + ret[is_same[0]]['cbeta']
+    ret[is_same[-1]]['cbeta'] = ret[is_same[-1]]['cbeta'] + '</hit>'
     r = ''.join([r['cbeta'] for r in ret])
-
-    # 如果第一段异文中ocr失配的长度超过10，则重新检索
-    if not ret[0]['is_same'] and len(ret[0]['ocr']) > 10:
-        r = _find_one(ret[0]['ocr']) + r'\n' + r
-
-    # 如果最后一段异文中ocr失配的长度超过10，则重新检索
-    if not ret[-1]['is_same'] and len(ret[-1]['ocr']) > 10:
-        r = r + r'\n' + _find_one(ret[-1]['ocr'])
-
     return r
 
 
