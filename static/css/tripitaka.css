@@ -1325,9 +1325,12 @@ span.active a {
     height: 40px;
     position: fixed;
     z-index: 1000;
+    user-select: none;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.m-header-tips {
+.m-header .tips {
     color: var(--Color_Brown_Darker);
     font-size: 14px;
     margin: 9px 6px;
@@ -1341,66 +1344,70 @@ span.active a {
     float: left;
 }
 
-.m-header .m-header-right {
-    float: right;
-    margin-right: 10px;
-    user-select: none;
+.m-header .help {
+    margin-right: 20px;
+    margin-top: 8px;
+    width: 18px;
+    height: 18px;
 }
 
-.m-header-img {
+.m-header .right {
+    float: right;
+    margin-right: 10px;
+}
+
+.btn-img {
     width: 20px;
     height: 20px;
     margin: 9px 6px;
     cursor: pointer;
 }
 
-.m-header-img, .m-header-txt {
+.btn-img, .btn-txt {
     transition: all 0.2s;
     cursor: pointer;
 }
 
-.m-header-img:hover, .m-header-txt:hover {
+.btn-img:hover, .btn-txt:hover {
     transform: scale(1.2);
 }
 
-.m-header-title {
-    /*width: 90px;*/
+.m-header .title {
     font-size: 20px;
     font-weight: 500;
-    margin: 4px 10px 0 10px;
+    margin: 4px 0px 0px 10px;
     color: var(--Color_333);
 }
 
-.m-header-sub-title {
-    /*width: 120px;*/
+.m-header .sub-title {
     font-size: 16px;
     font-weight: 500;
     margin: 8px 10px 0px 0px;
     color: var(--Color_333);
 }
 
-.m-header-page {
+.m-header .page {
     margin-top: 10px;
 }
 
-.m-header-page-info {
+.m-header .page-info {
     margin-right: 10px;
 }
 
-.m-header-page-info span {
+.m-header .page-info span {
     color: var(--Color_Brown_Dark);
     font-weight: 500;
 
 }
 
-.m-header-page-btn {
+.m-header .page-btn {
     padding: 0 10px;
     height: 20px;
     text-align: center;
     border-right: 1px dotted var(--Color_Grey_Middle);
 }
 
-.m-header-page-btn.to input {
+.m-header .page-btn.to input {
     width: 46px;
     height: 18px;
     background: var(--Color_Grey_Middle);
@@ -1409,11 +1416,11 @@ span.active a {
     margin: 0 2px;
 }
 
-.m-header-page-btn.last {
+.m-header .page-btn.last {
     border: 0;
 }
 
-.m-header-image {
+.m-header .image {
     margin-left: 40px;
 }
 
@@ -1421,7 +1428,7 @@ span.active a {
     margin-top: 4px;
 }
 
-.m-header-txt {
+.m-header .btn-txt {
     color: var(--Color_Brown_Darker);
     font-weight: 400;
     height: 20px;
@@ -1429,38 +1436,38 @@ span.active a {
     font-size: 20px;
 }
 
-.m-header-font {
+.m-header .font {
     font-size: 18px;
     margin-top: 3px;
     margin-left: 20px;
     margin-right: 10px;
 }
 
-.m-header-font div {
+.m-header .font div {
     padding: 3px 5px;
     color: var(--Color_Brown_Darker);
     font-weight: 500;
 }
 
-.m-header-font-reduce {
+.m-header .font-reduce {
     border: 0px solid var(--Color_Brown_Darker);
     border-radius: 15px 0 0 15px;
     cursor: pointer;
 }
 
-.m-header-font-current {
+.m-header .font-current {
     border-top: 0px solid var(--Color_Brown_Darker);
     border-bottom: 0px solid var(--Color_Brown_Darker);
     width: 24px;
 }
 
-.m-header-font-enlarge {
+.m-header .font-enlarge {
     border: 0px solid var(--Color_Brown_Darker);
     border-radius: 0 15px 15px 0;
     cursor: pointer;
 }
 
-.m-header-font-reduce > a, .m-header-font-enlarge > a {
+.m-header .font-reduce > a, .font-enlarge > a {
     cursor: pointer;
     text-decoration: none;
     user-select: none;
@@ -1902,7 +1909,7 @@ span.active a {
     overflow: auto;
 }
 
-.m-header-img-btn {
+.m-header. img-btns {
     margin-right: 20px;
 }
 

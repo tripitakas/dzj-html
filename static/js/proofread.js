@@ -422,7 +422,7 @@ $(document).on('click', '.btn-font-reduce', function () {
     var size = parseInt($div.css('font-size'));
     if (size > 8) {
         size--;
-        // $('.m-header-font-current').text(size);
+        // $('.font-current').text(size);
         $div.css('font-size', size + 'px');
     }
 });
@@ -433,7 +433,7 @@ $(document).on('click', '.btn-font-enlarge', function () {
     var size = parseInt($div.css('font-size'));
     if (size < 36) {
         size++;
-        // $('.m-header-font-current').text(size);
+        // $('.font-current').text(size);
         $div.css('font-size', size + 'px');
     }
 });

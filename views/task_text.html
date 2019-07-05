@@ -53,21 +53,21 @@
 
       <header class="m-header">
         <div class="back">
-          {% set title, img = ('任务大厅', 'icon_task_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+          {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
           <a onclick="leave()" title="{{title}}">
-            <img src="{{ static_url('imgs/%s.png' % img) }}" class="m-header-img"/>
+            <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
           </a>
         </div>
-        <div class="m-header-title" title='{{page["name"]}}'>{{stage}}</div>
-        <div class="m-header-edit-btn">
-          <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="m-header-img btn-reduce" title="缩小"/>
-          <!--<img src="{{ static_url('imgs/icon_lr.png') }}" class="m-header-img btn-undo" title="撤销"/>-->
-          <!--<img src="{{ static_url('imgs/icon_rr.png') }}" class="m-header-img btn-redo" title="重做"/>-->
+        <div class="title" title='{{page["name"]}}'>{{stage}}</div>
+        <div class="edit-btn">
+          <img src="{{ static_url('imgs/icon_aim.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
+          <!--<img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>-->
+          <!--<img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>-->
         </div>
         <div class="more">
-          <img src="{{ static_url('imgs/icon_box.png') }}" class="m-header-img btn-ed-box" title="更多"/>
+          <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
           <span class="btn-group ed-box-group hidden" role="group" aria-label="更多">
             {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
               <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="{{text}}">{{text}}</button>
@@ -77,30 +77,30 @@
         <div class="m-header-right">
           {% if readonly %}
             {% if mode in ['do', 'update', 'edit']  %}
-              <div class="m-header-tips">数据已被其他人锁定，暂时不能修改。</div>
+              <div class="tips">数据已被其他人锁定，暂时不能修改。</div>
             {% else %}
-              <div class="m-header-tips">当前只能查看，不能修改。</div>
+              <div class="tips">当前只能查看，不能修改。</div>
             {% end %}
           {% end %}
-          <div class="m-header-edit-btn">
-            <div class="m-header-txt btn-font-enlarge" title="增加字号">A+</div>
-            <div class="m-header-txt btn-font-reduce" title="减少字号">A-</div>
-            <div class="m-header-txt btn-previous" title="上一条异文"><</div>
-            <div class="m-header-txt btn-next" title="下一条异文">></div>
-            <div class="m-header-txt btn-emptyplaces" title="显示空位符"></div>
-            <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="m-header-img btn-check" title="图文匹配检查"/>-->
-            <img src="{{ static_url('imgs/char_icon2.png') }}" class="m-header-img btn-delete-line" title="删除该行"/>
-            <img src="{{ static_url('imgs/char_icon3.png') }}" class="m-header-img btn-add-up-line" title="向上增行"/>
-            <img src="{{ static_url('imgs/char_icon4.png') }}" class="m-header-img btn-add-down-line" title="向下增行"/>
-            <img src="{{ static_url('imgs/char_icon7.png') }}" class="m-header-img btn-doubt" title="存疑"/>
-            <img src="{{ static_url('imgs/char_icon5.png') }}" class="m-header-img btn-txt" title="原文"/>
-            <img src="{{ static_url('imgs/char_icon6.png') }}" class="m-header-img btn-help" title="帮助"/>
+          <div class="edit-btn">
+            <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
+            <div class="btn-txt btn-font-reduce" title="减少字号">A-</div>
+            <div class="btn-txt btn-previous" title="上一条异文"><</div>
+            <div class="btn-txt btn-next" title="下一条异文">></div>
+            <div class="btn-txt btn-emptyplaces" title="显示空位符"></div>
+            <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="btn-img btn-check" title="图文匹配检查"/>-->
+            <img src="{{ static_url('imgs/char_icon2.png') }}" class="btn-img btn-delete-line" title="删除该行"/>
+            <img src="{{ static_url('imgs/char_icon3.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
+            <img src="{{ static_url('imgs/char_icon4.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
+            <img src="{{ static_url('imgs/char_icon7.png') }}" class="btn-img btn-doubt" title="存疑"/>
+            <img src="{{ static_url('imgs/char_icon5.png') }}" class="btn-img btn-txt" title="原文"/>
+            <img src="{{ static_url('imgs/char_icon6.png') }}" class="btn-img btn-help" title="帮助"/>
             {% if not readonly %}
-            <img src="{{ static_url('imgs/char_icon8.png') }}" class="m-header-img btn-save" title="保存"/>
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
             {% end %}
             {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/char_icon9.png') }}" class="m-header-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/char_icon12.png') }}" class="m-header-img btn-return-back" title="退回"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
+            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
             {% end %}
           </div>
         </div>
@@ -328,7 +328,7 @@
   });
 
   // 退回任务
-  $('.btn-return-back').click(function () {
+  $('.btn-return').click(function () {
     postApi('/task/return/{{task_type}}/{{page["name"]}}', {data: {}}, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
