@@ -1344,7 +1344,7 @@ span.active a {
     float: left;
 }
 
-.m-header .help {
+.m-header .help img {
     margin-right: 20px;
     margin-top: 8px;
     width: 18px;
@@ -1356,19 +1356,20 @@ span.active a {
     margin-right: 10px;
 }
 
+.m-header .more {
+    margin-right: 12px;
+    margin-left: 12px;
+}
+
 .btn-img {
     width: 20px;
     height: 20px;
     margin: 9px 6px;
     cursor: pointer;
-}
-
-.btn-img, .btn-txt {
     transition: all 0.2s;
-    cursor: pointer;
 }
 
-.btn-img:hover, .btn-txt:hover {
+.btn-img:hover {
     transform: scale(1.2);
 }
 
@@ -1380,9 +1381,9 @@ span.active a {
 }
 
 .m-header .sub-title {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 500;
-    margin: 8px 10px 0px 0px;
+    margin: 12px 0px 0px 6px;
     color: var(--Color_333);
 }
 
@@ -1429,11 +1430,23 @@ span.active a {
 }
 
 .m-header .btn-txt {
-    color: var(--Color_Brown_Darker);
     font-weight: 400;
     height: 20px;
     margin: 3px 6px;
     font-size: 20px;
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--Color_Brown_Darker);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.m-header .btn-emptyplaces {
+    margin: 8px 6px ;
+}
+
+.btn-txt:hover {
+    transform: scale(1.2);
 }
 
 .m-header .font {
@@ -1473,10 +1486,6 @@ span.active a {
     user-select: none;
 }
 
-.m-header div.m-header-help {
-    float: right;
-    margin-right: 15px;
-}
 
 .full-bd {
     padding-top: 45px;

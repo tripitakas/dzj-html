@@ -66,24 +66,24 @@
           </a>
         </div>
         <div class="title" title='{{page["name"]}}'>文字校对</div>
-        <div class=".sub-title" title='{{page["name"]}}'>/ 寻找比对文本</div>
-        <div class="edit-btn">
+        <div class="sub-title" title='{{page["name"]}}'>/ 寻找比对文本</div>
+        <div class="help">
+          <img src="{{ static_url('imgs/icon_help.png') }}" class="btn-img btn-help" title="帮助"/>
+        </div>
+        <div class="edit-btns">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
         </div>
-        <div class="m-header-right">
+        <div class="right">
           {% if readonly %}
-            {% if mode in ['do', 'update', 'edit']  %}
-              <div class="tips">数据已被其他人锁定，暂时不能修改。</div>
-            {% else %}
-              <div class="tips">当前只能查看，不能修改。</div>
-            {% end %}
+          <div class="tips">
+            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+          </div>
           {% end %}
-          <div class="edit-btn">
+          <div class="edit-btns">
             <img src="{{ static_url('imgs/icon_select.png') }}" class="btn-img btn-select" title="选中"/>
-            <img src="{{ static_url('imgs/char_icon5.png') }}" class="btn-img btn-ocr" title="OCR文本"/>
-            <img src="{{ static_url('imgs/char_icon6.png') }}" class="btn-img btn-help" title="帮助"/>
+            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-ocr" title="OCR文本"/>
             {% if not readonly %}
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
             {% end %}
@@ -107,7 +107,7 @@
               {% raw cmp %}
             </div>
             <hr/>
-            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字，无须修改……">
+            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……">
             </textarea>
           </div>
         </div><!--right-->

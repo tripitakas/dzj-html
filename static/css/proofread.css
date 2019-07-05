@@ -28,12 +28,12 @@
     padding: 15px 15px 0 15px;
 }
 
-.pfread .bd {
+.pfread .pfread-in .bd {
     overflow: auto;
     height: calc(100% - 70px);
 }
 
-.pfread .left {
+.pfread .pfread-in .left {
     width: 50%;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -41,13 +41,13 @@
     background: var(--Color_Grey_Content);
 }
 
-.pfread .left .hd {
+.pfread .pfread-in .left .hd {
     line-height: 45px;
     border-bottom: 1px solid #ccc;
     padding: 0 10px;
 }
 
-.pfread .left .hd span i {
+.pfread .pfread-in .left .hd span i {
     top: 8px;
     display: block;
     position: relative;
@@ -57,11 +57,11 @@
     height: 25px;
 }
 
-.pfread .left .hd .btns {
+.pfread .pfread-in .left .hd .btns {
     display: inline-block;
 }
 
-.pfread .left .hd .btns span {
+.pfread .pfread-in .left .hd .btns span {
     display: inline-block;
     width: auto;
     border-radius: 18px;
@@ -74,7 +74,7 @@
     position: relative;
 }
 
-.pfread .right {
+.pfread .pfread-in .right {
     width: 49%;
     margin-left: 1%;
     border: 1px solid #ccc;
@@ -84,14 +84,14 @@
 
 }
 
-.pfread .right .hd {
+.pfread .pfread-in .right .hd {
     line-height: 45px;
     border-bottom: 1px solid #ccc;
     padding: 0 10px;
     color: #2e363f;
 }
 
-.pfread .right .hd span i {
+.pfread .pfread-in .right .hd span i {
     top: 8px;
     display: block;
     position: relative;
@@ -101,11 +101,11 @@
     height: 25px;
 }
 
-.pfread .right .hd .btns {
+.pfread .pfread-in .right .hd .btns {
     display: inline-block;
 }
 
-.pfread .right .hd .btns span {
+.pfread .pfread-in .right .hd .btns span {
     display: inline-block;
     width: auto;
     border-radius: 18px;
@@ -128,18 +128,13 @@
 }
 
 /*选择框*/
-
-/*选择框*/
 #pfread-dialog{
     display:none;
 }
+
 .pfread .pfread-dialog {
-
-
     position:relative;
     width:350px;
-
-
 }
 
 .pfread .pfread-dialog > .dlg-before {
@@ -256,7 +251,6 @@
 
 
 /* 文本区域 */
-
 .right .sutra-text span{
     font-size: 20px;
     font-weight: 300;

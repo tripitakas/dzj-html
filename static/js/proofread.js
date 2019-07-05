@@ -503,7 +503,7 @@ $(document).on('click', '.btn-emptyplaces', function () {
 });
 
 // 弹出原文
-$(document).on('click', '.btn-txt', function () {
+$(document).on('click', '.btn-text', function () {
     $('#txtModal').modal();
 });
 
