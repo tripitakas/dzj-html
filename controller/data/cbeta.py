@@ -31,8 +31,10 @@ def scan_txt(add, root_path, only_missing):
                 return
             if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
-                with open(path.join(path.dirname(root_path), page_code + '.txt'), 'w') as tf:
-                    tf.write('\n'.join(rows))
+                large_file = path.join(path.dirname(root_path), page_code + '.txt')
+                if not path.exists(large_file):
+                    with open(large_file, 'w') as tf:
+                        tf.write('\n'.join(rows))
                 return
             try:
                 origin = [format_rare(r) for r in rows]
@@ -49,9 +51,14 @@ def scan_txt(add, root_path, only_missing):
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
 
+    def in_missing(prefix):
+        return [p for p in only_missing if prefix in p]
+
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
     for i, fn in enumerate(sorted(glob(path.join(root_path, '**',  r'new.txt')))):
+        if only_missing and not in_missing(path.basename(path.dirname(fn)) + 'n'):
+            continue
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for row in lines:
