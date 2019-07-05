@@ -49,7 +49,7 @@ def scan_txt(add, root_path, only_missing, exist_ids):
                                   updated_time=datetime.now()))
                     success.append(page_code)
                     print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
-                        datetime.now().strftime('%d%H:%M:%S'), i + 1, page_code, len(normal), count))
+                        datetime.now().strftime('%d %H:%M:%S'), i + 1, page_code, len(normal), count))
             except ElasticsearchException as e:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
                 sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
@@ -70,13 +70,13 @@ def scan_txt(add, root_path, only_missing, exist_ids):
             texts = re.split('#{1,3}', row.strip(), 1)
             if len(texts) != 2:
                 continue
-            head = re.search(r'^([A-Z]{1,2}\d+)n(A?\d+)[A-Za-z_]?p(\d+)', texts[0])
+            head = re.search(r'^([A-Z]{1,2}\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', texts[0])
             if not head and re.match(r'^([A-Z]{1,2}\d+)n', texts[0]):
                 if texts[0] not in unknown_heads:
                     unknown_heads.append(texts[0])
                     sys.stderr.write('unknown head: %s in %s\n' % (texts[0], fn))
             if head:
-                volume, book, page = head.group(1), int(head.group(2).replace('A', '')), int(head.group(3))
+                volume, book, page = head.group(1), head.group(2), head.group(3)
                 if [volume_no, book_no, page_no] != [volume, book, page]:
                     add_page()
                     volume_no, book_no, page_no = volume, book, page
