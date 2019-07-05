@@ -33,6 +33,10 @@
       font-size: 18px;
     }
 
+    kw {
+      color: red;
+    }
+
   </style>
 </head>
 
@@ -49,7 +53,7 @@
           </a>
         </div>
         <div class="m-header-title" title='{{page["name"]}}'>文字校对</div>
-        <div class="m-header-sub-title" title='{{page["name"]}}'>/ 寻找比对本</div>
+        <div class="m-header-sub-title" title='{{page["name"]}}'>/ 寻找比对文本</div>
         <div class="m-header-edit-btn">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="m-header-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="m-header-img btn-enlarge" title="放大"/>
@@ -90,7 +94,7 @@
         <div class="right fr">
           <div class="bd">
             <div class="cmp-text" id="cmp-text" contenteditable="true">
-              {{cmp}}
+              {% raw cmp %}
             </div> <!--sutra-text-->
           </div>
         </div><!--right-->
@@ -184,11 +188,11 @@
 
   // 获取数据
   function getData(commit) {
-    var txt = $('#cmp-text').text();
+    var cmp = $('#cmp-text').html();
     var data = {
       commit: commit,
       name: '{{page["name"]}}',
-      txt: JSON.stringify(txt),
+      cmp: cmp,
     };
     console.log(data);
     return data;

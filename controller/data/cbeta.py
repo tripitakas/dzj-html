@@ -56,7 +56,7 @@ def scan_txt(add, root_path, only_missing):
 
     volume_no = book_no = page_no = None  # 册号，经号，页码
     rows, last_rows = [], []
-    for i, fn in enumerate(sorted(glob(path.join(root_path, '**',  r'new.txt')))):
+    for i, fn in enumerate(sorted(glob(path.join(root_path, '**', r'new.txt')))):
         if only_missing and not in_missing(path.basename(path.dirname(fn)) + 'n'):
             continue
         with open(fn, 'r', encoding='utf-8') as f:
@@ -109,8 +109,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False)
 
 def pre_filter(txt):
     txt = re.sub(r'[\x00-\xff]', '', txt)
-    txt = re.sub(Diff.junk_ocr_str, '', txt)
-    txt = normalize(txt)
+    txt = re.sub(Diff.junk_cmp_str, '', txt)
     return txt
 
 
@@ -118,7 +117,7 @@ def find(ocr):
     if not ocr:
         return []
 
-    match = {'normal': pre_filter(ocr)}
+    match = {'normal': normalize(pre_filter(ocr))}
     if re.match(r'^[0-9a-zA-Z_]+', ocr):
         match = {'page_code': ocr.replace('_', '')}
     dsl = {
@@ -139,13 +138,12 @@ def find_one(ocr):
     r = find(ocr)
     if not r:
         return ''
-    cbeta = ''.join(r[0]['_source']['origin'])
-    # 通过diff来寻找最大相似匹配段落
-    ret = Diff.diff(ocr, cbeta, label=dict(base='ocr', cmp1='cbeta'))[0]
-    is_same = [k for k, v in enumerate(ret) if v.get('is_same')]
-    ret[is_same[0]]['cbeta'] = '<hit>' + ret[is_same[0]]['cbeta']
-    ret[is_same[-1]]['cbeta'] = ret[is_same[-1]]['cbeta'] + '</hit>'
-    r = ''.join([r['cbeta'] for r in ret])
+    cb = ''.join(r[0]['_source']['origin'])
+    diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
+    r = ''.join([
+        '<kw>%s</kw>' % pre_filter(d['cb']) if d.get('is_same') else pre_filter(d['cb'])
+        for d in diff
+    ])
     return r
 
 

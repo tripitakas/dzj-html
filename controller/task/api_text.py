@@ -111,7 +111,7 @@ class SaveCmpTextApi(SaveTextApi):
             txt = data.get('cmp')
             data_field = self.cmp_fields.get(task_type)
             if txt:
-                update.update({data_field: txt})
+                update.update({data_field: txt.strip('\n')})
 
             if mode == 'do' and data.get('commit'):
                 update.update({
