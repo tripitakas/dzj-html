@@ -8,7 +8,6 @@ import sys
 from os import path
 from glob2 import glob
 from datetime import datetime
-from functools import partial
 
 sys.path.append(path.dirname(path.dirname(path.dirname(__file__))))  # to use controller
 
@@ -19,17 +18,18 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
 BM_PATH = '/home/sm/cbeta/BM_u8'
+index = 'cbeta4ocr'
 errors = []
 success = []
 
 
-def scan_txt(add, root_path, only_missing, exist_ids):
+def scan_txt(es, root_path, only_missing, exist_ids):
     def add_page():
         if rows:
             page_code = '%sn%sp%s' % (volume_no, book_no, page_no)
             if only_missing and page_code not in only_missing or page_code in exist_ids:
                 return
-            if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
+            if len(rows) > 5000 or sum(len(r) for r in rows) > 15000:
                 errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
                 large_file = path.join(path.dirname(root_path), page_code + '.txt')
                 if not path.exists(large_file):
@@ -40,14 +40,18 @@ def scan_txt(add, root_path, only_missing, exist_ids):
                 errors.append('%s\t%d\t%d\n' % (page_code, i + 1, len(rows)))
                 return
             try:
-                origin = [format_rare(r) for r in rows]
-                normal = [normalize(r) for r in origin]
-                count = sum(len(r) for r in normal)
-                if add:
-                    add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
-                                  origin=origin, normal=normal, lines=len(normal), char_count=count,
-                                  updated_time=datetime.now()))
+                r = es and es.search(index=index, body={'query': {'match': {'page_code': page_code}}})
+                if r and not r['hits']['hits']:
+                    origin = [format_rare(r) for r in rows]
+                    normal = [normalize(r) for r in origin]
+                    count = sum(len(r) for r in normal)
+
+                    es.index(index=index, ignore=[400, 404],
+                             body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
+                                       origin=origin, normal=normal, lines=len(normal), char_count=count,
+                                       updated_time=datetime.now()))
                     success.append(page_code)
+                    exist_ids.append(page_code)
                     print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
                         datetime.now().strftime('%d %H:%M:%S'), i + 1, page_code, len(normal), count))
             except ElasticsearchException as e:
@@ -82,32 +86,38 @@ def scan_txt(add, root_path, only_missing, exist_ids):
                     volume_no, book_no, page_no = volume, book, page
                     rows, last_rows = [], rows
             content = re.sub(r'\[.>(.)\]', lambda m: m.group(1), texts[1])
-            content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
-            rows.append(content)
+            content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content).strip()
+            if content:
+                rows.append(content)
     add_page()
     print('%d pages added, %d pages failed' % (len(success), len(errors)))
     if success:
         with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
             f.writelines(errors)
+        with open(path.join(path.dirname(root_path), 'exist_ids.txt'), 'w') as f:
+            f.write('\n'.join(success))
 
 
-def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False):
-    es = index and Elasticsearch()
+def build_db(root_path=None, jieba=False, only_missing=False):
     ids_file = path.join(root_path or BM_PATH, 'exist_ids.txt')
     exist_ids = []
     if path.exists(ids_file):
         with open(ids_file) as f:
             exist_ids = f.read().split('\n')
+
+    if only_missing:
+        bm_err_file = path.join('' if path.exists('bm_err.log') else path.dirname(root_path or BM_PATH), 'bm_err.log')
+        try:
+            with open(bm_err_file) as f:
+                only_missing = [t.split('\t')[0] for t in f.readlines()]
+        except OSError:
+            only_missing = []
+        print('last missing %d pages' % len(only_missing))
+
+    es = root_path != '-' and Elasticsearch()
     if es:
         if not only_missing and not exist_ids:
             es.indices.delete(index=index, ignore=[400, 404])
-        else:
-            try:
-                with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
-                    only_missing = [t.split('\t')[0] for t in f.readlines()]
-            except OSError:
-                only_missing = []
-            print('last missing %d pages' % len(only_missing))
         es.indices.create(index=index, ignore=400)
         if jieba:
             mapping = {
@@ -121,8 +131,7 @@ def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False)
             }
             es.indices.put_mapping(index=index, body=mapping)
 
-    scan_txt(es and partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH,
-             only_missing, exist_ids)
+    scan_txt(es, root_path or BM_PATH, only_missing, exist_ids)
 
 
 def pre_filter(txt):
@@ -148,7 +157,7 @@ def find(ocr):
     }
     host = [dict(host='47.95.216.233', port=9200), dict(host='localhost', port=9200)]
     es = Elasticsearch(hosts=host)
-    r = es.search(index='cbeta4ocr', body=dsl)
+    r = es.search(index=index, body=dsl)
     return r['hits']['hits']
 
 
