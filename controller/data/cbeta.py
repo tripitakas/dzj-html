@@ -20,8 +20,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
 BM_PATH = r'/home/sm/cbeta/BM_u8'  # BM_u8所在路径
-# TXT_PATH = r'/home/sm/cbeta/BM_u8/T/T01'    # 当前加工索引的路径
-TXT_PATH = r'/Users/xiandu/Develop/BM_u8/T/T01'  # 当前加工索引的路径
+TXT_PATH = r'/home/sm/cbeta/BM_u8'    # 当前加工索引的路径
 
 
 def junk_filter(txt):
