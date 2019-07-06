@@ -73,10 +73,16 @@ class DataSearchCbetaHandler(BaseHandler):
             return txt
 
         q = self.get_query_argument('q', '').strip()
-        matches = find(q)
+        try:
+            matches = find(q)
+        except Exception as e:
+            matches = [dict(hits=[str(e)])]
         for m in matches:
-            highlights = {re.sub('</?kw>', '', v): merge_kw(v) for v in m['highlight']['normal']}
-            hits = [highlights.get(normalize(r), r) for r in m['_source']['origin']]
-            m['hits'] = ''.join(hits)
+            try:
+                highlights = {re.sub('</?kw>', '', v): merge_kw(v) for v in m['highlight']['normal']}
+                hits = [highlights.get(normalize(r), r) for r in m['_source']['origin']]
+                m['hits'] = hits  # ''.join(hits)
+            except KeyError:
+                m['hits'] = m.get('hits') or m['_source']['origin']
 
         self.render('data_search_cbeta.html', q=q, matches=matches)
