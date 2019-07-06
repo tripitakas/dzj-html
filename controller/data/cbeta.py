@@ -19,8 +19,9 @@ from controller.data.rare import format_rare
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
-BM_PATH = r'/home/sm/cbeta/BM_u8'           # BM_u8所在路径
-TXT_PATH = r'/home/sm/cbeta/BM_u8/T/T01'    # 当前加工索引的路径
+BM_PATH = r'/home/sm/cbeta/BM_u8'  # BM_u8所在路径
+# TXT_PATH = r'/home/sm/cbeta/BM_u8/T/T01'    # 当前加工索引的路径
+TXT_PATH = r'/Users/xiandu/Develop/BM_u8/T/T01'  # 当前加工索引的路径
 
 
 def junk_filter(txt):
@@ -88,7 +89,7 @@ def index_page_codes(index, fn, base_dir=BM_PATH):
     errors = []
     for page_code in page_codes:
         head = re.search(r'^([A-Z]{1,2})(\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', page_code)
-        from_file = path.join(base_dir, head.group(1), head.group(1)+head.group(2), 'new.txt')
+        from_file = path.join(base_dir, head.group(1), head.group(1) + head.group(2), 'new.txt')
         with open(from_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
             rows = [junk_filter(re.split('#{1,3}', line.strip(), 1)[1]) for line in lines if page_code in line]
@@ -119,18 +120,16 @@ def build_db(index='cb4ocr-ik', source=TXT_PATH, mode='create', split='ik'):
         es.indices.open(index=index, ignore=400)
 
     if split == 'ik':
-        mapping = {'properties': {'rows': {
-            'type': 'text',
-            'analyzer': 'ik_max_word',
-            'search_analyzer': 'ik_smart'
-        }}}
+        mapping = {'properties': {
+            'normal': {'type': 'text', 'analyzer': 'ik_max_word', 'search_analyzer': 'ik_smart'},
+            'origin': {'type': 'text', 'analyzer': 'ik_max_word', 'search_analyzer': 'ik_smart'},
+        }}
         es.indices.put_mapping(index=index, body=mapping)
     elif split == 'jieba':
-        mapping = {'properties': {'rows': {
-            'type': 'text',
-            'analyzer': 'jieba_index',
-            'search_analyzer': 'jieba_index'
-        }}}
+        mapping = {'properties': {
+            'normal': {'type': 'text', 'analyzer': 'jieba_index', 'search_analyzer': 'jieba_index'},
+            'origin': {'type': 'text', 'analyzer': 'jieba_index', 'search_analyzer': 'jieba_index'},
+        }}
         es.indices.put_mapping(index=index, body=mapping)
 
     if '.json' in source:
