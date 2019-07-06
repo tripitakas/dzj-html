@@ -30,26 +30,35 @@ def junk_filter(txt):
     return txt
 
 
+def cur_time():
+    return datetime.now().strftime('[%H:%M:%S]')
+
+
 def add_page(index, rows, page_code):
     if rows:
         origin = [format_rare(r) for r in rows]
         normal = [normalize(r) for r in origin]
         count = sum(len(r) for r in normal)
+        if count > 15000 or len(origin) > 5000:  # 跳过大文件
+            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\tout of limit' % (
+                cur_time(), page_code, len(rows), len(origin)))
+            return False
 
         volume_no = book_no = page_no = None  # 册号，经号，页码
         head = re.search(r'^([A-Z]{1,2}\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', page_code)
         if head:
-            volume_no, book_no, page_no = head.group(1), int(head.group(2)), int(head.group(3))
+            volume_no, book_no, page_no = head.group(1), head.group(2), head.group(3)
 
         try:
             index(body=dict(
                 page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
                 origin=origin, normal=normal, lines=len(rows), char_count=count, updated_time=datetime.now())
             )
-            print('success:\t%s\t%s lines\t %s chars' % (page_code, len(rows), len(origin)))
+            print('%s\tsuccess:\t%s\t%s lines\t %s chars' % (cur_time(), page_code, len(rows), len(origin)))
             return True
         except ElasticsearchException as e:
-            sys.stderr.write('failed:\t%s\t%s lines\t %s chars\t%s' % (page_code, len(rows), len(origin), str(e)))
+            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\t%s' % (
+                cur_time(), page_code, len(rows), len(origin), str(e)))
             return False
 
 
