@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # nohup python3 /home/sm/tripitakas/controller/data/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
-# nohup python3 /home/sm/tripitakas/controller/data/cbeta.py --only_missing=1 >> /home/sm/cbeta/cbeta.log 2>&1 &
+
 
 import re
 import sys
+import json
 from os import path
 from glob2 import glob
 from datetime import datetime
@@ -18,126 +19,141 @@ from controller.data.rare import format_rare
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
-BM_PATH = '/home/sm/cbeta/BM_u8'
-errors = []
-success = []
+BM_PATH = r'/home/sm/cbeta/BM_u8'           # BM_u8所在路径
+TXT_PATH = r'/home/sm/cbeta/BM_u8/T/T01'    # 当前加工索引的路径
 
 
-def scan_txt(add, root_path, only_missing, exist_ids):
-    def add_page():
-        if rows:
-            page_code = '%sn%sp%s' % (volume_no, book_no, page_no)
-            if only_missing and page_code not in only_missing or page_code in exist_ids:
-                return
-            if len(rows) > 5000 or sum(len(r) for r in rows) > 20000:
-                errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), 'out of limit'))
-                large_file = path.join(path.dirname(root_path), page_code + '.txt')
-                if not path.exists(large_file):
-                    with open(large_file, 'w') as tf:
-                        tf.write('\n'.join(rows))
-                return
-            if errors and 'AuthorizationException' in errors[-1]:
-                errors.append('%s\t%d\t%d\n' % (page_code, i + 1, len(rows)))
-                return
-            try:
-                origin = [format_rare(r) for r in rows]
-                normal = [normalize(r) for r in origin]
-                count = sum(len(r) for r in normal)
-                if add:
-                    add(body=dict(page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
-                                  origin=origin, normal=normal, lines=len(normal), char_count=count,
-                                  updated_time=datetime.now()))
-                    success.append(page_code)
-                    print('[%s] file %d:\t%s\t%-3d lines\t%-4d chars' % (
-                        datetime.now().strftime('%d%H:%M:%S'), i + 1, page_code, len(normal), count))
-            except ElasticsearchException as e:
-                errors.append('%s\t%d\t%d\t%s\n' % (page_code, i + 1, len(rows), str(e)))
-                sys.stderr.write('fail to process file\t%d: %s\t%d lines\t%s\n' % (i + 1, fn, len(rows), str(e)))
+def junk_filter(txt):
+    txt = re.sub('<.*?>', '', txt)
+    txt = re.sub(r'\[.>(.)\]', lambda m: m.group(1), txt)
+    txt = re.sub(r'\[[\x00-\xff＊]*\]', '', txt)
+    return txt
 
-    def in_missing(prefix):
-        return [p for p in only_missing if prefix in p]
 
-    volume_no = book_no = page_no = None  # 册号，经号，页码
-    rows, last_rows = [], []
-    unknown_heads = []
+def add_page(index, rows, page_code):
+    if rows:
+        origin = [format_rare(r) for r in rows]
+        normal = [normalize(r) for r in origin]
+        count = sum(len(r) for r in normal)
 
-    for i, fn in enumerate(sorted(glob(path.join(root_path, '**', r'new.txt')))):
-        if only_missing and not in_missing(path.basename(path.dirname(fn)) + 'n'):
-            continue
+        volume_no = book_no = page_no = None  # 册号，经号，页码
+        head = re.search(r'^([A-Z]{1,2}\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', page_code)
+        if head:
+            volume_no, book_no, page_no = head.group(1), int(head.group(2)), int(head.group(3))
+
+        try:
+            index(body=dict(
+                page_code=page_code, volume_no=volume_no, book_no=book_no, page_no=page_no,
+                origin=origin, normal=normal, lines=len(rows), char_count=count, updated_time=datetime.now())
+            )
+            print('success:\t%s\t%s lines\t %s chars' % (page_code, len(rows), len(origin)))
+            return True
+        except ElasticsearchException as e:
+            sys.stderr.write('failed:\t%s\t%s lines\t %s chars\t%s' % (page_code, len(rows), len(origin), str(e)))
+            return False
+
+
+def scan_and_index_dir(index, source):
+    rows, errors, page_code = [], [], None
+    for i, fn in enumerate(sorted(glob(path.join(source, '**', r'new.txt')))):
+        print('processing file %s' % fn)
         with open(fn, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         for row in lines:
             texts = re.split('#{1,3}', row.strip(), 1)
             if len(texts) != 2:
                 continue
-            head = re.search(r'^([A-Z]{1,2}\d+)n(A?\d+)[A-Za-z_]?p(\d+)', texts[0])
-            if not head and re.match(r'^([A-Z]{1,2}\d+)n', texts[0]):
-                if texts[0] not in unknown_heads:
-                    unknown_heads.append(texts[0])
-                    sys.stderr.write('unknown head: %s in %s\n' % (texts[0], fn))
+            head = re.search(r'^([A-Z]{1,2}\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', texts[0])
             if head:
-                volume, book, page = head.group(1), int(head.group(2).replace('A', '')), int(head.group(3))
-                if [volume_no, book_no, page_no] != [volume, book, page]:
-                    add_page()
-                    volume_no, book_no, page_no = volume, book, page
-                    rows, last_rows = [], rows
-            content = re.sub(r'\[.>(.)\]', lambda m: m.group(1), texts[1])
-            content = re.sub(r'(<[\x00-\xff]*?>|\[[\x00-\xff＊]*\])', '', content)
-            rows.append(content)
-    add_page()
-    print('%d pages added, %d pages failed' % (len(success), len(errors)))
-    if success:
-        with open(path.join(path.dirname(root_path), 'bm_err.log'), 'w') as f:
-            f.writelines(errors)
+                if page_code and page_code != head.group(0):
+                    if not add_page(index, rows, page_code):
+                        errors.append(page_code)
+                    rows = []
+                page_code = head.group(0)
+            else:
+                print('head error:\t%s' % row)
+            rows.append(junk_filter(texts[1]))
+    if not add_page(index, rows, page_code):
+        errors.append(page_code)
+
+    if errors:
+        with open(path.join(source, 'error-%s.json' % datetime.now().strftime('%Y-%m-%d-%H-%M'))) as f:
+            json.dump(errors, f)
+        print('%s error pages\n%s' % (len(errors), errors))
 
 
-def build_db(index='cbeta4ocr', root_path=None, jieba=False, only_missing=False):
-    es = index and Elasticsearch()
-    ids_file = path.join(root_path or BM_PATH, 'exist_ids.txt')
-    exist_ids = []
-    if path.exists(ids_file):
-        with open(ids_file) as f:
-            exist_ids = f.read().split('\n')
-    if es:
-        if not only_missing and not exist_ids:
-            es.indices.delete(index=index, ignore=[400, 404])
-        else:
-            try:
-                with open(path.join(path.dirname(root_path or BM_PATH), 'bm_err.log')) as f:
-                    only_missing = [t.split('\t')[0] for t in f.readlines()]
-            except OSError:
-                only_missing = []
-            print('last missing %d pages' % len(only_missing))
+def index_page_codes(index, fn, base_dir=BM_PATH):
+    with open(fn, 'r', encoding='utf-8') as f:
+        page_codes = json.load(f)
+    errors = []
+    for page_code in page_codes:
+        head = re.search(r'^([A-Z]{1,2})(\d+)n([A-Z]?\d+)[A-Za-z_]?p([a-z]?\d+)', page_code)
+        from_file = path.join(base_dir, head.group(1), head.group(1)+head.group(2), 'new.txt')
+        with open(from_file, 'r', encoding='utf-8') as f:
+            lines = f.readlines()
+            rows = [junk_filter(re.split('#{1,3}', line.strip(), 1)[1]) for line in lines if page_code in line]
+            if not add_page(index, rows, page_code):
+                errors.append(page_code)
+
+    if errors:
+        with open(path.join(path.basename(fn), 'error-%s.json' % datetime.now().strftime('%Y-%m-%d-%H-%M'))) as f:
+            json.dump(errors, f)
+        print('%s error pages\n%s' % (len(errors), errors))
+
+
+def build_db(index='cb4ocr-ik', source=TXT_PATH, mode='create', split='ik'):
+    """ 基于CBETA文本创建索引，以便ocr寻找比对文本使用
+    :param index: 索引名称
+    :param source: 待加工的数据来源，有两种：
+            1.目录：这种情况下直接导入目录中的文本数据
+            2.json文件：这种情况下根据json文件中指定的page_code页码重新导入
+    :param mode: 'create'表示新建，'update'表示更新
+    :param split: 中文分词器的名称，如'ik'或'jieba'
+    """
+    es = Elasticsearch()
+
+    if mode == 'create':
+        es.indices.delete(index=index, ignore=[400, 404])
         es.indices.create(index=index, ignore=400)
-        if jieba:
-            mapping = {
-                'properties': {
-                    'rows': {
-                        'type': 'text',
-                        'analyzer': 'jieba_index',
-                        'search_analyzer': 'jieba_index'
-                    }
-                }
-            }
-            es.indices.put_mapping(index=index, body=mapping)
+    else:
+        es.indices.open(index=index, ignore=400)
 
-    scan_txt(es and partial(es.index, index=index, ignore=[400, 404]), root_path or BM_PATH,
-             only_missing, exist_ids)
+    if split == 'ik':
+        mapping = {'properties': {'rows': {
+            'type': 'text',
+            'analyzer': 'ik_max_word',
+            'search_analyzer': 'ik_smart'
+        }}}
+        es.indices.put_mapping(index=index, body=mapping)
+    elif split == 'jieba':
+        mapping = {'properties': {'rows': {
+            'type': 'text',
+            'analyzer': 'jieba_index',
+            'search_analyzer': 'jieba_index'
+        }}}
+        es.indices.put_mapping(index=index, body=mapping)
+
+    if '.json' in source:
+        index_page_codes(partial(es.index, index=index, ignore=[]), source)
+    else:
+        scan_and_index_dir(partial(es.index, index=index, ignore=[]), source)
 
 
-def pre_filter(txt):
-    txt = re.sub(r'[\x00-\xff]', '', txt)
-    txt = re.sub(Diff.junk_cmp_str, '', txt)
-    return txt
-
-
-def find(ocr):
+def find(ocr, index='cb4ocr-ik'):
+    """ 从ES中寻找与ocr最匹配的document
+    :param ocr: ocr文本或者page_code
+    :param index: 'cb4ocr-ik'/'cbeta4ocr'
+    """
     if not ocr:
         return []
 
-    match = {'normal': normalize(pre_filter(ocr))}
     if re.match(r'^[0-9a-zA-Z_]+', ocr):
-        match = {'page_code': ocr.replace('_', '')}
+        match = {'page_code': ocr}
+    else:
+        ocr = re.sub(r'[\x00-\xff]', '', ocr)
+        ocr = re.sub(Diff.junk_cmp_str, '', ocr)
+        match = {'normal': normalize(ocr)}
+
     dsl = {
         'query': {'match': match},
         'highlight': {
@@ -146,9 +162,11 @@ def find(ocr):
             'fields': {'normal': {}}
         }
     }
+
     host = [dict(host='47.95.216.233', port=9200), dict(host='localhost', port=9200)]
     es = Elasticsearch(hosts=host)
-    r = es.search(index='cbeta4ocr', body=dsl)
+    r = es.search(index=index, body=dsl)
+
     return r['hits']['hits']
 
 
@@ -159,7 +177,7 @@ def find_one(ocr):
     cb = ''.join(r[0]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
     r = ''.join([
-        '<kw>%s</kw>' % pre_filter(d['cb']) if d.get('is_same') else pre_filter(d['cb'])
+        '<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb']
         for d in diff
     ])
     return r
