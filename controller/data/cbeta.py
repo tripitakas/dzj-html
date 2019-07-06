@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # nohup python3 /home/sm/tripitakas/controller/data/cbeta.py >> /home/sm/cbeta/cbeta.log 2>&1 &
-
+# 查看实际导入的数量: curl 'localhost:9200/_cat/indices?v'
+# 查看最近导入的日志: python3 -c "print(''.join(open('/home/sm/cbeta/cbeta.log').readlines()[-5:]))"
 
 import re
 import sys
@@ -19,8 +20,8 @@ from controller.data.rare import format_rare
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
-BM_PATH = r'/home/sm/cbeta/BM_u8'  # BM_u8所在路径
-TXT_PATH = r'/home/sm/cbeta/BM_u8'    # 当前加工索引的路径
+BM_PATH = '/home/sm/cbeta/BM_u8'  # BM_u8所在路径
+TXT_PATH = '/home/sm/cbeta/BM_u8'  # 当前加工索引的路径
 
 
 def junk_filter(txt):
@@ -40,7 +41,7 @@ def add_page(index, rows, page_code):
         normal = [normalize(r) for r in origin]
         count = sum(len(r) for r in normal)
         if count > 15000 or len(origin) > 5000:  # 跳过大文件
-            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\tout of limit' % (
+            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\tout of limit\n' % (
                 cur_time(), page_code, len(rows), len(origin)))
             return False
 
@@ -57,7 +58,7 @@ def add_page(index, rows, page_code):
             print('%s\tsuccess:\t%s\t%s lines\t %s chars' % (cur_time(), page_code, len(rows), len(origin)))
             return True
         except ElasticsearchException as e:
-            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\t%s' % (
+            sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\t%s\n' % (
                 cur_time(), page_code, len(rows), len(origin), str(e)))
             return False
 
@@ -86,7 +87,7 @@ def scan_and_index_dir(index, source):
         errors.append(page_code)
 
     if errors:
-        with open(path.join(source, 'error-%s.json' % datetime.now().strftime('%Y-%m-%d-%H-%M'))) as f:
+        with open(path.join(source, datetime.now().strftime('error-%Y%m%d-%H%M.json')), 'w') as f:
             json.dump(errors, f)
         print('%s error pages\n%s' % (len(errors), errors))
 
