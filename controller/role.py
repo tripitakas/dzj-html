@@ -194,6 +194,8 @@ role_maps = {
             '/api/task/update/text_proof_@num/@page_name': ['POST'],
             '/api/task/return/text_proof_@num/@page_name': ['POST'],
             '/task/do/text_proof_@num/find_cmp/@page_name': ['GET'],
+            '/api/task/text_proof/get_cmp/@page_name': ['POST'],
+            '/api/task/text_proof/get_cmp_neighbor': ['POST'],
             '/api/task/do/text_proof_@num/find_cmp/@page_name': ['POST'],
             '/task/update/text_proof_@num/find_cmp/@page_name': ['GET'],
             '/api/task/update/text_proof_@num/find_cmp/@page_name': ['POST'],

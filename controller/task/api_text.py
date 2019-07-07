@@ -5,13 +5,16 @@
 """
 import re
 from datetime import datetime
+import controller.validate as v
 import controller.errors as errors
 from controller.base import DbError
+from controller.data.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
+from controller.data.cbeta_search import find_one, find_neighbor
 
 
-class SaveTextApi(TaskHandler):
+class TextApi(TaskHandler):
     """ 保存数据。有do/update两种模式。1. do。做任务时，保存或提交任务。2. update。任务完成后，本任务用户修改数据。
         不提供其他人修改，因此仅检查任务归属，无需检查数据锁。
     """
@@ -68,7 +71,7 @@ class SaveTextApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveTextProofApi(SaveTextApi):
+class SaveTextProofApi(TextApi):
     URL = ['/api/task/do/text_proof_@num/@page_name',
            '/api/task/update/text_proof_@num/@page_name']
 
@@ -79,7 +82,7 @@ class SaveTextProofApi(SaveTextApi):
         self.save('text_proof_' + num, page_name, mode=mode)
 
 
-class SaveTextReviewApi(SaveTextApi):
+class SaveTextReviewApi(TextApi):
     URL = ['/api/task/do/text_review/@page_name',
            '/api/task/update/text_review/@page_name']
 
@@ -90,7 +93,7 @@ class SaveTextReviewApi(SaveTextApi):
         self.save('text_review', page_name, mode=mode)
 
 
-class SaveCmpTextApi(SaveTextApi):
+class SaveCmpTextApi(TextApi):
     URL = ['/api/task/do/text_proof_@num/find_cmp/@page_name',
            '/api/task/update/text_proof_@num/find_cmp/@page_name']
 
@@ -129,3 +132,48 @@ class SaveCmpTextApi(SaveTextApi):
             self.send_db_error(e)
 
 
+class GetCmpTextApi(TextApi):
+    URL = '/api/task/text_proof/get_cmp/@page_name'
+
+    def post(self, page_name):
+        """ 获取ocr对应的比对文本 """
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if page:
+                num = self.get_request_data().get('num') or 1
+                cmp, cmp_page_code = find_one(page.get('ocr'), int(num))
+                if cmp:
+                    self.send_data_response(dict(cmp=cmp, cmp_page_code=cmp_page_code))
+                else:
+                    self.send_error_response(errors.no_object, message='未找到比对文本')
+            else:
+                self.send_error_response(errors.no_object, message='页面%s不存在' % page_name)
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class GetCmpNeighborApi(TextApi):
+    URL = '/api/task/text_proof/get_cmp_neighbor'
+
+    def post(self):
+        """ 获取ocr对应的比对文本
+        :param page_code: 当前cmp文本的page_code（es库中的page_code）
+        :param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
+        """
+        try:
+            data = self.get_request_data()
+            err = v.validate(data, [(v.not_empty, 'cmp_page_code', 'neighbor')])
+            if err:
+                return self.send_error_response(err)
+
+            neighbor = find_neighbor(data.get('cmp_page_code'), data.get('neighbor'))
+            if neighbor:
+                self.send_data_response(dict(
+                    txt=Diff.pre_cmp(''.join(neighbor['_source']['origin'])), code=neighbor['_source']['page_code']
+                ))
+            else:
+                self.send_error_response(errors.no_object, message='页面不存在')
+
+        except DbError as e:
+            self.send_db_error(e)

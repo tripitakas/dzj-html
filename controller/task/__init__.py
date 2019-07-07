@@ -8,8 +8,8 @@ views = [
 
 ]
 handlers = [
-    api_cut.SaveCutProofApi, api_cut.SaveCutReviewApi,
-    api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveCmpTextApi,
+    api_cut.SaveCutProofApi, api_cut.SaveCutReviewApi, api_text.SaveTextProofApi, api_text.SaveTextReviewApi,
+    api_text.GetCmpNeighborApi, api_text.GetCmpTextApi, api_text.SaveCmpTextApi,
     api_common.GetPageApi, api_common.PickTaskApi, api_common.ReturnTaskApi, api_common.UnlockTaskDataApi,
     api_admin.PublishTasksPageNamesApi, api_admin.PublishTasksFileApi, api_admin.WithDrawTasksApi,
     api_admin.GetReadyPagesApi,

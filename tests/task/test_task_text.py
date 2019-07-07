@@ -122,10 +122,3 @@ class TestText(APITestCase):
             body={'data': dict(commit=True)}
         )
         self.assertTrue(self.parse_response(r).get('committed'))
-
-    def test_api_get_cmp(self):
-        """ 测试获取比对文本 """
-        page_name = 'JX_165_7_75'
-        self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/task/text_proof/get_cmp/%s' % page_name, body={'data': {'num': 2}})
-        self.assertTrue(self.parse_response(r).get('cmp'))
