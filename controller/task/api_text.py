@@ -42,9 +42,9 @@ class SaveTextApi(TaskHandler):
             if txt:
                 update.update({data_field: txt})
 
-            doubt = self.get_request_data().get('doubt', '').strip('\n')
+            doubt = self.get_request_data().get('doubt', '')
             if doubt:
-                update.update({'tasks.%s.doubt' % task_type: doubt})
+                update.update({'tasks.%s.doubt' % task_type: doubt.strip('\n')})
 
             if mode == 'do' and data.get('submit'):
                 update.update({
