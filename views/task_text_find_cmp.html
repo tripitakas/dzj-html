@@ -4,21 +4,15 @@
   <meta charset="UTF-8">
   <title>文字校对-寻找比对文本</title>
   {% include _base_meta.html %}
-
   <!-- Plugins css -->
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-
   <!-- Custom Files -->
   <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
   <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-
   {% include _base_css.html %}
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
   <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
@@ -27,25 +21,38 @@
     .pfread-in {
       padding-top: 50px;
     }
-    .right .bd {
-      padding: 10px 25px;
+
+    .right.bd .selectable {
+      height: 50%;
       font-size: 18px;
+      margin: 0px 20px;
+      overflow-y: auto;
     }
-    .right .bd .selected {
+
+    .right.bd .selected {
+      height: 40%;
+      max-height: 42%;
+      width: calc(100% - 40px);
       font-size: 18px;
+      margin: 0px 20px 10px;
+      overflow-y: auto;
     }
+
     kw {
       color: #cb9b66;
     }
+
     .modal-content .modal-header {
       height: 40px;
       padding-bottom: 0px;
     }
+
     .modal-content .close {
       color: var(--Color_Brown_Darker);
       margin-top: -25px;
       margin-right: -20px;
     }
+
     #ocrModal {
       font-size: 18px;
     }
@@ -60,7 +67,7 @@
 
       <header class="m-header">
         <div class="back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+          {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
           <a onclick="leave()" title="{{title}}">
             <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
           </a>
@@ -96,20 +103,17 @@
       </header>
 
       <div class="flex-content pfread-in">
-        <div class="left fl">
-          <div class="bd" id="canvas-bd">
+        <div class="left fl bd">
+          <div id="canvas-bd">
             <div id="holder"></div>
           </div>
         </div><!--left-->
-        <div class="right fr">
-          <div class="bd">
-            <div class="selectable" id="selectable">
-              {% raw cmp %}
-            </div>
-            <hr/>
-            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……">
-            </textarea>
+        <div class="right fr bd">
+          <div class="selectable" id="selectable">
+            {% raw cmp %}
           </div>
+          <hr />
+          <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……"></textarea>
         </div><!--right-->
       </div>
 
@@ -120,7 +124,7 @@
     <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true" >×</button>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <div class="modal-header">OCR</div>
           <div class="modal-body">
             {% raw ocr.replace('|', '<br>') %}
@@ -186,20 +190,15 @@
   // 选中作为比对本
   $('.btn-select').click(function () {
     var txt = window.getSelection().toString();
-    $('#selected').val($('#selected').val() + txt);
-    $('#selected').height($('#selected').prop('scrollHeight'));
+    var obj = $('#selected');
+    obj.val(obj.val() + txt);
+    obj.height(obj.prop('scrollHeight'));
   });
 
   $(document).on('change', '#selected', function () {
     $('#selected').height($('#selected').prop('scrollHeight'));
   });
 
-  $('.btn-select').click(function () {
-    var txt = window.getSelection().toString();
-    $('#selected').val($('#selected').val() + txt);
-    $('#selected').height($('#selected').prop('scrollHeight'));
-  });
-  
   // 弹出OCR
   $(document).on('click', '.btn-ocr', function () {
     $('#ocrModal').modal();
@@ -238,7 +237,7 @@
         window.location.reload();
       }, 1000);
     });
-	});
+  });
 
   // 提交并跳转下一步
   $('.btn-next').on("click", function () {

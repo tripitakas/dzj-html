@@ -6,17 +6,14 @@
   {% include _base_meta.html %}
   <!-- Plugins css -->
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-  {% include _base_css.html %}
   <!-- Custom Files -->
   <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
   <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  {% include _base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-
 </head>
 
 <style>
@@ -48,6 +45,7 @@
     float: left;
     width: 50%;
     padding: 0px 10px;
+    overflow-y: auto;
   }
 
   .search-right .search-input {
@@ -56,6 +54,7 @@
     margin: 10px 0px 5px;
     overflow:auto;
     word-break:break-all;
+    max-height: calc(100% - 60px);
   }
 
   .search-right .tips {
@@ -66,8 +65,9 @@
   #btn-search {
     clear: both;
     width: 70px;
+    background-color: var(--Color_Brown_Darker);
+    border-color: var(--Color_Brown_Darker);
   }
-
 
 </style>
 
@@ -110,6 +110,7 @@
 <script type="text/javascript">
   // 高度自适应
   $(".search-left").height($(document.body).height() - 40);
+  $(".search-right").height($(document.body).height() - 40);
   $.each($("textarea"), function(i, n){
     $(n).css("height", (n.scrollHeight + 10) + "px");
   });
