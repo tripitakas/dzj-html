@@ -210,7 +210,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :return: 新导入的页面的个数
     """
     if not json_path:
-        txt_path = json_path = img_path = path.join(path.dirname(__file__), 'data')
+        txt_path = json_path = img_path = path.join(path.dirname(__file__), 'sample')
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:

@@ -42,9 +42,9 @@ class TextBaseHandler(TaskHandler):
             doubt = self.get_doubt(page, task_type)
             cmp_data = page.get(self.save_fields[task_type])
             params = dict(mismatch_lines=[])
+            layout = int(self.get_query_argument('layout', 0))
+            CutBaseHandler.char_render(page, layout, **params)
             if not cmp_data:
-                layout = int(self.get_query_argument('layout', 0))
-                CutBaseHandler.char_render(page, layout, **params)
                 segments = self.get_segments(page, task_type)
                 cmp_data = self.check_segments(segments, page['chars'], params)
             self.render(
