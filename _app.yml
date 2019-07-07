@@ -22,7 +22,7 @@ site:
 
 # OSS 连接配置
 img:
-  host: 'http://tripitaka-img.oss-cn-beijing.aliyuncs.com'
+  host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
 
 # 邮件服务器的配置
