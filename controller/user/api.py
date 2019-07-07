@@ -11,7 +11,7 @@ from os import path, mkdir
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
-from aliyunsdkcore.request import CommonRequest
+# from aliyunsdkcore.request import CommonRequest
 from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
 from datetime import datetime
 from bson import objectid, json_util
