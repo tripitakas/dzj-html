@@ -45,11 +45,12 @@ def find_one(ocr, num=1):
     ret = find(ocr)
     if not ret or num - 1 not in range(0, len(ret)):
         return ''
+    hit_page_codes = [r['_source']['page_code'] for r in ret]
     cb = ''.join(ret[num - 1]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
     txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
-    cmp_page_code = ret[num - 1]['_source']['page_code']
-    return txt, cmp_page_code
+
+    return txt, hit_page_codes
 
 
 def find_neighbor(page_code, neighbor='next'):

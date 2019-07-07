@@ -141,9 +141,9 @@ class GetCmpTextApi(TextApi):
             page = self.db.page.find_one({'name': page_name})
             if page:
                 num = self.get_request_data().get('num') or 1
-                cmp, cmp_page_code = find_one(page.get('ocr'), int(num))
+                cmp, hit_page_codes = find_one(page.get('ocr'), int(num))
                 if cmp:
-                    self.send_data_response(dict(cmp=cmp, cmp_page_code=cmp_page_code))
+                    self.send_data_response(dict(cmp=cmp, hit_page_codes=hit_page_codes))
                 else:
                     self.send_error_response(errors.no_object, message='未找到比对文本')
             else:
