@@ -44,9 +44,10 @@
 
     .right.bd .cmp-more {
       cursor: pointer;
-      clear: both;
-      font-size: 16px;
-      background-color: rgba(234,185,119,0.4);
+      line-height: 20px;
+      user-select: none;
+      background-color: rgba(207,207,207,0.6);
+      letter-spacing: 4px;
       display: none;
       text-align: center;
       color: white;
@@ -128,9 +129,9 @@
         </div><!--left-->
         <div class="right fr bd">
           <div class="selectable" id="selectable">
-            <div class="cmp-more" id="prev" title="更多">...更多...</div>
-            <div class="cmp" id="cmp">加载中...</div>
-            <div class="cmp-more" id="next" title="更多">...更多...</div>
+            <span class="cmp-more" id="prev" title="更多">...</span>
+            <span class="cmp" id="cmp">加载中...</span>
+            <span class="cmp-more" id="next" title="更多">...</span>
           </div>
           <div id="pagination" class="search-pagination ms-search-pagination"></div>
           <hr style="clear: both"/>
@@ -190,7 +191,7 @@
         html += "<a title='" + data.hit_page_codes[i] + "'>" + i + "</a>";
       }
       $('#pagination').html(html);
-      $('.selectable .cmp-more').css('display', 'block');
+      $('.cmp-more').css('display', 'inline-block');
     });
   });
 
