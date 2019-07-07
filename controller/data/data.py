@@ -5,8 +5,8 @@
 @time: 2019/3/13
 """
 import re
-from controller.data.cbeta import find
 from controller.base import BaseHandler
+from controller.data.cbeta_search import find
 from controller.data.variant import normalize
 
 
@@ -74,7 +74,7 @@ class DataSearchCbetaHandler(BaseHandler):
 
         q = self.get_query_argument('q', '').strip()
         try:
-            matches = find(q)
+            matches = find(q, self.config['cbeta'])
         except Exception as e:
             matches = [dict(hits=[str(e)])]
         for m in matches:

@@ -20,6 +20,11 @@ site:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
 
+# cbeta全文库
+cbeta:
+  host: 47.95.216.233
+  port: 9200
+
 # OSS 连接配置
 img:
   host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
