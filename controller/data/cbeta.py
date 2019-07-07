@@ -42,7 +42,7 @@ def add_page(index, rows, page_code):
         count = sum(len(r) for r in normal)
         if count > 15000 or len(origin) > 5000:  # 跳过大文件
             sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\tout of limit\n' % (
-                cur_time(), page_code, len(rows), len(origin)))
+                cur_time(), page_code, len(rows), count))
             return False
 
         volume_no = book_no = page_no = None  # 册号，经号，页码
@@ -59,7 +59,7 @@ def add_page(index, rows, page_code):
             return True
         except ElasticsearchException as e:
             sys.stderr.write('%s\tfailed:\t%s\t%s lines\t %s chars\t%s\n' % (
-                cur_time(), page_code, len(rows), len(origin), str(e)))
+                cur_time(), page_code, len(rows), count, str(e)))
             return False
 
 
