@@ -333,7 +333,7 @@
       if (this.state.labelVisible) {
         this.nodes.forEach(function (node) {
           if (node.isValidId()) {
-            var cen = node.getCenter(), nums = node.getId().split('c');
+            var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
             self.label.push(data.paper.text(cen.x, cen.y, nums[1] + 'c' + nums[2])
                 .attr({'font-size': '13px'}));
           }

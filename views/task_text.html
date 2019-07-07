@@ -457,7 +457,7 @@
     $('body').one('mouseup', function () {
       $('body').off('mousemove.draggable');
     });
-    $draggable.closest('.modal').one('bs.modal.hide', function () {
+    $(this).closest('.modal').one('bs.modal.hide', function () {
       $('body').off('mousemove.draggable');
     });
   });

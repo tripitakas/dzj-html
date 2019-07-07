@@ -106,6 +106,9 @@
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 
 <script>
+  var boxes = '{{boxes}}';
+</script>
+<script>
   // 当前页面的模式，包括view/do/update/edit等
   var mode = '{{mode}}';
 
@@ -116,7 +119,7 @@
     height: '{{page["height"]}}',
     holder: 'holder',
     image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
-    chars: '{{boxes}}'
+    chars: boxes
   });
 
   $.cut.bindKeys();
@@ -318,15 +321,15 @@
 
   // 离开页面时解锁任务
   window.leave = function () {
-    if ('{{mode}}' === 'edit') {
-      getApi('/data/unlock/{{task_type}}/{{name}}', function () {
-        window.history.back();
-      });
-    } else if ('{{mode}}' === 'view') {
+    {% if mode == 'edit' %}
+    postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
       window.history.back();
-    } else {
-      window.location = '/task/lobby/{{task_type}}';
-    }
+    });
+    {% elif mode == 'view' %}
+    window.history.back();
+    {% else %}
+    window.location = '/task/lobby/{{task_type}}';
+    {% end %}
   };
 
 </script>

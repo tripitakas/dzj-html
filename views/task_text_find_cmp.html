@@ -168,6 +168,11 @@
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
 
+<script>
+  var char_data = decodeJSON('{{page.get("chars", [])}}');
+  var columns = decodeJSON('{{page.get("columns", [])}}');
+  var blocks = decodeJSON('{{page.get("blocks", [])}}');
+</script>
 <script type="text/javascript">
   // 右侧文字区动态计算高度
   var h = $(document.body).height();
@@ -239,9 +244,6 @@
   });
 
   // 显示左边页面图和字框
-  var char_data = decodeJSON('{{page.get("chars", [])}}');
-  var columns = decodeJSON('{{page.get("columns", [])}}');
-  var blocks = decodeJSON('{{page.get("blocks", [])}}');
 
   function createPage() {
     $.cut.create({
