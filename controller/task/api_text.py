@@ -173,7 +173,7 @@ class GetCmpNeighborApi(TextApi):
                     txt=Diff.pre_cmp(''.join(neighbor['_source']['origin'])), code=neighbor['_source']['page_code']
                 ))
             else:
-                self.send_error_response(errors.no_object, message='页面不存在')
+                self.send_error_response(errors.no_object, message='没有更多内容')
 
         except DbError as e:
             self.send_db_error(e)

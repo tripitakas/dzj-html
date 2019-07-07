@@ -60,7 +60,8 @@ def find_neighbor(page_code, neighbor='next'):
     page_no = head.group(2)
     neighbor_no = str(int(page_no) + 1 if neighbor == 'next' else int(page_no) - 1).zfill(len(page_no))
     neighbor_code = '%sp%s' % (head.group(1), neighbor_no)
-    return find(neighbor_code)[0]
+    neighbor_node = find(neighbor_code)
+    return neighbor_node and neighbor_node[0]
 
 
 if __name__ == '__main__':
