@@ -8,7 +8,7 @@ from operator import itemgetter
 from tornado.web import UIModule
 from controller.data.diff import Diff
 from tornado.escape import url_escape
-from controller.data.cbeta import find_one
+from controller.data.cbeta_search import find_one
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutBaseHandler
 
@@ -229,7 +229,7 @@ class TextFindCmpHandler(TextBaseHandler):
             readonly = not self.check_auth(mode, page, task_type)
             cmp, ocr = page.get(self.cmp_fields.get(task_type)), page.get('ocr')
             if not cmp:
-                cmp = find_one(ocr)
+                cmp = find_one(ocr, self.config['cbeta'])
             self.render(
                 'task_text_find_cmp.html',
                 task_type=task_type, page=page, num=num, cmp=cmp, ocr=ocr,
