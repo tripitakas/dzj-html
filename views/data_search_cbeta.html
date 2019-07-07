@@ -111,18 +111,19 @@
   // 高度自适应
   $(".search-left").height($(document.body).height() - 40);
   $.each($("textarea"), function(i, n){
-    $(n).css("height", n.scrollHeight + "px");
+    $(n).css("height", (n.scrollHeight + 10) + "px");
   });
 
   // 搜索
   $('#btn-search').on("click", function () {
-    var q = $('#search-input').val().trim();
+    var q = $('#search-input').val();
     if (q != '')
       window.location = "{{current_url}}?q=" + q;
   });
 
-  $(document).on('change', '#search-input', function () {
-    $('#search-input').height($('#search-input').prop('scrollHeight'));
+  $(document).on('keyup', '#search-input', function () {
+    if ($('#search-input').height() < $('#search-input').prop('scrollHeight') - 20)
+      $('#search-input').height($('#search-input').prop('scrollHeight'));
   });
 
 
