@@ -5,8 +5,8 @@
 @time: 2019/3/13
 """
 import re
-from controller.data.cbeta_search import find
 from controller.base import BaseHandler
+from controller.data.cbeta_search import find
 from controller.data.variant import normalize
 
 

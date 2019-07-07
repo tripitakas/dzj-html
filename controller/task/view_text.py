@@ -6,11 +6,11 @@
 import re
 from operator import itemgetter
 from tornado.web import UIModule
-from controller.data.diff import Diff
 from tornado.escape import url_escape
-from controller.data.cbeta_search import find_one
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutBaseHandler
+from controller.data.diff import Diff
+from controller.data.cbeta_search import find_one
 
 
 class TextBaseHandler(TaskHandler):

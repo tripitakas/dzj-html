@@ -53,4 +53,4 @@ def find_one(ocr, node):
 
 
 if __name__ == '__main__':
-    find('由業非以自性滅，故無賴耶亦能生', None)
+    print([r['_source'] for r in find('由業非以自性滅，故無賴耶亦能生', None)])
