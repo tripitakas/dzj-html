@@ -31,8 +31,8 @@ class TestSearch(APITestCase):
         r = self.parse_response(
             self.fetch('/api/task/text_proof/get_cmp/%s' % page_name, body={'data': {'num': 1}}))
         self.assertTrue(r.get('cmp'))
-        self.assertTrue(r.get('cmp_page_code'))
+        self.assertTrue(r.get('hit_page_codes'))
 
-        data = {'data': {'cmp_page_code': r.get('cmp_page_code'), 'neighbor': 'prev'}}
+        data = {'data': {'cmp_page_code': r.get('hit_page_codes')[0], 'neighbor': 'prev'}}
         r = self.parse_response(self.fetch('/api/task/text_proof/get_cmp_neighbor', body=data))
         self.assertTrue(r.get('txt'))
