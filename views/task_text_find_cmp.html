@@ -25,26 +25,37 @@
     .right.bd .selectable {
       height: 50%;
       font-size: 18px;
-      margin: 0px 20px;
+      margin: 0 20px;
       overflow-y: auto;
     }
 
     .right.bd .selected {
       height: 40%;
-      max-height: 42%;
+      max-height: 40%;
       width: calc(100% - 40px);
       font-size: 18px;
-      margin: 0px 20px 10px;
+      margin: 0 20px 10px;
       overflow-y: auto;
     }
 
-    kw {
-      color: #cb9b66;
+    .right.bd kw {
+      color: var(--Color_Brown_Darker);
     }
+
+    .right.bd .cmp-more {
+      cursor: pointer;
+    }
+
+    .right.bd .search-pagination {
+      margin-left: 8px;
+      font-size: 16px;
+      padding: 5px 0;
+    }
+
 
     .modal-content .modal-header {
       height: 40px;
-      padding-bottom: 0px;
+      padding-bottom: 0;
     }
 
     .modal-content .close {
@@ -110,9 +121,16 @@
         </div><!--left-->
         <div class="right fr bd">
           <div class="selectable" id="selectable">
-            {% raw cmp %}
+            <span class="cmp-more" id="prev" title="更多">......</span>
+            <span class="cmp" id="cmp">加载中</span>
+            <span class="cmp-more" id="next" title="更多">......</span>
           </div>
-          <hr />
+          <div id="pagination" class="search-pagination ms-search-pagination">
+            {% for i in range(10) %}
+            <a>{{i+1}}</a>
+            {% end %}
+          </div>
+          <hr style="clear: both"/>
           <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……"></textarea>
         </div><!--right-->
       </div>
@@ -147,7 +165,6 @@
 <script src="{{ static_url('js/proofread.js') }}"></script>
 
 <script type="text/javascript">
-  /*-----------自适应高度-----------*/
   // 右侧文字区动态计算高度
   var h = $(document.body).height();
   $(".pfread .bd").height(h - 70);
@@ -160,7 +177,34 @@
     $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
   });
 
-  /*-----------左侧图像区域-----------*/
+  // 加载比对本
+  $(document).ready(function () {
+    postApi('/task/text_proof/get_cmp/{{page["name"]}}', {data: {}}, function (data) {
+      $('#cmp').html(data.cmp);
+      $('#pagination a').eq(0).addClass('cur');
+      $('#pagination a').eq(0).attr('title', data.cmp_page_code);
+    });
+  });
+
+  // 下一个比对本
+  $(document).on('click', '#pagination a', function () {
+    var num = $(this).text();
+    postApi('/task/text_proof/get_cmp/{{page["name"]}}', {data: {num: num}}, function (data) {
+      $('#cmp').html(data.cmp);
+      $('#pagination a').removeClass('cur');
+      $('#pagination a').eq(num-1).addClass('cur');
+      $('#pagination a').eq(num-1).attr('title', data.cmp_page_code);
+    });
+  });
+
+  // 加载前一页
+  $(document).on('click', '.selectable #prev', function () {
+    postApi('/task/text_proof/get_cmp/{{page["name"]}}', {data: {}}, function (data) {
+      var cmpCode = $('#pagination a.cur').eq(0).attr('title');
+      alert(cmpCode);
+    });
+  });
+
   // 显示左边页面图和字框
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
@@ -186,7 +230,6 @@
   createPage();
   $('#canvas-bd').focus();
 
-  /*-----------操作按钮-----------*/
   // 选中作为比对本
   $('.btn-select').click(function () {
     var txt = window.getSelection().toString();
@@ -204,8 +247,6 @@
     $('#ocrModal').modal();
   });
 
-
-  /*-----------导航区域-----------*/
   // 返回
   window.leave = function () {
     if ('{{mode}}' === 'do') {
@@ -258,7 +299,6 @@
       }, 1000);
     });
   });
-
 
 </script>
 

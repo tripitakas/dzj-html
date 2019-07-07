@@ -10,7 +10,6 @@ from tornado.escape import url_escape
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutBaseHandler
 from controller.data.diff import Diff
-from controller.data.cbeta_search import find_one
 
 
 class TextBaseHandler(TaskHandler):
@@ -197,8 +196,6 @@ class TextProofHandler(TextBaseHandler):
 
     def get(self, num, page_name):
         """ 进入文字校对页面 """
-        # mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
-
         self.enter('text_proof_' + num, page_name)
 
 
@@ -227,12 +224,9 @@ class TextFindCmpHandler(TextBaseHandler):
             mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
             task_type = 'text_proof_' + num
             readonly = not self.check_auth(mode, page, task_type)
-            cmp, ocr = page.get(self.cmp_fields.get(task_type)), page.get('ocr')
-            if not cmp:
-                cmp = find_one(ocr, self.config['cbeta'])
             self.render(
                 'task_text_find_cmp.html',
-                task_type=task_type, page=page, num=num, cmp=cmp, ocr=ocr,
+                task_type=task_type, page=page, num=num, ocr=page.get('ocr'),
                 mode=mode, readonly=readonly, get_img=self.get_img,
             )
 
