@@ -10,9 +10,8 @@ var showColumnBox = false;                // 是否显示列框切分坐标
 var showOrder = false;                    // 是否显示字框对应序号
 var showText = false;                     // 是否显示字框对应文字
 var lineNos = [];
-var currentSpan = [];
-
-var li_id;//行号ID
+var currentSpan = [null];                 // $(当前span)，是否第一个
+var offsetInSpan;                         // 当前选中范围的开始位置
 
 function findBestBoxes(offset, block_no, line_no, cmp) {
     var minNo = 10;
@@ -46,7 +45,7 @@ function getLineText($line) {
     return chars;
 }
 
-// 获取当前光标位置
+// 获取当前光标位置、当前选中高亮文本范围在当前span的开始位置
 function getCursorPosition(element) {
     var caretOffset = 0;
     var doc = element.ownerDocument || element.document;
@@ -56,15 +55,15 @@ function getCursorPosition(element) {
     if (typeof win.getSelection !== 'undefined') {    // 谷歌、火狐
         sel = win.getSelection();
         if (sel.rangeCount > 0) {                       // 选中的区域
-            range = win.getSelection().getRangeAt(0);
-            caretOffset = range.startOffset;
+            range = sel.getRangeAt(0);
+            caretOffset = range.startOffset;            // 获取选定区的开始点
             // preCaretRange = range.cloneRange();         // 克隆一个选中区域
             // preCaretRange.selectNodeContents(element);  // 设置选中区域的节点内容为当前节点
             // preCaretRange.setEnd(range.endContainer, range.endOffset);  // 重置选中区域的结束位置
             // caretOffset = preCaretRange.toString().length;
         }
     } else if ((sel = doc.selection) && sel.type !== 'Control') {    // IE
-        range = sel.createRange();
+        range = sel.createRange();                          // 创建选定区域
         preCaretRange = doc.body.createTextRange();
         preCaretRange.moveToElementText(element);
         preCaretRange.setEndPoint('EndToEnd', range);
@@ -86,12 +85,12 @@ function highlightBox($span, first) {
     var block_no = parseInt($block.attr('id').replace(/^.+-/, ''));
     var line_no = parseInt(($line.attr('id') || '').replace(/^.+-/, ''));
     var offset0 = parseInt($span.attr('offset'));
-    var offsetInSpan = first ? 0 : getCursorPosition($span[0]);
+    offsetInSpan = first ? 0 : getCursorPosition($span[0]);
     var offsetInLine = offsetInSpan + offset0;
     var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
     var cmpCursor = ($span.attr('cmp') || '')[offsetInSpan];
     var text = $span.text().replace(/\s/g, '');
-    var i, chTmp, all;
+    var i, chTmp, all, cmp_ch;
 
     // 根据文字的栏列号匹配到字框的列，然后根据文字精确匹配列中的字框
     var boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
@@ -105,16 +104,15 @@ function highlightBox($span, first) {
     }
     // 或者用span任意字精确匹配
     else if (!boxes.length) {
+        cmp_ch = function (what, ch) {
+            return ch === what;
+        };
         for (i = 0; i < text.length && !boxes.length; i++) {
-            chTmp = text[i];
-            boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
-                return ch === chTmp;
-            });
+            chTmp = cmp_ch.bind(null, text[i]);
+            boxes = $.cut.findCharsByLine(block_no, line_no, chTmp);
         }
         if (boxes.length > 1) {
-            boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, function (ch) {
-                return ch === chTmp;
-            }) || boxes[0];
+            boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, chTmp) || boxes[0];
         }
     }
 
@@ -516,7 +514,7 @@ $(document).on('click', '.btn-help', function () {
 // 存疑对话框
 $(document).on('click', '.btn-doubt', function () {
     var word = window.getSelection().toString();
-    if(word.length<=0){
+    if (word.length <= 0 || !currentSpan[0]) {
         return showError('请先选择存疑文字', '');
     }
 
@@ -526,14 +524,22 @@ $(document).on('click', '.btn-doubt', function () {
 
 // 存疑提交
 $(document).on('click', '#doubt_save_btn', function () {
-    var rows = $(".char-list-table").find("tr").length ;
     var txt = $('#doubt_input').val().trim();
     var reason = $('#doubt_reason').val().trim();
-    if(reason.length<=0){
+    if (reason.length <= 0) {
         $('#doubt_tip').show();
         return;
     }
-    var line = "<tr class='char-list-tr' data='"+li_id+"'><td>"+rows+"</td><td>字号</td><td>"+txt+"</td><td>"+reason+"</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
+
+    var $span = currentSpan[0];
+    var offset0 = parseInt($span.attr('offset'));
+    var offsetInLine = offsetInSpan + offset0;
+    var lineId = $span.parent().attr('id');
+
+    var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
+        "' data-reason='" + reason + "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
+        "</td><td>" + txt + "</td><td>" + reason +
+        "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
     $('.char-list-table').append(line);
     $('#doubtModal').modal('hide');
 
@@ -542,9 +548,6 @@ $(document).on('click', '#doubt_save_btn', function () {
     $('#table_toggle_btn').addClass('');
     $('.char-list-table').addClass('');
     $('.char-list-table').removeClass('hidden');
-
-    //记录存疑字的行号
-
 });
 
 $(document).on('click', '#table_toggle_btn', function () {
@@ -557,27 +560,31 @@ $('#doubtModal').on('hide.bs.modal', function () {
   $('#doubt_input').val('');
   $('#doubt_reason').val('');
   $('#doubt_tip').hide();
-})
+});
 
 // 点击删除按钮，删除该行
 $(document).on('click', '.del-doubt', function () {
     $(this).parent().remove();
 });
 
-// 获取存疑行行号
-$('.line').mousedown(function(){
-    li_id = $(this).attr('id');
+// 记下当前span
+$(document).on('mousedown', '.line > span', function () {
+    currentSpan[0] = $(this);
+});
 
+// 记下选中位置
+$(document).on('mouseup', '.line > span', function () {
+    offsetInSpan = getCursorPosition(this);
 });
 
 // 点击存疑行表格，对应行blink效果
 $(document).on('click', '.char-list-tr', function () {
-    var id = $(this).attr('data');
-    $('.right .bd').animate({scrollTop: $('#'+$(this).attr('data')).offset().top+400},100);
-    // 闪烁
-    $('#'+id).addClass('blink');
-    setTimeout(function () {
-      $('#'+id).removeClass("blink");
-    }, 800);
+    var id = $(this).attr('data'), $li = $('#'+id);
 
+    $('.right .bd').animate({scrollTop: $li.offset().top+400},100);
+    // 闪烁
+    $li.addClass('blink');
+    setTimeout(function () {
+      $li.removeClass("blink");
+    }, 800);
 });

@@ -161,7 +161,7 @@
                 <thead>
                   <tr>
                     <td>行号</td>
-                    <td>字号</td>
+                    <td>字序号</td>
                     <td>存疑文本</td>
                     <td>存疑理由</td>
                     <td>操作</td>
@@ -260,12 +260,14 @@
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
 
-<script type="text/javascript">
-  // 显示左边页面图和字框
+<script>
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
-
+  // 分成两个script块，避免在网页中不易找到随后的代码
+</script>
+<script type="text/javascript">
+  // 显示左边页面图和字框
   function createPage() {
     $.cut.create({
       readonly: true,
