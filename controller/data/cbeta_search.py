@@ -2,54 +2,65 @@
 # -*- coding: utf-8 -*-
 
 import re
+from yaml import load, SafeLoader
+import os.path as path
 from controller.data.diff import Diff
 from controller.data.variant import normalize
 from elasticsearch import Elasticsearch
 
 
-def find(ocr, node, index='cb4ocr-ik'):
-    """ 从ES中寻找与ocr最匹配的document
-    :param ocr: ocr文本或者page_code
-    :param node: cbeta全文库配置
-    :param index: 'cb4ocr-ik'或'cbeta4ocr'
-    """
-    if not ocr:
+def get_search_host():
+    base_dir = path.dirname(path.dirname(path.dirname(__file__)))
+    cfg_file = path.join(base_dir, 'app.yml')
+    with open(cfg_file, 'r') as f:
+        cfg = load(f, Loader=SafeLoader)
+        return [cfg.get('cbeta')]
+
+
+def find(q, index='cb4ocr-ik'):
+    """ 从ES中寻找与q最匹配的document """
+    if not q:
         return []
 
-    if re.match(r'^[0-9a-zA-Z_]+', ocr):
-        match = {'page_code': ocr}
+    if re.match(r'^[0-9a-zA-Z_]+', q):
+        match = {'page_code': q}
     else:
-        ocr = re.sub(r'[\x00-\xff]', '', ocr)
+        ocr = re.sub(r'[\x00-\xff]', '', q)
         ocr = re.sub(Diff.junk_cmp_str, '', ocr)
         match = {'normal': normalize(ocr)}
 
     dsl = {
         'query': {'match': match},
-        'highlight': {
-            'pre_tags': ['<kw>'],
-            'post_tags': ['</kw>'],
-            'fields': {'normal': {}}
-        }
+        'highlight': {'pre_tags': ['<kw>'], 'post_tags': ['</kw>'], 'fields': {'normal': {}}}
     }
 
-    host = ([node] if node else []) + [dict(host='localhost', port=9200)]
-    es = Elasticsearch(hosts=host)
+    es = Elasticsearch(hosts=get_search_host())
     r = es.search(index=index, body=dsl)
 
     return r['hits']['hits']
 
 
-def find_one(ocr, node):
-    r = find(ocr, node)
-    if not r:
+def find_one(ocr, num=1):
+    """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
+    ret = find(ocr)
+    if not ret or num - 1 not in range(0, len(ret)):
         return ''
-    cb = ''.join(r[0]['_source']['origin'])
+    hit_page_codes = [r['_source']['page_code'] for r in ret]
+    cb = ''.join(ret[num - 1]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
-    r = ''.join([
-        '<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb']
-        for d in diff
-    ])
-    return r
+    txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
+
+    return txt, hit_page_codes
+
+
+def find_neighbor(page_code, neighbor='next'):
+    """ 从ES中寻找page_code的前一页或后一页记录 """
+    assert neighbor in ['prev', 'next']
+    head = re.search(r'^([A-Z]{1,2}\d+n[A-Z]?\d+[A-Za-z_]?)p([a-z]?\d+)', page_code)
+    page_no = head.group(2)
+    neighbor_no = str(int(page_no) + 1 if neighbor == 'next' else int(page_no) - 1).zfill(len(page_no))
+    neighbor_code = '%sp%s' % (head.group(1), neighbor_no)
+    return find(neighbor_code)[0]
 
 
 if __name__ == '__main__':

@@ -3010,6 +3010,7 @@ body.fixed-left .side-menu.left {
     float: left;
     margin-left: 12px;
     cursor: pointer;
+	user-select: none;
 }
 
 .ms-search-pagination a:hover {

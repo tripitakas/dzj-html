@@ -74,7 +74,7 @@ class DataSearchCbetaHandler(BaseHandler):
 
         q = self.get_query_argument('q', '').strip()
         try:
-            matches = find(q, self.config['cbeta'])
+            matches = find(q)
         except Exception as e:
             matches = [dict(hits=[str(e)])]
         for m in matches:

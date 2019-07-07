@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import tests.users as u
-from controller import errors
 from tests.testcase import APITestCase
-from tornado.escape import json_encode
 
 
 class TestText(APITestCase):
@@ -20,7 +18,7 @@ class TestText(APITestCase):
     def tearDown(self):
         super(TestText, self).tearDown()
 
-    def test_text_view(self):
+    def test_view_text_proof(self):
         # 发布一个页面的校一、校二、校三任务
         self.login_as_admin()
         page_name = 'GL_1056_5_6'
@@ -99,7 +97,7 @@ class TestText(APITestCase):
         )
         self.assertTrue(self.parse_response(r).get('submitted'))
 
-    def test_test_find_cmp(self):
+    def test_view_find_cmp(self):
         """ 测试寻找比对本 """
         # 发布一个页面的校一、校二、校三任务
         page_name = 'GL_1056_5_6'
