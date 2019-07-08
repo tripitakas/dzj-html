@@ -11,15 +11,13 @@ from controller.base import DbError
 from controller.data.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
+from controller.task.view_text import TextBaseHandler
 from controller.data.cbeta_search import find_one, find_neighbor
 
 
 class SaveTextProofApi(TaskHandler):
     URL = ['/api/task/do/text_proof_@num/@page_name',
            '/api/task/update/text_proof_@num/@page_name']
-
-    cmp_fields = dict(text_proof_1='cmp1', text_proof_2='cmp2', text_proof_3='cmp3')
-    save_fields = dict(text_proof_1='txt1_html', text_proof_2='txt2_html', text_proof_3='txt3_html')
 
     def post(self, num, page_name):
         """ 保存或提交文字校对任务 """
@@ -35,10 +33,10 @@ class SaveTextProofApi(TaskHandler):
             data, ret = self.get_request_data(), {'updated': True}
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
-            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
-            data_field = self.save_fields.get(task_type)
-            if txt:
-                update.update({data_field: txt})
+            txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
+            data_field = TextBaseHandler.save_fields.get(task_type)
+            if txt_html:
+                update.update({data_field: txt_html})
 
             doubt = self.get_request_data().get('doubt', '')
             if doubt:
@@ -85,7 +83,7 @@ class SaveCmpTextApi(TaskHandler):
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
             txt = data.get('cmp')
-            data_field = SaveTextProofApi.cmp_fields.get(task_type)
+            data_field = TextBaseHandler.cmp_fields.get(task_type)
             if txt:
                 update.update({data_field: txt.strip('\n')})
 
@@ -169,9 +167,11 @@ class SaveTextReviewApi(TaskHandler):
             data, ret = self.get_request_data(), {'updated': True}
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
-            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
-            if txt:
-                update.update({'txt_review_html': txt})
+            txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
+            data_field = TextBaseHandler.save_fields.get(task_type)
+            if txt_html:
+                update.update({data_field: txt_html})
+                update.update({'text': TextBaseHandler.get_txt_from_html(txt_html)})
 
             doubt = self.get_request_data().get('doubt', '')
             if doubt:
@@ -227,9 +227,11 @@ class SaveTextHardApi(TaskHandler):
             data, ret = self.get_request_data(), {'updated': True}
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
-            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
-            if txt:
-                update.update({'txt_hard_html': txt})
+            txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
+            data_field = TextBaseHandler.save_fields.get(task_type)
+            if txt_html:
+                update.update({data_field: txt_html})
+                update.update({'text': TextBaseHandler.get_txt_from_html(txt_html)})
 
             if mode == 'do' and data.get('submit'):
                 update.update({
@@ -237,6 +239,11 @@ class SaveTextHardApi(TaskHandler):
                     'tasks.%s.finished_time' % task_type: datetime.now(),
                 })
                 ret['submitted'] = True
+                # 释放数据锁
+                data_field = self.get_shared_data_field(task_type)
+                if data_field in self.data_auth_maps:
+                    update.update({'lock.%s' % data_field: {}})
+                    ret['data_lock_released'] = True
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

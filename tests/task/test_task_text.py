@@ -52,7 +52,6 @@ class TestText(APITestCase):
         self.assert_code(200, r)
 
         # 完成校一
-        page = self._app.db.page.find_one({'name': page_name})
         r = self.fetch(
             '/api/task/do/text_proof_1/%s?_raw=1' % page_name,
             body={'data': dict(submit=True)}
@@ -65,7 +64,6 @@ class TestText(APITestCase):
         self.assert_code(200, r)
 
         # 完成校二
-        page = self._app.db.page.find_one({'name': page_name})
         r = self.fetch(
             '/api/task/do/text_proof_2/%s?_raw=1' % page_name,
             body={'data': dict(submit=True)}
@@ -78,7 +76,6 @@ class TestText(APITestCase):
         self.assert_code(200, r)
 
         # 完成校三
-        page = self._app.db.page.find_one({'name': page_name})
         r = self.fetch(
             '/api/task/do/text_proof_3/%s?_raw=1' % page_name,
             body={'data': dict(submit=True)}
@@ -90,12 +87,21 @@ class TestText(APITestCase):
         self.assert_code(200, r)
 
         # 完成审定
-        page = self._app.db.page.find_one({'name': page_name})
+        doubt = "<tr class='char-list-tr' data='line-8' data-offset='10' data-reason='理由1'>" \
+                "<td>8</td><td>10</td><td>存疑内容一</td><td>理由1</td><td class='del-doubt'>" \
+                "<img src='/static/imgs/del_icon.png' )=''></td></tr>" \
+                "<tr class='char-list-tr' data='line-3' data-offset='6' data-reason='理由2'>" \
+                "<td>3</td><td>6</td><td>存疑内容二</td><td>理由2</td><td class='del-doubt'>" \
+                "<img src='/static/imgs/del_icon.png' )=''></td></tr>"
         r = self.fetch(
             '/api/task/do/text_review/%s?_raw=1' % page_name,
-            body={'data': dict(submit=True)}
+            body={'data': dict(submit=True, doubt=doubt)}
         )
         self.assertTrue(self.parse_response(r).get('submitted'))
+
+        # 领取难字任务
+        r = self.fetch('/api/task/pick/text_hard', body={'data': {'page_name': page_name}})
+        self.assert_code(200, r)
 
     def test_view_find_cmp(self):
         """ 测试寻找比对本 """

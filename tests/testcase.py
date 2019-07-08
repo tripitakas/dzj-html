@@ -189,13 +189,15 @@ class APITestCase(AsyncHTTPTestCase):
 
     def revert(self, status=TH.STATUS_READY):
         """ 还原所有任务的状态 """
+        task_types = [
+            'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof',
+            'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
+        ]
         pages = self._app.db.page.find()
         for page in pages:
             update = dict(tasks={}, lock={})
-            for task_key, v in page.get('tasks').items():
-                update['tasks'][task_key] = dict(status=status)
-            for lock_key, v in page.get('lock').items():
-                update['lock'][lock_key] = dict()
+            for task_type in task_types:
+                update['tasks'][task_type] = dict(status=status)
             self._app.db.page.update_one({'name': page['name']}, {'$set': update})
 
     pre_tasks = {
@@ -209,6 +211,7 @@ class APITestCase(AsyncHTTPTestCase):
         'text_proof_2': '',
         'text_proof_3': '',
         'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+        'text_hard': 'text_review',
     }
 
     def publish(self, data):

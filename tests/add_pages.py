@@ -20,10 +20,13 @@ from controller.task.base import TaskHandler as task
 IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 data = dict(count=0)
 
-base_fields = [
-    'name', 'kind', 'width', 'height', 'blocks', 'columns', 'chars', 'ocr', 'cmp1', 'txt1_html', 'cmp2', 'txt2_html',
-    'cmp3', 'txt3_html', 'txt_review_html', 'txt_hard_html', 'text', 'lock', 'tasks', 'create_time'
-]
+base_fields = {
+    'str': ['name', 'kind', 'width', 'height', 'ocr', 'cmp1', 'txt1_html', 'cmp2', 'txt2_html',
+            'cmp3', 'txt3_html', 'txt_html', 'text', 'create_time'],
+    'list': ['blocks', 'columns', 'chars'],
+    'dict': ['lock', 'tasks'],
+}
+
 task_types = [
     'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof',
     'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
@@ -86,7 +89,9 @@ def add_repeat_pages(name, info, db, repeat, use_local_img=False):
 def _add_repeat_pages(name, info, db, start, end, use_local_img):
     meta_list = []
     for i in range(start, end + 1):
-        meta = {k: None for k in base_fields}
+        meta = {k: '' for k in base_fields['str']}
+        meta.update({k: {} for k in base_fields['dict']})
+        meta.update({k: [] for k in base_fields['list']})
         meta.update(dict(
             name='%s_%s' % (name, i),
             img_name=name,
@@ -114,7 +119,9 @@ def _add_repeat_pages(name, info, db, start, end, use_local_img):
 
 def add_page(name, info, db, img_name=None, use_local_img=False):
     if not db.page.find_one(dict(name=name)):
-        meta = {k: None for k in base_fields}
+        meta = {k: '' for k in base_fields['str']}
+        meta.update({k: {} for k in base_fields['dict']})
+        meta.update({k: [] for k in base_fields['list']})
         meta.update(dict(
             name=name,
             kind=name[:2],

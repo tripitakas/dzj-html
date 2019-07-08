@@ -325,13 +325,15 @@
     }
   };
 
+</script>
+
+<script>
   // 获取数据
   function getData(commit) {
-    var cmp = $('#selected').val();
     var data = {
       commit: commit,
       name: '{{page["name"]}}',
-      cmp: cmp,
+      cmp: $('#selected').val(),
     };
     console.log(data);
     return data;
@@ -339,6 +341,9 @@
 
   // 保存任务
   $('.btn-save').on("click", function () {
+    if ($('#selected').val().trim() == '') {
+      return showError('请选择文本', '尚未选择文本');
+    }
     postApi('/task/do/{{task_type}}/find_cmp/{{page["name"]}}', {
       data: getData(false)
     }, function () {
@@ -349,8 +354,11 @@
     });
   });
 
-  // 提交并跳转下一步
+  // 提交任务
   $('.btn-next').on("click", function () {
+    if ($('#selected').val().trim() == '') {
+      return showError('请选择文本', '尚未选择文本');
+    }
     postApi('/task/do/{{task_type}}/find_cmp/{{page["name"]}}', {
       data: getData(true)
     }, function () {

@@ -25,11 +25,12 @@ class TestDataLock(APITestCase):
         return page and data_field and page['lock'].get(data_field)
 
     def test_data_lock(self):
-        """ 测试数据锁机制 """
+        """ 测试切分校对数据锁机制 """
         for task_type in [
             'block_cut_proof', 'block_cut_review',
             'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review'
+            'char_cut_proof', 'char_cut_review',
+            'text_review', 'text_hard',
         ]:
             # 发布任务，前置任务为空
             self.login_as_admin()
@@ -40,7 +41,8 @@ class TestDataLock(APITestCase):
             # 测试领取任务时，系统自动分配长时数据锁
             self.login(u.expert1[0], u.expert1[1])
             name1 = page_names[0]
-            self.assert_code(200, self.fetch('/api/task/pick/'+ task_type, body={'data': {'page_name': name1}}))
+            r = self.fetch('/api/task/pick/' + task_type, body={'data': {'page_name': name1}})
+            self.assert_code(200, r)
             lock = self.get_data_lock(name1, task_type)
             self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
 
