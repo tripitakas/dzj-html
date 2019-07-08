@@ -210,7 +210,8 @@ class TestTaskFlow(APITestCase):
         self.assert_code(200, self.fetch('/api/task/pick/text_proof_1', body={'data': {'page_name': 'GL_1056_5_6'}}))
 
         # 退回任务
-        r = self.parse_response(self.fetch('/api/task/return/text_proof_1/GL_1056_5_6', body={}))
+        r = self.parse_response(
+            self.fetch('/api/task/return/text_proof_1/GL_1056_5_6', body={'data': {'reason': '太难'}}))
         self.assertTrue(r.get('returned'))
 
         # 领取其它校次任务
