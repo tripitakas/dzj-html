@@ -264,9 +264,7 @@
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
-  // 分成两个script块，避免在网页中不易找到随后的代码
-</script>
-<script type="text/javascript">
+
   // 显示左边页面图和字框
   function createPage() {
     $.cut.create({
@@ -288,16 +286,22 @@
   createPage();
   $('#canvas-bd').focus();
 
-  // 右侧文字区动态计算高度
-  var h = $(document.body).height();
-  $(".pfread .bd").height(h - 70);
-  $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
+</script>
 
-  // 浏览器调整大小时自适应
-  $(window).resize(function () {
+<script>
+  // 高度自适应
+  function heightAdaptive() {
     var h = $(document.body).height();
     $(".pfread .bd").height(h - 70);
     $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
+  }
+
+  $(document).ready(function () {
+    heightAdaptive();
+  });
+
+  $(window).resize(function () {
+    heightAdaptive();
   });
 
   // 更多操作

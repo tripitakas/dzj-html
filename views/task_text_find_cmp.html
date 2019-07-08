@@ -46,7 +46,7 @@
       cursor: pointer;
       line-height: 20px;
       user-select: none;
-      background-color: rgba(207,207,207,0.6);
+      background-color: rgba(207, 207, 207, 0.6);
       letter-spacing: 4px;
       display: none;
       text-align: center;
@@ -129,9 +129,9 @@
         </div><!--left-->
         <div class="right fr bd">
           <div class="selectable" id="selectable">
-            <span class="cmp-more" id="prev" title="更多">...</span>
-            <span class="cmp" id="cmp">加载中...</span>
-            <span class="cmp-more" id="next" title="更多">...</span>
+            <span class="cmp-more" id="prev" title="更多">···</span>
+            <span class="cmp" id="cmp">加载中···</span>
+            <span class="cmp-more" id="next" title="更多">···</span>
           </div>
           <div id="pagination" class="search-pagination ms-search-pagination"></div>
           <hr style="clear: both"/>
@@ -172,18 +172,43 @@
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
-</script>
-<script type="text/javascript">
-  // 右侧文字区动态计算高度
-  var h = $(document.body).height();
-  $(".pfread .bd").height(h - 70);
-  $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
 
-  // 浏览器调整大小时自适应
-  $(window).resize(function () {
+  // 显示左边页面图和字框
+  function createPage() {
+    $.cut.create({
+      readonly: true,
+      scrollContainer: '#canvas-bd',
+      name: '{{page["name"]}}',
+      width: '{{page["width"]}}',
+      height: '{{page["height"]}}',
+      holder: 'holder',
+      image: '{{get_img(page.get("img_name", page.get("name")), page.get("use_local_img"))}}',
+      chars: char_data
+    });
+    $.cut.bindMatchingKeys();
+    $.cut.toggleBox(false);
+    $.cut.switchCurrentBox(null);
+    $.cut.bindKeys();
+  }
+
+  createPage();
+  $('#canvas-bd').focus();
+</script>
+
+<script>
+  // 高度自适应
+  function heightAdaptive() {
     var h = $(document.body).height();
     $(".pfread .bd").height(h - 70);
     $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
+  }
+
+  $(document).ready(function () {
+    heightAdaptive();
+  });
+
+  $(window).resize(function () {
+    heightAdaptive();
   });
 
   // 初始化加载比对本
@@ -242,28 +267,6 @@
       $('#next').addClass('hide');
     });
   });
-
-  // 显示左边页面图和字框
-
-  function createPage() {
-    $.cut.create({
-      readonly: true,
-      scrollContainer: '#canvas-bd',
-      name: '{{page["name"]}}',
-      width: '{{page["width"]}}',
-      height: '{{page["height"]}}',
-      holder: 'holder',
-      image: '{{get_img(page.get("img_name", page.get("name")), page.get("use_local_img"))}}',
-      chars: char_data
-    });
-    $.cut.bindMatchingKeys();
-    $.cut.toggleBox(false);
-    $.cut.switchCurrentBox(null);
-    $.cut.bindKeys();
-  }
-
-  createPage();
-  $('#canvas-bd').focus();
 
   // 选中作为比对本
   $('.btn-select').click(function () {
