@@ -18,165 +18,20 @@
   <![endif]-->
 
   <style>
-    .collate-history table tr td.status_none {
-      color: #999;
-    }
-
-    .collate-history table tr td.status_pending {
-      color: #666;
-    }
-
-    .collate-history table tr td.status_ended {
-      color: #0f0;
-    }
-
-    .collate-history table tr td.status_opened {
-      color: #007;
-    }
-
     .pre-tasks .checkbox-inline:nth-of-type(1) {
       margin-right: 10px;
     }
-
   </style>
+
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
     {% module CommonLeft(title="data-management", sub="data-management-sty" ) %}
     <div class="main-content">
       {% module CommonHead() %}
       <div class="single-page-con">
-        <!-- Add Modals BAT UPLOAD-->
-        <div class="panel-body" style="padding-bottom: 2px;">
-          <!-- modal content -->
-          <div id="fileModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
-               aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="upload-pages">发布{{th.task_types.get(task_type)}}任务</h4>
-                </div>
-                <div class="modal-body">
-                  <div class="priority-list">
-                    <h4 class="control-label">选择优先级</h4>
-                    <select class="form-control">
-                      <option value="3">高</option>
-                      <option value="2">中</option>
-                      <option value="1">低</option>
-                    </select>
-                  </div>
-                  <br/>
-                  <div class="pre-tasks">
-                    <h4 class="control-label">选择前置任务</h4>
-                    <div>
-                      {% for t, v in th.task_types.items() %}
-                      {% if t != task_type %}
-                      <label class="checkbox-inline">
-                        <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
-                      </label>
-                      {% end %}
-                      {% end %}
-                    </div>
-                  </div>
-                  <br/>
-                  <i>请选择CSV或TXT格式文件，大小不超过10M</i>
-                  <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
-                  <!--<div class="progress progress-lg">-->
-                  <!--<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width:96%; background:#8A6D3B">-->
-                  <!--86%-->
-                  <!--</div>-->
-                  <!--</div>-->
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-                  <button type="button" class="btn btn-primary waves-effect waves-light" id="file_modal_btn">确定</button>
-                </div>
-              </div>
-              <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-          </div>
-          <!-- /.modal -->
-        </div>
-        <!-- End BootStrap Modal -->
-        <!-- SELECT Modals -->
-        <div class="panel-body" style="padding-bottom: 2px;">
-          <!-- modal content -->
-          <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="choose-pages">发布{{th.task_types.get(task_type)}}任务</h4>
-                </div>
-                <div class="modal-body">
-                  <div class="priority-list">
-                    <h4 class="control-label">选择优先级</h4>
-                    <select class="form-control">
-                      <option value="3">高</option>
-                      <option value="2">中</option>
-                      <option value="1">低</option>
-                    </select>
-                  </div>
-                  <br/>
-                  <div class="pre-tasks">
-                    <h4 class="control-label">选择前置任务</h4>
-                    <div>
-                      {% for t, v in th.task_types.items() %}
-                      {% if t != task_type %}
-                      <label class="checkbox-inline">
-                        <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}} />
-                        {{v}}
-                      </label>
-                      {% end %}
-                      {% end %}
-                    </div>
-                  </div>
-                  <br/>
-                  <div class="form-group">
-                    <div>
-                      <div class="ms-container">
-                        <div class="ms-selectable">
-                          <div class="selectableHeader">待选对象
-                            <a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a>
-                          </div>
-                          <div><i class="ser-btn"></i>
-                            <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，搜索服务器">
-                          </div>
-                        </div>
-                        <div class="ms-selection">
-                          <div class="selectionHeader">已选对象
-                            <a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a>
-                          </div>
-                          <div>
-                            <input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，搜索已选对象">
-                          </div>
-                        </div>
-                      </div>
-                      <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
-                        <option value=""></option>
-                      </select>
-                      <div id="pagination" class="ms-search-pagination"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-                  <button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
-                </div>
-              </div>
-              <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-          </div>
-          <!-- /.modal -->
-        </div>
-        <!-- End BootStrap Modal -->
-
         <div class="layout">
           <div class="layout-content">
             <div class="collate-history">
@@ -262,16 +117,131 @@
             </div>
           </div>
         </div>
+        <!-- ./ layout -->
       </div>
     </div>
   </div>
 </div>
 
+<!-- FILE Modal -->
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="fileModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="upload-pages">发布{{th.task_types.get(task_type)}}任务</h4>
+        </div>
+        <div class="modal-body">
+          <div class="priority-list">
+            <h4 class="control-label">选择优先级</h4>
+            <select class="form-control">
+              <option value="3">高</option>
+              <option value="2">中</option>
+              <option value="1">低</option>
+            </select>
+          </div>
+          <br/>
+          <div class="pre-tasks">
+            <h4 class="control-label">选择前置任务</h4>
+            <div>
+              {% for t, v in th.task_types.items() %}
+              {% if t != task_type %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
+              </label>
+              {% end %}
+              {% end %}
+            </div>
+          </div>
+          <br/>
+          <i>请选择CSV或TXT格式文件，大小不超过10M</i>
+          <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="file_modal_btn">确定</button>
+        </div>
+      </div>
+    </div>
+    <!-- /.FILE Modal -->
+  </div>
+</div>
+<!-- SELECT Modal -->
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="choose-pages">发布{{th.task_types.get(task_type)}}任务</h4>
+        </div>
+        <div class="modal-body">
+          <div class="priority-list">
+            <h4 class="control-label">选择优先级</h4>
+            <select class="form-control">
+              <option value="3">高</option>
+              <option value="2">中</option>
+              <option value="1">低</option>
+            </select>
+          </div>
+          <br/>
+          <div class="pre-tasks">
+            <h4 class="control-label">选择前置任务</h4>
+            <div>
+              {% for t, v in th.task_types.items() %}
+              {% if t != task_type %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}} />{{v}}
+              </label>
+              {% end %}
+              {% end %}
+            </div>
+          </div>
+          <br/>
+          <div class="form-group">
+            <div>
+              <div class="ms-container">
+                <div class="ms-selectable">
+                  <div class="selectableHeader">待选对象
+                    <a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a>
+                  </div>
+                  <div><i class="ser-btn"></i>
+                    <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，搜索服务器">
+                  </div>
+                </div>
+                <div class="ms-selection">
+                  <div class="selectionHeader">已选对象
+                    <a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a>
+                  </div>
+                  <div>
+                    <input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，搜索已选对象">
+                  </div>
+                </div>
+              </div>
+              <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
+                <option value=""></option>
+              </select>
+              <div id="pagination" class="ms-search-pagination"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ./ SELECT Modal -->
+  
+
 {% include _base_js.html %}
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
-<script type="text/javascript">
-  // <!---------发布任务/选择页编码--------->
+
+<script>
   var $modal = $('#selectModal');
   var pages = [];
   var searchStr = '';
@@ -317,7 +287,6 @@
     },
   });
 
-  <!--display pagination html-->
   function displayPagination(pageNo, pageSize, totalCount) {
     var pageCount = Math.ceil(totalCount / pageSize);
     if (pageCount <= 1) {
@@ -409,8 +378,6 @@
     $('#my_multi_select').multiSelect('deselect_all');
   });
 
-
-  <!--show modal-->
   function showModal(pageNo, pageSize, totalCount) {
     // 初始化select节点数据
     $('#my_multi_select').html(pages.map(function (p) {
@@ -430,7 +397,6 @@
     });
   });
 
-  // <!---------发布任务/上传页编码--------->
   <!--上传页编码文件-点击确定-发布任务-->
   $('#fileModal').find('#file_modal_btn').click(function () {
     // 任务类型
@@ -476,7 +442,8 @@
         if (res.status === 'failed') {
           showError('错误', res.message);
         } else {
-          showSuccess('已发布任务', (res.data.published || res.data.pending || []).length + ' 个页面已发布。');
+          var len = (res.data.published || []).length + (res.data.pending || []).length;
+          showSuccess('已发布任务', len + ' 个页面已发布。');
           setTimeout(function () {
             location.reload();
           }, 1000);
@@ -485,7 +452,7 @@
     });
   });
 
-  // <!---------任务管理--------->
+  // 任务管理
   function getUrlParam(name) {
     var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
     var r = window.location.search.substr(1).match(reg);
@@ -522,28 +489,25 @@
     }
   });
 
-
   <!--撤销任务-->
   function revoke(task_type, name) {
-    swal({
-          title: "确定撤回任务吗？",
-          text: "页面编码：" + name + "\n撤回后无法恢复！",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#b8906f",
-          confirmButtonText: "确定撤回",
-          cancelButtonText: "取消",
-          closeOnConfirm: true
-        },
-        function () {
-          //此处调用后台删除逻辑(ajax)
-          getApi('/task/withdraw/' + task_type + '/' + name, function (res) {
-            if (res.data.length) {
-              window.location.reload();
-            }
-          });
+    var info = {
+      title: "确定撤回任务吗？",
+      text: "页面编码：" + name + "\n撤回后无法恢复！",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定撤回",
+      cancelButtonText: "取消",
+      closeOnConfirm: true
+    };
+    swal(info, function () {
+      getApi('/task/withdraw/' + task_type + '/' + name, function (res) {
+        if (res.data.length) {
+          window.location.reload();
         }
-    );
+      });
+    });
   }
 
 </script>

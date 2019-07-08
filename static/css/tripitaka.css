@@ -838,6 +838,22 @@ a:hover {
     margin-right: 10px;
 }
 
+.collate-history .collate-list table tr td.status_none {
+    color: #999;
+}
+
+.collate-history .collate-list table tr td.status_pending {
+    color: #666;
+}
+
+.collate-history .collate-list table tr td.status_ended {
+    color: #0f0;
+}
+
+.collate-history .collate-list table tr td.status_opened {
+    color: #007;
+}
+
 .collate-list .operation span {
     display: block;
     float: left;
