@@ -518,7 +518,7 @@
     } else if (res.code == '{{e.no_task_to_pick[0]}}') {
       showError('暂无新任务', res.message);
     } else if (res.code != 500) {
-      var meta = {
+      var info = {
         title: "是否领取其它任务？",
         text: res.message,
         type: "warning",
@@ -528,7 +528,7 @@
         cancelButtonText: "取消",
         closeOnConfirm: false
       };
-      swal(meta,function() {
+      swal(info,function() {
           pick("/task/pick/{{task_type}}");
       });
     } else {
