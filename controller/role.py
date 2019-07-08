@@ -237,6 +237,13 @@ role_maps = {
         'roles': ['普通用户', '文字校对员', '文字审定员'],
         'routes': {
             '/task/lobby/text_hard': ['GET'],
+            '/api/task/pick/text_hard': ['POST'],
+            '/task/do/text_hard/@page_name': ['GET'],
+            '/api/task/do/text_hard/@page_name': ['POST'],
+            '/task/update/text_hard/@page_name': ['GET'],
+            '/api/task/update/text_hard/@page_name': ['POST'],
+            '/api/task/return/text_hard/@page_name': ['POST'],
+            '/api/data/unlock/text_hard/@page_name': ['POST'],
             '/data/edit/text/@page_name': ['GET'],
             '/api/data/edit/text/@page_name': ['POST'],
         }

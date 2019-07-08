@@ -36,7 +36,7 @@ class TaskHandler(BaseHandler):
         'text_proof_2': '文字校二',
         'text_proof_3': '文字校三',
         'text_review': '文字审定',
-        'text_hard': '难字处理',
+        'text_hard': '难字审定',
     }
 
     # 任务状态表

@@ -14,29 +14,24 @@ from controller.task.base import TaskHandler
 from controller.data.cbeta_search import find_one, find_neighbor
 
 
-class TextApi(TaskHandler):
-    """ 保存数据。有do/update两种模式。1. do。做任务时，保存或提交任务。2. update。任务完成后，本任务用户修改数据。
-        不提供其他人修改，因此仅检查任务归属，无需检查数据锁。
-    """
-    cmp_fields = {
-        'text_proof_1': 'cmp1',
-        'text_proof_2': 'cmp2',
-        'text_proof_3': 'cmp3'
-    }
-    save_fields = {
-        'text_proof_1': 'txt1_html',
-        'text_proof_2': 'txt2_html',
-        'text_proof_3': 'txt3_html',
-        'text_review': 'txt_review_html'
-    }
+class SaveTextProofApi(TaskHandler):
+    URL = ['/api/task/do/text_proof_@num/@page_name',
+           '/api/task/update/text_proof_@num/@page_name']
 
-    def save(self, task_type, page_name, mode):
+    cmp_fields = dict(text_proof_1='cmp1', text_proof_2='cmp2', text_proof_3='cmp3')
+    save_fields = dict(text_proof_1='txt1_html', text_proof_2='txt2_html', text_proof_3='txt3_html')
+
+    def post(self, num, page_name):
+        """ 保存或提交文字校对任务 """
         try:
-            assert task_type in self.text_task_names() and mode in ['do', 'update', 'edit']
+            task_type = 'text_proof_' + num
+            assert task_type in self.text_task_names()
 
+            mode = 'do' if '/do' in self.request.path else 'update'
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)
 
+            # 更新当前任务
             data, ret = self.get_request_data(), {'updated': True}
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
@@ -60,8 +55,8 @@ class TextApi(TaskHandler):
             if r.modified_count:
                 self.add_op_log('save_' + task_type, context=page_name)
 
+            # 更新后置任务
             if mode == 'do' and data.get('submit'):
-                # 处理后置任务
                 self.update_post_tasks(page_name, task_type)
                 ret['post_tasks_updated'] = True
 
@@ -71,34 +66,12 @@ class TextApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveTextProofApi(TextApi):
-    URL = ['/api/task/do/text_proof_@num/@page_name',
-           '/api/task/update/text_proof_@num/@page_name']
-
-    def post(self, num, page_name):
-        """ 保存或提交文字校对任务 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update'
-        self.save('text_proof_' + num, page_name, mode=mode)
-
-
-class SaveTextReviewApi(TextApi):
-    URL = ['/api/task/do/text_review/@page_name',
-           '/api/task/update/text_review/@page_name']
-
-    def post(self, page_name):
-        """ 保存或提交文字审定任务 """
-        p = self.request.path
-        mode = 'do' if '/do' in p else 'update'
-        self.save('text_review', page_name, mode=mode)
-
-
-class SaveCmpTextApi(TextApi):
+class SaveCmpTextApi(TaskHandler):
     URL = ['/api/task/do/text_proof_@num/find_cmp/@page_name',
            '/api/task/update/text_proof_@num/find_cmp/@page_name']
 
     def post(self, num, page_name):
-        """ 保存或提交文字校对-选择比对本数据 """
+        """ 文字校对-选择比对文本提交 """
         try:
             p = self.request.path
             mode = 'do' if '/do' in p else 'update'
@@ -112,7 +85,7 @@ class SaveCmpTextApi(TextApi):
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
 
             txt = data.get('cmp')
-            data_field = self.cmp_fields.get(task_type)
+            data_field = SaveTextProofApi.cmp_fields.get(task_type)
             if txt:
                 update.update({data_field: txt.strip('\n')})
 
@@ -132,7 +105,7 @@ class SaveCmpTextApi(TextApi):
             self.send_db_error(e)
 
 
-class GetCmpTextApi(TextApi):
+class GetCmpTextApi(TaskHandler):
     URL = '/api/task/text_proof/get_cmp/@page_name'
 
     def post(self, page_name):
@@ -153,11 +126,11 @@ class GetCmpTextApi(TextApi):
             self.send_db_error(e)
 
 
-class GetCmpNeighborApi(TextApi):
+class GetCmpNeighborApi(TaskHandler):
     URL = '/api/task/text_proof/get_cmp_neighbor'
 
     def post(self):
-        """ 获取ocr对应的比对文本
+        """ 获取比对文本的前后页文本
         :param page_code: 当前cmp文本的page_code（es库中的page_code）
         :param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
         """
@@ -174,6 +147,65 @@ class GetCmpNeighborApi(TextApi):
                 ))
             else:
                 self.send_error_response(errors.no_object, message='没有更多内容')
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class SaveTextReviewApi(TaskHandler):
+    URL = ['/api/task/do/text_review/@page_name',
+           '/api/task/update/text_review/@page_name',
+           '/api/data/edit/text/@page_name']
+
+    def post(self, page_name):
+        """ 文字审定提交 """
+        try:
+            task_type = 'text_review'
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            if not self.check_auth(mode, page_name, task_type):
+                self.send_error_response(errors.data_unauthorized)
+
+            # 更新当前任务
+            data, ret = self.get_request_data(), {'updated': True}
+            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
+
+            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
+            if txt:
+                update.update({'txt_review_html': txt})
+
+            doubt = self.get_request_data().get('doubt', '')
+            if doubt:
+                update.update({'tasks.%s.doubt' % task_type: doubt.strip('\n')})
+
+            if mode == 'do' and data.get('submit'):
+                update.update({
+                    'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+                    'tasks.%s.finished_time' % task_type: datetime.now(),
+                })
+                ret['submitted'] = True
+                # 生成难字任务
+                if doubt:
+                    update.update({
+                        'tasks.text_hard.status': self.STATUS_OPENED,
+                        'tasks.text_hard.publish_time': datetime.now(),
+                    })
+                    ret['text_hard'] = True
+                # 释放数据锁
+                data_field = self.get_shared_data_field(task_type)
+                if data_field in self.data_auth_maps:
+                    update.update({'lock.%s' % data_field: {}})
+                    ret['data_lock_released'] = True
+
+            r = self.db.page.update_one({'name': page_name}, {'$set': update})
+            if r.modified_count:
+                self.add_op_log('save_' + task_type, context=page_name)
+
+            # 更新后置任务
+            if mode == 'do' and data.get('submit'):
+                self.update_post_tasks(page_name, task_type)
+                ret['post_tasks_updated'] = True
+
+            self.send_data_response(ret)
 
         except DbError as e:
             self.send_db_error(e)

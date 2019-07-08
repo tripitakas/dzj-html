@@ -26,7 +26,7 @@ class CommonLeft(UIModule):
                 dict(name='切字审定', icon='icon_subitem', link='/task/lobby/char_cut_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/lobby/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/lobby/text_review'),
-                dict(name='难字处理', icon='icon_subitem', link='/task/lobby/text_hard'),
+                dict(name='难字审定', icon='icon_subitem', link='/task/lobby/text_hard'),
             ]),
             dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
                 dict(name='切栏校对', icon='icon_subitem', link='/task/my/block_cut_proof'),
@@ -37,7 +37,7 @@ class CommonLeft(UIModule):
                 dict(name='切字审定', icon='icon_subitem', link='/task/my/char_cut_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/my/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/my/text_review'),
-                dict(name='难字处理', icon='icon_subitem', link='/task/my/text_hard'),
+                dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
                 dict(name='切分状态', icon='icon_subitem', link='/task/admin/cut/status'),
@@ -52,7 +52,7 @@ class CommonLeft(UIModule):
                 dict(name='文字校二', icon='icon_subitem', link='/task/admin/text_proof_2'),
                 dict(name='文字校三', icon='icon_subitem', link='/task/admin/text_proof_3'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
-                dict(name='难字处理', icon='icon_subitem', link='/task/admin/text_hard'),
+                dict(name='难字审定', icon='icon_subitem', link='/task/admin/text_hard'),
             ]),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
