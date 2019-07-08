@@ -221,7 +221,7 @@ $(document).on('click', '.not-same', function (e) {
   $dlg.offset({top: $(this).offset().top + 40, left: $(this).offset().left - 4});
 
   //当弹框超出文字框时，向上弹出
-  var r_h = $(".right").height();
+  var r_h = $(".right.fr").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
 
