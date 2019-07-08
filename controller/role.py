@@ -66,7 +66,7 @@ role_maps = {
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/tripitaka/rs': ['GET'],
-            '/data/search_cbeta': ['GET'],
+            '/data/cbeta/search': ['GET'],
             '/task/@task_type/@page_name': ['GET'],
         }
     },

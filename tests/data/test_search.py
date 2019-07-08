@@ -18,9 +18,9 @@ class TestSearch(APITestCase):
     def tearDown(self):
         super(TestSearch, self).tearDown()
 
-    def test_view_search_cbeta(self):
+    def test_view_cbeta_search(self):
         q = '夫宗極絕於稱謂，賢聖以之沖默；玄旨非言'
-        r = self.fetch('/data/search_cbeta?q=%s&_no_auth=1' % q)
+        r = self.fetch('/data/cbeta/search?q=%s&_no_auth=1' % q)
         self.assert_code(200, r)
 
     def test_api_get_cmp(self):

@@ -48,7 +48,7 @@ class TextBaseHandler(TaskHandler):
                 segments = self.get_segments(page, task_type)
                 cmp_data = self.check_segments(segments, page['chars'], params)
             self.render(
-                'task_text.html',
+                'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
                 txts=self.get_txts(page, task_type), get_img=self.get_img,
                 **params

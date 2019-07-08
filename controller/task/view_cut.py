@@ -25,7 +25,7 @@ class CutBaseHandler(TaskHandler):
             readonly = not self.check_auth(mode, page, task_type)
             layout = int(self.get_query_argument('layout', 0))
             kwargs = self.char_render(page, layout, **kwargs) if box_type == 'char' else kwargs
-            template_name = kwargs.pop('template_name', 'task_cut_detail.html')
+            template_name = kwargs.pop('template_name', 'task_cut_do.html')
             self.render(
                 template_name, page=page, name=page['name'], boxes=page[data_field], get_img=self.get_img,
                 data_field=data_field, task_type=task_type, box_type=box_type, readonly=readonly, mode=mode,

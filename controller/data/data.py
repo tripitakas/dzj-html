@@ -59,7 +59,7 @@ class DataPageHandler(BaseHandler):
 
 
 class DataSearchCbetaHandler(BaseHandler):
-    URL = '/data/search_cbeta'
+    URL = '/data/cbeta/search'
 
     def get(self):
         """ 检索cbeta库 """
@@ -85,4 +85,4 @@ class DataSearchCbetaHandler(BaseHandler):
             except KeyError:
                 m['hits'] = m.get('hits') or m['_source']['origin']
 
-        self.render('data_search_cbeta.html', q=q, matches=matches)
+        self.render('data_cbeta_search.html', q=q, matches=matches)
