@@ -209,3 +209,45 @@ class SaveTextReviewApi(TaskHandler):
 
         except DbError as e:
             self.send_db_error(e)
+
+
+class SaveTextHardApi(TaskHandler):
+    URL = ['/api/task/do/text_hard/@page_name',
+           '/api/task/update/text_hard/@page_name']
+
+    def post(self, page_name):
+        """ 难字审定提交 """
+        try:
+            task_type = 'text_hard'
+            mode = (re.findall('/(do|update)/', self.request.path) or ['do'])[0]
+            if not self.check_auth(mode, page_name, task_type):
+                self.send_error_response(errors.data_unauthorized)
+
+            # 更新当前任务
+            data, ret = self.get_request_data(), {'updated': True}
+            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
+
+            txt = data.get('txt') and re.sub(r'\|+$', '', json_decode(data['txt']).strip('\n'))
+            if txt:
+                update.update({'txt_hard_html': txt})
+
+            if mode == 'do' and data.get('submit'):
+                update.update({
+                    'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+                    'tasks.%s.finished_time' % task_type: datetime.now(),
+                })
+                ret['submitted'] = True
+
+            r = self.db.page.update_one({'name': page_name}, {'$set': update})
+            if r.modified_count:
+                self.add_op_log('save_' + task_type, context=page_name)
+
+            # 更新后置任务
+            if mode == 'do' and data.get('submit'):
+                self.update_post_tasks(page_name, task_type)
+                ret['post_tasks_updated'] = True
+
+            self.send_data_response(ret)
+
+        except DbError as e:
+            self.send_db_error(e)

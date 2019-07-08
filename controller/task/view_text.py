@@ -22,7 +22,8 @@ class TextBaseHandler(TaskHandler):
         'text_proof_1': 'txt1_html',
         'text_proof_2': 'txt2_html',
         'text_proof_3': 'txt3_html',
-        'text_review': 'txt_review_html'
+        'text_review': 'txt_review_html',
+        'text_hard': 'txt_hard_html',
     }
 
     def get_segments(self, page, task_type):
@@ -208,7 +209,6 @@ class TextReviewHandler(TextBaseHandler):
             proof_doubt = ''
             for i in range(1, 4):
                 proof_doubt += self.prop(page, 'tasks.text_proof_%s.doubt' % i) or ''
-            proof_doubt = re.sub(r'<td\s+class="del-doubt">.*?</td>', '', proof_doubt, flags=re.M | re.S)
 
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
@@ -221,6 +221,44 @@ class TextReviewHandler(TextBaseHandler):
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, proof_doubt=proof_doubt, mode=mode,
                 readonly=readonly, txts=self.get_txts(page, task_type), get_img=self.get_img,
+                **params
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)
+
+
+class TextHardHandler(TextBaseHandler):
+    URL = ['/task/text_hard/@page_name',
+           '/task/do/text_hard/@page_name',
+           '/task/update/text_hard/@page_name']
+
+    def get(self, page_name):
+        """ 进入难字审定页面 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            task_type = 'text_hard'
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            readonly = not self.check_auth(mode, page, task_type)
+            doubt = self.prop(page, 'tasks.text_review.doubt')
+            proof_doubt = ''
+            for i in range(1, 4):
+                proof_doubt += self.prop(page, 'tasks.text_proof_%s.doubt' % i) or ''
+
+            params = dict(mismatch_lines=[])
+            layout = int(self.get_query_argument('layout', 0))
+            CutBaseHandler.char_render(page, layout, **params)
+            cmp_data = page.get(self.save_fields[task_type])
+            if not cmp_data:
+                cmp_data = page.get(self.save_fields['text_review'])
+
+            self.render(
+                'task_text_do.html',
+                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, proof_doubt=proof_doubt, mode=mode,
+                readonly=readonly, txts=self.get_txts(page, 'text_review'), get_img=self.get_img,
                 **params
             )
 
