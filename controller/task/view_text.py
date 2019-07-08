@@ -25,38 +25,6 @@ class TextBaseHandler(TaskHandler):
         'text_review': 'txt_review_html'
     }
 
-    def enter(self, task_type, page_name):
-        assert task_type in self.text_task_names()
-        try:
-            page = self.db.page.find_one(dict(name=page_name))
-            if not page:
-                return self.render('_404.html')
-
-            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
-            # 做任务时，如果find_cmp没有commit，则跳转find_cmp
-            if mode == 'do' and 'proof' in task_type:
-                committed = self.prop(page,'tasks.%s.committed' % task_type) or []
-                if not committed or 'find_cmp' not in committed:
-                    return self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
-            readonly = not self.check_auth(mode, page, task_type)
-            doubt = self.get_doubt(page, task_type)
-            cmp_data = page.get(self.save_fields[task_type])
-            params = dict(mismatch_lines=[])
-            layout = int(self.get_query_argument('layout', 0))
-            CutBaseHandler.char_render(page, layout, **params)
-            if not cmp_data:
-                segments = self.get_segments(page, task_type)
-                cmp_data = self.check_segments(segments, page['chars'], params)
-            self.render(
-                'task_text_do.html',
-                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_txts(page, task_type), get_img=self.get_img,
-                **params
-            )
-
-        except Exception as e:
-            self.send_db_error(e, render=True)
-
     def get_segments(self, page, task_type):
         if 'proof' in task_type:
             base = page.get('ocr').replace('|', '\n')
@@ -68,15 +36,6 @@ class TextBaseHandler(TaskHandler):
             txt3 = self.get_txt_from_html(page.get('txt3_html'))
             segments = Diff.diff(txt1, txt2, txt3)[0]
         return segments
-
-    def get_doubt(self, page, task_type):
-        if 'proof' in task_type:
-            doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
-        elif 'review' in task_type:
-            doubt = ''
-            for i in range(1, 4):
-                doubt += self.prop(page, 'tasks.text_proof_%s.doubt' % i) or ''
-        return doubt
 
     def get_txts(self, page, task_type):
         if 'proof' in task_type:
@@ -196,7 +155,37 @@ class TextProofHandler(TextBaseHandler):
 
     def get(self, num, page_name):
         """ 进入文字校对页面 """
-        self.enter('text_proof_' + num, page_name)
+
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            # 如果第一步find_cmp没有commit，则跳转find_cmp
+            task_type = 'text_proof_' + num
+            committed = self.prop(page, 'tasks.%s.committed' % task_type) or []
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            if mode == 'do' and (not committed or 'find_cmp' not in committed):
+                return self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
+
+            readonly = not self.check_auth(mode, page, task_type)
+            doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
+            params = dict(mismatch_lines=[])
+            layout = int(self.get_query_argument('layout', 0))
+            CutBaseHandler.char_render(page, layout, **params)
+            cmp_data = page.get(self.save_fields[task_type])
+            if not cmp_data:
+                segments = self.get_segments(page, task_type)
+                cmp_data = self.check_segments(segments, page['chars'], params)
+            self.render(
+                'task_text_do.html',
+                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
+                txts=self.get_txts(page, task_type), get_img=self.get_img,
+                **params
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class TextReviewHandler(TextBaseHandler):
@@ -207,7 +196,36 @@ class TextReviewHandler(TextBaseHandler):
 
     def get(self, page_name):
         """ 进入文字审定页面 """
-        self.enter('text_review', page_name)
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            task_type = 'text_review'
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            readonly = not self.check_auth(mode, page, task_type)
+            doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
+            proof_doubt = ''
+            for i in range(1, 4):
+                proof_doubt += self.prop(page, 'tasks.text_proof_%s.doubt' % i) or ''
+            proof_doubt = re.sub(r'<td\s+class="del-doubt">.*?</td>', '', proof_doubt, flags=re.M | re.S)
+
+            params = dict(mismatch_lines=[])
+            layout = int(self.get_query_argument('layout', 0))
+            CutBaseHandler.char_render(page, layout, **params)
+            cmp_data = page.get(self.save_fields[task_type])
+            if not cmp_data:
+                segments = self.get_segments(page, task_type)
+                cmp_data = self.check_segments(segments, page['chars'], params)
+            self.render(
+                'task_text_do.html',
+                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, proof_doubt=proof_doubt, mode=mode,
+                readonly=readonly, txts=self.get_txts(page, task_type), get_img=self.get_img,
+                **params
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class TextFindCmpHandler(TextBaseHandler):
