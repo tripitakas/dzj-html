@@ -105,7 +105,7 @@ function highlightBox($span, first) {
   // 或者用span任意字精确匹配
   else if (!boxes.length) {
     cmp_ch = function (what, ch) {
-      return ch === what;
+      return !what || ch === what;
     };
     for (i = 0; i < text.length && !boxes.length; i++) {
       chTmp = cmp_ch.bind(null, text[i]);
@@ -113,6 +113,11 @@ function highlightBox($span, first) {
     }
     if (boxes.length > 1) {
       boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, chTmp) || boxes[0];
+    }
+    else if (!boxes.length) {
+      boxes = $.cut.findCharsByLine(block_no, line_no, function (ch, box, i) {
+        return i === offsetInLine;
+      });
     }
   }
 

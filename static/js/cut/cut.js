@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-06-26
+ * Date: 2019-07-08
  */
 (function() {
   'use strict';
@@ -336,23 +336,23 @@
       var boxLeft = box.x + bound.x - 10 + sl;
 
       // 字框的下边缘在可视区域下面，就向上滚动
-      if (boxBottom - st > h) {
-        st = boxBottom - h;
+      if (boxBottom - st > h - 20) {
+        st = boxBottom - h + 20;
         scroll++;
       }
       // 字框的上边缘在可视区域上面，就向下滚动
-      else if (boxTop < st) {
-        st = boxTop;
+      else if (boxTop - 20 < st) {
+        st = boxTop - 20;
         scroll++;
       }
       // 字框的右边缘在可视区域右侧，就向左滚动
-      if (boxRight - sl > w) {
-        sl = boxRight - w;
+      if (boxRight - sl > w - 20) {
+        sl = boxRight - w + 20;
         scroll++;
       }
       // 字框的左边缘在可视区域左面，就向右滚动
-      else if (boxLeft < sl) {
-        sl = boxLeft;
+      else if (boxLeft - 20 < sl) {
+        sl = boxLeft - 20;
         scroll++;
       }
       if (scroll) {
@@ -726,8 +726,11 @@
     findCharById: findCharById,
 
     findCharsByLine: function(block_no, line_no, cmp) {
+      var i = 0;
       return data.chars.filter(function(box) {
-        return box.block_no === block_no && box.line_no === line_no && (!cmp || cmp(box.ch, box));
+        if (box.block_no === block_no && box.line_no === line_no) {
+          return !cmp || cmp(box.ch, box, i++);
+        }
       }).sort(function(a, b) {
         return a.char_no - b.char_no;
       });
