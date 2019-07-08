@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  {% set stage = '文字校对' if 'proof' in task_type else '文字审定' %}
+  {% set stage = '文字校对' if 'proof' in task_type else '文字审定' if 'review' in task_type else '难字审定' %}
   <title>{{stage}}</title>
   {% include _base_meta.html %}
   <!-- Plugins css -->
@@ -35,10 +35,9 @@
     }
 
     .sutra-text .blink {
-      -webkit-box-shadow: 0 0 20px 0 #eab977, 0 0 0 1px #cb9b66 !important;
-      box-shadow: 0 0 20px 0 #eab977, 0 0 0 1px #cb9b66 !important;
+      -webkit-box-shadow: 0 0 2px 0 #eab977, 0 0 0 1px #cb9b66 !important;
+      box-shadow: 0 0 2px 0 #eab977, 0 0 0 1px #cb9b66 !important;
       transition: box-shadow 1s !important;
-      color: #fff !important;
       background: #cb9b66;
       color: #fff;
     }
@@ -81,9 +80,14 @@
         </div>
         <div class="more">
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
-          <span class="btn-group ed-box-group hidden" role="group" aria-label="更多">
+          <span class="btn-group more-group hidden" role="group" aria-label="更多">
             {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="{{text}}">{{text}}</button>
+            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
+            {% end %}
+            {% if 'review' in task_type or 'hard' in task_type %}
+            <button type="button" class="btn btn-default btn-sm" id="text-proof-1">校一</button>
+            <button type="button" class="btn btn-default btn-sm" id="text-proof-2">校二</button>
+            <button type="button" class="btn btn-default btn-sm" id="text-proof-3">校二</button>
             {% end %}
           </span>
         </div>
@@ -153,15 +157,21 @@
               </div>
             </div>
             <!--/.pfread-dialog-->
-            <div class="char-list">
+            <div class="char-list doubt-list">
               <div class="char-list-tab">
-                <div class="char-list-tab-item active" id="a_demo">存疑列表</div>
+                {% if 'proof' in task_type %}
+                <div class="char-list-tab-item tab-editable active">校对存疑</div>
+                {% else %}
+                <div class="char-list-tab-item tab-editable active">审定存疑</div>
+                <div class="char-list-tab-item tab-view">校对存疑</div>
+                {% end %}
+
                 <div class="char-list-tab-arrow" id="table_toggle_btn">
                   <img src="{{ static_url('imgs/up_arrow.png') }}">
                   <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
                 </div>
               </div>
-              <table class="char-list-table">
+              <table class="char-list-table" id="doubt-table-editable">
                 <thead>
                 <tr>
                   <td>行号</td>
@@ -175,6 +185,22 @@
                 {% raw doubt if doubt else '' %}
                 </tbody>
               </table>
+              {% if 'proof' not in task_type %}
+              <table class="char-list-table hide" id="doubt-table-view">
+                <thead>
+                <tr>
+                  <td>行号</td>
+                  <td>字序号</td>
+                  <td>存疑文本</td>
+                  <td>存疑理由</td>
+                </tr>
+                </thead>
+                <tbody>
+                {% raw proof_doubt if proof_doubt else '' %}
+                </tbody>
+              </table>
+              {% end %}
+
             </div>
             <!--/.char-list-->
           </div>
@@ -213,7 +239,7 @@
     </div>
   </div>
 
-  <div class="panel-body">
+  <div class="panel-body" style="padding: 0">
     <div id="doubtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -242,7 +268,7 @@
     </div>
   </div>
 
-  <div class="panel-body">
+  <div class="panel-body" style="padding: 0">
     <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -324,7 +350,7 @@
 
   // 更多操作
   $('.btn-ed-box').click(function () {
-    $('.ed-box-group').toggleClass('hidden');
+    $('.more-group').toggleClass('hidden');
   });
 
   // 修改栏框
@@ -347,6 +373,21 @@
     window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
   });
 
+  // 查看校一
+  $('#text-proof-1').click(function () {
+    window.location = "/task/text_proof_1/" + '{{page["name"]}}';
+  });
+
+  // 查看校二
+  $('#text-proof-2').click(function () {
+    window.location = "/task/text_proof_2/" + '{{page["name"]}}';
+  });
+
+  // 查看校三
+  $('#text-proof-3').click(function () {
+    window.location = "/task/text_proof_3/" + '{{page["name"]}}';
+  });
+
   // 离开页面
   window.leave = function () {
     if ('{{mode}}' === 'do') {
@@ -356,6 +397,9 @@
     }
   };
 
+</script>
+
+<script>
   // 原文等对话框允许拖动
   $('.modal-header').on('mousedown', function (downEvt) {
     var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
@@ -433,7 +477,7 @@
   // 获取任务数据
   function getData(submit) {
     var txt = $('#sutra-text').html();
-    var doubt = $('.char-list-table tbody').html();
+    var doubt = $('#doubt-table-editable tbody').html();
     var data = {
       submit: submit,
       name: '{{page["name"]}}',

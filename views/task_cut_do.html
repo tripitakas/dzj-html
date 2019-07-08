@@ -64,7 +64,7 @@
         <div class="edit-btns">
           {% if box_type in ['column', 'char'] %}
           <div class="more">
-            <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
+            <div class="btn-group more-group hidden" role="group" aria-label="更多">
             {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
             {% for type,text in more[box_type] %}
             <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
@@ -221,7 +221,7 @@
 
   // 更多操作
   $('.btn-ed-box').click(function () {
-    $('.ed-box-group').toggleClass('hidden');
+    $('.more-group').toggleClass('hidden');
   });
 
   // 修改栏框

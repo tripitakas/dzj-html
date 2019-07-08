@@ -79,7 +79,7 @@
         <div class="right">
           <div class="edit-btns">
             <div class="more">
-              <div class="btn-group ed-box-group hidden" role="group" aria-label="更多">
+              <div class="btn-group more-group hidden" role="group" aria-label="更多">
                 {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
                 <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_order_proof/{{name}}{{'?layout=%d' % i}}">
                   {{txt}}
@@ -253,7 +253,7 @@
 
   // 更多操作
   $('.btn-ed-box').click(function () {
-    $('.ed-box-group').toggleClass('hidden');
+    $('.more-group').toggleClass('hidden');
   });
 
 </script>

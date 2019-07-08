@@ -508,10 +508,6 @@ $(document).on('click', '.btn-text', function () {
   $('#txtModal').modal();
 });
 
-// 帮助
-$(document).on('click', '.btn-help', function () {
-  window.open('/task/do/proofread/help', '_blank');
-});
 
 // 存疑对话框
 $(document).on('click', '.btn-doubt', function () {
@@ -522,6 +518,21 @@ $(document).on('click', '.btn-doubt', function () {
 
   $('#doubtModal').modal();
   $('#doubt_input').val(word);
+});
+
+// 切换存疑列表
+$(document).on('click', '.tab-editable', function () {
+  $(this).siblings().removeClass('active');
+  $(this).addClass('active');
+  $('#doubt-table-view').addClass('hide');
+  $('#doubt-table-editable').removeClass('hide');
+});
+
+$(document).on('click', '.tab-view', function () {
+  $(this).siblings().removeClass('active');
+  $(this).addClass('active');
+  $('#doubt-table-editable').addClass('hide');
+  $('#doubt-table-view').removeClass('hide');
 });
 
 // 存疑提交
@@ -542,19 +553,19 @@ $(document).on('click', '#doubt_save_btn', function () {
       "' data-reason='" + reason + "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
-  $('.char-list-table').append(line);
+  $('#doubt-table-editable').append(line);
   $('#doubtModal').modal('hide');
 
-  //提交之后底部村以列表自动展开
+  //提交之后底部以列表自动展开
   $('#table_toggle_btn').removeClass('active');
   $('#table_toggle_btn').addClass('');
-  $('.char-list-table').addClass('');
-  $('.char-list-table').removeClass('hidden');
+  $('#doubt-table-editable').addClass('');
+  $('#doubt-table-editable').removeClass('hidden');
 });
 
 $(document).on('click', '#table_toggle_btn', function () {
   $(this).toggleClass('active');
-  $('.char-list-table').toggleClass('hidden');
+  $('#doubt-table-editable').toggleClass('hidden');
 });
 
 // 关闭对话框时，输入框内容置空
@@ -582,7 +593,6 @@ $(document).on('mouseup', '.line > span', function () {
 // 点击存疑行表格，对应行blink效果
 $(document).on('click', '.char-list-tr', function () {
   var id = $(this).attr('data'), $li = $('#' + id);
-
   $('.right .bd').animate({scrollTop: $li.offset().top + 400}, 100);
   // 闪烁
   $li.addClass('blink');
