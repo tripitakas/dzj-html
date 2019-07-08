@@ -22,23 +22,27 @@
     .pfread-in {
       padding-top: 50px;
     }
+
     .modal-content .modal-header {
       height: 40px;
       padding-bottom: 0px;
     }
+
     .modal-content .close {
       color: var(--Color_Brown_Darker);
       margin-top: -25px;
       margin-right: -20px;
     }
+
     .sutra-text .blink {
-      -webkit-box-shadow: 0 0 20px 0 #eab977,0 0 0 1px #cb9b66 !important;
-      box-shadow: 0 0 20px 0 #eab977,0 0 0 1px #cb9b66 !important;
-      transition: box-shadow 1s!important;
+      -webkit-box-shadow: 0 0 20px 0 #eab977, 0 0 0 1px #cb9b66 !important;
+      box-shadow: 0 0 20px 0 #eab977, 0 0 0 1px #cb9b66 !important;
+      transition: box-shadow 1s !important;
       color: #fff !important;
       background: #cb9b66;
       color: #fff;
     }
+
     #txtModal textarea {
       width: 100%;
       font-size: 1.2em;
@@ -46,6 +50,7 @@
       margin-bottom: 10px;
       padding: 8px;
     }
+
     #txtModal.show-all textarea {
       width: calc(50% - 4px);
       display: inline-block;
@@ -60,7 +65,7 @@
 
       <header class="m-header">
         <div class="back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+          {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
           <a onclick="leave()" title="{{title}}">
             <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
           </a>
@@ -84,9 +89,9 @@
         </div>
         <div class="right">
           {% if readonly %}
-          <div class="tips">
-            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
-          </div>
+            <div class="tips">
+              {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+            </div>
           {% end %}
           <div class="edit-btns">
             <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
@@ -102,10 +107,10 @@
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text" title="原文"/>
             {% if not readonly %}
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% end %}
-            {% if not readonly and mode == 'do' %}
+            {% if mode == 'do' %}
             <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
+            {% end %}
             {% end %}
           </div>
         </div>
@@ -116,7 +121,8 @@
           <div class="bd" id="canvas-bd">
             <div id="holder"></div>
           </div>
-        </div><!--left-->
+        </div>
+        <!--/.left-->
         <div class="right fr">
           <div class="bd">
             <div class="sutra-text" id="sutra-text">
@@ -125,7 +131,8 @@
               {% else %}
                 {% module TextArea(segments=cmp_data) %}
               {% end %}
-            </div> <!--sutra-text-->
+            </div>
+            <!--/.sutra-text-->
             <div class="pfread-dialog" id="pfread-dialog">
               <div class="dialog-common dialog-abs">
                 <div class="dlg-before"></div>
@@ -144,7 +151,8 @@
                 </dl>
                 <div class="dlg-after"></div>
               </div>
-            </div> <!--pfread-dialog-->
+            </div>
+            <!--/.pfread-dialog-->
             <div class="char-list">
               <div class="char-list-tab">
                 <div class="char-list-tab-item active" id="a_demo">存疑列表</div>
@@ -155,30 +163,30 @@
               </div>
               <table class="char-list-table">
                 <thead>
-                  <tr>
-                    <td>行号</td>
-                    <td>字序号</td>
-                    <td>存疑文本</td>
-                    <td>存疑理由</td>
-                    <td>操作</td>
-                  </tr>
+                <tr>
+                  <td>行号</td>
+                  <td>字序号</td>
+                  <td>存疑文本</td>
+                  <td>存疑理由</td>
+                  <td>操作</td>
+                </tr>
                 </thead>
                 <tbody>
                 {% raw doubt if doubt else '' %}
                 </tbody>
               </table>
-            </div><!--char-list-->
+            </div>
+            <!--/.char-list-->
           </div>
-        </div><!--right-->
+        </div>
+        <!--/.right-->
       </div>
 
     </div>
   </div>
 
   <div class="panel-body" style="padding: 0">
-    <!-- modal content -->
-    <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel"
-         aria-hidden="true">
+    <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -196,7 +204,7 @@
           <div class="modal-body">
             {% import re %}
             {% for k, txt in txts.items() %}
-              <textarea id="{{k}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt))}}</textarea>
+            <textarea id="{{k}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt))}}</textarea>
             {% end %}
             <p style="font-style: italic"><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
           </div>
@@ -205,16 +213,11 @@
     </div>
   </div>
 
-  <div class="panel-body" style="padding-bottom: 2px;">
-    <!-- modal content -->
-    <div id="doubtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
-         aria-hidden="true">
+  <div class="panel-body">
+    <div id="doubtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h4 class="modal-title" id="choose-pages">存疑</h4>
-          </div>
+          <div class="modal-header"><h4 class="modal-title">存疑</h4></div>
           <div class="modal-body">
             <div class="form-group">
               <table style="width: 100%">
@@ -232,28 +235,18 @@
           <div class="modal-footer">
             <span id="doubt_tip">请填写存疑理由</span>
             <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-            <button type="button" class="btn btn-primary waves-effect waves-light" id="doubt_save_btn">
-              确定
-            </button>
+            <button type="button" class="btn btn-primary waves-effect waves-light" id="doubt_save_btn">确定</button>
           </div>
         </div>
-        <!-- /.modal-content -->
       </div>
-      <!-- /.modal-dialog -->
     </div>
-    <!-- /.modal -->
   </div>
 
-  <div class="panel-body" style="padding-bottom: 2px;">
-    <!-- modal content -->
-    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
-         aria-hidden="true">
+  <div class="panel-body">
+    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModal" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h4 class="modal-title">退回任务</h4>
-          </div>
+          <div class="modal-header"><h4 class="modal-title">退回任务</h4></div>
           <div class="modal-body">
             <div class="form-group">
               <table style="width: 100%">
@@ -266,9 +259,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-            <button type="button" class="btn btn-primary waves-effect waves-light" id="modal-return-btn">
-              确定
-            </button>
+            <button type="button" class="btn btn-primary waves-effect waves-light" id="modal-return-btn">确定</button>
           </div>
         </div>
       </div>
@@ -348,29 +339,12 @@
 
   // 修改字框
   $('.ed-char-box').click(function () {
-   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{page["name"]}}';
+    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{page["name"]}}';
   });
 
   // 修改字序
   $('.ed-order-box').click(function () {
     window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
-  });
-
-  // 退回任务
-  $('.btn-return').click(function () {
-    $('#returnModal').modal();
-  });
-
-  $(document).on('click', '#modal-return-btn', function () {
-    var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason:reason}
-    }, function () {
-      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";
-      }, 1000);
-    });
   });
 
   // 离开页面
@@ -381,102 +355,6 @@
       window.history.back();
     }
   };
-
-  // 获取数据
-  function getData(submit) {
-    var txt = $('#sutra-text').html();
-    var doubt = $('.char-list-table tbody').html();
-
-    var data = {
-      submit: submit,
-      name: '{{page["name"]}}',
-      txt: JSON.stringify(txt),
-      doubt: doubt
-    };
-    console.log(data);
-    return data;
-  }
-
-  // 保存任务
-  $('.btn-save').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(false)
-    }, function () {
-      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1000);
-    });
-	});
-
-  // 提交任务
-  $('.btn-submit').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(true)
-    }, function () {
-      // showSuccess('提交成功', '{{page["name"]}} ' + '已提交成功');
-      pick("/task/pick/{{'text_proof' if 'proof' in task_type else 'text_review'}}");
-    });
-  });
-
-  // 领取新任务（从任务大厅领取任务的js中拷贝）
-  {% import controller.errors as e %}
-  function pick(url, page_name) {
-    var data = page_name == undefined ? {data: {}} : {data: {page_name: page_name}};
-    postApi(
-		  url,
-      data,
-		  function (res) {
-		    if (res && res.url) {
-		      window.location = res.url;
-		    }
-		  },
-		  function (res) {
-        console.log(res);
-        if (res.code == {{e.task_uncompleted[0]}}) {
-          swal({
-            title: "是否继续未完成的任务？",
-            text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#b8906f",
-            confirmButtonText: "确定继续",
-            cancelButtonText: "取消",
-            closeOnConfirm: false
-            },
-            function() {
-             window.location = res.url;
-            }
-          );
-        } else if (res.code == {{e.no_task_to_pick[0]}}) {
-          showError('暂无新任务', res.message);
-          setTimeout(function () {
-            window.location.reload();
-          }, 1500);
-        } else if (res.code != 500) {
-          swal({
-             title: "是否领取其它任务？",
-             text: res.message,
-             type: "warning",
-             showCancelButton: true,
-             confirmButtonColor: "#b8906f",
-             confirmButtonText: "确定领取",
-             cancelButtonText: "取消",
-             closeOnConfirm: false
-            },
-            function() {
-              pick("/task/pick/{{task_type}}");
-            }
-          );
-        } else {
-          showError('发生错误', res.message);
-          setTimeout(function () {
-            window.location.reload();
-          }, 1500);
-        }
-      } // error_callback
-   );
-  }
 
   // 原文等对话框允许拖动
   $('.modal-header').on('mousedown', function (downEvt) {
@@ -548,6 +426,115 @@
       }
     });
   });
+
+</script>
+
+<script>
+  // 获取任务数据
+  function getData(submit) {
+    var txt = $('#sutra-text').html();
+    var doubt = $('.char-list-table tbody').html();
+    var data = {
+      submit: submit,
+      name: '{{page["name"]}}',
+      txt: JSON.stringify(txt),
+      doubt: doubt
+    };
+    console.log(data);
+    return data;
+  }
+
+  // 保存任务
+  $('.btn-save').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
+      data: getData(false)
+    }, function () {
+      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
+    });
+  });
+
+  // 提交任务
+  $('.btn-submit').on("click", function () {
+    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
+      data: getData(true)
+    }, function () {
+      pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
+    });
+  });
+
+  // 退回任务
+  $('.btn-return').click(function () {
+    $('#returnModal').modal();
+  });
+
+  $(document).on('click', '#modal-return-btn', function () {
+    var reason = $('#return_reason').val();
+    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+      data: {reason: reason}
+    }, function () {
+      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
+      setTimeout(function () {
+        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
+      }, 1000);
+    });
+  });
+
+</script>
+
+{% import controller.errors as e %}
+<script>
+  // 领取新任务(从任务大厅拷贝)
+  function pick(url, page_name) {
+    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
+    postApi(url, data, function (res) {
+      if (res && res.url) {
+        window.location = res.url;
+      }
+    }, function (res) {
+      error_callback(res);
+    });
+  }
+
+  // 领取任务失败回调
+  function error_callback(res) {
+    console.log(res);
+    if (res.code == '{{e.task_uncompleted[0]}}') {
+      var info = {
+        title: "是否继续未完成的任务？",
+        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定继续",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(info, function() {
+          window.location = res.url;
+      });
+    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
+      showError('暂无新任务', res.message);
+    } else if (res.code != 500) {
+      var meta = {
+        title: "是否领取其它任务？",
+        text: res.message,
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定领取",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(meta,function() {
+          pick("/task/pick/{{task_type}}");
+      });
+    } else {
+      showError('发生错误', res.message);
+    }
+  }
 
 </script>
 
