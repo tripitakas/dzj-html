@@ -516,7 +516,7 @@ $(document).on('click', '.btn-text', function () {
 
 // 存疑对话框
 $(document).on('click', '.btn-doubt', function () {
-  var word = window.getSelection().toString();
+  var word = window.getSelection ? window.getSelection().toString() : null;
   if (word.length <= 0 || !currentSpan[0]) {
     return showError('请先选择存疑文字', '');
   }
@@ -555,7 +555,7 @@ $(document).on('click', '#doubt_save_btn', function () {
   var lineId = $span.parent().attr('id');
 
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
-      "' data-reason='" + reason + "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
+      "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
   $('#doubt-table-editable').append(line);
@@ -595,13 +595,39 @@ $(document).on('mouseup', '.line > span', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
+function findSpanByOffset($li, offset) {
+  var ret = [null, 0];
+  $li.find('span').each(function () {
+    var off = parseInt($(this).attr('offset'));
+    if (off <= offset) {
+      ret = [$(this), offset - off];
+    }
+  });
+  return ret;
+}
+
+function selectInSpan(startNode, startOffset, endOffset) {
+  var range = document.createRange();
+  range.setStart(startNode, startOffset);
+  range.setEnd(startNode, endOffset);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 // 点击存疑行表格，对应行blink效果
 $(document).on('click', '.char-list-tr', function () {
   var id = $(this).attr('data'), $li = $('#' + id);
+  var pos = findSpanByOffset($li, parseInt($(this).attr('data-offset')));
+
   $('.right .bd').animate({scrollTop: $li.offset().top + 400}, 100);
+
   // 闪烁
-  $li.addClass('blink');
+  (pos[0] || $li).addClass('blink');
   setTimeout(function () {
-    $li.removeClass("blink");
+    (pos[0] || $li).removeClass("blink");
+    if (pos[0]) {
+      selectInSpan(pos[0][0], pos[1], 2);
+    }
   }, 800);
 });
