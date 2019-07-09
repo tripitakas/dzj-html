@@ -70,7 +70,7 @@ class TaskHandler(BaseHandler):
       2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时，分配临时数据锁，在窗口离开时解锁，或定时自动回收。
     3）数据锁的使用：
       1.首先在task_shared_data_fields中注册需要共享的数据字段；
-      2. 然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
+      2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
     """
 
     # 数据锁注册表。在任务的领取、保存、提交、完成及退回等操作时，需要判断是否要检查数据锁时，以这个表来判断。

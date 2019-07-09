@@ -102,19 +102,6 @@ class PickTaskApi(TaskHandler):
             return self.assign_task(self, tasks[0]['name'], task_type)
 
 
-class UnlockTaskDataApi(TaskHandler):
-    URL = '/api/data/unlock/@task_type/@page_name'
-
-    def post(self, task_type, page_name):
-        """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
-        try:
-            data_field = self.get_shared_data_field(task_type)
-            self.release_temp_data_lock(page_name, data_field)
-            self.send_data_response()
-        except DbError as e:
-            self.send_db_error(e)
-
-
 class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_type/@page_name'
 
@@ -152,6 +139,56 @@ class ReturnTaskApi(TaskHandler):
             self.send_db_error(e)
 
 
+class SubmitTaskApi(TaskHandler):
+
+    def submit(self, task_type, page_name):
+        """ 任务提交 """
+        # 更新当前任务
+        ret = {'submitted': True}
+        update = {
+            'tasks.%s.status' % task_type: self.STATUS_FINISHED,
+            'tasks.%s.finished_time' % task_type: datetime.now(),
+        }
+
+        # 释放数据锁
+        data_field = self.get_shared_data_field(task_type)
+        if data_field in self.data_auth_maps:
+            update['lock.' + data_field] = {}
+            ret['data_lock_released'] = True
+
+        r = self.db.page.update_one({'name': page_name}, {'$set': update})
+        if r.modified_count:
+            self.add_op_log('submit_' + task_type, context=page_name)
+
+        # 更新后置任务
+        self.update_post_tasks(page_name, task_type)
+        ret['post_tasks_updated'] = True
+
+        return ret
+
+
+class UnlockTaskDataApi(TaskHandler):
+    URL = '/api/data/unlock/@task_type/@page_name'
+
+    def post(self, task_type, page_name):
+        """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
+        try:
+            data_field = self.get_shared_data_field(task_type)
+            self.release_temp_data_lock(page_name, data_field)
+            self.send_data_response()
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class WithDrawTasksApi(TaskHandler):
+    URL = '/api/task/withdraw/@task_type'
+
+    def post(self, task_type):
+        """ 管理员批量撤回任务 """
+        page_names = self.get_request_data().get('page_names')
+        pass
+
+
 class GetPageApi(TaskHandler):
     URL = '/api/task/page/@page_name'
 
@@ -165,3 +202,5 @@ class GetPageApi(TaskHandler):
 
         except DbError as e:
             self.send_db_error(e)
+
+

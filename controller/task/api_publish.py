@@ -237,12 +237,3 @@ class PublishTasksFileApi(PublishTasksApi):
 
         log = self.publish_task(page_names, data['task_type'], data['priority'], data['pre_tasks'])
         self.send_data_response({k: v for k, v in log.items() if v})
-
-
-class WithDrawTasksApi(TaskHandler):
-    URL = '/api/task/withdraw/@task_type'
-
-    def post(self, task_type):
-        """ 管理员批量撤回任务 """
-        page_names = self.get_request_data().get('page_names')
-        pass

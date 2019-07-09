@@ -11,14 +11,14 @@
 import re
 
 url_placeholder = {
-    'task_type': r'[a-z0-9_.]+',
-    'page_name': r'[A-Za-z0-9_]+',
-    'data_field': 'blocks|columns|chars|text|ocr',
-    'box_type': 'block|column|char',
     'num': r'\d+',
-    'page_prefix': r'[A-Za-z0-9_]*',
     'page_kind': r'[a-z_]+',
-    'tripitaka_id': r'[a-z]{3,}'
+    'task_type': r'[a-z0-9_.]+',
+    'tripitaka_id': r'[a-z]{3,}',
+    'page_name': r'[A-Za-z0-9_]+',
+    'page_prefix': r'[A-Za-z0-9_]*',
+    'box_type': 'block|column|char',
+    'data_field': 'blocks|columns|chars|text|ocr',
 }
 
 role_maps = {

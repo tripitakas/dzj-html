@@ -5,9 +5,9 @@
 @time: 2018/12/26
 """
 
+import re
 from controller.task.base import TaskHandler
 from controller.data.api_algorithm import GenerateCharIdApi as GenApi
-import re
 
 
 class CutBaseHandler(TaskHandler):

@@ -13,17 +13,16 @@ from controller.data.diff import Diff
 
 
 class TextBaseHandler(TaskHandler):
-
-    cmp_fields = dict(text_proof_1='cmp1', text_proof_2='cmp2', text_proof_3='cmp3')
-    save_fields = dict(text_proof_1='txt1_html', text_proof_2='txt2_html', text_proof_3='txt3_html',
-                       text_review='txt_html', text_hard='txt_html')
+    cmp_fields = {'text_proof_1': 'cmp1', 'text_proof_2': 'cmp2', 'text_proof_3': 'cmp3'}
+    save_fields = {'text_proof_1': 'txt1_html', 'text_proof_2': 'txt2_html', 'text_proof_3': 'txt3_html',
+                   'text_review': 'txt_html', 'text_hard': 'txt_html'}
 
     def get_segments(self, page, task_type):
         if 'proof' in task_type:
             base = page.get('ocr').replace('|', '\n')
             cmp = self.prop(page, self.cmp_fields.get(task_type))
             segments = Diff.diff(base, cmp or base, label=dict(cmp1='cmp'))[0]
-        elif 'review' in task_type:
+        else:
             txt1 = self.get_txt_from_html(page.get('txt1_html'))
             txt2 = self.get_txt_from_html(page.get('txt2_html'))
             txt3 = self.get_txt_from_html(page.get('txt3_html'))
@@ -35,13 +34,21 @@ class TextBaseHandler(TaskHandler):
             ocr = page.get('ocr').replace('|', '\n')
             cmp = self.prop(page, self.cmp_fields.get(task_type))
             txts = dict(ocr=ocr, cmp=cmp)
-        elif 'review' in task_type or 'hard' in task_type:
+        else:
             txt1 = self.get_txt_from_html(page.get('txt1_html'))
             txt2 = self.get_txt_from_html(page.get('txt2_html'))
             txt3 = self.get_txt_from_html(page.get('txt3_html'))
             txts = dict(cmp1=txt1, cmp2=txt2, cmp3=txt3)
-
         return txts
+
+    def get_labels(self, page, task_type):
+        if 'proof' in task_type:
+            labels = dict(base='OCR', cmp='比对本')
+        else:
+            labels = dict(base='校一', cmp1='校二')
+            if len(self.prop(page, 'tasks.text_review.pre_tasks')) > 2:
+                labels['cmp2'] = '校三'
+        return labels
 
     @staticmethod
     def get_txt_from_html(html):
@@ -107,38 +114,28 @@ class TextBaseHandler(TaskHandler):
             c.pop('char_no', 0)
 
 
-class TextArea(UIModule):
-    """文字校对的文字区"""
+class TextFindCmpHandler(TextBaseHandler):
+    URL = ['/task/do/text_proof_@num/find_cmp/@page_name',
+           '/task/update/text_proof_@num/find_cmp/@page_name']
 
-    def render(self, segments, raw=False):
-        cur_line_no = 0
-        items = []
-        lines = []
-        blocks = [dict(block_no=1, lines=lines)]
+    def get(self, num, page_name):
+        """ 文字校对-选择比对本页面 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
 
-        for item in segments:
-            if isinstance(item.get('ocr'), list):
-                item['unicode'] = item['ocr']
-                item['ocr'] = ''.join(c if re.match('^[A-Za-z0-9?*]$', c) else url_escape(c) if len(c) > 2 else ' '
-                                      for c in item['ocr'])
+            mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
+            task_type = 'text_proof_' + num
+            readonly = not self.check_auth(mode, page, task_type)
+            self.render(
+                'task_text_find_cmp.html',
+                task_type=task_type, page=page, num=num, ocr=page.get('ocr'),
+                mode=mode, readonly=readonly, get_img=self.get_img,
+            )
 
-            if 'block_no' in item and item['block_no'] != blocks[-1]['block_no']:
-                lines = []
-                blocks.append(dict(block_no=blocks[-1]['block_no'] + 1, lines=lines))
-            if item['line_no'] != cur_line_no:
-                cur_line_no = item['line_no']
-                items = [item]
-                lines.append(dict(line_no=cur_line_no, items=items))
-                item['offset'] = 0
-            elif items:
-                item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
-                items.append(item)
-            item['block_no'] = blocks[-1]['block_no']
-
-        cmp_names = dict(base='基准', cmp='外源', cmp1='校一', cmp2='校二', cmp3='校三')
-        if raw:
-            return dict(blocks=blocks, cmp_names=cmp_names)
-        return self.render_string('task_text_area.html', blocks=blocks, cmp_names=cmp_names)
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class TextProofHandler(TextBaseHandler):
@@ -154,10 +151,10 @@ class TextProofHandler(TextBaseHandler):
             if not page:
                 return self.render('_404.html')
 
-            # 如果第一步find_cmp没有commit，则跳转find_cmp
+            # 如果find_cmp没有commit，则跳转find_cmp
             task_type = 'text_proof_' + num
             committed = self.prop(page, 'tasks.%s.committed' % task_type) or []
-            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
             if mode == 'do' and (not committed or 'find_cmp' not in committed):
                 return self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
 
@@ -173,7 +170,7 @@ class TextProofHandler(TextBaseHandler):
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=dict(base='OCR', cmp='比对本'),
+                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
                 **params
             )
 
@@ -210,38 +207,12 @@ class TextReviewHandler(TextBaseHandler):
                 segments = self.get_segments(page, task_type)
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
-            labels = dict(base='校一', cmp1='校二')
-            if len(self.prop(page, 'tasks.text_review.pre_tasks')) > 2:
-                labels['cmp2'] = '校三'
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                proof_doubt=proof_doubt, get_img=self.get_img, txts=self.get_txts(page, task_type), labels=labels,
+                proof_doubt=proof_doubt, get_img=self.get_img, txts=self.get_txts(page, task_type),
+                labels=self.get_labels(page, task_type),
                 **params
-            )
-
-        except Exception as e:
-            self.send_db_error(e, render=True)
-
-
-class TextFindCmpHandler(TextBaseHandler):
-    URL = ['/task/do/text_proof_@num/find_cmp/@page_name',
-           '/task/update/text_proof_@num/find_cmp/@page_name']
-
-    def get(self, num, page_name):
-        """ 文字校对-选择比对本页面 """
-        try:
-            page = self.db.page.find_one(dict(name=page_name))
-            if not page:
-                return self.render('_404.html')
-
-            mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
-            task_type = 'text_proof_' + num
-            readonly = not self.check_auth(mode, page, task_type)
-            self.render(
-                'task_text_find_cmp.html',
-                task_type=task_type, page=page, num=num, ocr=page.get('ocr'),
-                mode=mode, readonly=readonly, get_img=self.get_img,
             )
 
         except Exception as e:
@@ -268,16 +239,47 @@ class TextHardHandler(TextBaseHandler):
             layout = int(self.get_query_argument('layout', 0))
             CutBaseHandler.char_render(page, layout, **params)
             cmp_data = page.get(self.save_fields[task_type])
-            labels = dict(base='校一', cmp1='校二')
-            if len(self.prop(page, 'tasks.text_review.pre_tasks')) > 2:
-                labels['cmp2'] = '校三'
 
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=labels,
+                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
                 **params
             )
 
         except Exception as e:
             self.send_db_error(e, render=True)
+
+
+class TextArea(UIModule):
+    """文字校对的文字区"""
+
+    def render(self, segments, raw=False):
+        cur_line_no = 0
+        items = []
+        lines = []
+        blocks = [dict(block_no=1, lines=lines)]
+
+        for item in segments:
+            if isinstance(item.get('ocr'), list):
+                item['unicode'] = item['ocr']
+                item['ocr'] = ''.join(c if re.match('^[A-Za-z0-9?*]$', c) else url_escape(c) if len(c) > 2 else ' '
+                                      for c in item['ocr'])
+
+            if 'block_no' in item and item['block_no'] != blocks[-1]['block_no']:
+                lines = []
+                blocks.append(dict(block_no=blocks[-1]['block_no'] + 1, lines=lines))
+            if item['line_no'] != cur_line_no:
+                cur_line_no = item['line_no']
+                items = [item]
+                lines.append(dict(line_no=cur_line_no, items=items))
+                item['offset'] = 0
+            elif items:
+                item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
+                items.append(item)
+            item['block_no'] = blocks[-1]['block_no']
+
+        cmp_names = dict(base='基准', cmp='外源', cmp1='校一', cmp2='校二', cmp3='校三')
+        if raw:
+            return dict(blocks=blocks, cmp_names=cmp_names)
+        return self.render_string('task_text_area.html', blocks=blocks, cmp_names=cmp_names)

@@ -47,7 +47,8 @@ class TestDataLock(APITestCase):
             self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
 
             # 测试保存任务时，数据锁不变
-            self.assert_code(200, self.fetch('/api/task/do/%s/%s' % (task_type, name1), body={'data': {}}))
+            r = self.fetch('/api/task/do/%s/%s' % (task_type, name1), body={'data': {}})
+            self.assert_code(200, r, msg=task_type)
             lock = self.get_data_lock(name1, task_type)
             self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
 
