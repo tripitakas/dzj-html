@@ -26,7 +26,7 @@ class TextBaseHandler(TaskHandler):
             txt1 = self.get_txt_from_html(page.get('txt1_html'))
             txt2 = self.get_txt_from_html(page.get('txt2_html'))
             txt3 = self.get_txt_from_html(page.get('txt3_html'))
-            segments = Diff.diff(txt1, txt2, txt3)[0]
+            segments = Diff.diff(txt1, txt2 or txt1, txt3 or txt1)[0]
         return segments
 
     def get_txts(self, page, task_type):

@@ -85,9 +85,11 @@
             <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
             {% end %}
             {% if 'review' in task_type or 'hard' in task_type %}
-            <button type="button" class="btn btn-default btn-sm" id="text-proof-1">校一</button>
-            <button type="button" class="btn btn-default btn-sm" id="text-proof-2">校二</button>
-            <button type="button" class="btn btn-default btn-sm" id="text-proof-3">校二</button>
+            {% for i, s in enumerate(['校一', '校二', '校三']) %}
+            {% if txts['cmp%d' % (i + 1)] %}
+            <button type="button" class="btn btn-default btn-sm" id="text-proof-{{i + 1}}">{{s}}</button>
+            {% end %}
+            {% end %}
             {% end %}
           </span>
         </div>
@@ -108,6 +110,9 @@
             <img src="{{ static_url('imgs/char_icon3.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
             <img src="{{ static_url('imgs/char_icon4.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
             <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt" title="存疑"/>
+            {% if 'review' in task_type or 'hard' in task_type %}
+            <img src="{{ static_url('imgs/icon_check.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
+            {% end %}
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text" title="原文"/>
             {% if not readonly %}
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
@@ -380,7 +385,7 @@
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
+    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
   });
 
   // 查看校一

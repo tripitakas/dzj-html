@@ -9,7 +9,6 @@ var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
 var showOrder = false;                    // 是否显示字框对应序号
 var showText = false;                     // 是否显示字框对应文字
-var lineNos = [];
 var currentSpan = [null];                 // $(当前span)，是否第一个
 var offsetInSpan;                         // 当前选中范围的开始位置
 
@@ -159,6 +158,11 @@ function highlightBox($span, first) {
 function checkMismatch(report) {
   var mismatch = [];
   var total = '', ocrColumns = [];
+  var lineNos = $('#sutra-text .line').map(function () {
+    var blockNo = parseInt($(this).parent().attr('id').replace(/[^0-9]/g, ''));
+    var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
+    return {blockNo: blockNo, lineNo: lineNo};
+  }).get();
 
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.line_no) {
@@ -172,13 +176,13 @@ function checkMismatch(report) {
     total = '文本 ' + lineNos.length + ' 行，图像 ' + ocrColumns.length + ' 行。';
   }
   lineNos.forEach(function (no) {
-    var boxes = $.cut.findCharsByLine(no[0], no[1]);
-    var $line = $('#block-' + no[0] + ' #line-' + no[1]);
+    var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
+    var $line = $('#block-' + no.blockNo + ' #line-' + no.lineNo);
     var text = $line.text().replace(/\s/g, '');
     var len = getLineText($line).length;
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length !== len) {
-      mismatch.push('第 ' + no[1] + ' 行，文本 ' + len + ' 字，图像 ' + boxes.length +
+      mismatch.push('第 ' + no.lineNo + ' 行，文本 ' + len + ' 字，图像 ' + boxes.length +
           ' 字。\n' + text + '\n');
     }
   });
