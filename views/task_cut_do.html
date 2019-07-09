@@ -262,12 +262,12 @@
 
   // 提交任务
   $('.btn-submit').on("click", function () {
-    var isChar = 'True' === '{{"char_cut" in task_type}}';
     var data = {
-      submit: !isChar,
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
     };
+    var isChar = 'True' === '{{"char_cut" in task_type}}';
+    data[isChar ? 'commit' : 'submit'] = true
     postApi('/task/do/{{task_type}}/{{name}}', {
       data: data
     }, function () {

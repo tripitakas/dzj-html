@@ -17,11 +17,14 @@ class CutBaseHandler(TaskHandler):
             task_type = '%s_cut_%s' % (box_type, stage)
             data_field = self.get_shared_data_field(task_type)
 
-            page = self.db.page.find_one(dict(name=name), self.simple_fileds(include=['blocks', 'columns', 'chars']))
+            page = self.db.page.find_one(dict(name=name))
             if not page:
                 return self.render('_404.html')
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            if '/task/do/char_cut' in self.request.path and 'order' not in self.request.path \
+                    and self.prop(page, 'tasks.%s.committed' % task_type):
+                self.redirect('/task/do/%s/order/%s' % (task_type, name))
             readonly = not self.check_auth(mode, page, task_type)
             layout = int(self.get_query_argument('layout', 0))
             kwargs = self.char_render(page, layout, **kwargs) if box_type == 'char' else kwargs
@@ -83,5 +86,5 @@ class CharOrderReviewHandler(CutBaseHandler):
            '/task/update/char_cut_review/order/@page_name']
 
     def get(self, page_name):
-        """ 进入字序校对页面 """
+        """ 进入字序审定页面 """
         self.enter('char', 'review', page_name, template_name='task_char_order.html')
