@@ -4,6 +4,7 @@ views = [
     view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
     view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler, view_admin.TaskAdminHandler,
     view_cut.CutProofHandler, view_cut.CutReviewHandler, view_cut.CharOrderProofHandler,
+    view_cut.CharOrderReviewHandler,
     view_text.TextProofHandler, view_text.TextReviewHandler, view_text.TextFindCmpHandler, view_text.TextHardHandler,
 ]
 handlers = [

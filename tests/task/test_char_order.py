@@ -13,11 +13,11 @@ class TestCharOrder(APITestCase):
             email=u.expert1[0], password=u.expert1[1], name=u.expert1[2])))
 
     def test_simple(self):
-        r = self.fetch('/task/char_order_proof/GL_924_2_35?_raw=1')
+        r = self.fetch('/task/char_cut_proof/order/GL_924_2_35?_raw=1')
         self.assert_code(200, r)
         r = self.parse_response(r)
         self.assertIn('chars_col', r)
-        r = self.parse_response(self.fetch('/task/char_order_proof/GL_924_2_35?_raw=1&layout=2'))
+        r = self.parse_response(self.fetch('/task/char_cut_proof/order/GL_924_2_35?_raw=1&layout=2'))
         self.assertEqual(r.get('zero_char_id'), [])
 
     def test_gen_char_id(self):

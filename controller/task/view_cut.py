@@ -67,11 +67,21 @@ class CutReviewHandler(CutBaseHandler):
 
 
 class CharOrderProofHandler(CutBaseHandler):
-    URL = ['/task/char_order_proof/@page_name',
-           '/task/do/char_order_proof/@page_name',
-           '/task/update/char_order_proof/@page_name',
+    URL = ['/task/char_cut_proof/order/@page_name',
+           '/task/do/char_cut_proof/order/@page_name',
+           '/task/update/char_cut_proof/order/@page_name',
            '/data/edit/char_order/@page_name']
 
     def get(self, page_name):
         """ 进入字序校对页面 """
         self.enter('char', 'proof', page_name, template_name='task_char_order.html')
+
+
+class CharOrderReviewHandler(CutBaseHandler):
+    URL = ['/task/char_cut_review/order/@page_name',
+           '/task/do/char_cut_review/order/@page_name',
+           '/task/update/char_cut_review/order/@page_name']
+
+    def get(self, page_name):
+        """ 进入字序校对页面 """
+        self.enter('char', 'review', page_name, template_name='task_char_order.html')

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -55,7 +56,8 @@
               <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
             </a>
           </div>
-          <div class="title" title="{{page['name']}}">字序校对</div>
+          <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
+          <div class="sub-title">/ 字框顺序</div>
           <div class="help">
             <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
           </div>
@@ -81,7 +83,7 @@
             <div class="more">
               <div class="btn-group more-group hidden" role="group" aria-label="更多">
                 {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_order_proof/{{name}}{{'?layout=%d' % i}}">
+                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_cut_proof/order/{{name}}{{'?layout=%d' % i}}">
                   {{txt}}
                 </a>
                 {% end %}
@@ -124,8 +126,6 @@
   var blocks = decodeJSON('{{page["blocks"]}}');
   var columns = decodeJSON('{{page["columns"]}}');
   var chars = '{{page["chars"]}}';
-</script>
-<script>
   $.cut.create({
     orderMode: true,
     readonly: true,
@@ -142,6 +142,9 @@
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
+</script>
+
+<script>
   // 更新Undo
   function updateUndo() {
     $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
@@ -149,13 +152,10 @@
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
         : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
+  updateUndo();
 
   $('.btn-undo').click(function () {
     $.cut.undo();
-    updateUndo();
-  });
-  $('.btn-redo').click(function () {
-    $.cut.redo();
     updateUndo();
   });
 
@@ -171,18 +171,51 @@
     style.display = style.display === 'none' ? '' : 'none';
   });
 
-  window.leave = function () {
-    {% if mode == 'edit' %}
-    postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
-      window.history.back();
-    });
-    {% elif mode == 'view' %}
-    window.history.back();
-    {% else %}
-    window.location = '/task/lobby/{{task_type}}';
-    {% end %}
-  };
+  // 显示字序待修正的字框
+  $('#show-err-box').click(function () {
+    $.cut.showErrorBoxes(true);
+  });
+  setTimeout(function () {
+    $.cut.showErrorBoxes();
+  }, 100);
 
+  // 缩小画布
+  $('.btn-reduce').click(function () {
+    if ($.cut.data.ratio > 0.5) {
+      $.cut.setRatio($.cut.data.ratio * 0.9);
+    }
+  });
+
+  // 放大画布
+  $('.btn-enlarge').click(function () {
+    if ($.cut.data.ratio < 5) {
+      $.cut.setRatio($.cut.data.ratio * 1.5);
+    }
+  });
+
+  // 显隐列框
+  $('#toggle-columns').click(function () {
+    $.cut.toggleColumns(columns);
+  });
+
+  // 显隐字框
+  $('#toggle-chars').click(function () {
+    $.cut.toggleBox('hide');
+  });
+
+  // 更多操作
+  $('.btn-ed-box').click(function () {
+    $('.more-group').toggleClass('hidden');
+  });
+
+  // 调整字框连线后重新设置字框编号
+  $('#apply').click(function () {
+    $.cut.applyLinks(blocks, columns);
+  });
+
+</script>
+
+<script>
   // 保存任务
   $('.btn-save').on("click", function () {
     postApi('/task/do/{{task_type}}/{{name}}', {
@@ -213,48 +246,77 @@
     });
   });
 
-  updateUndo();
-
-  // 显示字序待修正的字框
-  $('#show-err-box').click(function () {
-    $.cut.showErrorBoxes(true);
-  });
-  setTimeout(function () {
-    $.cut.showErrorBoxes();
-  }, 100);
-
-  // 缩小画布
-  $('.btn-reduce').click(function () {
-    if ($.cut.data.ratio > 0.5) {
-      $.cut.setRatio($.cut.data.ratio * 0.9);
+  // 离开页面时解锁数据
+  window.leave = function () {
+    // 当前页面模式，包括view/do/update/edit等
+    var mode = '{{mode}}';
+    if (mode === 'edit') {
+      postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
+        window.history.back();
+      });
+    } else if (mode === 'view') {
+      window.history.back();
+    } else {
+      window.location = '/task/lobby/{{task_type}}';
     }
-  });
-  // 放大画布
-  $('.btn-enlarge').click(function () {
-    if ($.cut.data.ratio < 5) {
-      $.cut.setRatio($.cut.data.ratio * 1.5);
+  };
+
+</script>
+
+{% import controller.errors as e %}
+<script>
+  // 领取新任务（从任务大厅拷贝）
+  function pick(url, page_name) {
+    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
+    postApi(url, data, function (res) {
+      if (res && res.url) {
+        window.location = res.url;
+      }
+    }, function (res) {
+      error_callback(res);
+    });
+  }
+
+  // 领取任务失败回调
+  function error_callback(res) {
+    console.log(res);
+    if (res.code == '{{e.task_uncompleted[0]}}') {
+      var info = {
+        title: "是否继续未完成的任务？",
+        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定继续",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(info, function() {
+        window.location = res.url;
+      });
+    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
+      showError('暂无新任务', res.message);
+      setTimeout(function () {
+        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
+      }, 1000);
+    } else if (res.code != 500) {
+      var info = {
+        title: "是否领取其它任务？",
+        text: res.message,
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定领取",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(info,function() {
+          pick("/task/pick/{{task_type}}");
+      });
+    } else {
+      showError('发生错误', res.message);
     }
-  });
-
-  // 调整字框连线后重新设置字框编号
-  $('#apply').click(function () {
-    $.cut.applyLinks(blocks, columns);
-  });
-
-  // 显隐列框
-  $('#toggle-columns').click(function () {
-    $.cut.toggleColumns(columns);
-  });
-
-  // 显隐字框
-  $('#toggle-chars').click(function () {
-    $.cut.toggleBox('hide');
-  });
-
-  // 更多操作
-  $('.btn-ed-box').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
+  }
 
 </script>
 

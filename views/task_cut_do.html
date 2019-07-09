@@ -156,16 +156,12 @@
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
       : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
+  updateUndo();
 
   $('.btn-undo').click(function () {
     $.cut.undo();
     updateUndo();
   });
-  $('.btn-redo').click(function () {
-    $.cut.redo();
-    updateUndo();
-  });
-  updateUndo();
 
   // 显示各种类型字框数量
   function showHighLightCount() {
@@ -191,6 +187,7 @@
       $.cut.setRatio($.cut.data.ratio * 0.9);
     }
   });
+
   // 放大画布
   $('.btn-enlarge').click(function () {
     if ($.cut.data.ratio < 5) {
@@ -241,7 +238,7 @@
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_order_proof" if readonly else "/data/edit/char_order"}}/{{name}}';
+    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{name}}';
   });
 
 </script>
@@ -265,14 +262,23 @@
 
   // 提交任务
   $('.btn-submit').on("click", function () {
+    var isChar = 'True' === '{{"char_cut" in task_type}}';
+    var data = {
+      submit: !isChar,
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+    };
     postApi('/task/do/{{task_type}}/{{name}}', {
-      data: {
-        submit: true,
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
-      }
+      data: data
     }, function () {
-      pick('/task/pick/{{task_type}}');
+      if (isChar) {
+        showSuccess('请继续调整字框顺序', '{{name}} ' + '已保存成功', 1500);
+        setTimeout(function () {
+          window.location = '/task/do/{{task_type}}/order/{{name}}';
+        }, 2000);
+      } else {
+        pick('/task/pick/{{task_type}}');
+      }
     });
   });
 
