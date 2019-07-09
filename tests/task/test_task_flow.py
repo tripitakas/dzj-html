@@ -14,7 +14,8 @@ class TestTaskFlow(APITestCase):
         # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
-            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]], '切分专家,文字专家'
+            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
+            '切分专家,文字专家'
         )
         self.revert()
 
@@ -62,6 +63,7 @@ class TestTaskFlow(APITestCase):
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % task_type))
             tasks = r.get('tasks')
             if 'review' in task_type:
+                # 前一个环节已经完成page_names[0]，review发布时应为open
                 self.assertIn(page_names[0], [t['name'] for t in tasks], msg=task_type)
             else:
                 self.assertEqual(set(page_names), set([t['name'] for t in tasks]), msg=task_type)

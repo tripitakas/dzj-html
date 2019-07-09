@@ -38,10 +38,13 @@ class SaveCutApi(SubmitTaskApi):
                 self.send_error_response(errors.data_unauthorized)
 
             ret = {'updated': True}
+            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
+
             data = self.get_request_data()
             boxes = json_decode(data.get('boxes', '[]'))
-            data_field = self.save_fields.get(task_type)
-            update = {data_field: boxes, 'tasks.%s.updated_time' % task_type: datetime.now()}
+            if boxes:
+                data_field = self.save_fields.get(task_type)
+                update.update({data_field: boxes})
             if 'do/char_cut' in self.request.path and data.get('submit_step'):  # 切字submit
                 update.update({'tasks.%s.submitted_steps' % task_type: [task_type]})
 
