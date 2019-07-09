@@ -42,8 +42,8 @@ class SaveCutApi(SubmitTaskApi):
             boxes = json_decode(data.get('boxes', '[]'))
             data_field = self.save_fields.get(task_type)
             update = {data_field: boxes, 'tasks.%s.updated_time' % task_type: datetime.now()}
-            if 'do/char_cut' in self.request.path and data.get('commit'):  # 切字commit
-                update.update({'tasks.%s.committed' % task_type: [task_type]})
+            if 'do/char_cut' in self.request.path and data.get('submit_step'):  # 切字submit
+                update.update({'tasks.%s.submitted_steps' % task_type: [task_type]})
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

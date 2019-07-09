@@ -84,9 +84,9 @@ class SaveCmpTextApi(TaskHandler):
             if txt:
                 update.update({data_field: txt})
 
-            if mode == 'do' and data.get('commit'):
-                update.update({'tasks.%s.committed' % task_type: ['find_cmp']})
-                ret['committed'] = True
+            if mode == 'do' and data.get('submit_step'):
+                update.update({'tasks.%s.submitted_steps' % task_type: ['find_cmp']})
+                ret['submitted'] = True
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

@@ -151,11 +151,11 @@ class TextProofHandler(TextBaseHandler):
             if not page:
                 return self.render('_404.html')
 
-            # 如果find_cmp没有commit，则跳转find_cmp
+            # 如果find_cmp没有submit，则跳转find_cmp
             task_type = 'text_proof_' + num
-            committed = self.prop(page, 'tasks.%s.committed' % task_type) or []
+            submitted_steps = self.prop(page, 'tasks.%s.submitted_steps' % task_type) or []
             mode = (re.findall('/(do|update)/', self.request.path) or ['view'])[0]
-            if mode == 'do' and (not committed or 'find_cmp' not in committed):
+            if mode == 'do' and (not submitted_steps or 'find_cmp' not in submitted_steps):
                 return self.redirect('/task/do/%s/find_cmp/%s' % (task_type, page_name))
 
             readonly = not self.check_auth(mode, page, task_type)

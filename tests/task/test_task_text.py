@@ -125,6 +125,6 @@ class TestText(APITestCase):
         # 提交任务
         r = self.fetch(
             '/api/task/do/%s/find_cmp/%s?_raw=1' % (task_type, page_name),
-            body={'data': dict(commit=True)}
+            body={'data': dict(submit_step=True)}
         )
-        self.assertTrue(self.parse_response(r).get('committed'))
+        self.assertTrue(self.parse_response(r).get('submitted'))
