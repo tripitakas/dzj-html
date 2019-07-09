@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>文字校对-寻找比对文本</title>
+  <title>文字校对-选择比对文本</title>
   {% include _base_meta.html %}
   <!-- Plugins css -->
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -92,7 +92,7 @@
           </a>
         </div>
         <div class="title" title='{{page["name"]}}'>文字校对</div>
-        <div class="sub-title" title='{{page["name"]}}'>/ 寻找比对文本</div>
+        <div class="sub-title" title='{{page["name"]}}'>/ 选择比对文本</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
@@ -114,7 +114,7 @@
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
             {% end %}
             {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-next" title="提交"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
             {% end %}
           </div>

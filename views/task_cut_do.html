@@ -272,10 +272,7 @@
       data: data
     }, function () {
       if (isChar) {
-        showSuccess('请继续调整字框顺序', '{{name}} ' + '已保存成功', 1500);
-        setTimeout(function () {
-          window.location = '/task/do/{{task_type}}/order/{{name}}';
-        }, 2000);
+        window.location = '/task/do/{{task_type}}/order/{{name}}';
       } else {
         pick('/task/pick/{{task_type}}');
       }
