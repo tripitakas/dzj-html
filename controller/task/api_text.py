@@ -114,15 +114,12 @@ class SaveTextProofApi(SubmitTaskApi):
 
             ret = {'updated': True}
             data = self.get_request_data()
-            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
+            doubt = data.get('doubt', '').strip('\n')
+            update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
             txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
             data_field = TextBaseHandler.save_fields.get(task_type)
             if txt_html:
                 update.update({data_field: txt_html})
-
-            doubt = data.get('doubt')
-            if doubt:
-                update.update({'tasks.%s.doubt' % task_type: doubt.strip('\n')})
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
