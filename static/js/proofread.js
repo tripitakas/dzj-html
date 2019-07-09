@@ -606,28 +606,29 @@ function findSpanByOffset($li, offset) {
   return ret;
 }
 
-function selectInSpan(startNode, startOffset, endOffset) {
-  var range = document.createRange();
-  range.setStart(startNode, startOffset);
-  range.setEnd(startNode, endOffset);
-  var sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
+function highlightInSpan(startNode, startOffset, endOffset) {
+  var text = startNode.innerText;
+  $(startNode).html(text.substring(0, startOffset) + '<b style="color: #f00">' +
+      text.substring(startOffset, endOffset) + '</b>' + text.substring(endOffset));
+  setTimeout(function () {
+    $(startNode).text(text);
+  }, 1300);
 }
 
 // 点击存疑行表格，对应行blink效果
 $(document).on('click', '.char-list-tr', function () {
-  var id = $(this).attr('data'), $li = $('#' + id);
-  var pos = findSpanByOffset($li, parseInt($(this).attr('data-offset')));
+  var $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
+  var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
+  var txt = $tr.find('td:nth-child(3)').text();
 
   $('.right .bd').animate({scrollTop: $li.offset().top + 400}, 100);
 
-  // 闪烁
+  // 闪烁，原字高亮
+  if (pos[0]) {
+    highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
+  }
   (pos[0] || $li).addClass('blink');
   setTimeout(function () {
     (pos[0] || $li).removeClass("blink");
-    if (pos[0]) {
-      selectInSpan(pos[0][0], pos[1], 2);
-    }
-  }, 800);
+  }, 500);
 });
