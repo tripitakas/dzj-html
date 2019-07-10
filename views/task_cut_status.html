@@ -75,7 +75,7 @@
                           <ul class="dropdown-menu" role="menu">
                             {% for k, v in th.status_names.items() %}
                             <li>
-                              <a href="{{current_url}}?type={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}&status={{k}}">
+                              <a href="{{current_path}}?type={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}&status={{k}}">
                                 {{v}}
                               </a>
                             </li>
@@ -121,7 +121,7 @@
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {
       var q = $(this).val().trim();
-      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;
     }
   });

@@ -44,7 +44,7 @@ class GenerateCharIdApi(BaseHandler):
     @staticmethod
     def sort(chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
-            max_id = max([c.get('id', 0) for c in chars])
+            max_id = max([c.get('id', 0) for c in chars]) if chars else 0
             for c in chars:
                 if not c.get('id'):
                     max_id += 1

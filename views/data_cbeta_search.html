@@ -119,7 +119,7 @@
   $('#btn-search').on("click", function () {
     var q = $('#search-input').val();
     if (q != '')
-      window.location = "{{current_url}}?q=" + q;
+      window.location = "{{current_path}}?q=" + q;
   });
 
   $(document).on('keyup', '#search-input', function () {

@@ -65,7 +65,7 @@
 												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态<span class="ion-android-sort "></span></span>
                             <ul class="dropdown-menu" role="menu">
                             {% for k, v in th.status_names.items() %}
-                              <li><a href="{{current_url}}?status={{k}}">{{v}}</a></li>
+                              <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
 												</div>
@@ -466,7 +466,7 @@
       order = 'priority';
     else
       order = '-priority';
-    window.location = "{{current_url}}?order=" + order;
+    window.location = "{{current_path}}?order=" + order;
   });
 
   <!--按发布时间排序-->
@@ -476,7 +476,7 @@
       order = 'publish_time';
     else
       order = '-publish_time';
-    window.location = "{{current_url}}?order=" + order;
+    window.location = "{{current_path}}?order=" + order;
   });
 
   <!--搜索-->
@@ -484,7 +484,7 @@
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {
       var q = $(this).val().trim();
-      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;
     }
   });

@@ -74,7 +74,7 @@
                           <span class="ion-android-sort "></span>
                           <ul class="dropdown-menu" role="menu">
                             {% for k, v in th.status_names.items() %}
-                            <li><a href="{{current_url}}?type={{['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review'][i]}}&status={{k}}">{{v}}</a></li>
+                            <li><a href="{{current_path}}?type={{['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review'][i]}}&status={{k}}">{{v}}</a></li>
                             {% end %}
                           </ul>
                         </div>
@@ -118,7 +118,7 @@
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {
       var q = $(this).val().trim();
-      var url = q == '' ? "{{current_url}}" : "{{current_url}}?q=" + q;
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;
     }
   });
