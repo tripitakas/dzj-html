@@ -137,7 +137,7 @@ class RegisterApi(BaseHandler):
                 create_time=hlp.get_date_time()
             ))
             user['_id'] = r.inserted_id
-            self.add_op_log('register', context='%s: %s: %s' % (user.get('email'), user.get('phone'), user['name']))
+            self.add_op_log('register', context='%s, %s, %s' % (user.get('email'), user.get('phone'), user['name']))
         except DbError as e:
             return self.send_db_error(e)
 
@@ -178,7 +178,7 @@ class ChangeUserProfileApi(BaseHandler):
 
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
-                self.add_op_log('change_user_profile', context='%s: %s' % (user['_id'], ','.join(sets.keys())))
+                self.add_op_log('change_user_profile', context='%s: %s' % (old_user['name'], ','.join(sets.keys())))
 
             self.send_data_response(dict(info=sets))
 
@@ -199,11 +199,15 @@ class ChangeUserRoleApi(BaseHandler):
             return self.send_error_response(err)
 
         try:
+            old_user = self.db.user.find_one(dict(_id=user['_id']))
+            if not old_user:
+                return self.send_error_response(errors.no_user, id=user['_id'])
+
             user['roles'] = user.get('roles') or ''
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error_response(errors.no_user)
-            self.add_op_log('change_role', context='%s: %s' % (user.get('_id'), user.get('roles')))
+            self.add_op_log('change_role', context='%s: %s' % (old_user['name'], user.get('roles')))
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response({'roles': user['roles']})
@@ -230,7 +234,7 @@ class ResetUserPasswordApi(BaseHandler):
 
             user = self.db.user.find_one(dict(_id=oid))
             self.remove_login_fails(self, user['_id'])
-            self.add_op_log('reset_password', context=': '.join(user))
+            self.add_op_log('reset_password', context=user['name'])
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response({'password': pwd})
@@ -256,12 +260,15 @@ class DeleteUserApi(BaseHandler):
             return self.send_error_response(err)
 
         try:
+            old_user = self.db.user.find_one(dict(_id=user['_id']))
+            if not old_user:
+                return self.send_error_response(errors.no_user, id=user['_id'])
             if user['_id'] == self.current_user['_id']:  # 判断删除的用户是否为自己
                 return self.send_error_response(errors.cannot_delete_self)
             r = self.db.user.delete_one(dict(_id=user['_id']))
             if r.deleted_count < 1:
                 return self.send_error_response(errors.no_user)
-            self.add_op_log('delete_user', context=': '.join(user))
+            self.add_op_log('delete_user', context=old_user['name'])
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response()

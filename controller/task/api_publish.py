@@ -109,25 +109,26 @@ class PublishTasksApi(TaskHandler):
             length, total = self.MAX_UPDATE_RECORDS, len(page_names)  # 单次发布不超过10000
             lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
             published_pages = []
-            for _page_names in lst:
-                condition = {'name': {'$in': _page_names}}
+            publish_time = datetime.now()
+            for names in lst:
+                condition = {'name': {'$in': names}}
                 r = self.db.page.update_many(condition, {'$set': {
                     'tasks.%s.status' % task_type: status,
                     'tasks.%s.priority' % task_type: int(priority),
                     'tasks.%s.pre_tasks' % task_type: pre_tasks,
-                    'tasks.%s.publish_time' % task_type: datetime.now(),
+                    'tasks.%s.publish_time' % task_type: publish_time,
                     'tasks.%s.publish_user_id' % task_type: self.current_user['_id'],
                     'tasks.%s.publish_by' % task_type: self.current_user['name'],
                 }})
-                if r.matched_count == len(_page_names):
-                    published_pages.extend(_page_names)
-                    self.add_op_log('publish_' + task_type, file_id='', context=','.join(_page_names))
-                else:
-                    condition.update({'tasks.%s.status' % task_type: status})
+                if r.matched_count != len(names):
+                    condition.update({
+                        'tasks.%s.status' % task_type: status,
+                        'tasks.%s.publish_time' % task_type: publish_time
+                    })
                     pages = self.db.page.find(condition, {'name': 1})
-                    _published_pages = [page['name'] for page in pages]
-                    published_pages.extend(_published_pages)
-                    self.add_op_log('publish_' + task_type, file_id='', context=','.join(_published_pages))
+                    names = [page['name'] for page in pages]
+                published_pages.extend(names)
+                self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(names), ','.join(names)))
             return published_pages
 
         except DbError as err:

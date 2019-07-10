@@ -44,7 +44,7 @@ class UsersAdminHandler(BaseHandler):
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
+            self.add_op_log('get_users', context='用户管理取到 %d 个用户' % len(users))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
@@ -63,7 +63,7 @@ class UserRolesHandler(BaseHandler):
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
+            self.add_op_log('get_users', context='角色管理取到 %d 个用户' % len(users))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
@@ -82,7 +82,7 @@ class UserStatisticHandler(BaseHandler):
             cur_page = int(self.get_query_argument('page', 1))
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            self.add_op_log('get_users', context='取到 %d 个用户' % len(users))
+            self.add_op_log('get_users', context='数据管理取到 %d 个用户' % len(users))
             for r in users:
                 # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
                 r.update(dict(cut_proof_count=0, cut_review_count=0, text_proof_count=0, text_review_count=0,

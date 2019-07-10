@@ -50,7 +50,7 @@ class SaveCutApi(SubmitTaskApi):
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
-                self.add_op_log('save_' + task_type, context=page_name)
+                self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
             # 提交任务
             if mode == 'do' and data.get('submit'):
