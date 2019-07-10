@@ -109,7 +109,9 @@
             <img src="{{ static_url('imgs/char_icon2.png') }}" class="btn-img btn-delete-line" title="删除该行"/>
             <img src="{{ static_url('imgs/char_icon3.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
             <img src="{{ static_url('imgs/char_icon4.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
+            {% if 'hard' not in task_type %}
             <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt" title="存疑"/>
+            {% end %}
             {% if 'review' in task_type or 'hard' in task_type %}
             <img src="{{ static_url('imgs/icon_check.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
             {% end %}

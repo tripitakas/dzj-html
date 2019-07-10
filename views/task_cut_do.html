@@ -246,7 +246,7 @@
 <script>
   // 保存任务
   $('.btn-save').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{name}}', {
+    postApi('{{current_path}}', {
       data: {
         submit: false,
         box_type: '{{box_type}}',
@@ -268,7 +268,7 @@
     };
     var isChar = 'True' === '{{"char_cut" in task_type}}';
     data[isChar ? 'submit_step' : 'submit'] = true
-    postApi('/task/do/{{task_type}}/{{name}}', {
+    postApi('{{current_path}}', {
       data: data
     }, function () {
       if (isChar) {
@@ -299,12 +299,11 @@
   // 离开页面时解锁数据
   window.leave = function () {
     // 当前页面模式，包括view/do/update/edit等
-    var mode = '{{mode}}';
-    if (mode === 'edit') {
+    if ('{{mode}}' === 'edit') {
       postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
         window.history.back();
       });
-    } else if (mode === 'view') {
+    } else if ('{{mode}}' === 'view') {
       window.history.back();
     } else {
       window.location = '/task/lobby/{{task_type}}';

@@ -22,7 +22,8 @@ class CutBaseHandler(TaskHandler):
                 return self.render('_404.html')
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
-            if '/task/do/char_cut' in self.request.path and 'order' not in self.request.path \
+            # 切字校对任务模式时，如果已完成字框校对，则进入字序校对
+            if '/do/char_cut' in self.request.path and 'order' not in self.request.path \
                     and self.prop(page, 'tasks.%s.submitted_steps' % task_type):
                 self.redirect('/task/do/%s/order/%s' % (task_type, name))
             readonly = not self.check_auth(mode, page, task_type)
