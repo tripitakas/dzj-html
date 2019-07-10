@@ -222,7 +222,7 @@ class TaskHandler(BaseHandler):
 
         # do/update模式下，需要检查任务权限，直接抛出错误
         if mode in ['do', 'update']:
-            render = '/api' not in self.request.path
+            render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
             # 检查任务是否已分配给当前用户
             task_field = 'tasks.' + task_type
             if not self.current_user or self.prop(page, task_field + '.picked_user_id') != self.current_user['_id']:
