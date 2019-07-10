@@ -11,12 +11,11 @@ class TestTaskPublish(APITestCase):
 
     def setUp(self):
         super(TestTaskPublish, self).setUp()
-        # 创建几个专家用户（权限足够），用于审校流程的测试
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
-            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]], '切分专家,文字专家'
+            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
+            '切分专家,文字专家'
         )
-        # 初始化任务状态
         self.revert()
 
     def tearDown(self):
@@ -46,6 +45,7 @@ class TestTaskPublish(APITestCase):
         r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages=pages, priority='高')))
         self.assertIn('priority', r['error'])
 
+        # 测试正常情况
         for task_type in [
             'block_cut_proof', 'block_cut_review',
             'column_cut_proof', 'column_cut_review',
