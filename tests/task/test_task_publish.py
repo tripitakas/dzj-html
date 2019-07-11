@@ -118,13 +118,13 @@ class TestTaskPublish(APITestCase):
         # 测试正常发布
         task_type = 'block_cut_proof'
         body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
-        r = self.parse_response(self.fetch('/api/task/publish_file', files=dict(txt_file=filename), body=body))
+        r = self.parse_response(self.fetch('/api/task/publish', files=dict(names_file=filename), body=body))
         self.assertEqual(set(r.get('published')), set(pages))
 
         # 测试任务类型有误
         task_type = 'error_task_type'
         body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
-        r = self.parse_response(self.fetch('/api/task/publish_file', files=dict(txt_file=filename), body=body))
+        r = self.parse_response(self.fetch('/api/task/publish', files=dict(names_file=filename), body=body))
         self.assertIn('task_type', r['error'])
 
     def test_publish_many_tasks(self, size=10000):

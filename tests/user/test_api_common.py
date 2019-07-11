@@ -40,7 +40,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
         self.assert_code(200, r)
 
-        r = self.fetch('/api/user/logout')
+        r = self.fetch('/api/user/logout', body={'data': {}})
         self.assert_code(200, r)
 
         r = self.fetch('/user/my/profile')
