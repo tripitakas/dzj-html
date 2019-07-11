@@ -15,7 +15,6 @@ class TestRole(APITestCase):
 
         routes = role.get_role_routes('切分专家, 数据管理员')
         self.assertIn('/api/task/page/@page_name', routes)
-        self.assertIn('/data/page', routes)
 
     def test_validate(self):
         data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '', 'age': 8}

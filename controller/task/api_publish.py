@@ -3,6 +3,7 @@
 """
 @time: 2018/12/27
 """
+import re
 import math
 from datetime import datetime
 import controller.errors as e
@@ -180,25 +181,25 @@ class PublishTasksPageNamesApi(PublishTasksApi):
         """ 按照页码名称发布任务。
         @param task_type 任务类型
         @param pre_tasks list，前置任务
-        @param names_file file，待发布的页面文件
-        @param page_names list，待发布的页面名称
+        @param pages str，待发布的页面名称
+        @param pages_file file，待发布的页面文件
         @param priority str，1/2/3，数字越大优先级越高
         """
-        names_file = self.request.files.get('names_file')
-        if names_file:
-            names_str = str(names_file[0]['body'], encoding='utf-8')
-            page_names = [p.strip('\r') for p in names_str.split('\n') if p]
+        pages_file = self.request.files.get('pages_file')
+        if pages_file:
+            pages_str = str(pages_file[0]['body'], encoding='utf-8')
+            pre_task = self.get_body_argument('pre_tasks')
             data = {
-                'page_names': page_names,
+                'pages': re.sub("\n+", ",", pages_str),
                 'task_type': self.get_body_argument('task_type', ''),
                 'priority': self.get_body_argument('priority', 1),
-                'pre_tasks': self.get_body_argument('pre_tasks').split(',') or []
+                'pre_tasks': pre_task and pre_task.split(',') or []
             }
         else:
             data = self.get_request_data()
         rules = [
             (v.not_empty, 'task_type'),
-            (v.not_both_empty, 'page_names', 'names_file'),
+            (v.not_both_empty, 'pages', 'pages_file'),
             (v.is_priority, 'priority'),
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
@@ -207,11 +208,11 @@ class PublishTasksPageNamesApi(PublishTasksApi):
         if err:
             return self.send_error_response(err)
 
-        if len(data['page_names']) > self.MAX_PUBLISH_RECORDS:
+        page_names = data['pages'].split(',') if data.get('pages') else []
+        if len(page_names) > self.MAX_PUBLISH_RECORDS:
             return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
-        log = self.publish_task(
-            data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), data['page_names'])
+        log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), page_names)
         self.send_data_response({k: v for k, v in log.items() if v})
 
 

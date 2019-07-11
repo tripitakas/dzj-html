@@ -43,7 +43,10 @@ def i18n_trans(key):
         'gender': '性别',
         'priority': '优先级',
         'task_type': '任务类型',
-        'pages': '页面',
+        'pages': '页码',
+        'pages_file': '页码文件',
+
+
     }
     return maps[key] if key in maps else key
 

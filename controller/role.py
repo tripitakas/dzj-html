@@ -33,7 +33,7 @@ role_maps = {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
-
+            '/api/user/(login|logout|register)': ['POST'],
             # 下列只读浏览页面暂时允许匿名访问
             '/task/block_cut_proof/@page_name': ['GET'],
             '/task/column_cut_proof/@page_name': ['GET'],
@@ -52,7 +52,7 @@ role_maps = {
             '/help': ['GET'],
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile)': ['POST'],
-            '/api/user/(login|logout|register|avatar|email_code|phone_code)': ['POST'],
+            '/api/user/(avatar|email_code|phone_code)': ['POST'],
             '/tripitaka': ['GET'],
             '/tripitaka/@tripitaka_id': ['GET'],
             '/data/cbeta/search': ['GET'],
@@ -186,7 +186,7 @@ role_maps = {
             '/api/task/ready_pages/@task_type': ['POST'],
             '/api/task/publish': ['POST'],
             '/api/task/publish/@page_prefix': ['POST'],
-            '/api/task/withdraw/@task_type': ['GET'],
+            '/api/task/(withdraw|reset)/@task_type/@page_name': ['POST'],
         }
     },
     '数据管理员': {

@@ -168,7 +168,7 @@ class SubmitTaskApi(TaskHandler):
 
 
 class UnlockTaskDataApi(TaskHandler):
-    URL = '/api/data/unlock/@task_type/@page_name'
+    URL = '/api/task/unlock/@task_type/@page_name'
 
     def post(self, task_type, page_name):
         """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
@@ -180,13 +180,55 @@ class UnlockTaskDataApi(TaskHandler):
             self.send_db_error(e)
 
 
-class WithDrawTasksApi(TaskHandler):
-    URL = '/api/task/withdraw/@task_type'
+class WithDrawTaskApi(TaskHandler):
+    URL = '/api/task/withdraw/@task_type/@page_name'
 
-    def post(self, task_type):
-        """ 管理员批量撤回任务 """
-        page_names = self.get_request_data().get('page_names')
-        pass
+    def post(self, task_type, page_name):
+        """ 管理员撤回任务 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.send_error_response(errors.no_object)
+            status = self.prop(page, 'tasks.%s.status' % task_type)
+            if status not in [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED]:
+                return self.send_error_response(errors.task_not_allowed_withdraw)
+
+            update = {'tasks.%s' % task_type: dict(status=self.STATUS_READY)}
+            data_field = self.get_shared_data_field(task_type)
+            if data_field:  # 释放数据锁
+                update.update({'lock.'+data_field: dict()})
+            r = self.db.page.update_one(dict(name=page_name), {'$set': update})
+            if not r.matched_count:
+                return self.send_error_response(errors.no_object)
+            self.add_op_log('withdraw_'+task_type, file_id=page['_id'], context=page_name)
+            self.send_data_response({'page_name': page_name})
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class ResetTaskApi(TaskHandler):
+    URL = '/api/task/reset/@task_type/@page_name'
+
+    def post(self, task_type, page_name):
+        """ 管理员重置任务为未就绪 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.send_error_response(errors.no_object)
+            status = self.prop(page, 'tasks.%s.status' % task_type)
+            if status != self.STATUS_READY:
+                return self.send_error_response(errors.task_not_allowed_reset)
+
+            update = {'tasks.%s' % task_type: dict(status=self.STATUS_UNREADY)}
+            r = self.db.page.update_one(dict(name=page_name), {'$set': update})
+            if not r.matched_count:
+                return self.send_error_response(errors.no_object)
+            self.add_op_log('reset_' + task_type, file_id=page['_id'], context=page_name)
+            self.send_data_response({'page_name': page_name})
+
+        except DbError as e:
+            self.send_db_error(e)
 
 
 class GetPageApi(TaskHandler):

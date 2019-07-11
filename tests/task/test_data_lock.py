@@ -72,8 +72,8 @@ class TestDataLock(APITestCase):
             self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], True])
 
             # 释放临时数据锁
-            r = self.fetch('/api/data/unlock/%s/%s' % (task_type, name1), body={'data': {}})
-            self.assert_code(200, r)
+            r = self.fetch('/api/task/unlock/%s/%s' % (task_type, name1), body={'data': {}})
+            self.assert_code(200, r, msg=task_type)
             lock = self.get_data_lock(name1, task_type)
             self.assertEqual(lock, {})
 

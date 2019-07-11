@@ -3,6 +3,7 @@
 
 import os
 import tests.users as u
+from controller import errors
 from tests.testcase import APITestCase
 from controller.task.base import TaskHandler as Th
 
@@ -118,13 +119,13 @@ class TestTaskPublish(APITestCase):
         # 测试正常发布
         task_type = 'block_cut_proof'
         body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
-        r = self.parse_response(self.fetch('/api/task/publish', files=dict(names_file=filename), body=body))
+        r = self.parse_response(self.fetch('/api/task/publish', files=dict(pages_file=filename), body=body))
         self.assertEqual(set(r.get('published')), set(pages))
 
         # 测试任务类型有误
         task_type = 'error_task_type'
         body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
-        r = self.parse_response(self.fetch('/api/task/publish', files=dict(names_file=filename), body=body))
+        r = self.parse_response(self.fetch('/api/task/publish', files=dict(pages_file=filename), body=body))
         self.assertIn('task_type', r['error'])
 
     def test_publish_many_tasks(self, size=10000):
@@ -138,3 +139,60 @@ class TestTaskPublish(APITestCase):
             r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
             status = 'published' if 'proof' in task_type else 'pending'
             self.assertIn(status, r['data'])
+
+    def test_withdraw_task(self):
+        """ 测试管理员撤回任务 """
+        for task_type in [
+            'block_cut_proof', 'block_cut_review',
+            'column_cut_proof', 'column_cut_review',
+            'char_cut_proof', 'char_cut_review',
+        ]:
+            # 发布任务
+            self.login_as_admin()
+            page_names = ['GL_1056_5_6', 'JX_165_7_12', 'QL_25_16']
+            page_name = page_names[0]
+            self.set_task_status({task_type: 'ready'}, page_names)
+            r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
+            if 'proof' in task_type:
+                # 用户领取任务
+                self.login(u.expert1[0], u.expert1[1])
+                r = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {'page_name': page_name}}))
+                self.assertEqual(page_name, r.get('page_name'), msg=task_type)
+                self.login_as_admin()
+
+            # 管理员撤回任务
+            r = self.parse_response(self.fetch('/api/task/withdraw/%s/%s' % (task_type, page_name), body={'data': {}}))
+            self.assertEqual(page_name, r.get('page_name'), msg=task_type)
+            page = self._app.db.page.find_one({'name': page_name})
+            self.assertIn(task_type, page['tasks'])
+            self.assertEqual(page['tasks'][task_type]['status'], 'ready')
+            data_field = Th.get_shared_data_field(task_type)
+            if data_field:
+                self.assertEqual(page['lock'][data_field], {})
+
+    def test_reset_task(self):
+        """ 测试管理员重置任务 """
+        for task_type in [
+            'block_cut_proof', 'block_cut_review',
+            'column_cut_proof', 'column_cut_review',
+            'char_cut_proof', 'char_cut_review',
+        ]:
+            # 重置未发布的任务
+            self.login_as_admin()
+            page_names = ['GL_1056_5_6', 'JX_165_7_12', 'QL_25_16']
+            page_name = page_names[0]
+            r = self.parse_response(self.fetch('/api/task/reset/%s/%s' % (task_type, page_name), body={'data': {}}))
+            self.assertEqual(page_name, r.get('page_name'), msg=task_type)
+            page = self._app.db.page.find_one({'name': page_name})
+            self.assertIn(task_type, page['tasks'])
+            self.assertEqual(page['tasks'][task_type]['status'], 'unready')
+
+            # 发布任务
+            self.set_task_status({task_type: 'ready'}, page_names)
+            r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
+
+            # 不能重置已发布的任务
+            page_name = 'GL_1056_5_6'
+            r = self.fetch('/api/task/reset/%s/%s' % (task_type, page_name), body={'data': {}})
+            self.assert_code(errors.task_not_allowed_reset, r, msg=task_type)
+

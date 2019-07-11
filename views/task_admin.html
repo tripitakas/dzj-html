@@ -101,8 +101,10 @@
                       <td>{{to_date_str(th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
                       <td>
                         <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
-                        <a class="view" href="/task/update/{{task_type}}/{{t['name']}}">修改</a>
-                        {% if th.prop(t, task_type + '.status') in ['opened', 'picked', 'pending'] %}
+                        {% if th.prop(t, 'tasks.%s.status' % task_type) in ['ready'] %}
+                        <a class="reset" onclick=reset('{{task_type}}','{{t["name"]}}')>重置</a>
+                        {% end %}
+                        {% if th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending'] %}
                         <a class="withdraw" onclick=withdraw('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>
@@ -410,7 +412,7 @@
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
       priority: $modal.find('.priority-list select').val(),
-      page_names: selectedPages
+      page_names: selectedPages.join(',')
     };
     console.log(data);
     postApi('/task/publish', {data: data}, function (res) {
@@ -447,7 +449,7 @@
     formData.append('task_type', '{{task_type}}');
     formData.append('pre_tasks', pre_tasks.join(','));
     formData.append('priority', $('#fileModal').find('.priority-list select').val());
-    formData.append('names_file', namesFile);
+    formData.append('pages_file', namesFile);
     console.log(formData);
     $.ajax({
       url: '/api/task/publish',
@@ -532,11 +534,11 @@
     }
   });
 
-  // 撤销任务
+  // 撤回任务
   function withdraw(task_type, name) {
     var info = {
-      title: "确定撤回任务吗？",
-      text: "页面编码：" + name + "\n撤回后无法恢复！",
+      title: "确定撤回吗？",
+      text: "任务" + name + "\n将被撤回！",
       type: "warning",
       showCancelButton: true,
       confirmButtonColor: "#b8906f",
@@ -545,10 +547,27 @@
       closeOnConfirm: true
     };
     swal(info, function () {
-      getApi('/task/withdraw/' + task_type + '/' + name, function (res) {
-        if (res.data.length) {
-          window.location.reload();
-        }
+      postApi('/task/withdraw/' + task_type + '/' + name, {'data':{}}, function (res) {
+        window.location.reload();
+      });
+    });
+  }
+
+  // 重置任务
+  function reset(task_type, name) {
+    var info = {
+      title: "确定重置吗？",
+      text: "任务" + name + "\n将被重置为未就绪！",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定重置",
+      cancelButtonText: "取消",
+      closeOnConfirm: true
+    };
+    swal(info, function () {
+      postApi('/task/reset/' + task_type + '/' + name,  {'data':{}}, function (res) {
+        window.location.reload();
       });
     });
   }
