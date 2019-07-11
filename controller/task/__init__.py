@@ -2,7 +2,8 @@ from . import api_base, api_publish, api_text, api_cut, view_admin, view_cut, vi
 
 views = [
     view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
-    view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler, view_admin.TaskAdminHandler,
+    view_admin.TaskAdminHandler, view_admin.TaskInfoHandler,
+    view_admin.TaskCutStatusHandler, view_admin.TaskTextStatusHandler,
     view_cut.CutProofHandler, view_cut.CutReviewHandler,
     view_cut.CharOrderProofHandler, view_cut.CharOrderReviewHandler,
     view_text.TextFindCmpHandler, view_text.TextProofHandler, view_text.TextReviewHandler, view_text.TextHardHandler,

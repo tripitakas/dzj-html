@@ -181,6 +181,7 @@ role_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
+            '/task/info/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/task/admin/(cut|text)/status': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],

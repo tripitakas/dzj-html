@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>任务详情</title>
+  {% include _base_meta.html %}
+
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('assets/select2/select2.css') }}" rel="stylesheet" type="text/css"/>
+
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  <style>
+    .task-infos {
+      width: 100%;
+      background-color: #9b744b;
+      font-size: 18px;
+    }
+
+    .task-info {
+      display: block;
+      margin: 20px 20px 0;
+
+    }
+
+    .task_type {
+      font-size: 20px;
+
+    }
+
+    .info-label {
+      font-style: italic;
+
+    }
+
+    .info-value {
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="task-manage", sub="task-manage-cut-status" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="task-infos"></div>
+            {% for task_type, info in page.get('tasks').items() %}
+            <div class="task-info">
+              <a href="/task/{{task_type}}/{{page['name']}}">
+                <div class="task_type">{{th.task_types.get(task_type)}}</div>
+              </a>
+              {% for k, v in info.items() %}
+              {% if k in field_names %}
+              <label class="info-label">{{field_names.get(k)}}</label>
+              <span class="info-value">{{format_value(k, v)}}</span>
+              {% end %}
+              {% end %}
+            </div>
+            {% end %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+</body>
+</html>

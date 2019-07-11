@@ -91,7 +91,7 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}">
                       <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>{{t['name']}}</td>
+                      <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
                       {% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
                       <td class="">
                         <a href="/task/{{item}}/{{t['name']}}">

@@ -87,7 +87,7 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}">
                       <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>{{t['name']}}</td>
+                      <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
                       {% for i in range(1,4) %}
                       <td><a href="/task/text_proof_{{i}}/{{t['name']}}">
                         {{th.status_names.get(th.prop(t, 'tasks.text_proof_%d.status' % i), '')}}
