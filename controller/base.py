@@ -237,6 +237,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.db.log.insert_one(dict(
             type=op_type, target_id=target_id and str(target_id) or None,
             context=context and context[:80], ip=self.get_ip(),
+            nickname=self.current_user and self.current_user.get('name'),
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 

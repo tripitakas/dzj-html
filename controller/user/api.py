@@ -460,7 +460,5 @@ class SendUserPhoneCodeHandler(BaseHandler):
             response = response.decode()
             resp = json_util.loads(response)
             logging.debug(resp)
-        except ServerException as e:
-            return e
-        except ClientException as e:
+        except (ServerException, ClientException) as e:
             return e
