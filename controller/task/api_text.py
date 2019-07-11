@@ -90,7 +90,7 @@ class SaveCmpTextApi(TaskHandler):
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
-                self.add_op_log('save_cmp_%s' % (task_type,), context=page_name)
+                self.add_op_log('sel_cmp_%s' % (task_type,), context=page_name)
 
             self.send_data_response(ret)
 

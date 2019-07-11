@@ -29,8 +29,8 @@
                     <img class="ava fl" src="{{ static_url((current_user or {}).get('img', 'imgs/ava1.png')) }}" alt="">
                     <dl class="fl">
                       <dt>上午好，{{current_user['name']}}</dt>
-                      <dd>访问情况：今日访问6次</dd>
-                      <dd>上次登录：2018-07-16 16:00</dd>
+                      <dd>访问情况：今日访问 {{visit_count}} 次</dd>
+                      <dd>上次登录：{{last_login}}</dd>
                     </dl>
                   </div>
                   <ul class="clearfix">
@@ -140,13 +140,9 @@
                   <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
                   <p class="tit"><img src="{{ static_url('imgs/status.png') }}" alt=""></p>
                   <ul>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
-                    <li><span>08-04 12:40</span><span>小明完成了文字校对永乐北北藏校对</span></li>
+                    {% for r in recent_trends %}
+                    <li><span>{{r['time']}}</span><span>{{r['user']}}{{r['context']}}</span></li>
+                    {% end %}
                   </ul>
                   <p class="more"><a href="#">更多</a></p>
                 </div>
