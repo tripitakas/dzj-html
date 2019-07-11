@@ -93,7 +93,7 @@ class LoginApi(BaseHandler):
 class LogoutApi(BaseHandler):
     URL = '/api/user/logout'
 
-    def get(self):
+    def post(self):
         """ 注销 """
         if self.current_user:
             self.clear_cookie('user')

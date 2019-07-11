@@ -30,7 +30,7 @@
 
 <script>
   $('#logout').click(function () {
-    getApi('/user/logout', function () {
+    postApi('/user/logout', {'data': {}}, function () {
       showSuccess('注销成功', '');
       setTimeout(function () {
         window.location = '/user/login';
