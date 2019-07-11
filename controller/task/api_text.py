@@ -161,9 +161,10 @@ class SaveTextReviewApi(SubmitTaskApi):
 
             if mode == 'do' and data.get('submit') and doubt:  # 生成难字任务
                 update.update({
-                    'tasks.text_hard.status': self.STATUS_OPENED,'tasks.text_hard.publish_time': datetime.now(),
+                    'tasks.text_hard.status': self.STATUS_OPENED, 'tasks.text_hard.publish_time': datetime.now(),
                 })
                 ret['text_hard'] = True
+                self.add_op_log('publish_text_hard', context=page_name)
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

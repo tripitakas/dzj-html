@@ -11,7 +11,7 @@ from os import path, mkdir
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
-# from aliyunsdkcore.request import CommonRequest
+from aliyunsdkcore.request import CommonRequest
 from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
 from datetime import datetime
 from bson import objectid, json_util
@@ -65,12 +65,12 @@ class LoginApi(BaseHandler):
         })
         if not user:
             if report_error:
-                self.add_op_log('login-no-user', context=phone_or_email)
+                self.add_op_log('login_no_user', context=phone_or_email)
                 return self.send_error_response(errors.no_user)
             return
         if user['password'] != hlp.gen_id(password):
             if report_error:
-                self.add_op_log('login-fail', context=phone_or_email)
+                self.add_op_log('login_fail', context=phone_or_email)
                 return self.send_error_response(errors.incorrect_password)
             return
 
@@ -82,7 +82,7 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
 
-        self.add_op_log('login-ok', context=phone_or_email + ': ' + user['name'])
+        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                      (user['_id'], user['name'], phone_or_email, user['roles']))
 
@@ -178,7 +178,8 @@ class ChangeUserProfileApi(BaseHandler):
 
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
-                self.add_op_log('change_user_profile', context='%s: %s' % (old_user['name'], ','.join(sets.keys())))
+                self.add_op_log('change_user_profile', target_id=user['_id'],
+                                context='%s: %s' % (old_user['name'], ','.join(sets.keys())))
 
             self.send_data_response(dict(info=sets))
 
@@ -207,7 +208,8 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error_response(errors.no_user)
-            self.add_op_log('change_role', context='%s: %s' % (old_user['name'], user.get('roles')))
+            self.add_op_log('change_role', target_id=user['_id'],
+                            context='%s: %s' % (old_user['name'], user.get('roles')))
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response({'roles': user['roles']})
@@ -234,7 +236,7 @@ class ResetUserPasswordApi(BaseHandler):
 
             user = self.db.user.find_one(dict(_id=oid))
             self.remove_login_fails(self, user['_id'])
-            self.add_op_log('reset_password', context=user['name'])
+            self.add_op_log('reset_password', target_id=user['_id'], context=user['name'])
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response({'password': pwd})
@@ -242,7 +244,7 @@ class ResetUserPasswordApi(BaseHandler):
     @staticmethod
     def remove_login_fails(self, context):
         self.db.log.delete_many({
-            'type': 'login-fail',
+            'type': 'login_fail',
             'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
             'context': context
         })
@@ -268,7 +270,7 @@ class DeleteUserApi(BaseHandler):
             r = self.db.user.delete_one(dict(_id=user['_id']))
             if r.deleted_count < 1:
                 return self.send_error_response(errors.no_user)
-            self.add_op_log('delete_user', context=old_user['name'])
+            self.add_op_log('delete_user', target_id=user['_id'], context=old_user['name'])
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response()
