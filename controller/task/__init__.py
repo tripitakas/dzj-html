@@ -12,7 +12,7 @@ handlers = [
     api_base.PickTaskApi, api_base.ReturnTaskApi, api_base.UnlockTaskDataApi, api_base.WithDrawTasksApi,
     api_cut.SaveCutApi, api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveTextHardApi,
     api_base.GetPageApi, api_text.GetCmpTextApi, api_text.GetCmpNeighborApi, api_text.SaveCmpTextApi,
-    api_publish.GetReadyPagesApi, api_publish.PublishTasksPageNamesApi, api_publish.PublishTasksFileApi,
+    api_publish.GetReadyPagesApi, api_publish.PublishTasksPageNamesApi, api_publish.PublishTasksPagePrefixApi,
 
 ]
 modules = {'TextArea': view_text.TextArea}

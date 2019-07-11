@@ -42,20 +42,18 @@ class GetReadyPagesApi(TaskHandler):
 
 
 class PublishTasksApi(TaskHandler):
-
     MAX_IN_FIND_RECORDS = 50000     # Mongodb单次in查询的最大值
     MAX_UPDATE_RECORDS = 10000      # Mongodb单次update的最大值
     MAX_PUBLISH_RECORDS = 50000     # 用户单次发布任务最大值
 
     def publish_task(self, page_names, task_type, priority, pre_tasks):
-        """
-        发布某个任务类型的任务。
-        :param task_type 格式为str，如text_review/text_proof_1
-        :return {'un_existed':[...], 'published_before':[...], 'un_ready':[...], 'published':[...], 'pending':[...],
-                 'publish_failed':[...], 'pending_failed':[...], 'not_published':[...]}
+        """ 发布某个任务类型的任务。
+        return {
+            'un_existed':[...], 'published_before':[...], 'un_ready':[...], 'published':[...], 'pending':[...],
+            'publish_failed':[...], 'pending_failed':[...], 'not_published':[...]
+        }
         """
         assert task_type in self.task_types
-
         # 检查数据库中不存在的页面
         log = dict()
         pages = self.find_task(page_names)
@@ -101,9 +99,8 @@ class PublishTasksApi(TaskHandler):
         return {k: v for k, v in log.items() if v}
 
     def _publish_task(self, page_names, task_type, status, priority, pre_tasks):
-        """
-        从page_names中，发布task_type对应的任务
-        :return: 已发布的任务列表
+        """ 从page_names中，发布task_type对应的任务
+        return: 已发布的任务列表
         """
         try:
             length, total = self.MAX_UPDATE_RECORDS, len(page_names)  # 单次发布不超过10000
@@ -135,8 +132,7 @@ class PublishTasksApi(TaskHandler):
             self.send_db_error(err)
 
     def filter_task(self, pages, conditions, equal=True, all_satisfied=True):
-        """
-        根据conditions过滤pages
+        """ 根据conditions过滤pages
         :param conditions：格式为 { task_type1: status1, task_type2:status2...}，其中status可以为str或list
         :param equal: conditions中task_type对应的字段值与status是相同还是不同
         :param all_satisfied: conditions中的各项条件是全部满足还是只需要有一个满足即可
@@ -166,7 +162,7 @@ class PublishTasksApi(TaskHandler):
         return selected_page_names, left_pages
 
     def find_task(self, page_names):
-        """根据task_type, page_names等参数，从数据库中查询对应的记录"""
+        """ 根据task_type, page_names等参数，从数据库中查询对应的记录 """
         length, total = self.MAX_IN_FIND_RECORDS, len(page_names)  # 单次in查询不超过50000
         lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
         pages = []
@@ -180,15 +176,28 @@ class PublishTasksPageNamesApi(PublishTasksApi):
     URL = r'/api/task/publish'
 
     def post(self):
-        """ 发布任务。
+        """ 按照页码名称发布任务。
         @param task_type 任务类型
-        @param pages str，待发布的页面名称
-        @param priority str，1/2/3，数字越大优先级越高
         @param pre_tasks list，前置任务
+        @param names_file file，待发布的页面文件
+        @param page_names list，待发布的页面名称
+        @param priority str，1/2/3，数字越大优先级越高
         """
-        data = self.get_request_data()
+        names_file = self.request.files.get('names_file')
+        if names_file:
+            names_str = str(names_file[0]['body'], encoding='utf-8')
+            page_names = [p.strip('\r') for p in names_str.split('\n') if p]
+            data = {
+                'page_names': page_names,
+                'task_type': self.get_body_argument('task_type', ''),
+                'priority': self.get_body_argument('priority', 1),
+                'pre_tasks': self.get_body_argument('pre_tasks').split(',') or []
+            }
+        else:
+            data = self.get_request_data()
         rules = [
-            (v.not_empty, 'task_type', 'pages'),
+            (v.not_empty, 'task_type'),
+            (v.not_both_empty, 'page_names', 'names_file'),
             (v.is_priority, 'priority'),
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
@@ -197,44 +206,22 @@ class PublishTasksPageNamesApi(PublishTasksApi):
         if err:
             return self.send_error_response(err)
 
-        page_names = data['pages'].split(',') if data.get('pages') else []
-        if len(page_names) > self.MAX_PUBLISH_RECORDS:
+        if len(data['page_names']) > self.MAX_PUBLISH_RECORDS:
             return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
-        log = self.publish_task(page_names, data.get('task_type'), data.get('priority', 1), data.get('pre_tasks', []))
+        log = self.publish_task(
+            data['page_names'], data['task_type'], data.get('priority', 1), data.get('pre_tasks', []))
         self.send_data_response({k: v for k, v in log.items() if v})
 
 
-class PublishTasksFileApi(PublishTasksApi):
-    URL = r'/api/task/publish_file'
+class PublishTasksPagePrefixApi(PublishTasksApi):
+    URL = r'/api/task/publish/@page_prefix'
 
     def post(self):
-        """ 发布任务。
-        @param task_type str或list，如text_review/text_proof.1或[text_proof.1, text_proof.2, text_proof.3]
-        @param txt_file file，待发布的页面文件
+        """ 按照页码前缀发布任务。
+        @param task_type 任务类型
+        @param pre_tasks list，前置任务
+        @param page_prefix str，至少2位以上
         @param priority str，1/2/3，数字越大优先级越高
         """
-        txt_file = self.request.files.get('txt_file')
-        txt_str = str(txt_file[0]['body'], encoding='utf-8')
-        page_names = [p.strip('\r') for p in txt_str.split('\n') if p]
-        data = {
-            'page_names': page_names,
-            'task_type': self.get_body_argument('task_type', ''),
-            'priority': self.get_body_argument('priority', 1),
-            'pre_tasks': self.get_body_argument('pre_tasks') or []
-        }
-        rules = [
-            (v.not_empty, 'task_type', 'page_names'),
-            (v.is_priority, 'priority'),
-            (v.in_list, 'task_type', list(self.task_types.keys())),
-            (v.in_list, 'pre_tasks', list(self.task_types.keys())),
-        ]
-        err = v.validate(data, rules)
-        if err:
-            return self.send_error_response(err)
-
-        if len(page_names) > self.MAX_PUBLISH_RECORDS:
-            return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
-
-        log = self.publish_task(page_names, data['task_type'], data['priority'], data['pre_tasks'])
-        self.send_data_response({k: v for k, v in log.items() if v})
+        pass
