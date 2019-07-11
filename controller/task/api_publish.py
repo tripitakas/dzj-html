@@ -22,7 +22,7 @@ class GetReadyPagesApi(TaskHandler):
 
             condition = {'name': {}}
             if data.get('prefix'):
-                condition['name'].update({'$regex': '^%s.*' % data.get('prefix').upper()})
+                condition['name'].update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
             if data.get('exclude'):
                 condition['name'].update({'$nin': data.get('exclude')})
             if not condition['name']:
@@ -46,7 +46,7 @@ class PublishTasksApi(TaskHandler):
     MAX_UPDATE_RECORDS = 10000      # Mongodb单次update的最大值
     MAX_PUBLISH_RECORDS = 50000     # 用户单次发布任务最大值
 
-    def publish_task(self, page_names, task_type, priority, pre_tasks):
+    def publish_task(self, task_type, pre_tasks, priority, page_names=None, pages=None):
         """ 发布某个任务类型的任务。
         return {
             'un_existed':[...], 'published_before':[...], 'un_ready':[...], 'published':[...], 'pending':[...],
@@ -56,8 +56,9 @@ class PublishTasksApi(TaskHandler):
         assert task_type in self.task_types
         # 检查数据库中不存在的页面
         log = dict()
-        pages = self.find_task(page_names)
-        log['un_existed'] = set(page_names) - set(page['name'] for page in pages)
+        if not pages and page_names:
+            pages = self.find_task(page_names)
+            log['un_existed'] = set(page_names) - set(page['name'] for page in pages)
 
         # 检查已发布的页面（状态为OPENED\PENDING\PICKED\RETURNED\FINISHED）
         if pages:
@@ -210,18 +211,32 @@ class PublishTasksPageNamesApi(PublishTasksApi):
             return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
         log = self.publish_task(
-            data['page_names'], data['task_type'], data.get('priority', 1), data.get('pre_tasks', []))
+            data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), data['page_names'])
         self.send_data_response({k: v for k, v in log.items() if v})
 
 
 class PublishTasksPagePrefixApi(PublishTasksApi):
     URL = r'/api/task/publish/@page_prefix'
 
-    def post(self):
+    def post(self, page_prefix):
         """ 按照页码前缀发布任务。
         @param task_type 任务类型
         @param pre_tasks list，前置任务
         @param page_prefix str，至少2位以上
         @param priority str，1/2/3，数字越大优先级越高
         """
-        pass
+        data = self.get_request_data()
+        rules = [
+            (v.not_empty, 'task_type'),
+            (v.is_priority, 'priority'),
+            (v.in_list, 'task_type', list(self.task_types.keys())),
+            (v.in_list, 'pre_tasks', list(self.task_types.keys())),
+        ]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        condition = {'name': {'$regex': '.*%s.*' % page_prefix, '$options': '$i'}}
+        pages = self.db.page.find(condition, self.simple_fileds())
+        log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), pages=pages)
+        self.send_data_response({k: v for k, v in log.items() if v})

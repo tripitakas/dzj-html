@@ -15,7 +15,7 @@ url_placeholder = {
     'task_type': r'[a-z]+_cut_[a-z]+|text_\w+',
     'tripitaka_id': r'[a-z]{3,}',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
-    'page_prefix': r'[a-zA-Z]{2}_[0-9_]+',
+    'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
 }
 
@@ -186,7 +186,7 @@ role_maps = {
             '/task/admin/(cut|text)/status': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],
             '/api/task/publish': ['POST'],
-            '/api/task/publish_file': ['POST'],
+            '/api/task/publish/@page_prefix': ['POST'],
             '/api/task/withdraw/@task_type': ['GET'],
         }
     },
