@@ -36,7 +36,7 @@ class Application(web.Application):
                     pass
 
         self._db = self.config = self.site = None
-        self.load_config(settings.get('db_name_ext'))
+        self.init_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
         create_dir(self.IMAGE_PATH)
