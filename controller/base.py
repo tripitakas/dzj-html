@@ -76,8 +76,9 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        self.send_error_response(e.unauthorized, render=not api, message='无权访问，需要申请角色' + need_roles[0] if len(
-            need_roles) == 1 else '无权访问，需要申请某一种角色 %s' % '、'.join(need_roles))
+        assert need_roles  # 角色不应为空
+        message = '无权访问，需要申请%s角色：%s' % ('某一种' if len(need_roles) > 1 else '', '、'.join(need_roles))
+        self.send_error_response(e.unauthorized, render=not api, message=message)
 
     def can_access(self, path, method='GET'):
         """检查当前用户是否能访问某个(path, method)"""

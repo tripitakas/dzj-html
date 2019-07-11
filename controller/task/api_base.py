@@ -200,7 +200,7 @@ class WithDrawTaskApi(TaskHandler):
             r = self.db.page.update_one(dict(name=page_name), {'$set': update})
             if not r.matched_count:
                 return self.send_error_response(errors.no_object)
-            self.add_op_log('withdraw_'+task_type, file_id=page['_id'], context=page_name)
+            self.add_op_log('withdraw_'+task_type, target_id=page['_id'], context=page_name)
             self.send_data_response({'page_name': page_name})
 
         except DbError as e:
@@ -224,7 +224,7 @@ class ResetTaskApi(TaskHandler):
             r = self.db.page.update_one(dict(name=page_name), {'$set': update})
             if not r.matched_count:
                 return self.send_error_response(errors.no_object)
-            self.add_op_log('reset_' + task_type, file_id=page['_id'], context=page_name)
+            self.add_op_log('reset_' + task_type, target_id=page['_id'], context=page_name)
             self.send_data_response({'page_name': page_name})
 
         except DbError as e:
