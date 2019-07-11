@@ -408,7 +408,7 @@
   // 离开页面
   window.leave = function () {
     if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/{{task_type}}';
+      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
     } else {
       window.history.back();
     }
