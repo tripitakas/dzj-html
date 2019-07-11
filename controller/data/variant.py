@@ -9998,4 +9998,3 @@ def normalize(txt):
         return variants_str[p2 + 1]
 
     return ''.join([get_normal(ch) for ch in txt])
-

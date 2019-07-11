@@ -1,4 +1,3 @@
-import controller.task.api_base
 from . import api_base, api_publish, api_text, api_cut, view_admin, view_cut, view_lobby, view_my, view_text
 
 views = [

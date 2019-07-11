@@ -131,7 +131,7 @@ class ReturnTaskApi(TaskHandler):
                 ret['data_lock_released'] = True
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.matched_count:
-                self.add_op_log('return_' + task_type, file_id=str(page['_id']), context=page_name)
+                self.add_op_log('return_' + task_type, context=page_name)
 
             return self.send_data_response(ret)
 
@@ -202,5 +202,3 @@ class GetPageApi(TaskHandler):
 
         except DbError as e:
             self.send_db_error(e)
-
-

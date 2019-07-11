@@ -349,5 +349,3 @@ def get_all_roles(user_roles):
             for _role in sub_roles:
                 roles.extend(get_all_roles(_role))
     return list(set(roles))
-
-

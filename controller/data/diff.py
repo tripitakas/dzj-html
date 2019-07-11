@@ -222,5 +222,3 @@ class Diff(object):
     def pre_cmp(cls, cmp):
         """比对本预处理，过滤其中的非中文字符"""
         return re.sub(Diff.junk_cmp_str, '', cmp)
-
-
