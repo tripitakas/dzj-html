@@ -70,7 +70,8 @@ class Application(web.Application):
             url = url.replace('@' + k, '(%s)' % v)
         return url
 
-    def log_function(self, handler):
+    @staticmethod
+    def log_function(handler):
         summary = handler._request_summary()
         s = handler.get_status()
         if not (s in [304, 200] and re.search(r'GET /(static|api/(pull|message|discuss))', summary) or s == 404):
@@ -79,6 +80,15 @@ class Application(web.Application):
             request_time = 1000.0 * handler.request.request_time()
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
             log_method("%d %s %.2fms%s", s, summary, request_time, nickname and ' [%s]' % nickname or '')
+
+    @staticmethod
+    def load_config():
+        param = dict(encoding='utf-8') if PY3 else {}
+        cfg_file = path.join(BASE_DIR, 'app.yml')
+        if not os.path.exists(cfg_file):
+            shutil.copy(path.join(BASE_DIR, '_app.yml'), cfg_file)
+        with open(cfg_file, **param) as f:
+            return load_yml(f, Loader=SafeLoader)
 
     @property
     def db(self):
@@ -95,18 +105,12 @@ class Application(web.Application):
             self._db = conn[cfg['name']]
         return self._db
 
-    def load_config(self, db_name_ext=None):
-        param = dict(encoding='utf-8') if PY3 else {}
-        cfg_file = path.join(BASE_DIR, 'app.yml')
-        if not os.path.exists(cfg_file):
-            shutil.copy(path.join(BASE_DIR, '_app.yml'), cfg_file)
-        with open(cfg_file, **param) as f:
-            self.config = load_yml(f, Loader=SafeLoader)
-            self.site = self.config['site']
-            self.img = self.config['img']
-            self.site['url'] = 'localhost:{0}'.format(options.port)
-            if db_name_ext and not self.config['database']['name'].endswith('_test'):
-                self.config['database']['name'] += db_name_ext
+    def init_config(self, db_name_ext=None):
+        self.config = self.load_config()
+        self.site = self.config['site']
+        self.site['url'] = 'localhost:{0}'.format(options.port)
+        if db_name_ext and not self.config['database']['name'].endswith('_test'):
+            self.config['database']['name'] += db_name_ext
 
     def stop(self):
         pass

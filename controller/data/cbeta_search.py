@@ -2,19 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import re
-from yaml import load, SafeLoader
-import os.path as path
 from controller.data.diff import Diff
-from controller.data.variant import normalize
 from elasticsearch import Elasticsearch
+from controller.data.variant import normalize
+from controller.app import Application as App
 
 
-def get_search_host():
-    base_dir = path.dirname(path.dirname(path.dirname(__file__)))
-    cfg_file = path.join(base_dir, 'app.yml')
-    with open(cfg_file, 'r') as f:
-        cfg = load(f, Loader=SafeLoader)
-        return [cfg.get('cbeta')]
+def get_hosts():
+    config = App.load_config()
+    return [config.get('esearch')]
 
 
 def find(q, index='cb4ocr-ik'):
@@ -34,7 +30,7 @@ def find(q, index='cb4ocr-ik'):
         'highlight': {'pre_tags': ['<kw>'], 'post_tags': ['</kw>'], 'fields': {'normal': {}}}
     }
 
-    es = Elasticsearch(hosts=get_search_host())
+    es = Elasticsearch(hosts=get_hosts())
     r = es.search(index=index, body=dsl)
 
     return r['hits']['hits']

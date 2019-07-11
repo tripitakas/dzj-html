@@ -1,7 +1,7 @@
 # 用于 set_secure_cookie 的秘钥, 生成方法: https://www.v2ex.com/t/12646
 cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
-# MongoDB 连接配置
+# MongoDB
 database:
   name: tripitaka
   port: 27017
@@ -20,27 +20,27 @@ site:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
 
-# cbeta全文库
-cbeta:
+# ElasticSearch全文检索库
+esearch:
   host: 47.95.216.233
   port: 9200
 
-# OSS 连接配置
+# OSS图片
 img:
   host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
 
-# 邮件服务器的配置
+# 邮件服务器
 email:
   account: '待配置'
   key: '待配置'
 
-# 短信验证的配置
+# 短信验证
 phone:
   account: '待配置'
   key: '待配置'
 
-# 列表页面的分页配置
+# 分页
 pager:
   page_size: 10
   display_count: 5
