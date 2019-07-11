@@ -114,7 +114,6 @@ role_maps = {
             '/task/(do|update)/char_cut_proof/@page_name': ['GET'],
             '/api/task/(do|update|return|unlock)/char_cut_proof/@page_name': ['POST'],
             '/task/(do|update)/char_cut_proof/order/@page_name': ['GET'],
-            '/api/task/(do|update)/char_cut_proof/order/@page_name': ['POST'],
             '/data/edit/(blocks|columns)/@page_name': ['GET'],
             '/api/data/edit/(blocks|columns)/@page_name': ['POST'],
         }
