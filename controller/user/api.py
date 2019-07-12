@@ -7,7 +7,7 @@
 import logging
 import random
 import smtplib
-from os import path, mkdir
+from os import path
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
@@ -359,8 +359,6 @@ class UploadUserAvatarHandler(BaseHandler):
         upload_img = self.request.files.get('img')
         img_name = str(self.current_user['_id']) + path.splitext(upload_img[0]['filename'])[-1]
         img_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'avatar')
-        if not path.exists(img_path):
-            mkdir(img_path)
         img = 'upload/avatar/' + img_name
         with open(path.join(img_path, img_name), 'wb') as f:
             f.write(upload_img[0]['body'])
