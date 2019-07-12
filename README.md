@@ -1,7 +1,7 @@
-# 大藏经古籍数字化平台
+# 大藏经古籍数字化平台（测试版）
 
-[![Build Status](https://travis-ci.org/tripitakas/tripitaka-web.svg?branch=dev)](https://travis-ci.org/tripitakas/tripitaka-web)
-[![Coverage](https://codecov.io/gh/tripitakas/tripitaka-web/branch/dev/graph/badge.svg)](https://codecov.io/gh/tripitakas/tripitaka-web)
+[![Build Status](https://travis-ci.org/tripitakas/tripitaka-web.svg?branch=alpha)](https://travis-ci.org/tripitakas/tripitaka-web)
+[![Coverage](https://codecov.io/gh/tripitakas/tripitaka-web/branch/alpha/graph/badge.svg)](https://codecov.io/gh/tripitakas/tripitaka-web)
 
 
 ## Wiki在线文档
