@@ -197,6 +197,8 @@ class PublishTasksPageNamesApi(PublishTasksApi):
             }
         else:
             data = self.get_request_data()
+        if 'page_names' in data and 'pages' not in data:
+            data['pages'] = data.pop('page_names')
         rules = [
             (v.not_empty, 'task_type'),
             (v.not_both_empty, 'pages', 'pages_file'),

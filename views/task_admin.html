@@ -418,7 +418,9 @@
       var len = (res.data.published || []).length + (res.data.pending || []).length;
       showSuccess('已发布任务', len + ' 个页面已发布。');
       setTimeout(function () {
-        location.reload();
+        if (len) {
+          location.reload();
+        }
       }, 1000);
     });
   });
@@ -463,7 +465,9 @@
           var len = (res.data.published || []).length + (res.data.pending || []).length;
           showSuccess('已发布任务', len + ' 个页面已发布。');
           setTimeout(function () {
-            location.reload();
+            if (len) {
+              location.reload();
+            }
           }, 1000);
         }
       }
@@ -488,7 +492,9 @@
       var len = (res.data.published || []).length + (res.data.pending || []).length;
       showSuccess('已发布任务', len + ' 个页面已发布。');
       setTimeout(function () {
-        location.reload();
+        if (len) {
+          location.reload();
+        }
       }, 1000);
     });
   });

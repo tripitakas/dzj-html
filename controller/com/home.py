@@ -5,9 +5,12 @@
 @time: 2018/6/23
 """
 
+import traceback
 from controller.base import BaseHandler
 from controller.helper import get_date_time
-from controller.op_type import get_op_name, op_in_recent_trends
+from controller.op_type import get_op_def, op_in_recent_trends, page_kinds
+from controller.task.base import TaskHandler
+import re
 
 
 class HomeHandler(BaseHandler):
@@ -21,9 +24,7 @@ class HomeHandler(BaseHandler):
                                                        'user_id': user_id, 'type': 'visit'})
             r = list(self.db.log.find({'user_id': user_id, 'type': {'$in': ['login_ok', 'register']}},
                                       {'create_time': 1}).sort('create_time', -1).limit(2))
-            if not r:
-                return self.redirect(self.get_login_url())
-            last_login = r[0]['create_time'][:16]
+            last_login = r and r[0]['create_time'][:16] or ''
 
             time = get_date_time('%Y-%m-%d 00:00:00', diff_seconds=-86400 * 5)
             rs = list(self.db.log.find({'create_time': {'$gte': time}})
@@ -38,8 +39,25 @@ class HomeHandler(BaseHandler):
                     continue
                 user_trends[t['user_id']] = time
 
-                context = get_op_name(t['type'])
-                recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context))
+                context, params = '', {}
+                try:
+                    d = get_op_def(t['type'], params)
+                    if d:
+                        task_type = params.get('task_type')
+                        msg = d.get('msg', d['name'])
+                        if 'page_kind' in msg:
+                            msg = msg.replace('{page_kind}', page_kinds[t['context'][:2]])
+                        if 'page_name' in msg:
+                            msg = msg.replace('{page_name}', re.findall(r'^([A-Za-z0-9_]+)', t['context'])[0])
+                        if 'task_type' in msg:
+                            msg = msg.replace('{task_type}', TaskHandler.all_types().get(task_type, task_type))
+                        if 'count' in msg:
+                            msg = msg.replace('{count}', re.findall(r'^(\d+)', t['context'])[0])
+                        context = msg
+                except Exception:
+                    traceback.print_exc()
+                    context = 'err:' % t.get('context')
+                recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context[:20]))
 
             self.render('home.html', visit_count=1 + visit_count, last_login=last_login,
                         recent_trends=recent_trends[:7])
