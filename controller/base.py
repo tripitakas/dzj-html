@@ -175,7 +175,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']
-        logging.error('%d %s [%s %s]' % (code, message, user_name, self.get_ip()))
+        class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]
+        logging.error('%d %s in %s [%s %s]' % (code, message, class_name, user_name, self.get_ip()))
 
         if not self._finished:
             response.pop('exc_info', None)
