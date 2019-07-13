@@ -10,12 +10,13 @@ from os import path, mkdir
 import re
 
 NEED_BUILD = ['base_css', 'base_js', 'cut_base']
-DST_PATH = path.join('static', 'built')
+PATH = path.dirname(path.dirname(__file__))
+DST_PATH = path.join(PATH, 'static', 'built')
 
 
 def merge_files(dst_name, files):
     ext = re.sub(r'^.+\.', '', files[0])
-    content = '\n'.join(open(path.join('static', mf)).read() for mf in files)
+    content = '\n'.join(open(path.join(PATH, 'static', mf)).read() for mf in files)
 
     m = hashlib.md5()
     m.update(content.encode('utf-8'))
@@ -39,8 +40,12 @@ def merge_css_js(name, html_lines):
             fn = re.sub(r"^.+static_url\('|'\).+$", '', text)
             js.append(fn)
         elif text and not re.search(r'<!--\s*[^[]', text):
-            if '<script>' in text:
+            if js_i < 0 and '<script>' in text:
                 js_i = len(lines)
+            if 'var resizefunc = [];' in text:
+                js_i = -1
+            if js_i < 0 and '</script>' in text:
+                js_i = len(lines) + 1
             lines.append(text)
 
     filename = css and merge_files(name, css)
@@ -64,7 +69,7 @@ def merge_css_js(name, html_lines):
 
 def merge_from_html(names):
     for name in names:
-        html_file = path.join('views', '_%s.html' % name)
+        html_file = path.join(PATH, 'views', '_%s.html' % name)
         with open(html_file) as f:
             html_lines = f.read().split('\n')
         merge_css_js(name, html_lines)
