@@ -17,6 +17,7 @@ op_types = {
     'sel_cmp_{task_type}': dict(name='比对文本保存'),
     'withdraw_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
     'reset_{task_type}': dict(name='重置任务', trends=True, msg='重置了{page_name}{task_type}任务'),
+    'auto_unlock': dict(name='自动回收任务'),
     'login_no_user': dict(name='账号不存在'),
     'login_fail': dict(name='账号密码不对'),
     'login_ok': dict(name='登录成功', trends=True),

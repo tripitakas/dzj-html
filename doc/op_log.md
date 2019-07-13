@@ -13,6 +13,7 @@
 | sel_cmp_{task_type} | 页名             |            |
 | withdraw_{task_type}| 页名             |            |
 | reset_{task_type}   | 页名             |            |
+| auto_unlock         | 页名,时间,姓名,task_type |     |
 | login_no_user       | phone_or_email  |            |
 | login_fail	      | phone_or_email  |            |
 | login_ok	          | phone_or_email: 姓名 |        |
