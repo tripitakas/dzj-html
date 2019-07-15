@@ -3,18 +3,21 @@
 
 import re
 
+page_kinds = {'GL': '高丽藏', 'JX': '嘉兴藏', 'QL': '乾隆藏', 'YB': '永乐北藏'}
+
 op_types = {
     'visit': dict(name='页面访问'),
-    'pick_{task_type}': dict(name='领取任务', trends=True),
-    'return_{task_type}': dict(name='退回任务', trends=True),
-    'submit_{task_type}': dict(name='提交任务', trends=True),
-    'publish_{task_type}': dict(name='发布任务', trends=True),
+    'pick_{task_type}': dict(name='领取任务', trends=True, msg='领取了{page_kind}{task_type}任务'),
+    'return_{task_type}': dict(name='退回任务', trends=True, msg='退回了{page_kind}{task_type}任务'),
+    'submit_{task_type}': dict(name='提交任务', trends=True, msg='完成了{page_kind}{task_type}任务'),
+    'publish_{task_type}': dict(name='发布任务', trends=True, msg='发布了{count}个{task_type}任务'),
     'save_do_{task_type}': dict(name='新任务保存'),
     'save_update_{task_type}': dict(name='原任务保存'),
     'save_edit_{task_type}': dict(name='任务修改保存'),
     'sel_cmp_{task_type}': dict(name='比对文本保存'),
-    'withdraw_{task_type}': dict(name='撤回任务', trends=True),
-    'reset_{task_type}': dict(name='重置任务'),
+    'withdraw_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
+    'reset_{task_type}': dict(name='重置任务', trends=True, msg='重置了{page_name}{task_type}任务'),
+    'auto_unlock': dict(name='自动回收任务'),
     'login_no_user': dict(name='账号不存在'),
     'login_fail': dict(name='账号密码不对'),
     'login_ok': dict(name='登录成功', trends=True),
@@ -30,12 +33,16 @@ op_types = {
 re_map = []
 
 
-def get_op_def(op_type):
+def get_op_def(op_type, params=None):
     if not re_map:
         for k in op_types:
-            re_map.append((re.compile(k.replace('{task_type}', '[a-z0-9_.]+')), k))
+            re_map.append((re.compile(k.replace('{task_type}', '([a-z0-9_]+)')), k))
     for r, k in re_map:
         if r.match(op_type):
+            if params is not None:
+                v = r.findall(op_type)
+                if v and 'task_type' in k:
+                    params['task_type'] = v[0]
             return op_types[k]
 
 

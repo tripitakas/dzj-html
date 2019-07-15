@@ -29,17 +29,17 @@ class TextBaseHandler(TaskHandler):
             segments = Diff.diff(txt1, txt2 or txt1, txt3 or txt1)[0]
         return segments
 
-    def get_txts(self, page, task_type):
+    def get_texts(self, page, task_type):
         if 'proof' in task_type:
             ocr = page.get('ocr').replace('|', '\n')
             cmp = self.prop(page, self.cmp_fields.get(task_type))
-            txts = dict(ocr=ocr, cmp=cmp)
+            texts = dict(ocr=ocr, cmp=cmp)
         else:
             txt1 = self.get_txt_from_html(page.get('txt1_html'))
             txt2 = self.get_txt_from_html(page.get('txt2_html'))
             txt3 = self.get_txt_from_html(page.get('txt3_html'))
-            txts = dict(cmp1=txt1, cmp2=txt2, cmp3=txt3)
-        return txts
+            texts = dict(cmp1=txt1, cmp2=txt2, cmp3=txt3)
+        return texts
 
     def get_labels(self, page, task_type):
         if 'proof' in task_type:
@@ -171,7 +171,7 @@ class TextProofHandler(TextBaseHandler):
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
+                txts=self.get_texts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
                 **params
             )
 
@@ -211,7 +211,7 @@ class TextReviewHandler(TextBaseHandler):
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                proof_doubt=proof_doubt, get_img=self.get_img, txts=self.get_txts(page, task_type),
+                proof_doubt=proof_doubt, get_img=self.get_img, txts=self.get_texts(page, task_type),
                 labels=self.get_labels(page, task_type),
                 **params
             )
@@ -244,7 +244,7 @@ class TextHardHandler(TextBaseHandler):
             self.render(
                 'task_text_do.html',
                 task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_txts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
+                txts=self.get_texts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
                 **params
             )
 

@@ -103,9 +103,9 @@
   }
 
   function notifyChanged(el, reason) {
-    var char = el && findCharById(el.data('cid'));
+    var c = el && findCharById(el.data('cid'));
     data.boxObservers.forEach(function(func) {
-      func(char || {}, el && el.getBBox(), reason);
+      func(c || {}, el && el.getBBox(), reason);
     });
   }
 
@@ -667,8 +667,8 @@
           }, 100);
         }
       });
-      var char = this.findCharById(cid);
-      this.switchCurrentBox(char && char.shape);
+      var c = this.findCharById(cid);
+      this.switchCurrentBox(c && c.shape);
     },
 
     undo: undoData.undo.bind(undoData),

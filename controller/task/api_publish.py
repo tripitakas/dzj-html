@@ -98,7 +98,7 @@ class PublishTasksApi(TaskHandler):
         if pages:
             log['not_published'] = [page['name'] for page in pages]
 
-        return {k: v for k, v in log.items() if v}
+        return {k: v_ for k, v_ in log.items() if v_}
 
     def _publish_task(self, page_names, task_type, status, priority, pre_tasks):
         """ 从page_names中，发布task_type对应的任务
@@ -190,13 +190,15 @@ class PublishTasksPageNamesApi(PublishTasksApi):
             pages_str = str(pages_file[0]['body'], encoding='utf-8')
             pre_task = self.get_body_argument('pre_tasks')
             data = {
-                'pages': re.sub("\n+", ",", pages_str),
+                'pages': re.sub(r"\n+", ",", pages_str),
                 'task_type': self.get_body_argument('task_type', ''),
                 'priority': self.get_body_argument('priority', 1),
                 'pre_tasks': pre_task and pre_task.split(',') or []
             }
         else:
             data = self.get_request_data()
+        if 'page_names' in data and 'pages' not in data:
+            data['pages'] = data.pop('page_names')
         rules = [
             (v.not_empty, 'task_type'),
             (v.not_both_empty, 'pages', 'pages_file'),
@@ -213,7 +215,7 @@ class PublishTasksPageNamesApi(PublishTasksApi):
             return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
         log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), page_names)
-        self.send_data_response({k: v for k, v in log.items() if v})
+        self.send_data_response({k: v_ for k, v_ in log.items() if v_})
 
 
 class PublishTasksPagePrefixApi(PublishTasksApi):
@@ -240,4 +242,4 @@ class PublishTasksPagePrefixApi(PublishTasksApi):
         condition = {'name': {'$regex': '.*%s.*' % page_prefix, '$options': '$i'}}
         pages = self.db.page.find(condition, self.simple_fileds())
         log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), pages=pages)
-        self.send_data_response({k: v for k, v in log.items() if v})
+        self.send_data_response({k: v_ for k, v_ in log.items() if v_})

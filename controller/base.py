@@ -76,14 +76,14 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        assert need_roles  # 未在role中配置访问路径
-        message = '无权访问，需要申请%s角色：%s' % ('某一种' if len(need_roles) > 1 else '', '、'.join(need_roles))
+        assert need_roles, '未在role.py中配置访问路径'
+        message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
         self.send_error_response(e.unauthorized, render=not api, message=message)
 
-    def can_access(self, path, method='GET'):
-        """检查当前用户是否能访问某个(path, method)"""
+    def can_access(self, req_path, method='GET'):
+        """检查当前用户是否能访问某个(req_path, method)"""
         role = '访客' if not self.current_user else self.current_user.get('roles') or '普通用户'
-        return can_access(role, path, method)
+        return can_access(role, req_path, method)
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -175,7 +175,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']
-        logging.error('%d %s [%s %s]' % (code, message, user_name, self.get_ip()))
+        class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]
+        logging.error('%d %s in %s [%s %s]' % (code, message, class_name, user_name, self.get_ip()))
 
         if not self._finished:
             response.pop('exc_info', None)
@@ -259,37 +260,47 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+        def callback(r):
+            if r.error:
+                if handle_error:
+                    handle_error(r.error)
+                else:
+                    self.render('_error.html', code=500, message='错误1: ' + str(r.error))
+            else:
+                try:
+                    if binary_response and r.body:
+                        handle_response(r.body, **params_for_handler)
+                    else:
+                        try:
+                            body = str(r.body, encoding='utf-8').strip()
+                        except UnicodeDecodeError:
+                            body = str(r.body, encoding='gb18030').strip()
+                        except TypeError:
+                            body = to_basestring(r.body).strip()
+                        self._handle_body(body, params_for_handler, handle_response, handle_error)
+                except Exception as err:
+                    err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                    if handle_error:
+                        handle_error(err)
+                    else:
+                        self.render('_error.html', code=500, message=err)
+
         self._auto_finish = False
+        kwargs['connect_timeout'] = kwargs.get('connect_timeout', 5)
+        kwargs['request_timeout'] = kwargs.get('request_timeout', 5)
+        binary_response = kwargs.pop('binary_response', False)
+        params_for_handler = kwargs.pop('params', {})
+
         client = AsyncHTTPClient()
         url = re.sub('[\'"]', '', url)
         if not re.match(r'http(s)?://', url):
             url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-            r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
+            yield client.fetch(url, headers=self.request.headers,
+                               callback=callback, validate_cert=False, **kwargs)
         else:
-            r = yield client.fetch(url, validate_cert=False, **kwargs)
+            yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
 
-        if r.error:
-            if handle_error:
-                handle_error(r.error)
-            else:
-                self.render('_error.html', code=500, message='错误1: ' + r.error)
-        else:
-            try:
-                try:
-                    body = str(r.body, encoding='utf-8').strip()
-                except UnicodeDecodeError:
-                    body = str(r.body, encoding='gb18030').strip()
-                except TypeError:
-                    body = to_basestring(r.body).strip()
-                self._handle_body(body, handle_response, handle_error)
-            except Exception as err:
-                err = '错误(%s): %s' % (err.__class__.__name__, str(err))
-                if handle_error:
-                    handle_error(err)
-                else:
-                    self.render('_error.html', code=500, message=err)
-
-    def _handle_body(self, body, handle_response, handle_error):
+    def _handle_body(self, body, params_for_handler, handle_response, handle_error):
         if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
             if 'var next' in body:
                 body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
@@ -297,7 +308,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 self.write(body)
                 self.finish()
             else:
-                handle_response(body)
+                handle_response(body, **params_for_handler)
         else:
             body = json_util.loads(body)
             if body.get('error'):
@@ -307,4 +318,4 @@ class BaseHandler(CorsMixin, RequestHandler):
                 else:
                     self.render('_error.html', **body)
             else:
-                handle_response(body.get('data') or body)
+                handle_response(body.get('data') or body, **params_for_handler)
