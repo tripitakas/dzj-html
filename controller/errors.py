@@ -39,6 +39,7 @@ incomplete = 2007, '信息不全'
 invalid_parameter = 2008, '无效参数'
 no_object = 2009, '对象不存在或已删除'
 cannot_delete_self = 2012, '不能删除自己'
+url_not_found = 2013, '路径不存在或没有配置'
 
 task_unauthorized = 3000, '您没有本任务的权限'
 task_picked = 3001, '本任务已被领走，请领取新任务'

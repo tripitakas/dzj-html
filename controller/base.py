@@ -76,7 +76,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        assert need_roles, '未在role.py中配置访问路径'
+        if not need_roles:
+            self.send_error_response(e.url_not_found, render=not api)
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
         self.send_error_response(e.unauthorized, render=not api, message=message)
 
