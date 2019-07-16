@@ -21,30 +21,36 @@
   <![endif]-->
 
   <style>
-    .task-infos {
+    .tasks {
       width: 100%;
-      background-color: #9b744b;
       font-size: 18px;
     }
 
-    .task-info {
+    .task {
       display: block;
-      margin: 20px 20px 0;
+      padding: 20px 20px 0;
+      clear: both;
 
     }
 
     .task_type {
+      padding-bottom: 10px;
       font-size: 20px;
+      display: block;
+      clear: both;
+    }
 
+    .info {
+      width: 50%;
+      float: left;
     }
 
     .info-label {
-      font-style: italic;
-
+      font-weight: bold;
+      width: 20%;
     }
 
     .info-value {
-
     }
 
   </style>
@@ -61,16 +67,18 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="task-infos"></div>
+            <div class="tasks"></div>
             {% for task_type, info in page.get('tasks').items() %}
-            <div class="task-info">
-              <a href="/task/{{task_type}}/{{page['name']}}">
-                <div class="task_type">{{th.task_types.get(task_type)}}</div>
-              </a>
+            <div class="task">
+              <span class="task_type">
+                <a href="/task/{{task_type}}/{{page['name']}}">{{th.task_types.get(task_type)}}</a>
+              </span>
               {% for k, v in info.items() %}
-              {% if k in field_names %}
-              <label class="info-label">{{field_names.get(k)}}</label>
-              <span class="info-value">{{format_value(k, v)}}</span>
+              {% if k in field_names and v %}
+              <div class="info">
+                <label class="info-label">{{field_names.get(k)}}</label>
+                <span class="info-value">{{format_value(k, v)}}</span>
+              </div>
               {% end %}
               {% end %}
             </div>
