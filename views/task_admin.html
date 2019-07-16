@@ -1,21 +1,16 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <title>任务管理-{{th.task_types.get(task_type)}}</title>
+  <title>任务管理-{{Th.task_types.get(task_type)}}</title>
   {% include _base_meta.html %}
-  <!-- DataTables -->
-  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css"/>
   {% include _base_css.html %}
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-  <!-- [if lt IE 9]>-->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-  <!--![endif]-->
+  <![endif]-->
 
   <style>
     .pre-tasks .checkbox-inline:nth-of-type(1) {
@@ -43,8 +38,10 @@
                         发布任务 <i class="caret"></i>
                       </button>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#prefixModal">按页码前缀发布</a></li><li class="divider"></li>
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">按所选页码发布</a></li><li class="divider"></li>
+                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#prefixModal">按页码前缀发布</a></li>
+                        <li class="divider"></li>
+                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">按所选页码发布</a></li>
+                        <li class="divider"></li>
                         <li><a href="javascript:void(0);" data-toggle="modal" data-target="#fileModal">按页码文件发布</a></li>
                       </ul>
                     </div>
@@ -62,7 +59,7 @@
 											    <div class="btn-group">
 												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态<span class="ion-android-sort "></span></span>
                             <ul class="dropdown-menu" role="menu">
-                            {% for k, v in th.status_names.items() %}
+                            {% for k, v in Th.status_names.items() %}
                               <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
@@ -87,23 +84,23 @@
                     <tr id="{{t['name']}}">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
                       <td>{{t['name']}}</td>
-                      <td>{{th.status_names.get(th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
-                      <td>{{th.prior_names.get(th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>{{Th.status_names.get(Th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
+                      <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                       <td>
-                        {% set pre_tasks = th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
-                        {{'/'.join([th.task_types.get(p) for p in pre_tasks])}}
+                        {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
+                        {{'/'.join([Th.task_types.get(p) for p in pre_tasks])}}
                       </td>
-                      <td>{{to_date_str(th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
-                      <td>{{to_date_str(th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
-                      <td>{{th.prop(t, 'tasks.%s.picked_by' % task_type) or ''}}</td>
-                      <td>{{to_date_str(th.prop(t, 'tasks.%s.picked_time' % task_type))}}</td>
-                      <td>{{to_date_str(th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
+                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
+                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
+                      <td>{{Th.prop(t, 'tasks.%s.picked_by' % task_type) or ''}}</td>
+                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.picked_time' % task_type))}}</td>
+                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
                       <td>
                         <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
-                        {% if th.prop(t, 'tasks.%s.status' % task_type) in ['ready'] %}
+                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['ready'] %}
                         <a class="reset" onclick=reset('{{task_type}}','{{t["name"]}}')>重置</a>
                         {% end %}
-                        {% if th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending'] %}
+                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending'] %}
                         <a class="withdraw" onclick=withdraw('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>
@@ -129,7 +126,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">发布任务-{{th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           <div class="priority-list">
@@ -144,7 +141,7 @@
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
-              {% for t, v in th.task_types.items() %}
+              {% for t, v in Th.task_types.items() %}
               {% if t != task_type %}
               <label class="checkbox-inline">
                 <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
@@ -173,7 +170,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="upload-pages">发布任务-{{th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title" id="upload-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           <div class="priority-list">
@@ -188,7 +185,7 @@
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
-              {% for t, v in th.task_types.items() %}
+              {% for t, v in Th.task_types.items() %}
               {% if t != task_type %}
               <label class="checkbox-inline">
                 <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
@@ -217,7 +214,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-pages">发布任务-{{th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title" id="choose-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           <div class="priority-list">
@@ -232,7 +229,7 @@
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
-              {% for t, v in th.task_types.items() %}
+              {% for t, v in Th.task_types.items() %}
               {% if t != task_type %}
               <label class="checkbox-inline">
                 <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}} />{{v}}
@@ -290,7 +287,7 @@
 
   // 生成并显示导航
   function displayPagination(pageNo, pageSize, totalCount) {
-    var pageCount = Math.ceil(totalCount / pageSize);
+    var pageCount = MaTh.ceil(totalCount / pageSize);
     if (pageCount <= 1) {
       $('#pagination').html('');
       return;
@@ -361,7 +358,7 @@
 
   // 已选对象-搜索
   $("#selected_input").on('input propertychange', function () {
-    var inputval =  new RegExp($(this).val().trim(), "i");
+    var inputval = new RegExp($(this).val().trim(), "i");
     var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
     selections.each(function () {
       if ($(this).text().match(inputval)) {
@@ -403,7 +400,7 @@
       return showError('未选择页面', '请选择要发布的页面。');
     }
     var pre_tasks = [];
-    $("#selectModal .pre-tasks :checkbox").each(function(){
+    $("#selectModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
@@ -441,7 +438,7 @@
     }
     // 前置任务
     var pre_tasks = [];
-    $("#fileModal .pre-tasks :checkbox").each(function(){
+    $("#fileModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
@@ -478,7 +475,7 @@
   $('#prefixModal').find('#prefix_modal_btn').click(function () {
     var page_prefix = $('#page_prefix').val();
     var pre_tasks = [];
-    $("#prefixModal .pre-tasks :checkbox").each(function(){
+    $("#prefixModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
@@ -552,7 +549,7 @@
       closeOnConfirm: true
     };
     swal(info, function () {
-      postApi('/task/withdraw/' + task_type + '/' + name, {'data':{}}, function (res) {
+      postApi('/task/withdraw/' + task_type + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });
@@ -571,7 +568,7 @@
       closeOnConfirm: true
     };
     swal(info, function () {
-      postApi('/task/reset/' + task_type + '/' + name,  {'data':{}}, function (res) {
+      postApi('/task/reset/' + task_type + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });

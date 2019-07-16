@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
   <title>{{site['name']}} - 访问出错</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
@@ -31,9 +30,9 @@
                     <p>{{message}}</p>
                     <p style="margin-top: 10px">
                       {% if 'links' in globals() %}
-                        {% for text, url in links %}
-                        <a href="{{url}}" class="btn btn-primary">{{text}}</a>
-                        {% end %}
+                      {% for text, url in links %}
+                      <a href="{{url}}" class="btn btn-primary">{{text}}</a>
+                      {% end %}
                       {% end %}
                       <a href="javascript:history.back(-1)" class="btn btn-default">
                         <i class="glyphicon glyphicon-chevron-left"></i> 返回前页

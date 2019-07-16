@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <title>文字校对-选择比对文本</title>
   {% include _base_meta.html %}
-  <!-- Plugins css -->
-  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   {% include _base_css.html %}
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet" type="text/css"/>
 
   <style>
     .pfread-in {
@@ -371,7 +367,7 @@
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
     postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason:reason}
+      data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {

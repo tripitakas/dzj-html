@@ -1,14 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
   <title>检索CBETA</title>
   {% include _base_meta.html %}
-  <!-- Plugins css -->
-  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
   {% include _base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -52,8 +46,8 @@
     font-size: 16px;
     width: 100%;
     margin: 10px 0px 5px;
-    overflow:auto;
-    word-break:break-all;
+    overflow: auto;
+    word-break: break-all;
     max-height: calc(100% - 60px);
   }
 
@@ -111,7 +105,7 @@
   // 高度自适应
   $(".search-left").height($(document.body).height() - 40);
   $(".search-right").height($(document.body).height() - 40);
-  $.each($("textarea"), function(i, n){
+  $.each($("textarea"), function (i, n) {
     $(n).css("height", (n.scrollHeight + 10) + "px");
   });
 
@@ -126,7 +120,6 @@
     if ($('#search-input').height() < $('#search-input').prop('scrollHeight') - 20)
       $('#search-input').height($('#search-input').prop('scrollHeight'));
   });
-
 
 </script>
 
