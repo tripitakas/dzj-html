@@ -92,7 +92,7 @@ class TaskInfoHandler(TaskHandler):
             elif key == 'status':
                 value = self.status_names.get(value)
             elif key == 'pre_tasks':
-                value = ','.join([self.task_types.get(t) for t in value])
+                value = ' / '.join([self.task_types.get(t) for t in value])
             elif key == 'priority':
                 value = self.prior_names.get(int(value))
 

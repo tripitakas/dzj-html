@@ -5,6 +5,7 @@ import tests.users as u
 from tests.testcase import APITestCase
 from controller.task.base import TaskHandler as Th
 
+
 class TestDataLock(APITestCase):
 
     def setUp(self):
