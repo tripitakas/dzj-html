@@ -47,9 +47,9 @@ class TestUserAdminViews(APITestCase):
             if isinstance(view.URL, str) and '(' not in view.URL and '@' not in view.URL:  # URL不需要动态参数
                 r = self.parse_response(self.fetch(view.URL + '?_no_auth=1'))
                 self.assertTrue('currentUserId' in r, msg=view.URL + re.sub(r'(\n|\s)+', '', str(r))[:120])
-                if pkg != 'com':
+                if pkg not in ['com', 'tripitaka']:
                     self.assertRegex(view.URL, r'^/%s(/|$)' % pkg, msg=view.URL)
             elif isinstance(view.URL, list):
                 for _url in view.URL:
-                    if pkg != 'com' and '/data/edit' not in _url:
+                    if pkg not in ['com', 'tripitaka'] and '/data/edit' not in _url:
                         self.assertRegex(_url, r'^/%s(/|$)' % pkg, msg=_url)
