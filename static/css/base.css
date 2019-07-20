@@ -1148,4 +1148,15 @@ a:hover {
     padding-top: 45px;
 }
 
+.modal .ms-container {
+    width: 100%;
+}
+
+.modal .control-label {
+    padding: 10px 0;
+}
+
+.modal .my-container {
+    background: none;
+}
 
