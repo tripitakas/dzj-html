@@ -172,7 +172,7 @@
             <div class="right">
               <div class="search">
                 <img class="search-help btn-img" src="{{ static_url('imgs/char_icon7.png') }}" title="全文检索帮助"/>
-                <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" title="配置自订范围"/>
+                <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" title="配置自订范围" data-toggle="modal" data-target="#searchConfigModal"/>
                 <div class="input-group-btn search-scope">
                   <button type="button" class="btn dropdown-toggle btn-scope" data-toggle="dropdown">
                     <span class="cur-scope" id="cur-scope">全部</span><span class="caret"></span>
@@ -339,58 +339,51 @@
   </ul>
 </div>
 
-<!-- 校勘记展示Modal -->
-<div id="jk-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg ">
-    <div class="modal-content black-bg">
-      <div class="modal-body">
-        <ul class="jk-list-ul">
-          <li>
-            <h5>赵城</h5>
-            <ul class="jk-list-char-ul">
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-            </ul>
-            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-          </li>
-          <li>
-            <h5>赵城</h5>
-            <ul class="jk-list-char-ul">
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-            </ul>
-            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
-          </li>
-          <li>
-            <h5>赵城</h5>
-            <ul class="jk-list-char-ul">
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-            </ul>
-            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-          </li>
-          <li>
-            <h5>赵城</h5>
-            <ul class="jk-list-char-ul">
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-            </ul>
-            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
-          </li>
-          <li>
-            <h5>赵城</h5>
-            <ul class="jk-list-char-ul">
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-              <li><span>幢</span></li>
-            </ul>
-            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
-          </li>
-        </ul>
+<!-- 配置自订检索范围 -->
+<div class="panel-body" style="padding: 0">
+  <div id="searchConfigModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="choose-pages">配置自订检索范围</h4>
+        </div>
+        <div class="modal-body">
+          <div class="search-scope-groups">
+            <h4 class="control-label">选择分组</h4>
+            <div>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="唯识" />唯识</label>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="戒律" />戒律</label>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="某某" />某某</label>
+            </div>
+          </div>
+          <br/>
+          <div class="form-group">
+            <div>
+              <h4 class="control-label">配置分组</h4>
+              <div class="ms-container">
+                <div class="ms-selectable">
+                  <div class="selectableHeader">待选经名<a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a></div>
+                  <div><i class="ser-btn"></i>
+                    <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，回车可进行搜索">
+                  </div>
+                </div>
+                <div class="ms-selection">
+                  <div class="selectionHeader">已选经名<a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a></div>
+                  <div><input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，自动搜索已选对象"></div>
+                </div>
+              </div>
+              <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
+                <option value=""></option>
+              </select>
+              <div id="pagination" class="ms-search-pagination"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
+        </div>
       </div>
     </div>
   </div>
@@ -441,7 +434,6 @@
     $('.search-right').show();
   });
 
-
   // 展开更多操作
   $('.more .btn-more').click(function () {
     $('.more-group').toggleClass('hidden');
@@ -455,9 +447,6 @@
     $('.search-orders').toggleClass('hide');
   });
 
-</script>
-
-<script>
   // 检索结果排序
   $('.order-wrap').on('click', function (event) {
     event.stopPropagation();
@@ -552,6 +541,13 @@
   function showList() {
     $('#jk-modal').modal();
   }
+</script>
+
+<script>
+  // 配置自订检索范围
+  var $modal = $('#searchConfigModal');
+  $modal.on('shown.bs.modal', function () {
+  });
 </script>
 
 </body>
