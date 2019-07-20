@@ -16,6 +16,14 @@ class RsTripitakaHandler(BaseHandler):
         self.render('tripitaka_rs.html')
 
 
+class CbetaHandler(BaseHandler):
+    URL = '/cbeta'
+
+    def get(self):
+        """ CBETA """
+        self.render('tripitaka_cbeta.html')
+
+
 class TripitakaListHandler(BaseHandler):
     URL = '/tripitaka'
 

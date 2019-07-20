@@ -15,7 +15,8 @@ class CommonLeft(UIModule):
         can_access = self.handler.can_access
         items = [
             dict(name='首页', icon='icon_home', link='/home'),
-            dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
+            dict(name='CBETA', icon='icon_rs', link='/cbeta'),
+            # dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
             dict(name='实体藏经', icon='icon_tripitaka', link='/tripitaka'),
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切栏校对', icon='icon_subitem', link='/task/lobby/block_cut_proof'),

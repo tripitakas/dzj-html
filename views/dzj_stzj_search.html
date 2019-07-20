@@ -39,11 +39,11 @@
           <div class="page-info">
             当前第<span> 1 </span>卷,共<span> 80 </span>卷
           </div>
-          <div class="page-btn first"><a href="">首卷</a></div>
-          <div class="page-btn prev"><a href="">上一卷</a></div>
-          <div class="page-btn to">跳至<span><input type="text"/></span>卷</div>
-          <div class="page-btn next"><a href="">下一卷</a></div>
-          <div class="page-btn last"><a href="">末卷</a></div>
+          <div class="btn-page first"><a href="">首卷</a></div>
+          <div class="btn-page prev"><a href="">上一卷</a></div>
+          <div class="btn-page to">跳至<span><input type="text"/></span>卷</div>
+          <div class="btn-page next"><a href="">下一卷</a></div>
+          <div class="btn-page last"><a href="">末卷</a></div>
         </div>
 
         <div class="m-header-help"><a href=""><img src="{{ static_url('imgs/help.png') }}" class="btn-img"/></a></div>
@@ -123,7 +123,7 @@
 
 <!--鼠标移入关键字时，弹出的对话框-->
 <div id="mouse_over_dlg">
-  <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+  <div class="btn-dlg-close"><i class="ion-close-circled"></i></div>
   <div><b>聼【大正】=听【开宝】【元官】【永北】【毗卢】</b></div>
   <div class="m-btn-group">
     <div class="m-btn"><a href=""><i class="ion-ios7-copy-outline"></i>复制</a></div>
@@ -133,7 +133,7 @@
 
 <!--鼠标选中文字时，弹出的对话框-->
 <div id="text_selected_dlg">
-  <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+  <div class="btn-dlg-close"><i class="ion-close-circled"></i></div>
   <ul>
     <li><img src="{{ static_url('imgs/icon9_1.png') }}"/><span>复制文字</span></li>
     <li><img src="{{ static_url('imgs/icon10.png') }}"/><span>引用复制</span></li>
@@ -330,10 +330,10 @@
 
 
   });
-  $("#mouse_over_dlg .dlg_close_btn").click(function () {
+  $("#mouse_over_dlg .btn-dlg-close").click(function () {
     $('#mouse_over_dlg').hide();
   });
-  $("#text_selected_dlg .dlg_close_btn").click(function () {
+  $("#text_selected_dlg .btn-dlg-close").click(function () {
     $('#text_selected_dlg').hide();
   });
 
