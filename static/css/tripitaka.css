@@ -20,7 +20,6 @@
 .main-left {
     width: 276px;
     height: 100%;
-    min-height: 800px;
     background: var(--Color_Brown_Dark);
     overflow-y: auto;
     display: none;
@@ -241,7 +240,7 @@
 }
 
 .order-wrap .cur-order {
-    margin-right: -3px;
+    margin-right: 7px;
 }
 .order-wrap .order-img {
     width: 16px;
@@ -253,12 +252,12 @@
 .order-wrap .search-orders {
     position: fixed;
     top: 33px;
-    right: 63px;
-    width: 150px;
+    right: 55px;
+    width: 160px;
     line-height: 25px;
     background: var(--Color_Grey_Line);
     text-align: right;
-    padding: 10px 0;
+    padding: 10px 8px 10px 0;
 }
 
 .order-wrap .search-order {

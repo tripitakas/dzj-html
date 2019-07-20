@@ -7,6 +7,8 @@
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   <link href="{{ static_url('css/tripitaka.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -146,7 +148,7 @@
               <div class="toggle-btn">
                 <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
               </div>
-              <div class="title">CBETA</div>
+              <div class="title" data-toggle="modal" data-target="#searchModal">CBETA</div>
               <div class="m-pager">
                 <div class="btn-page first">1</div>
                 <div class="btn-page prev"><</div>
@@ -172,7 +174,7 @@
             <div class="right">
               <div class="search">
                 <img class="search-help btn-img" src="{{ static_url('imgs/char_icon7.png') }}" title="全文检索帮助"/>
-                <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" title="配置自订范围" data-toggle="modal" data-target="#searchConfigModal"/>
+                <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" title="配置自订范围" data-toggle="modal" data-target="#configModal"/>
                 <div class="input-group-btn search-scope">
                   <button type="button" class="btn dropdown-toggle btn-scope" data-toggle="dropdown">
                     <span class="cur-scope" id="cur-scope">全部</span><span class="caret"></span>
@@ -193,8 +195,8 @@
             </div>
           </div>
 
-          <div class="content ">
-            <div class="content-left">
+          <div class="content">
+            <div class="content-left slim-scroll">
               <div class="article">
                 <p style="text-align:center; font-size:22px; font-weight: bold">正法華經卷第一</p>
                 <p style="text-align:right; font-size:16px; padding-right: 18px">西晉月氏國三藏竺法護譯</p>
@@ -233,7 +235,7 @@
               </div>
             </div>
 
-            <div class="search-right">
+            <div class="search-right slim-scroll">
 
               <div class="search-head">
                 <div class="m-pager">
@@ -341,48 +343,112 @@
 
 <!-- 配置自订检索范围 -->
 <div class="panel-body" style="padding: 0">
-  <div id="searchConfigModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+  <div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-pages">配置自订检索范围</h4>
+          <h4 class="modal-title">配置自订检索范围</h4>
         </div>
         <div class="modal-body">
           <div class="search-scope-groups">
             <h4 class="control-label">选择分组</h4>
             <div>
-              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="唯识" />唯识</label>
-              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="戒律" />戒律</label>
-              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="某某" />某某</label>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="唯识"/>唯识</label>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="戒律"/>戒律</label>
+              <label class="checkbox-inline"><input class="search-scope" type="checkbox" title="某某"/>某某</label>
             </div>
           </div>
           <br/>
           <div class="form-group">
-            <div>
-              <h4 class="control-label">配置分组</h4>
-              <div class="ms-container">
-                <div class="ms-selectable">
-                  <div class="selectableHeader">待选经名<a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a></div>
-                  <div><i class="ser-btn"></i>
-                    <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，回车可进行搜索">
-                  </div>
-                </div>
-                <div class="ms-selection">
-                  <div class="selectionHeader">已选经名<a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a></div>
-                  <div><input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，自动搜索已选对象"></div>
-                </div>
-              </div>
-              <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
-                <option value=""></option>
-              </select>
-              <div id="pagination" class="ms-search-pagination"></div>
-            </div>
+            <h4 class="control-label">配置分组</h4>
+            <select multiple='multiple' id='my-select' name='my-select'>
+              <option value='经名1'>经名1</option>
+              <option value='经名2'>经名2</option>
+              <option value='经名3'>经名3</option>
+              <option value='经名4'>经名4</option>
+              <option value='经名5'>经名5</option>
+              <option value='经名6'>经名6</option>
+              <option value='经名7'>经名7</option>
+              <option value='经名8'>经名8</option>
+            </select>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="select_modal_btn">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 检索经名、作译者等 -->
+<div class="panel-body" style="padding: 0;">
+  <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+    <div class="modal-dialog" style="width: 80%">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="choose-pages">快速检索</h4>
+        </div>
+        <div class="modal-body">
+          <table id="my-table" class="display my-table" style="width: 100%">
+            <thead>
+            <tr>
+              <th>经名</th>
+              <th>编号</th>
+              <th>藏经</th>
+              <th>部类</th>
+              <th style="width: 40px">卷数</th>
+              <th>册别</th>
+              <th>作译者</th>
+              <th style="width: 100px">时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -390,15 +456,16 @@
 </div>
 
 {% include _base_js.html %}
+<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
+<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
+<script type="text/javascript" src="{{ static_url('assets/datatables/datatables.js') }}"></script>
 
 <script>
   // 高度自适应
   function adaptive() {
     var h = $(document.body).height();
     $('#main-left').height(h);
-    $('#main-right .content').height(h - 39);
-    $('#main-right .content-left').height(h - 52);
-    $('#main-right .search-right').height(h - 42);
+    $('#main-right .content').height(h - 40);
   }
 
   $(document).ready(function () {
@@ -544,6 +611,19 @@
 </script>
 
 <script>
+  $('#my-select').multiSelect({
+    selectableHeader: "待选经名<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
+    selectionHeader: "已选经名<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",
+    selectableFooter: "<a href='javascript:void(0);' class='left_btn' id='select_all_btn'>全选</a><a href='javascript:void(0);' class='right_btn' id='select_all_search_btn'>全选所有搜索结果</a>",
+    selectionFooter: "<a href='javascript:void(0);' class='left_btn' id='deselect_all_btn'>全删</a><a href='javascript:void(0);' class='right_btn' id='deselect_all_search_btn'>删除所有搜索结果</a>",
+    selectableOptgroup: true,
+    afterSelect: function (val) {
+      console.log(val);
+    }
+  });
+
+  $('#my-table').DataTable();
+
   // 配置自订检索范围
   var $modal = $('#searchConfigModal');
   $modal.on('shown.bs.modal', function () {
