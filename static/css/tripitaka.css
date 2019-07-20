@@ -1,23 +1,37 @@
+/* 滚动条 */
+.slim-scroll::-webkit-scrollbar {
+    width: 6px;
+    opacity: 0.5;
+}
+
+.slim-scroll::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.slim-scroll::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    background: rgba(1, 1, 1, 0.1);
+}
+
 /* 左侧目录搜索 */
 .main-left {
-    float: left;
     width: 276px;
     height: 100%;
+    min-height: 800px;
+    background: var(--Color_Brown_Dark);
     overflow-y: auto;
     display: none;
 }
 
-.main-left-menu {
-    width: 100%;
-    height: auto !important;
-    height: 100%;
-    float: left;
-    background: var(--Color_Brown_Dark);
-    min-height: 800px;
+.main-left::-webkit-scrollbar {
+    width: 4px;
 }
 
 .menu-search-wrapper {
-    border: 1px solid var(--Color_Brown_Darker);
+    border: 1px solid var(--Color_Brown_Dark);
     border-radius: 24px;
     margin-top: 8px;
     margin-left: 8px;
@@ -26,6 +40,10 @@
     background: var(--Color_Brown_Darker);
     padding-top: 3px;
     padding-bottom: 3px;
+}
+
+.menu-search-wrapper:hover {
+    border: 1px solid var(--Color_Brown);
 }
 
 .menu-search-input {
@@ -41,11 +59,9 @@
     border-color: var(--Color_Brown_Line);
 }
 
-/* 右侧正文及检索区域 */
+/* 右侧区域 */
 .main-right {
-    float: left;
     flex: 1;
-    height: auto !important;
     height: 100%;
     background: var(--Color_White);
 }
@@ -62,13 +78,21 @@
 
 .m-header .title {
     font-size: 20px;
-    margin: 4px 0;
+    margin: 4px 20px 4px 0;
     cursor: pointer;
 }
 
 .m-header .btn-page {
     font-size: 16px;
     cursor: pointer;
+}
+
+.m-header .btn-group .btn {
+    background: var(--Color_Grey_Line);
+}
+
+.m-header .btn-group .btn:hover {
+    background: var(--Color_Grey_Lighter);
 }
 
 .m-header .search {
@@ -92,14 +116,19 @@
     background: var(--Color_Grey_Line);
 }
 
-.m-header .search .scope-item {
+.m-header .search .scope-items {
     min-width: 80px;
     width: 80px;
     color: var(--Color_Brown_Darker);
 }
 
-.m-header .search .scope-item > li > a {
+.m-header .search .scope-items a {
     color: var(--Color_Brown_Darker);
+}
+
+.m-header .search .scope-items a.active:after {
+    content: '√';
+    padding-left: 4px;
 }
 
 .m-header .search .search-input {
@@ -107,7 +136,10 @@
     width: 260px;
     border: 1px solid #dfe1e5;
     border-radius: 24px;
-    color: var(--Color_Brown_Darker);
+    background: var(--Color_Grey_Line);
+}
+
+.m-header .search .search-input:hover {
     background: var(--Color_Grey_Lighter);
 }
 
@@ -118,41 +150,56 @@
     cursor: pointer;
 }
 
+.m-header .search .search-help {
+    margin: 9px 4px;
+}
+
 .m-header .more .btn-sm {
     border: 0;
 }
 
 .m-header .more .btn-sm.active {
-    background: var(--Color_Brown_Darker);
+    background: var(--Color_Brown_Dark);
 }
 
+.m-header .zoom {
+    position: fixed;
+    top: 42px;
+    right: 18px;
+}
+.m-header .zoom:hover {
+    transform: scale(1.2);
+}
+
+.m-header .zoom img {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
 
 /* 右侧正文 */
 .main-right .content {
     padding-top: 39px;
-    display: flex;
     width: 100%;
     height: 100%;
+    display: flex;
 }
 
 .content .content-left {
-    width: 60%;
+    flex: 1;
     overflow-y: auto;
-    padding: 10px 20px;
+    padding: 10px 20px 0;
     background: var(--Color_Grey_Content);
     border: 1px solid var(--Color_Grey_Line);
 }
 
-
 .content .content-left p {
-    width: 100%;
     font-size: 18px;
     color: var(--Color_333);
     margin-bottom: 2px;
     text-indent: 44px;
     letter-spacing: 3px;
 }
-
 
 .content .content-left .kw {
     color: var(--Color_Brown_Darker);
@@ -167,16 +214,10 @@
 }
 
 .search-right .search-head {
-    padding: 5px 10px;
     background-color: var(--Color_Grey_Line);
     height: 32px;
-    position: fixed;
-    display: inline-block;
-    width: 39%;
-}
-
-.search-head .btn-page {
-    font-size: 14px;
+    padding: 5px 10px 0;
+    font-size: 16px;
 }
 
 .search-head .btn-font {
@@ -185,14 +226,34 @@
     cursor: pointer;
 }
 
-.search-head .order-wrap {
-    margin-top: -20px;
+.search-head  .btn-page.to input {
+    background: var(--Color_Grey_Lighter);
 }
 
-.search-head .search-orders {
+.search-head  .btn-page.to input:hover {
+    background: var(--Color_White);
+}
+
+.search-head .order-wrap {
+    margin-top: -20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.order-wrap .cur-order {
+    margin-right: -3px;
+}
+.order-wrap .order-img {
+    width: 16px;
+    height: 14px;
+    margin: 2px 40px 0 0;
+    cursor: pointer;
+}
+
+.order-wrap .search-orders {
     position: fixed;
-    top: 32px;
-    right: 53px;
+    top: 33px;
+    right: 63px;
     width: 150px;
     line-height: 25px;
     background: var(--Color_Grey_Line);
@@ -200,40 +261,24 @@
     padding: 10px 0;
 }
 
-.search-head .search-order {
-    padding-right: 16px;
+.order-wrap .search-order {
+    padding-right: 20px;
     cursor: pointer;
     user-select: none;
 }
 
-.search-head .search-order.active:before {
+.order-wrap .search-order:hover {
+    background: var(--Color_Grey_Light);
+}
+
+.order-wrap .search-order.active:before {
     content: "√";
     padding-right: 4px;
-
-}
-
-.search-head .order-img {
-    width: 16px;
-    height: 14px;
-    margin: 2px 25px 0 -18px;
-    cursor: pointer;
-}
-
-.search-head .zoom {
-    position: fixed;
-    top: 42px;
-    right: 18px;
-}
-
-.search-head .zoom img {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
 }
 
 .search-right .result-items {
-    padding-top: 33px;
-    padding-bottom: 10px;
+    margin-top: 33px;
+    margin-bottom: 10px;
 }
 
 .result-items .result-item {
@@ -250,20 +295,6 @@
 
 .result-item .result-text::-webkit-scrollbar {
     width: 3px;
-    height: 5px;
-    opacity: 0.4;
-}
-
-.result-item .result-text::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.result-item .result-text::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
-    border-radius: 0;
-    background: rgba(0, 0, 0, 0.1);
 }
 
 .result-item .result-head {
@@ -296,7 +327,6 @@
 .result-item .result-text:hover {
     background: var(--Color_Grey_Line);
 }
-
 
 #mouse-over-dlg {
     display: none;
@@ -371,7 +401,6 @@
     height: 500px;
     margin: 0 auto;
     display: inline-block;
-
 }
 
 .jk-list-ul > li {

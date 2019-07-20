@@ -974,13 +974,15 @@ a:hover {
 
 .m-header {
     background: var(--Color_Grey_Light);
-    width: 100%;
     height: 40px;
     position: fixed;
     z-index: 1000;
     user-select: none;
     display: inline-block;
     vertical-align: middle;
+    top:0;
+    right:0;
+    left:0;
 }
 
 .m-header .right {
@@ -1057,11 +1059,15 @@ a:hover {
 .m-pager .btn-page.to input {
     width: 45px;
     height: 20px;
-    background: var(--Color_Grey_Lighter);
+    background: var(--Color_Grey_Line);
     border: none;
     text-align: center;
     margin: 0 2px;
     border-radius: 10px;
+}
+
+.m-pager .btn-page.to input:hover {
+    background: var(--Color_Grey_Lighter);
 }
 
 .m-pager .btn-page.last {

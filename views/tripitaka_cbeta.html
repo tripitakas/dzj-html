@@ -16,9 +16,7 @@
 
 <style>
 
-
 </style>
-
 
 <body>
 <div class="app-main">
@@ -26,7 +24,7 @@
     <div class="main-content">
       <div class="flex-content">
 
-        <div class="main-left" id="main-left">
+        <div class="main-left slim-scroll" id="main-left">
           <div class="main-left-menu">
             <div class="menu-search-wrapper">
               <input class="menu-search-input" type="text"/>
@@ -128,7 +126,16 @@
                   <span>大方等大集經(60卷)</span>
                 </div>
               </li>
-
+              <li>
+                <div class="submenu-title">
+                  <span>佛說太子和休經(1卷)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <span>大方等大集經(60卷)</span>
+                </div>
+              </li>
             </ul>
           </div>
         </div>
@@ -140,9 +147,6 @@
                 <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
               </div>
               <div class="title">CBETA</div>
-              <div class="help">
-                <a href=""><img class="btn-img" src="{{ static_url('imgs/help.png') }}"/></a>
-              </div>
               <div class="m-pager">
                 <div class="btn-page first">1</div>
                 <div class="btn-page prev"><</div>
@@ -167,24 +171,29 @@
             </div>
             <div class="right">
               <div class="search">
+                <img class="search-help btn-img" src="{{ static_url('imgs/char_icon7.png') }}" title="全文检索帮助"/>
                 <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" title="配置自订范围"/>
                 <div class="input-group-btn search-scope">
                   <button type="button" class="btn dropdown-toggle btn-scope" data-toggle="dropdown">
-                    范围<span class="caret"></span>
+                    <span class="cur-scope" id="cur-scope">全部</span><span class="caret"></span>
                   </button>
-                  <ul class="dropdown-menu scope-item">
-                    <li><a href="#">全部</a></li>
-                    <li><a href="#">本经</a></li>
-                    <li><a href="#">自订</a></li>
+                  <ul class="dropdown-menu scope-items">
+                    <li><a class="scope-item active" href="#">全部</a></li>
+                    <li><a class="scope-item" href="#">本经</a></li>
+                    <li><a class="scope-item" href="#">自订</a></li>
                   </ul>
                 </div><!-- /btn-group -->
                 <input id="search-input" class="form-control search-input" type="text" placeholder="请输入关键字或页码">
                 <img class="search-img" src="/static/imgs/search-icon.png">
               </div>
             </div>
+            <div class="zoom">
+              <img class="min-img" src="{{ static_url('imgs/icon_close.png') }}"/>
+              <img class="max-img hide" src="{{ static_url('imgs/icon_open.png') }}"/>
+            </div>
           </div>
 
-          <div class="content">
+          <div class="content ">
             <div class="content-left">
               <div class="article">
                 <p style="text-align:center; font-size:22px; font-weight: bold">正法華經卷第一</p>
@@ -239,7 +248,7 @@
                   <div class="btn-font btn-font-reduce" title="缩小字体">A-</div>
                 </div>
                 <div class="order-wrap fr">
-                  <span class="search-order">按相关度升序排列</span>
+                  <span class="cur-order" id="cur-order">按相关度升序排列</span>
                   <img class="order-img" src="{{ static_url('imgs/icon_order.png') }}"/>
                   <div class="search-orders hide">
                     <div class="search-order">按相关度升序排列</div>
@@ -247,10 +256,6 @@
                     <div class="search-order">按页编码升序排列</div>
                     <div class="search-order">按页编码降序排列</div>
                   </div>
-                </div>
-                <div class="zoom">
-                  <img class="min-img" src="{{ static_url('imgs/icon_close.png') }}"/>
-                  <img class="max-img hide" src="{{ static_url('imgs/icon_open.png') }}"/>
                 </div>
               </div>
               <div class="result-items">
@@ -262,7 +267,7 @@
                     <img class="btn-img show-pic" src="{{ static_url('imgs/icon_pic.png') }}"/>
                   </div>
                   <div class="result-name">大般若波羅蜜多經(600卷)[玄奘]</div>
-                  <div class="result-text">
+                  <div class="result-text slim-scroll">
                     所謂寶相菩薩、寶手菩薩、寶印菩薩、寶髻菩薩、寶冠菩薩、寶峯菩薩、寶海菩薩、寶焰菩薩、寶幢菩薩、寶藏菩薩、金藏菩薩、淨藏菩薩、德藏菩薩、定藏菩薩、智藏菩薩、日藏菩薩、月藏菩薩、如來藏菩薩、蓮華藏菩薩、金剛藏菩薩、解脫月菩薩、普賢菩薩、普音菩薩、普戒菩薩、普行菩薩、
                   </div>
                 </div>
@@ -274,7 +279,7 @@
                     <img class="btn-img show-pic" src="{{ static_url('imgs/icon_pic.png') }}"/>
                   </div>
                   <div class="result-name">大方廣佛華嚴經(80卷)[實叉難陀]</div>
-                  <div class="result-text">
+                  <div class="result-text slim-scroll">
                     金剛智威德菩薩、無垢威德菩薩、日威德菩薩、月威德菩薩、福山威德菩薩、智照威德菩薩、普勝威德菩薩、地藏菩薩、虛空藏菩薩、蓮華藏菩薩、寶藏菩薩、日藏菩薩、清淨功德藏菩薩、法海藏菩薩、遍照藏菩薩、齊藏菩薩、勝蓮華藏菩薩、日眼菩薩、淨眼菩薩、無垢眼菩薩、無礙眼菩薩、普明眼菩薩、善利智眼菩薩、金剛眼菩薩、寶眼菩薩、虛空眼菩薩
                   </div>
                 </div>
@@ -299,7 +304,7 @@
                     <img class="btn-img show-pic" src="{{ static_url('imgs/icon_pic.png') }}"/>
                   </div>
                   <div class="result-name">大方廣佛華嚴經(40卷)[佛馱跋陀羅]</div>
-                  <div class="result-text">
+                  <div class="result-text slim-scroll">
                     月光菩薩、一塵菩薩、堅固行菩薩、霔法雨菩薩、最勝幢菩薩、普莊嚴菩薩、智眼菩薩、法眼菩薩、慧雲菩薩、總持王菩薩、無住願菩薩、智藏菩薩、心王菩薩、內覺慧菩薩、住佛智菩薩、陀羅尼勇健力菩薩、持地力菩薩、妙月菩薩、須彌頂菩薩、寶頂菩薩、普光照菩薩、威德王菩薩、智慧輪菩薩、大威德菩薩、大龍相菩薩、質直行菩薩、不退轉菩薩、持法幢菩薩、無忘失菩薩、攝諸趣菩薩、不思議決定慧菩薩、遊戲無邊智菩薩、無盡妙法藏菩薩、智日菩薩、法日菩薩、智藏菩薩、智澤菩薩、普見菩薩、不空見菩薩、金剛通菩薩、金剛智菩薩、金剛焰菩薩、金剛慧菩薩、
                     <span class="hit" style="color:red">普眼菩薩</span>、佛日菩薩、持佛金剛祕密義菩薩、普眼境界智莊嚴菩薩……。如是等菩薩摩訶薩十佛剎微塵數，往昔皆與毘盧遮那如來同修菩薩諸善根行。爾時，普眼菩薩摩訶薩承佛神力從座而起，偏袒右肩，右膝著地，合掌白佛言：「世尊！我於如來、應、正等覺，欲有所問，願垂哀許。
                   </div>
@@ -398,7 +403,9 @@
   function adaptive() {
     var h = $(document.body).height();
     $('#main-left').height(h);
-    $('#main-right .content').height(h - 42);
+    $('#main-right .content').height(h - 39);
+    $('#main-right .content-left').height(h - 52);
+    $('#main-right .search-right').height(h - 42);
   }
 
   $(document).ready(function () {
@@ -409,22 +416,33 @@
     adaptive();
   });
 
-  // 收起左侧菜单栏
+  // 收起左侧目录
   $('.m-header .toggle-btn').click(function () {
-    var w = $(document.body).width();
-    var display = $('.main-left').css('display');
-    if (display !== 'none') {
-      $('.main-left').hide();
-      $('.m-header').width(w);
-
+    var $mainLeft = $('#main-left');
+    if ($mainLeft.css('display') !== 'none') {
+      $mainLeft.hide();
+      $('#main-right .m-header').css('left', 0);
     } else {
-      $('.main-left').show();
-      var w1 = $('.main-left').width();
-      $('.m-header').width(w - w1);
+      $mainLeft.show();
+      $('#main-right .m-header').css('left', $mainLeft.width());
     }
   });
 
-  // 展开更多
+  // 收起检索结果区域
+  $('.zoom .min-img').click(function () {
+    $('.zoom .min-img').toggleClass('hide');
+    $('.zoom .max-img').toggleClass('hide');
+    $('.search-right').hide();
+  });
+
+  $('.zoom .max-img').click(function () {
+    $('.zoom .min-img').toggleClass('hide');
+    $('.zoom .max-img').toggleClass('hide');
+    $('.search-right').show();
+  });
+
+
+  // 展开更多操作
   $('.more .btn-more').click(function () {
     $('.more-group').toggleClass('hidden');
   });
@@ -440,33 +458,64 @@
 </script>
 
 <script>
+  // 检索结果排序
+  $('.order-wrap').on('click', function (event) {
+    event.stopPropagation();
+    var flag = true;
+    var $tag = $('.search-orders');
+    $tag.show();
+    $(document).bind("click", function (e) {
+      var target = $(e.target);
+      if (target.closest($tag).length === 0 && flag === true) {
+        $tag.hide();
+        flag = false;
+      }
+    });
+  });
+
+  $('.search-order').click(function () {
+    $('.search-order').removeClass('active');
+    $(this).addClass('active');
+    $('#cur-order').text($(this).text());
+  });
+
+  $('.scope-item').click(function () {
+    $('.scope-item').removeClass('active');
+    $(this).addClass('active');
+    $('#cur-scope').text($(this).text());
+  });
+
   // 点击关键字，显示弹框
   $('.kw').click(function (e) {
+    var $kw_dlg = $('#mouse-over-dlg');
     var positionX = e.pageX;
     var positionY = e.pageY;
-    var screenY = e.screenY;
-    var width = $('.main-right .content').width();
-    var left_distance = $('.main-right .content').offset().left;
     var height = window.screen.availHeight;
-    var dlg_width = $('#mouse-over-dlg').width();
-    var dlg_height = $('#mouse-over-dlg').height();
+    var width = $('.main-right .content-left').width();
+    var left_distance = $('.main-right .content-left').offset().left;
+    var screenY = e.screenY;
+    var dlg_width = $kw_dlg.width();
+    var dlg_height = $kw_dlg.height();
+
+    console.log({positionX: positionX, positionY: positionY, width: width, height: height, screenY: screenY, left_distance: left_distance});
 
     if (positionX + dlg_width > width + left_distance) {
-      $('#mouse-over-dlg').css('left', positionX - dlg_width - 30);
+      $kw_dlg.css('left', positionX - dlg_width - 30);
     } else {
-      $('#mouse-over-dlg').css('left', positionX);
+      $kw_dlg.css('left', positionX);
     }
     if (screenY + dlg_height > height) {
-      $('#mouse-over-dlg').css('top', positionY - dlg_height - 30);
+      $kw_dlg.css('top', positionY - dlg_height - 30);
     } else {
-      $('#mouse-over-dlg').css('top', positionY + 10);
+      $kw_dlg.css('top', positionY + 10);
     }
-    $('#mouse-over-dlg').show();
+    $kw_dlg.show();
     $('#text-selected-dlg').hide();
   });
 
   // 选中文字时，显示弹框
   $('.main-right .content p').mouseup(function (e) {
+    var $txt_dlg = $('#text-selected-dlg');
     var txt = window.getSelection ? window.getSelection() : document.selection.createRange().text; //选中的文本
     if (txt.toString().length > 0) {
       var positionX = e.pageX;
@@ -475,22 +524,22 @@
       var width = $('.main-right .content').width();
       var left_distance = $('.main-right .content').offset().left;
       var height = window.screen.availHeight;
-      var dlg_width = $('#text-selected-dlg').width();
-      var dlg_height = $('#text-selected-dlg').height();
+      var dlg_width = $txt_dlg.width();
+      var dlg_height = $txt_dlg.height();
 
       if (positionX + dlg_width > width + left_distance) {
         // alert(positionX + '|' + dlg_width + '|' +  width + '|' +  left_distance);
-        $('#text-selected-dlg').css('left', positionX - dlg_width - 30);
+        $txt_dlg.css('left', positionX - dlg_width - 30);
       } else {
-        $('#text-selected-dlg').css('left', positionX);
+        $txt_dlg.css('left', positionX);
       }
       if (screenY + dlg_height > height) {
-        $('#text-selected-dlg').css('top', positionY - dlg_height - 30);
+        $txt_dlg.css('top', positionY - dlg_height - 30);
       } else {
-        $('#text-selected-dlg').css('top', positionY + 10);
+        $txt_dlg.css('top', positionY + 10);
       }
 
-      $('#text-selected-dlg').show();
+      $txt_dlg.show();
       $('#mouse-over-dlg').hide();
     } else {
       //点击空白处，取消弹框
