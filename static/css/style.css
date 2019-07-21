@@ -928,15 +928,15 @@ a:focus {
 	border: 1px solid #ddd;
 }
 
-.pagination>.active>a,
-.pagination>.active>span,
-.pagination>.active>a:hover,
-.pagination>.active>span:hover,
-.pagination>.active>a:focus,
-.pagination>.active>span:focus {
-	background-color: #317eeb;
-	border-color: #317eeb;
-}
+/*.pagination>.active>a,*/
+/*.pagination>.active>span,*/
+/*.pagination>.active>a:hover,*/
+/*.pagination>.active>span:hover,*/
+/*.pagination>.active>a:focus,*/
+/*.pagination>.active>span:focus {*/
+/*	background-color: #317eeb;*/
+/*	border-color: #317eeb;*/
+/*}*/
 
 
 /* 2.10 Tabs-Accordions */

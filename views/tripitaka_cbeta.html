@@ -7,17 +7,27 @@
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   <link href="{{ static_url('css/tripitaka.css') }}" rel="stylesheet"/>
-  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css"/>
   <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-
 </head>
 
 <style>
+  .dataTables_paginate .pagination {
+    float: right;
+  }
 
+  .dataTables_wrapper .paginate_button a:hover {
+    color: #666;
+  }
+
+  .dataTables_wrapper .paginate_button.active a {
+    background-color: #b88f6f;
+    border-color: #b88f6f;
+  }
 </style>
 
 <body>
@@ -427,7 +437,7 @@
           <h4 class="modal-title" id="choose-pages">快速检索</h4>
         </div>
         <div class="modal-body">
-          <table id="my-table" class="display my-table" style="width: 100%">
+          <table id="my-table" class="table my-table" style="width: 100%">
             <thead>
             <tr>
               <th>经名</th>
@@ -481,6 +491,246 @@
               <td>西晉河內沙門白法祖譯</td>
               <td>西晉(290~306)</td>
             </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
+            <tr>
+              <td>七佛經</td>
+              <td>T0002</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>1</td>
+              <td>2</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>毘婆尸佛經</td>
+              <td>T0003</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>3</td>
+              <td>法天</td>
+              <td>東漢(25~220)</td>
+            </tr>
+            <tr>
+              <td>七佛父母姓字經</td>
+              <td>T0004</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>4</td>
+              <td>失譯</td>
+              <td>曹魏(220~265)</td>
+            </tr>
+            <tr>
+              <td>佛般泥洹經</td>
+              <td>T0005</td>
+              <td>大正藏</td>
+              <td>阿含部類</td>
+              <td>2</td>
+              <td>5</td>
+              <td>西晉河內沙門白法祖譯</td>
+              <td>西晉(290~306)</td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -492,7 +742,7 @@
 {% include _base_js.html %}
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
-<script type="text/javascript" src="{{ static_url('assets/datatables/datatables.js') }}"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
 
 <script>
   // 高度自适应
@@ -510,6 +760,7 @@
     adaptive();
   });
 
+  <!-- 顶部导航第一行 -->
   // 展开、收缩左侧目录
   $('.m-header .toggle-btn').click(function () {
     var $mainLeft = $('#main-left');
@@ -540,7 +791,28 @@
     $('.m-header .sub-line .right').toggleClass('hide');
   });
 
-  // 收起顶部导航第二行
+  // 展开更多操作
+  $('.more .btn-more').click(function () {
+    $('.more-group').toggleClass('hidden');
+  });
+
+  $('.more .btn-sm').click(function () {
+    $(this).toggleClass('active');
+  });
+
+  $('.sub-line .order-wrap').click(function () {
+    $('.search-orders').toggleClass('hide');
+  });
+
+  // 选择检索范围
+  $('.scope-item').click(function () {
+    $('.scope-item').removeClass('active');
+    $(this).addClass('active');
+    $('#cur-scope').text($(this).text());
+  });
+
+  <!-- 顶部导航第二行 -->
+  // 展开、收起顶部导航第二行
   $('.zoom .min-img').click(function () {
     $('.zoom .min-img').toggleClass('hide');
     $('.zoom .max-img').toggleClass('hide');
@@ -555,20 +827,7 @@
     $('.main-right .content').css('padding-top', 70);
   });
 
-  // 展开更多操作
-  $('.more .btn-more').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
-
-  $('.more .btn-sm').click(function () {
-    $(this).toggleClass('active');
-  });
-
-  $('.sub-line .order-wrap').click(function () {
-    $('.search-orders').toggleClass('hide');
-  });
-
-  // 展示检索结果的排序方式
+  // 弹框-检索结果排序方式
   $('.order-wrap').on('click', function (event) {
     event.stopPropagation();
     var flag = true;
@@ -582,12 +841,6 @@
       }
     });
   });
-  
-  $('.content-right .result-item .btn-operate').click(function () {
-    var item = $(this).parent().parent();
-    $('.content-center .result-items').append(item);
-
-  });
 
   // 选择某种排序方式
   $('.search-order').click(function () {
@@ -596,13 +849,8 @@
     $('#cur-order').text($(this).text());
   });
 
-  // 选择检索范围
-  $('.scope-item').click(function () {
-    $('.scope-item').removeClass('active');
-    $(this).addClass('active');
-    $('#cur-scope').text($(this).text());
-  });
 
+  <!-- 左侧文章阅读区域 -->
   // 点击关键字，显示弹框
   $('.kw').click(function (e) {
     var $kw_dlg = $('#mouse-over-dlg');
@@ -660,14 +908,28 @@
     }
   });
 
-  // 遮罩层弹出框
-  function showList() {
-    $('#jk-modal').modal();
-  }
+  <!-- 中间粘住结果区域 -->
+  // 删除结果
+  $('.content-center .result-item .btn-operate').click(function () {
+    $(this).parent().parent().remove();
+  });
+
+  <!-- 右侧检索结果区域 -->
+  // 粘住结果
+  $('.content-right .result-item .btn-operate').click(function () {
+    $('.main-right .content .content-center').removeClass('hide');
+    $('.m-header .sub-line .center').removeClass('hide');
+    var item = $(this).parent().parent();
+    item.find('.btn-operate').bind('click', function () {
+      $(this).parent().parent().remove();
+    });
+    $('.content-center .result-items').append(item);
+  });
+
 </script>
 
 <script>
-  // 展开定制检索范围Modal
+  // 配置自定检索范围
   $('#my-select').multiSelect({
     selectableHeader: "待选经名<input type='text' class='form-control search-input' id='selectable_input' placeholder='您可以输入关键字进行搜索'>",
     selectionHeader: "已选经名<input type='text' class='form-control search-input' id='selected_input' placeholder='您可以输入关键字进行搜索'>",
@@ -694,10 +956,37 @@
     $('#configModal .search-scope-groups .checkbox-inline:last').focus();
     $('#configModal .checkbox-inline').unbind('dblclick').bind('dblclick', dblClickCheckbox);
   });
+</script>
 
-  // $('#my-table').DataTable();
+<script>
+  // 字段查询
+  var language = {
+    "sProcessing": "处理中...",
+    "sLengthMenu": "显示 _MENU_ 项结果",
+    "sZeroRecords": "没有匹配结果",
+    "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+    "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+    "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+    "sInfoPostFix": "",
+    "sSearch": "搜索:",
+    "sUrl": "",
+    "sEmptyTable": "表中数据为空",
+    "sLoadingRecords": "载入中...",
+    "sInfoThousands": ",",
+    "oPaginate": {
+      "sFirst": "首页",
+      "sPrevious": "上页",
+      "sNext": "下页",
+      "sLast": "末页"
+    },
+    "oAria": {
+      "sSortAscending": ": 以升序排列此列",
+      "sSortDescending": ": 以降序排列此列"
+    }
+  };
 
-  // 配置自定检索范围
+  $('#my-table').DataTable({language: language});
+
   var $modal = $('#searchConfigModal');
   $modal.on('shown.bs.modal', function () {
   });
