@@ -6,12 +6,16 @@
     --Color_Brown_Dark: #cb9b66;
     --Color_Brown_Darker: #b68856;
     --Color_Brown_Line: #9b744b;
+    --Color_Grey: #9e9e9e;
     --Color_Grey_Light: #cfcfcf;
     --Color_Grey_Lighter: #fafafa;
     --Color_Grey_Middle: #b7b7b6;
     --Color_Grey_Dark: #6a6a77;
     --Color_Grey_Line: #ebebeb;
     --Color_Grey_Content: #f2f5fa;
+    --Color_Grey_Content1: #f1f3f4;
+    --Color_Grey_Content2: #fafafa;
+
 }
 
 body, html {
@@ -1046,40 +1050,17 @@ a:hover {
     margin-top: 8px;
 }
 
-.m-pager .btn-page {
-    float: left;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 0 6px;
-    height: 20px;
-    text-align: center;
-    border-right: 1px dotted var(--Color_Grey_Middle);
-}
-
-.m-pager .btn-page.to input {
-    width: 45px;
-    height: 20px;
-    background: var(--Color_Grey_Line);
-    border: none;
-    text-align: center;
-    margin: 0 2px;
-    border-radius: 10px;
-}
-
-.m-pager .btn-page.to input:hover {
-    background: var(--Color_Grey_Lighter);
-}
-
-.m-pager .btn-page.last {
-    border: 0;
-}
 
 .m-header .image {
     margin-left: 40px;
 }
 
 .m-header .more-group {
-    margin-top: 4px;
+    margin-top: 5px;
+}
+
+.m-header .more-group .btn{
+    border: 0;
 }
 
 .m-header .btn-txt {

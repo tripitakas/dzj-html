@@ -339,7 +339,7 @@
     });
     var selectableInput = $('#selectable_input').val().trim();
     postApi('/task/ready_pages/{{task_type}}', {data: {prefix: selectableInput, exclude: selectedPages}}, function (res) {
-      searchStr = selectableInput  // 设置全局变量
+      searchStr = selectableInput;  // 设置全局变量
       pages = selectedPages.concat(res.data.pages);
       $myMultiSelect.multiSelect('refresh')
       showModal(1, res.data.page_size, res.data.total_count);
