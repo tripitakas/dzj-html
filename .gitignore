@@ -43,6 +43,7 @@ coverage.xml
 target/
 
 # Project Files
+views/_*_.html
 static/built/
 static/img/
 static/upload/

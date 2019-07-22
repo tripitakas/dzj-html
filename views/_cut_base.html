@@ -1,5 +1,9 @@
+{% if release_html %}
+{% include _cut_base_.html %}
+{% else %}
 <script src="{{ static_url('js/cut/raphael.js') }}"></script>
 <script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
 <script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
 <script src="{{ static_url('js/cut/cut.js') }}"></script>
 <script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+{% end %}

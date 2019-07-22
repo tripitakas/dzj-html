@@ -39,7 +39,7 @@ def merge_css_js(name, html_lines):
         elif re.match(r"<script .+static_url\('.+js'\)", text):
             fn = re.sub(r"^.+static_url\('|'\).+$", '', text)
             js.append(fn)
-        elif text and not re.search(r'<!--\s*[^[]', text):
+        elif text and not re.search(r'<!--\s*[^[]|^{%', text):
             if js_i < 0 and '<script>' in text:
                 js_i = len(lines)
             if 'var resizefunc = [];' in text:
@@ -63,7 +63,8 @@ def merge_css_js(name, html_lines):
             lines.insert(js_i, js)
         else:
             lines.append(js)
-    with open(path.join(DST_PATH, '_' + name + '.html'), 'w') as f:
+
+    with open(path.join(PATH, 'views', '_%s_.html' % name), 'w') as f:
         f.write('\n'.join(lines))
 
 
