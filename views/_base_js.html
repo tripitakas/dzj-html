@@ -1,5 +1,5 @@
 {% raw xsrf_form_html() %}
-{% if release_html %}
+{% if not debug %}
 {% include _base_js_.html %}
 {% else %}
 <script>

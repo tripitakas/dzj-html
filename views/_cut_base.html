@@ -1,4 +1,4 @@
-{% if release_html %}
+{% if not debug %}
 {% include _cut_base_.html %}
 {% else %}
 <script src="{{ static_url('js/cut/raphael.js') }}"></script>
