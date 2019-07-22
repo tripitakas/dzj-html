@@ -43,7 +43,6 @@ coverage.xml
 target/
 
 # Project Files
-static/built/
 static/img/
 static/upload/
 log/

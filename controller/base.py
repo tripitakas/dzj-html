@@ -102,6 +102,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
+        kwargs['release_html'] = not kwargs['debug'] and path.exists(
+            path.join(self.application.BASE_DIR, 'static', 'built'))
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
