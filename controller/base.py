@@ -1,91 +1,45 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 后端API响应的基础函数和类
+@desc: Handler基类
 @time: 2018/6/23
 """
 
-import logging
 import re
+import logging
 import traceback
-from datetime import datetime
+import hashlib
+from os import path
 
+from bson import json_util
 from bson.errors import BSONError
-from pyconvert.pyconv import convertJSON2OBJ, convert2JSON
 from pymongo.errors import PyMongoError
-from tornado.escape import json_decode, json_encode
+from tornado import gen
+from tornado.escape import to_basestring
+from tornado.httpclient import AsyncHTTPClient
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
-from tornado import gen
-from tornado.httpclient import AsyncHTTPClient
-
-from controller import errors
-from model.user import User, authority_map, ACCESS_ALL
-
-
-def my_framer():
-    f0 = f = old_framer()
-    if f is not None:
-        f = f.f_back
-        while re.search(r'(web|base)\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
-
-
-old_framer = logging.currentframe
-logging.currentframe = my_framer
+from controller import errors as e
+from controller.role import get_route_roles, can_access
+from controller.helper import get_date_time
+from controller.op_type import get_op_name
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
-
-
-def fetch_authority(user, record):
-    """ 从记录中读取权限字段值 """
-    authority = None
-    if record:
-        items = [authority_map[f] for f in list(authority_map.keys()) if record.get(f)]
-        authority = ','.join(sorted(items, key=lambda a: ACCESS_ALL.index(a) if a in ACCESS_ALL else -1))
-    if user:
-        user.authority = authority or '普通用户'
-    return authority
-
-
-def convert_bson(r):
-    if not r:
-        return r
-    for k, v in (r.items() if isinstance(r, dict) else enumerate(r)):
-        if type(v) == datetime:
-            r[k] = v.strftime('%Y-%m-%d %H:%M:%S')
-        elif isinstance(v, dict):
-            convert_bson(v)
-    if 'update_time' not in r and 'create_time' in r:
-        r['update_time'] = r['create_time']
-    if '_id' in r:
-        r['id'] = str(r.pop('_id'))
-    return r
-
-
-def convert2obj(cls, json_obj):
-    """ 将JSON对象转换为指定模型类的对象 """
-    if isinstance(json_obj, dict):
-        for k, v in list(json_obj.items()):
-            if v is None or v == str:
-                json_obj.pop(k)
-    obj = convertJSON2OBJ(cls, json_obj)
-    fields = [f for f in cls.__dict__.keys() if f[0] != '_']
-    for f in fields:
-        if f not in obj.__dict__:
-            obj.__dict__[f] = None
-    return obj
 
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
+
+    def __init__(self, application, request, **kwargs):
+        super(BaseHandler, self).__init__(application, request, **kwargs)
+        self.db = self.application.db
+        self.config = self.application.config
+        self.more = {}  # 给子类记录使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -94,10 +48,42 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
-    def __init__(self, application, request, **kwargs):
-        super(BaseHandler, self).__init__(application, request, **kwargs)
-        self.authority = ''
-        self.db = self.application.db
+    def prepare(self):
+        """ 调用 get/post 前的准备 """
+        p, m = self.request.path, self.request.method
+        # 单元测试
+        if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
+            return
+        # 检查是否访客可以访问
+        if can_access('访客', p, m):
+            return
+        # 检查用户是否已登录
+        api = '/api/' in p
+        login_url = self.get_login_url() + '?next=' + self.request.uri
+        if not self.current_user:
+            return self.send_error_response(e.need_login) if api else self.redirect(login_url)
+        # 检查数据库中是否有该用户
+        user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
+        if not user_in_db:
+            return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+        # 检查是否不需授权（即普通用户可访问）
+        if can_access('普通用户', p, m):
+            return
+        # 检查当前用户是否可以访问本请求
+        self.current_user['roles'] = user_in_db.get('roles', '')  # 检查权限前更新roles
+        self.set_secure_cookie('user', json_util.dumps(self.current_user))
+        if can_access(self.current_user['roles'], p, m):
+            return
+        # 报错，无权访问
+        need_roles = get_route_roles(p, m)
+        assert need_roles, '未在role.py中配置访问路径'
+        message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
+        self.send_error_response(e.unauthorized, render=not api, message=message)
+
+    def can_access(self, req_path, method='GET'):
+        """检查当前用户是否能访问某个(req_path, method)"""
+        role = '访客' if not self.current_user else self.current_user.get('roles') or '普通用户'
+        return can_access(role, req_path, method)
 
     def get_current_user(self):
         if 'Access-Control-Allow-Origin' not in self._headers:
@@ -106,254 +92,230 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         user = self.get_secure_cookie('user')
         try:
-            user = user and convert2obj(User, json_decode(user))
-            self.authority = user and user.authority or ''
-            return user or None
-        except TypeError as e:
-            print(user, str(e))
-
-    def update_login(self):
-        """ 更新内存中的当前用户及其权限信息 """
-        if not self.current_user:
-            return False
-
-        fields = ['email'] + list(authority_map.keys())
-        old_user = self.fetch2obj(self.db.user.find_one(dict(email=self.current_user.email)),
-                                  User, fetch_authority, fields=fields)
-        if old_user:
-            user = self.current_user
-            user.authority = old_user.authority
-            for k, v in list(user.__dict__.items()):
-                if v is None or v == str:
-                    user.__dict__.pop(k)
-            self.set_secure_cookie('user', json_encode(self.convert2dict(user)))
-        else:
-            self.current_user.authority = ''
-            self.send_error(errors.auth_changed)
-            raise Warning(1, '需要重新登录或注册')
-        self.authority = self.current_user.authority
-        return True
+            return user and json_util.loads(user) or None
+        except TypeError as err:
+            print(user, str(err))
 
     def render(self, template_name, **kwargs):
-        kwargs['authority'] = self.current_user.authority if self.current_user else ''
-        kwargs['currentUserId'] = self.current_user.id if self.current_user else ''
-        kwargs['protocol'] = self.request.protocol
+        kwargs['currentRoles'] = self.current_user and self.current_user.get('roles') or ''
+        kwargs['currentUserId'] = self.current_user and self.current_user.get('_id') or ''
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
-        if self.get_query_argument('_raw', 0) == '1':  # for unit-testing
-            return self.send_response(kwargs)
-        super(BaseHandler, self).render(template_name, dumps=lambda p: json_encode(p), **kwargs)
+        kwargs['current_path'] = self.request.path
+        # can_access/dumps/to_date_str传递给页面模板
+        kwargs['can_access'] = self.can_access
+        kwargs['dumps'] = json_util.dumps
+        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
+        if self._finished:  # check_auth 等处报错返回后就不再渲染
+            return
 
-    @staticmethod
-    def _trim_obj(obj, param_type):
-        if param_type not in [dict, str, int, float]:
-            fields = [f for f in param_type.__dict__.keys() if f[0] != '_']
-            for f in list(obj.__dict__):
-                if f not in fields and '__' not in f:
-                    del obj.__dict__[f]
-            for f in fields:
-                if f not in obj.__dict__:
-                    obj.__dict__[f] = None
-                elif isinstance(obj.__dict__[f], str):
-                    obj.__dict__[f] = obj.__dict__[f].strip()
+        # 单元测试时，获取传递给页面的数据
+        if self.get_query_argument('_raw', 0) == '1':
+            kwargs = {k: v for k, v in kwargs.items() if not hasattr(v, '__call__') and k != 'error'}
+            if template_name.startswith('_404') or template_name.startswith('_error'):
+                return self.send_error_response((self.get_status(), self._reason), **kwargs)
+            return self.send_data_response(**kwargs)
 
-    def get_body_obj(self, param_type):
+        logging.info(template_name + ' by ' + re.sub(r"^.+controller\.|'>", '', str(self.__class__)))
+        self.add_op_log('visit', context=self.request.path)
+
+        try:
+            super(BaseHandler, self).render(template_name, **kwargs)
+        except Exception as err:
+            traceback.print_exc()
+            message = '网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)
+            kwargs.update(dict(code=500, message=message))
+            super(BaseHandler, self).render('_error.html', **kwargs)
+
+    def get_request_data(self):
         """
-        从请求内容的 data 属性解析出指定模型类的一个或多个对象.
-        客户端的请求需要在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
-        :param param_type: 模型类或dict
-        :return: 指定模型类的对象，如果 data 属性值为数组则返回对象数组
+        获取请求数据。
+        客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
-
-        def str2obj(text):
-            if type(text) == dict:
-                for k, v in list(text.items()):
-                    if v is None:
-                        text.pop(k)
-            return convert2obj(param_type, text)
-
         if 'data' not in self.request.body_arguments:
-            body = json_decode(self.request.body).get('data')
+            body = b'{"data":' in self.request.body and json_util.loads(self.request.body).get('data')
         else:
-            body = self.get_body_argument('data')
-        if param_type == str:
-            param_obj = body
-        elif param_type == dict:
-            param_obj = json_decode(body or '{}')
-            return param_obj
-        else:
-            try:
-                body = json_decode(body or '{}')
-                if type(body) == list:
-                    param_obj = [str2obj(p) for p in body]
-                else:
-                    param_obj = str2obj(body)
-            except ValueError:
-                logging.error(body)
-                return
+            body = json_util.loads(self.get_body_argument('data'))
+        return body or {}
 
-        if type(param_obj) == list:
-            [self._trim_obj(p, param_type) for p in param_obj]
-        else:
-            self._trim_obj(param_obj, param_type)
-        return param_obj
-
-    @staticmethod
-    def convert2dict(obj):
-        """ 将模型类的对象转为 dict 对象，以便输出到客户端 """
-        filter_attr = obj.__dict__
-        data = dict()
-        for v in filter_attr:
-            d = getattr(obj, v)
-            data[v] = d
-        return data
-
-    def convert_for_send(self, response, trim=None):
-        """ 将包含模型对象的API响应内容转换为原生对象(dict或list) """
-        if isinstance(response, list):
-            response = [self.convert_for_send(r, trim) for r in response]
-        elif hasattr(response, '__dict__'):
-            dup = response.__class__()
-            for f, v in response.__dict__.items():
-                dup.__dict__[f] = v
-            if callable(trim):
-                trim(dup)
-            for f, v in list(dup.__dict__.items()):
-                if v is None or v == str:
-                    del dup.__dict__[f]
-            response = convert2JSON(dup)
-        return response
-
-    def send_response(self, response=None, trim=None):
-        """ 发送并结束API响应内容 """
+    def send_data_response(self, data=None, **kwargs):
+        """
+        发送正常响应内容，并结束处理
+        :param data: 返回给请求的内容，字典或列表
+        :param kwargs: 更多上下文参数
+        :return: None
+        """
+        assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        response = self.convert_for_send({'code': 200} if response is None else response, trim)
-        if not isinstance(response, dict):
-            response = json_encode({'items': response} if isinstance(response, list) else response)
-        self.write(response)
+
+        r_type = 'multiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
+        response = dict(status='success', type=r_type, data=data, code=200)
+        response.update(kwargs)
+        self.write(json_util.dumps(response))
         self.finish()
 
+    def send_error_response(self, error=None, **kwargs):
+        """
+        反馈错误消息，并结束处理
+        :param error: 单一错误描述的元组(见errors.py)，或多个错误的字典对象
+        :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
+        :return: None
+        """
+        _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
+        _error = list(error.values())[0] if _type == 'multiple' else error
+        code, message = _error
+        # 如果kwargs中含有message，则覆盖error中对应的message
+        message = kwargs['message'] if kwargs.get('message') else message
+
+        response = dict(status='failed', type=_type, code=code, message=message, error=error)
+        kwargs.pop('exc_info', 0)
+        response.update(kwargs)
+
+        if response.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+            return self.render('_error.html', **response)
+
+        user_name = self.current_user and self.current_user['name']
+        class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]
+        logging.error('%d %s in %s [%s %s]' % (code, message, class_name, user_name, self.get_ip()))
+
+        if not self._finished:
+            response.pop('exc_info', None)
+            self.set_header('Content-Type', 'application/json; charset=UTF-8')
+            self.write(json_util.dumps(response))
+            self.finish()
+
     def send_error(self, status_code=500, **kwargs):
-        """ 发送并结束API异常响应消息 """
-        if isinstance(status_code, tuple):
-            status_code, message = status_code
-            if 'reason' in kwargs and kwargs['reason'] != message:
-                message += ': ' + kwargs['reason']
-            kwargs['reason'] = message
+        """拦截系统错误，不允许API调用"""
         self.write_error(status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
-        reason = kwargs.get('reason') or self._reason
-        reason = reason if reason != 'OK' else '无权访问' if status_code == 403 else '后台服务出错'
-        logging.error('%d %s [%s %s]' % (status_code, reason,
-                                         self.current_user and self.current_user.name, self.get_ip()))
-        if not self._finished:
-            self.set_header('Content-Type', 'application/json; charset=UTF-8')
-            self.write({'code': status_code, 'error': reason})
-            self.finish()
+        """拦截系统错误，不允许API调用"""
+        assert isinstance(status_code, int)
+        message = kwargs.get('message') or kwargs.get('reason') or self._reason
+        exc = kwargs.get('exc_info')
+        exc = exc and len(exc) == 3 and exc[1]
+        message = message if message != 'OK' else '无权访问' if status_code == 403 else '后台服务出错 (%s, %s)' % (
+            str(self).split('.')[-1].split(' ')[0],
+            '%s(%s)' % (exc.__class__.__name__, re.sub(r"^'|'$", '', str(exc)))
+        )
+        self.send_error_response((status_code, message), **kwargs)
 
-    def send_db_error(self, e):
-        code = type(e.args) == tuple and len(e.args) > 1 and e.args[0] or 0
-        reason = re.sub(r'[<{;:].+$', '', e.args[1]) if code else re.sub(r'\(0.+$', '', str(e))
-        if not code and '[Errno' in reason and isinstance(e, MongoError):
+    def send_db_error(self, error, render=False):
+        code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
+        if not isinstance(code, int):
+            code = 0
+        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
+        if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            return self.send_error(errors.mongo_error[0] + code,
-                                   reason='无法访问文档库' if code in [61] else '%s(%s)%s' % (
-                                       errors.mongo_error[1], e.__class__.__name__, ': ' + (reason or '')))
+            reason = '无法访问文档库' if code in [61] else '%s(%s)%s' % (
+                e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
+            )
+            return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
+
         if code:
-            logging.error(e.args[1])
-        if 'InvalidId' == e.__class__.__name__:
-            code, reason = 1, errors.no_object[1]
+            logging.error(error.args[1])
+        if 'InvalidId' == error.__class__.__name__:
+            code, reason = 1, e.no_object[1]
         if code not in [2003, 1]:
             traceback.print_exc()
-        default_error = errors.mongo_error if isinstance(e, MongoError) else errors.db_error
-        self.send_error(default_error[0] + code, for_yield=True,
-                        reason='无法连接数据库' if code in [2003] else '%s(%s)%s' % (
-                            default_error[1], e.__class__.__name__, ': ' + (reason or '')))
 
-    @staticmethod
-    def fetch2obj(record, cls, extra=None, fields=None):
-        """
-        将从数据库取到(fetchall、fetchone)的记录字典对象转为模型对象
-        :param record: 数据库记录，字典对象
-        :param cls: 模型对象的类
-        :param extra: 额外字段的读取函数
-        :return: 模型对象
-        """
-        if record:
-            obj = {}
-            fields = set(cls.__dict__.keys()) & set(record.keys())
-            for f in fields:
-                value = record[f]
-                if type(value) == datetime:
-                    value = value.strftime('%Y-%m-%d %H:%M:%S')
-                if value is not None and (not fields or f in fields):
-                    obj[f] = value
-            obj = convert2obj(cls, obj)
-            if obj and extra:
-                extra(obj, record)
-            return obj
+        default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
+        reason = '无法连接数据库' if code in [2003] else '%s(%s)%s' % (
+            default_error[1], error.__class__.__name__, ': ' + (reason or '')
+        )
+
+        self.send_error_response((default_error[0] + code, reason), render=render)
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, op_type, file_id=None, context=None):
-        logging.info('%s,file_id=%s,context=%s' % (op_type, file_id, context))
-        self.db.log.insert_one(dict(type=op_type,
-                                    user_id=self.current_user and self.current_user.id,
-                                    file_id=file_id or None,
-                                    context=context and context[:80],
-                                    create_time=errors.get_date_time(),
-                                    ip=self.get_ip()))
+    def add_op_log(self, op_type, target_id=None, context=None):
+        op_name = get_op_name(op_type)
+        assert op_name
+        logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
+        self.db.log.insert_one(dict(
+            type=op_type, target_id=target_id and str(target_id) or None,
+            context=context and context[:80], ip=self.get_ip(),
+            nickname=self.current_user and self.current_user.get('name'),
+            user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
+        ))
+
+    def get_img(self, page_code, resize=False, force_local=False):
+        host = self.config.get('img', {}).get('host')
+        salt = self.config.get('img', {}).get('salt')
+        if not host or salt in [None, '', '待配置'] or force_local:
+            fn = '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
+            if not path.exists(path.join(self.application.BASE_DIR, fn[1:])):
+                fn += '?err=1'  # cut.js 据此不显示图
+            return fn
+        md5 = hashlib.md5()
+        md5.update((page_code + salt).encode('utf-8'))
+        hash_value = md5.hexdigest()
+        inner_path = '/'.join(page_code.split('_')[:-1])
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
+        url = url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+        return url
 
     @gen.coroutine
     def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+        def callback(r):
+            if r.error:
+                if handle_error:
+                    handle_error(r.error)
+                else:
+                    self.render('_error.html', code=500, message='错误1: ' + str(r.error))
+            else:
+                try:
+                    if binary_response and r.body:
+                        handle_response(r.body, **params_for_handler)
+                    else:
+                        try:
+                            body = str(r.body, encoding='utf-8').strip()
+                        except UnicodeDecodeError:
+                            body = str(r.body, encoding='gb18030').strip()
+                        except TypeError:
+                            body = to_basestring(r.body).strip()
+                        self._handle_body(body, params_for_handler, handle_response, handle_error)
+                except Exception as err:
+                    err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                    if handle_error:
+                        handle_error(err)
+                    else:
+                        self.render('_error.html', code=500, message=err)
+
         self._auto_finish = False
+        kwargs['connect_timeout'] = kwargs.get('connect_timeout', 5)
+        kwargs['request_timeout'] = kwargs.get('request_timeout', 5)
+        binary_response = kwargs.pop('binary_response', False)
+        params_for_handler = kwargs.pop('params', {})
+
         client = AsyncHTTPClient()
         url = re.sub('[\'"]', '', url)
         if not re.match(r'http(s)?://', url):
             url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-            r = yield client.fetch(url, headers=self.request.headers, validate_cert=False, **kwargs)
+            yield client.fetch(url, headers=self.request.headers,
+                               callback=callback, validate_cert=False, **kwargs)
         else:
-            r = yield client.fetch(url, validate_cert=False, **kwargs)
-        if r.error:
-            if handle_error:
-                handle_error(r.error)
-            else:
-                self.write('错误1: ' + r.error)
+            yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+
+    def _handle_body(self, body, params_for_handler, handle_response, handle_error):
+        if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
+            if 'var next' in body:
+                body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.path, body)
+                body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.path, body)
+                self.write(body)
                 self.finish()
+            else:
+                handle_response(body, **params_for_handler)
         else:
-            try:
-                try:
-                    body = str(r.body, encoding='utf-8').strip()
-                except UnicodeDecodeError:
-                    body = str(r.body, encoding='gb18030').strip()
-                except TypeError:
-                    body = to_basestring(r.body).strip()
-                if re.match('(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
-                    if 'var next' in body:
-                        body = re.sub(r"var next\s?=\s?.+;", "var next='%s';" % self.request.uri, body)
-                        body = re.sub(r'\?next=/.+"', '?next=%s"' % self.request.uri, body)
-                        self.write(body)
-                        self.finish()
-                    else:
-                        handle_response(body)
-                else:
-                    body = json_decode(body)
-                    if body.get('error'):
-                        if handle_error:
-                            handle_error(body['error'])
-                        else:
-                            self.write('错误3: ' + body['error'])
-                            self.finish()
-                    else:
-                        handle_response(body)
-            except Exception as e:
-                e = '错误(%s): %s' % (e.__class__.__name__, str(e))
+            body = json_util.loads(body)
+            if body.get('error'):
+                body['error'] = body.get('message')
                 if handle_error:
-                    handle_error(e)
+                    handle_error(body['error'])
                 else:
-                    self.write(e)
-                    self.finish()
+                    self.render('_error.html', **body)
+            else:
+                handle_response(body.get('data') or body, **params_for_handler)

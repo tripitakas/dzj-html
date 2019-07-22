@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>实体册</title>
+  {% include _base_meta.html %}
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="data-management", sub="data-management-stc") %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+
+        <!-- Add Modals BAT UPLOAD-->
+        <div class="panel-body" style="padding-bottom: 2px;">
+          <!-- modal content -->
+          <div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title" id="myModalLabel">批量上传新增</h4>
+                </div>
+                <div class="modal-body">
+                  <i>支持上传Excel格式文件，一次最多上传1个Excel文件，文件大小不超过50MB</i>
+                  <input type="file" class="form-control"/>
+                  <div class="progress progress-lg">
+                    <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
+                      86%
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                  <button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+                </div>
+              </div>
+              <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+          </div>
+          <!-- /.modal -->
+        </div>
+        <!-- End BootStrap Modal -->
+        <!-- Add Modals -->
+        <div class="panel-body" style="padding: 0;">
+          <!-- modal content -->
+          <div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title" id="myModalLabel">新增实体册</h4>
+                </div>
+                <div class="modal-body">
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">册编码</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">册序号</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">正文页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">现存正文页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">封面页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">封底页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">备注</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                  <button type="button" class="btn btn-primary waves-effect waves-light" data-dismiss="modal" id="add_modal_confirm">确定</button>
+                </div>
+              </div>
+              <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+          </div>
+          <!-- /.modal -->
+        </div>
+        <!-- End BootStrap Modal -->
+        <!-- EDIT Modals -->
+        <div class="panel-body" style="padding: 0;">
+          <!-- modal content -->
+          <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                  <h4 class="modal-title" id="myModalLabel">编辑实体册</h4>
+                </div>
+                <div class="modal-body">
+                  <form class="form-horizontal">
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">册编码</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-sm-2 control-label">册序号</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value="">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">正文页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">现存正文页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">封面页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">封底页数</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="col-md-2 control-label">备注</label>
+                      <div class="col-md-10">
+                        <input type="text" class="form-control" value=" ">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+                  <button type="button" class="btn btn-primary waves-effect waves-light" data-dismiss="modal" id="modal_confirm">确定</button>
+                </div>
+              </div>
+              <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+          </div>
+          <!-- /.modal -->
+
+        </div>
+        <!-- End BootStrap Modal -->
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="operation">
+                    <span>批量删除</span>
+                    <span>下载模板</span>
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-default waves-effect">新增实体册</button>
+                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                      <ul class="dropdown-menu" role="menu">
+                        <li><a href="javascript:add();">新增实体册</a></li>
+                        <li class="divider"></li>
+                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传实体册</a></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="search fr">
+                    <input type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                    <thead>
+                    <tr>
+                      <th><input type="checkbox" name="" id="" value=""/></th>
+                      <th><span>册编码</span></th>
+                      <th><span>册序号</span></th>
+                      <th><span>正文页数</span></th>
+                      <th><span>现存正文页数</span></th>
+                      <th><span>封面页数</span></th>
+                      <th><span>封底页数</span></th>
+                      <th><span>备注</span></th>
+                      <th><span>创建时间</span></th>
+                      <th><span>创建人</span></th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td>GL-1-1-1</td>
+                      <td>112</td>
+                      <td>12</td>
+                      <td>123</td>
+                      <td>35</td>
+                      <td>199</td>
+                      <td>大藏经</td>
+                      <td class="datetime">2018/06/23 15:52:37</td>
+                      <td>张三</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager='TODO') %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script type="text/javascript">
+  /**
+   * 删除记录
+   * @param {Object} name 删除行的标记名
+   */
+  function del(name) {
+    swal({
+          title: "确定删除" + name + "的记录吗？",
+          text: "帐号删除后无法恢复！",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#b8906f",
+          confirmButtonText: "确定删除",
+          cancelButtonText: "取消",
+          closeOnConfirm: false
+        },
+        function () {
+          //此处调用后台删除逻辑(ajax)
+
+          //如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
+          swal({
+            title: "删除！",
+            text: name + "的记录已经被删除。",
+            type: "success",
+            confirmButtonColor: "#b8906f",
+            confirmButtonText: "确定"
+          });
+        });
+  }
+
+  //编辑实体卷
+  function modify() {
+    $('#modifyModal').modal();
+  }
+
+  //新增实体卷
+  function add() {
+    $('#addModal').modal();
+
+  }
+
+  //编辑框的确定按钮
+  $("#modal_confirm").click(function () {
+    $('#modi	fyModal').modal('hide');
+    console.log('modify confirm');
+  });
+  //新增框的确定按钮
+  $("#add_modal_confirm").click(function () {
+    console.log('add confirm');
+  });
+</script>
+
+</body>
+</html>

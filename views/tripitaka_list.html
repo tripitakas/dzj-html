@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{site['description']}}</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="index") %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <!-- 中间内容 -->
+            <div class="home">
+
+              <div class="flex-content">
+                <div class="main-right no-bg no-pm">
+                  <div class="tripitaka-list">
+                    <div class="wrapper">
+                      <ul class="list clearfix">
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="/tripitaka.html">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                            <p>房山石经</p>
+                          </a>
+                        </li>
+                      </ul>
+                      {% module Pager(pager='TODO') %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- ./中间内容 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% include _base_js.html %}
+</body>
+
+</html>

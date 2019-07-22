@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>任务管理-切分状态</title>
+  {% include _base_meta.html %}
+
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('assets/select2/select2.css') }}" rel="stylesheet" type="text/css"/>
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  <style>
+    .collate-history table tr td.status_none {
+      color: #999;
+    }
+
+    .collate-history table tr td.status_pending {
+      color: #666;
+    }
+
+    .collate-history table tr td.status_ended {
+      color: #0f0;
+    }
+
+    .collate-history table tr td.status_opened {
+      color: #007;
+    }
+
+    .sty_table td a {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="task-manage", sub="task-manage-cut-status" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="search fr">
+                    <input type="text" id="search-name" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                    <thead>
+                    <tr>
+                      <th><input type="checkbox" name="" id=" " value=""/></th>
+                      <th><span>页编码</span></th>
+                      {% for i, item in enumerate(['切栏校对','切栏审定','切列校对','切列审定','切字校对','切字审定']) %}
+                      <th>
+                        <div class="btn-group">
+                          <span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
+                          <span class="ion-android-sort "></span>
+                          <ul class="dropdown-menu" role="menu">
+                            {% for k, v in th.status_names.items() %}
+                            <li>
+                              <a href="{{current_path}}?type={{['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review'][i]}}&status={{k}}">
+                                {{v}}
+                              </a>
+                            </li>
+                            {% end %}
+                          </ul>
+                        </div>
+                      </th>
+                      {% end %}
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for t in tasks %}
+                    <tr id="{{t['name']}}">
+                      <td><input type="checkbox" name="" id="" value=""/></td>
+                      <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
+                      {% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
+                      <td class="">
+                        <a href="/task/{{item}}/{{t['name']}}">
+                          {{th.status_names.get(th.prop(t, 'tasks.%s.status' % item), '')}}
+                        </a>
+                      </td>
+                      {% end %}
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script type="text/javascript">
+  // <!--搜索-->
+  $('#search-name').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
+      window.location = url;
+    }
+  });
+</script>
+
+</body>
+</html>

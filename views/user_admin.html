@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>人员管理-用户管理</title>
+  {% include _base_meta.html %}
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="user-management", sub="user-management-user" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="search fr">
+                    <input type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;">
+                    <thead>
+                    <tr>
+                      <th><input type="checkbox" name="" id="" value=""/></th>
+                      <th>头像</th>
+                      <th>姓名</th>
+                      <th>手机</th>
+                      <th>邮箱</th>
+                      <th>
+                        <div class="btn-group">
+                          <span class="sort" data-toggle="dropdown" aria-expanded="false">性别</span><span class="ion-android-sort "></span>
+                          <ul class="dropdown-menu" role="menu">
+                            <li><a href="#">全部</a></li>
+                            <li><a href="#">男</a></li>
+                            <li><a href="#">女</a></li>
+                          </ul>
+                        </div>
+                      </th>
+                      <th>注册时间</th>
+                      <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in users %}
+                    <tr>
+                      <td><input type="checkbox" name="" value=""/></td>
+                      <td>
+                        {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
+                        <img src="{{ static_url(p.get('img', 'imgs/' + ava)) }}" alt="" class="thumb-md img-circle">
+                      </td>
+                      <td>{{p['name']}}</td>
+                      <td>{{p.get('phone') or ''}}</td>
+                      <td>{{p['email']}}</td>
+                      <td>{{p.get('gender', '')}}</td>
+                      <td>{{p['create_time']}}</td>
+                      <td>
+                        <span onclick="delete_user('{{dumps(p)}}')">删除</span>
+                        <span onclick="update('{{dumps(p)}}')">修改</span>
+                        <span onclick="reset_pwd('{{p['_id']}}')">重置密码</span>
+                      </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modify Modals -->
+<div class="panel-body" style="padding: 0;">
+  <!-- modal content -->
+  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="myModalLabel">修改用户信息</h4>
+        </div>
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+              <label class="col-sm-2 control-label">姓名</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="name">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">手机</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="phone">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">邮箱</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="email">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">性别</label>
+              <div class="col-md-10">
+                <select id="gender" class="form-control">
+                  <option></option>
+                  <option>男</option>
+                  <option>女</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+  <!-- /.panel-body -->
+</div>
+<!-- /.modal -->
+
+{% include _base_js.html %}
+
+<script type="text/javascript">
+  /**
+   * 修改用户
+   * @param {Object} user 用户名
+   */
+  function update(user) {
+    user = decodeJSON(user);
+
+    var $dlg = $('#modifyModal');
+    $dlg.find('#name').val(user.name);
+    $dlg.find('#phone').val(user.phone);
+    $dlg.find('#email').val(user.email);
+    $dlg.find('#gender').val(user.gender);
+
+    $dlg.modal();
+    $dlg.find("#modal_confirm").unbind('click').click(function () {
+      var info = {
+        _id: user._id, name: $dlg.find('#name').val().trim(),
+        phone: $dlg.find('#phone').val().trim(), email: $dlg.find('#email').val().trim(),
+        gender: $dlg.find('#gender').val().trim()
+      };
+
+      if (info.name == user.name && info.phone == user.phone &&
+          info.email == user.email && info.gender == user.gender) {
+        showError('请重新输入', '用户信息没有发生改变。');
+        return;
+      }
+
+      if (info.phone == '' && info.email == '') {
+        showError('请重新输入', '手机和邮箱不能同时为空。');
+        return;
+      }
+
+      postApi('/user/profile', {data: info}, function () {
+        showSuccess('修改成功', user.name + ' 的信息已修改。');
+        setTimeout(function () {
+          window.location.reload();
+        }, 1500);
+      }, function (err) {
+        if (err.code === 1009) {
+          showSuccess('修改成功', '用户信息没有发生改变。');
+          return $dlg.modal('hide');
+        }
+        showError('修改失败', err.message);
+      });
+    });
+  }
+
+  /**
+   * 重置密码
+   * @param user_id 用户id
+   */
+  function reset_pwd(_id) {
+    swal({
+          title: "确定重置" + name + "吗？",
+          text: "重置后无法恢复！",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#b8906f",
+          confirmButtonText: "确定重置",
+          cancelButtonText: "取消",
+          closeOnConfirm: false
+        },
+        function () {
+          postApi('/user/reset_pwd', {data: {_id: _id}}, function (data) {
+            if (data.password) {
+              swal({
+                title: '密码重置成功', text: '新密码是 <b>' + data.password + '</b><br>请转告用此密码登录，然后修改密码。',
+                type: 'success', html: true, showConfirmButton: false, allowOutsideClick: true
+              });
+            }
+          }, function (err) {
+            showError('修改失败', err.message);
+          });
+        }
+    );
+  }
+
+  /**
+   * 删除用户
+   * @param user_id 用户id
+   */
+  function delete_user(user) {
+    user = decodeJSON(user);
+    swal({
+          title: "确定删除" + user.name + "用户吗？",
+          text: "删除后无法恢复！",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#b8906f",
+          confirmButtonText: "确定删除",
+          cancelButtonText: "取消",
+          closeOnConfirm: false
+        },
+        function () {
+          postApi('/user/delete', {data: {_id: user._id}}, function (data) {
+            showSuccess('删除用户' + user.name + '成功');
+            window.location.reload();
+          }, function (err) {
+            showError('删除失败', err.message);
+          });
+        }
+    );
+  }
+
+</script>
+
+</body>
+
+</html>

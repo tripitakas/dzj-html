@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as th %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>我的任务-{{th.all_types().get(task_type)}}</title>
+  {% include _base_meta.html %}
+
+  <!-- DataTables -->
+  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  {% include _base_css.html %}
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+</head>
+
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--公共左侧导航栏 -->
+    {% module CommonLeft(title="task_history", sub="task-cut") %}
+    <div class="main-content">
+      <!--公共头部 -->
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="search fr">
+                    <input id="search-name" type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                    <thead>
+                    <tr>
+                      <th><span>页编码</span></th>
+                      <th><span>任务状态</span></th>
+                      <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+                        领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+                      </span></th>
+                      <th><span>完成时间</span></th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                      {% set t = select_my_text_proof(task) if task_type == 'text_proof' else task_type %}
+                      <td>{{task['name']}}</td>
+                      <td>{{th.status_names.get(th.prop(task, 'tasks.%s.status' % t))}}</td>
+                      <td>{{to_date_str(th.prop(task, 'tasks.%s.picked_time' % t))}}</td>
+                      <td>{{to_date_str(th.prop(task, 'tasks.%s.finished_time' % t))}}</td>
+                      <td>
+                        {% if th.prop(task, 'tasks.%s.status' % t) == th.STATUS_PICKED %}
+                          <a class="do" href="/task/do/{{t}}/{{task['name']}}">继续</a>
+                        {% elif th.prop(task, 'tasks.%s.status' % t) == th.STATUS_FINISHED %}
+                          <a class="view" href="/task/{{t}}/{{task['name']}}">查看</a>
+                          <a class="update" href="/task/update/{{t}}/{{task['name']}}">修改</a>
+                        {% end %}
+                      </td>
+                    </tr>
+
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script type="text/javascript">
+  // 获取url参数
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    return r != null ? unescape(r[2]) : null;
+  }
+
+  // 按领取时间排序
+  $("#picked_time.sort").click(function () {
+    var order = getUrlParam('order');
+    if (order && order == '-picked_time')
+      order = 'picked_time';
+    else
+      order = '-picked_time';
+    window.location = "{{current_path}}?order=" + order;
+  });
+
+  // 搜索
+  $('#search-name').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
+      window.location = url;
+    }
+  });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% if isinstance(pager, dict) and pager['page_count'] > 1 %}
+<div class="pagers">
+  <span>当前&nbsp;<em>{{pager['cur_page']}}</em>/{{pager['page_count']}}&nbsp;页，共&nbsp;<em>{{pager['item_count']}}</em>&nbsp;条</span>
+  <ul>
+    <li><a href="{{pager['path']}}">首页</a></li>
+    {% if pager['cur_page'] > 1 %}
+    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page'] - 1)}}">上一页</a></li>
+    {% end %}
+    {% for i in pager['display_range'] %}
+    <li class="{{'active' if i == pager['cur_page'] else '' }}"><a href="{{pager['path']+pager['link']+'page='+str(i)}}">{{i}}</a></li>
+    {% end %}
+    {% if pager['cur_page'] < pager['page_count'] %}
+    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page']+1)}}">下一页</a></li>
+    {% end %}
+    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['page_count'])}}">末页</a></li>
+    <li>跳至&nbsp;<input id="page-no" type="text">&nbsp;页</li>
+  </ul>
+</div>
+{% end %}
+
+<script type="text/javascript">
+  <!--搜索-->
+  $('#page-no').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var page = $(this).val().trim();
+      page = page > 1 ? page : 1;
+      var url = "{{pager['path'] + pager['link']}}" + "page=" + page;
+      window.location = url.replace(/&amp;/g, "&");
+    }
+  });
+</script>

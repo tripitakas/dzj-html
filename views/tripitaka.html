@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>高麗藏</title>
+  {% include _base_meta.html %}
+
+  <!-- Plugins css -->
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+
+  <!-- Custom Files -->
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  {% include _base_css.html %}
+</head>
+
+
+<body>
+<div class="app-main">
+  <div class="main">
+
+    <div class="main-content">
+
+      <header class="m-header">
+        <div><a href="/home"><img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img"/></a></div>
+
+        <div class="title">高麗藏</div>
+        <div class="page">
+          <div class="page-info">
+            第<span> 1 </span>/ 80 </span>页
+          </div>
+          <div class="page-btn first"><a href="">首页</a></div>
+          <div class="page-btn prev"><a href="">上一页</a></div>
+          <div class="page-btn to">跳至<span><input type="text"/></span>页</div>
+          <div class="page-btn next"><a href="">下一页</a></div>
+          <div class="page-btn last"><a href="">末页</a></div>
+        </div>
+        <div class="image">
+          <div class="checkbox checkbox-grey custom">
+            <input id="checkbox6" type="checkbox" checked="">
+            <label for="checkbox6">
+              显示图片
+            </label>
+          </div>
+          <div class="img-btns">
+            <img src="{{ static_url('imgs/icon_aim.png') }}" class="btn-img"/>
+            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img"/>
+            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img"/>
+          </div>
+        </div>
+        <div class="btn-txt">
+          <div class="font">
+            <div class="font-reduce"><a href="">A-</a></div>
+            <div class="font-current">20</div>
+            <div class="font-enlarge"><a href="">A+</a></div>
+          </div>
+          <div class="m-header-togglebtn">
+            <img src="{{ static_url('imgs/icon_toggle.png') }}" class="btn-img"/>
+          </div>
+        </div>
+        <div class="m-header-help"><a href=""><img src="{{ static_url('imgs/help.png') }}" class="btn-img"/></a></div>
+      </header>
+      <div class="flex-content">
+        <div class="main-left">
+          <div class="main-left-tab">
+            <div class="main-left-tab1 active">经-卷</div>
+            <div class="main-left-tab1">函-册</div>
+            <div class="main-left-search1">
+              <input type="text" placeholder="检索">
+              <img src="{{ static_url('imgs/icon13.png') }}" id="search_btn">
+            </div>
+          </div>
+          <div class="main-left-menu">
+            <ul class="menu" id="side-menu">
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
+                  <span>大般若波羅蜜多經(600)</span>
+                  <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                </div>
+                <ul class="sub-ul sub-ul-hidden">
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第1卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第2卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第3卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">......</a></span>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" style="margin-top:9px;"></i>
+                  <span>放光般若波羅蜜經(20)</span>
+                  <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                </div>
+                <ul class="sub-ul sub-ul-hidden">
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第1卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第2卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第3卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第4卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第5卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第6卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第7卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第8卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第9卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第10卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第11卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第12卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第13卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第14卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第15卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第16卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第17卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第18卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第19卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第20卷</a></span>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>摩訶般若鈔經(5))</span>
+                  <i class="submenu-title-icon"><img src="{{ static_url('imgs/icon16.png') }}"/></i>
+                </div>
+                <ul class="sub-ul sub-ul-hidden">
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第1卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第2卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第3卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第4卷</a></span>
+                  </li>
+                  <li>
+                    <i><img src="{{ static_url('imgs/icon15.png') }}" class="sub-img"/></i>
+                    <span><a href="">第5卷</a></span>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>道行般若經(10)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>小品般若波羅蜜經(10)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>勝天王般若波羅蜜經(7)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>大明度經(6)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>般若波羅蜜多心經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>金剛般若波羅蜜經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>大寶積經(120)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說無量淸淨平等覺經(4)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說無量壽經(2)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說普門品經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>法鏡經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說決定毗尼經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說幻士仁賢經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說離垢施女經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>佛說太子和休經(1)</span>
+                </div>
+              </li>
+              <li>
+                <div class="submenu-title">
+                  <i><img src="{{ static_url('imgs/icon14.png') }}" alt="" style="margin-top:9px;"></i>
+                  <span>大方等大集經(60)</span>
+                </div>
+              </li>
+
+            </ul>
+
+            <div class="menu-search" id="menu-search">
+              <div class="menu-search-wrapper">
+                <input type="text"/>
+                <img src="{{ static_url('imgs/icon13.png') }}"/>
+              </div>
+              <div class="menu-search-scope">
+                <span>范围</span>
+                <ul>
+                  <li class="active">全部</li>
+                  <li>经编号</li>
+                  <li>经名</li>
+                  <li>作译者</li>
+                  <li>正文</li>
+                </ul>
+              </div>
+              <div class="search_ck">
+                <div class="checkbox checkbox-brown custom">
+                  <input id="checkbox5" type="checkbox" checked="">
+                  <label for="checkbox5">
+                    本经内检索
+                  </label>
+                </div>
+              </div>
+              <div class="search_result">
+                <div class="search_result1">共找到<span>301</span>个结果</div>
+                <div class="search_result2"><a href="">按经号排序</a><i><img src="{{ static_url('imgs/icon16.png') }}"/></i></div>
+              </div>
+              <div class="search_item">
+                <a href="/dzj_stzj_search.html"><b>RS001:大方广佛华严经</b></a>
+                <p>佛驮跋陀罗</p>
+                <p>佛驮跋陀罗(359～429)，简称佛驮跋陀，意译“觉贤”</p>
+              </div>
+              <div class="search_item">
+                <b>RS002:大方广佛华严经</b>
+                <p>唐般剌密谛</p>
+                <p>般剌密谛在唐中宗神龙元年（705年）于广州</p>
+              </div>
+              <div class="search_item">
+                <b>RS003:妙法莲华经</b>
+                <p>鸠摩罗什</p>
+                <p>法华经是释迦牟尼佛晚年在王舍城灵鹫山所说</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+        <div class="fold_btn"><img src="{{ static_url('imgs/icon17.png') }}"/></div>
+        <div class="main-right">
+          <div class="main-right-img">
+            <img src="{{ static_url('imgs/examImg1.png') }}">
+          </div>
+          <div class="main-right-content w-40">
+            <p>釋迦譜卷苐一 苐十一張 彩 者多</p>
+            <p>脾右脾王皆壽十萬歲從歡喜王皆</p>
+            <p>壽八萬四千歲從惡念遮迦越殺一</p>
+            <p>牛祠祀害命失金輪得銀輪主三天</p>
+            <p>下壽萬歲堅念王作鎧壽五千歲得</p>
+            <p>銅輪主二天下主西南喜殺王壽二</p>
+            <p>千五百歲得鐵輪王主南天下其王有</p>
+            <p>太子行五百歲得惡殺一減壽千歲</p>
+            <p>古人有九病寒熱飢渴生老病死婆</p>
+            <p>羅門殺生祠祀從是生四百四病從</p>
+            <p>師子念王人壽轉減壽百二十歲從師</p>
+            <p>子念王後師子意王有八十四王人壽</p>
+            <p>轉減或壽八十七十五十三十二十</p>
+            <p>十歲者於後師子合車王師子合車王卽師子</p>
+            <p>頰王也子名白淨是菩薩父計菩薩身</p>
+            <p>終始幷前後八萬四千遮迦越王</p>
+            <p>遮迦越齊言飛行皇帝卽轉輪王也</p>
+            <p>長阿含及曇無德律序轉輪世數甚</p>
+            <p>明已顯於前此記抄撮難尋若依全</p>
+            <p>經宜以阿含爲正大瞿曇氏純淑之姓</p>
+            <p>大方便經云白淨劫初以來嫡嫡相</p>
+            <p>承作轉輪王近來三世不作轉輪而</p>
+            <p>作閻浮提王</p>
+            <p>祐觀十二遊經不稱我聞復無佛言蓋</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!--鼠标移入关键字时，弹出的对话框-->
+<div id="mouse_over_dlg">
+  <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+  <div><b>聼【大正】=听【开宝】【元官】【永北】【毗卢】</b></div>
+  <div class="m-btn-group">
+    <div class="m-btn"><a href=""><i class="ion-ios7-copy-outline"></i>复制</a></div>
+    <div class="m-btn"><a href="javascript:showList()"><i class="ion-navicon"></i>查看列图</a></div>
+  </div>
+</div>
+
+<!--鼠标选中文字时，弹出的对话框-->
+<div id="text_selected_dlg">
+  <div class="dlg_close_btn"><i class="ion-close-circled"></i></div>
+  <ul>
+    <li><img src="{{ static_url('imgs/icon9_1.png') }}"/><span>复制文字</span></li>
+    <li><img src="{{ static_url('imgs/icon10.png') }}"/><span>引用复制</span></li>
+    <li><img src="{{ static_url('imgs/icon11.png') }}"/><span>查词典</span></li>
+    <li><img src="{{ static_url('imgs/icon12.png') }}"/><span>查字典</span></li>
+    <li><img src="{{ static_url('imgs/icon13.png') }}"/><span>检索</span></li>
+  </ul>
+</div>
+
+<!-- Modify Modals -->
+<!-- modal content -->
+<div id="jk_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg ">
+    <div class="modal-content black_bg">
+
+      <div class="modal-body">
+        <ul class="jk_list_ul">
+          <li>
+            <h5>赵城</h5>
+            <ul class="jk_list_char_ul">
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+            </ul>
+            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+          </li>
+          <li>
+            <h5>赵城</h5>
+            <ul class="jk_list_char_ul">
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+            </ul>
+            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+          </li>
+          <li>
+            <h5>赵城</h5>
+            <ul class="jk_list_char_ul">
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+            </ul>
+            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+          </li>
+          <li>
+            <h5>赵城</h5>
+            <ul class="jk_list_char_ul">
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+            </ul>
+            <div><img src="{{ static_url('imgs/pic2.png') }}"></div>
+          </li>
+          <li>
+            <h5>赵城</h5>
+            <ul class="jk_list_char_ul">
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+              <li><span>幢</span></li>
+            </ul>
+            <div><img src="{{ static_url('imgs/pic1.png') }}"></div>
+          </li>
+
+        </ul>
+      </div>
+
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<!-- End BootStrap Modal -->
+
+{% include _base_js.html %}
+
+<!-- CUSTOM JS -->
+<script type="text/javascript">
+  $('.modal-dialog1').click(function () {
+    var width = $(document).width();
+    var height = $(document).height();
+    $("#modal-1").show();
+    $("#modal-1").css("top", height / 4);
+    $("#modal-1").css("left", width / 2 - 235);
+  });
+
+  $("#modal-1-close").click(function () {
+    $("#modal-1").hide();
+    $('.dialog-content-row4').hide();
+    $("#modal-1-confirm").hide();
+    $("#modal-1-select").show();
+  });
+
+  $("#modal-1-confirm").click(function () {
+    $("#modal-1").hide();
+    $('.dialog-content-row4').hide();
+    $("#modal-1-confirm").hide();
+    $("#modal-1-select").show();
+  });
+
+  $("#modal-1-select").click(function () {
+    $('.dialog-content-row4').show();
+    $("#modal-1-confirm").show();
+    $("#modal-1-select").hide();
+  });
+
+  $('.modal-dialog2').click(function () {
+    var width = $(document).width();
+    var height = $(document).height();
+    $("#modal-2").show();
+    $("#modal-2").css("top", height / 4);
+    $("#modal-2").css("left", width / 2 - 235);
+  });
+
+  $("#modal-2-close").click(function () {
+    $("#modal-2").hide();
+  });
+
+  $("#modal-2-confirm").click(function () {
+    $("#modal-2").hide();
+  });
+
+  <!--左侧菜单栏-->
+  $('.submenu-title').click(function () {
+    $('.sub-ul').slideUp(300);
+    $(".submenu-title-icon").removeClass('active');
+
+    if ($(this).hasClass('active')) {
+      $(this).removeClass('active');
+    } else {
+      $(this).children(".submenu-title-icon").addClass('active');
+      $('.submenu-title').removeClass('active');
+      $(this).addClass('active');
+      $(this).next().slideDown(300);
+
+    }
+  });
+
+  <!--收起左侧菜单栏-->
+  var num = 0;
+  $('.fold_btn').click(function () {
+
+    if (num % 2 == 0) {
+      $('.main-left').hide();
+      num++;
+    } else {
+      $('.main-left').show();
+      num++;
+    }
+  });
+
+  <!--点击搜索按钮显示搜索视图-->
+  $('#search_btn').click(function () {
+    $("#side-menu").hide();
+    $("#menu-search").show();
+  });
+
+  <!--鼠标移过关键字时，显示弹框-->
+  $('.kw').mouseover(function (e) {
+    var positionX = $(this).offset().left;
+    var positionY = $(this).offset().top;
+    var width = $('.main-right-content').width();
+    var height = $('.main-right-content').height();
+
+    if (positionX + 200 > width) {
+      $('#mouse_over_dlg').css('left', positionX - 300);
+    } else {
+      $('#mouse_over_dlg').css('left', positionX + 30);
+    }
+    if (positionY + 90 > height) {
+      $('#mouse_over_dlg').css('top', positionY - 90);
+    } else {
+      $('#mouse_over_dlg').css('top', positionY + 30);
+    }
+    $('#mouse_over_dlg').show();
+  });
+
+  $('.main-right-content p').mouseup(function (e) {
+    var txt = window.getSelection ? window.getSelection() : document.selection.createRange().text;//选中的文本
+    if (txt.toString().length > 0) {
+      var positionX = e.originalEvent.x || e.originalEvent.layerX || 0;
+      var positionY = e.originalEvent.y || e.originalEvent.layerY || 0;
+      var width = $('.main-right-content').width();
+      var height = $('.main-right-content').height();
+      if (positionX + 200 > width) {
+        $('#text_selected_dlg').css('left', positionX - 100);
+      } else {
+        $('#text_selected_dlg').css('left', positionX + 10);
+      }
+      if (positionY + 170 > height) {
+        $('#text_selected_dlg').css('top', positionY - 150);
+      } else {
+        $('#text_selected_dlg').css('top', positionY + 10);
+      }
+
+      $('#text_selected_dlg').show();
+    }
+  });
+
+  $("#mouse_over_dlg .dlg_close_btn").click(function () {
+    $('#mouse_over_dlg').hide();
+  });
+
+  $("#text_selected_dlg .dlg_close_btn").click(function () {
+    $('#text_selected_dlg').hide();
+  });
+
+  <!--遮罩层弹出框-->
+  function showList() {
+    $('#jk_modal').modal();
+  }
+
+</script>
+
+
+</body>
+</html>

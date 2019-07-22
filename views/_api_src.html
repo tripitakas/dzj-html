@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{name}}</title>
+  <meta name="description" content="{{site['description']}}接口源码">
+  <link rel="shortcut icon" href="{{ static_url('imgs/favicon.ico') }}" type="image/x-icon">
+  <link rel="stylesheet" href="{{ static_url('assets/highlight/default.css') }}">
+  <script src="{{ static_url('assets/highlight/highlight.pack.js') }}"></script>
+
+  <style>
+    body {
+      padding: 10px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h3, p {
+      text-align: center;
+    }
+
+    pre {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<h3><a href="/api">{{site['description']}}接口</a><br>{{name}}</h3>
+<p>{{file}} {{len(src.split('\n'))}}行</p>
+<pre><code class="python">{{src}}</code></pre>
+<script>hljs.initHighlightingOnLoad();</script>
+
+</body>
+</html>
