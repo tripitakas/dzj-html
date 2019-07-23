@@ -1,5 +1,7 @@
 {% raw xsrf_form_html() %}
-
+{% if not debug %}
+{% include _base_js_.html %}
+{% else %}
 <script>
   var resizefunc = [];
   var currentUserId = '{{currentUserId}}';
@@ -27,3 +29,5 @@
 <!-- CUSTOM JS -->
 <script src="{{ static_url('js/backend.js') }}"></script>
 <script src="{{ static_url('js/jquery.app.js') }}"></script>
+
+{% end %}
