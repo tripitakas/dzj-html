@@ -5,6 +5,7 @@
 @time: 2019/3/13
 """
 
+import lxml.etree as etree
 from controller.base import BaseHandler
 
 
@@ -21,7 +22,16 @@ class CbetaHandler(BaseHandler):
 
     def get(self):
         """ CBETA """
-        self.render('tripitaka_cbeta.html')
+        xsl = open('static/taisho.xsl', 'rb')
+        xslt = etree.XML(xsl.read())
+        transform = etree.XSLT(xslt)
+        xml = etree.parse('static/xml/T/T10/T10n0279_001.xml')
+        content = transform(xml)
+        article = str(content)
+        start = article.find('<body>') + 6
+        end = article.rfind('</body>')
+        article = article[start: end]
+        self.render('tripitaka_cbeta.html', article=article)
 
 
 class TripitakaListHandler(BaseHandler):

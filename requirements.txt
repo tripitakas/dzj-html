@@ -10,3 +10,4 @@ glob2
 cdifflib
 aliyun-python-sdk-core
 elasticsearch
+lxml
