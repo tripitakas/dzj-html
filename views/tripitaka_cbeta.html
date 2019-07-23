@@ -35,131 +35,15 @@
 <div class="app-main">
   <div class="main">
     <div class="main-content flex-content">
-
-      <div class="main-left slim-scroll" id="main-left">
-        <div class="main-left-menu">
-          <div class="menu-search-wrapper">
-            <input class="menu-search-input" type="text"/>
-            <img src="{{ static_url('imgs/icon13.png') }}"/>
-          </div>
-          <ul class="menu" id="side-menu">
-            <li>
-              <div class="submenu-title">
-                <span>大般若波羅蜜多經(600卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>放光般若波羅蜜經(20卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>摩訶般若鈔經(5卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>道行般若經(10卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>小品般若波羅蜜經(10卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>勝天王般若波羅蜜經(7卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>大明度經(6卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>般若波羅蜜多心經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>金剛般若波羅蜜經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>大寶積經(120卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說無量淸淨平等覺經(4卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說無量壽經(2卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說普門品經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>法鏡經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說決定毗尼經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說幻士仁賢經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說離垢施女經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說太子和休經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>大方等大集經(60卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>佛說太子和休經(1卷)</span>
-              </div>
-            </li>
-            <li>
-              <div class="submenu-title">
-                <span>大方等大集經(60卷)</span>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-
+      <!--<div class="main-left slim-scroll" id="main-left"></div>-->
       <div class="main-right" id="main-right">
         <div class="m-header">
           <div class="header-line main-line">
             <div class="left">
-              <div class="toggle-btn">
-                <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
+              <div class="panel-btn">
+                <img class="btn-img"  data-toggle="modal" data-target="#searchModal" src="{{ static_url('imgs/icon_panel.png') }}"/>
               </div>
-              <div class="title" data-toggle="modal" data-target="#searchModal">CBETA</div>
+              <div class="title">CBETA</div>
               <div class="zone-control">
                 <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-article" title="文章区域"/>
                 <img src="{{ static_url('imgs/icon_stick2.png') }}" class="btn-img zone-stick" title="粘住区域"/>
@@ -405,300 +289,22 @@
           <h4 class="modal-title" id="choose-pages">快速检索</h4>
         </div>
         <div class="modal-body">
+          <!-- ["经号", "经名", "所属藏经", "部类", "册别", "卷数", "字数", "作译者", "时间"]-->
           <table id="my-table" class="table my-table" style="width: 100%">
             <thead>
             <tr>
+              <th style="width: 45px">经号</th>
               <th>经名</th>
-              <th>编号</th>
-              <th>藏经</th>
+              <th style="width: 80px">藏经</th>
               <th>部类</th>
+              <th style="width: 40px">册别</th>
               <th style="width: 40px">卷数</th>
-              <th>册别</th>
+              <th style="width: 40px">字数</th>
               <th>作译者</th>
               <th style="width: 100px">时间</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
-            <tr>
-              <td>七佛經</td>
-              <td>T0002</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>1</td>
-              <td>2</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>毘婆尸佛經</td>
-              <td>T0003</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>3</td>
-              <td>法天</td>
-              <td>東漢(25~220)</td>
-            </tr>
-            <tr>
-              <td>七佛父母姓字經</td>
-              <td>T0004</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>4</td>
-              <td>失譯</td>
-              <td>曹魏(220~265)</td>
-            </tr>
-            <tr>
-              <td>佛般泥洹經</td>
-              <td>T0005</td>
-              <td>大正藏</td>
-              <td>阿含部類</td>
-              <td>2</td>
-              <td>5</td>
-              <td>西晉河內沙門白法祖譯</td>
-              <td>西晉(290~306)</td>
-            </tr>
             </tbody>
           </table>
         </div>
@@ -710,6 +316,7 @@
 {% include _base_js.html %}
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
+<script type="text/javascript" src="{{ static_url('js/cbeta-meta.js') }}"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
 
 <script>
@@ -729,18 +336,6 @@
   });
 
   <!-- 顶部导航第一行 -->
-  // 展开、收缩左侧目录
-  $('.m-header .toggle-btn').click(function () {
-    var $mainLeft = $('#main-left');
-    if ($mainLeft.css('display') !== 'none') {
-      $mainLeft.hide();
-      $('#main-right .m-header').css('left', 0);
-    } else {
-      $mainLeft.show();
-      $('#main-right .m-header').css('left', $mainLeft.width());
-    }
-  });
-
   // 显示、隐藏文章区域
   $('.m-header .zone-control .zone-article').click(function () {
     $('.main-right .content .content-left').toggleClass('hide');
@@ -927,6 +522,7 @@
 </script>
 
 <script>
+
   // 字段查询
   var language = {
     "sProcessing": "处理中...",
@@ -953,7 +549,10 @@
     }
   };
 
-  $('#my-table').DataTable({language: language});
+  $('#my-table').DataTable({
+    language: language,
+    data: rows
+  });
 
   var $modal = $('#searchConfigModal');
   $modal.on('shown.bs.modal', function () {
