@@ -22,7 +22,7 @@ site:
 
 # ElasticSearch全文检索库
 esearch:
-  host: 47.95.216.233
+  host: # 47.95.216.233
   port: 9200
 
 # OSS图片

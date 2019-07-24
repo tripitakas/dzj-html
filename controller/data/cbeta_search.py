@@ -10,12 +10,17 @@ from controller.app import Application as App
 
 def get_hosts():
     config = App.load_config()
-    return [config.get('esearch')]
+    return [config.get('esearch', {})]
+
+
+def can_search():
+    hosts = get_hosts()
+    return hosts[0].get('host')
 
 
 def find(q, index='cb4ocr-ik'):
     """ 从ES中寻找与q最匹配的document """
-    if not q:
+    if not q or not can_search():
         return []
 
     if re.match(r'^[0-9a-zA-Z_]+', q):
@@ -40,7 +45,7 @@ def find_one(ocr, num=1):
     """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
     ret = find(ocr)
     if not ret or num - 1 not in range(0, len(ret)):
-        return ''
+        return '', []
     hit_page_codes = [r['_source']['page_code'] for r in ret]
     cb = ''.join(ret[num - 1]['_source']['origin'])
     diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
