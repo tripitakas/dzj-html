@@ -21,6 +21,7 @@ from controller.periodic import periodic_task
 define('num_processes', default=4, help='sub-processes count', type=int)
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
     opt.parse_command_line()
     opt.debug = opt.debug and opt.port not in [80, 443]
     routes = c.handlers + c.views
