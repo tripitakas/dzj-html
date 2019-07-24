@@ -237,14 +237,28 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
-    for holder, regex in url_placeholder.items():
-        path = path.replace('@' + holder, '(%s)' % regex)
-    route_accessible = get_role_routes(role)
-    for _path, _method in route_accessible.items():
+    def match_exclude(p, exclude):
         for holder, regex in url_placeholder.items():
-            _path = _path.replace('@' + holder, '(%s)' % regex)
-        if (path == _path or re.match('^%s$' % _path, path) or re.match('^%s$' % path, _path)) and method in _method:
-            return True
+            if holder not in exclude:
+                p = p.replace('@' + holder, '(%s)' % regex)
+        route_accessible = get_role_routes(role)
+        for _path, _method in route_accessible.items():
+            for holder, regex in url_placeholder.items():
+                if holder not in exclude:
+                    _path = _path.replace('@' + holder, '(%s)' % regex)
+            if (p == _path or re.match('^%s$' % _path, p) or re.match('^%s$' % p, _path)) and method in _method:
+                return True
+            parts = re.search(r'\(([a-z|]+)\)', _path)
+            if parts:
+                whole, parts = parts.group(0), parts.group(1).split('|')
+                for ps in parts:
+                    ps = _path.replace(whole, ps)
+                    if (p == ps or re.match('^%s$' % ps, p) or re.match('^%s$' % p, ps)) and method in _method:
+                        return True
+    if match_exclude(path, []):
+        return True
+    if match_exclude(path, ['page_name', 'num']):
+        return True
     return False
 
 
