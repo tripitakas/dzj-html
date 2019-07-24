@@ -4,7 +4,7 @@
 @desc: 如是藏经、实体藏经
 @time: 2019/3/13
 """
-
+import os
 import lxml.etree as etree
 from controller.base import BaseHandler
 
@@ -22,15 +22,13 @@ class CbetaHandler(BaseHandler):
 
     def get(self):
         """ CBETA """
-        xsl = open('static/taisho.xsl', 'rb')
+        xsl = open('%s/taisho.xsl' % os.path.dirname(os.path.realpath(__file__)), 'rb')
         xslt = etree.XML(xsl.read())
         transform = etree.XSLT(xslt)
         xml = etree.parse('static/xml/T/T10/T10n0279_001.xml')
         content = transform(xml)
         article = str(content)
-        start = article.find('<body>') + 6
-        end = article.rfind('</body>')
-        article = article[start: end]
+        article = article[article.find('<body>') + 6: article.rfind('</body>')]
         self.render('tripitaka_cbeta.html', article=article)
 
 

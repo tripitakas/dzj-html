@@ -1,7 +1,8 @@
-from . import tripitaka as t
+from . import view
 
 views = [
-    t.RsTripitakaHandler, t.CbetaHandler, t.TripitakaListHandler, t.TripitakaHandler,
+    view.RsTripitakaHandler, view.CbetaHandler, view.TripitakaListHandler, view.TripitakaHandler,
 ]
+
 handlers = [
 ]
