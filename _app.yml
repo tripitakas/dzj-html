@@ -3,9 +3,9 @@ cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
 # MongoDB
 database:
-  name: tripitaka
-  port: 27017
   host: 127.0.0.1
+  port: 27017
+  name: tripitaka
   user:
   password:
 
@@ -22,7 +22,7 @@ site:
 
 # ElasticSearch全文检索库
 esearch:
-  host: # 47.95.216.233
+  host: 127.0.0.1
   port: 9200
 
 # OSS图片

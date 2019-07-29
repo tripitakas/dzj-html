@@ -9,6 +9,8 @@ import logging
 import os
 import socket
 from functools import partial
+import sys
+sys.path.append('/extra_modules')
 
 from tornado import ioloop, netutil, process
 from tornado.httpserver import HTTPServer
