@@ -1,7 +1,7 @@
 from . import view
 
 views = [
-    view.RsTripitakaHandler, view.CbetaHandler, view.TripitakaListHandler, view.TripitakaHandler,
+    view.RsTripitakaHandler, view.TripitakaListHandler, view.TripitakaHandler,
 ]
 
 handlers = [
