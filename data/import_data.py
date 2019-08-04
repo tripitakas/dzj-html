@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import csv
+from glob2 import glob
 import os.path as path
 import pymongo
 from controller.app import Application as App
@@ -176,5 +178,7 @@ def export_meta():
 
 
 if __name__ == '__main__':
-    import_meta()
+    tripitakas = ['JX', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
+    for tripitaka in tripitakas:
+        import_volume(tripitaka)
     print('finished!')
