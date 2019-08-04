@@ -178,7 +178,5 @@ def export_meta():
 
 
 if __name__ == '__main__':
-    tripitakas = ['JX', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
-    for tripitaka in tripitakas:
-        import_volume(tripitaka)
+    import_meta()
     print('finished!')
