@@ -62,6 +62,8 @@ python3 run_tests.py 或选中测试用例文件调试
 
 ## 参考资料
 
+- [项目术语表](doc/glossary.md)
+
 - [Bootstrap 3 中文文档](https://v3.bootcss.com)
 - [Tornado 官方文档中文版](https://tornado-zh.readthedocs.io/zh/latest/)
 - [Tornado 前端模板语法][templates]
