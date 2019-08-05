@@ -1,4 +1,4 @@
-tripitaka_code,name,short_name,store_rules,img_prefix,img_suffix
+tripitaka_code,name,short_name,store_pattern,img_prefix,img_suffix
 KB,开宝藏,开宝,藏_册_页,KB,png
 QD,契丹藏,契丹,藏_册_页,QD,png
 LC,高丽初雕,丽初,藏_经_卷_页,LC,png
