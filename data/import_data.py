@@ -177,6 +177,18 @@ def export_meta():
         export_reel(tripitaka)
 
 
-if __name__ == '__main__':
+def main(db_name='tripitaka', uri='localhost', reset=False):
+    conn = pymongo.MongoClient(uri)
+    db = conn[db_name]
+    if reset:
+        db.tripitaka.drop()
+        db.sutra.drop()
+        db.reel.drop()
+        db.volume.drop()
     import_meta()
-    print('finished!')
+
+
+if __name__ == '__main__':
+    import fire
+
+    fire.Fire(main)
