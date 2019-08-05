@@ -56,7 +56,7 @@ role_maps = {
             '/api/user/(avatar|email_code|phone_code)': ['POST'],
             '/tripitaka': ['GET'],
             '/tripitaka/rs': ['GET'],
-            '/tripitaka/@tripitaka': ['GET'],
+            '/tripitaka/@page_name': ['GET'],
             '/data/cbeta/search': ['GET'],
             '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],
