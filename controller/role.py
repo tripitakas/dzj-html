@@ -13,7 +13,7 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'task_type': r'[a-z]+_cut_[a-z]+|text_\w+',
-    'tripitaka_id': r'[a-z]{3,}',
+    'tripitaka': r'[A-Z]{1,2}',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
@@ -56,7 +56,7 @@ role_maps = {
             '/api/user/(avatar|email_code|phone_code)': ['POST'],
             '/tripitaka': ['GET'],
             '/tripitaka/rs': ['GET'],
-            '/tripitaka/@tripitaka_id': ['GET'],
+            '/tripitaka/@tripitaka': ['GET'],
             '/data/cbeta/search': ['GET'],
             '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],

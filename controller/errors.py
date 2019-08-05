@@ -56,3 +56,5 @@ task_not_allowed_reset = 3010, '只能重置已就绪的任务'
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'
 data_unauthorized = 4003, '您没有数据权限'
+
+tripitaka_not_existed = 5001, '藏经不存在'

@@ -6,9 +6,10 @@
 """
 
 import re
+import hashlib
 import logging
 import traceback
-import hashlib
+
 from os import path
 
 from bson import json_util
