@@ -32,7 +32,7 @@ class TripitakaHandler(BaseHandler):
     def get(self, tripitaka='GL', page_num=''):
         """ 实体藏经 """
         try:
-            meta = self.db.tripitaka.find_one({'tripitaka_code': tripitaka})
+            meta = self.db.tripitaka.find_one({'tripitaka_code': tripitaka}) or {}
             if not meta:
                 self.send_error_response(errors.tripitaka_not_existed, render=True)
             elif meta.get('img_available') == '否':

@@ -95,6 +95,8 @@ class CommonHead(UIModule):
 
 class Pager(UIModule):
     def render(self, pager):
+        if not isinstance(pager, dict):
+            pager = dict(cur_page=0, item_count=0)
         if isinstance(pager, dict) and 'cur_page' in pager and 'item_count' in pager:
             conf = self.handler.application.config['pager']
             pager['page_size'] = pager.get('page_size', conf['page_size'])  # 每页显示多少条记录
