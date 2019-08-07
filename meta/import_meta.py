@@ -3,14 +3,16 @@
 
 import re
 import csv
+import sys
 import json
 import pymongo
 import os.path as path
 from functools import cmp_to_key
 from datetime import datetime, timedelta
+from glob2 import glob
 
-META_DIR = './meta'
-global_db = ''
+META_DIR = path.join(path.dirname(__file__), 'meta')
+db = ''
 
 
 def get_date_time(fmt=None, diff_seconds=None):
@@ -23,18 +25,21 @@ def get_date_time(fmt=None, diff_seconds=None):
 def import_tripitaka():
     """ 导入tripitaka meta数据 """
     meta_csv = path.join(META_DIR, 'Tripitaka.csv')
-    print('import tripitaka: %s...' % meta_csv)
-    global global_db
+    sys.stdout.write('import tripitaka: %s...' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+        added = 0
         for row in rows[1:]:
             data = {heads[i]: item for i, item in enumerate(row)}
             data.update({
                 'create_time': get_date_time(),
                 'updated_time': get_date_time(),
             })
-            global_db.tripitaka.insert_one(data)
+            if not db.tripitaka.find_one({heads[0]: row[0]}):
+                db.tripitaka.insert_one(data)
+                added += 1
+    sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
 def get_code_value(code):
@@ -45,14 +50,13 @@ def get_code_value(code):
     return int(value) if value else 0
 
 
-def import_volume(tripitaka):
+def import_volume(tripitaka, meta_csv):
     """ 导入volume meta数据 """
-    meta_csv = path.join(META_DIR, 'Volume-%s.csv' % tripitaka)
-    print('import volume: %s...' % meta_csv)
-    global global_db
+    sys.stdout.write('import volume: %s...' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+        added = 0
         for row in rows[1:]:
             data = {heads[i]: item for i, item in enumerate(row)}
             content_pages = json.loads(data['content_pages'].replace("'", '"'))
@@ -72,68 +76,70 @@ def import_volume(tripitaka):
                 'create_time': get_date_time(),
                 'updated_time': get_date_time(),
             }
-            global_db.volume.insert_one(update)
+            if not db.volume.find_one({heads[0]: row[0]}):
+                db.volume.insert_one(update)
+                added += 1
+    sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_sutra(tripitaka):
+def import_sutra(tripitaka, meta_csv):
     """ 导入volume meta数据 """
-    meta_csv = path.join(META_DIR, 'Sutra-%s.csv' % tripitaka)
-    print('import sutra: %s...' % meta_csv)
-    global global_db
+    sys.stdout.write('import sutra: %s...' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+        added = 0
         for row in rows[1:]:
             data = {heads[i]: item for i, item in enumerate(row)}
             data.update({
                 'create_time': get_date_time(),
                 'updated_time': get_date_time(),
             })
-            global_db.sutra.insert_one(data)
+            if not db.sutra.find_one({heads[0]: row[0]}):
+                db.sutra.insert_one(data)
+                added += 1
+    sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_reel(tripitaka):
+def import_reel(tripitaka, meta_csv):
     """ 导入volume meta数据 """
-    meta_csv = path.join(META_DIR, 'Reel-%s.csv' % tripitaka)
-    print('import reel: %s...' % meta_csv)
-    global global_db
+    sys.stdout.write('import reel: %s...' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+        added = 0
         for row in rows[1:]:
             data = {heads[i]: item for i, item in enumerate(row)}
             data.update({
                 'create_time': get_date_time(),
                 'updated_time': get_date_time(),
             })
-            global_db.reel.insert_one(data)
+            if not db.reel.find_one({heads[0]: row[0]}):
+                db.reel.insert_one(data)
+                added += 1
+    sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
 def import_meta():
     import_tripitaka()
 
-    tripitakas = ['JX', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
-    for tripitaka in tripitakas:
-        import_volume(tripitaka)
-
-    tripitakas = ['GL', 'HW', 'KB', 'LC', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH']
-    for tripitaka in tripitakas:
-        import_sutra(tripitaka)
-
-    tripitakas = ['GL', 'HW', 'KB', 'LC', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH']
-    for tripitaka in tripitakas:
-        import_reel(tripitaka)
+    for filename, code in glob(path.join(META_DIR, 'Volume-*.csv'), True):
+        import_volume(code[0], filename)
+    for filename, code in glob(path.join(META_DIR, 'Sutra-*.csv'), True):
+        import_sutra(code[0], filename)
+    for filename, code in glob(path.join(META_DIR, 'Reel-*.csv'), True):
+        import_reel(code[0], filename)
 
 
 def main(db_name='tripitaka', uri='localhost', reset=False):
-    global global_db
+    global db
     conn = pymongo.MongoClient(uri)
-    global_db = conn[db_name]
+    db = conn[db_name]
     if reset:
-        global_db.tripitaka.drop()
-        global_db.sutra.drop()
-        global_db.reel.drop()
-        global_db.volume.drop()
+        db.tripitaka.drop()
+        db.sutra.drop()
+        db.reel.drop()
+        db.volume.drop()
 
     import_meta()
 

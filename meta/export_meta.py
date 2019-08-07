@@ -6,15 +6,14 @@ import pymongo
 import os.path as path
 from datetime import datetime, timedelta
 
-META_DIR = './meta'
-global_db = ''
+META_DIR = path.join(path.dirname(__file__), 'meta')
+db = ''
 
 
 def export_tripitaka():
-    global global_db
     with open(path.join(META_DIR, 'Tripitaka.csv'), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(global_db.tripitaka.find({}, {'_id': 0, 'create_time': 0, 'updated_time': 0}))
+        rows = list(db.tripitaka.find({}, {'_id': 0, 'create_time': 0, 'updated_time': 0}))
         writer.writerow(list(rows[0].keys()))
         for row in rows:
             info = list(row.values())
@@ -22,11 +21,10 @@ def export_tripitaka():
 
 
 def export_volume(tripitaka):
-    global global_db
     with open(path.join(META_DIR, 'Volume-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
         rows = list(
-            global_db.volume.find({'tripitaka_code': tripitaka}, {'_id': 0, 'create_time': 0, 'updated_time': 0}))
+            db.volume.find({'tripitaka_code': tripitaka}, {'_id': 0, 'create_time': 0, 'updated_time': 0}))
         writer.writerow(list(rows[0].keys()))
         for row in rows:
             info = list(row.values())
@@ -34,10 +32,9 @@ def export_volume(tripitaka):
 
 
 def export_sutra(tripitaka):
-    global global_db
     with open(path.join(META_DIR, 'Sutra-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(global_db.sutra.find(
+        rows = list(db.sutra.find(
             {'sutra_code': {'$regex': '%s.*' % tripitaka}}, {'_id': 0, 'create_time': 0, 'updated_time': 0}
         ))
         writer.writerow(list(rows[0].keys()))
@@ -47,10 +44,9 @@ def export_sutra(tripitaka):
 
 
 def export_reel(tripitaka):
-    global global_db
     with open(path.join(META_DIR, 'Reel-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(global_db.reel.find(
+        rows = list(db.reel.find(
             {'sutra_code': {'$regex': '%s.*' % tripitaka}}, {'_id': 0, 'create_time': 0, 'updated_time': 0}
         ))
         writer.writerow(list(rows[0].keys()))
@@ -83,9 +79,9 @@ def export_meta():
 
 
 def main(db_name='tripitaka', uri='localhost'):
-    global global_db
+    global db
     conn = pymongo.MongoClient(uri)
-    global_db = conn[db_name]
+    db = conn[db_name]
     export_meta()
 
 
