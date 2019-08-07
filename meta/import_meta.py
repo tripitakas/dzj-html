@@ -31,7 +31,7 @@ def import_tripitaka():
         heads = rows[0]
         added = 0
         for r, row in enumerate(rows[1:]):
-            if r % 50 == 0:
+            if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}
@@ -61,7 +61,7 @@ def import_volume(tripitaka, meta_csv):
         heads = rows[0]
         added = 0
         for r, row in enumerate(rows[1:]):
-            if r % 50 == 0:
+            if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}
@@ -96,7 +96,7 @@ def import_sutra(tripitaka, meta_csv):
         heads = rows[0]
         added = 0
         for r, row in enumerate(rows[1:]):
-            if r % 50 == 0:
+            if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}
@@ -118,7 +118,7 @@ def import_reel(tripitaka, meta_csv):
         heads = rows[0]
         added = 0
         for r, row in enumerate(rows[1:]):
-            if r % 50 == 0:
+            if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}

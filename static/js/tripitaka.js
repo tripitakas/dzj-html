@@ -50,7 +50,7 @@ $('.m-header .zone-control .zone-right').click(function () {
 
 // 跳转第一页
 $('.m-pager .btn-page.first').click(function () {
-  window.location = '/' + $('.m-header #parent-id').text() + '_' + $(this).attr("title");
+  window.location = '/t/' + $('.m-header #parent-id').text() + '_' + $(this).attr("title");
 });
 
 // 跳转某一页
@@ -68,7 +68,7 @@ $('.m-pager .btn-page.to').on("keydown", function (event) {
 
 function jump(page) {
   var parent_id = $('.m-header #parent-id').text();
-  window.location = '/' + parent_id.replace(/_/g, '/') + '_' + page;
+  window.location = '/t/' + parent_id.replace(/_/g, '/') + '_' + page;
 }
 
 // 缩小图片
@@ -99,7 +99,7 @@ $('.main-left').on('click', '.has-sub', function () {
 
 $('.main-left').on('click', '.leaf', function () {
   var m = $(this).attr('id').match(/([a-zA-Z]{1,2})0*([_0-9]+)/);
-  var url = '/' + m[1] + '/' + m[2].replace(/^_/, '');
+  var url = '/t/' + m[1] + '/' + m[2].replace(/^_/, '');
   window.location = url;
 });
 
@@ -185,5 +185,5 @@ $('#my-sutra-table').DataTable({
 $('#my-sutra-table').on("click", '.page-code', function (event) {
   $('#sutraNavModal').modal('hide');
   var tripitaka = $('.m-header #parent-id').text().split('_')[0];
-  window.location = '/' + tripitaka + '/' + $(this).attr('title');
+  window.location = '/t/' + tripitaka + '/' + $(this).attr('title');
 });
