@@ -46,7 +46,7 @@
                     </div>
                   </div>
                   <div class="search fr">
-                    <input type="text" placeholder="搜索">
+                    <input id="search-input" type="text" placeholder="请搜索编码">
                     <i class="ser-btn"></i>
                   </div>
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
@@ -295,9 +295,19 @@
     $('#modi	fyModal').modal('hide');
     console.log('modify confirm');
   });
+
   //新增框的确定按钮
   $("#add_modal_confirm").click(function () {
     console.log('add confirm');
+  });
+
+  // 搜索
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    }
   });
 </script>
 

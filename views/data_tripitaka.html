@@ -32,10 +32,10 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span onclick="javascript:add();">新增</span>
+                    <span onclick="javascript:add();">新增藏</span>
                   </div>
                   <div class="search fr">
-                    <input type="text" placeholder="搜索">
+                    <input id="search-input" type="text" placeholder="请搜索藏名和编码">
                     <i class="ser-btn"></i>
                   </div>
                   <table style="border-collapse:separate; border-spacing:0px 10px;">
@@ -55,14 +55,14 @@
                     <tbody>
                     {% for t in tripitakas %}
                     <tr>
-                      <td><input type="checkbox" id="{{t['tripitaka_code']}}" value=""/></td>
-                      <td>{{t['name']}}</td>
-                      <td>{{t['short_name']}}</td>
-                      <td>{{t['tripitaka_code']}}</td>
-                      <td>{{t['store_pattern']}}</td>
-                      <td>{{t['img_available']}}</td>
-                      <td>{{t['img_prefix']}}</td>
-                      <td>{{t['img_suffix']}}</td>
+                      <td><input type="checkbox" id="{{t.get('tripitaka_code')}}" value=""/></td>
+                      <td>{{t.get('name')}}</td>
+                      <td>{{t.get('short_name')}}</td>
+                      <td>{{t.get('tripitaka_code')}}</td>
+                      <td>{{t.get('store_pattern')}}</td>
+                      <td>{{t.get('img_available')}}</td>
+                      <td>{{t.get('img_prefix')}}</td>
+                      <td>{{t.get('img_suffix')}}</td>
                       <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
                     </tr>
                     {% end %}
@@ -205,6 +205,15 @@
   //新增框的确定按钮
   $("#add_modal_confirm").click(function () {
     console.log('add confirm');
+  });
+
+  // 搜索
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    }
   });
 
 </script>

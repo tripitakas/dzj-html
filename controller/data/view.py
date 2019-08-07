@@ -18,12 +18,18 @@ class DataTripitakaHandler(BaseHandler):
     def get(self):
         """ 数据管理-藏数据 """
         try:
-            item_count = self.db.tripitaka.count_documents({})
+            q = self.get_query_argument('q', '').upper()
+            condition = {"$or": [
+                {"tripitaka_code": {'$regex': '.*%s.*' % q}},
+                {"name": {'$regex': '.*%s.*' % q}}
+            ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.tripitaka.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page < cur_page else cur_page
-            tripitakas = list(self.db.tripitaka.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db.tripitaka.find(condition)
+            tripitakas = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_tripitaka.html', tripitakas=tripitakas, pager=pager)
 
@@ -37,12 +43,17 @@ class DataVolumeHandler(BaseHandler):
     def get(self):
         """ 数据管理-册数据 """
         try:
-            item_count = self.db.volume.count_documents({})
+            q = self.get_query_argument('q', '').upper()
+            condition = {"$or": [
+                {"name": {'$regex': '.*%s.*' % q}}
+            ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.volume.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page < cur_page else cur_page
-            volumes = list(self.db.volume.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db.volume.find(condition)
+            volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_volume.html', volumes=volumes, pager=pager)
 
@@ -56,12 +67,19 @@ class DataSutraHandler(BaseHandler):
     def get(self):
         """ 数据管理-经数据 """
         try:
-            item_count = self.db.sutra.count_documents({})
+            q = self.get_query_argument('q', '').upper()
+            condition = {"$or": [
+                {"name": {'$regex': '.*%s.*' % q}},
+                {"sutra_name": {'$regex': '.*%s.*' % q}},
+                {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+            ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.sutra.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page < cur_page else cur_page
-            sutras = list(self.db.sutra.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db.sutra.find(condition)
+            sutras = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_sutra.html', sutras=sutras, pager=pager)
 
@@ -75,12 +93,18 @@ class DataReelHandler(BaseHandler):
     def get(self):
         """ 数据管理-卷数据 """
         try:
-            item_count = self.db.reel.count_documents({})
+            q = self.get_query_argument('q', '').upper()
+            condition = {"$or": [
+                {"name": {'$regex': '.*%s.*' % q}},
+                {"sutra_name": {'$regex': '.*%s.*' % q}},
+            ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.reel.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page < cur_page else cur_page
-            reels = list(self.db.reel.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db.reel.find(condition)
+            reels = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_reel.html', reels=reels, pager=pager)
 
@@ -94,13 +118,17 @@ class DataPageHandler(BaseHandler):
     def get(self):
         """ 数据管理-页数据 """
         try:
-            item_count = self.db.page.count_documents({})
+            q = self.get_query_argument('q', '').upper()
+            condition = {"$or": [
+                {"name": {'$regex': '.*%s.*' % q}},
+            ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.page.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page < cur_page else cur_page
-            pages = list(self.db.page.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            logging.info('%d users' % len(pages))
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db.page.find(condition)
+            pages = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_page.html', pages=pages, pager=pager)
 
