@@ -27,7 +27,7 @@ class RsTripitakaHandler(BaseHandler):
 
 
 class TripitakaHandler(BaseHandler):
-    URL = ['/@tripitaka/@page_num', '/@tripitaka']
+    URL = ['/t/@tripitaka/@page_num', '/t/@tripitaka']
 
     def get(self, tripitaka='GL', page_num=''):
         """ 实体藏经 """
