@@ -82,90 +82,14 @@
                   <div class="tripitaka-list">
                     <div class="wrapper">
                       <ul class="list clearfix">
+                        {% for t in items %}
                         <li>
-                          <a href="/FS/1_1">
+                          <a href="/t/{{t['tripitaka_code']}}">
                             <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
+                            <p>{{t['name']}}</p>
                           </a>
                         </li>
-                        <li>
-                          <a href="/FS">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
+                        {% end %}
                       </ul>
                     </div>
                   </div>

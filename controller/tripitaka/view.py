@@ -15,7 +15,10 @@ class TripitakaListHandler(BaseHandler):
 
     def get(self):
         """ 藏经列表 """
-        self.render('tripitaka_list.html')
+        try:
+            self.render('tripitaka_list.html', items=list(self.db.tripitaka.find({})))
+        except Exception as e:
+            self.send_db_error(e, render=True)
 
 
 class RsTripitakaHandler(BaseHandler):
@@ -36,7 +39,7 @@ class TripitakaHandler(BaseHandler):
             if not meta:
                 self.send_error_response(errors.tripitaka_not_existed, render=True)
             elif meta.get('img_available') == '否':
-                self.send_error_response(errors.tripitaka_img_not_existed, render=True)
+                pass  # self.send_error_response(errors.tripitaka_img_not_existed, render=True)
 
             store_pattern = meta.get('store_pattern')
 
@@ -57,14 +60,14 @@ class TripitakaHandler(BaseHandler):
 
             # 获取当前目录
             if '册' in store_pattern:
-                cur_mulu = self.db.volume.find_one({'name': cur_mulu_code})
-                first, last = int(cur_mulu.get('first_page', 1)), int(cur_mulu.get('last_page'))
+                cur_mulu = self.db.volume.find_one({'name': cur_mulu_code}) or {}
+                first, last = int(cur_mulu.get('first_page', 1)), int(cur_mulu.get('last_page', 0))
                 cur_page = int(cur_page) if cur_page else first
                 nav_info = dict(parent_id=cur_mulu_code, cur_page=cur_page, first=first, last=last,
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)
             else:
-                cur_mulu = self.db.reel.find_one({'name': cur_mulu_code})
-                first, last = 1, int(cur_mulu.get('page_count'))
+                cur_mulu = self.db.reel.find_one({'name': cur_mulu_code}) or {}
+                first, last = 1, int(cur_mulu.get('page_count', 0))
                 cur_page = first if not cur_page else int(cur_page)
                 nav_info = dict(parent_id=cur_mulu_code, first=first, last=last, cur_page=cur_page,
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)

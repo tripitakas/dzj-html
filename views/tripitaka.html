@@ -158,7 +158,11 @@
           <!-- 左侧图片区域 -->
           <div class="content-left">
             <div id="page-picture" class="page-picture">
+              {% if meta.get('img_available') == '否' %}
+              <img src="{{ static_url('imgs/tripitaka_img_not_existed.png') }}" style="width: 400px"/>
+              {% else %}
               <img src="{{img_url}}" style="width: 100%"/>
+              {% end %}
             </div>
           </div>
           <!-- 右侧文字区域 -->
