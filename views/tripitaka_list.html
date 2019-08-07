@@ -76,7 +76,7 @@
                       <ul class="list clearfix">
                         {% for t in tripitakas %}
                         <li>
-                          <a href="/{{t['tripitaka_code']}}">
+                          <a href="/t/{{t['tripitaka_code']}}">
                             <img class="tripitaka-cover" src="{{get_img(t['cover_img'], True) if t['cover_img'] else static_url('imgs/tripitaka_img_not_existed.png')}}" alt="没有找到图片">
                             <p>{{t['name']}}</p>
                           </a>
