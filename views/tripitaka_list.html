@@ -32,7 +32,7 @@
     display: block;
   }
 
-  .tripitaka-list .list img {
+  .tripitaka-list .list .tripitaka-cover {
     display: block;
     width: 100%;
     height: auto;
@@ -77,7 +77,7 @@
                         {% for t in tripitakas %}
                         <li>
                           <a href="/{{t['tripitaka_code']}}">
-                            <img class="tripitaka-cover" src="{{get_img(t['cover_img'], True) if t['cover_img'] else static_url('imgs/FS_face.jpg')}}" alt="没有找到图片">
+                            <img class="tripitaka-cover" src="{{get_img(t['cover_img'], True) if t['cover_img'] else static_url('imgs/tripitaka_img_not_existed.png')}}" alt="没有找到图片">
                             <p>{{t['name']}}</p>
                           </a>
                         </li>
