@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 如是藏经、实体藏经
+@desc: 如是藏经、大藏经
 @time: 2019/3/13
 """
 import re
@@ -11,7 +11,7 @@ from controller.base import BaseHandler
 
 
 class TripitakaListHandler(BaseHandler):
-    URL = '/tripitaka'
+    URL = '/tripitakas'
 
     def get(self):
         """ 藏经列表 """
@@ -33,7 +33,7 @@ class TripitakaHandler(BaseHandler):
     URL = ['/t/@tripitaka/@page_num', '/t/@tripitaka']
 
     def get(self, tripitaka='GL', page_num=''):
-        """ 实体藏经 """
+        """ 藏经阅读 """
         try:
             meta = self.db.tripitaka.find_one({'tripitaka_code': tripitaka}) or {}
             if not meta:

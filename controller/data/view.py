@@ -5,6 +5,8 @@
 @time: 2019/3/13
 """
 import re
+import math
+import logging
 from controller.base import BaseHandler
 from controller.data.cbeta_search import find
 from controller.data.variant import normalize
@@ -14,48 +16,96 @@ class DataTripitakaHandler(BaseHandler):
     URL = '/data/tripitaka'
 
     def get(self):
-        """ 数据管理-实体藏 """
-        self.render('data_tripitaka.html')
+        """ 数据管理-藏数据 """
+        try:
+            item_count = self.db.tripitaka.count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page < cur_page else cur_page
+            tripitakas = list(self.db.tripitaka.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('data_tripitaka.html', tripitakas=tripitakas, pager=pager)
 
-
-class DataEnvelopHandler(BaseHandler):
-    URL = '/data/envelop'
-
-    def get(self):
-        """ 数据管理-实体函 """
-        self.render('data_envelop.html')
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
 
 class DataVolumeHandler(BaseHandler):
     URL = '/data/volume'
 
     def get(self):
-        """ 数据管理-实体册 """
-        self.render('data_volume.html')
+        """ 数据管理-册数据 """
+        try:
+            item_count = self.db.volume.count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page < cur_page else cur_page
+            volumes = list(self.db.volume.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('data_volume.html', volumes=volumes, pager=pager)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
 
 class DataSutraHandler(BaseHandler):
     URL = '/data/sutra'
 
     def get(self):
-        """ 数据管理-实体经 """
-        self.render('data_sutra.html')
+        """ 数据管理-经数据 """
+        try:
+            item_count = self.db.sutra.count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page < cur_page else cur_page
+            sutras = list(self.db.sutra.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('data_sutra.html', sutras=sutras, pager=pager)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
 
 class DataReelHandler(BaseHandler):
     URL = '/data/reel'
 
     def get(self):
-        """ 数据管理-实体卷 """
-        self.render('data_reel.html')
+        """ 数据管理-卷数据 """
+        try:
+            item_count = self.db.reel.count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page < cur_page else cur_page
+            reels = list(self.db.reel.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('data_reel.html', reels=reels, pager=pager)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
 
 class DataPageHandler(BaseHandler):
     URL = '/data/page'
 
     def get(self):
-        """ 数据管理-实体页 """
-        self.render('data_page.html')
+        """ 数据管理-页数据 """
+        try:
+            item_count = self.db.page.count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page < cur_page else cur_page
+            pages = list(self.db.page.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            logging.info('%d users' % len(pages))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('data_page.html', pages=pages, pager=pager)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)
 
 
 class DataSearchCbetaHandler(BaseHandler):

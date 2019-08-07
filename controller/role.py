@@ -54,7 +54,7 @@ role_maps = {
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile)': ['POST'],
             '/api/user/(avatar|email_code|phone_code)': ['POST'],
-            '/tripitaka': ['GET'],
+            '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@tripitaka': ['GET'],
             '/t/@tripitaka/@page_num': ['GET'],
