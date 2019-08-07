@@ -153,7 +153,7 @@ var language = {
 
 $('#my-sutra-table').DataTable({
   language: language,
-  data: sutras === undefined ? [] : sutras,
+  data: typeof(sutras) === 'undefined' ? [] : sutras,
   columnDefs: [
     {
       'targets': [0],
