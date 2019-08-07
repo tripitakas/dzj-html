@@ -9,20 +9,12 @@
 <style>
 
   .tripitaka-list .list {
-    margin-top: 85px;
-    margin-left: 20px;
-    margin-right: 20px;
-    margin-bottom: 0;
-  }
-
-  .tripitaka-list ul.list {
-    margin-top: 40px;
+    margin: 85px 20px 0;
   }
 
   .tripitaka-list .list li {
     width: 15.5%;
     padding: 12px 12px 0 12px;
-    height: auto;
     float: left;
     box-sizing: border-box;
     background: #fff;
@@ -82,10 +74,10 @@
                   <div class="tripitaka-list">
                     <div class="wrapper">
                       <ul class="list clearfix">
-                        {% for t in items %}
+                        {% for t in tripitakas %}
                         <li>
-                          <a href="/t/{{t['tripitaka_code']}}">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
+                          <a href="/{{t['tripitaka_code']}}">
+                            <img class="tripitaka-cover" src="{{get_img(t['cover_img'], True) if t['cover_img'] else static_url('imgs/FS_face.jpg')}}" alt="没有找到图片">
                             <p>{{t['name']}}</p>
                           </a>
                         </li>

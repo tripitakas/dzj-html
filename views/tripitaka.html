@@ -212,8 +212,8 @@
 
 {% include _base_js.html %}
 {% include _cut_base.html %}
-{% if has_meta %}
 <script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
+{% if has_meta %}
 <script src="{{static_url('js/meta/'+tripitaka+'-sutra.js')}}"></script>
 {% end %}
 <script src="{{static_url('js/tripitaka.js')}}"></script>

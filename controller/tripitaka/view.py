@@ -15,10 +15,10 @@ class TripitakaListHandler(BaseHandler):
 
     def get(self):
         """ 藏经列表 """
-        try:
-            self.render('tripitaka_list.html', items=list(self.db.tripitaka.find({})))
-        except Exception as e:
-            self.send_db_error(e, render=True)
+        fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
+        tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
+
+        self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
 
 
 class RsTripitakaHandler(BaseHandler):
@@ -39,7 +39,7 @@ class TripitakaHandler(BaseHandler):
             if not meta:
                 self.send_error_response(errors.tripitaka_not_existed, render=True)
             elif meta.get('img_available') == '否':
-                pass  # self.send_error_response(errors.tripitaka_img_not_existed, render=True)
+                self.send_error_response(errors.tripitaka_img_not_existed, render=True)
 
             store_pattern = meta.get('store_pattern')
 
@@ -58,22 +58,29 @@ class TripitakaHandler(BaseHandler):
                 mulu_items = list(self.db.reel.find({'name': {'$regex': '^%s.*' % tripitaka}}))
             mulu_tree = self.get_mulu_tree(mulu_items, store_pattern)
 
+            # 是否存在经目数据
+            has_meta = True if self.db.sutra.find_one({'name': {'$regex': '^%s.*' % tripitaka}}) else False
+
             # 获取当前目录
             if '册' in store_pattern:
-                cur_mulu = self.db.volume.find_one({'name': cur_mulu_code}) or {}
-                first, last = int(cur_mulu.get('first_page', 1)), int(cur_mulu.get('last_page', 0))
+                cur_volume = self.db.volume.find_one({'name': cur_mulu_code})
+                first, last = int(cur_volume.get('first_page') or 0), int(cur_volume.get('last_page') or 0)
                 cur_page = int(cur_page) if cur_page else first
                 nav_info = dict(parent_id=cur_mulu_code, cur_page=cur_page, first=first, last=last,
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)
             else:
-                cur_mulu = self.db.reel.find_one({'name': cur_mulu_code}) or {}
-                first, last = 1, int(cur_mulu.get('page_count', 0))
+                has_meta = False
+                cur_reel = self.db.reel.find_one({'name': cur_mulu_code})
+                if not cur_reel:
+                    sutra_code = tripitaka + '_' + '_'.join(name_slice[:-2])
+                    sutra_reels = list(self.db.reel.find({'sutra_code': sutra_code}).sort('reel_num', 1).limit(1))
+                    if sutra_reels:
+                        cur_reel = sutra_reels[0]
+                        cur_mulu_code = cur_reel['name']
+                first, last = 1, int(cur_reel.get('page_count') or 0)
                 cur_page = first if not cur_page else int(cur_page)
                 nav_info = dict(parent_id=cur_mulu_code, first=first, last=last, cur_page=cur_page,
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)
-
-            # 是否存在经目数据
-            has_meta = True if self.db.sutra.find_one({'name': {'$regex': '^%s.*' % tripitaka}}) else False
 
             # 获取图片路径
             page_code = '%s_%s' % (nav_info['parent_id'], cur_page)
