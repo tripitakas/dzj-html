@@ -221,7 +221,7 @@ a:hover {
     width: 100%;
 }
 
-.main .menu .menu-title {
+.main .menu .menu-title, .main .menu .leaf {
     display: block;
 }
 
@@ -229,7 +229,7 @@ a:hover {
     background: var(--Color_Brown);
 }
 
-.main .menu .menu-title.active {
+.main .menu .active {
     background-color: var(--Color_Brown);
 }
 

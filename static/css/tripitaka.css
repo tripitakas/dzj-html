@@ -18,11 +18,11 @@
 
 /* 左侧区域 */
 .main-left {
-    width: 300px;
+    flex: 0;
+    width: 276px;
     height: 100%;
     background: var(--Color_Brown_Dark);
     overflow-y: auto;
-    display: none;
 }
 
 .main-left::-webkit-scrollbar {
@@ -55,8 +55,9 @@
 
 /* 右侧区域 */
 .main-right {
-    flex: 1;
+    flex: 0;
     height: 100%;
+    /*width: 100%;*/
     background: var(--Color_White);
 }
 
@@ -230,7 +231,7 @@
 
 .m-pager .btn-page {
     float: left;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     margin: 0 3px;
     height: 20px;
@@ -241,7 +242,7 @@
 .m-pager .btn-page.to input {
     width: 55px;
     height: 20px;
-    background: var(--Color_Grey_Lighter);
+    background: var(--Color_Grey_Line);
     border: 0;
     text-align: center;
     margin: 0 2px;
@@ -251,6 +252,7 @@
 .m-pager .btn-page.to input:hover {
     background: var(--Color_White);
 }
+
 
 .m-pager .btn-page.last {
     border: 0;
@@ -701,9 +703,10 @@
     width: 100%;
 }
 
-#my-sutra-table td .sutra-code {
+#my-sutra-table td .page-code {
     cursor: pointer;
     color: #000;
+    text-decoration: underline;
 }
 
 #searchConfigModal .ms-container .ser-btn {

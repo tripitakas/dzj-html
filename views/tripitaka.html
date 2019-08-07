@@ -5,6 +5,7 @@
   <title>{{meta.get('name')}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
+  <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" rel="stylesheet">
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   <link href="{{ static_url('css/tripitaka.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
@@ -15,13 +16,44 @@
 </head>
 
 <style>
-  .main .main-left {
+  .main-left {
+    flex: 0 0 auto;
     display: block;
-    width: 300px;
+    width: 276px;
+  }
+
+  .sutra-mode .main-left {
+    width: 350px;
+  }
+
+  .main-left.slim-scroll::-webkit-scrollbar {
+    width: 8px;
+    opacity: 0.5;
+  }
+
+  .main-left a {
+    cursor: pointer;
+  }
+
+  .main-left .menu {
+    padding-top: 15px;
+  }
+
+  .main-left .menu-title.has-sub:before {
+    content: "+";
+    padding-right: 4px;
+  }
+
+  .main-right {
+    flex: 0 1 auto;
   }
 
   .main-right .m-header {
-    left: 300px;
+    left: 276px;
+  }
+
+  .sutra-mode .main-right .m-header {
+    left: 350px;
   }
 
   .main-right .content {
@@ -30,25 +62,47 @@
 
   .content .content-left {
     padding: 0;
+    overflow: auto;
   }
 
   .page-picture img {
     width: 100%;
   }
+
 </style>
 
 
 <body>
 <div class="app-main">
   <div class="main">
-    <div class="main-content flex-content">
+    <div class="main-content flex-content {{'sutra-mode' if '经' in meta['store_pattern'] else ''}}">
       <div class="main-left slim-scroll" id="main-left">
         <div class="main-left-menu">
           <div class="menu-search-wrapper">
             <input class="menu-search-input" type="text"/>
-            <img src="{{ static_url('imgs/icon13.png') }}"/>
+            <img class="menu-search-btn" src="{{ static_url('imgs/icon13.png') }}"/>
           </div>
-          <ul class="menu" id="side-menu"></ul>
+          <ul class="menu" id="side-menu">
+            {% for item in mulu_tree %}
+            <li class="menu-item">
+              <span id="{{item['id']}}" class="menu-title {{'has-sub' if item.get('children') else 'leaf'}}">
+                <a>{{item['title']}}</a>
+              </span>
+              {% if item.get('children') %}
+              <ul class="sub-ul sub-ul-hidden">
+                {% for sub_item in item.get('children') %}
+                <li>
+                  <span id="{{sub_item['id']}}" class="leaf">
+                    <i><img src='{{static_url("imgs/icon_subitem.png")}}' class="sub-img"/></i>
+                    <a>{{sub_item['title']}}</a>
+                  </span>
+                </li>
+                {% end %}
+              </ul>
+            </li>
+            {% end %}
+            {% end %}
+          </ul>
         </div>
       </div>
       <div class="main-right" id="main-right">
@@ -60,17 +114,27 @@
                 <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
               </div>
               <div class="title">{{meta.get('name')}}</div>
-              <div class="panel-btn">
+              <div class="panel-btn {{'' if has_meta else 'hide'}}">
                 <img class="btn-img" src="{{ static_url('imgs/icon_panel.png') }}" data-toggle="modal" data-target="#sutraNavModal"/>
               </div>
-              <div class="zone-control">
+              <div class="zone-control" style="padding: 0 5px">
                 <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img zone-left" title="图片区域"/>
                 <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-right" title="文字区域"/>
               </div>
-              <div class="img-control">
+              <div class="img-control" style="padding: 0 5px">
                 <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
                 <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img btn-origin" title="原始"/>
                 <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
+              </div>
+              <div class="m-pager" style="padding: 0 5px">
+                <div class="btn-page" id="parent-id" style="display: none">{{nav_info.get('parent_id')}}</div>
+                <div class="btn-page first" title="{{nav_info.get('first')}}">首页</div>
+                <div class="btn-page prev" title="{{nav_info.get('prev')}}"><</div>
+                <div class="btn-page to">
+                  <input type="text" value="{{nav_info.get('cur_page')}}"/> / <span type="tips">{{nav_info.get('last')}}</span>
+                </div>
+                <div class="btn-page next" title="{{nav_info.get('next')}}">></div>
+                <div class="btn-page last" title="{{nav_info.get('last')}}">末页</div>
               </div>
               <div class="more">
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
@@ -81,7 +145,7 @@
                 </span>
               </div>
             </div>
-            <div class="right">
+            <div class="right {{'' if has_text else 'hide'}}">
               <div class="txt-btns">
                 <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
                 <div class="btn-txt btn-font-reduce" title="减少字号">A-</div>
@@ -94,11 +158,11 @@
           <!-- 左侧图片区域 -->
           <div class="content-left">
             <div id="page-picture" class="page-picture">
-              <img src="{{img_url}}"/>
+              <img src="{{img_url}}" style="width: 100%"/>
             </div>
           </div>
           <!-- 右侧文字区域 -->
-          <div class="content-right">
+          <div class="content-right {{'' if has_text else 'hide'}}">
             <div class="page-text">
             </div>
           </div>
@@ -109,10 +173,46 @@
 </div>
 </div>
 
+<!-- 根据字段检索经名 -->
+<div class="panel-body">
+  <div id="sutraNavModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+    <div class="modal-dialog" style="width: 80%">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">经籍检索</h4>
+        </div>
+        <div class="modal-body">
+          <!-- sutra_code/sutra_name/due_reel_count/existed_reel_count/start_volume/start_page/end_volume/end_page-->
+          <table id="my-sutra-table" class="table my-sutra-table" style="width: 100%">
+            <thead>
+            <tr>
+              <th style="width: 45px">经号</th>
+              <th>经名</th>
+              <th>应存卷数</th>
+              <th>实存卷数</th>
+              <th>起始册</th>
+              <th>起始页</th>
+              <th>终止册</th>
+              <th>终止页</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% include _base_js.html %}
 {% include _cut_base.html %}
-<script src="{{ static_url('js/tripitaka.js') }}"></script>
+{% if has_meta %}
+<script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
+<script src="{{static_url('js/meta/'+tripitaka+'-sutra.js')}}"></script>
+{% end %}
+<script src="{{static_url('js/tripitaka.js')}}"></script>
 
 </body>
 </html>
