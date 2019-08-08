@@ -63,10 +63,18 @@
   .content .content-left {
     padding: 0;
     overflow: auto;
+    {% if page %}
+    width: 1200px;
+    {% end %}
   }
 
   .page-picture img {
     width: 100%;
+  }
+
+  .page-text {
+    font-size: 18px;
+    padding: 10px;
   }
 
 </style>
@@ -154,16 +162,23 @@
           </div>
         </div>
 
-        <div class="content">
+        <div class="content{{'' if has_text else ' hide-right'}}">
           <!-- 左侧图片区域 -->
           <div class="content-left">
             <div id="page-picture" class="page-picture">
+              {% if page %}
+              <div id="holder"></div>
+              {% else %}
               <img src="{{img_url}}" style="width: 100%" onerror="javascript:this.style.width='400px';this.src='{{static_url('imgs/tripitaka_img_not_existed.png')}}';"/>
+              {% end %}
             </div>
           </div>
           <!-- 右侧文字区域 -->
           <div class="content-right {{'' if has_text else 'hide'}}">
             <div class="page-text">
+              {% for p in has_text.split('|') %}
+              <p>{{p}}</p>
+              {% end %}
             </div>
           </div>
         </div>
@@ -213,6 +228,20 @@
 <script src="{{static_url('js/meta/'+tripitaka+'-sutra.js')}}"></script>
 {% end %}
 <script src="{{static_url('js/tripitaka.js')}}"></script>
-
+{% if page %}
+<script>
+  $.cut.create({
+    readonly: true,
+    name: 't_{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    scrollContainer: '.content-left',
+    image: "{{img_url}}",
+    chars: '{{page["chars"]}}'
+  });
+  $.cut.bindKeys();
+</script>
+{% end %}
 </body>
 </html>

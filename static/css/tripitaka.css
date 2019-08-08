@@ -239,6 +239,10 @@
     /*border-right: 1px dotted var(--Color_Grey_Middle);*/
 }
 
+.m-pager .btn-page.to {
+    cursor: default;
+}
+
 .m-pager .btn-page.to input {
     width: 55px;
     height: 20px;

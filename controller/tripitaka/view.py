@@ -88,12 +88,10 @@ class TripitakaHandler(BaseHandler):
 
             # 是否存在文本数据
             page = self.db.page.find_one({'name': page_code})
-            has_text = False
-            if page and (page.get('text') or page.get('ocr')):
-                has_text = True
+            has_text = page and (page.get('text') or page.get('ocr')) or ''
 
             self.render('tripitaka.html', tripitaka=tripitaka, meta=meta, mulu_tree=mulu_tree, nav_info=nav_info,
-                        img_url=img_url, has_meta=has_meta, has_text=has_text)
+                        img_url=img_url, has_meta=has_meta, has_text=has_text, page=page)
 
         except Exception as e:
             self.send_db_error(e, render=True)

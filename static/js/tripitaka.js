@@ -68,24 +68,39 @@ $('.m-pager .btn-page.to').on("keydown", function (event) {
 
 function jump(page) {
   var parent_id = $('.m-header #parent-id').text();
-  window.location = '/t/' + parent_id.replace(/_/g, '/') + '_' + page;
+  if (parent_id && page) {
+    window.location = '/t/' + parent_id.replace(/_/g, '/') + '_' + page;
+  }
 }
 
 // 缩小图片
 $('.m-header').on('click', '.btn-reduce', function () {
   var width = $('.page-picture img').width();
-  $('.page-picture img').width(width * 0.9);
+  if (width) {
+    $('.page-picture img').width(width * 0.9);
+  } else {
+    $.cut.setRatio($.cut.data.ratio * 0.9);
+  }
 });
 
 // 放大图片
 $('.m-header').on('click', '.btn-enlarge', function () {
   var width = $('.page-picture img').width();
-  $('.page-picture img').width(width * 1.1);
+  if (width) {
+    $('.page-picture img').width(width * 1.1);
+  } else {
+    $.cut.setRatio($.cut.data.ratio * 1.5);
+  }
 });
 
 // 原始大小
 $('.m-header').on('click', '.btn-origin', function () {
-  $('.page-picture img').width('100%');
+  var width = $('.page-picture img').width();
+  if (width) {
+    $('.page-picture img').width('100%');
+  } else {
+    $.cut.setRatio(1);
+  }
 });
 
 // 更多操作
