@@ -3,7 +3,6 @@
 
 import tests.users as u
 from controller import errors
-from controller.data.cbeta_search import can_search
 from tests.testcase import APITestCase
 from tornado.escape import json_encode
 
@@ -43,11 +42,8 @@ class TestText(APITestCase):
             self.assert_code(200, r)
 
             # 测试获取比对本
-            if can_search():
-                r = self.parse_response(
-                    self.fetch('/api/task/text_proof/get_cmp/%s' % name1, body={'data': {'num': 1}}))
-            else:
-                r = dict(cmp='?', hit_page_codes='?')
+            r = self.parse_response(
+                self.fetch('/api/task/text_proof/get_cmp/%s' % name1, body={'data': {'num': 1}}))
             self.assertTrue(r.get('cmp'))
             self.assertTrue(r.get('hit_page_codes'))
 
@@ -180,8 +176,7 @@ class TestText(APITestCase):
 
     def test_api_get_cmp(self):
         """ 测试选择比对文本 """
-        if not can_search():
-            return
+
         # 测试获取比对本
         page_name = 'JX_165_7_75'
         self.login(u.expert1[0], u.expert1[1])

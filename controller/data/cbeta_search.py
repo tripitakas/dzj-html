@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from tornado.options import options
 from controller.data.diff import Diff
 from elasticsearch import Elasticsearch
 from controller.data.variant import normalize
@@ -10,17 +11,12 @@ from controller.app import Application as App
 
 def get_hosts():
     config = App.load_config()
-    return [config.get('esearch', {})]
-
-
-def can_search():
-    hosts = get_hosts()
-    return hosts[0].get('host')
+    return [dict(host='dev.tripitakas.net')] if options.testing else [config.get('esearch', {})]
 
 
 def find(q, index='cb4ocr-ik'):
     """ 从ES中寻找与q最匹配的document """
-    if not q or not can_search():
+    if not q:
         return []
 
     if re.match(r'^[0-9a-zA-Z_]+', q):

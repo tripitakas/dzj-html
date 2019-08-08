@@ -46,4 +46,5 @@ target/
 static/img/
 static/upload/
 log/
+meta/meta/
 app.yml

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
+from glob2 import glob
+from os import path
 
 
 class TestTaskFlow(APITestCase):
@@ -15,10 +17,8 @@ class TestTaskFlow(APITestCase):
 
     def test_view_tripitaka(self):
         """ 测试藏经阅读 """
-        tripitakas = ['GL', 'LC', 'JX', 'FS', 'HW', 'QD', 'PL', 'QS', 'SX', 'YB', 'ZH', 'QL']
-        for tripitaka in tripitakas:
-            r = self.fetch('/%s/%s?_raw=1&_no_auth=1' % (tripitaka, '1'))
-            self.assert_code(200, r, msg=tripitaka)
+        for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
+            r = self.fetch('/t/%s/%s?_raw=1&_no_auth=1' % (code[0], '1'))
+            self.assert_code(200, r, msg=code[0])
             d = self.parse_response(r)
             self.assertIn('meta', d)
-
