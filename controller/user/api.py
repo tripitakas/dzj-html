@@ -82,7 +82,7 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
 
-        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'])
+        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], nickname=user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                      (user['_id'], user['name'], phone_or_email, user['roles']))
 
@@ -137,7 +137,8 @@ class RegisterApi(BaseHandler):
                 create_time=hlp.get_date_time()
             ))
             user['_id'] = r.inserted_id
-            self.add_op_log('register', context='%s, %s, %s' % (user.get('email'), user.get('phone'), user['name']))
+            self.add_op_log('register', context='%s, %s, %s' % (user.get('email'), user.get('phone'), user['name']),
+                            nickname=user['name'])
         except DbError as e:
             return self.send_db_error(e)
 

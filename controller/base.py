@@ -233,14 +233,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, op_type, target_id=None, context=None):
+    def add_op_log(self, op_type, target_id=None, context=None, nickname=None):
         op_name = get_op_name(op_type)
         assert op_name
         logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
         self.db.log.insert_one(dict(
             type=op_type, target_id=target_id and str(target_id) or None,
             context=context and context[:80], ip=self.get_ip(),
-            nickname=self.current_user and self.current_user.get('name'),
+            nickname=nickname or self.current_user and self.current_user.get('name'),
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 
