@@ -250,7 +250,7 @@
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/user/avatar',
+      url: '/api/user/my/avatar',
       type: 'POST',
       data: formData,
       processData: false,

@@ -8,6 +8,6 @@ Pillow
 fire
 glob2
 cdifflib
-aliyun-python-sdk-core
+aliyun-python-sdk-core-v3
 elasticsearch
 lxml

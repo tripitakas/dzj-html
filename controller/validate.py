@@ -206,7 +206,7 @@ def code_verify_timeout(collection=None, **kw):
     phone, phone_code = kw.get('phone'), kw.get('phone_code')
 
     if email and email_code and collection:
-        code, message = e.code_timeout
+        code, message = e.code_wrong_or_timeout
         email_code = email_code.upper()
         r = collection.find_one(
             {"type": 'email', "data": email, "code": email_code,
@@ -216,7 +216,7 @@ def code_verify_timeout(collection=None, **kw):
             errs['email_code'] = code, message % i18n_trans('email_code')
 
     if phone and phone_code and collection:
-        code, message = e.code_timeout
+        code, message = e.code_wrong_or_timeout
         phone_code = phone_code.upper()
         r = collection.find_one(
             {"type": 'phone', "data": phone, "code": phone_code,

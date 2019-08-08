@@ -11,7 +11,7 @@ from os import path
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
-# from aliyunsdkcore.request import CommonRequest
+from aliyunsdkcore.request import CommonRequest
 from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
 from datetime import datetime
 from bson import objectid, json_util
@@ -353,7 +353,7 @@ class ChangeMyProfileApi(BaseHandler):
 
 
 class UploadUserAvatarHandler(BaseHandler):
-    URL = '/api/user/avatar'
+    URL = '/api/user/my/avatar'
 
     def post(self):
         """上传用户头像"""
@@ -390,15 +390,20 @@ class SendUserEmailCodeHandler(BaseHandler):
         self.send_email(email, code)
         try:
             self.db.verify.find_one_and_update(
-                dict(type='email', data=email), dict(code=code, stime=datetime.now()), upsert=True
+                dict(type='email', data=email), {'$set': dict(code=code, stime=datetime.now())}, upsert=True
             )
         except DbError as e:
             return self.send_db_error(e)
         self.send_data_response()
 
-    def send_email(self, receiver, content, subject="如是藏经邮箱验证"):
-        """email_list邮件列表，content邮件内容，subject发送标题"""
-        msg = MIMEText('<html><h1>验证码：' + content + '</h1></html>', 'html', 'utf-8')
+    def send_email(self, receiver, code, subject="如是我闻古籍数字化平台注册"):
+        """ email_list邮件列表，content邮件内容，subject发送标题 """
+        content = """<html>
+        <span style='font-size:16px;margin-right:10px'>您的注册验证码是：%s </span>
+        <a href='http://work.tripitakas.net/user/login'>返回注册页面</a>
+        </html>
+        """ % code
+        msg = MIMEText(content, 'html', 'utf-8')
         account = self.config['email']['account']
         pwd = self.config['email']['key']  # 授权码
         msg['from'] = account
@@ -431,7 +436,7 @@ class SendUserPhoneCodeHandler(BaseHandler):
         self.send_sms(phone, code)
         try:
             self.db.verify.find_one_and_update(
-                dict(type='email', data=phone), dict(code=code, stime=datetime.now()), upsert=True
+                dict(type='phone', data=phone), {'$set': dict(code=code, stime=datetime.now())}, upsert=True
             )
         except DbError as e:
             return self.send_db_error(e)

@@ -38,7 +38,7 @@
                     <input id="search-input" type="text" placeholder="请搜索藏名和编码">
                     <i class="ser-btn"></i>
                   </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;">
+                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
                       <th><input type="checkbox"/></th>
@@ -63,7 +63,7 @@
                       <td>{{t.get('img_available')}}</td>
                       <td>{{t.get('img_prefix')}}</td>
                       <td>{{t.get('img_suffix')}}</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
                     </tr>
                     {% end %}
                     </tbody>

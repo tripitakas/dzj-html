@@ -34,7 +34,7 @@ role_maps = {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
-            '/api/user/(login|logout|register)': ['POST'],
+            '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             # 下列只读浏览页面暂时允许匿名访问
             '/task/block_cut_proof/@page_name': ['GET'],
             '/task/column_cut_proof/@page_name': ['GET'],
@@ -52,8 +52,7 @@ role_maps = {
             '/home': ['GET'],
             '/help': ['GET'],
             '/user/my/profile': ['GET'],
-            '/api/user/my/(pwd|profile)': ['POST'],
-            '/api/user/(avatar|email_code|phone_code)': ['POST'],
+            '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@tripitaka': ['GET'],

@@ -26,7 +26,7 @@ record_existed = 1013, '%s已存在'
 multiple_record = 1014, '%s存在多条记录'
 invalid_priority = 1015, '优先级有误'
 not_in_list = 1016, '%s应在列表%s中'
-code_timeout = 1017, '%s不正确或过期'
+code_wrong_or_timeout = 1017, '%s不正确或过期'
 
 no_user = 2001, '没有此账号'
 user_existed = 2002, '账号已存在'
