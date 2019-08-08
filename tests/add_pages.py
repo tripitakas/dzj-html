@@ -151,7 +151,7 @@ def add_texts(src_path, pages, db):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
             add_texts(filename, pages, db)
-        elif fn.endswith('.ocr') and fn[:-4] in pages:
+        elif (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in pages:
             with open_file(filename) as f:
                 text = f.read().strip().replace('\n', '|')
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
