@@ -131,7 +131,7 @@ class RegisterApi(BaseHandler):
 
             r = self.db.user.insert_one(dict(
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
-                gender=user.get('gender'), roles=user['roles'], img=user['img'],
+                gender=user.get('gender'), roles=user['roles'], img=user.get('img'),
                 password=hlp.gen_id(user['password']),
                 create_time=hlp.get_date_time()
             ))

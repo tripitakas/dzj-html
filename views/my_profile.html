@@ -34,7 +34,8 @@
                       <div class="form-group">
                         <label class="col-sm-2 control-label"></label>
                         <div class="profile-info-name">
-                          <img src="{{ static_url(current_user.get('img', 'imgs/ava1.png'))}}"
+                          {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
+                          <img src="{{ static_url(current_user.get('img') or 'imgs/' + ava)}}"
                                class="thumb-lg img-circle img-thumbnail" alt="profile-image" onclick="upload_img()">
                           <a href="javascript:upload_img();" style="vertical-align:bottom;">上传头像</a>
                         </div>

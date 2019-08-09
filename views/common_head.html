@@ -17,7 +17,7 @@
         </span>
         <span>
 					<a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心">
-					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img', 'imgs/user.png')) }}" style="margin-top: 10px;height: 32px; width: 32px;">
+					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img') or 'imgs/user.png') }}" style="margin-top: 10px;height: 32px; width: 32px;">
 					</a>
 				</span>
         <span>

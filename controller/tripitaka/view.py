@@ -63,7 +63,7 @@ class TripitakaHandler(BaseHandler):
 
             # 获取当前目录
             if '册' in store_pattern:
-                cur_volume = self.db.volume.find_one({'name': cur_mulu_code})
+                cur_volume = self.db.volume.find_one({'name': cur_mulu_code}) or {}
                 first, last = int(cur_volume.get('first_page') or 0), int(cur_volume.get('last_page') or 0)
                 cur_page = int(cur_page) if cur_page else first
                 nav_info = dict(parent_id=cur_mulu_code, cur_page=cur_page, first=first, last=last,
