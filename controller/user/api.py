@@ -128,7 +128,6 @@ class RegisterApi(BaseHandler):
 
         try:
             user['roles'] = '用户管理员' if not self.db.user.find_one() else ''  # 如果是第一个用户，则设置为用户管理员
-            user['img'] = 'imgs/ava%s.png' % (1 if user.get('gender') == '男' else 2 if user.get('gender') == '女' else 3)
 
             r = self.db.user.insert_one(dict(
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
@@ -161,7 +160,7 @@ class ChangeUserProfileApi(BaseHandler):
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
-            (v.not_existed, self.db.user, self.current_user['_id'], 'phone', 'email')
+            (v.not_existed, self.db.user, user['_id'], 'phone', 'email')
         ]
         err = v.validate(user, rules)
         if err:
