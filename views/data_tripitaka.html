@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>实体藏</title>
+  <title>藏数据管理</title>
   {% include _base_meta.html %}
   <!-- DataTables -->
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
@@ -22,278 +22,54 @@
 <div class="app-main">
   <div class="main">
     <!--模拟出左边菜单，方便写样式-->
-    {% module CommonLeft(title="data-management", sub="data-management-stz" ) %}
+    {% module CommonLeft(title="data-management", sub="") %}
     <div class="main-content">
       {% module CommonHead() %}
       <div class="single-page-con">
-        <!-- Modify Modals -->
-        <div class="panel-body" style="padding: 0;">
-          <!-- modal content -->
-          <div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="myModalLabel">实体藏管理</h4>
-                </div>
-                <div class="modal-body">
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">藏名</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="藏名" id="dlg_name">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">简称</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="这里写简称" id="dlg_short_name">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-md-2 control-label">编码</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="这里写编码" id="dlg_code">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">编码规则</label>
-                      <div class="col-sm-10">
-                        <select class="form-control" id="dlg_rule">
-                          <option value="1">规则一</option>
-                          <option value="2">规则二</option>
-                          <option value="3">规则三</option>
-                          <option value="4">规则四</option>
-                          <option value="5">规则五</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-md-2 control-label">备注</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="填写备注" id="dlg_summary">
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-                  <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
-                </div>
-              </div>
-              <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-          </div>
-          <!-- /.modal -->
-        </div>
-        <!-- End BootStrap Modal -->
-
-        <!-- Add Modals -->
-        <div class="panel-body" style="padding: 0;">
-          <!-- modal content -->
-          <div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                  <h4 class="modal-title" id="myModalLabel">实体藏管理</h4>
-                </div>
-                <div class="modal-body">
-                  <form class="form-horizontal">
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">藏名</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="藏名">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">简称</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="这里写简称">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-md-2 control-label">编码</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="这里写编码">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">编码规则</label>
-                      <div class="col-sm-10">
-                        <select class="form-control">
-                          <option value="1">规则一</option>
-                          <option value="2">规则二</option>
-                          <option value="3">规则三</option>
-                          <option value="4">规则四</option>
-                          <option value="5">规则五</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-md-2 control-label">备注</label>
-                      <div class="col-md-10">
-                        <input type="text" class="form-control" value="填写备注">
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-                  <button type="button" class="btn btn-primary waves-effect waves-light" data-dismiss="modal" id="add_modal_confirm">确定</button>
-                </div>
-              </div>
-              <!-- /.modal-content -->
-            </div>
-            <!-- /.modal-dialog -->
-          </div>
-          <!-- /.modal -->
-        </div>
-        <!-- End BootStrap Modal -->
-
         <div class="layout">
           <div class="layout-content">
             <div class="collate-history">
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span>批量删除</span>
-                    <span onclick="javascript:add();">新增</span>
+                    <span onclick="javascript:add();">新增藏</span>
                   </div>
                   <div class="search fr">
-                    <input type="text" placeholder="搜索">
+                    <input id="search-input" type="text" placeholder="请搜索藏名和编码">
                     <i class="ser-btn"></i>
                   </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;">
+                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
-                      <th><input type="checkbox" name="" id="" value=""/></th>
+                      <th><input type="checkbox"/></th>
                       <th>藏名</th>
                       <th>简称</th>
                       <th>编码</th>
                       <th>存储模式</th>
-                      <th>备注</th>
-                      <th>创建时间</th>
-                      <th>创建人</th>
+                      <th>图片是否就绪</th>
+                      <th>图片前缀</th>
+                      <th>图片后缀</th>
                       <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
+                    {% for t in tripitakas %}
                     <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
+                      <td><input type="checkbox" id="{{t.get('tripitaka_code')}}" value=""/></td>
+                      <td>{{t.get('name')}}</td>
+                      <td>{{t.get('short_name')}}</td>
+                      <td>{{t.get('tripitaka_code')}}</td>
+                      <td>{{t.get('store_pattern')}}</td>
+                      <td>{{t.get('img_available')}}</td>
+                      <td>{{t.get('img_prefix')}}</td>
+                      <td>{{t.get('img_suffix')}}</td>
+                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
                     </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>高丽藏</td>
-                      <td>高丽</td>
-                      <td>GL</td>
-                      <td>藏册页</td>
-                      <td>高丽藏初雕</td>
-                      <td>2018/06/23 15:52:37</td>
-                      <td>张三</td>
-                      <td><span onclick="modify(1,1,2,2,1)">编辑</span><span onclick="delUser(10)">删除</span></td>
-                    </tr>
+                    {% end %}
                     </tbody>
                   </table>
                 </div>
-                {% module Pager(pager='TODO') %}
+                {% module Pager(pager) %}
               </div>
             </div>
           </div>
@@ -302,6 +78,65 @@
     </div>
   </div>
 </div>
+
+<div class="panel-body" style="padding: 0;">
+  <div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="myModalLabel">藏数据管理</h4>
+        </div>
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+              <label class="col-sm-2 control-label">藏名</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="藏名" id="dlg_name">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">简称</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="这里写简称" id="dlg_short_name">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-2 control-label">编码</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="这里写编码" id="dlg_code">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">编码规则</label>
+              <div class="col-sm-10">
+                <select class="form-control" id="dlg_rule">
+                  <option value="1">规则一</option>
+                  <option value="2">规则二</option>
+                  <option value="3">规则三</option>
+                  <option value="4">规则四</option>
+                  <option value="5">规则五</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-2 control-label">备注</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="填写备注" id="dlg_summary">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 {% include _base_js.html %}
 
 <script type="text/javascript">
@@ -345,7 +180,7 @@
    */
   function modify(name, short_name, code, rule, summary) {
     $('#roleModal').modal();
-    $("#myModalLabel").html('编辑实体藏');
+    $("#myModalLabel").html('编辑藏');
     $('#dlg_name').val(name);
     $('#dlg_short_name').val(name);
     $('#dlg_code').val(name);
@@ -370,6 +205,15 @@
   //新增框的确定按钮
   $("#add_modal_confirm").click(function () {
     console.log('add confirm');
+  });
+
+  // 搜索
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    }
   });
 
 </script>

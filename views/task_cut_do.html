@@ -5,17 +5,13 @@
   <meta charset="UTF-8">
   <title>{{th.task_types.get(task_type)}}</title>
   {% include _base_meta.html %}
-  <!-- Plugins css -->
-  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   {% include _base_css.html %}
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
 </head>
 
 <body class="widescreen">
@@ -24,64 +20,64 @@
     <div class="main-content">
 
       <div class="m-header">
-      <div class="left">
-        <div class="back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
-          <a onclick="leave()" title="{{title}}">
-            <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
-          </a>
-        </div>
-        <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-        <div class="help">
-          <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
-        </div>
-        <div class="edit-btns">
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
-          <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
-          <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
-        </div>
-        <div class="slice-btns">
-          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
-          <div class="btn-group hl-btn">
-            <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
-            {% if box_type == 'char' %}
-            <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
-            {% end %}
+        <div class="left">
+          <div class="back">
+            {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
+            <a onclick="leave()" title="{{title}}">
+              <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
+            </a>
           </div>
-        </div>
-      </div><!--left-->
-      <div class="right">
-        {% if readonly %}
-        <div class="tips">
-          {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
-        </div>
-        {% end %}
-        <div class="edit-btns">
-          {% if box_type in ['column', 'char'] %}
-          <div class="more">
-            <div class="btn-group more-group hidden" role="group" aria-label="更多">
-            {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
-            {% for type,text in more[box_type] %}
-            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
-            {% end %}
+          <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
+          <div class="help">
+            <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
+          </div>
+          <div class="edit-btns">
+            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
+            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
+            <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
+            <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
+          </div>
+          <div class="slice-btns">
+            <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
+            <div class="btn-group hl-btn">
+              <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
+              <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
+              {% if box_type == 'char' %}
+              <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
+              <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
+              <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
+              <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
+              {% end %}
             </div>
-            <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
+          </div>
+        </div><!--left-->
+        <div class="right">
+          {% if readonly %}
+          <div class="tips">
+            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
           </div>
           {% end %}
-          {% if not readonly %}
-          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-          {% end %}
-          {% if not readonly and mode == 'do' %}
-          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
-          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
-          {% end %}
-        </div>
-      </div><!--right-->
+          <div class="edit-btns">
+            {% if box_type in ['column', 'char'] %}
+            <div class="more">
+              <div class="btn-group more-group hidden" role="group" aria-label="更多">
+                {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
+                {% for type,text in more[box_type] %}
+                <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
+                {% end %}
+              </div>
+              <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
+            </div>
+            {% end %}
+            {% if not readonly %}
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
+            {% end %}
+            {% if not readonly and mode == 'do' %}
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
+            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
+            {% end %}
+          </div>
+        </div><!--right-->
       </div>
 
       <div class="full-bd">
@@ -148,10 +144,11 @@
   // 更新Undo
   function updateUndo() {
     $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-      : "{{ static_url('imgs/icon_lr_not.png') }}");
+        : "{{ static_url('imgs/icon_lr_not.png') }}");
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-      : "{{ static_url('imgs/icon_rr_not.png') }}");
+        : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
+
   updateUndo();
 
   $('.btn-undo').click(function () {
@@ -169,6 +166,7 @@
       }
     });
   }
+
   showHighLightCount();
 
   // 切换切分框状态
@@ -229,7 +227,7 @@
 
   // 修改字框
   $('.ed-char-box').click(function () {
-   window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
+    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
   });
 
   // 修改字序
@@ -254,7 +252,7 @@
         window.location.reload();
       }, 1000);
     });
-	});
+  });
 
   // 提交任务
   $('.btn-submit').on("click", function () {
@@ -283,7 +281,7 @@
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
     postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason:reason}
+      data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
@@ -336,7 +334,7 @@
         cancelButtonText: "取消",
         closeOnConfirm: false
       };
-      swal(info, function() {
+      swal(info, function () {
         window.location = res.url;
       });
     } else if (res.code == '{{e.no_task_to_pick[0]}}') {
@@ -355,8 +353,8 @@
         cancelButtonText: "取消",
         closeOnConfirm: false
       };
-      swal(info,function() {
-          pick("/task/pick/{{task_type}}");
+      swal(info, function () {
+        pick("/task/pick/{{task_type}}");
       });
     } else {
       showError('发生错误', res.message);

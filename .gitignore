@@ -43,8 +43,8 @@ coverage.xml
 target/
 
 # Project Files
-static/built/
 static/img/
 static/upload/
 log/
+meta/meta/
 app.yml

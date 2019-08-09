@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
   <title>{{site['description']}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
 </head>
 
 <body>
@@ -21,7 +23,7 @@
             <!-- 中间内容 -->
             <div class="home">
 
-              <p class="index">首页</p>
+              <p class="index">首页 v{{version}}</p>
               <div class="top clearfix">
                 <div class="left fl">
                   <p class="title"><img src="{{ static_url('imgs/person.png') }}" alt=""></p>
@@ -68,7 +70,7 @@
                     <tr>
                       <td>切分校对</td>
                       <td>
-                        <div class="circle_bg">中</div>
+                        <div class="circle-bg">中</div>
                       </td>
                       <td>赵城金藏</td>
                       <td>大方廣佛華嚴經</td>
@@ -81,7 +83,7 @@
                     <tr>
                       <td>切分校对</td>
                       <td>
-                        <div class="circle_bg">中</div>
+                        <div class="circle-bg">中</div>
                       </td>
                       <td>赵城金藏</td>
                       <td>大方廣佛華嚴經</td>
@@ -94,7 +96,7 @@
                     <tr>
                       <td>文字校对</td>
                       <td>
-                        <div class="circle_bg">中</div>
+                        <div class="circle-bg">中</div>
                       </td>
                       <td>赵城金藏</td>
                       <td>大方廣佛華嚴經</td>
@@ -107,7 +109,7 @@
                     <tr>
                       <td>文字校对</td>
                       <td>
-                        <div class="circle_bg">中</div>
+                        <div class="circle-bg">中</div>
                       </td>
                       <td>赵城金藏</td>
                       <td>大方廣佛華嚴經</td>

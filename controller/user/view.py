@@ -4,10 +4,11 @@
 @desc: 登录和注册
 @time: 2018/6/23
 """
-from controller.base import BaseHandler
-from controller.role import assignable_roles
 import math
 import logging
+from controller.base import BaseHandler
+from controller.role import assignable_roles
+
 
 
 class UserLoginHandler(BaseHandler):

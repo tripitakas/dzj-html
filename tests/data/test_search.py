@@ -3,7 +3,6 @@
 
 import tests.users as u
 from tests.testcase import APITestCase
-from controller.data.cbeta_search import can_search
 
 
 class TestSearch(APITestCase):
@@ -20,8 +19,6 @@ class TestSearch(APITestCase):
         super(TestSearch, self).tearDown()
 
     def test_view_cbeta_search(self):
-        if not can_search():
-            return
         q = '夫宗極絕於稱謂賢聖以之沖默玄旨非言'
         r = self.fetch('/data/cbeta/search?q=%s&_no_auth=1' % q)
         self.assert_code(200, r)

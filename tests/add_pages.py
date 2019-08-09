@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
-# 本脚本的执行结果相当于在“数据管理-实体页”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
+# 本脚本的执行结果相当于在“数据管理-页数据”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
 # python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 import sys
@@ -151,7 +151,7 @@ def add_texts(src_path, pages, db):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
             add_texts(filename, pages, db)
-        elif fn.endswith('.ocr') and fn[:-4] in pages:
+        elif (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in pages:
             with open_file(filename) as f:
                 text = f.read().strip().replace('\n', '|')
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}

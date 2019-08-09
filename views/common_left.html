@@ -6,27 +6,22 @@
     </div>
     <ul class="menu" id="side-menu">
       {% for item in display_items %}
-      {% if item.get('sub_items') %}
-      <li>
-        <div class="submenu-title" id="{{item['id']}}">
-          <i><img src='{{ static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:9px;"></i>
-          <span>{{item['name']}}</span>
+      <li class="menu-item {{'has-sub' if item.get('sub_items') else ''}}" id="{{item['id']}}">
+        <div class="menu-title">
+          <i><img src='{{ static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
+          <span><a href="{{item['link'] if item.get('link') else '#'}}">{{item['name']}}</a></span>
         </div>
+        {% if item.get('sub_items') %}
         <ul class="sub-ul sub-ul-hidden">
           {% for sub_item in item.get('sub_items') %}
-          <li class="" id="{{sub_item['id']}}">
+          <li class="sub-item" id="{{sub_item['id']}}">
             <i><img src='{{ static_url("imgs/%s.png" % sub_item["icon"]) }}' class="sub-img"/></i>
             <span><a href="{{sub_item['link']}}">{{sub_item['name']}}</a></span>
           </li>
           {% end %}
         </ul>
+        {% end %}
       </li>
-      {% else %}
-      <li class="menu-item" id="{{item['id']}}">
-        <i><img src='{{ static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
-        <span><a href="{{item['link']}}">{{item['name']}}</a></span>
-      </li>
-      {% end %}
       {% end %}
     </ul>
   </div>
@@ -40,25 +35,16 @@
       railOpacity: 0.9,
       alwaysVisible: false
     });
+  });
 
-    $('.submenu-title').click(function () {
-      $('.sub-ul').slideUp(300);
+  $('#side-menu').on('click', '.has-sub', function () {
+    $(this).find('.sub-ul').toggleClass('sub-ul-hidden');
+  });
 
-      if ($(this).hasClass('active')) {
-        $(this).removeClass('active');
-      } else {
-        $(this).addClass('active');
-        $(this).next().slideDown(300);
-      }
-    });
-
-    var paths = location.pathname.replace(/^\//, '').split('/')
-    paths.pop()
-    var current_item = '#' + paths.slice(0, 2).join('-')
-    $(current_item).addClass("active");
-    $('.active').next().slideDown(300);
-    var current_sub_item = '#' + location.pathname.replace(/^\//, '').replace(/[\/_]/g, '-')
-    $(current_sub_item).addClass("sub-active");
+  $(document).ready(function () {
+    var cur_menu = $(location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-'));
+    cur_menu.addClass('sub-active');
+    cur_menu.parent().removeClass('sub-ul-hidden');
   });
 
 </script>

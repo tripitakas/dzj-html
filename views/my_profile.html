@@ -4,33 +4,13 @@
   <meta charset="UTF-8">
   <title>个人中心</title>
   {% include _base_meta.html %}
-  <!-- Custom Files -->
   {% include _base_css.html %}
   <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
 </head>
-
-<style>
-  .avatar-holder {
-    width: 60px;
-    height: 60px;
-  }
-
-  .avatar-holder > simg {
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%;
-    overflow: hidden;
-    margin: 0;
-    position: relative;
-  }
-</style>
 
 <body>
 <div class="app-main">
@@ -95,7 +75,7 @@
                       <div class="form-group">
                         <label class="col-sm-2 control-label"></label>
                         <div class="col-sm-5">
-                          <a class="btn btn-success btn-block" onclick="save_profile()">保存</a>
+                          <a class="btn btn-primary btn-block" onclick="save_profile()">保存</a>
                         </div>
                       </div>
                       <div class="form-group">
@@ -255,7 +235,7 @@
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/user/avatar',
+      url: '/api/user/my/avatar',
       type: 'POST',
       data: formData,
       processData: false,

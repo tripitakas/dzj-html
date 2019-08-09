@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
+  <title>注册</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link rel="stylesheet" type="text/css" href="{{ static_url('css/register.css') }}">
-  <title>注册</title>
 </head>
 
 <body>
@@ -24,11 +23,13 @@
               <i class="ion-ios7-person-outline"></i>
             </div>
             <div class="item">
-              <select id="gender">
-                <option value="">请选择性别</option>
-                <option value="男">男</option>
-                <option value="女">女</option>
-              </select>
+              <div class="select-wrap">
+                <select id="gender">
+                  <option disabled selected style='display:none;'>请选择性别</option>
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                </select>
+              </div>
               <i class="ion-ios7-person-outline"></i>
             </div>
             <div class="item">
@@ -51,20 +52,18 @@
             <div class="item">
               <input type="text" placeholder='请输入手机验证码' id="phone-code">
               <i class="ion-ios7-checkmark-outline"></i>
-              <a id="phone-code-btn" class="phone-code-btn">获取验证码</a>
+              <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
             </div>
             <div class="item">
               <input type="text" placeholder='请输入邮箱验证码' id="email-code">
               <i class="ion-ios7-checkmark-outline"></i>
-              <a id="email-code-btn" class="email-code-btn">获取验证码</a>
+              <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
             </div>
           </div>
-          <div class="register_agreement">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox"> 同意<a href="#">《网站注册协议》</a>
-              </label>
-            </div>
+          <div class="tips">注：手机号和邮箱任选一个</div>
+          <div class="register-agreement">
+            <input type="checkbox" class="inp" style="margin-right: 5px"/>
+            <span>同意<a href="#">《网站注册协议》</a></span>
           </div>
           <div class="register-btn">
             <a href="#">注&nbsp;&nbsp;&nbsp;&nbsp;册</a>
@@ -103,69 +102,57 @@
   });
 
   $("#email-code-btn").click(function () {
-    var email = $('#email').val();
-    if (email.trim().length == 0) {
-      return showError('邮箱出错', '请输入注册邮箱');
+    var email = $('#email').val().trim();
+    if (email.length === 0) {
+      return showError('邮箱不能为空', '请输入注册邮箱');
     }
-    if ($(this).hasClass('sending')) {  //判断是否已经发送
+    if ($(this).hasClass('sending')) {  // 判断是否已经发送
       return;
     }
-    var ths = $(this);
-    var time = 60;
-    $.ajax({
-      url: "/api/user/email_code",
-      type: 'POST',
-      data: {email: email},
-      dataType: 'json',
-      success: function (arg) {
-        if (!arg.status) {
-          return showError(code, error);
-        } else {
-          ths.addClass('sending');      //成功后显示已发送状态
-          var interval = setInterval(function () {
-            ths.text("已发送(" + time + ")");
-            time -= 1;
-            if (time <= 0) {
-              clearInterval(interval);
-              ths.removeClass('sending');
-              ths.text("获取验证码");
-            }
-          }, 1000);
-        }
+    var $this = $(this);
+    postApi('/user/email_code', {'data': {email: email}}, function (res) {
+      if (!res.status) {
+        return showError(code, error);
+      } else {
+        $this.addClass('sending');      // 成功后显示已发送状态
+        var time = 60;
+        var interval = setInterval(function () {
+          $this.text("已发送(" + time + ")");
+          time -= 1;
+          if (time <= 0) {
+            clearInterval(interval);
+            $this.removeClass('sending');
+            $this.text("获取验证码");
+          }
+        }, 1000);
       }
     });
   });
 
   $("#phone-code-btn").click(function () {
-    var phone = $('#phone').val();
-    if (phone.trim().length == 0) {
-      return showError('手机号出错', '请输入手机号码');
+    var phone = $('#phone').val().trim();
+    if (phone.length === 0) {
+      return showError('手机号不能为空', '请输入手机号码');
     }
-    if ($(this).hasClass('sending')) {  //判断是否已经发送
+    if ($(this).hasClass('sending')) {  // 判断是否已经发送
       return;
     }
-    var ths = $(this);
-    var time = 60;
-    $.ajax({
-      url: "/api/user/phone_code",
-      type: 'POST',
-      data: {phone: phone},
-      dataType: 'json',
-      success: function (arg) {
-        if (!arg.status) {
-          return showError(code, error);
-        } else {
-          ths.addClass('sending');      //成功后显示已发送状态
-          var interval = setInterval(function () {
-            ths.text("已发送(" + time + ")");
-            time -= 1;
-            if (time <= 0) {
-              clearInterval(interval);
-              ths.removeClass('sending');
-              ths.text("获取验证码");
-            }
-          }, 1000);
-        }
+    var $this = $(this);
+    postApi('/user/phone_code', {'data': {phone: phone}}, function (res) {
+      if (!res.status) {
+        return showError(code, error);
+      } else {
+        $this.addClass('sending');      // 成功后显示已发送状态
+        var time = 60;
+        var interval = setInterval(function () {
+          $this.text("已发送(" + time + ")");
+          time -= 1;
+          if (time <= 0) {
+            clearInterval(interval);
+            $this.removeClass('sending');
+            $this.text("获取验证码");
+          }
+        }, 1000);
       }
     });
   });

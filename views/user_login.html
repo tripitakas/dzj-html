@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
+  <title>登录</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link rel="stylesheet" type="text/css" href="{{ static_url('css/login.css') }}">
-  <title>登录</title>
 </head>
 
 <body>
@@ -19,11 +18,12 @@
           <div class="log">
             <div class="item">
               <input type="text" placeholder='请输入手机号或邮箱账号' id="phone_or_email">
-              <i class="user-icon"></i>
+<!--              <i class="user-icon"></i>-->
+              <i class="ion-ios7-person-outline"></i>
             </div>
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
-              <i class="pass-icon"></i>
+              <i class="ion-ios7-unlocked-outline"></i>
               <span class="forget">忘记密码？</span>
             </div>
             <div class="other clearfix">

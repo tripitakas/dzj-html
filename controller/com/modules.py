@@ -15,8 +15,9 @@ class CommonLeft(UIModule):
         can_access = self.handler.can_access
         items = [
             dict(name='首页', icon='icon_home', link='/home'),
-            dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
-            dict(name='实体藏经', icon='icon_tripitaka', link='/tripitaka'),
+            dict(name='CBETA', icon='icon_rs', link='/cbeta'),
+            # dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
+            dict(name='大藏经', icon='icon_tripitaka', link='/tripitakas'),
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切栏校对', icon='icon_subitem', link='/task/lobby/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/lobby/block_cut_review'),
@@ -60,12 +61,11 @@ class CommonLeft(UIModule):
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
-                dict(name='实体藏', icon='icon_subitem', link='/data/tripitaka'),
-                dict(name='实体函', icon='icon_subitem', link='/data/envelop'),
-                dict(name='实体册', icon='icon_subitem', link='/data/volume'),
-                dict(name='实体经', icon='icon_subitem', link='/data/sutra'),
-                dict(name='实体卷', icon='icon_subitem', link='/data/reel'),
-                dict(name='实体页', icon='icon_subitem', link='/data/page'),
+                dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
+                dict(name='册数据', icon='icon_subitem', link='/data/volume'),
+                dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
+                dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
+                dict(name='页数据', icon='icon_subitem', link='/data/page'),
             ]),
             dict(name='帮助文档', icon='icon_help', link='/help'),
         ]
@@ -94,6 +94,8 @@ class CommonHead(UIModule):
 
 class Pager(UIModule):
     def render(self, pager):
+        if not isinstance(pager, dict):
+            pager = dict(cur_page=0, item_count=0)
         if isinstance(pager, dict) and 'cur_page' in pager and 'item_count' in pager:
             conf = self.handler.application.config['pager']
             pager['page_size'] = pager.get('page_size', conf['page_size'])  # 每页显示多少条记录

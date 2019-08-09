@@ -39,7 +39,13 @@
 使用 `add_pages.py` 批量添加页面切分数据，可改变参数为实际页面的路径，或者选择下面某一种方式使用示例数据：
 
 ```
+sh meta/get_meta.sh
 python3 tests/add_pages.py
+python3 meta/import_meta.py
+```
+
+如需推送数据到远程数据库，可在uri参数中指定服务器地址、用户名、密码：
+```
 python3 tests/add_pages.py --db_name=tripitaka --uri=mongodb://user:password@server
 ```
 
@@ -49,7 +55,9 @@ python3 tests/add_pages.py --db_name=tripitaka --uri=mongodb://user:password@ser
 
 ```
 pip install -r tests/requirements.txt
+sh meta/get_meta.sh tests/sample/meta.tgz
 python3 tests/add_pages.py --db_name=tripitaka_test --reset=1
+python3 meta/import_meta.py --db_name=tripitaka_test
 python3 run_tests.py 或选中测试用例文件调试
 ```
 
@@ -61,6 +69,8 @@ python3 run_tests.py 或选中测试用例文件调试
 改为相应的测试用例名，在用例或API响应类中设置断点调试。
 
 ## 参考资料
+
+- [项目术语表](doc/glossary.md)
 
 - [Bootstrap 3 中文文档](https://v3.bootcss.com)
 - [Tornado 官方文档中文版](https://tornado-zh.readthedocs.io/zh/latest/)

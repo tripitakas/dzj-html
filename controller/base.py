@@ -6,9 +6,10 @@
 """
 
 import re
+import hashlib
 import logging
 import traceback
-import hashlib
+
 from os import path
 
 from bson import json_util
@@ -76,7 +77,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        assert need_roles, '未在role.py中配置访问路径'
+        if not need_roles:
+            self.send_error_response(e.url_not_found, render=not api)
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
         self.send_error_response(e.unauthorized, render=not api, message=message)
 
@@ -231,14 +233,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, op_type, target_id=None, context=None):
+    def add_op_log(self, op_type, target_id=None, context=None, nickname=None):
         op_name = get_op_name(op_type)
         assert op_name
         logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
         self.db.log.insert_one(dict(
             type=op_type, target_id=target_id and str(target_id) or None,
             context=context and context[:80], ip=self.get_ip(),
-            nickname=self.current_user and self.current_user.get('name'),
+            nickname=nickname or self.current_user and self.current_user.get('name'),
             user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
         ))
 

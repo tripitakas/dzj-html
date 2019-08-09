@@ -8,6 +8,7 @@
 from operator import itemgetter
 from os import path
 from controller.task.base import TaskHandler
+from tornado.web import RequestHandler
 from controller.role import get_route_roles
 import re
 import inspect
@@ -22,7 +23,7 @@ class InvalidPageHandler(TaskHandler):
             self.set_status(404, reason='Not found')
             return self.finish()
         if path.exists(path.join(self.get_template_path(), self.request.path.replace('/', ''))):
-            return self.render(self.request.path.replace('/', ''))
+            return RequestHandler.render(self, self.request.path.replace('/', ''))
         self.set_status(404, reason='Not found')
         self.render('_404.html')
 

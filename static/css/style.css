@@ -928,15 +928,15 @@ a:focus {
 	border: 1px solid #ddd;
 }
 
-.pagination>.active>a,
-.pagination>.active>span,
-.pagination>.active>a:hover,
-.pagination>.active>span:hover,
-.pagination>.active>a:focus,
-.pagination>.active>span:focus {
-	background-color: #317eeb;
-	border-color: #317eeb;
-}
+/*.pagination>.active>a,*/
+/*.pagination>.active>span,*/
+/*.pagination>.active>a:hover,*/
+/*.pagination>.active>span:hover,*/
+/*.pagination>.active>a:focus,*/
+/*.pagination>.active>span:focus {*/
+/*	background-color: #317eeb;*/
+/*	border-color: #317eeb;*/
+/*}*/
 
 
 /* 2.10 Tabs-Accordions */
@@ -4204,15 +4204,6 @@ div.dataTables_info {
 	.container-alt {
 		width: 1170px;
 	}
-}
-
-.dzj_wrapper {
-	padding: 0 0 0 80px;
-}
-
-.dzj_wrapper1 {
-	padding: 0 0 0 80px;
-	background: url(../imgs/dzj_bg.png) repeat;
 }
 
 .dialog-h3 {

@@ -64,9 +64,9 @@ def body_producer(boundary, files, params, write):
 
 class APITestCase(AsyncHTTPTestCase):
 
-    def get_app(self):
-        options.testing = True
-        options.debug = False
+    def get_app(self, testing=True, debug=False):
+        options.testing = testing
+        options.debug = debug
         options.port = self.get_http_port()
         return Application(
             c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules, default_handler_class=c.InvalidPageHandler

@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.role import url_placeholder
 
-__version__ = '0.0.10.90712-alpha'
+__version__ = '0.1.16.90809-alpha'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -74,11 +74,18 @@ class Application(web.Application):
     @staticmethod
     def load_config():
         param = dict(encoding='utf-8') if PY3 else {}
+        cfg_base = path.join(BASE_DIR, '_app.yml')
         cfg_file = path.join(BASE_DIR, 'app.yml')
         if not os.path.exists(cfg_file):
-            shutil.copy(path.join(BASE_DIR, '_app.yml'), cfg_file)
+            shutil.copy(cfg_base, cfg_file)
+        with open(cfg_base, **param) as f:
+            config_base = load_yml(f, Loader=SafeLoader)
         with open(cfg_file, **param) as f:
-            return load_yml(f, Loader=SafeLoader)
+            config = load_yml(f, Loader=SafeLoader)
+        for k, v in config_base.items():
+            if k not in config or k in ['site', 'pager']:
+                config[k] = v
+        return config
 
     @property
     def db(self):

@@ -5,18 +5,7 @@
   <meta charset="UTF-8">
   <title>任务管理-切分状态</title>
   {% include _base_meta.html %}
-
-  <!-- DataTables -->
-  <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet" type="text/css"/>
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
   {% include _base_css.html %}
-  <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('assets/select2/select2.css') }}" rel="stylesheet" type="text/css"/>
-
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -39,7 +28,7 @@
       color: #007;
     }
 
-    .sty_table td a {
+    .sty-table td a {
       font-size: 14px;
     }
   </style>
@@ -62,7 +51,7 @@
                     <input type="text" id="search-name" placeholder="搜索">
                     <i class="ser-btn"></i>
                   </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty_table">
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
                       <th><input type="checkbox" name="" id=" " value=""/></th>

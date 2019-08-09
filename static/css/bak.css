@@ -1,0 +1,377 @@
+
+.tripitaka-volume .main-volume {
+    position: relative;
+}
+
+.tripitaka-volume .volume-left {
+    width: 172px;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.tripitaka-volume .volume-left .hd {
+    width: 172px;
+    height: 32px;
+    font-size: 0;
+}
+
+.tripitaka-volume .volume-left .hd span {
+    display: inline-block;
+    width: 84px;
+    text-align: center;
+    line-height: 32px;
+    border: 1px solid #ebebeb;
+    font-size: 14px;
+    background: #f6f6f6;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    cursor: pointer;
+}
+
+.tripitaka-volume .volume-left .hd .cur {
+    background: #fff;
+    color: #c42d20;
+}
+
+.tripitaka-volume .volume-left .bd {
+    width: 170px;
+    border: 1px solid #ebebeb;
+    background: #fff;
+    height: 400px;
+    overflow: auto;
+}
+
+.tripitaka-volume .volume-left .bd .search {
+    text-align: center;
+    margin-top: 10px;
+    position: relative;
+}
+
+.tripitaka-volume .volume-left .bd .search input {
+    border: 0 none;
+    width: 140px;
+    padding: 0 5px;
+    height: 26px;
+    border: 1px solid #f5b9b4;
+    background: #fff;
+    box-shadow: 0 0 4px #f9a7a0;
+}
+
+.tripitaka-volume .volume-left .bd .search i {
+    position: absolute;
+    background: url(../imgs/ser-btn.png) no-repeat;
+    right: 14px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+}
+
+.tripitaka-volume .volume-left .bd .volumes {
+    padding: 0 10px;
+    margin-top: 20px;
+}
+
+.tripitaka-volume .volume-left .bd .volumes li .title {
+    font-size: 14px;
+    border-bottom: 1px solid #ebebeb;
+    padding: 0 8px;
+    white-space: nowrap;
+    padding: 10px 0;
+    font-weight: bold;
+}
+
+.tripitaka-volume .volume-left .bd .volumes li .items {
+    padding: 10px 0;
+}
+
+.tripitaka-volume .volume-left .bd .volumes li .items span {
+    display: block;
+    line-height: 34px;
+    border-bottom: 1px dashed #ebebeb;
+    font-size: 14px;
+    padding-left: 10px;
+}
+
+.tripitaka-volume .volume-right {
+    border: 1px solid #ebebeb;
+    margin-left: 6px;
+    background: #fff;
+    position: relative;
+    top: 32px;
+    margin-bottom: 30px;
+    /*margin-left: 178px;*/
+}
+
+.tripitaka-volume .volume-right .name {
+    color: #333;
+    line-height: 36px;
+    padding-left: 12px;
+    border-bottom: 1px solid #ebebeb;
+}
+
+.tripitaka-volume .volume-right .full .full-hd {
+    color: #333;
+    height: 36px;
+    line-height: 36px;
+    border-bottom: 1px solid #ebebeb;
+    padding: 0 12px;
+}
+
+.tripitaka-volume .volume-right .seprate-in {
+    margin-top: 8px;
+    padding: 0 12px 18px 12px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left {
+    width: 49%;
+    border: 1px solid #ebebeb;
+    box-sizing: border-box;
+    margin-right: 2%;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd {
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #ebebeb;
+    text-align: right;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd label,
+.tripitaka-volume .volume-right .full-hd .right label {
+    display: inline-block;
+    margin-right: 32px;
+    color: #c0c4cc;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd label input[type="checkbox"],
+.tripitaka-volume .volume-right .full-hd label input[type="checkbox"] {
+    margin-right: 3px;
+    position: relative;
+    top: 2px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd .scale,
+.tripitaka-volume .volume-right .full-hd .right .scale {
+    display: inline-block;
+    font-size: 0;
+    vertical-align: top;
+    margin-top: 6px;
+    margin-right: 6px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd .scale span,
+.tripitaka-volume .volume-right .full-hd .right .scale span {
+    cursor: pointer;
+    width: 30px;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    border: 1px solid #333;
+    font-size: 20px;
+    display: inline-block;
+    vertical-align: top;
+    font-weight: bold;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd .scale .add,
+.tripitaka-volume .volume-right .full-hd .right .scale .add {
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd .scale .reduce,
+.tripitaka-volume .volume-right .full-hd .right .scale .reduce {
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .hd .scale input,
+.tripitaka-volume .volume-right .full-hd .right .scale input {
+    display: inline-block;
+    height: 25px;
+    line-height: 25px;
+    text-align: center;
+    width: 34px;
+    border: 0 none;
+    border: 1px solid #333;
+    vertical-align: top;
+}
+
+.tripitaka-volume .volume-right .full-bd {
+    height: 400px;
+    overflow: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tripitaka-volume .volume-right .seprate-in .left .bd {
+    height: 400px;
+    overflow: auto;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right {
+    width: 49%;
+    border: 1px solid #ebebeb;
+    box-sizing: border-box;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .hd {
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #ebebeb;
+    padding-left: 6px;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .hd select {
+    border: none;
+    border: 1px solid #ebebeb;
+    height: 28px;
+    outline: none;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .bd {
+    height: 400px;
+    overflow: auto;
+    position: relative;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .bd .feedback {
+    display: block;
+    position: absolute;
+    left: 150px;
+    top: 66px;
+    width: 80px;
+    height: 21px;
+    border: 1px solid #2368bd;
+    border-radius: 8px;
+    color: #fff;
+    line-height: 21px;
+    font-size: 12px;
+    text-align: center;
+    padding-left: 15px;
+    background: #408fef url(../imgs/feedback.png) no-repeat 5px 3px;
+    background-size: 14px 14px;
+    z-index: 2;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .bd .texts {
+    margin: 20px 100px 0 100px;
+    position: relative;
+}
+
+.tripitaka-volume .volume-right .seprate-in .right .bd .texts li {
+    margin-bottom: 5px;
+    line-height: 24px;
+    font-size: 16px;
+}
+
+.tripitaka-volume .volume-right .mask {
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.tripitaka-volume .volume-right .mask .overlay {
+    width: 470px;
+    height: 200px;
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    margin-left: -235px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .hd {
+    background: #3e3d3c;
+    height: 40px;
+    line-height: 40px;
+    color: #fff;
+    font-size: 16px;
+    position: relative;
+    padding-left: 40px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .hd:before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    top: 14px;
+    background: url(../imgs/window.png) no-repeat;
+    width: 16px;
+    height: 13px;
+}
+
+
+/*.tripitaka-volume .volume-right .mask .overlay .hd:after{*/
+
+
+/*content:"";
+        position: absolute;
+        right:15px;
+        top:12px;
+        background: url(../imgs/close.png) no-repeat;
+        width:14px;
+        height:16px;*/
+
+
+/*}*/
+
+.tripitaka-volume .volume-right .mask .overlay .bd {
+    background: #fff;
+    padding: 30px 30px 15px 30px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd p {
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd p:nth-child(2) {
+    line-height: 32px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd p span:first-child {
+    width: 80px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd p input {
+    width: 306px;
+    padding: 0 10px;
+    border: 0 none;
+    border: 1px solid #ebebeb;
+    height: 32px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd p textarea {
+    width: 306px;
+    padding: 5px 10px;
+    border: 0 none;
+    border: 1px solid #ebebeb;
+    min-height: 100px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd .ok {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.tripitaka-volume .volume-right .mask .overlay .bd .ok span {
+    width: 80px;
+    height: 32px;
+    background: #b8906f;
+    color: #fff;
+    display: inline-block;
+    text-align: center;
+    line-height: 32px;
+    border-radius: 5px;
+    cursor: pointer;
+}
