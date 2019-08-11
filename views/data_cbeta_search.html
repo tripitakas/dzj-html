@@ -68,32 +68,30 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <div class="main-content">
-      <header class="m-header">
-        <div class="back">
-          <a href="/">
-            <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
-          </a>
-        </div>
-        <div class="title">检索CBETA</div>
-      </header>
-      <div class="flex-content" style="padding-top: 40px">
-        <div class="search-left">
-          {% for item in matches %}
-          <div class="item">
-            <div class="title">{{item['_source']['page_code']}}</div>
-            <div class="content">{% raw ''.join(item['hits']) %}</div>
-          </div>
-          {% end %}
-        </div><!--search-left-->
-        <div class="search-right">
-          <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码">{{q}}</textarea>
-          <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
-          {% if matches %}
-          <div class="tips">共检索到{{len(matches)}}个结果。</div>
-          {% end %}
-        </div><!--search-right-->
+    <header class="m-header">
+      <div class="back">
+        <a href="/">
+          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
+        </a>
       </div>
+      <div class="title">检索CBETA</div>
+    </header>
+    <div class="flex-content" style="padding-top: 40px">
+      <div class="search-left">
+        {% for item in matches %}
+        <div class="item">
+          <div class="title">{{item['_source']['page_code']}}</div>
+          <div class="content">{% raw ''.join(item['hits']) %}</div>
+        </div>
+        {% end %}
+      </div><!--search-left-->
+      <div class="search-right">
+        <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码">{{q}}</textarea>
+        <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
+        {% if matches %}
+        <div class="tips">共检索到{{len(matches)}}个结果。</div>
+        {% end %}
+      </div><!--search-right-->
     </div>
   </div>
 </div>
