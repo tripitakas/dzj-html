@@ -177,5 +177,5 @@ class DataPunctuationHandler(BaseHandler):
     def get(self):
         """ 自动标点 """
         q = self.get_query_argument('q', '').strip()
-        res = puncstr(q)
+        res = puncstr(q) if q else ''
         self.render('data_punctuation.html', q=q, res=res)
