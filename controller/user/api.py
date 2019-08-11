@@ -401,7 +401,7 @@ class SendUserEmailCodeHandler(BaseHandler):
         <span style='font-size:16px;margin-right:10px'>您的注册验证码是：%s </span>
         <a href='http://%s/user/register'>返回注册页面</a>
         </html>
-        """ % code
+        """ % (code, self.config['site']['domain'])
         msg = MIMEText(content, 'html', 'utf-8')
         account = self.config['email']['account']
         pwd = self.config['email']['key']  # 授权码
