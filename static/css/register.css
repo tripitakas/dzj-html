@@ -13,7 +13,6 @@
 
 .register {
     width: 880px;
-    height: 630px;
     background: #fff;
     position: absolute;
     left: 50%;
@@ -29,7 +28,7 @@
 }
 
 .register .hd {
-    margin-bottom: 40px;
+    margin-bottom: 50px;
 }
 
 .register .logo {
@@ -182,7 +181,7 @@
 }
 
 .register-btn {
-    margin: 20px auto 0;
+    margin: 20px auto 8px;
     width: 364px;
     height: 40px;
     background: #b8906f;
@@ -237,7 +236,13 @@
     right: 0px;
 }
 
+.error {
+    height: 38px;
+    margin-top: -15px;
+}
+
 .tips {
+    margin-top: 5px;
     font-style: italic;
     color:#b8906f;
 }
