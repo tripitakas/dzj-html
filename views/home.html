@@ -29,7 +29,8 @@
                   <p class="title"><img src="{{ static_url('imgs/person.png') }}" alt=""></p>
                   <div class="person clearfix">
                     {% set ava = 'ava1.png' if current_user and current_user.get('gender') == '男' else 'ava2.png' if current_user and current_user.get('gender') == '女' else 'ava3.png' %}
-                    <img class="ava fl" src="{{ static_url((current_user or {}).get('img') or 'imgs/' + ava) }}" alt="">
+                    {% set ava_url = current_user.get('img') if current_user and current_user.get('img') else 'imgs/' + ava %}
+                    <img class="ava fl" src="{{ static_url(ava_url) }}" alt="">
                     <dl class="fl">
                       <dt>上午好，{{current_user['name']}}</dt>
                       <dd>访问情况：今日访问 {{visit_count}} 次</dd>
