@@ -202,3 +202,24 @@ $('#my-sutra-table').on("click", '.page-code', function (event) {
   var tripitaka = $('.m-header #parent-id').text().split('_')[0];
   window.location = '/t/' + tripitaka + '/' + $(this).attr('title');
 });
+
+
+// 增加文本字号
+$('.m-header').on('click', '.btn-font-enlarge', function () {
+  var $div = $('.content-right .page-text');
+  var size = parseInt($div.css('font-size'));
+  if (size < 36) {
+    size++;
+    $div.css('font-size', size + 'px');
+  }
+});
+
+// 减少文本字号
+$('.m-header').on('click', '.btn-font-reduce', function () {
+  var $div = $('.content-right .page-text');
+  var size = parseInt($div.css('font-size'));
+  if (size > 8) {
+    size--;
+    $div.css('font-size', size + 'px');
+  }
+});
