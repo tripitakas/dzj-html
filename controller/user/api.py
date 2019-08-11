@@ -411,6 +411,7 @@ class SendUserEmailCodeHandler(BaseHandler):
         mail_host = "smtp.qq.com"
         mail_port = self.config['email'].get('port', 465)
         try:
+            smtplib.SMTP_SSL()
             server = smtplib.SMTP(mail_host, mail_port)
             server.login(account, pwd)  # 邮箱名，密码
             server.sendmail(account, receiver, msg.as_string())
