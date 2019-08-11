@@ -10,6 +10,12 @@ from controller.base import BaseHandler
 from controller.data.esearch import find
 from controller.data.variant import normalize
 
+try:
+    import punctuation
+    puncstr = punctuation.punc_str
+except Exception:
+    puncstr = lambda s: s
+
 
 class DataTripitakaHandler(BaseHandler):
     URL = '/data/tripitaka'
@@ -171,8 +177,5 @@ class DataPunctuationHandler(BaseHandler):
     def get(self):
         """ 自动标点 """
         q = self.get_query_argument('q', '').strip()
-        res = None
-        if 'localhost' not in self.request.host_name and '127.0.0.1' not in self.request.host_name:
-            import punctuation
-            res = punctuation.punc_str(q)
+        res = puncstr(q)
         self.render('data_punctuation.html', q=q, res=res)
