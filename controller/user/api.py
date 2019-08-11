@@ -399,7 +399,7 @@ class SendUserEmailCodeHandler(BaseHandler):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
         content = """<html>
         <span style='font-size:16px;margin-right:10px'>您的注册验证码是：%s </span>
-        <a href='http://work.tripitakas.net/user/login'>返回注册页面</a>
+        <a href='http://%s/user/register'>返回注册页面</a>
         </html>
         """ % code
         msg = MIMEText(content, 'html', 'utf-8')
@@ -409,7 +409,7 @@ class SendUserEmailCodeHandler(BaseHandler):
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
         mail_host = "smtp.qq.com"
-        mail_port = 25
+        mail_port = self.config['email'].get('port', 465)
         try:
             server = smtplib.SMTP(mail_host, mail_port)
             server.login(account, pwd)  # 邮箱名，密码
