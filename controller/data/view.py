@@ -6,9 +6,8 @@
 """
 import re
 import math
-import logging
 from controller.base import BaseHandler
-from controller.data.cbeta_search import find
+from controller.data.esearch import find
 from controller.data.variant import normalize
 
 
@@ -164,3 +163,16 @@ class DataSearchCbetaHandler(BaseHandler):
                 m['hits'] = m.get('hits') or m['_source']['origin']
 
         self.render('data_cbeta_search.html', q=q, matches=matches)
+
+
+class DataPunctuationHandler(BaseHandler):
+    URL = '/data/punctuation'
+
+    def get(self):
+        """ 自动标点 """
+        q = self.get_query_argument('q', '').strip()
+        res = None
+        if 'localhost' not in self.request.host_name and '127.0.0.1' not in self.request.host_name:
+            import punctuation
+            res = punctuation.punc_str(q)
+        self.render('data_punctuation.html', q=q, res=res)

@@ -13,7 +13,7 @@ from tornado.escape import json_decode
 from controller.task.base import TaskHandler
 from controller.task.api_base import SubmitTaskApi
 from controller.task.view_text import TextBaseHandler
-from controller.data.cbeta_search import find_one, find_neighbor
+from controller.data.esearch import find_one, find_neighbor
 
 
 class GetCmpTextApi(TaskHandler):

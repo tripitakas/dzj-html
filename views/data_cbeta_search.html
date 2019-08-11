@@ -23,7 +23,7 @@
   }
 
   .search-left .item .title {
-    color: #0366d6;
+    color: #cb9b66;
     margin: 10px 0px;
   }
 
@@ -106,7 +106,7 @@
   $(".search-left").height($(document.body).height() - 40);
   $(".search-right").height($(document.body).height() - 40);
   $.each($("textarea"), function (i, n) {
-    $(n).css("height", (n.scrollHeight + 10) + "px");
+    $(n).css("height", (n.scrollHeight) + "px");
   });
 
   // 搜索
@@ -117,7 +117,7 @@
   });
 
   $(document).on('keyup', '#search-input', function () {
-    if ($('#search-input').height() < $('#search-input').prop('scrollHeight') - 20)
+    if ($('#search-input').height() < $('#search-input').prop('scrollHeight') - 15)
       $('#search-input').height($('#search-input').prop('scrollHeight'));
   });
 
