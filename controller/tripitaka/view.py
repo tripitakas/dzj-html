@@ -41,7 +41,7 @@ class TripitakaHandler(BaseHandler):
             elif meta.get('img_available') == '否':
                 self.send_error_response(errors.tripitaka_img_not_existed, render=True)
 
-            store_pattern = meta.get('store_pattern')
+            store_pattern = meta.get('store_pattern') or ''
 
             # 根据存储结构补齐page_num
             name_slice = page_num.split('_') if page_num else []
