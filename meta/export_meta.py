@@ -23,35 +23,36 @@ def export_tripitaka():
 def export_volume(tripitaka):
     with open(path.join(META_DIR, 'Volume-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(
-            db.volume.find({'tripitaka_code': tripitaka}, {'_id': 0, 'create_time': 0, 'updated_time': 0}))
-        writer.writerow(list(rows[0].keys()))
+        fields = ['volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_page_count', 'content_pages',
+                  'front_cover_pages', 'back_cover_pages', 'remark']
+        writer.writerow(fields)
+        rows = list(db.volume.find({'tripitaka_code': tripitaka}).sort([('envelop_no', 1), ('volume_no', 1)]))
         for row in rows:
-            info = list(row.values())
+            info = [row.get(f) for f in fields]
             writer.writerow(info)
 
 
 def export_sutra(tripitaka):
     with open(path.join(META_DIR, 'Sutra-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(db.sutra.find(
-            {'sutra_code': {'$regex': '%s.*' % tripitaka}}, {'_id': 0, 'create_time': 0, 'updated_time': 0}
-        ))
-        writer.writerow(list(rows[0].keys()))
+        fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'due_reel_count', 'existed_reel_count',
+                  'author', 'trans_time', 'start_volume', 'start_page', 'end_volume', 'end_page', 'remark']
+        writer.writerow(fields)
+        rows = list(db.sutra.find({'sutra_code': {'$regex': '^%s.*' % tripitaka}}))
         for row in rows:
-            info = list(row.values())
+            info = [row.get(f) for f in fields]
             writer.writerow(info)
 
 
 def export_reel(tripitaka):
     with open(path.join(META_DIR, 'Reel-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        rows = list(db.reel.find(
-            {'sutra_code': {'$regex': '%s.*' % tripitaka}}, {'_id': 0, 'create_time': 0, 'updated_time': 0}
-        ))
-        writer.writerow(list(rows[0].keys()))
+        fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_no',
+                  'start_volume', 'start_page', 'end_volume', 'end_page', 'remark']
+        writer.writerow(fields)
+        rows = list(db.reel.find({'sutra_code': {'$regex': '^%s.*' % tripitaka}}))
         for row in rows:
-            info = list(row.values())
+            info = [row.get(f) for f in fields]
             writer.writerow(info)
 
 
@@ -65,7 +66,7 @@ def get_date_time(fmt=None, diff_seconds=None):
 def export_meta():
     export_tripitaka()
 
-    tripitakas = ['JX', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
+    tripitakas = ['GL', 'LC', 'JX', 'JS', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
     for tripitaka in tripitakas:
         export_volume(tripitaka)
 
