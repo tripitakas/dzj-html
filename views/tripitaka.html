@@ -130,14 +130,6 @@
                 <div class="btn-page next" title="{{nav_info.get('next')}}">></div>
                 <div class="btn-page last" title="{{nav_info.get('last')}}">末页</div>
               </div>
-              <div class="more">
-                <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
-                <span class="btn-group more-group hidden" role="group" aria-label="更多">
-                  {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-                  <button type="button" class="btn btn-default btn-sm show-{{type}}-box">{{text}}</button>
-                  {% end %}
-                </span>
-              </div>
             </div>
             <div class="right {{'' if has_text else 'hide'}}">
               <div class="txt-btns">
@@ -155,7 +147,8 @@
               {% if page %}
               <div id="holder"></div>
               {% else %}
-              <img src="{{img_url}}" style="width: 100%"/>
+              <img src="{{img_url}}" style="width: 100%"
+                   onerror="javascript:this.style.width='400px';this.src='{{static_url("imgs/tripitaka_img_not_existed.png")}}';"/>
               {% end %}
             </div>
           </div>

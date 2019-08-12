@@ -173,7 +173,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        if response.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+        if response.pop('render', 0) or not self.request.path.startswith('/api/'):  # 如果是页面渲染请求，则返回错误页面
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']
@@ -200,6 +200,11 @@ class BaseHandler(CorsMixin, RequestHandler):
             str(self).split('.')[-1].split(' ')[0],
             '%s(%s)' % (exc.__class__.__name__, re.sub(r"^'|'$", '', str(exc)))
         )
+        if re.search(r'\[Errno \d+\]', message):
+            code = int(re.sub(r'^.+Errno |\].+$', '', message))
+            message = re.sub(r'^.+\]', '', message)
+            message = '无法访问文档库' if code in [61] else '%s: %s' % (e.mongo_error[1], message)
+            return self.send_error_response((e.mongo_error[0] + code, message))
         self.send_error_response((status_code, message), **kwargs)
 
     def send_db_error(self, error, render=False):
@@ -237,12 +242,15 @@ class BaseHandler(CorsMixin, RequestHandler):
         op_name = get_op_name(op_type)
         assert op_name
         logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
-        self.db.log.insert_one(dict(
-            type=op_type, target_id=target_id and str(target_id) or None,
-            context=context and context[:80], ip=self.get_ip(),
-            nickname=nickname or self.current_user and self.current_user.get('name'),
-            user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
-        ))
+        try:
+            self.db.log.insert_one(dict(
+                type=op_type, target_id=target_id and str(target_id) or None,
+                context=context and context[:80], ip=self.get_ip(),
+                nickname=nickname or self.current_user and self.current_user.get('name'),
+                user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
+            ))
+        except MongoError:
+            pass
 
     def get_img(self, page_code, resize=False, force_local=False):
         host = self.config.get('img', {}).get('host')

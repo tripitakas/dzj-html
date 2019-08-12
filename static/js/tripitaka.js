@@ -69,7 +69,7 @@ $('.m-pager .btn-page.to').on("keydown", function (event) {
 function jump(page) {
   var parent_id = $('.m-header #parent-id').text();
   if (parent_id && page) {
-    window.location = '/t/' + parent_id.replace(/_/g, '/') + '_' + page;
+    window.location = '/t/' + parent_id.replace(/_/, '/') + '_' + page;
   }
 }
 
