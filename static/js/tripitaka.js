@@ -223,3 +223,8 @@ $('.m-header').on('click', '.btn-font-reduce', function () {
     $div.css('font-size', size + 'px');
   }
 });
+
+// 回到藏经主页
+$('.m-header').on('click', '.title', function () {
+  window.location = '/tripitakas';
+});
