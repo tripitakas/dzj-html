@@ -70,7 +70,7 @@ class TripitakaHandler(BaseHandler):
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)
             else:
                 has_meta = False
-                cur_reel = self.db.reel.find_one({'name': cur_mulu_code})
+                cur_reel = self.db.reel.find_one({'name': cur_mulu_code}) or {}
                 if not cur_reel:
                     sutra_code = tripitaka + '_' + '_'.join(name_slice[:-2])
                     sutra_reels = list(self.db.reel.find({'sutra_code': sutra_code}).sort('reel_num', 1).limit(1))
