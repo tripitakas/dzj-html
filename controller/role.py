@@ -195,7 +195,8 @@ role_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/data/(tripitaka|envelop|volume|sutra|reel|page)': ['GET'],
+            '/data/(tripitaka|volume|sutra|reel|page)': ['GET'],
+            '/api/data/upload/(tripitaka|volume|sutra|reel|page)': ['POST'],
             '/user/statistic': ['GET'],
         }
     },

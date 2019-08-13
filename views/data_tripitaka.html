@@ -146,6 +146,27 @@
   </div>
 </div>
 
+<!-- Upload Modal -->
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">批量上传</h4>
+        </div>
+        <div class="modal-body">
+          <i>支持上传CSV格式文件，一次最多上传1个文件，文件大小不超过10MB</i>
+          <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="upload_submit">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% include _base_js.html %}
 
@@ -215,6 +236,34 @@
   //新增框的确定按钮
   $("#add_modal_confirm").click(function () {
     console.log('add confirm');
+  });
+
+  // 上传文件
+  $("#upload_submit").click(function () {
+    if (typeof $('#upload')[0].files[0] == "undefined") {
+      return showError('请选择文件');
+    }
+    var file = $('#upload')[0].files[0];
+    var regex = /\.(csv|CSV)$/;
+    if (!regex.test(file.name)) {
+      return showError('文件不是CSV类型');
+    }
+    if (file.size > (10*1024 * 1024)) {
+      return showError('文件大小不能超过10M');
+    }
+    var formData = new FormData();
+    formData.append('csv', file);
+    $.ajax({
+      url: '/api/data/upload/tripitaka',
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function (res) {
+        window.location.reload();
+      }
+    });
+    $('#upload_submit').modal('hide');
   });
 
   // 搜索

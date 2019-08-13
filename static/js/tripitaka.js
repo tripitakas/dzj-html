@@ -150,7 +150,6 @@ $('.main-left').on('click', '.has-sub', function () {
   } else {
     $(this).next('.sub-ul').addClass('sub-ul-hidden');
   }
-
 });
 
 // 目录跳转

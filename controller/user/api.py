@@ -351,7 +351,7 @@ class ChangeMyProfileApi(BaseHandler):
         self.send_data_response()
 
 
-class UploadUserAvatarHandler(BaseHandler):
+class UploadUserAvatarApi(BaseHandler):
     URL = '/api/user/my/avatar'
 
     def post(self):
@@ -373,7 +373,7 @@ class UploadUserAvatarHandler(BaseHandler):
         self.send_data_response()
 
 
-class SendUserEmailCodeHandler(BaseHandler):
+class SendUserEmailCodeApi(BaseHandler):
     URL = '/api/user/email_code'
 
     def post(self):
@@ -420,7 +420,7 @@ class SendUserEmailCodeHandler(BaseHandler):
             return self.send_db_error(e)
 
 
-class SendUserPhoneCodeHandler(BaseHandler):
+class SendUserPhoneCodeApi(BaseHandler):
     URL = '/api/user/phone_code'
 
     def post(self):

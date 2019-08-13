@@ -38,7 +38,12 @@
   });
 
   $('#side-menu').on('click', '.has-sub', function () {
-    $(this).find('.sub-ul').toggleClass('sub-ul-hidden');
+    if ($(this).find('.sub-ul').hasClass('sub-ul-hidden')) {
+      $('#side-menu .sub-ul').addClass('sub-ul-hidden');
+      $(this).find('.sub-ul').removeClass('sub-ul-hidden');
+    } else {
+      $(this).find('.sub-ul').addClass('sub-ul-hidden');
+    }
   });
 
   $(document).ready(function () {
