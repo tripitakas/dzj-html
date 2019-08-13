@@ -94,7 +94,6 @@ function getApi(url, success, error) {
  * @param data 请求体JSON对象
  * @param success 成功回调函数，可选，参数为 data 对象或数组
  * @param error 失败回调函数，可选，参数为 msg、code
- * @param is_file 是否为文件
  */
 function postApi(url, data, success, error) {
   ajaxApi(url, 'POST', data, success, error);
