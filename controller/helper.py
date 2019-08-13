@@ -44,6 +44,19 @@ def my_framer():
     return f0
 
 
+def cmp_page_code(a, b):
+    """ 比较图片名称大小 """
+    al, bl = a.split('_'), b.split('_')
+    if len(al) != len(bl):
+        return len(al) - len(bl)
+    for i in range(len(al)):
+        length = max(len(al[i]), len(bl[i]))
+        ai, bi = al[i].zfill(length), bl[i].zfill(length)
+        if ai != bi:
+            return 1 if ai > bi else -1
+    return 0
+
+
 def random_code():
     code = ''
     for i in range(4):

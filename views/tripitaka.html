@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 
 <head>
-  <title>{{meta.get('name')}}</title>
+  <title>{{tripitaka.get('name')}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" rel="stylesheet">
@@ -16,10 +16,6 @@
 </head>
 
 <style>
-  .sutra-mode .main-left {
-    width: 350px;
-  }
-
   .main-left.slim-scroll::-webkit-scrollbar {
     width: 8px;
     opacity: 0.5;
@@ -33,6 +29,14 @@
     padding-top: 15px;
   }
 
+  .menu-item .menu-title {
+    padding-left: 10px;
+  }
+
+  .menu-item .sub-item {
+    padding-left: 18px;
+  }
+
   .main-left .menu-title.has-sub:before {
     content: "+";
     padding-right: 4px;
@@ -40,10 +44,6 @@
 
   .main-right .m-header {
     left: 276px;
-  }
-
-  .sutra-mode .main-right .m-header {
-    left: 350px;
   }
 
   .main-right .content {
@@ -69,7 +69,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <div class="main-content flex-content {{'sutra-mode' if '经' in meta['store_pattern'] else ''}}">
+    <div class="main-content flex-content {{'sutra-mode' if '经' in tripitaka['store_pattern'] else ''}}">
       <div class="main-left slim-scroll" id="main-left">
         <div class="main-left-menu">
           <div class="menu-search-wrapper">
@@ -77,25 +77,6 @@
             <img class="menu-search-btn" src="{{ static_url('imgs/icon13.png') }}"/>
           </div>
           <ul class="menu" id="side-menu">
-            {% for item in mulu_tree %}
-            <li class="menu-item">
-              <span id="{{item['id']}}" class="menu-title {{'has-sub' if item.get('children') else 'leaf'}}">
-                <a>{{item['title']}}</a>
-              </span>
-              {% if item.get('children') %}
-              <ul class="sub-ul sub-ul-hidden">
-                {% for sub_item in item.get('children') %}
-                <li>
-                  <span id="{{sub_item['id']}}" class="leaf">
-                    <i><img src='{{static_url("imgs/icon_subitem.png")}}' class="sub-img"/></i>
-                    <a>{{sub_item['title']}}</a>
-                  </span>
-                </li>
-                {% end %}
-              </ul>
-            </li>
-            {% end %}
-            {% end %}
           </ul>
         </div>
       </div>
@@ -107,9 +88,10 @@
               <div class="toggle-btn">
                 <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
               </div>
-              <div class="title">{{meta.get('name')}}</div>
-              <div class="panel-btn {{'' if has_meta else 'hide'}}">
-                <img class="btn-img" src="{{ static_url('imgs/icon_panel.png') }}" data-toggle="modal" data-target="#sutraNavModal"/>
+              <div class="title">{{tripitaka.get('name')}}</div>
+              <div class="panel-btn">
+                <img class="btn-img" src="{{ static_url('imgs/icon_hme.png') }}" title="首页" onclick="javascript:location='/';"/>
+                <img class="btn-img" src="{{ static_url('imgs/icon_panel.png') }}" title="经目查询"  data-toggle="modal" data-target="#sutraNavModal"/>
               </div>
               <div class="zone-control" style="padding: 0 5px">
                 <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img zone-left" title="图片区域"/>
@@ -121,16 +103,17 @@
                 <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
               </div>
               <div class="m-pager" style="padding: 0 5px">
-                <div class="btn-page" id="parent-id" style="display: none">{{nav_info.get('parent_id')}}</div>
-                <div class="btn-page first" title="{{nav_info.get('first')}}">首页</div>
-                <div class="btn-page prev" title="{{nav_info.get('prev')}}"><</div>
+                <div class="btn-page hide" id="cur-volume">{{nav.get('cur_volume')}}</div>
+                <div class="btn-page first" title="{{nav.get('first')}}">首页</div>
+                <div class="btn-page prev" title="{{nav.get('prev')}}"><</div>
                 <div class="btn-page to">
-                  <input type="text" value="{{nav_info.get('cur_page')}}"/> / <span type="tips">{{nav_info.get('last')}}</span>
+                  <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
+                  / <span type="tips">{{nav.get('last').split('_')[-1]}}</span>
                 </div>
-                <div class="btn-page next" title="{{nav_info.get('next')}}">></div>
-                <div class="btn-page last" title="{{nav_info.get('last')}}">末页</div>
+                <div class="btn-page next" title="{{nav.get('next')}}">></div>
+                <div class="btn-page last" title="{{nav.get('last')}}">末页</div>
               </div>
-              <div class="more">
+              <div class="more {{'' if page else 'hide'}}">
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
                 <span class="btn-group more-group hidden" role="group" aria-label="更多">
                   {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
@@ -139,7 +122,7 @@
                 </span>
               </div>
             </div>
-            <div class="right {{'' if has_text else 'hide'}}">
+            <div class="right {{'' if page_text else 'hide'}}">
               <div class="txt-btns">
                 <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
                 <div class="btn-txt btn-font-reduce" title="减少字号">A-</div>
@@ -160,9 +143,9 @@
             </div>
           </div>
           <!-- 右侧文字区域 -->
-          <div class="content-right {{'' if has_text else 'hide'}}">
+          <div class="content-right {{'' if page_text else 'hide'}}">
             <div class="page-text">
-              {% for p in has_text.split('|') %}
+              {% for p in page_text.split('|') %}
               <p>{{p}}</p>
               {% end %}
             </div>
@@ -210,10 +193,10 @@
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
-{% if has_meta %}
-<script src="{{static_url('js/meta/'+tripitaka+'-sutra.js')}}"></script>
-{% end %}
+<script src="{{static_url('js/meta/%s-sutra.js' % tripitaka_code)}}"></script>
+<script src="{{static_url('js/meta/%s-volume.js' % tripitaka_code)}}"></script>
 <script src="{{static_url('js/tripitaka.js')}}"></script>
+
 {% if page %}
 <script>
   $.cut.create({
@@ -229,5 +212,6 @@
   $.cut.bindKeys();
 </script>
 {% end %}
+
 </body>
 </html>

@@ -58,4 +58,5 @@ data_lock_failed = 4002, '数据锁定失败'
 data_unauthorized = 4003, '您没有数据权限'
 
 tripitaka_not_existed = 5000, '藏经不存在'
-tripitaka_img_not_existed = 5001, '藏经图片尚未准备到位'
+tripitaka_img_unavailable = 5001, '藏经图片尚未就绪'
+tripitaka_page_code_error = 5002, '图片名称格式有误'
