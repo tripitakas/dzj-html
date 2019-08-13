@@ -46,20 +46,20 @@
                     </div>
                   </div>
                   <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索编码">
+                    <input id="search-input" type="text" placeholder="请搜索册编码">
                     <i class="ser-btn"></i>
                   </div>
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
                       <th><input type="checkbox"/></th>
+                      <th><span>藏编码</span></th>
                       <th><span>册编码</span></th>
+                      <th><span>函序号</span></th>
                       <th><span>册序号</span></th>
                       <th><span>正文页数</span></th>
                       <th><span>封面页数</span></th>
                       <th><span>封底页数</span></th>
-                      <th><span>首页</span></th>
-                      <th><span>尾页</span></th>
                       <th><span>备注</span></th>
                       <th><span>操作</span></th>
                     </tr>
@@ -68,16 +68,20 @@
                     <tbody>
                     {% for v in volumes %}
                     <tr>
-                      <td><input type="checkbox" id="{{v['name']}}" value=""/></td>
-                      <td>{{v['name']}}</td>
-                      <td>{{v['volume_num']}}</td>
-                      <td>{{v['content_page_count']}}</td>
-                      <td>{{v['front_cover_count']}}</td>
-                      <td>{{v['back_cover_count']}}</td>
-                      <td>{{v['first_page']}}</td>
-                      <td>{{v['last_page']}}</td>
+                      <td><input type="checkbox" id="{{v['volume_code']}}" value=""/></td>
+                      <td>{{v.get('tripitaka_code')}}</td>
+                      <td>{{v.get('volume_code')}}</td>
+                      <td>{{v.get('envelop_no') or ''}}</td>
+                      <td>{{v.get('volume_no') or ''}}</td>
+                      <td>{{v.get('content_page_count')}}</td>
+                      <td>{{len(v.get('front_cover_pages') or [])}}</td>
+                      <td>{{len(v.get('back_cover_pages') or [])}}</td>
                       <td>{{v['remark']}}</td>
-                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                      <td>
+                        <a href="javascript:modify();">查看</a>
+                        <a href="javascript:modify();">编辑</a>
+                        <a href="javascript:del(12);">删除</a>
+                      </td>
                     </tr>
                     {% end %}
                     </tbody>

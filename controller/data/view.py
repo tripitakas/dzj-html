@@ -50,7 +50,7 @@ class DataVolumeHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}}
+                {"volume_code": {'$regex': '.*%s.*' % q}}
             ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
@@ -74,9 +74,9 @@ class DataSutraHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}},
-                {"sutra_name": {'$regex': '.*%s.*' % q}},
                 {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
@@ -100,7 +100,8 @@ class DataReelHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}},
+                {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
             page_size = int(self.config['pager']['page_size'])

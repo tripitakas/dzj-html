@@ -32,7 +32,17 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span onclick="javascript:add();">新增藏</span>
+                    <span>批量删除</span>
+                    <span>下载模板</span>
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-default waves-effect">新增藏</button>
+                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                      <ul class="dropdown-menu" role="menu">
+                        <li><a href="javascript:add();">新增藏</a></li>
+                        <li class="divider"></li>
+                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传藏</a></li>
+                      </ul>
+                    </div>
                   </div>
                   <div class="search fr">
                     <input id="search-input" type="text" placeholder="请搜索藏名和编码">

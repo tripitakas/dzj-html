@@ -53,11 +53,13 @@
                     <thead>
                     <tr>
                       <th><input type="checkbox" name="" value=""/></th>
-                      <th><span>经名</span></th>
-                      <th><span>经编码</span></th>
                       <th><span>统一编号</span></th>
+                      <th><span>经编码</span></th>
+                      <th><span>经名</span></th>
                       <th><span>应存卷数</span></th>
                       <th><span>实存卷数</span></th>
+                      <th><span>作译者</span></th>
+                      <th><span>翻译时间</span></th>
                       <th><span>起始册</span></th>
                       <th><span>起始页</span></th>
                       <th><span>终止册</span></th>
@@ -71,16 +73,18 @@
                     {% for s in sutras %}
                     <tr>
                       <td><input type="checkbox" name="" id="{{s['sutra_code']}}" value=""/></td>
-                      <td>{{s['sutra_name']}}</td>
-                      <td>{{s['sutra_code']}}</td>
-                      <td>{{s['unified_sutra_code']}}</td>
-                      <td>{{s['due_reel_count']}}</td>
-                      <td>{{s['existed_reel_count']}}</td>
-                      <td>{{s['start_volume']}}</td>
-                      <td>{{s['start_page']}}</td>
-                      <td>{{s['end_volume']}}</td>
-                      <td>{{s['end_page']}}</td>
-                      <td>{{s['remark']}}</td>
+                      <td>{{s.get('unified_sutra_code') or ''}}</td>
+                      <td>{{s.get('sutra_code') or ''}}</td>
+                      <td>{{s.get('sutra_name') or ''}}</td>
+                      <td>{{s.get('due_reel_count') or ''}}</td>
+                      <td>{{s.get('existed_reel_count') or ''}}</td>
+                      <td>{{s.get('author') or ''}}</td>
+                      <td>{{s.get('trans_time') or ''}}</td>
+                      <td>{{s.get('start_volume') or ''}}</td>
+                      <td>{{s.get('start_page') or ''}}</td>
+                      <td>{{s.get('end_volume') or ''}}</td>
+                      <td>{{s.get('end_page') or ''}}</td>
+                      <td>{{s.get('remark') or ''}}</td>
                       <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
                     </tr>
                     {% end %}

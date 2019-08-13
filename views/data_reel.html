@@ -45,23 +45,23 @@
                     </div>
                   </div>
                   <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索经名和卷编码">
+                    <input id="search-input" type="text" placeholder="请搜索经名、经编码和统一编码">
                     <i class="ser-btn"></i>
                   </div>
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
                       <th><input type="checkbox" name=""/></th>
-                      <th><span>经名</span></th>
+                      <th><span>统一编号</span></th>
                       <th><span>经编码</span></th>
-                      <th><span>卷编码</span></th>
+                      <th><span>经名</span></th>
                       <th><span>卷序号</span></th>
                       <th><span>起始册</span></th>
                       <th><span>起始页码</span></th>
                       <th><span>终止册</span></th>
                       <th><span>结束页码</span></th>
-                      <th><span>总页数</span></th>
                       <th><span>备注</span></th>
+                      <th><span>操作</span></th>
                     </tr>
                     </thead>
 
@@ -69,16 +69,15 @@
                     {% for r in reels %}
                     <tr>
                       <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>{{r['sutra_name']}}</td>
-                      <td>{{r['sutra_code']}}</td>
-                      <td>{{r['name']}}</td>
-                      <td>{{r['reel_num']}}</td>
-                      <td>{{r['start_volume']}}</td>
-                      <td>{{r['start_page']}}</td>
-                      <td>{{r['end_volume']}}</td>
-                      <td>{{r['end_page']}}</td>
-                      <td>{{r['page_count']}}</td>
-                      <td>{{r['remark']}}</td>
+                      <td>{{r.get('unified_sutra_code') or ''}}</td>
+                      <td>{{r.get('sutra_code') or ''}}</td>
+                      <td>{{r.get('sutra_name') or ''}}</td>
+                      <td>{{r.get('reel_no') or ''}}</td>
+                      <td>{{r.get('start_volume') or ''}}</td>
+                      <td>{{r.get('start_page') or ''}}</td>
+                      <td>{{r.get('end_volume') or ''}}</td>
+                      <td>{{r.get('end_page') or ''}}</td>
+                      <td>{{r.get('remark') or ''}}</td>
                       <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
                     </tr>
                     {% end %}

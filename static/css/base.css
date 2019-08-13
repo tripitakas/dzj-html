@@ -342,7 +342,7 @@ a:hover {
 }
 
 .pagers {
-    margin: 50px 0;
+    margin: 20px 0 0;
     text-align: center;
 }
 
@@ -428,7 +428,7 @@ a:hover {
 }
 
 .collate-list {
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 .collate-list .count span {
