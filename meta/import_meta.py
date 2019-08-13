@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 from glob2 import glob
 
 META_DIR = path.join(path.dirname(__file__), 'meta')
-db = ''
 
 
 def get_date_time(fmt=None, diff_seconds=None):
@@ -22,7 +21,7 @@ def get_date_time(fmt=None, diff_seconds=None):
     return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
-def import_tripitaka(reset):
+def import_tripitaka(db, reset=False):
     """ 导入tripitaka meta数据 """
     meta_csv = path.join(META_DIR, 'Tripitaka.csv')
     sys.stdout.write('import tripitaka: %s ' % path.basename(meta_csv))
@@ -65,7 +64,7 @@ def get_code_value(code):
     return int(value) if value else 0
 
 
-def import_volume(tripitaka, reset):
+def import_volume(db, tripitaka, reset=False):
     """ 导入volume meta数据，字段依次为：
         'volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_pages', 'front_cover_pages',
         'back_cover_pages', 'remark', 'created_time', 'updated_time'
@@ -118,7 +117,7 @@ def import_volume(tripitaka, reset):
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_sutra(tripitaka, reset):
+def import_sutra(db, tripitaka, reset=False):
     """ 导入volume meta数据 """
     def gen_item():
         return {
@@ -165,7 +164,7 @@ def import_sutra(tripitaka, reset):
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_reel(tripitaka, reset):
+def import_reel(db, tripitaka, reset=False):
     """ 导入volume meta数据 """
 
     def gen_item():
@@ -209,21 +208,20 @@ def import_reel(tripitaka, reset):
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_meta(reset):
-    import_tripitaka(reset)
+def import_meta(db, reset=False):
+    import_tripitaka(db, reset)
 
     for filename, code in glob(path.join(META_DIR, 'Volume-*.csv'), True):
-        import_volume(code[0], reset)
+        import_volume(db, code[0], reset)
 
     for filename, code in glob(path.join(META_DIR, 'Sutra-*.csv'), True):
-        import_sutra(code[0], reset)
+        import_sutra(db, code[0], reset)
 
     for filename, code in glob(path.join(META_DIR, 'Reel-*.csv'), True):
-        import_reel(code[0], reset)
+        import_reel(db, code[0], reset)
 
 
 def main(db_name='tripitaka', uri='localhost', reset=False):
-    global db
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:
@@ -232,7 +230,7 @@ def main(db_name='tripitaka', uri='localhost', reset=False):
         db.reel.drop()
         db.volume.drop()
 
-    import_meta(reset)
+    import_meta(db, reset)
 
 
 if __name__ == '__main__':
