@@ -19262,6 +19262,7 @@ a:hover {
     z-index: 1;
     transition: left .3s;
     margin-left: 200px;
+    height: calc(100% - 56px);
 }
 
 .layout {
@@ -19269,8 +19270,9 @@ a:hover {
 }
 
 .layout-content {
+    height: 100%;
     min-height: 200px;
-    margin: 5px;
+    padding: 5px;
 }
 
 .sub-ul-hidden {
