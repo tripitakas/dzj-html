@@ -22,7 +22,6 @@ class TestTaskFlow(APITestCase):
         for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
             tripitakas.append(code[0])
 
-        tripitakas = ['ZH']
         for tripitaka in tripitakas:
             r = self.fetch('/t/%s?_raw=1&_no_auth=1' % tripitaka)
             self.assert_code([200, e.tripitaka_img_unavailable], r, msg=tripitaka)

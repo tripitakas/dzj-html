@@ -15575,15 +15575,15 @@ a:focus {
 	border: 1px solid #ddd;
 }
 
-.pagination>.active>a,
-.pagination>.active>span,
-.pagination>.active>a:hover,
-.pagination>.active>span:hover,
-.pagination>.active>a:focus,
-.pagination>.active>span:focus {
-	background-color: #317eeb;
-	border-color: #317eeb;
-}
+/*.pagination>.active>a,*/
+/*.pagination>.active>span,*/
+/*.pagination>.active>a:hover,*/
+/*.pagination>.active>span:hover,*/
+/*.pagination>.active>a:focus,*/
+/*.pagination>.active>span:focus {*/
+/*	background-color: #317eeb;*/
+/*	border-color: #317eeb;*/
+/*}*/
 
 
 /* 2.10 Tabs-Accordions */
@@ -19116,6 +19116,10 @@ a:hover {
     overflow: hidden;
 }
 
+.menu-item a, .menu-item a:hover {
+    color: var(--Color_333);
+}
+
 .main {
     float: left;
     width: 100%;
@@ -19156,41 +19160,44 @@ a:hover {
 .main .menu > li.menu-item {
     border-bottom: 1px dashed rgba(228, 195, 168, 0.26);
     margin-right: 12px;
-    padding-left: 5px;
     width: 100%;
 }
 
-.main .menu > li.menu-item:hover {
+.main .menu .menu-title, .main .menu .leaf {
+    display: block;
+}
+
+.main .menu .menu-title:hover {
     background: var(--Color_Brown);
 }
 
-.main .menu > li.menu-item.active {
+.main .menu .active {
     background-color: var(--Color_Brown);
 }
 
-.main .menu > li > .submenu-title {
+.main .menu .submenu-title {
     border-bottom: 1px dashed rgba(228, 195, 168, 0.26);
     padding-left: 5px;
 }
 
-.main .menu > li > .submenu-title:hover {
+.main .menu .submenu-title:hover {
     cursor: pointer;
     background: var(--Color_Brown);
 }
 
-.main .menu > li .sub-ul li {
-    padding-left: 18px;
+.main .menu .sub-ul li {
+    margin-left: 18px;
 }
 
-.main .menu > li .sub-ul li:hover {
+.main .menu .sub-ul li:hover {
     background-color: var(--Color_Brown);
 }
 
-.main .menu > li .sub-ul li .sub-img {
+.main .menu .sub-ul li .sub-img {
     margin-top: 13px;
 }
 
-.main .menu > li .sub-ul .sub-active {
+.main .menu .sub-ul .sub-active {
     background: var(--Color_Brown);
 }
 
@@ -19255,6 +19262,7 @@ a:hover {
     z-index: 1;
     transition: left .3s;
     margin-left: 200px;
+    height: calc(100% - 56px);
 }
 
 .layout {
@@ -19262,8 +19270,9 @@ a:hover {
 }
 
 .layout-content {
+    height: 100%;
     min-height: 200px;
-    margin: 5px;
+    padding: 5px;
 }
 
 .sub-ul-hidden {
@@ -19401,7 +19410,6 @@ a:hover {
     width: 305px;
     height: 28px;
     padding-left: 20px;
-    color: #cca78a;
 }
 
 .collate-list .search i {
@@ -19760,10 +19768,6 @@ a:hover {
     color: #333;
 }
 
-.sub-active a:hover {
-    color: #FFFFFF;
-}
-
 .sort {
     cursor: pointer;
 }
@@ -19926,9 +19930,9 @@ a:hover {
     user-select: none;
     display: inline-block;
     vertical-align: middle;
-    top:0;
-    right:0;
-    left:0;
+    top: 0;
+    right: 0;
+    left: 0;
 }
 
 .m-header .right {
@@ -20001,7 +20005,7 @@ a:hover {
     margin-top: 5px;
 }
 
-.m-header .more-group .btn{
+.m-header .more-group .btn {
     border: 0;
 }
 
@@ -20082,4 +20086,3 @@ a:hover {
 .modal .my-container {
     background: none;
 }
-
