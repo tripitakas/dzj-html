@@ -22,13 +22,25 @@ def get_date_time(fmt=None, diff_seconds=None):
     return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
-def import_tripitaka():
+def import_tripitaka(reset):
     """ 导入tripitaka meta数据 """
     meta_csv = path.join(META_DIR, 'Tripitaka.csv')
     sys.stdout.write('import tripitaka: %s ' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+    if reset:
+        items = []
+        for r, row in enumerate(rows[1:]):
+            data = {heads[i]: item for i, item in enumerate(row)}
+            data.update({
+                'created_time': get_date_time(),
+                'updated_time': get_date_time(),
+            })
+            items.append(data)
+        added = len(items)
+        db.tripitaka.insert_many(items)
+    else:
         added = 0
         for r, row in enumerate(rows[1:]):
             if r % 100 == 0:
@@ -53,76 +65,99 @@ def get_code_value(code):
     return int(value) if value else 0
 
 
-def import_volume(tripitaka):
+def import_volume(tripitaka, reset):
     """ 导入volume meta数据，字段依次为：
         'volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_pages', 'front_cover_pages',
         'back_cover_pages', 'remark', 'created_time', 'updated_time'
     """
+    def gen_item():
+        content_pages = json.loads(data['content_pages'].replace("'", '"'))
+        content_pages.sort(key=cmp_to_key(lambda a, b: get_code_value(a) - get_code_value(b)))
+        front_cover_pages = json.loads(data['front_cover_pages'].replace("'", '"')) if data.get(
+            'front_cover_pages') else None
+        back_cover_pages = json.loads(data['back_cover_pages'].replace("'", '"')) if data.get(
+            'back_cover_pages') else None
+        update = {
+            'volume_code': data['volume_code'],
+            'tripitaka_code': data['tripitaka_code'],
+            'envelop_no': int(data.get('envelop_no')) if data.get('envelop_no') else None,
+            'volume_no': int(data.get('volume_no')) if data.get('volume_no') else None,
+            'content_page_count': len(content_pages),
+            'content_pages': content_pages,
+            'front_cover_pages': front_cover_pages,
+            'back_cover_pages': back_cover_pages,
+            'remark': data['remark'],
+            'created_time': get_date_time(),
+            'updated_time': get_date_time(),
+        }
+        return update
+
     meta_csv = path.join(META_DIR, 'Volume-%s.csv' % tripitaka)
     sys.stdout.write('import volume: %s ' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+    if reset:
+        items = []
+        for r, row in enumerate(rows[1:]):
+            data = {heads[i]: item for i, item in enumerate(row)}
+            items.append(gen_item())
+        added = len(items)
+        db.volume.insert_many(items)
+    else:
         added = 0
         for r, row in enumerate(rows[1:]):
             if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}
-            content_pages = json.loads(data['content_pages'].replace("'", '"'))
-            content_pages.sort(key=cmp_to_key(lambda a, b: get_code_value(a) - get_code_value(b)))
-            front_cover_pages = json.loads(data['front_cover_pages'].replace("'", '"')) if data.get(
-                'front_cover_pages') else None
-            back_cover_pages = json.loads(data['back_cover_pages'].replace("'", '"')) if data.get(
-                'back_cover_pages') else None
-            update = {
-                'volume_code': data['volume_code'],
-                'tripitaka_code': data['tripitaka_code'],
-                'envelop_no': int(data.get('envelop_no')) if data.get('envelop_no') else None,
-                'volume_no': int(data.get('volume_no')) if data.get('volume_no') else None,
-                'content_page_count': len(content_pages),
-                'content_pages': content_pages,
-                'front_cover_pages': front_cover_pages,
-                'back_cover_pages': back_cover_pages,
-                'remark': data['remark'],
-                'created_time': get_date_time(),
-                'updated_time': get_date_time(),
-            }
+            update = gen_item()
             if not db.volume.find_one({'volume_code': data['volume_code']}):
                 db.volume.insert_one(update)
                 added += 1
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_sutra(tripitaka):
+def import_sutra(tripitaka, reset):
     """ 导入volume meta数据 """
+    def gen_item():
+        return {
+            'unified_sutra_code': d.get('unified_sutra_code'),
+            'sutra_code': d.get('sutra_code'),
+            'sutra_name': d.get('sutra_name'),
+            'due_reel_count': int(d.get('due_reel_count')) if d.get('due_reel_count') else None,
+            'existed_reel_count': int(d.get('existed_reel_count')) if d.get('existed_reel_count') else None,
+            'author': d.get('author'),
+            'trans_time': d.get('trans_time'),
+            'start_volume': d.get('start_volume'),
+            'start_page': int(d.get('start_page')) if d.get('start_page') else None,
+            'end_volume': d.get('end_volume'),
+            'end_page': int(d.get('end_page')) if d.get('end_page') else None,
+            'remark': d.get('remark'),
+            'created_time': get_date_time(),
+            'updated_time': get_date_time(),
+        }
+
     meta_csv = path.join(META_DIR, 'Sutra-%s.csv' % tripitaka)
     sys.stdout.write('import sutra: %s ' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+    if reset:
+        items = []
+        for r, row in enumerate(rows[1:]):
+            d = {heads[i]: item for i, item in enumerate(row)}
+            items.append(gen_item())
+        added = len(items)
+        db.sutra.insert_many(items)
+    else:
         added = 0
         for r, row in enumerate(rows[1:]):
             if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             d = {heads[i]: item for i, item in enumerate(row)}
-            update = {
-                'unified_sutra_code': d.get('unified_sutra_code'),
-                'sutra_code': d.get('sutra_code'),
-                'sutra_name': d.get('sutra_name'),
-                'due_reel_count': int(d.get('due_reel_count')) if d.get('due_reel_count') else None,
-                'existed_reel_count': int(d.get('existed_reel_count')) if d.get('existed_reel_count') else None,
-                'author': d.get('author'),
-                'trans_time': d.get('trans_time'),
-                'start_volume': d.get('start_volume'),
-                'start_page': int(d.get('start_page')) if d.get('start_page') else None,
-                'end_volume': d.get('end_volume'),
-                'end_page': int(d.get('end_page')) if d.get('end_page') else None,
-                'remark': d.get('remark'),
-                'created_time': get_date_time(),
-                'updated_time': get_date_time(),
-            }
+            update = gen_item()
             if not db.sutra.find_one({'sutra_code': update['sutra_code']}):
                 db.sutra.insert_one(update)
                 added += 1
@@ -130,49 +165,61 @@ def import_sutra(tripitaka):
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_reel(tripitaka):
+def import_reel(tripitaka, reset):
     """ 导入volume meta数据 """
+
+    def gen_item():
+        return {
+            'unified_sutra_code': data.get('unified_sutra_code'),
+            'sutra_code': data.get('sutra_code'),
+            'sutra_name': data.get('sutra_name'),
+            'reel_no': int(data.get('reel_no')) if data.get('reel_no') else None,
+            'start_volume': data.get('start_volume'),
+            'start_page': int(data.get('start_page')) if data.get('start_page') else None,
+            'end_volume': data.get('end_volume'),
+            'end_page': int(data.get('end_page')) if data.get('end_page') else None,
+            'remark': data.get('remark'),
+            'created_time': get_date_time(),
+            'updated_time': get_date_time(),
+        }
+
     meta_csv = path.join(META_DIR, 'Reel-%s.csv' % tripitaka)
     sys.stdout.write('import reel: %s ' % path.basename(meta_csv))
     with open(meta_csv) as fn:
         rows = list(csv.reader(fn))
         heads = rows[0]
+    if reset:
+        items = []
+        for r, row in enumerate(rows[1:]):
+            data = {heads[i]: item for i, item in enumerate(row)}
+            items.append(gen_item())
+        added = len(items)
+        db.reel.insert_many(items)
+    else:
         added = 0
         for r, row in enumerate(rows[1:]):
             if r % 100 == 0:
                 sys.stdout.write('.')
                 sys.stdout.flush()
             data = {heads[i]: item for i, item in enumerate(row)}
-            update = {
-                'unified_sutra_code': data.get('unified_sutra_code'),
-                'sutra_code': data.get('sutra_code'),
-                'sutra_name': data.get('sutra_name'),
-                'reel_no': int(data.get('reel_no')) if data.get('reel_no') else None,
-                'start_volume': data.get('start_volume'),
-                'start_page': int(data.get('start_page')) if data.get('start_page') else None,
-                'end_volume': data.get('end_volume'),
-                'end_page': int(data.get('end_page')) if data.get('end_page') else None,
-                'remark': data.get('remark'),
-                'created_time': get_date_time(),
-                'updated_time': get_date_time(),
-            }
+            update = gen_item()
             if not db.reel.find_one({'sutra_code': update['sutra_code'], 'reel_no': update['reel_no']}):
                 db.reel.insert_one(update)
                 added += 1
     sys.stdout.write(' %d added in %d items\n' % (added, len(rows) - 1))
 
 
-def import_meta():
-    import_tripitaka()
+def import_meta(reset):
+    import_tripitaka(reset)
 
     for filename, code in glob(path.join(META_DIR, 'Volume-*.csv'), True):
-        import_volume(code[0])
+        import_volume(code[0], reset)
 
     for filename, code in glob(path.join(META_DIR, 'Sutra-*.csv'), True):
-        import_sutra(code[0])
+        import_sutra(code[0], reset)
 
     for filename, code in glob(path.join(META_DIR, 'Reel-*.csv'), True):
-        import_reel(code[0])
+        import_reel(code[0], reset)
 
 
 def main(db_name='tripitaka', uri='localhost', reset=False):
@@ -185,9 +232,11 @@ def main(db_name='tripitaka', uri='localhost', reset=False):
         db.reel.drop()
         db.volume.drop()
 
-    import_meta()
+    import_meta(reset)
 
 
 if __name__ == '__main__':
-    main()
+    import fire
+
+    fire.Fire(main)
     print('finished!')
