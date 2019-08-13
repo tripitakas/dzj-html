@@ -5,5 +5,5 @@ views = [
 ]
 
 handlers = [
-    api.TripitakaUploadApi
+    api.UploadReelApi, api.UploadTripitakaApi, api.UploadSutraApi, api.UploadVolumeApi,
 ]

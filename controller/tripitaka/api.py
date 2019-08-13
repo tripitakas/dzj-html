@@ -3,19 +3,75 @@
 """
 @desc: 如是藏经、大藏经
 """
-import re
-import os.path as path
-from functools import cmp_to_key
-import controller.errors as errors
+import csv
+from tornado.escape import to_basestring
 from controller.base import BaseHandler
-from controller.helper import cmp_page_code
+from meta.import_meta import import_tripitaka, import_volume, import_sutra, import_reel
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 
-class TripitakaUploadApi(BaseHandler):
+class UploadTripitakaApi(BaseHandler):
     URL = '/api/data/upload/tripitaka'
 
     def post(self):
-        """ 批量上传藏经数据 """
-        csv_file = self.request.files.get('csv')
-        content = csv_file[0]['body']
-        self.send_data_response()
+        """ 批量上传藏数据 """
+        upload_csv = self.request.files.get('csv')
+        content = to_basestring(upload_csv[0]['body'])
+        with StringIO(content) as fn:
+            rows = list(csv.reader(fn))
+            code, msg = import_tripitaka(self.db, rows)
+            if code == 200:
+                self.send_data_response({'msg': msg})
+            else:
+                self.send_error_response((code, msg))
+
+
+class UploadVolumeApi(BaseHandler):
+    URL = '/api/data/upload/volume'
+
+    def post(self):
+        """ 批量上传册数据 """
+        upload_csv = self.request.files.get('csv')
+        content = to_basestring(upload_csv[0]['body'])
+        with StringIO(content) as fn:
+            rows = list(csv.reader(fn))
+            code, msg = import_volume(self.db, rows)
+            if code == 200:
+                self.send_data_response({'msg': msg})
+            else:
+                self.send_error_response((code, msg))
+
+
+class UploadSutraApi(BaseHandler):
+    URL = '/api/data/upload/sutra'
+
+    def post(self):
+        """ 批量上传经数据 """
+        upload_csv = self.request.files.get('csv')
+        content = to_basestring(upload_csv[0]['body'])
+        with StringIO(content) as fn:
+            rows = list(csv.reader(fn))
+            code, msg = import_sutra(self.db, rows)
+            if code == 200:
+                self.send_data_response({'msg': msg})
+            else:
+                self.send_error_response((code, msg))
+
+
+class UploadReelApi(BaseHandler):
+    URL = '/api/data/upload/reel'
+
+    def post(self):
+        """ 批量上传卷数据 """
+        upload_csv = self.request.files.get('csv')
+        content = to_basestring(upload_csv[0]['body'])
+        with StringIO(content) as fn:
+            rows = list(csv.reader(fn))
+            code, msg = import_reel(self.db, rows)
+            if code == 200:
+                self.send_data_response({'msg': msg})
+            else:
+                self.send_error_response((code, msg))
