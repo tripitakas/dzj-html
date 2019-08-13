@@ -77,8 +77,8 @@
                         {% for t in tripitakas %}
                         <li>
                           <a href="/t/{{t['tripitaka_code']}}">
-                            <img class="tripitaka-cover" src="{{get_img(t.get('cover_img', ''), True)}}" alt="没有找到图片"
-                                 onerror="javascript:this.src='{{static_url('imgs/tripitaka_img_not_existed.png')}}';">
+                            <img class="tripitaka-cover" src="{{static_url('imgs/cover/%s.jpg' % t['tripitaka_code'])}}" alt="没有找到图片"
+                                 onerror=javascript:this.src='{{static_url("imgs/cover/default.jpg")}}';>
                             <p>{{t['name']}}</p>
                           </a>
                         </li>

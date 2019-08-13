@@ -20,7 +20,7 @@ class TestTaskFlow(APITestCase):
         """ 测试藏经阅读 """
         for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
             r = self.fetch('/t/%s/%s?_raw=1&_no_auth=1' % (code[0], '1'))
-            self.assert_code([200, e.tripitaka_img_not_existed], r, msg=code[0])
+            self.assert_code([200, e.tripitaka_img_not_existed, e.tripitaka_not_existed], r, msg=code[0])
             if self.get_code(r) == 200:
                 d = self.parse_response(r)
                 self.assertIn('meta', d)

@@ -17,7 +17,9 @@
         </span>
         <span>
 					<a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心">
-					<img class="thumb-sm img-circle" src="{{ static_url((current_user or {}).get('img') or 'imgs/user.png') }}" style="margin-top: 10px;height: 32px; width: 32px;">
+            {% set ava = 'ava1.png' if current_user and current_user.get('gender') == '男' else 'ava2.png' if current_user and current_user.get('gender') == '女' else 'ava3.png' %}
+            {% set ava_url = current_user.get('img') if current_user and current_user.get('img') else 'imgs/' + ava %}
+					<img class="thumb-sm img-circle" src="{{ static_url(ava_url) }}" style="margin-top: 10px;height: 32px; width: 32px;">
 					</a>
 				</span>
         <span>

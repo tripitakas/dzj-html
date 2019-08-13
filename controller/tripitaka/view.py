@@ -41,7 +41,7 @@ class TripitakaHandler(BaseHandler):
             elif meta.get('img_available') == '否':
                 self.send_error_response(errors.tripitaka_img_not_existed, render=True)
 
-            store_pattern = meta.get('store_pattern')
+            store_pattern = meta.get('store_pattern') or ''
 
             # 根据存储结构补齐page_num
             name_slice = page_num.split('_') if page_num else []
@@ -70,7 +70,7 @@ class TripitakaHandler(BaseHandler):
                                 prev=cur_page - 1 or 1, next=cur_page + 1 if cur_page < last else last)
             else:
                 has_meta = False
-                cur_reel = self.db.reel.find_one({'name': cur_mulu_code})
+                cur_reel = self.db.reel.find_one({'name': cur_mulu_code}) or {}
                 if not cur_reel:
                     sutra_code = tripitaka + '_' + '_'.join(name_slice[:-2])
                     sutra_reels = list(self.db.reel.find({'sutra_code': sutra_code}).sort('reel_num', 1).limit(1))
@@ -100,9 +100,9 @@ class TripitakaHandler(BaseHandler):
     def get_mulu_tree(mulu_items, store_pattern):
         """ 获取目录信息 """
 
-        def get_title(item, field='volume_num'):
+        def get_title(item, field='volume_num', order=0):
             maps = {'envelop_num': '函', 'volume_num': '册', 'reel_num': '卷'}
-            return '第%s%s' % (item.get(field), maps.get(field))
+            return '第%s%s' % (item.get(field) or (str(order).split('_')[-1] if order else '?'), maps.get(field))
 
         def get_parent_id(id):
             return '_'.join(id.split('_')[:-1])
@@ -120,7 +120,8 @@ class TripitakaHandler(BaseHandler):
 
         if '函' in store_pattern:
             mulu_tree = {get_parent_id(item['name']): dict(
-                id=get_parent_id(item['name']), title=get_title(item, field='envelop_num'), children=[],
+                id=get_parent_id(item['name']), children=[],
+                title=get_title(item, field='envelop_num', order=get_parent_id(item['name'])),
             ) for item in mulu_items}
             children = [dict(id=item['name'], title=get_title(item), page_count=item['content_page_count'],
                              parent_id=get_parent_id(item['name']), front_cover_count=item.get('front_cover_count'),
@@ -139,8 +140,10 @@ class TripitakaHandler(BaseHandler):
                 title='%s.%s' % (re.sub(r'[_a-zA-Z]+', '', item['sutra_code']), item['sutra_name']),
                 front_cover_count=item.get('front_cover_count'), back_cover_count=item.get('back_cover_count'),
             ) for item in mulu_items}
-            children = [dict(id=item['name'], title=get_title(item, 'reel_num'), page_count=item['page_count'],
-                             parent_id=item['sutra_code']) for item in mulu_items]
+            children = [dict(id=item['name'],
+                             title=get_title(item, 'reel_num', order=item['name']),
+                             page_count=item['page_count'],
+                             parent_id=item['sutra_code']) for i, item in enumerate(mulu_items)]
             children.sort(key=cmp_to_key(cmp_mulu))
             for child in children:
                 mulu_tree[child['parent_id']]['children'].append(child)

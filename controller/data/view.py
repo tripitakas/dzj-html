@@ -6,10 +6,15 @@
 """
 import re
 import math
-import logging
 from controller.base import BaseHandler
-from controller.data.cbeta_search import find
+from controller.data.esearch import find
 from controller.data.variant import normalize
+
+try:
+    import punctuation
+    puncstr = punctuation.punc_str
+except Exception:
+    puncstr = lambda s: s
 
 
 class DataTripitakaHandler(BaseHandler):
@@ -164,3 +169,13 @@ class DataSearchCbetaHandler(BaseHandler):
                 m['hits'] = m.get('hits') or m['_source']['origin']
 
         self.render('data_cbeta_search.html', q=q, matches=matches)
+
+
+class DataPunctuationHandler(BaseHandler):
+    URL = '/data/punctuation'
+
+    def get(self):
+        """ 自动标点 """
+        q = self.get_query_argument('q', '').strip()
+        res = puncstr(q) if q else ''
+        self.render('data_punctuation.html', q=q, res=res)

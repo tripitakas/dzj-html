@@ -16,12 +16,6 @@
 </head>
 
 <style>
-  .main-left {
-    flex: 0 0 auto;
-    display: block;
-    width: 276px;
-  }
-
   .sutra-mode .main-left {
     width: 350px;
   }
@@ -44,10 +38,6 @@
     padding-right: 4px;
   }
 
-  .main-right {
-    flex: 0 1 auto;
-  }
-
   .main-right .m-header {
     left: 276px;
   }
@@ -62,10 +52,6 @@
 
   .content .content-left {
     padding: 0;
-    overflow: auto;
-    {% if page %}
-    width: 1200px;
-    {% end %}
   }
 
   .page-picture img {
@@ -144,14 +130,6 @@
                 <div class="btn-page next" title="{{nav_info.get('next')}}">></div>
                 <div class="btn-page last" title="{{nav_info.get('last')}}">末页</div>
               </div>
-              <div class="more">
-                <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
-                <span class="btn-group more-group hidden" role="group" aria-label="更多">
-                  {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-                  <button type="button" class="btn btn-default btn-sm show-{{type}}-box">{{text}}</button>
-                  {% end %}
-                </span>
-              </div>
             </div>
             <div class="right {{'' if has_text else 'hide'}}">
               <div class="txt-btns">
@@ -162,14 +140,15 @@
           </div>
         </div>
 
-        <div class="content{{'' if has_text else ' hide-right'}}">
+        <div class="content">
           <!-- 左侧图片区域 -->
           <div class="content-left">
             <div id="page-picture" class="page-picture">
               {% if page %}
               <div id="holder"></div>
               {% else %}
-              <img src="{{img_url}}" style="width: 100%" onerror="javascript:this.style.width='400px';this.src='{{static_url('imgs/tripitaka_img_not_existed.png')}}';"/>
+              <img src="{{img_url}}" style="width: 100%"
+                   onerror="javascript:this.style.width='400px';this.src='{{static_url("imgs/tripitaka_img_not_existed.png")}}';"/>
               {% end %}
             </div>
           </div>

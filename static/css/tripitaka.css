@@ -18,7 +18,7 @@
 
 /* 左侧区域 */
 .main-left {
-    flex: 0;
+    flex: 0 0 auto;
     width: 276px;
     height: 100%;
     background: var(--Color_Brown_Dark);
@@ -55,7 +55,8 @@
 
 /* 右侧区域 */
 .main-right {
-    flex: 0;
+    flex-grow: 1;
+    overflow: hidden;
     height: 100%;
     /*width: 100%;*/
     background: var(--Color_White);
@@ -319,7 +320,7 @@
 .content > .content-left {
     flex: 1;
     height: 100%;
-    overflow-y: auto;
+    overflow: auto;
     padding: 10px 20px 0;
     background: var(--Color_Grey_Content);
     font-size: 18px;
@@ -444,7 +445,7 @@
 .content > .content-center {
     flex: 1;
     height: 100%;
-    overflow-y: auto;
+    overflow: auto;
     background: var(--Color_Grey_Content1);
 }
 

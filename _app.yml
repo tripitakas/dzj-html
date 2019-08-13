@@ -20,6 +20,9 @@ site:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
 
+user:
+  init_roles: 切字校对员,文字校对员
+
 # ElasticSearch全文检索库
 esearch:
   host: 127.0.0.1
