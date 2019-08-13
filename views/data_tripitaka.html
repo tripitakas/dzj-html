@@ -248,21 +248,29 @@
     if (!regex.test(file.name)) {
       return showError('文件不是CSV类型');
     }
-    if (file.size > (10*1024 * 1024)) {
+    if (file.size > (10 * 1024 * 1024)) {
       return showError('文件大小不能超过10M');
     }
     var formData = new FormData();
     formData.append('csv', file);
-    $.ajax({
-      url: '/api/data/upload/tripitaka',
-      type: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function (res) {
+    postFileApi('/data/upload/tripitaka', formData, function (res) {
+      var args = {
+        title: "上传成功",
+        text: res.data.message,
+        type: "success",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(args, function () {
         window.location.reload();
-      }
+      });
+    }, function (err) {
+      showError('上传失败', err.message);
     });
+
     $('#upload_submit').modal('hide');
   });
 

@@ -22,11 +22,11 @@ class UploadTripitakaApi(BaseHandler):
         content = to_basestring(upload_csv[0]['body'])
         with StringIO(content) as fn:
             rows = list(csv.reader(fn))
-            code, msg = import_tripitaka(self.db, rows)
+            code, message = import_tripitaka(self.db, rows)
             if code == 200:
-                self.send_data_response({'msg': msg})
+                self.send_data_response({'message': message})
             else:
-                self.send_error_response((code, msg))
+                self.send_error_response((code, message))
 
 
 class UploadVolumeApi(BaseHandler):
@@ -38,11 +38,11 @@ class UploadVolumeApi(BaseHandler):
         content = to_basestring(upload_csv[0]['body'])
         with StringIO(content) as fn:
             rows = list(csv.reader(fn))
-            code, msg = import_volume(self.db, rows)
+            code, message = import_volume(self.db, rows)
             if code == 200:
-                self.send_data_response({'msg': msg})
+                self.send_data_response({'message': message})
             else:
-                self.send_error_response((code, msg))
+                self.send_error_response((code, message))
 
 
 class UploadSutraApi(BaseHandler):
@@ -54,11 +54,11 @@ class UploadSutraApi(BaseHandler):
         content = to_basestring(upload_csv[0]['body'])
         with StringIO(content) as fn:
             rows = list(csv.reader(fn))
-            code, msg = import_sutra(self.db, rows)
+            code, message = import_sutra(self.db, rows)
             if code == 200:
-                self.send_data_response({'msg': msg})
+                self.send_data_response({'message': message})
             else:
-                self.send_error_response((code, msg))
+                self.send_error_response((code, message))
 
 
 class UploadReelApi(BaseHandler):
@@ -70,8 +70,8 @@ class UploadReelApi(BaseHandler):
         content = to_basestring(upload_csv[0]['body'])
         with StringIO(content) as fn:
             rows = list(csv.reader(fn))
-            code, msg = import_reel(self.db, rows)
+            code, message = import_reel(self.db, rows)
             if code == 200:
-                self.send_data_response({'msg': msg})
+                self.send_data_response({'message': message})
             else:
-                self.send_error_response((code, msg))
+                self.send_error_response((code, message))

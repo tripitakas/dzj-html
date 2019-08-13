@@ -78,7 +78,7 @@ def import_tripitaka(db, csv_file_or_list, reset=False):
                 {'tripitaka_code': update.get('tripitaka_code')}, {'$set': update}, upsert=True
             )
 
-    msg = '%d added or updated in %d items.\n' % (len(rows) - 1, len(rows) - 1)
+    msg = '总共%d条记录，新增及更新%d条.\n' % (len(rows) - 1, len(rows) - 1)
     sys.stdout.write(msg)
     return 200, msg
 
@@ -155,7 +155,8 @@ def import_volume(db, csv_file_or_list, reset=False):
             else:
                 err.append(d.get('volume_code'))
 
-    msg = '%d items, %d added or updated, %d errors: %s.\n' % (len(rows) - 1, add_or_update, len(err), ','.join(err))
+    err_msg = ('：' + ','.join(err)) if len(err) else ''
+    msg = '总共%d条记录，新增及更新%d条, %d条有误%s.\n' % (len(rows) - 1, add_or_update, len(err), err_msg)
     sys.stdout.write(msg)
     return 200, msg
 
@@ -228,7 +229,8 @@ def import_sutra(db, csv_file_or_list, reset=False):
             else:
                 err.append(d.get('sutra_code'))
 
-    msg = '%d items, %d added or updated, %d errors: %s.\n' % (len(rows) - 1, add_or_update, len(err), ','.join(err))
+    err_msg = ('：' + ','.join(err)) if len(err) else ''
+    msg = '总共%d条记录，新增及更新%d条, %d条有误%s.\n' % (len(rows) - 1, add_or_update, len(err), err_msg)
     sys.stdout.write(msg)
     return 200, msg
 
@@ -299,7 +301,8 @@ def import_reel(db, csv_file_or_list, reset=False):
             else:
                 err.append('%s_%s' % (d.get('sutra_code'), d.get('reel_no')))
 
-    msg = '%d items, %d added or updated, %d errors: %s.\n' % (len(rows) - 1, add_or_update, len(err), ','.join(err))
+    err_msg = ('：' + ','.join(err)) if len(err) else ''
+    msg = '总共%d条记录，新增及更新%d条, %d条有误%s.\n' % (len(rows) - 1, add_or_update, len(err), err_msg)
     sys.stdout.write(msg)
     return 200, msg
 

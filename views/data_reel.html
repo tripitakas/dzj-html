@@ -104,17 +104,12 @@
           <h4 class="modal-title">批量上传新增</h4>
         </div>
         <div class="modal-body">
-          <i>支持上传Excel格式文件，一次最多上传1个Excel文件，文件大小不超过50MB</i>
-          <input type="file" class="form-control"/>
-          <div class="progress progress-lg">
-            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" style="width: 96%;background:#8A6D3B">
-              86%
-            </div>
-          </div>
+          <i>支持上传CSV格式文件，一次最多上传1个文件，文件大小不超过10MB</i>
+          <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="upload_submit">确定</button>
         </div>
       </div>
     </div>
@@ -331,6 +326,43 @@
   $("#add_modal_confirm").click(function () {
     console.log('add confirm');
   });
+
+  // 上传文件
+  $("#upload_submit").click(function () {
+    if (typeof $('#upload')[0].files[0] == "undefined") {
+      return showError('请选择文件');
+    }
+    var file = $('#upload')[0].files[0];
+    var regex = /\.(csv|CSV)$/;
+    if (!regex.test(file.name)) {
+      return showError('文件不是CSV类型');
+    }
+    if (file.size > (10 * 1024 * 1024)) {
+      return showError('文件大小不能超过10M');
+    }
+    var formData = new FormData();
+    formData.append('csv', file);
+    postFileApi('/data/upload/reel', formData, function (res) {
+      var args = {
+        title: "上传成功",
+        text: res.data.message,
+        type: "success",
+        showCancelButton: true,
+        confirmButtonColor: "#b8906f",
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        closeOnConfirm: false
+      };
+      swal(args, function () {
+        window.location.reload();
+      });
+    }, function (err) {
+      showError('上传失败', err.message);
+    });
+
+    $('#upload_submit').modal('hide');
+  });
+
 
   // 搜索
   $('#search-input').on("keydown", function (event) {

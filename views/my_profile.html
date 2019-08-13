@@ -224,13 +224,12 @@
     if (typeof $('#upload')[0].files[0] == "undefined") {
       return showError('请选择图片');
     }
-    imgFile = $('#upload')[0].files[0];
-    imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
+    var imgFile = $('#upload')[0].files[0];
+    var imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
     if (!imgStr.test(imgFile.name)) {
       return showError('文件不是图片类型');
     }
-    var imagSize = imgFile.size;
-    if (imagSize > (1024 * 1024)) {
+    if (imgFile.size > (1024 * 1024)) {
       return showError('文件大小不能超过1M');
     }
     var formData = new FormData();
@@ -241,7 +240,7 @@
       data: formData,
       processData: false,
       contentType: false,
-      success: function (callback) {
+      success: function (res) {
         window.location.reload();
       }
     });
