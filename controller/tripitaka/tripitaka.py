@@ -117,6 +117,7 @@ class TripitakaUploadApi(BaseHandler, Tripitaka):
         with StringIO(content) as fn:
             r = self.save_many(self.db, file_stream=fn)
             if r.get('status') == 'success':
+                self.add_op_log('upload_tripitaka', context=r.get('message'))
                 self.send_data_response({'message': r.get('message'), 'errors': r.get('errors')})
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
@@ -131,6 +132,7 @@ class TripitakaAddOrUpdateApi(BaseHandler, Tripitaka):
             data = self.get_request_data()
             r = self.save_one(self.db, data)
             if r.get('status') == 'success':
+                self.add_op_log('add_or_update_tripitaka', context=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
@@ -154,9 +156,11 @@ class TripitakaDeleteApi(BaseHandler):
             if data.get('_id'):
                 _id = objectid.ObjectId(data.get('_id'))
                 r = self.db.tripitaka.delete_one({'_id': _id})
+                self.add_op_log('delete_tripitaka', target_id=str(_id), context=r.get('name'))
             else:
                 _ids = [objectid.ObjectId(i) for i in data.get('_ids')]
                 r = self.db.tripitaka.delete_many({'_id': {'$in': _ids}})
+                self.add_op_log('delete_tripitaka', target_id=str(data.get('_ids')))
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:
