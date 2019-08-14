@@ -196,7 +196,9 @@ role_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/data/(tripitaka|volume|sutra|reel|page)': ['GET'],
-            '/api/data/upload/(tripitaka|volume|sutra|reel|page)': ['POST'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
             '/user/statistic': ['GET'],
         }
     },

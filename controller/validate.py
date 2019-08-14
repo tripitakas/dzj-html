@@ -20,6 +20,7 @@ def validate(data, rules):
     :return: 如果校验有误，则返回校验错误，格式为{key: (error_code, message)}，其中，key为data的属性。无误，则无返回值。
     """
     errs = {}
+    data['self'] = data.copy()
     for rule in rules:
         func = rule[0]
         kw = {para: data.get(para) for para in rule[1:] if isinstance(para, str)}
@@ -149,6 +150,15 @@ def is_priority(**kw):
         return {k: e.invalid_priority}
 
 
+def is_tripitaka(**kw):
+    """ 检查是否为藏经代码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}$'
+    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
+        return {k: e.invalid_tripitaka_code}
+
+
 def between(min, max, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
@@ -168,6 +178,16 @@ def in_list(lst, **kw):
         v = [v] if isinstance(v, str) else v
         not_in = [i for i in v if i not in lst]
         if not_in:
+            return {k: err}
+
+
+def has_fileds(fields, **kw):
+    """检查是否有fields中的字段"""
+    k, v = list(kw.items())[0]
+    if v:
+        need_fields = [r for r in fields if r not in v.keys()]
+        if need_fields:
+            err = e.tripitaka_field_error[0], '缺字段：%s' % ','.join(need_fields)
             return {k: err}
 
 

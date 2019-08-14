@@ -106,7 +106,7 @@ function postApi(url, data, success, error) {
  * @param success 成功回调函数，可选，参数为 data 对象或数组
  * @param error 失败回调函数，可选，参数为 msg、code
  */
-function postFileApi(url, data, success, error) {
+function postFile(url, data, success, error) {
   ajaxApi(url, 'POST', data, success, error, true);
 }
 

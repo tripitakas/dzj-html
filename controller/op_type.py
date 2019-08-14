@@ -28,7 +28,8 @@ op_types = {
     'reset_password': dict(name='重置密码'),
     'delete_user': dict(name='删除用户'),
     'change_password': dict(name='修改个人密码'),
-    'change_profile': dict(name='修改个人信息'),
+    'add_tripitaka': dict(name='新增藏数据'),
+    'update_tripitaka': dict(name='修改藏数据'),
 }
 re_map = []
 

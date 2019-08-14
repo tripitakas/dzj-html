@@ -1,9 +1,9 @@
-from . import view, api
+from . import view, api, tripitaka
 
 views = [
     view.RsTripitakaHandler, view.TripitakaListHandler, view.TripitakaHandler,
 ]
 
 handlers = [
-    api.UploadReelApi, api.UploadTripitakaApi, api.UploadSutraApi, api.UploadVolumeApi,
+    tripitaka.TripitakaAddOrUpdateApi, tripitaka.TripitakaUploadApi, tripitaka.TripitakaDeleteApi
 ]

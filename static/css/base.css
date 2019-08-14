@@ -1144,3 +1144,7 @@ a:hover {
 .modal .my-container {
     background: none;
 }
+
+.btn-delete, .btn-update, .btn-add, .btn-upload {
+    cursor: pointer;
+}
