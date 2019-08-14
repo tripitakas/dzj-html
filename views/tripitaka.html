@@ -108,7 +108,9 @@
                 <div class="btn-page prev" title="{{nav.get('prev')}}"><</div>
                 <div class="btn-page to">
                   <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
+                  {% if nav.get('last') %}
                   / <span type="tips">{{nav.get('last').split('_')[-1]}}</span>
+                  {% end %}
                 </div>
                 <div class="btn-page next" title="{{nav.get('next')}}">></div>
                 <div class="btn-page last" title="{{nav.get('last')}}">末页</div>
