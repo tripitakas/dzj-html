@@ -14,27 +14,34 @@ except ImportError:
     from io import StringIO
 
 
-class Tripitaka(object):
-    fields = ['tripitaka_code', 'name', 'short_name', 'store_pattern', 'img_available', 'img_prefix', 'img_suffix']
+class Reel(object):
+    fields = ['reel_code', 'unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_no', 'start_volume', 'start_page',
+              'end_volume', 'end_page', 'remark']
 
     @classmethod
     def get_item(cls, item):
         for k in list(item.keys()):
             if k not in cls.fields + ['_id']:
                 del item[k]
-        if item.get('_id') and isinstance(item.get('_id'), str):
-            item['_id'] = objectid.ObjectId(item.get('_id'))
+        if item.get('_id'):
+            if isinstance(item.get('_id'), str):
+                item['_id'] = objectid.ObjectId(item.get('_id'))
         else:
-            del item['_id']
+            item.pop('_id', 0)
 
+        item['reel_no'] = int(item.get('reel_no')) if item.get('reel_no') else None
+        item['start_page'] = int(item.get('start_page')) if item.get('start_page') else None
+        item['end_page'] = int(item.get('end_page')) if item.get('end_page') else None
         return item
 
     @classmethod
     def validate(cls, item):
         assert isinstance(item, dict)
         rules = [
-            (v.not_empty, 'tripitaka_code', 'name', 'short_name'),
-            (v.is_tripitaka, 'tripitaka_code'),
+            (v.not_empty, 'sutra_code', 'reel_code', 'reel_no'),
+            (v.is_digit, 'reel_no', 'start_page', 'end_page'),
+            (v.is_sutra, 'sutra_code'),
+            (v.is_reel, 'reel_code'),
         ]
         err = v.validate(item, rules)
         return err
@@ -46,18 +53,18 @@ class Tripitaka(object):
         if err:
             return dict(status='failed', errors=err)
 
-        data = db.tripitaka.find_one({'tripitaka_code': item.get('tripitaka_code')})
+        data = db.reel.find_one({'reel_code': item.get('reel_code')})
         if item.get('_id'):  # 更新
             if data and data.get('_id') != item.get('_id'):
                 return dict(status='failed', errors=e.tptk_code_existed)
             else:
-                db.tripitaka.update_one({'_id': item.get('_id')}, {'$set': item})
+                db.reel.update_one({'_id': item.get('_id')}, {'$set': item})
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
         else:  # 新增
             if data:
                 return dict(status='failed', errors=e.tptk_code_existed)
             else:
-                db.tripitaka.insert_one(item)
+                db.reel.insert_one(item)
                 return dict(status='success', id=item.get('_id'), update=False, insert=True)
 
     @classmethod
@@ -82,24 +89,24 @@ class Tripitaka(object):
         for i, item in enumerate(items):
             err = cls.validate(item)
             if err:
-                error_codes.append([item.get('tripitaka_code'), err])
-            elif item.get('tripitaka_code') in valid_codes:
-                error_codes.append([item.get('tripitaka_code'), e.tptk_code_duplicated])
+                error_codes.append([item.get('reel_code'), i, err])
+            elif item.get('reel_code') in valid_codes:
+                error_codes.append([item.get('reel_code'), i, e.tptk_code_duplicated])
             else:
                 valid_items.append(cls.get_item(item))
-                valid_codes.append(item.get('tripitaka_code'))
+                valid_codes.append(item.get('reel_code'))
 
         existed_code = []
         if check_existed:
-            existed_record = list(db.tripitaka.find({'tripitaka_code': {'$in': valid_codes}}))
-            existed_code = [i.get('tripitaka_code') for i in existed_record]
-            existed_items = [i for i in valid_items if i.get('tripitaka_code') in existed_code]
-            valid_items = [i for i in valid_items if i.get('tripitaka_code') not in existed_code]
+            existed_record = list(db.reel.find({'reel_code': {'$in': valid_codes}}))
+            existed_code = [i.get('reel_code') for i in existed_record]
+            existed_items = [i for i in valid_items if i.get('reel_code') in existed_code]
+            valid_items = [i for i in valid_items if i.get('reel_code') not in existed_code]
             for item in existed_items:
-                db.tripitaka.update_one({'tripitaka_code': item.get('tripitaka_code')}, {'$set': item})
+                db.reel.update_one({'reel_code': item.get('reel_code')}, {'$set': item})
 
         if valid_items:
-            db.tripitaka.insert_many(valid_items)
+            db.reel.insert_many(valid_items)
 
         error_tip = ('：' + ','.join([i[0] for i in error_codes])) if error_codes else ''
         message = '总共%s条记录，插入%s条，更新%s条，%s条无效数据%s。' % (
@@ -107,8 +114,8 @@ class Tripitaka(object):
         return dict(status='success', errors=error_codes, message=message)
 
 
-class TripitakaUploadApi(BaseHandler, Tripitaka):
-    URL = '/api/data/tripitaka/upload'
+class ReelUploadApi(BaseHandler, Reel):
+    URL = '/api/data/reel/upload'
 
     def post(self):
         """ 批量上传藏数据 """
@@ -117,14 +124,14 @@ class TripitakaUploadApi(BaseHandler, Tripitaka):
         with StringIO(content) as fn:
             r = self.save_many(self.db, file_stream=fn)
             if r.get('status') == 'success':
-                self.add_op_log('upload_tripitaka', context=r.get('message'))
+                self.add_op_log('upload_reel', context=r.get('message'))
                 self.send_data_response({'message': r.get('message'), 'errors': r.get('errors')})
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 
 
-class TripitakaAddOrUpdateApi(BaseHandler, Tripitaka):
-    URL = '/api/data/tripitaka'
+class ReelAddOrUpdateApi(BaseHandler, Reel):
+    URL = '/api/data/reel'
 
     def post(self):
         """ 新增或修改 """
@@ -132,7 +139,7 @@ class TripitakaAddOrUpdateApi(BaseHandler, Tripitaka):
             data = self.get_request_data()
             r = self.save_one(self.db, data)
             if r.get('status') == 'success':
-                op_type = 'update_tripitaka' if r.get('update') else 'add_tripitaka'
+                op_type = 'update_reel' if r.get('update') else 'add_reel'
                 self.add_op_log(op_type, context=r.get('message'))
                 self.send_data_response(r)
             else:
@@ -142,8 +149,8 @@ class TripitakaAddOrUpdateApi(BaseHandler, Tripitaka):
             return self.send_db_error(error)
 
 
-class TripitakaDeleteApi(BaseHandler):
-    URL = '/api/data/tripitaka/delete'
+class ReelDeleteApi(BaseHandler):
+    URL = '/api/data/reel/delete'
 
     def post(self):
         """ 批量删除 """
@@ -156,12 +163,12 @@ class TripitakaDeleteApi(BaseHandler):
 
             if data.get('_id'):
                 _id = objectid.ObjectId(data.get('_id'))
-                r = self.db.tripitaka.delete_one({'_id': _id})
-                self.add_op_log('delete_tripitaka', target_id=str(_id), context=data.get('tripitaka_code'))
+                r = self.db.reel.delete_one({'_id': _id})
+                self.add_op_log('delete_reel', target_id=str(_id), context=data.get('reel_code'))
             else:
                 _ids = [objectid.ObjectId(i) for i in data.get('_ids')]
-                r = self.db.tripitaka.delete_many({'_id': {'$in': _ids}})
-                self.add_op_log('delete_tripitaka', target_id=str(data.get('_ids')))
+                r = self.db.reel.delete_many({'_id': {'$in': _ids}})
+                self.add_op_log('delete_reel', target_id=str(data.get('_ids')))
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:

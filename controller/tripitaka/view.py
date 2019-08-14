@@ -38,13 +38,13 @@ class TripitakaHandler(BaseHandler):
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
             if not m:
-                self.send_error_response(errors.tripitaka_page_code_error, render=True)
+                self.send_error_response(errors.tptk_page_code_error, render=True)
             tripitaka_code = m.group(1)
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code}) or {}
             if not tripitaka:
-                self.send_error_response(errors.tripitaka_not_existed, render=True)
+                self.send_error_response(errors.tptk_not_existed, render=True)
             elif tripitaka.get('img_available') == '否':
-                self.send_error_response(errors.tripitaka_img_unavailable, render=True)
+                self.send_error_response(errors.tptk_img_unavailable, render=True)
 
             # 根据存储模式补齐page_code
             store_pattern = tripitaka.get('store_pattern')

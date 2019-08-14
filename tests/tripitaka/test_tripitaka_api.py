@@ -16,27 +16,27 @@ class TestTaskFlow(APITestCase):
         super(TestTaskFlow, self).tearDown()
 
     def test_api_tripitaka_upload(self):
-        # 测试上传藏csv文件
+        # 测试上传csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         tripitaka_file = path.join(META_DIR, 'Tripitaka.csv')
         if path.exists(tripitaka_file):
-            r = self.fetch('/api/data/upload/tripitaka', files={'csv': tripitaka_file}, body={})
+            r = self.fetch('/api/data/tripitaka/upload', files={'csv': tripitaka_file}, body={})
             self.assert_code(200, r)
 
     def test_api_tripitaka_add_or_update(self):
         tripitaka = self._app.db.tripitaka.find_one()
-        # 测试修改一条藏信息
+        # 测试修改一条信息
         tripitaka['remark'] = '测试数据'
         r = self.fetch('/api/data/tripitaka', body={'data': tripitaka})
         self.assert_code(200, r)
 
-        # 测试新增一条藏信息
+        # 测试新增一条信息
         self._app.db.tripitaka.delete_one({'tripitaka_code': 'YY'})
         tripitaka['tripitaka_code'] = 'YY'
         r = self.fetch('/api/data/tripitaka', body={'data': tripitaka})
         self.assert_code(200, r)
 
-        # 测试藏代码有误
+        # 测试代码有误
         tripitaka['tripitaka_code'] = '1111'
         r = self.fetch('/api/data/tripitaka', body={'data': tripitaka})
         self.assert_code(e.invalid_tripitaka_code, r)

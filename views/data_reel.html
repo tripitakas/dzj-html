@@ -342,7 +342,7 @@
     }
     var formData = new FormData();
     formData.append('csv', file);
-    postFileApi('/data/upload/reel', formData, function (res) {
+    postFile('/data/upload/reel', formData, function (res) {
       var args = {
         title: "上传成功",
         text: res.data.message,

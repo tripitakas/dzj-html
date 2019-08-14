@@ -24,7 +24,7 @@ class TestTaskFlow(APITestCase):
 
         for tripitaka in tripitakas:
             r = self.fetch('/t/%s?_raw=1&_no_auth=1' % tripitaka)
-            self.assert_code([200, e.tripitaka_img_unavailable], r, msg=tripitaka)
+            self.assert_code([200, e.tptk_img_unavailable], r, msg=tripitaka)
             if self.get_code(r) == 200:
                 d = self.parse_response(r)
                 self.assertIn('meta', d)

@@ -30,6 +30,20 @@ op_types = {
     'change_password': dict(name='修改个人密码'),
     'add_tripitaka': dict(name='新增藏数据'),
     'update_tripitaka': dict(name='修改藏数据'),
+    'delete_tripitaka': dict(name='删除藏数据'),
+    'upload_tripitaka': dict(name='上传藏数据'),
+    'add_volume': dict(name='新增册数据'),
+    'update_volume': dict(name='修改册数据'),
+    'delete_volume': dict(name='删除册数据'),
+    'upload_volume': dict(name='上传册数据'),
+    'add_sutra': dict(name='新增经数据'),
+    'update_sutra': dict(name='修改经数据'),
+    'delete_sutra': dict(name='删除经数据'),
+    'upload_sutra': dict(name='上传经数据'),
+    'add_reel': dict(name='新增卷数据'),
+    'update_reel': dict(name='修改卷数据'),
+    'delete_reel': dict(name='删除卷数据'),
+    'upload_reel': dict(name='上传卷数据'),
 }
 re_map = []
 
