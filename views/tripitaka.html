@@ -104,16 +104,24 @@
               </div>
               <div class="m-pager" style="padding: 0 5px">
                 <div class="btn-page hide" id="cur-volume">{{nav.get('cur_volume')}}</div>
+                {% if nav.get('first') %}
                 <div class="btn-page first" title="{{nav.get('first')}}">首页</div>
+                {% end %}
+                {% if nav.get('prev') %}
                 <div class="btn-page prev" title="{{nav.get('prev')}}"><</div>
+                {% end %}
                 <div class="btn-page to">
                   <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
                   {% if nav.get('last') %}
                   / <span type="tips">{{nav.get('last').split('_')[-1]}}</span>
                   {% end %}
                 </div>
+                {% if nav.get('next') %}
                 <div class="btn-page next" title="{{nav.get('next')}}">></div>
+                {% end %}
+                {% if nav.get('last') %}
                 <div class="btn-page last" title="{{nav.get('last')}}">末页</div>
+                {% end %}
               </div>
               <div class="more {{'' if page else 'hide'}}">
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
