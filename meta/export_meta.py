@@ -4,7 +4,6 @@
 import csv
 import pymongo
 import os.path as path
-from datetime import datetime, timedelta
 
 META_DIR = path.join(path.dirname(__file__), 'meta')
 db = ''
@@ -47,7 +46,7 @@ def export_sutra(tripitaka):
 def export_reel(tripitaka):
     with open(path.join(META_DIR, 'Reel-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
-        fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_no',
+        fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_code', 'reel_no',
                   'start_volume', 'start_page', 'end_volume', 'end_page', 'remark']
         writer.writerow(fields)
         rows = list(db.reel.find({'sutra_code': {'$regex': '^%s.*' % tripitaka}}))
@@ -56,14 +55,11 @@ def export_reel(tripitaka):
             writer.writerow(info)
 
 
-def get_date_time(fmt=None, diff_seconds=None):
-    time = datetime.now()
-    if diff_seconds:
-        time += timedelta(seconds=diff_seconds)
-    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
+def main(db_name='tripitaka_test', uri='localhost'):
+    global db
+    conn = pymongo.MongoClient(uri)
+    db = conn[db_name]
 
-
-def export_meta():
     export_tripitaka()
 
     tripitakas = ['GL', 'LC', 'JX', 'JS', 'FS', 'HW', 'QD', 'QS', 'SZ', 'YG', 'ZH', 'PL', 'QL', 'SX', 'YB', 'ZC']
@@ -77,13 +73,6 @@ def export_meta():
     tripitakas = ['GL', 'HW', 'KB', 'LC', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH']
     for tripitaka in tripitakas:
         export_reel(tripitaka)
-
-
-def main(db_name='tripitaka', uri='localhost'):
-    global db
-    conn = pymongo.MongoClient(uri)
-    db = conn[db_name]
-    export_meta()
 
 
 if __name__ == '__main__':

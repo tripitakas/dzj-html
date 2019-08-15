@@ -26,7 +26,6 @@ class TestTaskFlow(APITestCase):
             for f in files:
                 if path.getsize(file) > path.getsize(f):
                     file = f
-            file = path.join(META_DIR, 'Reel-QL.csv')
             r = self.fetch('/api/data/reel/upload', files={'csv': file}, body={})
             self.assert_code(200, r)
 

@@ -1,4 +1,4 @@
-from . import view, api, tripitaka, volume, sutra, reel
+from . import view, tripitaka, volume, sutra, reel
 
 views = [
     view.RsTripitakaHandler, view.TripitakaListHandler, view.TripitakaHandler,

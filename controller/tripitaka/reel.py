@@ -53,19 +53,20 @@ class Reel(object):
         if err:
             return dict(status='failed', errors=err)
 
-        data = db.reel.find_one({'reel_code': item.get('reel_code')})
         if item.get('_id'):  # 更新
-            if data and data.get('_id') != item.get('_id'):
-                return dict(status='failed', errors=e.tptk_code_existed)
-            else:
+            data = db.reel.find_one({'_id': objectid.ObjectId(item.get('_id'))})
+            if data:
                 db.reel.update_one({'_id': item.get('_id')}, {'$set': item})
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
-        else:  # 新增
-            if data:
-                return dict(status='failed', errors=e.tptk_code_existed)
             else:
-                db.reel.insert_one(item)
-                return dict(status='success', id=item.get('_id'), update=False, insert=True)
+                return dict(status='failed', errors=e.tptk_id_not_existed)
+        else:  # 新增
+            # 如果reel_no为0，则不考虑是否重复，直接插入
+            if item.get('reel_no') == 0 or not db.reel.find_one({'reel_code': item.get('reel_code')}):
+                r = db.reel.insert_one(item)
+                return dict(status='success', id=r.inserted_id, update=False, insert=True)
+            else:
+                return dict(status='failed', errors=e.tptk_code_existed)
 
     @classmethod
     def save_many(cls, db, items=None, file_stream=None, check_existed=True):
@@ -90,7 +91,8 @@ class Reel(object):
             err = cls.validate(item)
             if err:
                 error_codes.append([item.get('reel_code'), i, err])
-            elif item.get('reel_code') in valid_codes:
+            # 检查数据是否重复（check_existed为True，且reel_no不为0时）
+            elif check_existed and int(item.get('reel_no')) and item.get('reel_code') in valid_codes:
                 error_codes.append([item.get('reel_code'), i, e.tptk_code_duplicated])
             else:
                 valid_items.append(cls.get_item(item))

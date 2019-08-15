@@ -68,19 +68,19 @@ class Sutra(object):
         if err:
             return dict(status='failed', errors=err)
 
-        data = db.sutra.find_one({'sutra_code': item.get('sutra_code')})
         if item.get('_id'):  # 更新
-            if data and data.get('_id') != item.get('_id'):
-                return dict(status='failed', errors=e.tptk_code_existed)
-            else:
+            data = db.sutra.find_one({'_id': objectid.ObjectId(item.get('_id'))})
+            if data:
                 db.sutra.update_one({'_id': item.get('_id')}, {'$set': item})
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
-        else:  # 新增
-            if data:
-                return dict(status='failed', errors=e.tptk_code_existed)
             else:
-                db.sutra.insert_one(item)
-                return dict(status='success', id=item.get('_id'), update=False, insert=True)
+                return dict(status='failed', errors=e.tptk_id_not_existed)
+        else:  # 新增
+            if not db.sutra.find_one({'sutra_code': item.get('sutra_code')}):
+                r = db.sutra.insert_one(item)
+                return dict(status='success', id=r.inserted_id, update=False, insert=True)
+            else:
+                return dict(status='failed', errors=e.tptk_code_existed)
 
     @classmethod
     def save_many(cls, db, items=None, file_stream=None, check_existed=True):

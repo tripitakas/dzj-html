@@ -22,10 +22,11 @@ class Tripitaka(object):
         for k in list(item.keys()):
             if k not in cls.fields + ['_id']:
                 del item[k]
-        if item.get('_id') and isinstance(item.get('_id'), str):
-            item['_id'] = objectid.ObjectId(item.get('_id'))
+        if item.get('_id'):
+            if isinstance(item.get('_id'), str):
+                item['_id'] = objectid.ObjectId(item.get('_id'))
         else:
-            del item['_id']
+            item.pop('_id', 0)
 
         return item
 
@@ -46,19 +47,19 @@ class Tripitaka(object):
         if err:
             return dict(status='failed', errors=err)
 
-        data = db.tripitaka.find_one({'tripitaka_code': item.get('tripitaka_code')})
         if item.get('_id'):  # 更新
-            if data and data.get('_id') != item.get('_id'):
-                return dict(status='failed', errors=e.tptk_code_existed)
-            else:
+            data = db.tripitaka.find_one({'_id': objectid.ObjectId(item.get('_id'))})
+            if data:
                 db.tripitaka.update_one({'_id': item.get('_id')}, {'$set': item})
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
-        else:  # 新增
-            if data:
-                return dict(status='failed', errors=e.tptk_code_existed)
             else:
-                db.tripitaka.insert_one(item)
-                return dict(status='success', id=item.get('_id'), update=False, insert=True)
+                return dict(status='failed', errors=e.tptk_id_not_existed)
+        else:  # 新增
+            if not db.tripitaka.find_one({'tripitaka_code': item.get('tripitaka_code')}):
+                r = db.tripitaka.insert_one(item)
+                return dict(status='success', id=r.inserted_id, update=False, insert=True)
+            else:
+                return dict(status='failed', errors=e.tptk_code_existed)
 
     @classmethod
     def save_many(cls, db, items=None, file_stream=None, check_existed=True):

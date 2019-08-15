@@ -45,7 +45,7 @@ class TestTaskFlow(APITestCase):
         # 测试代码有误
         volume['volume_code'] = '1111'
         r = self.fetch('/api/data/volume', body={'data': volume})
-        self.assert_code(e.invalid_tripitaka_code, r)
+        self.assert_code(e.invalid_volume_code, r)
 
     def test_api_volume_delete(self):
         volumes = list(self._app.db.volume.find().limit(5))

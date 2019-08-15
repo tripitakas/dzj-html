@@ -68,4 +68,5 @@ tptk_page_code_error = 5002, '图片名称格式有误'
 tptk_field_error = 5004, '字段有误'
 tptk_code_duplicated = 5005, '编码重复'
 tptk_code_existed = 5006, '编码已存在'
+tptk_id_not_existed = 5007, 'id对应的记录不存在'
 
