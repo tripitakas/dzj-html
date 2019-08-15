@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import csv
 from bson import objectid
 import controller.errors as e
@@ -15,7 +16,24 @@ except ImportError:
 
 
 class Tripitaka(object):
-    fields = ['tripitaka_code', 'name', 'short_name', 'store_pattern', 'img_available', 'img_prefix', 'img_suffix']
+    fields = ['tripitaka_code', 'name', 'short_name', 'store_pattern', 'img_available', 'img_prefix',
+              'img_suffix', 'remark']
+    field_names = {
+        'tripitaka_code': '编码', 'name': '藏名', 'short_name': '简称', 'store_pattern': '存储模式',
+        'img_available': '图片是否就绪', 'img_prefix': '图片前缀', 'img_suffix': '图片后缀', 'remark': '备注',
+    }
+
+    @classmethod
+    def get_name_field(cls, name):
+        if re.match(r'[0-9a-zA-Z_]+', name):
+            return name
+        for k, v in cls.field_names.items():
+            if name == v:
+                return k
+
+    @classmethod
+    def get_field_name(cls, field):
+        return cls.field_names.get(field, field)
 
     @classmethod
     def get_item(cls, item):
@@ -72,8 +90,8 @@ class Tripitaka(object):
         """
         if not items and file_stream:
             rows = list(csv.reader(file_stream))
-            heads = rows[0]
-            need_fields = [r for r in cls.fields if r not in heads]
+            heads = [cls.get_name_field(r) for r in rows[0]]
+            need_fields = [cls.get_field_name(r) for r in cls.fields if r not in heads]
             if need_fields:
                 return dict(status='failed', code=e.tptk_field_error[0],
                             message='缺以下字段：%s' % ','.join(need_fields))
