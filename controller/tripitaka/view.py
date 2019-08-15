@@ -58,7 +58,8 @@ class TripitakaHandler(BaseHandler):
             if not cur_volume:
                 cur_volume_regex = '_'.join(name_slice[:-2]) + '_'
                 r = self.db.volume.find({'volume_code': {'$regex': cur_volume_regex}}).sort('volume_no', 1).limit(1)
-                cur_volume = list(r)[0] if r else {}
+                r = list(r)
+                cur_volume = r and r[0] or {}
 
             # 生成册导航信息
             nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_code)
