@@ -22,6 +22,7 @@ $(window).resize(function () {
 $('.m-header .toggle-btn').click(function () {
   var $mainLeft = $('.main-left');
   console.log($mainLeft.css('display'));
+  localStorage.setItem('toggleTripitaka', $mainLeft.css('display') === 'block' ? 'hide': 'show');
   if ($mainLeft.css('display') == 'block') {
     $mainLeft.hide();
     $('#main-right .m-header').css('left', 0);
@@ -30,6 +31,9 @@ $('.m-header .toggle-btn').click(function () {
     $('#main-right .m-header').css('left', $mainLeft.width());
   }
 });
+if (localStorage.getItem('toggleTripitaka') === 'hide') {
+  $('.m-header .toggle-btn').click();
+}
 
 // 显示、隐藏区域
 $('.m-header .zone-control .zone-left').click(function () {
