@@ -57,7 +57,7 @@ def import_reel(db, csv_file, reset=False):
             sys.stdout.write('import failed: %s\n' % r.get('message'))
 
 
-def main(db_name='tripitaka', uri='localhost', reset=True):
+def main(db_name='tripitaka_test', uri='localhost', reset=True):
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:
