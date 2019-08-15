@@ -18,40 +18,6 @@
   <![endif]-->
 </head>
 
-<style>
-  .btn-delete, .btn-update, .btn-add, .btn-upload {
-    cursor: pointer;
-  }
-
-  a.download-template {
-    color: #fff;
-  }
-
-  .modal .uploading {
-    font-size: 1.1em;
-  }
-
-  .modal .uploaded .title {
-    font-size: 1.1em;
-  }
-
-  .modal .uploaded .message {
-    margin: 10px 0;
-  }
-
-  .modal .uploaded .errors {
-    max-height: 150px;
-    overflow-y: auto;
-  }
-
-  .modal .uploaded .errors label {
-    font-weight: normal;
-    margin-right: 10px;
-    min-width: 90px;
-  }
-
-</style>
-
 <body>
 <div class="app-main">
   <div class="main">
@@ -72,9 +38,9 @@
                       <button type="button" class="btn btn-default waves-effect">新增藏</button>
                       <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a class="btn-add">新增藏</a></li>
+                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
                         <li class="divider"></li>
-                        <li><a class="btn-upload" id="btn-upload">批量上传藏</a></li>
+                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
                       </ul>
                     </div>
                   </div>
@@ -111,7 +77,7 @@
                       <td>{{t.get('remark') or ''}}</td>
                       <td>
                         <a class="btn-delete">删除</a>
-                        <a class="btn-update">编辑</a>
+                        <a class="btn-update">修改</a>
                       </td>
                     </tr>
                     {% end %}
@@ -128,13 +94,14 @@
   </div>
 </div>
 
+<!-- Edit Modal -->
 <div class="panel-body" style="padding: 0;">
-  <div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="myModalLabel">藏数据管理</h4>
+          <h4 class="modal-title" id="myModalLabel">修改藏数据</h4>
         </div>
         <div class="modal-body">
           <form class="form-horizontal">
@@ -233,76 +200,29 @@
 </div>
 
 {% include _base_js.html %}
+<script type="text/javascript" src="{{ static_url('js/data.js') }}"></script>
 
-<script type="text/javascript">
+<script>
 
-  // 全选/反选
-  $('#check-all').click(function () {
-    if ($(this).attr("checked") === undefined) {
-      $("table input[type='checkbox']").attr("checked", true);
-    } else {
-      $("table input[type='checkbox']").removeAttr("checked");
-    }
+  // 新增-弹框
+  $('#btn-add').click(function () {
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('新增藏数据');
+    $('#_id').val('');
+    $('#name').val('');
+    $('#short_name').val('');
+    $('#tripitaka_code').val('');
+    $('#store_pattern').val('');
+    $("#img_available").find("option[value = '否']").attr("selected", "selected");
+    $('#img_prefix').val('');
+    $('#img_suffix').val('');
   });
 
-  // 批量删除
-  $('#btn-batch-delete').click(function () {
-    var args = {
-      title: "确定批量删除吗？",
-      text: "删除后无法恢复！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定删除",
-      cancelButtonText: "取消",
-      closeOnConfirm: false
-    };
-    var _ids = [];
-    $("table tbody input:checkbox:checked").each(function () {
-      _ids.push($(this).parents('tr').attr('id'));
-    });
-    swal(args, function () {
-      postApi('/data/tripitaka/delete', {data: {_ids: _ids}}, function () {
-        showSuccess('删除成功', '数据已删除。');
-        setTimeout(function () {
-          window.location.reload();
-        }, 1500);
-      }, function (err) {
-        showError('修改失败', err.message);
-      });
-    });
-  });
-
-  // 删除
-  $('.btn-delete').click(function () {
-    var _id = $(this).parents('tr').attr('id');
-    var args = {
-      title: "确定删除吗？",
-      text: "删除后无法恢复！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定删除",
-      cancelButtonText: "取消",
-      closeOnConfirm: false
-    };
-    swal(args, function () {
-      postApi('/data/tripitaka/delete', {data: {_id: _id}}, function () {
-        showSuccess('删除成功', '数据已删除。');
-        setTimeout(function () {
-          window.location.reload();
-        }, 1500);
-      }, function (err) {
-        showError('修改失败', err.message);
-      });
-    });
-  });
-
-  // 编辑-弹框
+  // 修改-弹框
   $('.btn-update').click(function () {
     var children = $(this).parents('tr').find('td');
-    $('#roleModal').modal();
-    $("#myModalLabel").html('编辑藏');
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('修改藏数据');
     $('#_id').val($(this).parents('tr').attr('id'));
     $('#name').val(children.eq(1).text());
     $('#short_name').val(children.eq(2).text());
@@ -314,8 +234,7 @@
     $('#remark').val(children.eq(8).text());
   });
 
-
-  // 编辑-提交
+  // 修改-提交
   $("#modal_confirm").click(function () {
     var data = {
       name: $('#name').val(),
@@ -330,7 +249,6 @@
     if ($('#_id').val().trim().length !== 0) {
       data['_id'] = $('#_id').val();
     }
-    console.log(data);
     postApi('/data/tripitaka', {data: data}, function (data) {
       showSuccess('成功', '数据已提交。');
       setTimeout(function () {
@@ -339,89 +257,7 @@
     }, function (error) {
       return showError(error.code, error.message);
     });
-    $('#roleModal').modal('hide');
-  });
-
-  // 新增-弹框
-  $('.btn-add').click(function () {
-    $('#roleModal').modal();
-    $("#myModalLabel").html('新增藏');
-    $('#_id').val('');
-    $('#name').val('');
-    $('#short_name').val('');
-    $('#tripitaka_code').val('');
-    $('#store_pattern').val('');
-    $("#img_available").find("option[value = '否']").attr("selected", "selected");
-    $('#img_prefix').val('');
-    $('#img_suffix').val('');
-  });
-
-  // 上传-弹框
-  $('#btn-upload').click(function () {
-    $('.modal .uploading .tick').text('');
-    $('.modal .uploading').addClass('hide');
-    $('.modal .uploaded').addClass('hide');
-    $('#uploadModal').modal();
-  });
-
-  var error = '';
-  // 上传-提交
-  $("#uploadModal #upload_submit").click(function () {
-    if (typeof $('#upload')[0].files[0] == "undefined") {
-      return showError('请选择文件');
-    }
-    var file = $('#upload')[0].files[0];
-    var regex = /\.(csv|CSV)$/;
-    if (!regex.test(file.name)) {
-      return showError('文件不是CSV类型');
-    }
-    if (file.size > (10 * 1024 * 1024)) {
-      return showError('文件大小不能超过10M');
-    }
-
-    $('.modal .uploading').removeClass('hide');
-    setInterval(function () {
-      if (!$('.modal .uploading').hasClass('hide')) {
-        $('.uploading .tick').text($('.uploading .tick').text() + '·');
-      }
-    }, 1000);
-
-    var formData = new FormData();
-    formData.append('csv', file);
-    postFile('/data/tripitaka/upload', formData, function (res) {
-      $('.modal .uploading').addClass('hide');
-      $('.modal .uploaded').removeClass('hide');
-      $('.modal .uploaded .message').text(res.data.message);
-      if (res.data.errors.length > 0) {
-        error = res.data.errors[0];
-        var $ul = res.data.errors.map(function (error) {
-          return "<li><label>" + error[0] + "</label><span>" + error[1][Object.keys(error[1])[0]][1] + "</span></li>";
-        }).join('');
-        console.log($ul);
-        $('.modal .uploaded .errors ul').html($ul);
-      }
-      $('#upload_submit').addClass('hide');
-      $('#confirm').removeClass('hide');
-    }, function (err) {
-      showError('上传失败', err.message);
-    });
-
-    $('#upload_submit').modal('hide');
-  });
-
-  // 上传-确定
-  $('#uploadModal #confirm').click(function () {
-    $('#upload_submit').modal('hide');
-    window.location.reload();
-  });
-
-  // 搜索
-  $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
-      var q = $(this).val().trim();
-      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
-    }
+    $('#updateModal').modal('hide');
   });
 
 </script>

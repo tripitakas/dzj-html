@@ -39,7 +39,7 @@ class Tripitaka(object):
     def get_item(cls, item):
         for k in list(item.keys()):
             if k not in cls.fields + ['_id']:
-                del item[k]
+                item.pop(k, 0)
         if item.get('_id'):
             if isinstance(item.get('_id'), str):
                 item['_id'] = objectid.ObjectId(item.get('_id'))

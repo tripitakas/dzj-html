@@ -41,7 +41,7 @@ class Reel(object):
     def get_item(cls, item):
         for k in list(item.keys()):
             if k not in cls.fields + ['_id']:
-                del item[k]
+                item.pop(k, 0)
         if item.get('_id'):
             if isinstance(item.get('_id'), str):
                 item['_id'] = objectid.ObjectId(item.get('_id'))
@@ -98,7 +98,7 @@ class Reel(object):
         """
         if not items and file_stream:
             rows = list(csv.reader(file_stream))
-            heads = rows[0]
+            heads = [cls.get_name_field(r) for r in rows[0]]
             need_fields = [cls.get_field_name(r) for r in cls.fields if r not in heads]
             if need_fields:
                 return dict(status='failed', code=e.tptk_field_error[0],

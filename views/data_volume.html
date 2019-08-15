@@ -18,6 +18,14 @@
   <![endif]-->
 </head>
 
+<style>
+  .content-pages {
+    text-overflow:ellipsis
+    width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+</style>
 
 <body>
 <div class="app-main">
@@ -33,26 +41,26 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span>批量删除</span>
-                    <span>下载模板</span>
+                    <span id="btn-batch-delete">批量删除</span>
+                    <span><a class="download-template" href="/static/template/volume-sample.csv">下载模板</a></span>
                     <div class="btn-group dropdown">
                       <button type="button" class="btn btn-default waves-effect">新增册</button>
                       <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a href="javascript:add();">新增册</a></li>
+                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
                         <li class="divider"></li>
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#batModal">批量上传册</a></li>
+                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
                       </ul>
                     </div>
                   </div>
                   <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索册编码">
+                    <input id="search-input" type="text" placeholder="请搜索册编码" value="{{q}}">
                     <i class="ser-btn"></i>
                   </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
-                      <th><input type="checkbox"/></th>
+                      <th><input id="check-all" type="checkbox"/></th>
                       <th><span>藏编码</span></th>
                       <th><span>册编码</span></th>
                       <th><span>函序号</span></th>
@@ -67,8 +75,8 @@
 
                     <tbody>
                     {% for v in volumes %}
-                    <tr>
-                      <td><input type="checkbox" id="{{v['volume_code']}}" value=""/></td>
+                    <tr id="{{v.get('_id')}}">
+                      <td><input type="checkbox"/></td>
                       <td>{{v.get('tripitaka_code')}}</td>
                       <td>{{v.get('volume_code')}}</td>
                       <td>{{v.get('envelop_no') or ''}}</td>
@@ -77,10 +85,12 @@
                       <td>{{len(v.get('front_cover_pages') or [])}}</td>
                       <td>{{len(v.get('back_cover_pages') or [])}}</td>
                       <td>{{v['remark']}}</td>
+                      <td class="content_pages hide">{{v.get('content_pages')}}</td>
+                      <td class="front_cover_pages hide">{{v.get('front_cover_pages')}}</td>
+                      <td class="back_cover_pages hide">{{v.get('back_cover_pages')}}</td>
                       <td>
-                        <a href="javascript:modify();">查看</a>
-                        <a href="javascript:modify();">编辑</a>
-                        <a href="javascript:del(12);">删除</a>
+                        <a class="btn-delete">删除</a>
+                        <a class="btn-update">修改</a>
                       </td>
                     </tr>
                     {% end %}
@@ -97,143 +107,64 @@
   </div>
 </div>
 
-<!-- Upload Modal -->
-<div class="panel-body" style="padding-bottom: 2px;">
-  <div id="batModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">批量上传新增</h4>
-        </div>
-        <div class="modal-body">
-          <i>支持上传CSV格式文件，一次最多上传1个文件，文件大小不超过10MB</i>
-          <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="upload_submit">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Add Modal -->
-<div class="panel-body" style="padding: 0;">
-  <div id="addModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">新增册</h4>
-        </div>
-        <div class="modal-body">
-          <form class="form-horizontal">
-            <div class="form-group">
-              <label class="col-sm-2 control-label">册编码</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-2 control-label">册序号</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">正文页数</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">现存正文页数</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">封面页数</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">封底页数</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">备注</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" data-dismiss="modal" id="add_modal_confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Edit Modal -->
 <div class="panel-body" style="padding: 0;">
-  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">编辑册</h4>
+          <h4 class="modal-title">修改册数据</h4>
         </div>
         <div class="modal-body">
           <form class="form-horizontal">
+            <input type="text" class="form-control hide" value="" id="_id">
+            <div class="form-group">
+              <label class="col-sm-2 control-label">藏编码</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="tripitaka_code">
+              </div>
+            </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">册编码</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="">
+                <input type="text" class="form-control" value="" id="volume_code">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">函序号</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="envelop_no">
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">册序号</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="">
+                <input type="text" class="form-control" value="" id="volume_no">
               </div>
             </div>
             <div class="form-group">
-              <label class="col-md-2 control-label">正文页数</label>
+              <label class="col-md-2 control-label">正文页</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
+                <textarea type="text" class="form-control" value="" id="content_pages" style="min-height: 150px"></textarea>
               </div>
             </div>
             <div class="form-group">
-              <label class="col-md-2 control-label">现存正文页数</label>
+              <label class="col-md-2 control-label">封面页</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
+                <textarea type="text" class="form-control" value="" id="front_cover_pages"></textarea>
               </div>
             </div>
             <div class="form-group">
-              <label class="col-md-2 control-label">封面页数</label>
+              <label class="col-md-2 control-label">封底页</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">封底页数</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
+                <textarea type="text" class="form-control" value="" id="back_cover_pages"></textarea>
               </div>
             </div>
             <div class="form-group">
               <label class="col-md-2 control-label">备注</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value=" ">
+                <textarea type="text" class="form-control" id="remark"></textarea>
               </div>
             </div>
           </form>
@@ -247,103 +178,100 @@
   </div>
 </div>
 
+<!-- Upload Modal -->
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">批量上传</h4>
+        </div>
+        <div class="modal-body">
+          <i>支持上传CSV格式文件，一次最多上传1个文件，文件大小不超过10MB</i>
+          <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
+        </div>
+        <div class="uploading hide">上传中<span class="tick"></span></div>
+        <div class="uploaded hide">
+          <div class="title">上传成功</div>
+          <div class="message"></div>
+          <div class="errors">
+            <ul></ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="upload_submit">上传</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light hide" id="confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include _base_js.html %}
-<script type="text/javascript">
-  /**
-   * 删除记录
-   * @param {Object} name 删除行的标记名
-   */
-  function del(name) {
-    swal({
-          title: "确定删除" + name + "的记录吗？",
-          text: "帐号删除后无法恢复！",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#b8906f",
-          confirmButtonText: "确定删除",
-          cancelButtonText: "取消",
-          closeOnConfirm: false
-        },
-        function () {
-          //此处调用后台删除逻辑(ajax)
+<script type="text/javascript" src="{{ static_url('js/data.js') }}"></script>
 
-          //如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-          swal({
-            title: "删除！",
-            text: name + "的记录已经被删除。",
-            type: "success",
-            confirmButtonColor: "#b8906f",
-            confirmButtonText: "确定"
-          });
-        });
-  }
+<script>
 
-  //编辑卷
-  function modify() {
-    $('#modifyModal').modal();
-  }
+  // 新增-弹框
+  $('#btn-add').click(function () {
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('新增册数据');
+    $('#_id').val('');
+    $('#tripitaka_code').val('');
+    $('#volume_code').val('');
+    $('#envelop_no').val('');
+    $('#volume_no').val('');
+    $('#content_pages').val('');
+    $('#front_cover_pages').val('');
+    $('#back_cover_pages').val('');
+    $('#remark').val('');
+  });
 
-  //新增卷
-  function add() {
-    $('#addModal').modal();
+  // 修改-弹框
+  $('.btn-update').click(function () {
+    var children = $(this).parents('tr').find('td');
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('修改册数据');
+    $('#_id').val($(this).parents('tr').attr('id'));
+    $('#tripitaka_code').val(children.eq(1).text());
+    $('#volume_code').val(children.eq(2).text());
+    $('#envelop_no').val(children.eq(3).text());
+    $('#volume_no').val(children.eq(4).text());
+    $('#content_pages').val(children.eq(9).text());
+    $('#front_cover_pages').val(children.eq(10).text());
+    $('#back_cover_pages').val(children.eq(11).text());
+    $('#remark').val(children.eq(8).text());
+  });
 
-  }
-
-  //编辑框的确定按钮
+  // 修改-提交
   $("#modal_confirm").click(function () {
-    $('#modi	fyModal').modal('hide');
-    console.log('modify confirm');
-  });
-
-  //新增框的确定按钮
-  $("#add_modal_confirm").click(function () {
-    console.log('add confirm');
-  });
-
-  // 上传文件
-  $("#upload_submit").click(function () {
-    if (typeof $('#upload')[0].files[0] == "undefined") {
-      return showError('请选择文件');
+    var data = {
+      tripitaka_code: $('#tripitaka_code').val(),
+      volume_code: $('#volume_code').val(),
+      envelop_no: $('#envelop_no').val(),
+      volume_no: $('#volume_no').val(),
+      content_pages: $('#content_pages').val(),
+      front_cover_pages: $('#front_cover_pages').val(),
+      back_cover_pages: $('#back_cover_pages').val(),
+      remark: $('#remark').val()
+    };
+    if ($('#_id').val().trim().length !== 0) {
+      data['_id'] = $('#_id').val();
     }
-    var file = $('#upload')[0].files[0];
-    var regex = /\.(csv|CSV)$/;
-    if (!regex.test(file.name)) {
-      return showError('文件不是CSV类型');
-    }
-    if (file.size > (10 * 1024 * 1024)) {
-      return showError('文件大小不能超过10M');
-    }
-    var formData = new FormData();
-    formData.append('csv', file);
-    postFile('/data/upload/volume', formData, function (res) {
-      var args = {
-        title: "上传成功",
-        text: res.data.message,
-        type: "success",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(args, function () {
+    postApi('/data/volume', {data: data}, function (data) {
+      showSuccess('成功', '数据已提交。');
+      setTimeout(function () {
         window.location.reload();
-      });
-    }, function (err) {
-      showError('上传失败', err.message);
+      }, 1500);
+    }, function (error) {
+      return showError(error.code, error.message);
     });
-
-    $('#upload_submit').modal('hide');
+    $('#updateModal').modal('hide');
   });
 
-  // 搜索
-  $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
-      var q = $(this).val().trim();
-      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
-    }
-  });
+
 </script>
 
 </body>

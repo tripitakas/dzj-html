@@ -43,7 +43,7 @@ class Volume(object):
     def get_item(cls, item):
         for k in list(item.keys()):
             if k not in cls.fields + ['_id']:
-                del item[k]
+                item.pop(k, 0)
         if item.get('_id'):
             if isinstance(item.get('_id'), str):
                 item['_id'] = objectid.ObjectId(item.get('_id'))
@@ -54,7 +54,8 @@ class Volume(object):
             content_pages = json.loads(item['content_pages'].replace("'", '"'))
             content_pages.sort(key=cmp_to_key(cmp_page_code))
             item['content_pages'] = content_pages
-            item['content_pages_count'] = len(content_pages)
+
+        item['content_page_count'] = len(item['content_pages'])
 
         if item.get('front_cover_pages') and isinstance(item.get('front_cover_pages'), str):
             front_cover_pages = json.loads(item['front_cover_pages'].replace("'", '"'))

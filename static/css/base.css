@@ -844,3 +844,38 @@ a:hover {
     padding-top: 45px;
 }
 
+/* 数据管理 */
+.btn-delete, .btn-update, .btn-add, .btn-upload {
+    cursor: pointer;
+}
+
+a.download-template {
+    color: #fff;
+}
+
+.modal .uploading {
+    font-size: 1.1em;
+}
+
+.modal .uploaded .title {
+    font-size: 1.1em;
+}
+
+.modal .uploaded .message {
+    margin: 10px 0;
+}
+
+.modal .uploaded .errors {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.modal .uploaded .errors label {
+    font-weight: normal;
+    margin-right: 10px;
+    min-width: 90px;
+}
+
+.modal .tick {
+    word-wrap:break-word;
+}
