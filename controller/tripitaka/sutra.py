@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import re
 import csv
 import json
 from bson import objectid
@@ -20,6 +20,23 @@ except ImportError:
 class Sutra(object):
     fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'due_reel_count', 'existed_reel_count', 'author',
               'trans_time', 'start_volume', 'start_page', 'end_volume', 'end_page', 'remark']
+    field_names = {
+        'unified_sutra_code': '统一编码', 'sutra_code': '经编码', 'sutra_name': '经名', 'due_reel_count': '应存卷数',
+        'existed_reel_count': '实存卷数', 'author': '作译者', 'trans_time': '翻译时间', 'start_volume': '起始册',
+        'start_page': '起始页', 'end_volume': '终止册', 'end_page': '终止页', 'remark': '备注',
+    }
+
+    @classmethod
+    def get_name_field(cls, name):
+        if re.match(r'[0-9a-zA-Z_]+', name):
+            return name
+        for k, v in cls.field_names.items():
+            if name == v:
+                return k
+
+    @classmethod
+    def get_field_name(cls, field):
+        return cls.field_names.get(field, field)
 
     @classmethod
     def get_item(cls, item):
@@ -93,8 +110,8 @@ class Sutra(object):
         """
         if not items and file_stream:
             rows = list(csv.reader(file_stream))
-            heads = rows[0]
-            need_fields = [r for r in cls.fields if r not in heads]
+            heads = [cls.get_name_field(r) for r in rows[0]]
+            need_fields = [cls.get_field_name(r) for r in cls.fields if r not in heads]
             if need_fields:
                 return dict(status='failed', code=e.tptk_field_error[0],
                             message='缺以下字段：%s' % ','.join(need_fields))

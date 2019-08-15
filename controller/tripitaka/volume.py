@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import csv
 import json
 from bson import objectid
@@ -20,6 +21,23 @@ except ImportError:
 class Volume(object):
     fields = ['volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_page_count', 'content_pages',
               'front_cover_pages', 'back_cover_pages', 'remark']
+    field_names = {
+        'tripitaka_code': '藏编码', 'volume_code': '册编码', 'envelop_no': '函序号', 'volume_no': '册序号',
+        'content_page_count': '正文页数', 'content_pages': '正文页', 'front_cover_pages': '封面页',
+        'back_cover_pages': '封底页', 'remark': '备注',
+    }
+
+    @classmethod
+    def get_name_field(cls, name):
+        if re.match(r'[0-9a-zA-Z_]+', name):
+            return name
+        for k, v in cls.field_names.items():
+            if name == v:
+                return k
+
+    @classmethod
+    def get_field_name(cls, field):
+        return cls.field_names.get(field, field)
 
     @classmethod
     def get_item(cls, item):
@@ -41,7 +59,7 @@ class Volume(object):
         if item.get('front_cover_pages') and isinstance(item.get('front_cover_pages'), str):
             front_cover_pages = json.loads(item['front_cover_pages'].replace("'", '"'))
             front_cover_pages.sort(key=cmp_to_key(cmp_page_code))
-            item['content_pages'] = front_cover_pages
+            item['front_cover_pages'] = front_cover_pages
 
         if item.get('back_cover_pages') and isinstance(item.get('back_cover_pages'), str):
             back_cover_pages = json.loads(item['back_cover_pages'].replace("'", '"'))
@@ -94,8 +112,8 @@ class Volume(object):
         """
         if not items and file_stream:
             rows = list(csv.reader(file_stream))
-            heads = rows[0]
-            need_fields = [r for r in cls.fields if r not in heads]
+            heads = [cls.get_name_field(r) for r in rows[0]]
+            need_fields = [cls.get_field_name(r) for r in cls.fields if r not in heads]
             if need_fields:
                 return dict(status='failed', code=e.tptk_field_error[0],
                             message='缺以下字段：%s' % ','.join(need_fields))

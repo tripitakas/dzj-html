@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import csv
 from bson import objectid
 import controller.errors as e
@@ -15,8 +16,26 @@ except ImportError:
 
 
 class Reel(object):
-    fields = ['reel_code', 'unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_no', 'start_volume', 'start_page',
+    fields = ['unified_sutra_code', 'sutra_code', 'sutra_name', 'reel_code', 'reel_no', 'start_volume', 'start_page',
               'end_volume', 'end_page', 'remark']
+    field_names = {
+        'unified_sutra_code': '统一编码', 'sutra_code': '经编码', 'sutra_name': '经名', 'reel_code': '卷编码',
+        'reel_no': '卷序号', 'start_volume': '起始册', 'start_page': '起始页', 'end_volume': '终止册',
+        'end_page': '终止页', 'remark': '备注',
+    }
+
+    @classmethod
+    def get_name_field(cls, name):
+        if re.match(r'[0-9a-zA-Z_]+', name):
+            return name
+        for k, v in cls.field_names.items():
+            if name == v:
+                return k
+
+    @classmethod
+    def get_field_name(cls, field):
+        return cls.field_names.get(field, field)
+
 
     @classmethod
     def get_item(cls, item):
@@ -80,7 +99,7 @@ class Reel(object):
         if not items and file_stream:
             rows = list(csv.reader(file_stream))
             heads = rows[0]
-            need_fields = [r for r in cls.fields if r not in heads]
+            need_fields = [cls.get_field_name(r) for r in cls.fields if r not in heads]
             if need_fields:
                 return dict(status='failed', code=e.tptk_field_error[0],
                             message='缺以下字段：%s' % ','.join(need_fields))
