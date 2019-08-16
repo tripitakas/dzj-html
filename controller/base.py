@@ -244,7 +244,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def add_op_log(self, op_type, target_id=None, context=None, nickname=None):
         op_name = get_op_name(op_type)
-        assert op_name
+        assert op_name, op_type + ' need add into op_type.py'
         logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
         try:
             self.db.log.insert_one(dict(
