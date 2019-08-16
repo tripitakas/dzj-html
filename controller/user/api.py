@@ -409,7 +409,7 @@ class SendUserEmailCodeApi(BaseHandler):
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
         mail_host = "smtp.qq.com"
-        mail_port = self.config['email'].get('port', 485)
+        mail_port = self.config['email'].get('port') or 465
         try:
             smtplib.SMTP_SSL()
             server = smtplib.SMTP(mail_host, mail_port, timeout=5)
