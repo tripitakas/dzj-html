@@ -20,6 +20,7 @@ def validate(data, rules):
     :return: 如果校验有误，则返回校验错误，格式为{key: (error_code, message)}，其中，key为data的属性。无误，则无返回值。
     """
     errs = {}
+    data['self'] = data.copy()
     for rule in rules:
         func = rule[0]
         kw = {para: data.get(para) for para in rule[1:] if isinstance(para, str)}
@@ -45,7 +46,6 @@ def i18n_trans(key):
         'task_type': '任务类型',
         'pages': '页码',
         'pages_file': '页码文件',
-
 
     }
     return maps[key] if key in maps else key
@@ -99,7 +99,8 @@ def is_name(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[\u4E00-\u9FA5]{2,5}$|^[A-Za-z][A-Za-z -]{2,19}$'
-    if v and not re.match(regex, v):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, v):
         return {k: e.invalid_name}
 
 
@@ -108,7 +109,8 @@ def is_phone(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^1[34578]\d{9}$'
-    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
         return {k: e.invalid_phone}
 
 
@@ -117,7 +119,8 @@ def is_email(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
-    if v and not re.match(regex, v):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, v):
         return {k: e.invalid_email}
 
 
@@ -127,7 +130,8 @@ def is_phone_or_email(**kw):
     k, v = list(kw.items())[0]
     email_regex = r'^[a-z0-9][a-z0-9_.-]+@[a-z0-9_-]+(\.[a-z]+){1,2}$'
     phone_regex = r'^1[34578]\d{9}$'
-    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(email_regex, v) and not re.match(phone_regex, v):
         return {k: e.invalid_phone_or_email}
 
 
@@ -136,7 +140,8 @@ def is_password(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^(?![0-9]+$)(?![a-zA-Z]+$)[A-Za-z0-9,.;:!@#$%^&*-_]{6,18}$'
-    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
         return {k: e.invalid_password}
 
 
@@ -145,8 +150,56 @@ def is_priority(**kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
     regex = r'^[123]$'
-    if v and not re.match(regex, str(v)):  # 值为空或空串时跳过而不检查
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
         return {k: e.invalid_priority}
+
+
+def is_tripitaka(**kw):
+    """ 检查是否为藏编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_tripitaka_code}
+
+
+def is_volume(**kw):
+    """ 检查是否为册编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}(_\d+)+$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_volume_code}
+
+
+def is_sutra(**kw):
+    """ 检查是否为经编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}\d{4,}$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_sutra_code}
+
+
+def is_reel(**kw):
+    """ 检查是否为卷编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}\d{4,}_\d*$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_reel_code}
+
+
+def is_digit(**kw):
+    """ 检查是否为数字。"""
+    code, message = e.invalid_digit
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(r'^\d+$', str(v))}
+    return errs or None
 
 
 def between(min, max, **kw):
@@ -168,6 +221,16 @@ def in_list(lst, **kw):
         v = [v] if isinstance(v, str) else v
         not_in = [i for i in v if i not in lst]
         if not_in:
+            return {k: err}
+
+
+def has_fileds(fields, **kw):
+    """检查是否有fields中的字段"""
+    k, v = list(kw.items())[0]
+    if v:
+        need_fields = [r for r in fields if r not in v.keys()]
+        if need_fields:
+            err = e.tptk_field_error[0], '缺字段：%s' % ','.join(need_fields)
             return {k: err}
 
 

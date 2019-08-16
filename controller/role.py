@@ -13,8 +13,7 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'task_type': r'[a-z]+_cut_[a-z]+|text_\w+',
-    'tripitaka': r'[A-Z]{1,2}',
-    'page_num': r'\d+[0-9_]*',
+    'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
@@ -55,8 +54,7 @@ role_maps = {
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
-            '/t/@tripitaka': ['GET'],
-            '/t/@tripitaka/@page_num': ['GET'],
+            '/t/@page_code': ['GET'],
             '/data/punctuation': ['GET'],
             '/data/cbeta/search': ['GET'],
             '/task/@task_type/@page_name': ['GET'],
@@ -197,7 +195,10 @@ role_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/data/(tripitaka|envelop|volume|sutra|reel|page)': ['GET'],
+            '/data/(tripitaka|volume|sutra|reel|page)': ['GET'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
+            '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
             '/user/statistic': ['GET'],
         }
     },

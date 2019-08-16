@@ -32,16 +32,26 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span onclick="javascript:add();">新增藏</span>
+                    <span id="btn-batch-delete">批量删除</span>
+                    <span><a class="download-template" href="/static/template/tripitaka-sample.csv">下载模板</a></span>
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-default waves-effect">新增藏</button>
+                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                      <ul class="dropdown-menu" role="menu">
+                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
+                        <li class="divider"></li>
+                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
+                      </ul>
+                    </div>
                   </div>
                   <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索藏名和编码">
+                    <input id="search-input" type="text" placeholder="请搜索藏名和编码" value="{{q}}">
                     <i class="ser-btn"></i>
                   </div>
                   <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
-                      <th><input type="checkbox"/></th>
+                      <th><input id="check-all" type="checkbox"/></th>
                       <th>藏名</th>
                       <th>简称</th>
                       <th>编码</th>
@@ -49,21 +59,26 @@
                       <th>图片是否就绪</th>
                       <th>图片前缀</th>
                       <th>图片后缀</th>
+                      <th>备注</th>
                       <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for t in tripitakas %}
-                    <tr>
-                      <td><input type="checkbox" id="{{t.get('tripitaka_code')}}" value=""/></td>
-                      <td>{{t.get('name')}}</td>
-                      <td>{{t.get('short_name')}}</td>
-                      <td>{{t.get('tripitaka_code')}}</td>
-                      <td>{{t.get('store_pattern')}}</td>
-                      <td>{{t.get('img_available')}}</td>
-                      <td>{{t.get('img_prefix')}}</td>
-                      <td>{{t.get('img_suffix')}}</td>
-                      <td><a href="javascript:del(12);">删除</a><a href="javascript:modify();">编辑</a></td>
+                    <tr id="{{t.get('_id')}}">
+                      <td><input type="checkbox"/></td>
+                      <td>{{t.get('name') or ''}}</td>
+                      <td>{{t.get('short_name') or ''}}</td>
+                      <td>{{t.get('tripitaka_code') or ''}}</td>
+                      <td>{{t.get('store_pattern') or ''}}</td>
+                      <td>{{t.get('img_available') or ''}}</td>
+                      <td>{{t.get('img_prefix') or ''}}</td>
+                      <td>{{t.get('img_suffix') or ''}}</td>
+                      <td>{{t.get('remark') or ''}}</td>
+                      <td>
+                        <a class="btn-delete">删除</a>
+                        <a class="btn-update">修改</a>
+                      </td>
                     </tr>
                     {% end %}
                     </tbody>
@@ -79,50 +94,67 @@
   </div>
 </div>
 
+<!-- Edit Modal -->
 <div class="panel-body" style="padding: 0;">
-  <div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="myModalLabel">藏数据管理</h4>
+          <h4 class="modal-title" id="myModalLabel">修改藏数据</h4>
         </div>
         <div class="modal-body">
           <form class="form-horizontal">
+            <input type="text" class="form-control hide" value="" id="_id">
             <div class="form-group">
               <label class="col-sm-2 control-label">藏名</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="藏名" id="dlg_name">
+                <input type="text" class="form-control" value="" id="name">
               </div>
             </div>
             <div class="form-group">
               <label class="col-sm-2 control-label">简称</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="这里写简称" id="dlg_short_name">
+                <input type="text" class="form-control" value="" id="short_name">
               </div>
             </div>
             <div class="form-group">
               <label class="col-md-2 control-label">编码</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="这里写编码" id="dlg_code">
+                <input type="text" class="form-control" value="" id="tripitaka_code">
               </div>
             </div>
             <div class="form-group">
-              <label class="col-sm-2 control-label">编码规则</label>
+              <label class="col-md-2 control-label">存储模式</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="store_pattern">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">图片是否就绪</label>
               <div class="col-sm-10">
-                <select class="form-control" id="dlg_rule">
-                  <option value="1">规则一</option>
-                  <option value="2">规则二</option>
-                  <option value="3">规则三</option>
-                  <option value="4">规则四</option>
-                  <option value="5">规则五</option>
+                <select class="form-control" id="img_available">
+                  <option value="是">是</option>
+                  <option value="否">否</option>
                 </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-2 control-label">图片前缀</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="img_prefix">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-md-2 control-label">图片后缀</label>
+              <div class="col-md-10">
+                <input type="text" class="form-control" value="" id="img_suffix">
               </div>
             </div>
             <div class="form-group">
               <label class="col-md-2 control-label">备注</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" value="填写备注" id="dlg_summary">
+                <textarea class="form-control" value="" id="remark"></textarea>
               </div>
             </div>
           </form>
@@ -136,84 +168,96 @@
   </div>
 </div>
 
+<!-- Upload Modal -->
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">批量上传</h4>
+        </div>
+        <div class="modal-body">
+          <i>支持上传CSV格式文件，一次最多上传1个文件，文件大小不超过10MB</i>
+          <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
+        </div>
+        <div class="uploading hide">上传中<span class="tick"></span></div>
+        <div class="uploaded hide">
+          <div class="title">上传成功</div>
+          <div class="message"></div>
+          <div class="errors">
+            <ul></ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="upload_submit">上传</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light hide" id="confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% include _base_js.html %}
+<script type="text/javascript" src="{{ static_url('js/data.js') }}"></script>
 
-<script type="text/javascript">
+<script>
 
-  /**
-   * 删除记录
-   * @param {Object} name 删除行的标记名
-   */
-  function delUser(name) {
-    swal({
-          title: "确定删除" + name + "的记录吗？",
-          text: "帐号删除后无法恢复！",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#b8906f",
-          confirmButtonText: "确定删除",
-          cancelButtonText: "取消",
-          closeOnConfirm: false
-        },
-        function () {
-          //此处调用后台删除逻辑(ajax)
+  // 新增-弹框
+  $('#btn-add').click(function () {
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('新增藏数据');
+    $('#_id').val('');
+    $('#name').val('');
+    $('#short_name').val('');
+    $('#tripitaka_code').val('');
+    $('#store_pattern').val('');
+    $("#img_available").find("option[value = '否']").attr("selected", "selected");
+    $('#img_prefix').val('');
+    $('#img_suffix').val('');
+  });
 
-          //如果不需要这个对话框，可直接删掉，并将上面一句closeOnConfirm: false改为true
-          swal({
-            title: "删除！",
-            text: name + "的记录已经被删除。",
-            type: "success",
-            confirmButtonColor: "#b8906f",
-            confirmButtonText: "确定"
-          });
-        });
-  }
+  // 修改-弹框
+  $('.btn-update').click(function () {
+    var children = $(this).parents('tr').find('td');
+    $('#updateModal').modal();
+    $("#updateModal .modal-title").html('修改藏数据');
+    $('#_id').val($(this).parents('tr').attr('id'));
+    $('#name').val(children.eq(1).text());
+    $('#short_name').val(children.eq(2).text());
+    $('#tripitaka_code').val(children.eq(3).text());
+    $('#store_pattern').val(children.eq(4).text());
+    $("#img_available").find("option[value = '" + children.eq(5).text() + "']").attr("selected", "selected");
+    $('#img_prefix').val(children.eq(6).text());
+    $('#img_suffix').val(children.eq(7).text());
+    $('#remark').val(children.eq(8).text());
+  });
 
-  /**
-   * 编辑
-   * @param {Object} name 该行的藏名
-   * @param {Object} short_name 该行的简称
-   * @param {Object} code 该行的编码
-   * @param {Object} rule 该行的存储规则
-   * @param {Object} summary 该行的备注
-   */
-  function modify(name, short_name, code, rule, summary) {
-    $('#roleModal').modal();
-    $("#myModalLabel").html('编辑藏');
-    $('#dlg_name').val(name);
-    $('#dlg_short_name').val(name);
-    $('#dlg_code').val(name);
-    $('#dlg_summary').val(name);
-    $("#dlg_rule").find("option[value = '" + rule + "']").attr("selected", "selected");
-    $("#dlg_rule").find("option[value = '" + rule + "']").prop("selected", "selected");
-
-  }
-
-  //编辑框的确定按钮
+  // 修改-提交
   $("#modal_confirm").click(function () {
-    $('#roleModal').modal('hide');
-    console.log('modify confirm');
-  });
-
-  //新增弹出框
-  function add() {
-    $('#addModal').modal();
-
-  }
-
-  //新增框的确定按钮
-  $("#add_modal_confirm").click(function () {
-    console.log('add confirm');
-  });
-
-  // 搜索
-  $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
-      var q = $(this).val().trim();
-      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    var data = {
+      name: $('#name').val(),
+      short_name: $('#short_name').val(),
+      tripitaka_code: $('#tripitaka_code').val(),
+      store_pattern: $('#store_pattern').val(),
+      img_available: $('#img_available').val(),
+      img_prefix: $('#img_prefix').val(),
+      img_suffix: $('#img_suffix').val(),
+      remark: $('#remark').val()
+    };
+    if ($('#_id').val().trim().length !== 0) {
+      data['_id'] = $('#_id').val();
     }
+    postApi('/data/tripitaka', {data: data}, function (data) {
+      showSuccess('成功', '数据已提交。');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    }, function (error) {
+      return showError(error.code, error.message);
+    });
+    $('#updateModal').modal('hide');
   });
 
 </script>

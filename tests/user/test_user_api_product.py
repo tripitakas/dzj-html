@@ -10,8 +10,8 @@ from tests.testcase import APITestCase
 
 class TestUserProductApi(APITestCase):
 
-    def get_app(self, testing=False, debug=False):
-        return super(TestUserProductApi, self).get_app(testing=testing, debug=debug)
+    # def get_app(self, testing=False, debug=False):
+    #     return super(TestUserProductApi, self).get_app(testing=testing, debug=debug)
 
     def setUp(self):
         super(TestUserProductApi, self).setUp()
@@ -19,7 +19,6 @@ class TestUserProductApi(APITestCase):
     def test_api_send_email_code(self):
         account = self._app.config.get('email', {}).get('account')
         if account and '待配置' not in account:
-            # email = 'goldennova@163.com'
             email = 'lqs.xiandu@qq.com'
             d = self._app.db.user.delete_one(dict(email=email))
             if d:
@@ -42,7 +41,6 @@ class TestUserProductApi(APITestCase):
     def test_api_send_phone_code(self):
         account = self._app.config.get('phone', {}).get('accessKey')
         if account and '待配置' not in account:
-            # phone = '13436121388'
             phone = '13810916830'
             d = self._app.db.user.delete_one(dict(phone=phone))
             if d:

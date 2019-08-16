@@ -36,7 +36,7 @@ class DataTripitakaHandler(BaseHandler):
             query = self.db.tripitaka.find(condition)
             tripitakas = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_tripitaka.html', tripitakas=tripitakas, pager=pager)
+            self.render('data_tripitaka.html', q=q, tripitakas=tripitakas, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -50,7 +50,7 @@ class DataVolumeHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}}
+                {"volume_code": {'$regex': '.*%s.*' % q}}
             ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
@@ -60,7 +60,7 @@ class DataVolumeHandler(BaseHandler):
             query = self.db.volume.find(condition)
             volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_volume.html', volumes=volumes, pager=pager)
+            self.render('data_volume.html', q=q, volumes=volumes, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -74,9 +74,9 @@ class DataSutraHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}},
-                {"sutra_name": {'$regex': '.*%s.*' % q}},
                 {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
@@ -86,7 +86,7 @@ class DataSutraHandler(BaseHandler):
             query = self.db.sutra.find(condition)
             sutras = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_sutra.html', sutras=sutras, pager=pager)
+            self.render('data_sutra.html', q=q, sutras=sutras, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -100,7 +100,8 @@ class DataReelHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}},
+                {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
             page_size = int(self.config['pager']['page_size'])
@@ -111,7 +112,7 @@ class DataReelHandler(BaseHandler):
             query = self.db.reel.find(condition)
             reels = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_reel.html', reels=reels, pager=pager)
+            self.render('data_reel.html', q=q, reels=reels, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -135,7 +136,7 @@ class DataPageHandler(BaseHandler):
             query = self.db.page.find(condition)
             pages = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_page.html', pages=pages, pager=pager)
+            self.render('data_page.html', q=q, pages=pages, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

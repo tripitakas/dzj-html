@@ -583,8 +583,8 @@ a:focus {
 .btn-warning:focus,
 .btn-warning:hover,
 .open>.dropdown-toggle.btn-warning {
-	background-color: #ffd740;
-	border: 1px solid #ffd740;
+	background-color: #cfcfcf;
+	border: 1px solid #cfcfcf;
 	color: #333 !important;
 }
 

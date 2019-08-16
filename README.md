@@ -57,7 +57,7 @@ python3 tests/add_pages.py --db_name=tripitaka --uri=mongodb://user:password@ser
 pip install -r tests/requirements.txt
 sh meta/get_meta.sh tests/sample/meta.tgz
 python3 tests/add_pages.py --db_name=tripitaka_test --reset=1
-python3 meta/import_meta.py --db_name=tripitaka_test
+python3 meta/import_meta.py --db_name=tripitaka_test --reset=1
 python3 run_tests.py 或选中测试用例文件调试
 ```
 
