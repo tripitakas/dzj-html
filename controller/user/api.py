@@ -412,10 +412,12 @@ class SendUserEmailCodeApi(BaseHandler):
         mail_port = self.config['email'].get('port', 465)
         try:
             smtplib.SMTP_SSL()
-            server = smtplib.SMTP(mail_host, mail_port)
+            server = smtplib.SMTP(mail_host, mail_port, timeout=5)
             server.login(account, pwd)  # 邮箱名，密码
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
+        except smtplib.SMTPServerDisconnected:
+            return self.send_error_response(errors.db_error, message='不能访问邮件服务')
         except Exception as e:
             return self.send_db_error(e)
 
