@@ -18,10 +18,14 @@ class TestSearch(APITestCase):
     def tearDown(self):
         super(TestSearch, self).tearDown()
 
-    def test_view_cbeta_search(self):
+    def test_api_cbeta_search(self):
         q = '夫宗極絕於稱謂賢聖以之沖默玄旨非言'
-        r = self.fetch('/data/cbeta/search?q=%s&_no_auth=1' % q)
+        r = self.fetch('/api/data/cbeta/search', body={'data': {'q': q}})
         self.assert_code(200, r)
         r = self.parse_response(r)
-        self.assertIn('B33n0192_p0188', r)
+        self.assertIn('matches', r)
 
+    def test_api_punctuation(self):
+        q = '初靜慮地受生諸天即受彼地離生喜樂第二靜慮地諸天受定生喜樂'
+        r = self.fetch('/api/data/punctuation', body={'data': {'q': q}})
+        self.assert_code(200, r)

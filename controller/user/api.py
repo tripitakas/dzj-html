@@ -116,10 +116,10 @@ class RegisterApi(BaseHandler):
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
             (v.not_existed, self.db.user, 'phone', 'email')]
-        if not options.testing and user.get('email') and 0:
+        if not options.testing and user.get('email'):
             rules.append((v.not_empty, 'email_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
-        if not options.testing and user.get('phone') and 0:
+        if not options.testing and user.get('phone'):
             rules.append((v.not_empty, 'phone_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
         err = v.validate(user, rules)
@@ -395,29 +395,27 @@ class SendUserEmailCodeApi(BaseHandler):
             return self.send_db_error(e)
         self.send_data_response()
 
-    def send_email(self, receiver, code, subject="如是我闻古籍数字化平台注册"):
+    def send_email(self, receiver, code, subject="如是我闻古籍数字化平台"):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
         content = """<html>
-        <span style='font-size:16px;margin-right:10px'>您的注册验证码是：%s </span>
+        <span style='font-size:16px;margin-right:10px'>您的验证码是：%s </span>
         <a href='http://%s/user/register'>返回注册页面</a>
         </html>
         """ % (code, self.config['site']['domain'])
+
         msg = MIMEText(content, 'html', 'utf-8')
         account = self.config['email']['account']
-        pwd = self.config['email']['key']  # 授权码
-        msg['from'] = account
+        pwd = self.config['email']['key']
+        host = self.config['email']['host']
+        port = self.config['email'].get('port', 465)
+        msg['From'] = account
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
-        mail_host = "smtp.qq.com"
-        mail_port = self.config['email'].get('port') or 485
         try:
-            smtplib.SMTP_SSL()
-            server = smtplib.SMTP(mail_host, port=mail_port, timeout=5)
-            server.login(account, pwd)  # 邮箱名，密码
+            server = smtplib.SMTP_SSL(host, port)
+            server.login(account, pwd)
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
-        except smtplib.SMTPServerDisconnected:
-            return self.send_error_response(errors.db_error, message='不能访问邮件服务({0})'.format(mail_port))
         except Exception as e:
             return self.send_db_error(e)
 

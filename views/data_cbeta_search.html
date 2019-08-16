@@ -77,20 +77,16 @@
       <div class="title">检索CBETA</div>
     </header>
     <div class="flex-content" style="padding-top: 40px">
-      <div class="search-left">
-        {% for item in matches %}
+      <div class="search-left" id="search-results">
         <div class="item">
-          <div class="title">{{item['_source']['page_code']}}</div>
-          <div class="content">{% raw ''.join(item['hits']) %}</div>
+          <div class="title"></div>
+          <div class="content"></div>
         </div>
-        {% end %}
       </div><!--search-left-->
       <div class="search-right">
-        <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码">{{q}}</textarea>
+        <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码"></textarea>
         <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
-        {% if matches %}
-        <div class="tips">共检索到{{len(matches)}}个结果。</div>
-        {% end %}
+        <div class="tips hide">共检索到<span id="result-count"></span>个结果。</div>
       </div><!--search-right-->
     </div>
   </div>
@@ -109,9 +105,19 @@
 
   // 搜索
   $('#btn-search').on("click", function () {
+    $('.tips').addClass('hide');
     var q = $('#search-input').val();
-    if (q != '')
-      window.location = "{{current_path}}?q=" + q;
+    if (q.trim().length === 0)
+      return;
+    postApi('/data/cbeta/search', {data: {q: q}}, function (res) {
+      var $html = res.matches.map(function (item) {
+        return "<div class='item'><div class='title'>" + item['_source']['page_code']
+            + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";
+      }).join('');
+      $('#search-results').html($html);
+      $('#result-count').text(res.matches.length);
+      $('.tips').removeClass('hide');
+    });
   });
 
   $(document).on('keyup', '#search-input', function () {

@@ -56,7 +56,9 @@ role_maps = {
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
             '/data/punctuation': ['GET'],
+            '/api/data/punctuation': ['POST'],
             '/data/cbeta/search': ['GET'],
+            '/api/data/cbeta/search': ['POST'],
             '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],
             '/api/task/page/@page_name': ['GET'],
@@ -241,6 +243,7 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
+
     def match_exclude(p, exclude):
         for holder, regex in url_placeholder.items():
             if holder not in exclude:
@@ -259,6 +262,7 @@ def can_access(role, path, method):
                     ps = _path.replace(whole, ps)
                     if (p == ps or re.match('^%s$' % ps, p) or re.match('^%s$' % p, ps)) and method in _method:
                         return True
+
     if match_exclude(path, []):
         return True
     if match_exclude(path, ['page_name', 'num']):

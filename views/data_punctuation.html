@@ -15,13 +15,16 @@
   .content {
     margin: 60px 20px 0;
   }
+
   .punc-text {
     margin-bottom: 10px;
   }
+
   #punc-input {
     min-height: 200px;
-    font-size: 18px;
+    font-size: 16px;
   }
+
   #btn-submit {
     margin-left: 20px;
   }
@@ -40,7 +43,7 @@
       <div class="title">自动标点</div>
     </header>
     <div class="content">
-      <div class="punc-text"><textarea class="form-control" id="punc-input" placeholder="请输入待标点的文本">{{res or q}}</textarea></div>
+      <div class="punc-text"><textarea class="form-control" id="punc-input" placeholder="请输入待标点的文本"></textarea></div>
       <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-submit">提交</button>
       <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-clear">清除标点</button>
     </div>
@@ -54,14 +57,17 @@
   // 提交
   $('#btn-submit').on("click", function () {
     var q = $('#punc-input').val();
-    window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    if (q.trim().length === 0)
+      return;
+    postApi('/data/punctuation', {data: {q: q}}, function (data) {
+      $('#punc-input').val(data.res);
+    });
   });
 
   $('#punc-input').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {
-      var q = $(this).val().trim();
-      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+      $('#btn-submit').click();
     }
   });
 

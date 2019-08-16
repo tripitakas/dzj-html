@@ -4,17 +4,9 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
-import re
 import math
 from controller.base import BaseHandler
-from controller.data.esearch import find
-from controller.data.variant import normalize
 
-try:
-    import punctuation
-    puncstr = punctuation.punc_str
-except Exception:
-    puncstr = lambda s: s
 
 
 class DataTripitakaHandler(BaseHandler):
@@ -147,29 +139,7 @@ class DataSearchCbetaHandler(BaseHandler):
 
     def get(self):
         """ 检索cbeta库 """
-
-        def merge_kw(txt):
-            # 将<kw>一</kw>，<kw>二</kw>格式替换为<kw>一，二</kw>
-            regex = r'[，、：；。？！“”‘’「」『』（）%&*◎—……]+'
-            txt = re.sub('</kw>(%s)<kw>' % regex, lambda r: r.group(1), txt)
-            # 合并相邻的关键字
-            txt = re.sub('</kw><kw>', '', txt)
-            return txt
-
-        q = self.get_query_argument('q', '').strip()
-        try:
-            matches = find(q)
-        except Exception as e:
-            matches = [dict(hits=[str(e)])]
-        for m in matches:
-            try:
-                highlights = {re.sub('</?kw>', '', v): merge_kw(v) for v in m['highlight']['normal']}
-                hits = [highlights.get(normalize(r), r) for r in m['_source']['origin']]
-                m['hits'] = hits  # ''.join(hits)
-            except KeyError:
-                m['hits'] = m.get('hits') or m['_source']['origin']
-
-        self.render('data_cbeta_search.html', q=q, matches=matches)
+        self.render('data_cbeta_search.html')
 
 
 class DataPunctuationHandler(BaseHandler):
@@ -177,6 +147,4 @@ class DataPunctuationHandler(BaseHandler):
 
     def get(self):
         """ 自动标点 """
-        q = self.get_query_argument('q', '').strip()
-        res = puncstr(q) if q else ''
-        self.render('data_punctuation.html', q=q, res=res)
+        self.render('data_punctuation.html')

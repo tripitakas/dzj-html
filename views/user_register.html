@@ -51,12 +51,12 @@
             </div>
             <div class="verify">
               <div class="item hide fl" id="phone-div">
-                <input type="text" placeholder='请输入手机验证码' id="phone-code">
+                <input type="text" placeholder='请输入验证码' id="phone-code">
                 <i class="ion-ios7-checkmark-outline"></i>
                 <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
               </div>
               <div class="item hide fr" id="email-div">
-                <input type="text" placeholder='请输入邮箱验证码' id="email-code">
+                <input type="text" placeholder='请输入验证码，可能在垃圾邮箱' id="email-code">
                 <i class="ion-ios7-checkmark-outline"></i>
                 <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
               </div>
@@ -135,6 +135,7 @@
       return;
     }
     var $this = $(this);
+    $this.text("发送中...");
     postApi('/user/email_code', {'data': {email: email}}, function (res) {
       if (!res.status) {
         return showError(code, error);
@@ -167,6 +168,7 @@
       return;
     }
     var $this = $(this);
+    $this.text("发送中...");
     postApi('/user/phone_code', {'data': {phone: phone}}, function (res) {
       if (!res.status) {
         return showError(code, error);
