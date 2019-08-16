@@ -49,15 +49,17 @@
               <input type="text" placeholder='请输入邮箱' id="email">
               <i class="ion-ios7-email-outline"></i>
             </div>
-            <div class="item hide" id="phone-div">
-              <input type="text" placeholder='请输入手机验证码' id="phone-code">
-              <i class="ion-ios7-checkmark-outline"></i>
-              <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
-            </div>
-            <div class="item hide" id="email-div" style="margin-left: 50%;">
-              <input type="text" placeholder='请输入邮箱验证码' id="email-code">
-              <i class="ion-ios7-checkmark-outline"></i>
-              <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
+            <div class="verify">
+              <div class="item hide fl" id="phone-div">
+                <input type="text" placeholder='请输入手机验证码' id="phone-code">
+                <i class="ion-ios7-checkmark-outline"></i>
+                <a id="phone-code-btn" class="verify-code phone-code-btn">获取验证码</a>
+              </div>
+              <div class="item hide fr" id="email-div">
+                <input type="text" placeholder='请输入邮箱验证码' id="email-code">
+                <i class="ion-ios7-checkmark-outline"></i>
+                <a id="email-code-btn" class="verify-code email-code-btn">获取验证码</a>
+              </div>
             </div>
           </div>
           <div class="error"><p class="ajax-error" style="display: none"></p></div>

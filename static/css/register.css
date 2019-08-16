@@ -216,6 +216,12 @@
     color: #761C19;
 }
 
+.verify {
+    width: 100%;
+    display: block;
+    float: left;
+}
+
 .verify-code {
     position: absolute;
     top: 10px;

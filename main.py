@@ -35,7 +35,7 @@ if __name__ == '__main__':
         fork_id = 0 if opt.debug or os.name == 'nt' else process.fork_processes(opt.num_processes)
         server.add_sockets(sockets)
         protocol = 'https' if ssl_options else 'http'
-        logging.info('Start the service #%d v%s on %s://localhost:%d' % (fork_id, app.version, protocol, opt.port))
+        logging.info('Start the service #%d v%s on %s %s://localhost:%d' % (fork_id, app.version, os.name, protocol, opt.port))
         if fork_id == 0:
             ioloop.PeriodicCallback(partial(periodic_task, app), 1000 * 300).start()
         ioloop.IOLoop.current().start()
