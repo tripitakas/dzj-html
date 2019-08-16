@@ -27,4 +27,4 @@ class TestTaskFlow(APITestCase):
             self.assert_code([200, e.tptk_img_unavailable], r, msg=tripitaka)
             if self.get_code(r) == 200:
                 d = self.parse_response(r)
-                self.assertIn('meta', d)
+                self.assertIn('tripitaka', d)
