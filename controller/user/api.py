@@ -116,10 +116,10 @@ class RegisterApi(BaseHandler):
             (v.is_phone, 'phone'),
             (v.is_password, 'password'),
             (v.not_existed, self.db.user, 'phone', 'email')]
-        if not options.testing and user.get('email'):
+        if not options.testing and user.get('email') and 0:
             rules.append((v.not_empty, 'email_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'email', 'email_code'))
-        if not options.testing and user.get('phone'):
+        if not options.testing and user.get('phone') and 0:
             rules.append((v.not_empty, 'phone_code'))
             rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
         err = v.validate(user, rules)
@@ -411,7 +411,8 @@ class SendUserEmailCodeApi(BaseHandler):
         mail_host = "smtp.qq.com"
         mail_port = self.config['email'].get('port') or 485
         try:
-            server = smtplib.SMTP_SSL(mail_host, port=mail_port, timeout=5)
+            smtplib.SMTP_SSL()
+            server = smtplib.SMTP(mail_host, port=mail_port, timeout=5)
             server.login(account, pwd)  # 邮箱名，密码
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
