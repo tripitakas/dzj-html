@@ -50,7 +50,7 @@
                     {% set ava_url = current_user.get('img') if current_user and current_user.get('img') else 'imgs/' + ava %}
                     <img class="ava fl" src="{{ static_url(ava_url) }}" alt="">
                     <dl class="fl">
-                      <dt>上午好，{{current_user['name']}}</dt>
+                      <dt>{{'上午' if get_date_time('%p') == 'AM' else '下午'}}好，{{current_user['name']}}</dt>
                       <dd>访问情况：今日访问 {{visit_count}} 次</dd>
                       <dd>上次登录：{{last_login}}</dd>
                     </dl>

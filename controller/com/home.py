@@ -5,12 +5,12 @@
 @time: 2018/6/23
 """
 
+import re
 import traceback
 from controller.base import BaseHandler
 from controller.helper import get_date_time
 from controller.op_type import get_op_def, op_in_recent_trends, page_kinds
 from controller.task.base import TaskHandler
-import re
 
 
 class HomeHandler(BaseHandler):
@@ -59,7 +59,7 @@ class HomeHandler(BaseHandler):
                     context = 'err:' % t.get('context')
                 recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context[:20]))
 
-            self.render('home.html', visit_count=1 + visit_count, last_login=last_login,
+            self.render('home.html', visit_count=1 + visit_count, last_login=last_login, get_date_time=get_date_time,
                         recent_trends=recent_trends[:7], version=self.application.version)
         except Exception as e:
             self.send_db_error(e, render=True)
