@@ -409,15 +409,15 @@ class SendUserEmailCodeApi(BaseHandler):
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
         mail_host = "smtp.qq.com"
-        # mail_port = self.config['email'].get('port') or 465
+        mail_port = self.config['email'].get('port') or 465
         try:
             smtplib.SMTP_SSL()
-            server = smtplib.SMTP(mail_host, 465, timeout=5)
+            server = smtplib.SMTP(mail_host, port=mail_port, timeout=5)
             server.login(account, pwd)  # 邮箱名，密码
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
         except smtplib.SMTPServerDisconnected:
-            return self.send_error_response(errors.db_error, message='不能访问邮件服务({})'.format(mail_port))
+            return self.send_error_response(errors.db_error, message='不能访问邮件服务({0})'.format(mail_port))
         except Exception as e:
             return self.send_db_error(e)
 
