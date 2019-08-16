@@ -64,9 +64,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not self.current_user:
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
-        if not user_in_db:
-            return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+        try:
+            user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
+            if not user_in_db:
+                return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+        except MongoError as err:
+            return self.send_db_error(err, render=not self.get_query_argument('_raw', 0) and not api)
+
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -215,7 +219,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            reason = '无法访问文档库' if code in [61] else '%s(%s)%s' % (
+            reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
                 e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
             )
             return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
