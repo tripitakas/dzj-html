@@ -45,7 +45,7 @@ class CbetaSearchApi(BaseHandler):
             except KeyError:
                 m['hits'] = m.get('hits') or m['_source']['origin']
 
-        self.send_data_response(dict(q=q, matches=matches))
+        self.send_data_response(dict(matches=matches))
 
 
 class PunctuationApi(BaseHandler):
@@ -57,7 +57,7 @@ class PunctuationApi(BaseHandler):
             data = self.get_request_data()
             q = data.get('q', '').strip()
             res = puncstr(q) if q else ''
-            self.send_data_response(dict(q=q, res=res))
+            self.send_data_response(dict(res=res))
 
         except DbError as e:
             return self.send_db_error(e)
