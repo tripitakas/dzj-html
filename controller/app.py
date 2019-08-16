@@ -22,7 +22,7 @@ __version__ = '0.0.22.90816'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
-define('debug', default=True, help='the debug mode', type=bool)
+define('debug', default=False, help='the debug mode', type=bool)
 define('port', default=8000, help='run port', type=int)
 
 
