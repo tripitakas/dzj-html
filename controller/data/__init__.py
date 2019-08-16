@@ -1,4 +1,4 @@
-from . import view
+from . import view, api
 from . import api_algorithm as g
 
 views = [
@@ -6,5 +6,5 @@ views = [
     view.DataPageHandler, view.DataSearchCbetaHandler, view.DataPunctuationHandler
 ]
 handlers = [
-    g.GenerateCharIdApi,
+    g.GenerateCharIdApi, api.PunctuationApi, api.CbetaSearchApi
 ]
