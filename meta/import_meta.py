@@ -5,6 +5,8 @@ import sys
 import pymongo
 from glob2 import glob
 import os.path as path
+sys.path.append(path.dirname(path.dirname(__file__)))
+
 from controller.tripitaka.reel import Reel
 from controller.tripitaka.sutra import Sutra
 from controller.tripitaka.volume import Volume
