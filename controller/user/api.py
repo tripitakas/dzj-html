@@ -402,18 +402,18 @@ class SendUserEmailCodeApi(BaseHandler):
         <a href='http://%s/user/register'>返回注册页面</a>
         </html>
         """ % (code, self.config['site']['domain'])
+
         msg = MIMEText(content, 'html', 'utf-8')
         account = self.config['email']['account']
-        pwd = self.config['email']['key']  # 授权码
-        msg['from'] = account
+        pwd = self.config['email']['key']
+        host = self.config['email']['host']
+        port = self.config['email'].get('port', 465)
+        msg['From'] = account
         msg['to'] = receiver
         msg['Subject'] = Header(subject, 'utf-8')
-        mail_host = "smtp.qq.com"
-        mail_port = self.config['email'].get('port', 465)
         try:
-            server = smtplib.SMTP_SSL(mail_host, mail_port)
-            # server = smtplib.SMTP(mail_host, mail_port)
-            server.login(account, pwd)  # 邮箱名，密码
+            server = smtplib.SMTP_SSL(host, port)
+            server.login(account, pwd)
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
         except Exception as e:
