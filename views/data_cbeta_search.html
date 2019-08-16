@@ -58,7 +58,7 @@
 
   #btn-search {
     clear: both;
-    width: 70px;
+    width: 85px;
     background-color: var(--Color_Brown_Darker);
     border-color: var(--Color_Brown_Darker);
   }
@@ -85,7 +85,7 @@
       </div><!--search-left-->
       <div class="search-right">
         <textarea class="form-control search-input" id="search-input" placeholder="请输入文本或页码"></textarea>
-        <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检索</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light fr" id="btn-search">检  索</button>
         <div class="tips hide">共检索到<span id="result-count"></span>个结果。</div>
       </div><!--search-right-->
     </div>
@@ -109,6 +109,8 @@
     var q = $('#search-input').val();
     if (q.trim().length === 0)
       return;
+    var $this = $(this);
+    $this.text("检索中...");
     postApi('/data/cbeta/search', {data: {q: q}}, function (res) {
       var $html = res.matches.map(function (item) {
         return "<div class='item'><div class='title'>" + item['_source']['page_code']
@@ -117,6 +119,7 @@
       $('#search-results').html($html);
       $('#result-count').text(res.matches.length);
       $('.tips').removeClass('hide');
+      $this.text("检  索");
     });
   });
 
