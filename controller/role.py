@@ -201,13 +201,13 @@ role_maps = {
             '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
-            '/user/statistic': ['GET'],
         }
     },
     '用户管理员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
+            '/user/statistic': ['GET'],
             '/user/(admin|role)': ['GET'],
             '/api/user/(delete|role|profile|reset_pwd)': ['POST'],
         }
