@@ -273,7 +273,7 @@ def code_verify_timeout(collection=None, **kw):
         email_code = email_code.upper()
         r = collection.find_one(
             {"type": 'email', "data": email, "code": email_code,
-             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+             "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
             errs['email_code'] = code, message % i18n_trans('email_code')
@@ -283,7 +283,7 @@ def code_verify_timeout(collection=None, **kw):
         phone_code = phone_code.upper()
         r = collection.find_one(
             {"type": 'phone', "data": phone, "code": phone_code,
-             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+             "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
             errs['phone_code'] = code, message % i18n_trans('phone_code')
