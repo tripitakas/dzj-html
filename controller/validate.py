@@ -46,7 +46,10 @@ def i18n_trans(key):
         'task_type': '任务类型',
         'pages': '页码',
         'pages_file': '页码文件',
-
+        'sutra_code': '经编码',
+        'sutra_name': '经名',
+        'reel_no': '卷序号',
+        'reel_code': '卷编码'
     }
     return maps[key] if key in maps else key
 

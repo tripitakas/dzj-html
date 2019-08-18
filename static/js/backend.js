@@ -10,6 +10,9 @@ function showError(title, text) {
       $err.hide();
     }, 5000);
   }
+  if (text === '没有发生改变') {
+    return showSuccess(title.replace(/失败|错误/, '跳过'), text);
+  }
   swal({
     title: title, text: text, type: /失败|错误/.test(title) ? 'error' : 'warning',
     timer: 2000, showConfirmButton: false
