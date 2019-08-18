@@ -46,7 +46,10 @@ def i18n_trans(key):
         'task_type': '任务类型',
         'pages': '页码',
         'pages_file': '页码文件',
-
+        'sutra_code': '经编码',
+        'sutra_name': '经名',
+        'reel_no': '卷序号',
+        'reel_code': '卷编码'
     }
     return maps[key] if key in maps else key
 
@@ -179,7 +182,7 @@ def is_sutra(**kw):
     """ 检查是否为经编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^[A-Z]{1,2}\d{4,}$'
+    regex = r'^[A-Z]{1,2}(\d{4,}|_\d+)$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, str(v)):
         return {k: e.invalid_sutra_code}
@@ -273,7 +276,7 @@ def code_verify_timeout(collection=None, **kw):
         email_code = email_code.upper()
         r = collection.find_one(
             {"type": 'email', "data": email, "code": email_code,
-             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+             "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
             errs['email_code'] = code, message % i18n_trans('email_code')
@@ -283,7 +286,7 @@ def code_verify_timeout(collection=None, **kw):
         phone_code = phone_code.upper()
         r = collection.find_one(
             {"type": 'phone', "data": phone, "code": phone_code,
-             "stime": {"$gt": datetime.now() - timedelta(minutes=1)}}
+             "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
             errs['phone_code'] = code, message % i18n_trans('phone_code')

@@ -16,6 +16,11 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .sty-table td a {
+      font-size: 14px;
+    }
+  </style>
 </head>
 
 <body>
@@ -50,7 +55,6 @@
                       <th><span class="sort">OCR文本</span><span class="ion-arrow-down-b"></span></th>
                       <th><span>创建时间</span></th>
                       <th><span>创建人</span></th>
-                      <th><span>操作</span></th>
                     </tr>
                     </thead>
 
@@ -59,13 +63,12 @@
                     <tr>
                       <td>{{p.get('name')}}</td>
                       <td>{{'是'}}</td>
-                      <td>{{'是' if p.get('blocks') else '否'}}</td>
-                      <td>{{'是' if p.get('columns') else '否'}}</td>
-                      <td>{{'是' if p.get('chars') else '否'}}</td>
-                      <td>{{'是' if p.get('text') else '否'}}</td>
+                      <td><a href="/task/block_cut_proof/{{p.get('name')}}">{{'是' if p.get('blocks') else '否'}}</a></td>
+                      <td><a href="/task/column_cut_proof/{{p.get('name')}}">{{'是' if p.get('columns') else '否'}}</a></td>
+                      <td><a href="/task/char_cut_proof/{{p.get('name')}}">{{'是' if p.get('chars') else '否'}}</a></td>
+                      <td><a href="/task/text_proof_1/{{p.get('name')}}">{{'是' if p.get('text') else '否'}}</a></td>
                       <td>{{to_date_str(p.get('create_time'))}}</td>
                       <td>{{p.get('create_by') or ''}}</td>
-                      <td><a>查看</a>
                       </td>
                     </tr>
                     {% end %}

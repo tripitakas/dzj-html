@@ -72,7 +72,9 @@ class Sutra(object):
         if item.get('_id'):  # 更新
             data = db.sutra.find_one({'_id': objectid.ObjectId(item.get('_id'))})
             if data:
-                db.sutra.update_one({'_id': item.get('_id')}, {'$set': item})
+                r = db.sutra.update_one({'_id': item.get('_id')}, {'$set': item})
+                if not r.modified_count:
+                    return dict(status='failed', errors=e.no_change)
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
             else:
                 return dict(status='failed', errors=e.tptk_id_not_existed)

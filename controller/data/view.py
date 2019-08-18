@@ -52,6 +52,10 @@ class DataVolumeHandler(BaseHandler):
             query = self.db.volume.find(condition)
             volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            for v in volumes:
+                for f in v:
+                    if v[f] is None:
+                        v[f] = ''
             self.render('data_volume.html', q=q, volumes=volumes, pager=pager)
 
         except Exception as e:

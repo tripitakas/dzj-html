@@ -57,7 +57,7 @@ class Reel(object):
     def validate(cls, item):
         assert isinstance(item, dict)
         rules = [
-            (v.not_empty, 'sutra_code', 'reel_code', 'reel_no'),
+            (v.not_empty, 'sutra_code'),
             (v.is_digit, 'reel_no', 'start_page', 'end_page'),
             (v.is_sutra, 'sutra_code'),
             (v.is_reel, 'reel_code'),
@@ -75,7 +75,9 @@ class Reel(object):
         if item.get('_id'):  # 更新
             data = db.reel.find_one({'_id': objectid.ObjectId(item.get('_id'))})
             if data:
-                db.reel.update_one({'_id': item.get('_id')}, {'$set': item})
+                r = db.reel.update_one({'_id': item.get('_id')}, {'$set': item})
+                if not r.modified_count:
+                    return dict(status='failed', errors=e.no_change)
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
             else:
                 return dict(status='failed', errors=e.tptk_id_not_existed)
