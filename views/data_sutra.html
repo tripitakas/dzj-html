@@ -300,7 +300,7 @@
         window.location.reload();
       }, 1500);
     }, function (error) {
-      return showError(error.code, error.message);
+      return showError('提交失败', error.message);
     });
     $('#updateModal').modal('hide');
   });

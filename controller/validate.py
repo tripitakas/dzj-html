@@ -179,7 +179,7 @@ def is_sutra(**kw):
     """ 检查是否为经编码。"""
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    regex = r'^[A-Z]{1,2}\d{4,}$'
+    regex = r'^[A-Z]{1,2}(\d{4,}|_\d+)$'
     # 值为空或空串时跳过而不检查
     if v and not re.match(regex, str(v)):
         return {k: e.invalid_sutra_code}
