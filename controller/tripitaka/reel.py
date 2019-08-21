@@ -57,7 +57,7 @@ class Reel(object):
     def validate(cls, item):
         assert isinstance(item, dict)
         rules = [
-            (v.not_empty, 'sutra_code', 'reel_code', 'reel_no'),
+            (v.not_empty, 'sutra_code'),
             (v.is_digit, 'reel_no', 'start_page', 'end_page'),
             (v.is_sutra, 'sutra_code'),
             (v.is_reel, 'reel_code'),

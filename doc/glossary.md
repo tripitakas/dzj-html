@@ -10,3 +10,5 @@
 | sutra    | 经文、典籍 | 具体的某篇经论文章 |
 | sutra_code | 典籍编号 | 例如 GA0008  |
 | category | 部类    | 例如阿含部、瑜伽部 |
+| reel   | 卷    |      |
+| volume | 册    | QD_1 |
