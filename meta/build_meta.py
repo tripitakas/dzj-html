@@ -5,10 +5,17 @@ import os
 import csv
 import os.path as path
 from functools import cmp_to_key
-from meta.export_meta import get_date_time
+from datetime import datetime, timedelta
 
 META_DIR = path.join(path.dirname(__file__), 'meta')
 db = ''
+
+
+def get_date_time(fmt=None, diff_seconds=None):
+    time = datetime.now()
+    if diff_seconds:
+        time += timedelta(seconds=diff_seconds)
+    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
 def cmp_code(a, b):
@@ -60,7 +67,7 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     return row
 
 
-def generate_volume_from_dir(tripitaka, root, level=1):
+def generate_volume_from_dir(tripitaka='JS', root='/Volumes/data/径山藏/径山藏', level=1):
     """ 扫描藏经文件夹，生成存储结构信息
     :param tripitaka 藏经代码，如JX/GL等等
     :param root 待扫描的藏经文件目录
@@ -81,13 +88,15 @@ def generate_volume_from_dir(tripitaka, root, level=1):
             for volume in os.listdir(path.join(root, envolop)):
                 rows.append(get_volume_info(tripitaka, root, volume, envolop))
 
-    with open(path.join('./Volume-%s.csv' % tripitaka), 'w', newline='') as fn:
+    with open(path.join(root, 'Volume-%s.csv' % tripitaka), 'w', newline='') as fn:
         writer = csv.writer(fn)
         writer.writerow(fields)
         writer.writerows(rows)
 
 
 if __name__ == '__main__':
-    root = '/Volumes/tripitaka2/big/LC'
-    generate_volume_from_dir('LC', root, 2)
+    import fire
+
+    fire.Fire(generate_volume_from_dir)
     print('finished!')
+
