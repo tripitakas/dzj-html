@@ -51,7 +51,7 @@ def build_volume_js(db):
 def build_sutra_js(db):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH']
+    tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH', 'JS']
     for t in tripitakas:
         print('generating %s-sutra.js ...' % t)
         fields = dict(sutra_code=1, sutra_name=1, due_reel_count=1, existed_reel_count=1, start_volume=1, start_page=1,
