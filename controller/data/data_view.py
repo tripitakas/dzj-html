@@ -8,7 +8,6 @@ import math
 from controller.base import BaseHandler
 
 
-
 class DataTripitakaHandler(BaseHandler):
     URL = '/data/tripitaka'
 

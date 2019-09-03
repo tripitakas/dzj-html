@@ -34,14 +34,9 @@ role_maps = {
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
-            # 下列只读浏览页面暂时允许匿名访问
-            '/task/block_cut_proof/@page_name': ['GET'],
-            '/task/column_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/order/@page_name': ['GET'],
-            '/task/char_cut_review/order/@page_name': ['GET'],
-            '/task/text_proof_@num/@page_name': ['GET'],
-            '/task/text_review/@page_name': ['GET'],
+
+            '/data/ocr': ['GET'],
+            '/api/data/ocr': ['POST'],
         }
     },
     '普通用户': {
@@ -62,6 +57,15 @@ role_maps = {
             '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],
             '/api/task/page/@page_name': ['GET'],
+
+            # 下列只读浏览页面暂时允许普通用户访问
+            '/task/block_cut_proof/@page_name': ['GET'],
+            '/task/column_cut_proof/@page_name': ['GET'],
+            '/task/char_cut_proof/@page_name': ['GET'],
+            '/task/char_cut_proof/order/@page_name': ['GET'],
+            '/task/char_cut_review/order/@page_name': ['GET'],
+            '/task/text_proof_@num/@page_name': ['GET'],
+            '/task/text_review/@page_name': ['GET'],
         }
     },
     '切栏校对员': {
