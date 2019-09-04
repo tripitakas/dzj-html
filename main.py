@@ -25,7 +25,6 @@ define('num_processes', default=4, help='sub-processes count', type=int)
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     opt.parse_command_line()
-    opt.debug = opt.debug and opt.port not in [80, 443] and os.name != 'linux'
     routes = c.handlers + c.views
     app = Application(routes, default_handler_class=c.InvalidPageHandler, ui_modules=c.modules, xsrf_cookies=True)
     try:
