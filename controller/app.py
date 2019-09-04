@@ -47,8 +47,7 @@ class Application(web.Application):
         handlers = sorted(handlers, key=itemgetter(0))
         web.Application.__init__(
             self, handlers,
-            debug=True,
-            autoreload=True,
+            debug=options.debug,
             login_url='/user/login',
             compiled_template_cache=False,
             static_path=path.join(BASE_DIR, 'static'),  # or '/Volumes/DZJ/' 本地阅读：将static放到存储区，藏经图放在其img下
