@@ -39,6 +39,7 @@ class RecognitionApi(BaseHandler):
         img = self.request.files.get('img')
         assert img
         filename = path.basename(img[0]['filename'])
+        data['hybrid'] = 1
 
         # 设置OCR请求数据
         req = {'multiple_layouts': data.get('multiple_layouts') in [True, 1, 'true', '1'],
@@ -79,6 +80,7 @@ class RecognitionApi(BaseHandler):
             s.settimeout(120)
             s.send(json.dumps(req).encode())
             result = s.recv(4096)
+            logging.warning('recv ok')
             result = json.loads(result.decode())
             result['run_ms'] = round((datetime.now() - start_time).microseconds / 1000)
             return result

@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.role import url_placeholder
 
-__version__ = '0.0.31.90903'
+__version__ = '0.0.32.90903'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -46,7 +46,11 @@ class Application(web.Application):
 
         handlers = sorted(handlers, key=itemgetter(0))
         web.Application.__init__(
-            self, handlers, debug=options.debug, login_url='/user/login', compiled_template_cache=False,
+            self, handlers,
+            debug=True,
+            autoreload=True,
+            login_url='/user/login',
+            compiled_template_cache=False,
             static_path=path.join(BASE_DIR, 'static'),  # or '/Volumes/DZJ/' 本地阅读：将static放到存储区，藏经图放在其img下
             template_path=path.join(BASE_DIR, 'views'),
             cookie_secret=self.config['cookie_secret'],
