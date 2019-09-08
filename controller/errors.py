@@ -70,7 +70,4 @@ tptk_code_duplicated = 5005, '编码重复'
 tptk_code_existed = 5006, '编码已存在'
 tptk_id_not_existed = 5007, 'id对应的记录不存在'
 
-ocr_busy = 5100, 'OCR服务忙'
-ocr_invalid_hv_num = 5101, 'invalid horizontal and vertical layouts'
-ocr_off = 5102, '无法访问OCR服务[%d]'
-ocr_fail = 5103, 'OCR服务[%d]执行出错'
+ocr = 5100, 'OCR服务执行出错: %s'
