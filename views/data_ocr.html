@@ -123,8 +123,8 @@
     $num.text($(this).text());
   });
 
-  $('.h-num').text(page.get('h_num') || localStorage.getItem('ocr-h-num') || '2');
-  $('.v-num').text(page.get('v_num') || localStorage.getItem('ocr-v-num') || '2');
+  $('.h-num').text({{'%d ||' % page['h_num'] if page.get('h_num') else ''}} localStorage.getItem('ocr-h-num') || '2');
+  $('.v-num').text({{'%d ||' % page['v_num'] if page.get('v_num') else ''}} localStorage.getItem('ocr-v-num') || '2');
 
   // 弹出上传页面图提示框
   $('.btn-upload').click(function() {
