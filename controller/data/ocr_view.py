@@ -19,7 +19,7 @@ class RecognitionHandler(BaseHandler):
             img = self.static_url('upload/ocr/' + img_file if img_file else 'imgs/1_6A.gif')
             s_path = path.join(self.application.BASE_DIR, 'static')
             json_file = path.join(s_path, 'upload', 'ocr', img_file.split('.')[0] + '.json'
-                                  ) if img_file else path.join(s_path, 'imgs', '1_6A.gif')
+                                  ) if img_file else path.join(s_path, 'imgs', '1_6A.json')
             page = json.load(open(json_file))
             self.render('data_ocr.html', page=RecognitionApi.ocr2page(page), img=img)
 
