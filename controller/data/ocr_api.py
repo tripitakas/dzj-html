@@ -13,7 +13,6 @@ from PIL import Image
 from os import path
 import logging
 import re
-import json
 
 
 class RecognitionApi(BaseHandler):
