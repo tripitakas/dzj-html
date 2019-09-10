@@ -27,7 +27,7 @@ class RecognitionApi(BaseHandler):
             with open(img_file.split('.')[0] + '.json', 'w') as f:
                 json.dump(r, f, ensure_ascii=False)
 
-            self.render('data_ocr.html', page=self.ocr2page(r), img=self.static_url('upload/ocr/' + filename))
+            self.redirect('/data/ocr/' + filename)
 
         data = self.get_request_data()
         if not data:
@@ -42,7 +42,8 @@ class RecognitionApi(BaseHandler):
 
         logging.info('recognize ' + filename)
         data['filename'] = filename
-        self.call_back_api('http://127.0.0.1:8010/ocr?%s' % urlencode(data), connect_timeout=10,
+        url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
+        self.call_back_api(url, connect_timeout=5, request_timeout=20,
                            handle_error=lambda t: self.send_error_response(errors.ocr, message=errors.ocr[1] % t),
                            body=img[0]['body'], method='POST', handle_response=handle_response)
 

@@ -17,6 +17,7 @@ url_placeholder = {
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
+    'img_file': '[A-Za-z0-9._-]+',
 }
 
 role_maps = {
@@ -36,6 +37,7 @@ role_maps = {
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
 
             '/data/ocr': ['GET'],
+            '/data/ocr/@img_file': ['GET'],
             '/api/data/ocr': ['POST'],
         }
     },
