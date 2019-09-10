@@ -156,10 +156,10 @@
         if (r.error) {
           showError('上传失败', r.message);
         }
-        if (r.name) {
-          showSuccess('识别完成', r.name + ' 已识别完成。');
+        else if (r.data.name) {
+          showSuccess('识别完成', r.data.name + ' 已识别完成。');
           setTimeout(function () {
-            window.location = '/data/ocr/' + r.name;
+            window.location = '/data/ocr/' + r.data.name;
           }, 1000);
         }
       }
