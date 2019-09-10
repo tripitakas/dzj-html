@@ -27,7 +27,7 @@ class RecognitionApi(BaseHandler):
             with open(img_file.split('.')[0] + '.json', 'w') as f:
                 json.dump(r, f, ensure_ascii=False)
 
-            self.redirect('/data/ocr/' + filename)
+            self.send_data_response(dict(name=filename))
 
         data = self.get_request_data()
         if not data:

@@ -118,8 +118,13 @@
 
 <script type="text/javascript">
   $('.m-header .dropdown-menu a').click(function() {
-    $(this).parent().parent().parent().find('.num').text($(this).text());
+    var $num = $(this).parent().parent().parent().find('.num');
+    localStorage.setItem($num.hasClass('h-num') ? 'ocr-h-num' : 'ocr-v-num', $(this).text());
+    $num.text($(this).text());
   });
+
+  $('.h-num').text(localStorage.getItem('ocr-h-num') || '2');
+  $('.v-num').text(localStorage.getItem('ocr-v-num') || '2');
 
   // 弹出上传页面图提示框
   $('.btn-upload').click(function() {
@@ -150,6 +155,12 @@
       success: function (r) {
         if (r.error) {
           showError('上传失败', r.message);
+        }
+        if (r.name) {
+          showSuccess('识别完成', r.name + ' 已识别完成。');
+          setTimeout(function () {
+            window.location = '/data/ocr/' + r.name;
+          }, 1000);
         }
       }
     });
