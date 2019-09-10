@@ -142,7 +142,7 @@
       return showError('文件不是图片类型');
     }
     if (imgFile.size > (1024 * 1024 * 5)) {
-      return showError('文件大小不能超过1M');
+      return showError('文件大小不能超过5M');
     }
     var formData = new FormData();
     formData.append('img', imgFile);
