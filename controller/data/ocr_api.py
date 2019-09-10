@@ -9,6 +9,7 @@ from urllib.parse import urlencode
 from controller.base import BaseHandler
 from controller import errors
 from controller.layout.v2 import calc
+from PIL import Image
 from os import path
 import logging
 import re
@@ -24,8 +25,17 @@ class RecognitionApi(BaseHandler):
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
             with open(img_file, 'wb') as f:
                 f.write(img[0]['body'])
-            with open(img_file.split('.')[0] + '.json', 'w') as f:
-                json.dump(r, f, ensure_ascii=False)
+            im = Image(img_file)
+            w, h = im.size
+            if w > 1200 or h > 1200:
+                if w > 1200:
+                    h = round(1200 * h / w)
+                    w = 1200
+                if h > 1200:
+                    w = round(1200 * w / h)
+                    h = 1200
+                im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
+                im.save(img_file)
 
             self.send_data_response(dict(name=filename))
 
