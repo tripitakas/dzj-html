@@ -10,142 +10,60 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .m-header .title {
+      margin-right: 10px;
+    }
+    .m-header .btn-group {
+      margin-left: 10px;
+      margin-right: 10px;
+      margin-top: 7px;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 
-<body>
+<body class="widescreen">
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module CommonLeft() %}
-    <div class="main-content">
-      {% module CommonHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="panel panel-default" style="height: unset;padding-bottom: 10px">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">藏经OCR
-                      <span class=""
-                    </h3>
-                  </div>
-                  <div class="panel-body">
-                    <form class="form-horizontal" role="form">
-                      <br/>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label"></label>
-                        <div class="profile-info-name">
-                          {% set ava = 'ava1.png' if current_user and current_user.get('gender') == '男' else 'ava2.png' if current_user and current_user.get('gender') == '女' else 'ava3.png' %}
-                          <img src="{{ static_url(current_user.get('img') or 'imgs/' + ava)}}"
-                               class="thumb-lg img-circle img-thumbnail" alt="profile-image" onclick="upload_img()">
-                          <a href="javascript:upload_img();" style="vertical-align:bottom;">上传头像</a>
-                        </div>
+    <div>
+      <div class="m-header">
+        <div class="left">
+          <div class="title">藏经OCR文字识别</div>
 
-                      </div>
-
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label">姓名</label>
-                        <div class="col-sm-5">
-                          <input type="text" id="name" class="form-control" value="{{current_user['name']}}">
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label">手机</label>
-                        <div class="col-sm-5">
-                          <input type="text" id="phone" class="form-control" value="{{current_user.get('phone') or ''}}">
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label">邮箱</label>
-                        <div class="col-sm-5">
-                          <input type="text" id="email" class="form-control" value="{{current_user.get('email')}}">
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label">性别</label>
-                        <div class="col-sm-5">
-                          <select id="gender" class="form-control">
-                            <option {{
-                            "selected=selected" if not current_user.get('gender') else '' }}></option>
-                            <option {{
-                            "selected=selected" if current_user.get('gender')=='男' else '' }}>男</option>
-                            <option {{
-                            "selected=selected" if current_user.get('gender')=='女' else '' }}>女</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label"></label>
-                        <div class="col-sm-5">
-                          <a class="btn btn-primary btn-block" onclick="save_profile()">保存</a>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label class="col-sm-2 control-label"></label>
-                        <div class="col-sm-5">
-                          <a class="btn btn-block btn-warning" onclick="change_pwd()">修改密码</a>
-                        </div>
-                      </div>
-
-                    </form>
-                  </div>
-                  <!-- panel-body -->
-                </div>
-
-              </div>
-            </div>
+          <div class="btn-group">
+            <span class="sort" data-toggle="dropdown" aria-expanded="false">横线数: <span class="num h-num">2</span></span>
+            <ul class="dropdown-menu" role="menu">
+              {% for i in range(1, 10) %}
+              <li><a href="#" val="i">{{i}}</a></li>
+              {% end %}
+            </ul>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Modify Modals -->
-<div class="panel-body" style="padding: 0;">
-  <!-- modal content -->
-  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="myModalLabel">修改密码</h4>
+          <div class="btn-group">
+            <span class="sort" data-toggle="dropdown" aria-expanded="false">竖线数: <span class="num v-num">2</span></span>
+            <ul class="dropdown-menu" role="menu">
+              {% for i in range(1, 10) %}
+              <li><a href="#" val="i">{{i}}</a></li>
+              {% end %}
+            </ul>
+          </div>
+
+          <div class="btn-txt btn-upload" title="上传页面图">上传</div>
         </div>
-        <div class="modal-body">
-          <form class="form-horizontal">
-            <div class="form-group">
-              <label class="col-sm-2 control-label">原密码</label>
-              <div class="col-md-10">
-                <input type="password" class="form-control" value="" id="old_password">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-2 control-label">新密码</label>
-              <div class="col-md-10">
-                <input type="password" class="form-control" value="" id="password">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">确认密码</label>
-              <div class="col-md-10">
-                <input type="password" class="form-control" value="" id="confirm_password">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+
+        <div class="right">
+          <div class="title box-info"></div>
         </div>
       </div>
-      <!-- /.modal-content -->
+
+      <div class="full-bd">
+        <div id="holder"></div>
+      </div>
     </div>
-    <!-- /.modal-dialog -->
+
   </div>
-  <!-- /.modal -->
 </div>
-<!-- End BootStrap Modal -->
 
 <div class="panel-body" style="padding: 0;">
   <!-- modal content -->
@@ -154,11 +72,11 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">上传头像</h4>
+          <h4 class="modal-title">上传页面图</h4>
         </div>
         <div class="modal-body">
           <form id="myform" enctype="multipart/form-data">
-            <i>选择上传的头像图片，大小不超过1MB</i>
+            <i>选择上传的页面图，大小不超过5MB</i>
             <input type="file" class="form-control" id="upload" name="img" accept="image/*" style="padding:4px 4px">
             <br/>
           </form>
@@ -176,74 +94,63 @@
 </div>
 
 {% include _base_js.html %}
+{% include _cut_base.html %}
+
+<script>
+  var boxes = '{{page["chars"]}}';
+  $.cut.create({
+    readonly: true,
+    name: '{{page['imgname']}}',
+    width: '{{page['imgsize']["width"]}}',
+    height: '{{page['imgsize']["height"]}}',
+    holder: 'holder',
+    image: "{{img}}",
+    chars: boxes
+  });
+  $.cut.bindKeys();
+
+  // 操作切分框
+  $.cut.onBoxChanged(function (char, box, reason) {
+    $('.box-info').text(char ? char.char_id + char.ch + ': (' + Math.round(box.x) + ', ' + Math.round(box.y) + ') - ' +
+        Math.round(box.width) + ' x ' + Math.round(box.height) : '');
+  });
+</script>
 
 <script type="text/javascript">
-  // 修改个人信息
-  function save_profile() {
-    var info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
-    postApi('/user/my/profile', {data: info}, function () {
-      showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。');
-      location.reload();
-    }, function (err) {
-      if (err.code === 1009) {
-        showSuccess('修改成功', '个人信息没有发生改变。');
-      }
-      showError('修改失败', err.message);
-    });
-  }
-
-  // 弹框提示密码修改
-  function change_pwd(name) {
-    $('#modifyModal').modal('show');
-  }
-
-  // 提交密码修改
-  $("#modal_confirm").click(function () {
-    if ($('#password').val().trim() != $('#confirm_password').val().trim()) {
-      showError('请重新输入', '两次密码不一致。');
-      return;
-    }
-    var info = {old_password: $('#old_password').val(), password: $('#password').val()};
-    postApi('/user/my/pwd', {data: info}, function () {
-      showSuccess('修改成功', $('#name').val() + ' 的密码已修改。');
-    }, function (err) {
-      if (err.code === 1009) {
-        showSuccess('修改成功', '密码没有发生改变。');
-      } else {
-        showError('修改失败', err.message);
-      }
-    });
-    $('#modifyModal').modal('hide');
+  $('.m-header .dropdown-menu a').click(function() {
+    $(this).parent().parent().parent().find('.num').text($(this).text());
   });
 
-  // 弹出上传用户头像提示框
-  function upload_img() {
+  // 弹出上传页面图提示框
+  $('.btn-upload').click(function() {
     $('#upload-img').modal('show');
-  }
+  });
 
-  // 上传用户头像
+  // 上传页面图
   $("#img-confirm").click(function () {
     if (typeof $('#upload')[0].files[0] == "undefined") {
       return showError('请选择图片');
     }
     var imgFile = $('#upload')[0].files[0];
-    var imgStr = /\.(jpg|jpeg|png|bmp|BMP|JPG|PNG|JPEG)$/;
+    var imgStr = /\.(jpg|jpeg|png|bmp|tif|tiff|gif)$/i;
     if (!imgStr.test(imgFile.name)) {
       return showError('文件不是图片类型');
     }
-    if (imgFile.size > (1024 * 1024)) {
+    if (imgFile.size > (1024 * 1024 * 5)) {
       return showError('文件大小不能超过1M');
     }
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/user/my/avatar',
+      url: '/api/data/ocr',
       type: 'POST',
       data: formData,
       processData: false,
       contentType: false,
-      success: function (res) {
-        window.location.reload();
+      success: function (r) {
+        if (r.error) {
+          showError('上传失败', r.message);
+        }
       }
     });
     $('#upload-img').modal('hide');
