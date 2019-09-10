@@ -4,7 +4,6 @@
 @desc: 藏经OCR接口
 @time: 2019/9/2
 """
-from tornado import web
 from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
@@ -19,7 +18,6 @@ import json
 class RecognitionApi(BaseHandler):
     URL = '/api/data/ocr'
 
-    @web.asynchronous
     def post(self):
         """藏经OCR接口"""
         def handle_response(r):
@@ -43,6 +41,7 @@ class RecognitionApi(BaseHandler):
             filename = '%d.%s' % (hash(img[0]['filename']) % 10000, filename.split('.')[-1])
 
         logging.info('recognize ' + filename)
+        data['filename'] = filename
         self.call_back_api('http://127.0.0.1:8010/ocr?%s' % urlencode(data), connect_timeout=10,
                            handle_error=lambda t: self.send_error_response(errors.ocr, message=errors.ocr[1] % t),
                            body=img[0]['body'], method='POST', handle_response=handle_response)
