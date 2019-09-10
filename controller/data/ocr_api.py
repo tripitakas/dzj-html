@@ -24,7 +24,7 @@ class RecognitionApi(BaseHandler):
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
             with open(img_file, 'wb') as f:
                 f.write(img[0]['body'])
-            im = Image(img_file)
+            im = Image.open(img_file)
             w, h = im.size
             if w > 1200 or h > 1200:
                 if w > 1200:

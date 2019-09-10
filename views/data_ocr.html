@@ -110,9 +110,9 @@
   $.cut.bindKeys();
 
   // 操作切分框
-  $.cut.onBoxChanged(function (char, box, reason) {
-    $('.box-info').text(char ? char.char_id + char.ch + ': (' + Math.round(box.x) + ', ' + Math.round(box.y) + ') - ' +
-        Math.round(box.width) + ' x ' + Math.round(box.height) : '');
+  $.cut.onBoxChanged(function (char, b, reason) {
+    $('.box-info').text(char ? char.char_id + char.ch + ': (' + Math.round(b ? b.x : 0) + ', ' +
+        Math.round(b ? b.y : 0) + ') - ' + Math.round(b ? b.width : 0) + ' x ' + Math.round(b ? b.height : 0) : '');
   });
 </script>
 
