@@ -32,7 +32,7 @@
           <div class="title">藏经OCR文字识别</div>
 
           <div class="btn-group">
-            <span class="sort" data-toggle="dropdown" aria-expanded="false">横线数: <span class="num h-num">2</span></span>
+            <span class="sort" data-toggle="dropdown" aria-expanded="false">横线数: <span class="num h_num">2</span></span>
             <ul class="dropdown-menu" role="menu">
               {% for i in range(1, 10) %}
               <li><a href="#" val="i">{{i}}</a></li>
@@ -41,7 +41,7 @@
           </div>
 
           <div class="btn-group">
-            <span class="sort" data-toggle="dropdown" aria-expanded="false">竖线数: <span class="num v-num">2</span></span>
+            <span class="sort" data-toggle="dropdown" aria-expanded="false">竖线数: <span class="num v_num">2</span></span>
             <ul class="dropdown-menu" role="menu">
               {% for i in range(1, 10) %}
               <li><a href="#" val="i">{{i}}</a></li>
@@ -76,7 +76,7 @@
         </div>
         <div class="modal-body">
           <form id="myform" enctype="multipart/form-data">
-            <i>选择上传的页面图，大小不超过5MB</i>
+            <i>选择上传的页面图，大小不超过5MB（建议分辨率不超过2000x2000）</i>
             <input type="file" class="form-control" id="upload" name="img" accept="image/*" style="padding:4px 4px">
             <br/>
           </form>
@@ -119,12 +119,12 @@
 <script type="text/javascript">
   $('.m-header .dropdown-menu a').click(function() {
     var $num = $(this).parent().parent().parent().find('.num');
-    localStorage.setItem($num.hasClass('h-num') ? 'ocr-h-num' : 'ocr-v-num', $(this).text());
+    localStorage.setItem($num.hasClass('h_num') ? 'ocr_h_num' : 'ocr_v_num', $(this).text());
     $num.text($(this).text());
   });
 
-  $('.h-num').text("{{ page.get('h_num', '')}}" || localStorage.getItem('ocr-h-num') || '2');
-  $('.v-num').text("{{ page.get('v_num', '')}}" || localStorage.getItem('ocr-v-num') || '2');
+  $('.h_num').text("{{ page.get('h_num', '')}}" || localStorage.getItem('ocr_h_num') || '2');
+  $('.v_num').text("{{ page.get('v_num', '')}}" || localStorage.getItem('ocr_v_num') || '2');
 
   // 弹出上传页面图提示框
   $('.btn-upload').click(function() {
@@ -147,7 +147,7 @@
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/data/ocr',
+      url: '/api/data/ocr?h_num=' + $('.h_num').text() + '&v_num=' + $('.v_num').text(),
       type: 'POST',
       data: formData,
       processData: false,
