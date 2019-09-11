@@ -8,6 +8,7 @@ from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
 from controller import errors
+from controller import helper
 from controller.layout.v2 import calc
 from PIL import Image
 from os import path
@@ -26,6 +27,7 @@ class RecognitionApi(BaseHandler):
             with open(img_file, 'wb') as f:
                 f.write(img[0]['body'])
             with open(img_file.split('.')[0] + '.json', 'w') as f:
+                r['create_time'] = helper.get_date_time()
                 json.dump(r, f, ensure_ascii=False)
 
             im = Image.open(img_file)

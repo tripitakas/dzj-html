@@ -50,6 +50,7 @@
           </div>
 
           <div class="btn-txt btn-upload" title="上传页面图">上传</div>
+          <div class="btn-txt btn-help" title="显示快捷键">帮助</div>
         </div>
 
         <div class="right">
@@ -99,8 +100,7 @@
 <script>
   var boxes = '{{page["chars"]}}';
   $.cut.create({
-    readonly: true,
-    name: '{{page['imgname']}}',
+    name: '{{page['imgname'] + page.get('create_time', '')}}',
     width: '{{page['imgsize']["width"]}}',
     height: '{{page['imgsize']["height"]}}',
     holder: 'holder',
@@ -111,7 +111,7 @@
 
   // 操作切分框
   $.cut.onBoxChanged(function (char, b, reason) {
-    $('.box-info').text(char ? char.char_id + char.ch + ': (' + Math.round(b ? b.x : 0) + ', ' +
+    $('.box-info').text(char ? (char.char_id || '') + (char.ch || '?') + ': (' + Math.round(b ? b.x : 0) + ', ' +
         Math.round(b ? b.y : 0) + ') - ' + Math.round(b ? b.width : 0) + ' x ' + Math.round(b ? b.height : 0) : '');
   });
 </script>
@@ -125,6 +125,19 @@
 
   $('.h_num').text("{{ page.get('h_num', '')}}" || localStorage.getItem('ocr_h_num') || '2');
   $('.v_num').text("{{ page.get('v_num', '')}}" || localStorage.getItem('ocr_v_num') || '2');
+
+  $('.btn-help').click(function () {
+    swal({
+      title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
+      text: '<ul>' + [
+          '方向键：在字框间导航', 'w a s d：移动当前字框', 'alt+方向键：缩小字框, shift+方向键：放大字框',
+          'z: 撤销, r: 重做', '1~5, shift + 5~9: 页面缩放, +/- 逐级缩放',
+          'insert/n 增加字框', 'DEL：删除当前字框，ESC 放弃拖拽改动'
+      ].map(function (t) {
+        return '<li>' + t + '</li>';
+      }).join('') + '</ul>'
+    });
+  });
 
   // 弹出上传页面图提示框
   $('.btn-upload').click(function() {
