@@ -13,6 +13,7 @@ from PIL import Image
 from os import path
 import logging
 import re
+import json
 
 
 class RecognitionApi(BaseHandler):
@@ -24,6 +25,9 @@ class RecognitionApi(BaseHandler):
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
             with open(img_file, 'wb') as f:
                 f.write(img[0]['body'])
+            with open(img_file.split('.')[0] + '.json', 'w') as f:
+                json.dump(r, f, ensure_ascii=False)
+
             im = Image.open(img_file)
             w, h = im.size
             if w > 1200 or h > 1200:
