@@ -21,7 +21,8 @@ class RecognitionHandler(BaseHandler):
             json_file = path.join(s_path, 'upload', 'ocr', img_name.split('.')[0] + '.json'
                                   ) if img_name else path.join(s_path, 'imgs', '1_6A.json')
             page = json.load(open(json_file))
-            self.render('data_ocr.html', page=RecognitionApi.ocr2page(page), img=img, img_name=img_name)
+            page = RecognitionApi.ocr2page(page)
+            self.render('data_ocr.html', page=page, img=img, img_name=img_name)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

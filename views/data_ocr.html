@@ -50,6 +50,7 @@
           </div>
 
           <div class="btn-txt btn-upload" title="上传页面图">上传</div>
+          <div class="btn-txt btn-text" title="显示每行文本">文本</div>
           <div class="btn-txt btn-help" title="显示快捷键">帮助</div>
         </div>
 
@@ -136,6 +137,13 @@
       ].map(function (t) {
         return '<li>' + t + '</li>';
       }).join('') + '</ul>'
+    });
+  });
+
+  $('.btn-text').click(function () {
+    swal({
+      title: 'OCR文本', showConfirmButton: false, allowOutsideClick: true,
+      text: '{{"|".join(['%02d: %s' % (i + 1, c["txt"]) for i, c in enumerate(page["columns"])])}}'.replace(/\|/g, '\n')
     });
   });
 

@@ -12,6 +12,7 @@ from controller import helper
 from controller.layout.v2 import calc
 from PIL import Image
 from os import path
+from operator import itemgetter
 import logging
 import re
 import json
@@ -85,10 +86,21 @@ class RecognitionApi(BaseHandler):
         page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
                               cc=page['chars_cc'][i], txt=page['chars_text'][i])
                          for i, c in enumerate(page['chars_pos'])]
-        chars = calc(page['chars'], page['blocks'], page['columns'])
+        chars = calc(page['chars'], page['blocks'], [])
         for c_i, c in enumerate(chars):
             page['chars'][c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
             page['chars'][c_i]['block_no'] = c['block_id']
             page['chars'][c_i]['line_no'] = c['column_id']
             page['chars'][c_i]['char_no'] = chars[c_i]['no'] = c['column_order']
+        page['chars'].sort(key=itemgetter('block_no', 'line_no', 'char_no'))
+        columns = {}
+        for c in page['chars']:
+            column_id = 'b%dc%d' % (c['block_no'], c['line_no'])
+            if column_id not in columns:
+                columns[column_id] = dict(txt='', column_id=column_id, block_no=c['block_no'], line_no=c['line_no'])
+                chars_col = [s for i, s in enumerate(page['chars_pos']) if chars[i]['block_id'] == c[
+                    'block_no'] and chars[i]['column_id'] == c['line_no']]
+                columns[column_id].update(union_list(chars_col))
+                page['columns'].append(columns[column_id])
+            columns[column_id]['txt'] += c['txt']
         return page
