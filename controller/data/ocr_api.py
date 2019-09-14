@@ -94,7 +94,7 @@ class RecognitionApi(BaseHandler):
             page['chars'][c_i]['char_no'] = chars[c_i]['no'] = c['column_order']
         page['chars'].sort(key=itemgetter('block_no', 'line_no', 'char_no'))
         columns = {}
-        for c in page['chars']:
+        for c_i, c in enumerate(page['chars']):
             column_id = 'b%dc%d' % (c['block_no'], c['line_no'])
             if column_id not in columns:
                 columns[column_id] = dict(txt='', column_id=column_id, block_no=c['block_no'], line_no=c['line_no'])
@@ -102,5 +102,10 @@ class RecognitionApi(BaseHandler):
                     'block_no'] and chars[i]['column_id'] == c['line_no']]
                 columns[column_id].update(union_list(chars_col))
                 page['columns'].append(columns[column_id])
+            if columns[column_id]['txt']:
+                last = page['chars'][c_i - 1]
+                if c['y'] - (last['y'] + last['h']) > c['h'] + last['h']:
+                    columns[column_id]['txt'] += '　'
             columns[column_id]['txt'] += c['txt']
+        page['ocr'] = [c['txt'] for c in page["columns"]]
         return page

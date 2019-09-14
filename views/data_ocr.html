@@ -143,7 +143,7 @@
   $('.btn-text').click(function () {
     swal({
       title: 'OCR文本', showConfirmButton: false, allowOutsideClick: true,
-      text: '{{"|".join(['%02d: %s' % (i + 1, c["txt"]) for i, c in enumerate(page["columns"])])}}'.replace(/\|/g, '\n')
+      text: '{{"|".join(['%02d: %s' % (i + 1, c) for i, c in enumerate(page["ocr"])])}}'.replace(/\|/g, '\n')
     });
   });
 
