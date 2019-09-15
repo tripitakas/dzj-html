@@ -109,7 +109,7 @@ class RecognitionApi(BaseHandler):
             max_h = max(max_h, c['h'])
             if columns[column_id]['txt']:
                 last = page['chars'][c_i - 1]
-                if c['y'] - (last['y'] + last['h']) > max_h:
+                if c['y'] - (last['y'] + last['h']) > max_h / 2:
                     columns[column_id]['txt'] += '　'
             columns[column_id]['txt'] += c['txt']
         page['ocr'] = [c['txt'] for c in page["columns"]]
