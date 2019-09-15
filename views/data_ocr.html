@@ -147,10 +147,8 @@
         if (r.error) {
           showError('上传失败', r.message);
         } else if (r.data.name) {
-          showSuccess('识别完成', r.data.name + ' 已识别完成。');
-          setTimeout(function () {
-            window.location = '/data/ocr/' + r.data.name;
-          }, 100);
+          // showSuccess('识别完成', r.data.name + ' 已识别完成。');
+          window.location = '/data/ocr/' + r.data.name;
         }
         $('#progress').addClass('hide');
       }
