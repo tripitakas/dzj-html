@@ -171,7 +171,7 @@
           <!-- 右侧文字区域 -->
           <div class="content-right {{'' if page_text else 'hide'}}">
             <div class="page-text">
-              {% for n, txt in enumerate(page_text) %}
+              {% for n, txt in enumerate(page_text.split('|')) %}
               <div><span class="num">{{n+1}}</span><span class="txt">{{txt}}</span></div>
               {% end %}
             </div>
