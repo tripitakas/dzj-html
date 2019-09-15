@@ -65,7 +65,7 @@
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
-                      <th><span><input type="checkbox" name="" id="check" value=""/></span></th>
+                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>页编码</span></th>
                       <th><span>
 											    <div class="btn-group">
@@ -93,7 +93,7 @@
                     </thead>
                     <tbody>
                     {% for t in tasks %}
-                    <tr id="{{t['name']}}">
+                    <tr id="{{t['name']}}" class="task-tr">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
                       <td>{{t['name']}}</td>
                       <td>{{Th.status_names.get(Th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
@@ -283,6 +283,7 @@
 
 
 {% include _base_js.html %}
+{% include task_selection_.html %}
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 
@@ -299,7 +300,7 @@
 
   // 生成并显示导航
   function displayPagination(pageNo, pageSize, totalCount) {
-    var pageCount = MaTh.ceil(totalCount / pageSize);
+    var pageCount = Math.ceil(totalCount / pageSize);
     if (pageCount <= 1) {
       $('#pagination').html('');
       return;
@@ -331,7 +332,6 @@
       var data = {prefix: searchStr, page: page, exclude: selectedPages};
       postApi('/task/ready_pages/{{task_type}}', {data: data}, function (res) {
         pages = selectedPages.concat(res.data.pages);
-        $myMultiSelect.multiSelect('refresh');
         showModal(page, res.data.page_size, res.data.total_count);
         $myMultiSelect.multiSelect('select', selectedPages)
       });
@@ -353,7 +353,6 @@
     postApi('/task/ready_pages/{{task_type}}', {data: {prefix: selectableInput, exclude: selectedPages}}, function (res) {
       searchStr = selectableInput;  // 设置全局变量
       pages = selectedPages.concat(res.data.pages);
-      $myMultiSelect.multiSelect('refresh')
       showModal(1, res.data.page_size, res.data.total_count);
       $myMultiSelect.multiSelect('select', selectedPages)
     });
@@ -371,7 +370,7 @@
   // 已选对象-搜索
   $("#selected_input").on('input propertychange', function () {
     var inputval = new RegExp($(this).val().trim(), "i");
-    var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
     selections.each(function () {
       if ($(this).text().match(inputval)) {
         $(this).show();
@@ -404,7 +403,7 @@
   // 按所选页码发布任务
   $modal.find('#select_modal_btn').click(function () {
     var selectedPages = [];
-    var selections = $("#my_multi_select").siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
+    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
     selections.each(function () {
       selectedPages.push($(this).text());
     });
@@ -487,6 +486,9 @@
   $('#prefixModal').find('#prefix_modal_btn').click(function () {
     var page_prefix = $('#page_prefix').val();
     var pre_tasks = [];
+    if (!page_prefix) {
+      return showError('请输入页码前缀');
+    }
     $("#prefixModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
