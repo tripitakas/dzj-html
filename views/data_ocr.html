@@ -62,6 +62,10 @@
         </a>
       </div>
       <div class="title">藏经OCR</div>
+      <div class="right" style="margin: 2px 8px">
+        <img src="{{ static_url('imgs/loading.gif') }}" class="btn-img hide" id="progress" title="进行中" style="margin: 6px 6px;"/>
+        <button type="button" class="btn btn-primary" id="btn-submit">进行识别</button>
+      </div>
     </div>
 
     <div class="content">
@@ -103,9 +107,6 @@
           </li>
         </ul>
       </div>
-      <div class="fr" style="margin: 10px 0 30px">
-        <button type="button" class="btn btn-primary" id="btn-submit">提交</button>
-      </div>
     </div>
   </div>
 
@@ -126,12 +127,13 @@
     if (imgFile.size > (1024 * 1024)) {
       return showError('文件大小不能超过1M');
     }
+    $('#progress').removeClass('hide');
     var layout = $('#layout input:radio:checked').val();
     var layout2num = {
-      "horizontal_2" : [1, 1],
-      "vertical_1" : [1, 1],
-      "vertical_2" : [3, 2],
-      "vertical_3" : [4, 2]
+      "horizontal_2": [1, 1],
+      "vertical_1": [1, 1],
+      "vertical_2": [3, 2],
+      "vertical_3": [4, 2]
     };
     var formData = new FormData();
     formData.append('img', imgFile);
@@ -148,8 +150,9 @@
           showSuccess('识别完成', r.data.name + ' 已识别完成。');
           setTimeout(function () {
             window.location = '/data/ocr/' + r.data.name;
-          }, 1000);
+          }, 100);
         }
+        $('#progress').addClass('hide');
       }
     });
   });
