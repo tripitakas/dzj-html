@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>藏经OCR文字识别 {{img_name}}</title>
+  <title>藏经OCR</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
@@ -11,149 +11,110 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .m-header .title {
-      margin-right: 10px;
+    .content {
+      width: 820px;
+      margin: 45px auto;
     }
-    .m-header .btn-group {
-      margin-left: 10px;
-      margin-right: 10px;
-      margin-top: 7px;
+
+    .content .title {
       font-size: 1.2em;
+      margin: 10px 0;
     }
+
+    .list li {
+      float: left;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .list li:nth-child(2n+2) {
+      margin-right: 0;
+      float: right;
+    }
+
+    .list p {
+      line-height: 42px;
+      position: relative;
+    }
+
+    .list label {
+      color: #13171c;
+      font-size: 16px;
+      font-weight: normal;
+    }
+
+    form input[type='file'] {
+      padding: 6px 4px;
+      font-size: 12px;
+    }
+
   </style>
+
 </head>
 
 <body class="widescreen">
 <div class="app-main">
   <div class="main">
-    <div>
-      <div class="m-header">
-        <div class="left">
-          <div class="title">藏经OCR文字识别</div>
-
-          <div class="btn-group">
-            <span class="sort" data-toggle="dropdown" aria-expanded="false">横线数: <span class="num h_num">2</span></span>
-            <ul class="dropdown-menu" role="menu">
-              {% for i in range(1, 10) %}
-              <li><a href="#" val="i">{{i}}</a></li>
-              {% end %}
-            </ul>
-          </div>
-
-          <div class="btn-group">
-            <span class="sort" data-toggle="dropdown" aria-expanded="false">竖线数: <span class="num v_num">2</span></span>
-            <ul class="dropdown-menu" role="menu">
-              {% for i in range(1, 10) %}
-              <li><a href="#" val="i">{{i}}</a></li>
-              {% end %}
-            </ul>
-          </div>
-
-          <div class="btn-txt btn-upload" title="上传页面图">上传</div>
-          <div class="btn-txt btn-text" title="显示每行文本">文本</div>
-          <div class="btn-txt btn-help" title="显示快捷键">帮助</div>
-        </div>
-
-        <div class="right">
-          <div class="title box-info"></div>
-        </div>
+    <div class="m-header">
+      <div class="back">
+        <a href="/">
+          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
+        </a>
       </div>
-
-      <div class="full-bd">
-        <div id="holder"></div>
-      </div>
+      <div class="title">藏经OCR</div>
     </div>
 
-  </div>
-</div>
-
-<div class="panel-body" style="padding: 0;">
-  <!-- modal content -->
-  <div id="upload-img" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uploadimg" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">上传页面图</h4>
-        </div>
-        <div class="modal-body">
-          <form id="myform" enctype="multipart/form-data">
-            <i>选择上传的页面图，大小不超过5MB（建议分辨率不超过2000x2000）</i>
-            <input type="file" class="form-control" id="upload" name="img" accept="image/*" style="padding:4px 4px">
-            <br/>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="img-confirm">确定</button>
-        </div>
+    <div class="content">
+      <div class="title">第一步：选择文件</div>
+      <form id="uploadform" enctype="multipart/form-data">
+        <i>选择藏经图片文件，大小不超过1MB</i><br/>
+        <input type="file" class="form-control" id="upload" name="img" accept="image/*">
+      </form>
+      <div class="title">第二步：选择版面</div>
+      <div id="layout">
+        <ul class="list clearfix">
+          <li>
+            <img src="{{ static_url('imgs/ocr/vertical_1.jpg') }}"/>
+            <p>
+              <input type="radio" id="layout1" name="drone" value="vertical_1" checked>
+              <label for="layout1">上下一栏</label>
+            </p>
+          </li>
+          <li>
+            <img src="{{ static_url('imgs/ocr/horizontal_2.jpg') }}"/>
+            <p>
+              <input type="radio" id="layout0" name="drone" value="horizontal_2">
+              <label for="layout0">左右两栏</label>
+            </p>
+          </li>
+          <li>
+            <img src="{{ static_url('imgs/ocr/vertical_2.jpg') }}"/>
+            <p>
+              <input type="radio" id="layout2" name="drone" value="vertical_2">
+              <label for="layout2">上下两栏</label>
+            </p>
+          </li>
+          <li>
+            <img src="{{ static_url('imgs/ocr/vertical_3.jpg') }}"/>
+            <p>
+              <input type="radio" id="layout3" name="drone" value="vertical_3">
+              <label for="layout3">上下三栏</label>
+            </p>
+          </li>
+        </ul>
       </div>
-      <!-- /.modal-content -->
+      <div class="fr" style="margin: 10px 0 30px">
+        <button type="button" class="btn btn-primary" id="btn-submit">提交</button>
+      </div>
     </div>
-    <!-- /.modal-dialog -->
   </div>
-  <!-- /.modal -->
+
 </div>
 
 {% include _base_js.html %}
-{% include _cut_base.html %}
 
 <script>
-  var boxes = '{{page["chars"]}}';
-  $.cut.create({
-    name: '{{page['imgname'] + page.get('create_time', '')}}',
-    width: '{{page['imgsize']["width"]}}',
-    height: '{{page['imgsize']["height"]}}',
-    holder: 'holder',
-    image: "{{img}}",
-    chars: boxes
-  });
-  $.cut.bindKeys();
-
-  // 操作切分框
-  $.cut.onBoxChanged(function (char, b, reason) {
-    $('.box-info').text(char ? (char.char_id || '') + (char.ch || '?') + ': (' + Math.round(b ? b.x : 0) + ', ' +
-        Math.round(b ? b.y : 0) + ') - ' + Math.round(b ? b.width : 0) + ' x ' + Math.round(b ? b.height : 0) : '');
-  });
-</script>
-
-<script type="text/javascript">
-  $('.m-header .dropdown-menu a').click(function() {
-    var $num = $(this).parent().parent().parent().find('.num');
-    localStorage.setItem($num.hasClass('h_num') ? 'ocr_h_num' : 'ocr_v_num', $(this).text());
-    $num.text($(this).text());
-  });
-
-  $('.h_num').text("{{ page.get('h_num', '')}}" || localStorage.getItem('ocr_h_num') || '2');
-  $('.v_num').text("{{ page.get('v_num', '')}}" || localStorage.getItem('ocr_v_num') || '2');
-
-  $('.btn-help').click(function () {
-    swal({
-      title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
-      text: '<ul>' + [
-          '方向键：在字框间导航', 'w a s d：移动当前字框', 'alt+方向键：缩小字框, shift+方向键：放大字框',
-          'z: 撤销, r: 重做', '1~5, shift + 5~9: 页面缩放, +/- 逐级缩放',
-          'insert/n 增加字框', 'DEL：删除当前字框，ESC 放弃拖拽改动'
-      ].map(function (t) {
-        return '<li>' + t + '</li>';
-      }).join('') + '</ul>'
-    });
-  });
-
-  $('.btn-text').click(function () {
-    swal({
-      title: 'OCR文本', showConfirmButton: false, allowOutsideClick: true,
-      text: '{{"|".join(['%02d: %s' % (i + 1, c) for i, c in enumerate(page["ocr"])])}}'.replace(/\|/g, '\n')
-    });
-  });
-
-  // 弹出上传页面图提示框
-  $('.btn-upload').click(function() {
-    $('#upload-img').modal('show');
-  });
-
-  // 上传页面图
-  $("#img-confirm").click(function () {
+  $("#btn-submit").click(function () {
     if (typeof $('#upload')[0].files[0] == "undefined") {
       return showError('请选择图片');
     }
@@ -162,13 +123,13 @@
     if (!imgStr.test(imgFile.name)) {
       return showError('文件不是图片类型');
     }
-    if (imgFile.size > (1024 * 1024 * 5)) {
-      return showError('文件大小不能超过5M');
+    if (imgFile.size > (1024 * 1024)) {
+      return showError('文件大小不能超过1M');
     }
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/data/ocr?h_num=' + $('.h_num').text() + '&v_num=' + $('.v_num').text(),
+      url: '/api/data/ocr?layout=' + $('#layout input:radio:checked').val(),
       type: 'POST',
       data: formData,
       processData: false,
@@ -176,8 +137,7 @@
       success: function (r) {
         if (r.error) {
           showError('上传失败', r.message);
-        }
-        else if (r.data.name) {
+        } else if (r.data.name) {
           showSuccess('识别完成', r.data.name + ' 已识别完成。');
           setTimeout(function () {
             window.location = '/data/ocr/' + r.data.name;
@@ -185,7 +145,6 @@
         }
       }
     });
-    $('#upload-img').modal('hide');
   });
 
 </script>

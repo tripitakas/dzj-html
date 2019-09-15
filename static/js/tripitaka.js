@@ -35,7 +35,7 @@ if (localStorage.getItem('toggleTripitaka') === 'hide') {
   $('.m-header .toggle-btn').click();
 }
 
-// 显示、隐藏区域
+// 显示、隐藏左侧区域
 $('.m-header .zone-control .zone-left').click(function () {
   $('.main-right .content .content-left').toggleClass('hide');
   $('.m-header .m-pager .left').toggleClass('hide');
