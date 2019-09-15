@@ -81,7 +81,9 @@ class RecognitionApi(BaseHandler):
                 ret = union(ret, r)
             return dict(x=ret[0], y=ret[1], w=ret[2] - ret[0], h=ret[3] - ret[1])
 
-        page['blocks'] = [union_list(page['chars_pos'])]
+        block = union_list(page['chars_pos'])
+        block.update(dict(block_id='b1', no=1))
+        page['blocks'] = [block]
         page['columns'] = []
         page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
                               cc=page['chars_cc'][i], txt=page['chars_text'][i])
@@ -91,13 +93,14 @@ class RecognitionApi(BaseHandler):
             page['chars'][c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
             page['chars'][c_i]['block_no'] = c['block_id']
             page['chars'][c_i]['line_no'] = c['column_id']
-            page['chars'][c_i]['char_no'] = chars[c_i]['no'] = c['column_order']
+            page['chars'][c_i]['char_no'] = page['chars'][c_i]['no'] = chars[c_i]['no'] = c['column_order']
         page['chars'].sort(key=itemgetter('block_no', 'line_no', 'char_no'))
         columns, max_h = {}, 0
         for c_i, c in enumerate(page['chars']):
             column_id = 'b%dc%d' % (c['block_no'], c['line_no'])
             if column_id not in columns:
-                columns[column_id] = dict(txt='', column_id=column_id, block_no=c['block_no'], line_no=c['line_no'])
+                columns[column_id] = dict(column_id=column_id, block_no=c['block_no'], line_no=c['line_no'],
+                                          txt='', no=c['line_no'])
                 chars_col = [s for i, s in enumerate(page['chars_pos']) if chars[i]['block_id'] == c[
                     'block_no'] and chars[i]['column_id'] == c['line_no']]
                 columns[column_id].update(union_list(chars_col))
@@ -110,4 +113,6 @@ class RecognitionApi(BaseHandler):
                     columns[column_id]['txt'] += '　'
             columns[column_id]['txt'] += c['txt']
         page['ocr'] = [c['txt'] for c in page["columns"]]
+        if page.get('lines_text'):
+            page['ocr'] = page['lines_text']
         return page
