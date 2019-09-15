@@ -126,10 +126,17 @@
     if (imgFile.size > (1024 * 1024)) {
       return showError('文件大小不能超过1M');
     }
+    var layout = $('#layout input:radio:checked').val();
+    var layout2num = {
+      "horizontal_2" : [1, 1],
+      "vertical_1" : [1, 1],
+      "vertical_2" : [3, 2],
+      "vertical_3" : [4, 2]
+    };
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/data/ocr?layout=' + $('#layout input:radio:checked').val(),
+      url: '/api/data/ocr?h_num=' + layout2num[layout][0] + '&v_num=' + layout2num[layout][1],
       type: 'POST',
       data: formData,
       processData: false,
