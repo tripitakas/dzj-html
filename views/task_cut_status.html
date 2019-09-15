@@ -54,7 +54,7 @@
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
-                      <th><input type="checkbox" name="" id=" " value=""/></th>
+                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>页编码</span></th>
                       {% for i, item in enumerate(['切栏校对','切栏审定','切列校对','切列审定','切字校对','切字审定']) %}
                       <th>
@@ -78,7 +78,7 @@
 
                     <tbody>
                     {% for t in tasks %}
-                    <tr id="{{t['name']}}">
+                    <tr id="{{t['name']}}" class="task-tr">
                       <td><input type="checkbox" name="" id="" value=""/></td>
                       <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
                       {% for item in ['block_cut_proof','block_cut_review','column_cut_proof', 'column_cut_review','char_cut_proof','char_cut_review'] %}
@@ -104,6 +104,7 @@
 </div>
 
 {% include _base_js.html %}
+{% include task_selection_.html %}
 <script type="text/javascript">
   // <!--搜索-->
   $('#search-name').on("keydown", function (event) {

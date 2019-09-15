@@ -295,6 +295,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                         self._handle_body(body, params_for_handler, handle_response, handle_error)
                 except Exception as err:
                     err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                    traceback.print_exc()
                     if handle_error:
                         handle_error(err)
                     else:

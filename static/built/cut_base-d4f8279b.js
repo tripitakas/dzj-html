@@ -8524,10 +8524,11 @@ Raphael.el.setFontSize = function(value) {
 
 // apply the current scale and reset it to 1
 Raphael.el.applyScale = function() {
-  this._.sx = 1;
-  this._.sy = 1;
-  this.scale(1, 1);
-  
+  if (this._) {
+    this._.sx = 1;
+    this._.sy = 1;
+    this.scale(1, 1);
+  }
   return this;
 }
 

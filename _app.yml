@@ -28,6 +28,8 @@ esearch:
   host: 127.0.0.1
   port: 9200
 
+ocr_api: http://127.0.0.1:8010/ocr
+
 # OSS图片
 img:
   host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'

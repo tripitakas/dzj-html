@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>藏经OCR</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/tripitaka.css') }}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .main > .content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+    }
+
+    .m-header .right .char-info {
+      font-size: 18px;
+      color: var(--Color_Brown_Darker);
+      margin-top: 8px;
+    }
+
+    .page-picture {
+      margin-bottom: 50px;
+    }
+
+    .page-text {
+      font-size: 18px;
+      margin-bottom: 50px;
+    }
+
+    .page-text .num {
+      background: #ebebeb;
+      display: inline-block;
+      min-width: 32px;
+      text-align: right;
+      padding-right: 10px;
+      font-size: 14px;
+      font-style: italic;
+      line-height: 2em;
+    }
+
+    .page-text .txt {
+      margin-left: 10px;
+    }
+
+  </style>
+
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main" style="overflow: hidden;">
+    <div class="m-header">
+      <div class="back">
+        <a href="/">
+          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
+        </a>
+        <a href="/data/ocr">
+          <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img btn-back"/>
+        </a>
+      </div>
+      <div class="title">藏经OCR</div>
+      <div class="help">
+        <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
+      </div>
+      <div class="zone-control" style="padding: 0 5px">
+        <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img zone-left" title="图片区域"/>
+        <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-right" title="文字区域"/>
+      </div>
+
+      <div class="right">
+        <div class="title char-info"></div>
+      </div>
+    </div>
+
+    <div class="content" style="margin-top: 40px">
+      <!-- 左侧图片区域 -->
+      <div class="content-left">
+        <div id="page-picture" class="page-picture">
+          <div id="holder"></div>
+        </div>
+      </div>
+      <!-- 右侧文字区域 -->
+      <div class="content-right">
+        <div class="page-text">
+          {% for n, txt in enumerate(page["ocr"]) %}
+          <div><span class="num">{{n+1}}</span><span class="txt">{{txt}}</span></div>
+          {% end %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% include _base_js.html %}
+{% include _cut_base.html %}
+
+<script>
+  var boxes = "{{page['chars']}}";
+  $.cut.create({
+    name: "{{page['imgname'] + page.get('create_time', '')}}",
+    width: "{{page['imgsize']['width']}}",
+    height: "{{page['imgsize']['height']}}",
+    holder: "holder",
+    image: "{{img}}",
+    chars: boxes
+  });
+  $.cut.bindKeys();
+
+  // 操作切分框
+  $.cut.onBoxChanged(function (char, b, reason) {
+    $('.char-info').text(char ? (char.ch || '?') + ': ' + (char.char_id || '') + ', ' + Math.round(b ? b.x : 0) + ', ' +
+        Math.round(b ? b.y : 0) + ', ' + Math.round(b ? b.width : 0) + ', ' + Math.round(b ? b.height : 0) : '');
+  });
+</script>
+
+<script>
+  // 帮助
+  $('.btn-help').click(function () {
+    swal({
+      title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
+      text: '<ul>' + [
+        '1~5：页面放大', 'shift+5~9: 页面缩小', '+/-：逐级缩放',
+        '方向键：在字框间导航', 'w a s d：移动当前字框',
+        'alt+方向键：缩小字框', 'shift+方向键：放大字框',
+        'insert或n：增加字框', 'DEL：删除当前字框',
+        'z: 撤销', 'r: 重做', 'ESC：放弃拖拽改动'
+      ].map(function (t) {
+        return '<li>' + t + '</li>';
+      }).join('') + '</ul>'
+    });
+  });
+
+  // 显示、隐藏左侧区域
+  $('.m-header .zone-control .zone-left').click(function () {
+    $('.main .content .content-left').toggleClass('hide');
+    $('.m-header .m-pager .left').toggleClass('hide');
+  });
+
+  // 显示、隐藏右侧区域
+  $('.m-header .zone-control .zone-right').click(function () {
+    $('.main .content .content-right').toggleClass('hide');
+    $('.m-header .m-pager .right').toggleClass('hide');
+  });
+
+
+</script>
+
+</body>
+
+</html>

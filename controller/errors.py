@@ -70,3 +70,6 @@ tptk_code_duplicated = 5005, '编码重复'
 tptk_code_existed = 5006, '编码已存在'
 tptk_id_not_existed = 5007, 'id对应的记录不存在'
 
+ocr = 5100, 'OCR服务执行出错: %s'
+ocr_img_not_existed = 5101, 'OCR图片不存在'
+ocr_json_not_existed = 5102, 'JSON文件不存在'

@@ -17,6 +17,7 @@ url_placeholder = {
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
+    'img_file': '[A-Za-z0-9._-]+',
 }
 
 role_maps = {
@@ -34,14 +35,6 @@ role_maps = {
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
-            # 下列只读浏览页面暂时允许匿名访问
-            '/task/block_cut_proof/@page_name': ['GET'],
-            '/task/column_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/order/@page_name': ['GET'],
-            '/task/char_cut_review/order/@page_name': ['GET'],
-            '/task/text_proof_@num/@page_name': ['GET'],
-            '/task/text_review/@page_name': ['GET'],
         }
     },
     '普通用户': {
@@ -55,6 +48,9 @@ role_maps = {
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
+            '/data/ocr': ['GET'],
+            '/data/ocr/@img_file': ['GET'],
+            '/api/data/ocr': ['POST'],
             '/data/punctuation': ['GET'],
             '/api/data/punctuation': ['POST'],
             '/data/cbeta/search': ['GET'],
@@ -62,6 +58,15 @@ role_maps = {
             '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],
             '/api/task/page/@page_name': ['GET'],
+
+            # 下列只读浏览页面暂时允许普通用户访问
+            '/task/block_cut_proof/@page_name': ['GET'],
+            '/task/column_cut_proof/@page_name': ['GET'],
+            '/task/char_cut_proof/@page_name': ['GET'],
+            '/task/char_cut_proof/order/@page_name': ['GET'],
+            '/task/char_cut_review/order/@page_name': ['GET'],
+            '/task/text_proof_@num/@page_name': ['GET'],
+            '/task/text_review/@page_name': ['GET'],
         }
     },
     '切栏校对员': {

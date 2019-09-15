@@ -5,8 +5,12 @@
 @time: 2019/6/4
 """
 import re
-from cdifflib import CSequenceMatcher
 from controller.data.variant import is_variant
+try:
+    from cdifflib import CSequenceMatcher
+except ImportError:  # Windows上跳过安装cdifflib
+    def CSequenceMatcher(is_junk, a, b, auto_junk):
+        return [is_junk, a, b, auto_junk] and []
 
 
 class Diff(object):

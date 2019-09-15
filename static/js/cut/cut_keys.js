@@ -79,6 +79,14 @@
         }
       });
 
+      // z Undo, r Redo
+      on('z', function() {
+        self.undo();
+      });
+      on('r', function() {
+        self.redo();
+      });
+
       // 1~5 页面缩放
       on('1', function() {
         self.setRatio(1);
