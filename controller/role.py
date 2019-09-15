@@ -35,10 +35,6 @@ role_maps = {
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
-
-            '/data/ocr': ['GET'],
-            '/data/ocr/@img_file': ['GET'],
-            '/api/data/ocr': ['POST'],
         }
     },
     '普通用户': {
@@ -52,6 +48,9 @@ role_maps = {
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
+            '/data/ocr': ['GET'],
+            '/data/ocr/@img_file': ['GET'],
+            '/api/data/ocr': ['POST'],
             '/data/punctuation': ['GET'],
             '/api/data/punctuation': ['POST'],
             '/data/cbeta/search': ['GET'],
