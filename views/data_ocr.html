@@ -71,7 +71,7 @@
     <div class="content">
       <div class="title">第一步：选择文件</div>
       <form id="uploadform" enctype="multipart/form-data">
-        <i>选择藏经图片文件，大小不超过1MB</i><br/>
+        <i>选择藏经图片文件，大小不超过2MB</i><br/>
         <input type="file" class="form-control" id="upload" name="img" accept="image/*">
       </form>
       <div class="title">第二步：选择版面</div>
@@ -124,8 +124,8 @@
     if (!imgStr.test(imgFile.name)) {
       return showError('文件不是图片类型');
     }
-    if (imgFile.size > (10 * 1024 * 1024)) {
-      return showError('文件大小不能超过10M');
+    if (imgFile.size > (2 * 1024 * 1024)) {
+      return showError('文件大小不能超过2MB');
     }
     $('#progress').removeClass('hide');
     var layout = $('#layout input:radio:checked').val();
