@@ -124,8 +124,8 @@
     if (!imgStr.test(imgFile.name)) {
       return showError('文件不是图片类型');
     }
-    if (imgFile.size > (1024 * 1024)) {
-      return showError('文件大小不能超过1M');
+    if (imgFile.size > (10 * 1024 * 1024)) {
+      return showError('文件大小不能超过10M');
     }
     $('#progress').removeClass('hide');
     var layout = $('#layout input:radio:checked').val();
