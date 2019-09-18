@@ -262,7 +262,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not host or salt in [None, '', '待配置'] or force_local:
             fn = self.static_url('img/{0}/{1}.jpg'.format(page_code[:2], page_code))
             # fn = self.static_url('img/{0}/{1}.gif'.format('/'.join(page_code.split('_')[:-1]), page_code))
-            if not path.exists(path.join(self.application.BASE_DIR, fn[1:])):
+            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
         md5 = hashlib.md5()
