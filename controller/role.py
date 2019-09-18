@@ -20,8 +20,10 @@ url_placeholder = {
     'img_file': '[A-Za-z0-9._-]+',
 }
 
+""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 role_maps = {
     '单元测试用户': {
+        'is_assignable': False,
         'routes': {
             '/api/user/list': ['GET'],
             '/api/task/page/@page_name': ['GET'],
@@ -29,6 +31,7 @@ role_maps = {
         }
     },
     '访客': {
+        'is_assignable': False,
         'remark': '任何人都可访问，无需登录',
         'routes': {
             '/api': ['GET'],
@@ -38,6 +41,7 @@ role_maps = {
         }
     },
     '普通用户': {
+        'is_assignable': False,
         'remark': '登录用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
@@ -241,7 +245,6 @@ role_maps = {
         }
     },
 }
-""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]
