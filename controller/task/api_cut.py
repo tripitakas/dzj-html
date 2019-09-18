@@ -18,11 +18,6 @@ class SaveCutApi(SubmitTaskApi):
            '/api/task/update/@box_type_cut_review/@page_name',
            '/api/data/edit/@box_types/@page_name']
 
-    save_fields = {
-        'block_cut_proof': 'blocks', 'block_cut_review': 'blocks', 'column_cut_proof': 'columns',
-        'column_cut_review': 'columns', 'char_cut_proof': 'chars', 'char_cut_review': 'chars',
-    }
-
     def post(self, kind, page_name):
         """ 保存数据。有do/update/edit三种模式:
             1. do。做任务时，保存或提交任务。
@@ -43,7 +38,7 @@ class SaveCutApi(SubmitTaskApi):
             data = self.get_request_data()
             boxes = json_decode(data.get('boxes', '[]'))
             if boxes:
-                data_field = self.save_fields.get(task_type)
+                data_field = self.task_shared_data_fields.get(task_type)
                 update.update({data_field: boxes})
             if 'do/char_cut' in self.request.path and data.get('submit_step'):  # 切字submit
                 update.update({'tasks.%s.submitted_steps' % task_type: [task_type]})
@@ -60,3 +55,10 @@ class SaveCutApi(SubmitTaskApi):
 
         except DbError as e:
             self.send_db_error(e)
+
+
+class SaveOCRApi(SaveCutApi):
+    URL = ['/api/task/do/ocr_proof/@page_name',
+           '/api/task/update/ocr_proof/@page_name',
+           '/api/task/do/ocr_review/@page_name',
+           '/api/task/update/ocr_review/@page_name']

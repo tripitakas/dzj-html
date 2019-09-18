@@ -12,7 +12,7 @@ import re
 
 url_placeholder = {
     'num': r'\d+',
-    'task_type': r'[a-z]+_cut_[a-z]+|text_\w+',
+    'task_type': r'[a-z]+_cut_[a-z]+|text_\w+|ocr_\w+',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
@@ -138,6 +138,29 @@ role_maps = {
             '/api/task/(do|update)/char_cut_review/order/@page_name': ['POST'],
             '/data/edit/(blocks|columns)/@page_name': ['GET'],
             '/api/data/edit/(blocks|columns)/@page_name': ['POST'],
+        }
+    },
+    'OCR校对员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_proof': ['GET'],
+            '/api/task/pick/ocr_proof': ['POST'],
+            '/task/(do|update)/ocr_proof/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_proof/@page_name': ['POST'],
+            '/task/(do|update)/ocr_proof/order/@page_name': ['GET'],
+        }
+    },
+    'OCR审定员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_review': ['GET'],
+            '/api/task/pick/ocr_review': ['POST'],
+            '/task/(do|update)/ocr_review/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_review/@page_name': ['POST'],
+            '/task/(do|update)/ocr_review/order/@page_name': ['GET'],
+            '/api/task/(do|update)/ocr_review/order/@page_name': ['POST'],
         }
     },
     '切分专家': {

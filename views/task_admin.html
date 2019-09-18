@@ -141,28 +141,7 @@
           <h4 class="modal-title">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          <div class="priority-list">
-            <h4 class="control-label">选择优先级</h4>
-            <select class="form-control">
-              <option value="3">高</option>
-              <option value="2">中</option>
-              <option value="1">低</option>
-            </select>
-          </div>
-          <br/>
-          <div class="pre-tasks">
-            <h4 class="control-label">选择前置任务</h4>
-            <div>
-              {% for t, v in Th.task_types.items() %}
-              {% if t != task_type %}
-              <label class="checkbox-inline">
-                <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
-              </label>
-              {% end %}
-              {% end %}
-            </div>
-          </div>
-          <br/>
+          {% include task_admin_detail.html %}
           <h4 class="control-label">输入页码前缀</h4>
           <input type="text" class="form-control" id="page_prefix" placeholder="请输入页码前缀，如GL_2"/>
         </div>
@@ -185,28 +164,7 @@
           <h4 class="modal-title" id="upload-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          <div class="priority-list">
-            <h4 class="control-label">选择优先级</h4>
-            <select class="form-control">
-              <option value="3">高</option>
-              <option value="2">中</option>
-              <option value="1">低</option>
-            </select>
-          </div>
-          <br/>
-          <div class="pre-tasks">
-            <h4 class="control-label">选择前置任务</h4>
-            <div>
-              {% for t, v in Th.task_types.items() %}
-              {% if t != task_type %}
-              <label class="checkbox-inline">
-                <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
-              </label>
-              {% end %}
-              {% end %}
-            </div>
-          </div>
-          <br/>
+          {% include task_admin_detail.html %}
           <i>请选择CSV或TXT格式文件，大小不超过10M</i>
           <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
         </div>
@@ -229,28 +187,7 @@
           <h4 class="modal-title" id="choose-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          <div class="priority-list">
-            <h4 class="control-label">选择优先级</h4>
-            <select class="form-control">
-              <option value="3">高</option>
-              <option value="2">中</option>
-              <option value="1">低</option>
-            </select>
-          </div>
-          <br/>
-          <div class="pre-tasks">
-            <h4 class="control-label">选择前置任务</h4>
-            <div>
-              {% for t, v in Th.task_types.items() %}
-              {% if t != task_type %}
-              <label class="checkbox-inline">
-                <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}} />{{v}}
-              </label>
-              {% end %}
-              {% end %}
-            </div>
-          </div>
-          <br/>
+          {% include task_admin_detail.html %}
           <div class="form-group">
             <div>
               <div class="ms-container my-container">
@@ -290,7 +227,8 @@
 <script>
   var pages = [];
   var searchStr = '';
-  var $modal = $('#selectModal');
+  var $choosePagesModal = $('#selectModal');
+  var $prefixModal = $('#prefixModal');
   var $myMultiSelect = $('#my_multi_select');
 
   // 初始化选择模块
@@ -393,15 +331,23 @@
     displayPagination(pageNo, pageSize, totalCount);
   }
 
-  $modal.on('shown.bs.modal', function () {
+  $choosePagesModal.on('shown.bs.modal', function () {
     postApi('/task/ready_pages/{{task_type}}', {data: {}}, function (res) {
       pages = res.data.pages;
       showModal(1, res.data.page_size, res.data.total_count);
     });
   });
 
+  function getTaskOptions() {
+    var options = [];
+    $("#selectModal .pre-tasks :checkbox").each(function () {
+      if ($(this).is(':checked'))
+        pre_tasks.push($(this).attr('title'));
+    });
+  }
+
   // 按所选页码发布任务
-  $modal.find('#select_modal_btn').click(function () {
+  $choosePagesModal.find('#select_modal_btn').click(function () {
     var selectedPages = [];
     var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
     selections.each(function () {
@@ -418,7 +364,7 @@
     var data = {
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
-      priority: $modal.find('.priority-list select').val(),
+      priority: $choosePagesModal.find('.priority-list select').val(),
       page_names: selectedPages.join(',')
     };
     console.log(data);
@@ -496,7 +442,7 @@
     var data = {
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
-      priority: $modal.find('.priority-list select').val()
+      priority: $('#prefixModal .priority-list select').val()
     };
     console.log(data);
     postApi('/task/publish/' + page_prefix, {data: data}, function (res) {

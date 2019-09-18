@@ -26,6 +26,8 @@ from controller.base import BaseHandler
 class TaskHandler(BaseHandler):
     # 任务类型表
     task_types = {
+        'ocr_proof': 'OCR校对',
+        'ocr_review': 'OCR审定',
         'block_cut_proof': '切栏校对',
         'block_cut_review': '切栏审定',
         'column_cut_proof': '切列校对',
@@ -83,6 +85,8 @@ class TaskHandler(BaseHandler):
         'char_cut_review': 'chars',
         'text_review': 'text',
         'text_hard': 'text',
+        'ocr_proof': 'chars',
+        'ocr_review': 'chars',
     }
 
     # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。
@@ -107,7 +111,6 @@ class TaskHandler(BaseHandler):
             'tasks': ['text_review', 'text_hard'],
             'roles': ['文字专家']
         },
-
     }
 
     @classmethod
@@ -136,7 +139,7 @@ class TaskHandler(BaseHandler):
         return {k: v for k, v in cls.task_types.items() if 'text_' in k}
 
     @classmethod
-    def simple_fileds(cls, include=None):
+    def simple_fields(cls, include=None):
         """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
         simple = ['name', 'width', 'height', 'tasks', 'lock']
         include = [] if not include else include
@@ -144,7 +147,7 @@ class TaskHandler(BaseHandler):
 
     def find_my_tasks(self, page_name):
         """ 检查page_name对应的page中，当前用户有哪些任务 """
-        page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+        page = self.db.page.find_one({'name': page_name}, self.simple_fields())
         tasks = []
         for k, task in page['tasks'].items():
             if task.get('picked_user_id') == self.current_user['_id']:
@@ -162,7 +165,7 @@ class TaskHandler(BaseHandler):
 
     def is_data_locked(self, page_name, data_field):
         """检查page_name对应的page中，data_field对应的数据是否已经被锁定"""
-        page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+        page = self.db.page.find_one({'name': page_name}, self.simple_fields())
         return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
 
     def get_temp_data_lock(self, page_name, data_field):
@@ -300,7 +303,7 @@ class TaskHandler(BaseHandler):
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
-        query = self.db.page.find(condition, self.simple_fileds())
+        query = self.db.page.find(condition, self.simple_fields())
         total_count = self.db.page.count_documents(condition)
 
         if order:
@@ -336,7 +339,7 @@ class TaskHandler(BaseHandler):
         else:
             condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
         total_count = self.db.page.count_documents(condition)
-        pages = list(self.db.page.find(condition, self.simple_fileds()).limit(self.MAX_RECORDS))
+        pages = list(self.db.page.find(condition, self.simple_fields()).limit(self.MAX_RECORDS))
         random.shuffle(pages)
         pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)), reverse=True)
         page_size = page_size or self.config['pager']['page_size']
@@ -363,7 +366,7 @@ class TaskHandler(BaseHandler):
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
-        query = self.db.page.find(condition, self.simple_fileds())
+        query = self.db.page.find(condition, self.simple_fields())
         total_count = self.db.page.count_documents(condition)
 
         if order:

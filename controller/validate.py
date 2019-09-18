@@ -227,7 +227,7 @@ def in_list(lst, **kw):
             return {k: err}
 
 
-def has_fileds(fields, **kw):
+def has_fields(fields, **kw):
     """检查是否有fields中的字段"""
     k, v = list(kw.items())[0]
     if v:

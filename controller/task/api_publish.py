@@ -29,7 +29,10 @@ class GetReadyPagesApi(TaskHandler):
             if not condition['name']:
                 del condition['name']
 
-            condition.update({'tasks.%s.status' % task_type: self.STATUS_READY})
+            condition.update({'$or': [
+                {'tasks.%s.status' % task_type: self.STATUS_READY},
+                {'tasks.%s.status' % task_type: None}
+            ]})
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
@@ -67,9 +70,9 @@ class PublishTasksApi(TaskHandler):
                 self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_RETURNED, self.STATUS_FINISHED
             ]})
 
-        # 检查未就绪的页面（状态不为STATUS_READY）
+        # 检查未就绪的页面（状态不为STATUS_READY，也不是None）
         if pages:
-            log['un_ready'], pages = self.filter_task(pages, {task_type: self.STATUS_READY}, equal=False)
+            log['un_ready'], pages = self.filter_task(pages, {task_type: [self.STATUS_READY, None]}, equal=False)
 
         # 针对已就绪的页面（状态为READY），进行发布任务
         if pages:
@@ -83,9 +86,14 @@ class PublishTasksApi(TaskHandler):
                 log['publish_failed'] = set(finished) - set(log['published'])
 
                 # 针对前置任务未完成的情况（只要有一个未完成，就算未完成）进行发布，设置状态为PENDING
-                unfinished, pages = self.filter_task(pages, {t: self.STATUS_FINISHED for t in pre_tasks}, False, False)
+                unfinished, pages = self.filter_task(pages,
+                                                     {t: [self.STATUS_FINISHED, None] for t in pre_tasks}, False, False)
                 log['pending'] = self._publish_task(unfinished, task_type, self.STATUS_PENDING, priority, pre_tasks)
                 log['pending_failed'] = set(unfinished) - set(log['pending'])
+
+                # 剩下的是前置任务不存在的，也发布为OPENED
+                opened = self._publish_task([p['name'] for p in pages], task_type, self.STATUS_OPENED, priority, [])
+                log['published'].extend(opened)
 
             else:
                 # 针对没有前置任务的情况进行发布，设置状态为OPENED
@@ -169,7 +177,7 @@ class PublishTasksApi(TaskHandler):
         lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
         pages = []
         for _page_names in lst:
-            _pages = self.db.page.find({'name': {'$in': _page_names}}, self.simple_fileds())
+            _pages = self.db.page.find({'name': {'$in': _page_names}}, self.simple_fields())
             pages.extend(list(_pages))
         return pages
 
@@ -240,6 +248,6 @@ class PublishTasksPagePrefixApi(PublishTasksApi):
             return self.send_error_response(err)
 
         condition = {'name': {'$regex': '.*%s.*' % page_prefix, '$options': '$i'}}
-        pages = self.db.page.find(condition, self.simple_fileds())
+        pages = self.db.page.find(condition, self.simple_fields())
         log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('priority', 1), pages=pages)
         self.send_data_response({k: v_ for k, v_ in log.items() if v_})
