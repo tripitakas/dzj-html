@@ -18,6 +18,11 @@ import logging
 import re
 import json
 
+from boto3.session import Session
+from boto3.exceptions import Boto3Error
+from botocore.exceptions import BotoCoreError
+import hashlib
+
 
 class RecognitionApi(BaseHandler):
     URL = '/api/data/ocr'
@@ -32,7 +37,7 @@ class RecognitionApi(BaseHandler):
                 r['create_time'] = helper.get_date_time()
                 json.dump(r, f, ensure_ascii=False)
 
-            im = Image.open(img_file)
+            im = Image.open(img_file).convert('RGBA')
             w, h = im.size
             if w > 1200 or h > 1200:
                 if w > 1200:
@@ -42,7 +47,12 @@ class RecognitionApi(BaseHandler):
                     w = round(1200 * w / h)
                     h = 1200
                 im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
-                im.save(img_file)
+
+            mark = Image.open(path.join(path.dirname(__file__), 'rushi.png'))
+            if mark.size != (w, h):
+                mark = mark.resize((w, h))
+            im = Image.alpha_composite(im, mark)
+            im.convert('L').save(img_file)
 
             self.send_data_response(dict(name=filename))
 
@@ -141,6 +151,30 @@ class SubmitRecognitionApi(BaseHandler):
         if not r:
             return self.send_error_response(errors.ocr_page_existed)
 
+        if 'secret_key' in self.config['img']:
+            SubmitRecognitionApi.upload(self, img_file)
+
         page['id'] = str(r.inserted_id)
         self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
         self.send_data_response(dict(name=page['imgname'], id=page['id']))
+
+    @staticmethod
+    def upload(self, img_file):
+        oss = self.config['img']
+        session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'],
+                          region_name=oss['region_name'])
+        s3 = session.resource('s3', endpoint_url=oss['host'])
+
+        key, volumes, cur_volume = None, set(), ''
+        try:
+            fn = path.basename(img_file)
+            page_code = fn.split('.')[0]
+            md5 = hashlib.md5()
+            md5.update((page_code + oss['salt']).encode('utf-8'))
+            new_name = '%s_%s.jpg' % (page_code, md5.hexdigest())
+            key = '/'.join(page_code.split('_')[:-1] + [new_name])
+            s3.meta.client.upload_file(img_file, 'pages', key)
+            logging.info('%s uploaded' % key)
+            return key
+        except (Boto3Error, BotoCoreError) as e:
+            logging.error('fail to upload %s: %s' % (key, str(e).split(': ')[-1]))
