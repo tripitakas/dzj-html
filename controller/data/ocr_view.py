@@ -28,10 +28,10 @@ class RecognitionViewHandler(BaseHandler):
         try:
             upload_ocr = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr')
             if not path.exists(path.join(upload_ocr, img_name)):
-                self.send_error_response(errors.ocr_img_not_existed, render=True)
+                return self.send_error_response(errors.ocr_img_not_existed, render=True)
             json_file = path.join(upload_ocr, img_name.split('.')[0] + '.json')
             if not path.exists(json_file):
-                self.send_error_response(errors.ocr_json_not_existed, render=True)
+                return self.send_error_response(errors.ocr_json_not_existed, render=True)
 
             page = json.load(open(json_file))
             page = RecognitionApi.ocr2page(page)

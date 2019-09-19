@@ -132,6 +132,11 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
             chars=info.get('chars', []),
             create_time=datetime.now()
         ))
+        if info.get('ocr'):
+            if isinstance(info['ocr'], list):
+                meta['ocr'] = '|'.join(info['ocr'])
+            else:
+                meta['ocr'] = info['ocr'].replace('\n', '|')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
@@ -141,7 +146,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
-        db.page.insert_one(meta)
+        return db.page.insert_one(meta)
 
 
 def add_texts(src_path, pages, db):

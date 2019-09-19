@@ -10,6 +10,7 @@ from controller.base import BaseHandler
 from controller import errors
 from controller import helper
 from controller.layout.v2 import calc
+from tests.add_pages import add_page
 from PIL import Image
 from os import path
 from operator import itemgetter
@@ -116,3 +117,30 @@ class RecognitionApi(BaseHandler):
         if page.get('lines_text'):
             page['ocr'] = page['lines_text']
         return page
+
+
+class SubmitRecognitionApi(BaseHandler):
+    URL = '/api/data/submit_ocr/@img_file'
+
+    def post(self, img_name):
+        """从OCR结果文件创建页面任务"""
+        upload_ocr = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr')
+        img_file = path.join(upload_ocr, img_name)
+        if not path.exists(img_file):
+            return self.send_error_response(errors.ocr_img_not_existed)
+        json_file = path.join(upload_ocr, img_name.split('.')[0] + '.json')
+        if not path.exists(json_file):
+            return self.send_error_response(errors.ocr_json_not_existed)
+
+        page = json.load(open(json_file))
+        page = RecognitionApi.ocr2page(page)
+
+        if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
+            return self.send_error_response(errors.ocr_invalid_name)
+        r = add_page(page['imgname'], page, self.db)
+        if not r:
+            return self.send_error_response(errors.ocr_page_existed)
+
+        page['id'] = str(r.inserted_id)
+        self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
+        self.send_data_response(dict(name=page['imgname'], id=page['id']))
