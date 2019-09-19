@@ -49,6 +49,7 @@ class ApiTable(TaskHandler):
             for method in handler._get_methods().split(','):
                 method = method.strip()
                 if method != 'OPTIONS':
+                    assert method.lower() in cls.__dict__, cls.__name__
                     func = cls.__dict__[method.lower()]
                     func_name = re.sub(r'<|function |at .+$', '', str(func)).strip()
                     self.add_handlers(cls, file, func_name, get_doc, handlers, method)

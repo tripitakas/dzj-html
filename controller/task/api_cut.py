@@ -62,3 +62,7 @@ class SaveOCRApi(SaveCutApi):
            '/api/task/update/ocr_proof/@page_name',
            '/api/task/do/ocr_review/@page_name',
            '/api/task/update/ocr_review/@page_name']
+
+    def post(self, kind, page_name):
+        """保存数据"""
+        super(SaveOCRApi, self).post(kind, page_name)
