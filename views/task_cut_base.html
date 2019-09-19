@@ -6,11 +6,11 @@
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
+    scrollContainer: '.bd-container',
     image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
     chars: boxes
   });
   $.cut.bindKeys();
-
 </script>
 
 <script>
