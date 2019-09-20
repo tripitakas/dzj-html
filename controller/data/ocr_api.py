@@ -12,7 +12,7 @@ from controller import helper
 from controller.layout.v2 import calc
 from tests.add_pages import add_page
 from PIL import Image
-from os import path
+from os import path, remove
 from operator import itemgetter
 import logging
 import re
@@ -22,6 +22,7 @@ from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 import hashlib
+import subprocess
 
 
 class RecognitionApi(BaseHandler):
@@ -31,12 +32,17 @@ class RecognitionApi(BaseHandler):
         """藏经OCR接口"""
         def handle_response(r):
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
+            gif_file = img_file.split('.')[0] + '.gif'
+            json_file = img_file.split('.')[0] + '.json'
+
+            # 缓存图片和OCR结果到 upload/ocr 目录
             with open(img_file, 'wb') as f:
                 f.write(img[0]['body'])
-            with open(img_file.split('.')[0] + '.json', 'w') as f:
+            with open(json_file, 'w') as f:
                 r['create_time'] = helper.get_date_time()
                 json.dump(r, f, ensure_ascii=False)
 
+            # 缩小图片
             im = Image.open(img_file).convert('RGBA')
             w, h = im.size
             if w > 1200 or h > 1200:
@@ -48,13 +54,20 @@ class RecognitionApi(BaseHandler):
                     h = 1200
                 im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
 
+            # 图片加水印、变为灰度图，保存为gif
             mark = Image.open(path.join(path.dirname(__file__), 'rushi.png'))
             if mark.size != (w, h):
                 mark = mark.resize((w, h))
             im = Image.alpha_composite(im, mark)
-            im.convert('L').save(img_file)
+            im.convert('L').save(gif_file, 'GIF')
 
-            self.send_data_response(dict(name=filename))
+            if gif_file != img_file:
+                remove(img_file)
+            subprocess.call(['gifsicle', '-o', gif_file, '-O3', '--careful',
+                             '--no-comments', '--no-names', '--same-delay', '--same-loopcount', '--no-warnings',
+                             '--', gif_file])
+
+            self.send_data_response(dict(name=path.basename(gif_file)))
 
         data = self.get_request_data()
         if not data:
@@ -63,11 +76,17 @@ class RecognitionApi(BaseHandler):
                 data[k] = to_basestring(v[0])
         img = self.request.files.get('img')
         assert img
-        filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))
-        if len(filename.split('.')[0]) < 4:
-            filename = '%d.%s' % (hash(img[0]['filename']) % 10000, filename.split('.')[-1])
+        filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))  # 去掉汉字和特殊符号
+        ext = filename.split('.')[-1].lower()
+        filename = '%d.%s' % (filename.split('.')[0], ext)[1:-1]
+        if '_' not in filename:
+            m = re.search(r'([/\\][A-Za-z]{2})?([/\\][0-9]+){1,3}$', path.dirname(filename))
+            if m:
+                filename = re.sub(r'[/\\]', '_', m.group(0)[1:]) + '_' + filename
+            if len(filename) < 7:
+                filename = '%d.%s' % (hash(img[0]['filename']) % 10000, ext)
 
-        logging.info('recognize ' + filename)
+        logging.info('recognize %s...' % filename)
         data['filename'] = filename
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
         self.call_back_api(url, connect_timeout=5, request_timeout=20,
