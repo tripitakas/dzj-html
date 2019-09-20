@@ -12,6 +12,12 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .bd-container {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+  </style>
 </head>
 
 <body class="widescreen">
@@ -80,7 +86,7 @@
         </div><!--right-->
       </div>
 
-      <div class="full-bd">
+      <div class="full-bd bd-container">
         <!-- holder为显示切分框和页面图的画布容器 -->
         <div id="holder"></div>
       </div>
@@ -124,244 +130,23 @@
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
+{% include task_cut_base.html %}
 
 <script>
-  var boxes = '{{boxes}}';
-  $.cut.create({
-    '{{box_type}}Mode': true,
-    name: '{{box_type}}_{{name}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    holder: 'holder',
-    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
-    chars: boxes
+  $('.btn-help').click(function () {
+    swal({
+      title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
+      text: '<ul>' + [
+        '1~5：页面放大', 'shift+5~9: 页面缩小', '+/-：逐级缩放',
+        '方向键：在字框间导航', 'w a s d：移动当前字框',
+        'alt+方向键：缩小字框', 'shift+方向键：放大字框',
+        'insert或n：增加字框', 'DEL：删除当前字框',
+        'z: 撤销', 'r: 重做', 'ESC：放弃拖拽改动'
+      ].map(function (t) {
+        return '<li>' + t + '</li>';
+      }).join('') + '</ul>'
+    });
   });
-  $.cut.bindKeys();
-
 </script>
-
-<script>
-  // 更新Undo
-  function updateUndo() {
-    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-        : "{{ static_url('imgs/icon_lr_not.png') }}");
-    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-        : "{{ static_url('imgs/icon_rr_not.png') }}");
-  }
-
-  updateUndo();
-
-  $('.btn-undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  // 显示各种类型字框数量
-  function showHighLightCount() {
-    $('.hl-btn > button').each(function (i, btn) {
-      if (i > 0 || {{ int(box_type != "char") }}) {
-        var type = btn.getAttribute('id').replace(/^.*-/, '');
-        var boxes = $.cut.highlightBoxes(type, true);
-        $(btn).find('.s-h-count').text(boxes.length);
-      }
-    });
-  }
-
-  showHighLightCount();
-
-  // 切换切分框状态
-  $('.hl-btn > button').click(function () {
-    var type = this.getAttribute('id').replace(/^.*-/, '');
-    $.cut.switchHighlightBoxes(type);
-  });
-
-  // 缩小画布
-  $('.btn-reduce').click(function () {
-    if ($.cut.data.ratio > 0.5) {
-      $.cut.setRatio($.cut.data.ratio * 0.9);
-    }
-  });
-
-  // 放大画布
-  $('.btn-enlarge').click(function () {
-    if ($.cut.data.ratio < 5) {
-      $.cut.setRatio($.cut.data.ratio * 1.5);
-    }
-  });
-
-  // 显示图片
-  $('#hl-pic').click(function () {
-    if ($('#holder image').css('visibility') == 'hidden')
-      $('#holder image').css('visibility', 'visible');
-    else
-      $('#holder image').css('visibility', 'hidden');
-  });
-
-  // 操作切分框
-  $.cut.onBoxChanged(function (char, box, reason) {
-    if (reason === 'removed' || reason === 'added' || reason === 'changed') {
-      var type = $.cut.data.hlType;
-      if (type) {
-        $.cut.clearHighlight();
-        $.cut.highlightBoxes(type, false, true);
-      }
-    }
-    showHighLightCount();
-    updateUndo();
-  });
-
-  // 更多操作
-  $('.btn-ed-box').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
-
-  // 修改栏框
-  $('.ed-block-box').click(function () {
-    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{name}}';
-  });
-
-  // 修改列框
-  $('.ed-column-box').click(function () {
-    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{name}}';
-  });
-
-  // 修改字框
-  $('.ed-char-box').click(function () {
-    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
-  });
-
-  // 修改字序
-  $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{name}}';
-  });
-
-</script>
-
-<script>
-  // 保存任务
-  $('.btn-save').on("click", function () {
-    postApi('{{current_path}}', {
-      data: {
-        submit: false,
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
-      }
-    }, function (data) {
-      showSuccess('保存成功', '{{name}} ' + '已保存成功');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1000);
-    });
-  });
-
-  // 提交任务
-  $('.btn-submit').on("click", function () {
-    var data = {
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-    };
-    var isChar = 'True' === '{{"char_cut" in task_type}}';
-    data[isChar ? 'submit_step' : 'submit'] = true
-    postApi('{{current_path}}', {
-      data: data
-    }, function () {
-      if (isChar) {
-        window.location = '/task/do/{{task_type}}/order/{{name}}';
-      } else {
-        pick('/task/pick/{{task_type}}');
-      }
-    });
-  });
-
-  // 退回任务
-  $('.btn-return').click(function () {
-    $('#returnModal').modal();
-  });
-
-  $(document).on('click', '#modal-return-btn', function () {
-    var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason: reason}
-    }, function () {
-      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
-      setTimeout(function () {
-        window.location = "/task/lobby/{{task_type}}";
-      }, 1000);
-    });
-  });
-
-  // 离开页面时解锁数据
-  window.leave = function () {
-    // 当前页面模式，包括view/do/update/edit等
-    if ('{{mode}}' === 'edit') {
-      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function () {
-        window.history.back();
-      });
-    } else if ('{{mode}}' === 'view') {
-      window.history.back();
-    } else {
-      window.location = '/task/lobby/{{task_type}}';
-    }
-  };
-
-</script>
-
-{% import controller.errors as e %}
-<script>
-  // 领取新任务（从任务大厅拷贝）
-  function pick(url, page_name) {
-    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
-    postApi(url, data, function (res) {
-      if (res && res.url) {
-        window.location = res.url;
-      }
-    }, function (res) {
-      error_callback(res);
-    });
-  }
-
-  // 领取任务失败回调
-  function error_callback(res) {
-    console.log(res);
-    if (res.code == '{{e.task_uncompleted[0]}}') {
-      var info = {
-        title: "是否继续未完成的任务？",
-        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定继续",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        window.location = res.url;
-      });
-    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
-      showError('暂无新任务', res.message);
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    } else if (res.code != 500) {
-      var info = {
-        title: "是否领取其它任务？",
-        text: res.message,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定领取",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        pick("/task/pick/{{task_type}}");
-      });
-    } else {
-      showError('发生错误', res.message);
-    }
-  }
-
-</script>
-
 </body>
 </html>

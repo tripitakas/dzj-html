@@ -38,7 +38,7 @@ class PickTaskApi(TaskHandler):
                 return self.pick_one_from_lobby(self, task_type)
 
             # 检查页面是否存在
-            task = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+            task = self.db.page.find_one({'name': page_name}, self.simple_fields())
             if not task:
                 return self.send_error_response(errors.no_object)
 
@@ -108,7 +108,7 @@ class ReturnTaskApi(TaskHandler):
     def post(self, task_type, page_name):
         """ 用户主动退回当前任务 """
         try:
-            page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+            page = self.db.page.find_one({'name': page_name}, self.simple_fields())
             if not page:
                 return self.send_error_response(errors.no_object)
             elif self.prop(page, 'tasks.%s.picked_user_id' % task_type) != self.current_user['_id']:

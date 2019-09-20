@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-07-08
+ * Date: 2019-09-18
  */
 (function() {
   'use strict';
@@ -771,7 +771,7 @@
       pageData = pageData || data;
       return pageData.chars.filter(function(c) { return c.shape && c.shape.getBBox(); }).map(function(c) {
         var box = c.shape.getBBox();
-        c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height)});
+        c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
         delete c.shape;
         Object.keys(c).forEach(function (k) {
           if (c[k] === null) {

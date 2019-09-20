@@ -14,7 +14,7 @@ class CutBaseHandler(TaskHandler):
 
     def enter(self, box_type, stage, name, **kwargs):
         try:
-            task_type = '%s_cut_%s' % (box_type, stage)
+            task_type = kwargs.pop('task_type', '%s_cut_%s' % (box_type, stage))
             data_field = self.get_shared_data_field(task_type)
 
             page = self.db.page.find_one(dict(name=name))
@@ -23,7 +23,7 @@ class CutBaseHandler(TaskHandler):
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
             # 切字校对任务模式时，如果已完成字框校对，则进入字序校对
-            if '/do/char_cut' in self.request.path and 'order' not in self.request.path \
+            if re.search(r'/do/(char_cut|ocr)', self.request.path) and 'order' not in self.request.path \
                     and self.prop(page, 'tasks.%s.submitted_steps' % task_type):
                 self.redirect('/task/do/%s/order/%s' % (task_type, name))
             readonly = not self.check_auth(mode, page, task_type)
@@ -89,3 +89,23 @@ class CharOrderReviewHandler(CutBaseHandler):
     def get(self, page_name):
         """ 进入字序审定页面 """
         self.enter('char', 'review', page_name, template_name='task_char_order.html')
+
+
+class OCRProofHandler(CutBaseHandler):
+    URL = ['/task/ocr_proof/@page_name',
+           '/task/do/ocr_proof/@page_name',
+           '/task/update/ocr_proof/@page_name']
+
+    def get(self, page_name):
+        """ 进入OCR校对页面 """
+        self.enter('char', 'proof', page_name, template_name='task_ocr_do.html', task_type='ocr_proof')
+
+
+class OCRReviewHandler(CutBaseHandler):
+    URL = ['/task/ocr_review/@page_name',
+           '/task/do/ocr_review/@page_name',
+           '/task/update/ocr_review/@page_name']
+
+    def get(self, page_name):
+        """ 进入OCR审定页面 """
+        self.enter('char', 'review', page_name, template_name='task_ocr_do.html', task_type='ocr_review')

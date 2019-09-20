@@ -12,7 +12,7 @@ import re
 
 url_placeholder = {
     'num': r'\d+',
-    'task_type': r'[a-z]+_cut_[a-z]+|text_\w+',
+    'task_type': r'[a-z]+_cut_[a-z]+|text_\w+|ocr_\w+',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
@@ -20,8 +20,10 @@ url_placeholder = {
     'img_file': '[A-Za-z0-9._-]+',
 }
 
+""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 role_maps = {
     '单元测试用户': {
+        'is_assignable': False,
         'routes': {
             '/api/user/list': ['GET'],
             '/api/task/page/@page_name': ['GET'],
@@ -29,15 +31,18 @@ role_maps = {
         }
     },
     '访客': {
+        'is_assignable': False,
         'remark': '任何人都可访问，无需登录',
         'routes': {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
+            '/api/user/forget_pwd': ['POST'],
         }
     },
     '普通用户': {
+        'is_assignable': False,
         'remark': '登录用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
@@ -140,6 +145,29 @@ role_maps = {
             '/api/data/edit/(blocks|columns)/@page_name': ['POST'],
         }
     },
+    'OCR校对员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_proof': ['GET'],
+            '/api/task/pick/ocr_proof': ['POST'],
+            '/task/(do|update)/ocr_proof/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_proof/@page_name': ['POST'],
+            '/task/(do|update)/ocr_proof/order/@page_name': ['GET'],
+        }
+    },
+    'OCR审定员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_review': ['GET'],
+            '/api/task/pick/ocr_review': ['POST'],
+            '/task/(do|update)/ocr_review/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_review/@page_name': ['POST'],
+            '/task/(do|update)/ocr_review/order/@page_name': ['GET'],
+            '/api/task/(do|update)/ocr_review/order/@page_name': ['POST'],
+        }
+    },
     '切分专家': {
         'is_assignable': True,
         'roles': ['普通用户', '切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
@@ -206,6 +234,7 @@ role_maps = {
             '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
+            '/api/data/submit_ocr/@img_file': ['POST'],
         }
     },
     '用户管理员': {
@@ -218,7 +247,6 @@ role_maps = {
         }
     },
 }
-""" 角色列表。针对每个角色定义：routes，角色可以访问的权限集合；roles，角色所继承的父角色；is_assignable，角色是否可被分配 """
 
 # 界面可分配的角色、切分审校和文字审校角色
 assignable_roles = [role for role, v in role_maps.items() if v.get('is_assignable')]

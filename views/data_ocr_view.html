@@ -75,6 +75,7 @@
 
       <div class="right">
         <div class="title char-info"></div>
+        <button type="button" class="btn btn-primary" id="btn-submit">提交</button>
       </div>
     </div>
 
@@ -149,7 +150,16 @@
     $('.m-header .m-pager .right').toggleClass('hide');
   });
 
+  var $submit = $('#btn-submit');
 
+  // 将OCR结果创建为一个页面任务
+  $submit.click(function () {
+    postApi('/data/submit_ocr/{{img_name}}', {}, function (res) {
+      $submit.text('已提交');
+      $submit.addClass('disabled');
+      showSuccess('{{img_name}} 已提交');
+    });
+  });
 </script>
 
 </body>

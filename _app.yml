@@ -22,6 +22,9 @@ site:
 
 user:
   init_roles: 切字校对员,文字校对员
+  disable_roles: OCR校对员,OCR审定员
+
+disable_modules: OCR校对,OCR审定
 
 # ElasticSearch全文检索库
 esearch:

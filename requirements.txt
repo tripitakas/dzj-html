@@ -11,3 +11,4 @@ cdifflib
 aliyun-python-sdk-core-v3
 elasticsearch
 lxml
+boto3

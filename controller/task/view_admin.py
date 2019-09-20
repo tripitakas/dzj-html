@@ -99,7 +99,7 @@ class TaskInfoHandler(TaskHandler):
             return value
 
         try:
-            page = self.db.page.find_one({'name': page_name}, self.simple_fileds())
+            page = self.db.page.find_one({'name': page_name}, self.simple_fields())
             field_names = {
                 'status': '状态', 'pre_tasks': '前置任务', 'priority': '优先级',
                 'publish_by': '发布人', 'publish_time': '发布时间',

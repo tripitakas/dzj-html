@@ -215,6 +215,46 @@ class ChangeUserRoleApi(BaseHandler):
         self.send_data_response({'roles': user['roles']})
 
 
+class ForgetPasswordApi(BaseHandler):
+    URL = '/api/user/forget_pwd'
+
+    def post(self):
+        """将密码发送到注册时的邮箱或手机上"""
+
+        info = self.get_request_data()
+        rules = [
+            (v.not_empty, 'name', 'phone_or_email'),
+            (v.is_phone_or_email, 'phone_or_email')]
+        err = v.validate(info, rules)
+        if err:
+            return self.send_error_response(err)
+
+        phone_or_email = info['phone_or_email']
+        user = self.db.user.find_one({
+            '$or': [
+                {'email': phone_or_email},
+                {'phone': phone_or_email}
+            ]
+        })
+        if not user:
+            return self.send_error_response(errors.no_user)
+        if user['name'] != info['name']:
+            return self.send_error_response(errors.no_user, message='姓名不匹配')
+
+        pwd = ResetUserPasswordApi.reset_pwd(self, user)
+        if '@' in phone_or_email:
+            r = SendUserEmailCodeApi.send_email(self, phone_or_email, """<html>
+                <span style='font-size:16px;margin-right:10px'>密码：%s </span>
+                <a href='http://%s/user/login'>返回登录页面</a>
+                </html>
+                """ % (pwd, self.config['site']['domain']))
+        else:
+            r = SendUserPhoneCodeApi.send_sms(self, phone_or_email, '密码: ' + pwd)
+
+        if r:
+            self.send_data_response()
+
+
 class ResetUserPasswordApi(BaseHandler):
     URL = r'/api/user/reset_pwd'
 
@@ -227,19 +267,26 @@ class ResetUserPasswordApi(BaseHandler):
         if err:
             return self.send_error_response(err)
 
-        pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
         try:
-            oid = objectid.ObjectId(user['_id'])
-            r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=hlp.gen_id(pwd))})
-            if not r.matched_count:
-                return self.send_error_response(errors.no_user)
-
-            user = self.db.user.find_one(dict(_id=oid))
-            self.remove_login_fails(self, user['_id'])
-            self.add_op_log('reset_password', target_id=user['_id'], context=user['name'])
+            pwd = self.reset_pwd(self, user)
+            if pwd:
+                self.send_data_response({'password': pwd})
         except DbError as e:
             return self.send_db_error(e)
-        self.send_data_response({'password': pwd})
+
+    @staticmethod
+    def reset_pwd(self, user):
+        pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
+        oid = objectid.ObjectId(user['_id'])
+        r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=hlp.gen_id(pwd))})
+        if not r.matched_count:
+            return self.send_error_response(errors.no_user)
+
+        user = self.db.user.find_one(dict(_id=oid))
+        ResetUserPasswordApi.remove_login_fails(self, user['_id'])
+        self.add_op_log('reset_password', target_id=user['_id'], context=user['name'])
+
+        return pwd
 
     @staticmethod
     def remove_login_fails(self, context):
@@ -386,7 +433,8 @@ class SendUserEmailCodeApi(BaseHandler):
 
         email = data.get('email')
         code = hlp.random_code()
-        self.send_email(email, code)
+        if not self.send_email(self, email, code):
+            return
         try:
             self.db.verify.find_one_and_update(
                 dict(type='email', data=email), {'$set': dict(code=code, stime=datetime.now())}, upsert=True
@@ -395,29 +443,34 @@ class SendUserEmailCodeApi(BaseHandler):
             return self.send_db_error(e)
         self.send_data_response()
 
+    @staticmethod
     def send_email(self, receiver, code, subject="如是我闻古籍数字化平台"):
         """ email_list邮件列表，content邮件内容，subject发送标题 """
-        content = """<html>
-        <span style='font-size:16px;margin-right:10px'>您的验证码是：%s </span>
-        <a href='http://%s/user/register'>返回注册页面</a>
-        </html>
-        """ % (code, self.config['site']['domain'])
 
-        msg = MIMEText(content, 'html', 'utf-8')
-        account = self.config['email']['account']
-        pwd = self.config['email']['key']
-        host = self.config['email']['host']
-        port = self.config['email'].get('port', 465)
-        msg['From'] = account
-        msg['to'] = receiver
-        msg['Subject'] = Header(subject, 'utf-8')
         try:
+            content = code if '<html' in code else """<html>
+                    <span style='font-size:16px;margin-right:10px'>您的验证码是：%s </span>
+                    <a href='http://%s/user/register'>返回注册页面</a>
+                    </html>
+                    """ % (code, self.config['site']['domain'])
+
+            msg = MIMEText(content, 'html', 'utf-8')
+            account = self.config['email']['account']
+            pwd = self.config['email']['key']
+            host = self.config['email']['host']
+            port = self.config['email'].get('port', 465)
+            msg['From'] = account
+            msg['to'] = receiver
+            msg['Subject'] = Header(subject, 'utf-8')
+
             server = smtplib.SMTP_SSL(host, port)
             server.login(account, pwd)
             server.sendmail(account, receiver, msg.as_string())
             server.quit()
+            return True
         except Exception as e:
-            return self.send_db_error(e)
+            self.send_error_response(errors.verify_fail, message='发送邮件失败: [%s] %s' % (
+                e.__class__.__name__, str(e)))
 
 
 class SendUserPhoneCodeApi(BaseHandler):
@@ -433,7 +486,8 @@ class SendUserPhoneCodeApi(BaseHandler):
 
         phone = data['phone']
         code = "%04d" % random.randint(1000, 9999)
-        self.send_sms(phone, code)
+        if not self.send_sms(self, phone, code):
+            return
         try:
             self.db.verify.find_one_and_update(
                 dict(type='phone', data=phone), {'$set': dict(code=code, stime=datetime.now())}, upsert=True
@@ -443,14 +497,15 @@ class SendUserPhoneCodeApi(BaseHandler):
 
         self.send_data_response()
 
+    @staticmethod
     def send_sms(self, phone, code):
         """发送手机验证码"""
-        account = self.config['phone']['accessKey']
-        key = self.config['phone']['accessKeySecret']
-        template_code = self.config['phone']['template_code']
-        sign_name = self.config['phone']['sign_name']
-
         try:
+            account = self.config['phone']['accessKey']
+            key = self.config['phone']['accessKeySecret']
+            template_code = self.config['phone']['template_code']
+            sign_name = self.config['phone']['sign_name']
+
             client = AcsClient(account, key, 'default')
             request = CommonRequest()
             request.set_domain('dysmsapi.aliyuncs.com')
@@ -462,7 +517,7 @@ class SendUserPhoneCodeApi(BaseHandler):
             request.add_query_param('TemplateParam', '{"code": ' + code + '}')
             response = client.do_action_with_exception(request)
             response = response.decode()
-            resp = json_util.loads(response)
-            logging.debug(resp)
-        except (ServerException, ClientException) as e:
-            return e
+            return response
+        except Exception as e:
+            self.send_error_response(errors.verify_fail, message='发送邮件失败: [%s] %s' % (
+                e.__class__.__name__, str(e)))

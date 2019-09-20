@@ -12,13 +12,21 @@ from tornado.web import UIModule
 
 class CommonLeft(UIModule):
     def render(self, title='', sub=''):
+        def is_enabled(module):
+            if 'disable_modules' in self.handler.config and self.handler.config['disable_modules']:
+                return module not in self.handler.config['disable_modules']
+            return True
+
         can_access = self.handler.can_access
+
         items = [
             dict(name='首页', icon='icon_home', link='/home'),
             dict(name='CBETA', icon='icon_rs', link='/cbeta'),
             # dict(name='如是藏经', icon='icon_rs', link='/tripitaka/rs'),
             dict(name='大藏经', icon='icon_tripitaka', link='/tripitakas'),
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
+                dict(name='OCR校对', icon='icon_subitem', link='/task/lobby/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/lobby/ocr_review'),
                 dict(name='切栏校对', icon='icon_subitem', link='/task/lobby/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/lobby/block_cut_review'),
                 dict(name='切列校对', icon='icon_subitem', link='/task/lobby/column_cut_proof'),
@@ -30,6 +38,8 @@ class CommonLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/lobby/text_hard'),
             ]),
             dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
+                dict(name='OCR校对', icon='icon_subitem', link='/task/my/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/my/ocr_review'),
                 dict(name='切栏校对', icon='icon_subitem', link='/task/my/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/my/block_cut_review'),
                 dict(name='切列校对', icon='icon_subitem', link='/task/my/column_cut_proof'),
@@ -41,6 +51,8 @@ class CommonLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
+                dict(name='OCR校对', icon='icon_subitem', link='/task/admin/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/admin/ocr_review'),
                 dict(name='切分状态', icon='icon_subitem', link='/task/admin/cut/status'),
                 dict(name='切栏校对', icon='icon_subitem', link='/task/admin/block_cut_proof'),
                 dict(name='切栏审定', icon='icon_subitem', link='/task/admin/block_cut_review'),
@@ -78,11 +90,14 @@ class CommonLeft(UIModule):
         # 计算当前用户有权访问的item
         display_items = []
         for item in items:
+            if not is_enabled(item.get('name')):
+                continue
             if item.get('link') and can_access(item['link']):
                 item['id'] = re.sub('[/_]', '-', item['link'][1:])
                 display_items.append(item)
             if item.get('sub_items'):
-                sub_items = [i for i in item['sub_items'] if i.get('link') and can_access(i['link'])]
+                sub_items = [i for i in item['sub_items'] if
+                             is_enabled(i.get('name')) and i.get('link') and can_access(i['link'])]
                 if sub_items:
                     for _item in sub_items:
                         _item['id'] = re.sub('[/_]', '-', _item['link'][1:])

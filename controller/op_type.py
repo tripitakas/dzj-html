@@ -7,6 +7,7 @@ page_kinds = {'GL': '高丽藏', 'JX': '嘉兴藏', 'QL': '乾隆藏', 'YB': '�
 
 op_types = {
     'visit': dict(name='页面访问'),
+    'submit_ocr': dict(name='OCR提交', trends=True, msg='创建了{page_name}任务'),
     'pick_{task_type}': dict(name='领取任务', trends=True, msg='领取了{page_kind}{task_type}任务'),
     'return_{task_type}': dict(name='退回任务', trends=True, msg='退回了{page_kind}{task_type}任务'),
     'submit_{task_type}': dict(name='提交任务', trends=True, msg='完成了{page_kind}{task_type}任务'),

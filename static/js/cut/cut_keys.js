@@ -3,11 +3,12 @@
   'use strict';
 
   $.extend($.cut, {
+    bindKey: function(key, func) {
+      $.mapKey(key, func, {direction: 'down'});
+    },
     bindKeys: function() {
       var self = this;
-      var on = function(key, func) {
-        $.mapKey(key, func, {direction: 'down'});
-      };
+      var on = this.bindKey;
 
       // 方向键：在字框间导航
       on('left', function() {
