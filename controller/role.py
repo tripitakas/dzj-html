@@ -38,6 +38,7 @@ role_maps = {
             '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
+            '/api/user/forget_pwd': ['POST'],
         }
     },
     '普通用户': {

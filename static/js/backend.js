@@ -4,7 +4,7 @@
 
 function showError(title, text) {
   var $err = $('.ajax-error');
-  if ($err.length === 1) {
+  if ($err.length) {
     $err.text(text.replace(/[。！]$/, '')).show(200);
     return setTimeout(function () {
       $err.hide();

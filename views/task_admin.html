@@ -429,7 +429,7 @@
   });
 
   // 按页码前缀发布任务
-  $('#prefixModal').find('#prefix_modal_btn').click(function () {
+  $prefixModal.find('#prefix_modal_btn').click(function () {
     var page_prefix = $('#page_prefix').val();
     var pre_tasks = [];
     if (!page_prefix) {
@@ -442,7 +442,7 @@
     var data = {
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
-      priority: $('#prefixModal .priority-list select').val()
+      priority: $prefixModal.find('.priority-list select').val()
     };
     console.log(data);
     postApi('/task/publish/' + page_prefix, {data: data}, function (res) {
