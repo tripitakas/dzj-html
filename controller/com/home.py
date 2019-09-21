@@ -56,7 +56,7 @@ class HomeHandler(BaseHandler):
                         context = msg
                 except Exception:
                     traceback.print_exc()
-                    context = 'err:' % t.get('context')
+                    context = 'err: %s' % t.get('context')
                 recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context[:20]))
 
             self.render('home.html', visit_count=1 + visit_count, last_login=last_login, get_date_time=get_date_time,
