@@ -48,7 +48,8 @@ class HomeHandler(BaseHandler):
                         if 'page_kind' in msg:
                             msg = msg.replace('{page_kind}', page_kinds[t['context'][:2]])
                         if 'page_name' in msg:
-                            msg = msg.replace('{page_name}', re.findall(r'^([A-Za-z0-9_]+)', t['context'])[0])
+                            r = re.findall(r'^([A-Za-z0-9_]+)', t['context'])
+                            msg = msg.replace('{page_name}', r and r[0] or '')
                         if 'task_type' in msg:
                             msg = msg.replace('{task_type}', TaskHandler.all_types().get(task_type, task_type))
                         if 'count' in msg:
@@ -56,7 +57,7 @@ class HomeHandler(BaseHandler):
                         context = msg
                 except Exception:
                     traceback.print_exc()
-                    context = 'err: %s, %s' % (t['type'], t.get('context'))
+                    context = 'err: %s, %s' % (t.get('context'), t['type'])
                 recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context[:20]))
 
             self.render('home.html', visit_count=1 + visit_count, last_login=last_login, get_date_time=get_date_time,
