@@ -56,7 +56,9 @@ def get_op_def(op_type, params=None):
         for k in op_types:
             re_map.append((re.compile(k.replace('{task_type}', '([a-z0-9_]+)')), k))
     for r, k in re_map:
-        if r.match(op_type) and op_type != 'reset_password':
+        if op_type == 'reset_password':
+            return op_types[op_type]
+        if r.match(op_type):
             if params is not None:
                 v = r.findall(op_type)
                 if v and 'task_type' in k:

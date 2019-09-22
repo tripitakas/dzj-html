@@ -28,6 +28,7 @@ role_maps = {
             '/api/user/list': ['GET'],
             '/api/task/page/@page_name': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],
+            '/api/data/submit_ocr/@img_file': ['POST'],
         }
     },
     '访客': {
