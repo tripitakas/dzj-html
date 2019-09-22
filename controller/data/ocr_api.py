@@ -55,10 +55,13 @@ class RecognitionApi(BaseHandler):
                 im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
 
             # 图片加水印、变为灰度图，保存为gif
-            mark = Image.open(path.join(path.dirname(__file__), 'rushi.png'))
-            if mark.size != (w, h):
-                mark = mark.resize((w, h))
-            im = Image.alpha_composite(im, mark)
+            try:
+                mark = Image.open(path.join(path.dirname(__file__), 'rushi.png'))
+                if mark.size != (w, h):
+                    mark = mark.resize((w, h))
+                im = Image.alpha_composite(im, mark)
+            except ValueError as e:
+                logging.error('%s: %s' % (img_file, str(e)))
             im.convert('L').save(gif_file, 'GIF')
 
             if gif_file != img_file:
