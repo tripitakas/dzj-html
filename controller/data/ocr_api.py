@@ -78,7 +78,7 @@ class RecognitionApi(BaseHandler):
         assert img
         filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))  # 去掉汉字和特殊符号
         ext = filename.split('.')[-1].lower()
-        filename = '%d.%s' % (filename.split('.')[0], ext)
+        filename = '%s.%s' % (filename.split('.')[0], ext)
         if '_' not in filename:
             m = re.search(r'([/\\][A-Za-z]{2})?([/\\][0-9]+){1,3}$', path.dirname(filename))
             if m:
