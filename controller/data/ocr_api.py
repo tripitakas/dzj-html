@@ -14,6 +14,7 @@ from controller.data.add_pages import add_page
 from PIL import Image
 from os import path, remove
 from operator import itemgetter
+from glob2 import glob
 import logging
 import re
 import json
@@ -164,21 +165,42 @@ class SubmitRecognitionApi(BaseHandler):
         if not path.exists(json_file):
             return self.send_error_response(errors.ocr_json_not_existed)
 
+        page = self.upload_page(self, json_file, img_file)
+        if page:
+            self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
+            self.send_data_response(dict(name=page['imgname'], id=page['id']))
+
+    def get(self, result_folder):
+        """批量导入OCR结果"""
+        result_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', result_folder)
+        if not path.exists(result_path) or not path.isdir(result_path):
+            return self.send_error_response(errors.ocr_img_not_existed)
+        files = sorted(glob(path.join(result_path, '**', '*.json')))
+        added = []
+        for json_file in files:
+            page = self.upload_page(self, json_file, None, ignore_error=True)
+            if page:
+                added.append(page['imgname'])
+        self.add_op_log('submit_ocr_batch', context=str(count))
+        self.send_data_response(dict(count=len(added), pages=added))
+
+    @staticmethod
+    def upload_page(self, json_file, img_file, ignore_error=False):
         page = json.load(open(json_file))
         page = RecognitionApi.ocr2page(page)
 
+        page['imgname'] = path.basename(json_file).split('.')[0]
         if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
-            return self.send_error_response(errors.ocr_invalid_name)
+            return None if ignore_error else self.send_error_response(errors.ocr_invalid_name)
         r = add_page(page['imgname'], page, self.db)
         if not r:
-            return self.send_error_response(errors.ocr_page_existed)
+            return None if ignore_error else self.send_error_response(errors.ocr_page_existed)
 
-        if 'secret_key' in self.config['img']:
+        if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload(self, img_file)
 
         page['id'] = str(r.inserted_id)
-        self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
-        self.send_data_response(dict(name=page['imgname'], id=page['id']))
+        return page
 
     @staticmethod
     def upload(self, img_file):

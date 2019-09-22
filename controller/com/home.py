@@ -54,6 +54,8 @@ class HomeHandler(BaseHandler):
                             msg = msg.replace('{task_type}', TaskHandler.all_types().get(task_type, task_type))
                         if 'count' in msg:
                             msg = msg.replace('{count}', re.findall(r'^(\d+)', t['context'])[0])
+                        if 'context' in msg:
+                            msg = msg.replace('{context}', t['context'])
                         context = msg
                 except Exception:
                     traceback.print_exc()

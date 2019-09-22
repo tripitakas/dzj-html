@@ -4,6 +4,7 @@
 |---------------------|:---------------:|-----------:|
 | visit               | 路由地址          |            |
 | submit_ocr          | OCR提交          | page_id    |
+| submit_ocr_batch    | OCR批量提交       | count    |
 | pick_{task_type}    | 页名             |            |
 | return_{task_type}  | 页名             |            |
 | submit_{task_type}  | 页名             |            |

@@ -74,7 +74,8 @@ class TripitakaHandler(BaseHandler):
                 nav.update(dict(cur_page=cur_page, first=first, last=last, prev=prev, next=next))
 
             # 获取图片路径
-            img_url = self.get_img(nav.get('cur_page'))
+            page_code = nav.get('cur_page')
+            img_url = self.get_img(page_code)
 
             # 检查文本数据
             page = self.db.page.find_one({'name': page_code})
