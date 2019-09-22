@@ -13,10 +13,14 @@ def get_volume_tree(volumes, store_pattern):
     if len(store_pattern.split('_')) == 4:
         volume_dict = dict()
         for item in volumes:
-            if item['envelop_no'] in volume_dict:
-                volume_dict[int(item['envelop_no'])].append(int(item['volume_no']))
+            envelop_no = int(item['envelop_no'])
+            volume_no = '{0} {1}'.format(item['volume_no'], item['remark'].split(' ')[-1]) if item.get(
+                'remark') else int(item['volume_no'])
+            if envelop_no in volume_dict:
+                volume_dict[envelop_no].append(volume_no)
+                volume_dict[envelop_no].sort()
             else:
-                volume_dict[int(item['envelop_no'])] = [int(item['volume_no'])]
+                volume_dict[envelop_no] = [volume_no]
         volume_tree = [[envelop_no, volumes] for envelop_no, volumes in volume_dict.items()]
     else:
         volume_tree = [[int(item.get('volume_no')), []] for item in volumes]
@@ -51,7 +55,7 @@ def build_volume_js(db):
 def build_sutra_js(db):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH', 'JS']
+    tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH', 'JS', 'LQ']
     for t in tripitakas:
         print('generating %s-sutra.js ...' % t)
         fields = dict(sutra_code=1, sutra_name=1, due_reel_count=1, existed_reel_count=1, start_volume=1, start_page=1,

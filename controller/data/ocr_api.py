@@ -10,7 +10,7 @@ from controller.base import BaseHandler
 from controller import errors
 from controller import helper
 from controller.layout.v2 import calc
-from tests.add_pages import add_page
+from controller.data.add_pages import add_page
 from PIL import Image
 from os import path, remove
 from operator import itemgetter

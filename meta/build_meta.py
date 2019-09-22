@@ -38,7 +38,7 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     rows, content_pages, front_cover_pages, back_cover_pages = [], [], [], []
     volume_path = path.join(root, envelop, volume) if envelop else path.join(root, volume)
     for fn in sorted(os.listdir(volume_path)):
-        if fn.startswith('.') or path.isdir(path.join(root, volume, fn)):
+        if fn.startswith('.') or path.isdir(path.join(root, volume, fn)) or fn.endswith('.json'):
             continue
         page, suffix = fn.split('.', maxsplit=2)
         # 判断是否包含hash后缀
@@ -64,20 +64,21 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     front_cover_pages.sort(key=cmp_to_key(cmp_code))
     back_cover_pages.sort(key=cmp_to_key(cmp_code))
 
-    # volume_code, tripitaka_code, envelop_no, volume_no, content_pages, front_cover_pages, back_cover_pages,
-    # remark, created_time, updated_time
+    # volume_code, tripitaka_code, envelop_no, volume_no, content_page_count, content_pages, front_cover_pages,
+    # back_cover_pages, remark, created_time, updated_time
     volume_code = '%s_%s_%s' % (tripitaka, pick_int(envelop), pick_int(volume)
                                 ) if envelop else '%s_%s' % (tripitaka, pick_int(volume))
-    row = [volume_code, tripitaka, pick_int(envelop), pick_int(volume), content_pages or None,
+    row = [volume_code, tripitaka, pick_int(envelop), pick_int(volume),
+           content_pages and len(content_pages) or 0, content_pages or None,
            front_cover_pages or None, back_cover_pages or None,
            (envelop and '-' in envelop and envelop.split('-')[-1] + ' ' or '') +
-           (volume and '-' in volume and volume.split('-')[-1] or None),
+           (volume and '-' in volume and '-'.join(volume and volume.split('-')[1:]) or None),
            get_date_time(), get_date_time()]
     return row
 
 
-def generate_volume_from_dir(tripitaka='JS', root='/Volumes/data/径山藏/径山藏', level=1,
-                             reorder_dir='', gen_sutra=False):
+def generate_volume_from_dir(tripitaka='LQ', root='/Users/zyg/Desktop/lq/tripitaka-web/static/upload/正法明目/LQ', level=2,
+                             reorder_dir='', gen_sutra=True):
     """ 扫描藏经文件夹，生成存储结构信息
     :param tripitaka 藏经代码，如JX/GL等等
     :param root 待扫描的藏经文件目录，其中封面和封底的文件名最后一个数前有f或b
@@ -88,10 +89,10 @@ def generate_volume_from_dir(tripitaka='JS', root='/Volumes/data/径山藏/径�
     if reorder_dir:
         return reorder_files(root, reorder_dir, tripitaka)
     assert level in [1, 2]
-    fields = ['volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_pages', 'front_cover_pages',
-              'back_cover_pages', 'remark', 'created_time', 'updated_time']
+    fields = ['volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_page_count', 'content_pages',
+              'front_cover_pages', 'back_cover_pages', 'remark', 'created_time', 'updated_time']
     rows = []
-    sutras = []
+    sutras, reels = [], []
     if level == 1:
         for volume in sorted(os.listdir(root)):
             if not volume.startswith('.') and path.isdir(path.join(root, volume)):
@@ -103,17 +104,33 @@ def generate_volume_from_dir(tripitaka='JS', root='/Volumes/data/径山藏/径�
             sutra = dict(sutra_code='%s%04d' % (tripitaka, pick_int(envolop)),
                          sutra_name=envolop.split('-')[-1],
                          due_reel_count=0)
-            for volume in sorted(os.listdir(path.join(root, envolop))):
+            reel = dict(sutra_code='%s%04d' % (tripitaka, pick_int(envolop)),
+                        sutra_name=envolop.split('-')[-1],
+                        reel_no=0)
+
+            content_pages = []
+            volumes = sorted(os.listdir(path.join(root, envolop)))
+            for volume in volumes:
                 if not volume.startswith('.'):
                     v_row = get_volume_info(tripitaka, root, volume, envolop)
                     rows.append(v_row)
                     sutra['due_reel_count'] += 1
-                    content_pages = v_row[4]
-                    if content_pages and 'start_volume' not in sutra:
-                        sutra['start_volume'] = '_'.join(content_pages[0].split('_')[:-1])
-                        sutra['start_page'] = content_pages[0]
-                        sutra['end_volume'] = '_'.join(content_pages[-1].split('_')[:-1])
-                        sutra['end_page'] = content_pages[-1]
+                    if '封面' not in volume and '封底' not in volume:
+                        content_pages += v_row[5]
+
+                    reel['reel_no'] += 1
+                    reel['reel_code'] = '%s_%d' % (reel['sutra_code'], reel['reel_no'])
+                    reel['start_volume'] = '_'.join(v_row[5][0].split('_')[:-1])
+                    reel['end_volume'] = '_'.join(v_row[5][-1].split('_')[:-1])
+                    reel['start_page'] = int(v_row[5][0].split('_')[-1])
+                    reel['end_page'] = int(v_row[5][-1].split('_')[-1])
+                    reel['remark'] = '-' in volume and volume.split('-')[-1] or ''
+                    reels.append(dict(reel))
+
+            sutra['start_volume'] = '_'.join(content_pages[0].split('_')[:-1])
+            sutra['start_page'] = int(content_pages[0].split('_')[-1])
+            sutra['end_volume'] = '_'.join(content_pages[-1].split('_')[:-1])
+            sutra['end_page'] = int(content_pages[-1].split('_')[-1])
             sutra['existed_reel_count'] = sutra['due_reel_count']
             sutras.append(sutra)
 
@@ -128,6 +145,13 @@ def generate_volume_from_dir(tripitaka='JS', root='/Volumes/data/径山藏/径�
             writer = csv.writer(fn)
             writer.writerow(fields)
             writer.writerows([s.get(k, '') for k in fields] for s in sutras)
+
+        with open(path.join(root, 'Reel-%s.csv' % tripitaka), 'w', newline='') as fn:
+            fields = 'unified_sutra_code,sutra_code,sutra_name,reel_code,reel_no,start_volume,start_page,' \
+                     'end_volume,end_page,remark'.split(',')
+            writer = csv.writer(fn)
+            writer.writerow(fields)
+            writer.writerows([s.get(k, '') for k in fields] for s in reels)
 
 
 def reorder_files(src_dir, dst_dir, prefix):

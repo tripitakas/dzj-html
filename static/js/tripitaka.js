@@ -221,6 +221,10 @@ $(document).ready(function () {
       var _li = item[1].map(function (s) {
         var _id = id + '_' + s;
         var _title = '第' + s + store_pattern.split('_')[2];
+        if (/\s/.test(s)) {  // 卷、册允许显示名称
+          _id = id + '_' + s.split(' ')[0];
+          _title = s.split(' ')[1];
+        }
         return '<li><span id="' + _id + '" class="leaf sub-item"><a>' + _title + '</a></span></li>';
       }).join('');
       sub = '<ul class="sub-ul sub-ul-hidden">' + _li + '</ul>';
