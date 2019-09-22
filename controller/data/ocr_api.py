@@ -177,12 +177,15 @@ class SubmitRecognitionApi(BaseHandler):
             return self.send_error_response(errors.ocr_img_not_existed)
         files = sorted(glob(path.join(result_path, '**', '*.json')))
         added = []
+        existed = 0
         for json_file in files:
             page = self.upload_page(self, json_file, None, ignore_error=True)
-            if page:
+            if page == errors.ocr_page_existed:
+                existed += 1
+            elif isinstance(page, dict):
                 added.append(page['imgname'])
-        self.add_op_log('submit_ocr_batch', context=str(count))
-        self.send_data_response(dict(count=len(added), pages=added))
+        self.add_op_log('submit_ocr_batch', context=str(len(added)))
+        self.send_data_response(dict(count=len(added), pages=added, existed=existed))
 
     @staticmethod
     def upload_page(self, json_file, img_file, ignore_error=False):
@@ -191,10 +194,10 @@ class SubmitRecognitionApi(BaseHandler):
 
         page['imgname'] = path.basename(json_file).split('.')[0]
         if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
-            return None if ignore_error else self.send_error_response(errors.ocr_invalid_name)
+            return errors.ocr_invalid_name if ignore_error else self.send_error_response(errors.ocr_invalid_name)
         r = add_page(page['imgname'], page, self.db)
         if not r:
-            return None if ignore_error else self.send_error_response(errors.ocr_page_existed)
+            return errors.ocr_page_existed if ignore_error else self.send_error_response(errors.ocr_page_existed)
 
         if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload(self, img_file)

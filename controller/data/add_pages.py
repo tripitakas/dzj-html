@@ -12,7 +12,7 @@ from os import path, listdir, mkdir
 
 from controller.task.base import TaskHandler as task
 
-IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
+IMG_PATH = path.join(path.dirname(__file__), '..', '..', 'static', 'img')
 data = dict(count=0)
 
 base_fields = {
