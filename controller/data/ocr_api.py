@@ -7,7 +7,7 @@
 from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
-from controller import errors
+from controller import errors as e
 from controller import helper
 from controller.layout.v2 import calc
 from controller.data.add_pages import add_page
@@ -61,8 +61,8 @@ class RecognitionApi(BaseHandler):
                 if mark.size != (w, h):
                     mark = mark.resize((w, h))
                 im = Image.alpha_composite(im, mark)
-            except ValueError as e:
-                logging.error('%s: %s' % (img_file, str(e)))
+            except ValueError as err:
+                logging.error('%s: %s' % (img_file, str(err)))
             im.convert('L').save(gif_file, 'GIF')
 
             if gif_file != img_file:
@@ -94,7 +94,8 @@ class RecognitionApi(BaseHandler):
         data['filename'] = filename
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
         self.call_back_api(url, connect_timeout=5, request_timeout=20,
-                           handle_error=lambda t: self.send_error_response(errors.ocr, message=errors.ocr[1] % t),
+                           handle_error=lambda t: self.send_error_response(e.ocr_err,
+                                                                           message=e.ocr_err[1] % (t or '无法访问')),
                            body=img[0]['body'], method='POST', handle_response=handle_response)
 
     @staticmethod
@@ -160,10 +161,10 @@ class SubmitRecognitionApi(BaseHandler):
         upload_ocr = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr')
         img_file = path.join(upload_ocr, img_name)
         if not path.exists(img_file):
-            return self.send_error_response(errors.ocr_img_not_existed)
+            return self.send_error_response(e.ocr_img_not_existed)
         json_file = path.join(upload_ocr, img_name.split('.')[0] + '.json')
         if not path.exists(json_file):
-            return self.send_error_response(errors.ocr_json_not_existed)
+            return self.send_error_response(e.ocr_json_not_existed)
 
         page = self.upload_page(self, json_file, img_file)
         if page:
@@ -174,13 +175,13 @@ class SubmitRecognitionApi(BaseHandler):
         """批量导入OCR结果"""
         result_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', result_folder)
         if not path.exists(result_path) or not path.isdir(result_path):
-            return self.send_error_response(errors.ocr_img_not_existed)
+            return self.send_error_response(e.ocr_img_not_existed)
         files = sorted(glob(path.join(result_path, '**', '*.json')))
         added = []
         existed = 0
         for json_file in files:
             page = self.upload_page(self, json_file, None, ignore_error=True)
-            if page == errors.ocr_page_existed:
+            if page == e.ocr_page_existed:
                 existed += 1
             elif isinstance(page, dict):
                 added.append(page['imgname'])
@@ -194,10 +195,10 @@ class SubmitRecognitionApi(BaseHandler):
 
         page['imgname'] = path.basename(json_file).split('.')[0]
         if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
-            return errors.ocr_invalid_name if ignore_error else self.send_error_response(errors.ocr_invalid_name)
+            return e.ocr_invalid_name if ignore_error else self.send_error_response(e.ocr_invalid_name)
         r = add_page(page['imgname'], page, self.db)
         if not r:
-            return errors.ocr_page_existed if ignore_error else self.send_error_response(errors.ocr_page_existed)
+            return e.ocr_page_existed if ignore_error else self.send_error_response(e.ocr_page_existed)
 
         if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload(self, img_file)
@@ -223,5 +224,5 @@ class SubmitRecognitionApi(BaseHandler):
             s3.meta.client.upload_file(img_file, 'pages', key)
             logging.info('%s uploaded' % key)
             return key
-        except (Boto3Error, BotoCoreError) as e:
-            logging.error('fail to upload %s: %s' % (key, str(e).split(': ')[-1]))
+        except (Boto3Error, BotoCoreError) as err:
+            logging.error('fail to upload %s: %s' % (key, str(err).split(': ')[-1]))
