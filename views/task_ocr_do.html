@@ -16,6 +16,28 @@
     .main > .content {
       height: 100%;
       padding-top: 40px;
+      display: flex;
+    }
+
+    .content > .content-left {
+      flex: 1;
+      padding: 0;
+      height: 100%;
+      min-width: 60%;
+      overflow: auto;
+      background: var(--Color_Grey_Content);
+      font-size: 18px;
+      line-height: 30px;
+      letter-spacing: 0.1em;
+      -webkit-user-select: auto;
+      user-select: auto;
+    }
+
+    .content > .content-right {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      background: var(--Color_Grey_Content2);
     }
 
     .bd-container {
@@ -42,11 +64,15 @@
     .page-text .txt {
       margin-left: 10px;
     }
+
+    #text-edit {
+      background: var(--Color_Grey_Line);
+    }
   </style>
 </head>
 
 <body class="widescreen">
-<div class="app-main">
+<div class="app-main" style="overflow: hidden">
   <div class="main">
     <div class="m-header">
       <div class="left">
@@ -60,7 +86,9 @@
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
-
+        <div class="zone-control" style="padding: 0 5px">
+          <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-right" title="文字区域"/>
+        </div>
         <div class="edit-btns">
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
@@ -82,9 +110,9 @@
         </div>
 
         <div class="input-group char-box" style="width: 80px; margin-top: 4px">
-          <input type="text" maxlength="1" class="form-control text-center" placeholder="字" style="height: 30px">
+          <input type="text" maxlength="1" class="form-control text-center" placeholder="字" style="height: 30px; width:50px;">
           <span class="input-group-btn">
-            <button class="btn btn-default btn-sm" type="button">改</button>
+            <button class="btn btn-default btn-sm" id="text-edit" type="button">修改</button>
           </span>
         </div>
       </div><!--left-->
@@ -96,7 +124,7 @@
         {% end %}
         <div class="edit-btns">
           {% if box_type in ['column', 'char'] %}
-          <div class="more">
+          <div class="more hide">
             <div class="btn-group more-group hidden" role="group" aria-label="更多">
               {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
               {% for type,text in more[box_type] %}
@@ -119,18 +147,17 @@
 
     <div class="content">
       <!-- 左侧图片区域 -->
-      <div class="col-md-8 content-left">
+      <div class="content-left">
         <div class="bd-container">
-          <!-- holder为显示切分框和页面图的画布容器 -->
           <div id="holder"></div>
         </div>
       </div>
 
       <!-- 右侧文字区域 -->
-      <div class="col-md-4 content-right">
+      <div class="content-right hide">
         <div class="page-text">
           {% for n, col in enumerate(page['columns']) %}
-          <div><span class="num">{{n+1}}</span><span class="txt">{{col['txt']}}</span></div>
+          <div><span class="num">{{n+1}}</span><span class="txt">{{col.get('txt', '') or ''}}</span></div>
           {% end %}
         </div>
       </div>
@@ -181,19 +208,19 @@
   var $char = $('.char-box input');
 
   // 回车：从字框跳转到文字输入框
-  $.cut.bindKey('enter', function() {
+  $.cut.bindKey('enter', function () {
     $char.focus();
     $.fn.mapKey.enabled = false;
   });
 
   // 字框改变或切换的通知
-  $.cut.onBoxChanged(function(char, box, reason) {
+  $.cut.onBoxChanged(function (char, box, reason) {
     onBoxChanged(char, box, reason);
     $char.val(char && char.ch || '');
   });
 
   // 应用文字改动
-  $('.char-box button').click(function() {
+  $('.char-box button').click(function () {
     var txt = $char.val();
     var c = $.cut.findCharById($.cut.getCurrentCharID());
     if (txt && c) {
@@ -209,11 +236,10 @@
   });
 
   // 在输入框按回车键应用改动，按ESC放弃改动
-  $char.bind('keypress', function(e) {
+  $char.bind('keypress', function (e) {
     if (e.keyCode == '13') {
       $('.char-box button').click();
-    }
-    else if (e.keyCode == '27') {
+    } else if (e.keyCode == '27') {
       $char.blur();
       $.fn.mapKey.enabled = true;
       $char.val($.cut.getCurrentChar() || '');
@@ -237,6 +263,12 @@
       }).join('') + '</ul>'
     });
   });
+
+  // 显示、隐藏右侧区域
+  $('.m-header .zone-control .zone-right').click(function () {
+    $('.main .content .content-right').toggleClass('hide');
+  });
+
 </script>
 </body>
 </html>
