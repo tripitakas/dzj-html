@@ -16,6 +16,7 @@ class TaskAdminHandler(TaskHandler):
         'block_cut_review': ['block_cut_proof'],
         'column_cut_review': ['column_cut_proof'],
         'char_cut_review': ['char_cut_proof'],
+        'ocr_review': ['ocr_proof'],
         'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
     }
 
