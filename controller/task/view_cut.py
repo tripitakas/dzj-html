@@ -74,21 +74,29 @@ class CharOrderProofHandler(CutBaseHandler):
     URL = ['/task/char_cut_proof/order/@page_name',
            '/task/do/char_cut_proof/order/@page_name',
            '/task/update/char_cut_proof/order/@page_name',
+           '/task/ocr_proof/order/@page_name',
+           '/task/do/ocr_proof/order/@page_name',
+           '/task/update/ocr_proof/order/@page_name',
            '/data/edit/char_order/@page_name']
 
     def get(self, page_name):
         """ 进入字序校对页面 """
-        self.enter('char', 'proof', page_name, template_name='task_char_order.html')
+        task_type = 'ocr_proof' if 'ocr' in self.request.path else 'char_cut_proof'
+        self.enter('char', 'proof', page_name, task_type=task_type, template_name='task_char_order.html')
 
 
 class CharOrderReviewHandler(CutBaseHandler):
     URL = ['/task/char_cut_review/order/@page_name',
            '/task/do/char_cut_review/order/@page_name',
-           '/task/update/char_cut_review/order/@page_name']
+           '/task/update/char_cut_review/order/@page_name',
+           '/task/ocr_review/order/@page_name',
+           '/task/do/ocr_review/order/@page_name',
+           '/task/update/ocr_review/order/@page_name']
 
     def get(self, page_name):
         """ 进入字序审定页面 """
-        self.enter('char', 'review', page_name, template_name='task_char_order.html')
+        task_type = 'ocr_proof' if 'ocr' in self.request.path else 'char_cut_proof'
+        self.enter('char', 'review', page_name, task_type=task_type, template_name='task_char_order.html')
 
 
 class OCRProofHandler(CutBaseHandler):

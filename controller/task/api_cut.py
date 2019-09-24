@@ -41,7 +41,7 @@ class SaveCutApi(SubmitTaskApi):
             if boxes:
                 data_field = self.task_shared_data_fields.get(task_type)
                 update.update({data_field: boxes})
-            if 'do/char_cut' in self.request.path and data.get('submit_step'):  # 切字submit
+            if 'do' in self.request.path and data.get('submit_step'):  # 切字或ocrsubmit
                 update.update({'tasks.%s.submitted_steps' % task_type: [task_type]})
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
