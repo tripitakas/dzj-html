@@ -18,7 +18,7 @@ class SaveCutApi(SubmitTaskApi):
            '/api/task/update/@box_type_cut_review/@page_name',
            '/api/data/edit/@box_types/@page_name']
 
-    def post(self, kind, page_name):
+    def post(self, kind, page_name, **kwargs):
         """ 保存数据。有do/update/edit三种模式:
             1. do。做任务时，保存或提交任务。
             2. update。任务完成后，本任务用户修改数据。
@@ -27,7 +27,8 @@ class SaveCutApi(SubmitTaskApi):
         """
         try:
             # 保存任务
-            task_type = '%s_cut_%s' % (kind, 'review' if 'review' in self.request.path else 'proof')
+            task_type = kwargs.pop('task_type', '%s_cut_%s' % (
+                kind, 'review' if 'review' in self.request.path else 'proof'))
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['do'])[0]
             if not self.check_auth(mode, page_name, task_type):
                 self.send_error_response(errors.data_unauthorized)
@@ -58,11 +59,11 @@ class SaveCutApi(SubmitTaskApi):
 
 
 class SaveOCRApi(SaveCutApi):
-    URL = ['/api/task/do/ocr_proof/@page_name',
-           '/api/task/update/ocr_proof/@page_name',
-           '/api/task/do/ocr_review/@page_name',
-           '/api/task/update/ocr_review/@page_name']
+    URL = ['/api/task/do/(ocr_proof)/@page_name',
+           '/api/task/update/(ocr_proof)/@page_name',
+           '/api/task/do/(ocr_review)/@page_name',
+           '/api/task/update/(ocr_review)/@page_name']
 
-    def post(self, kind, page_name):
+    def post(self, task_type, page_name):
         """保存数据"""
-        super(SaveOCRApi, self).post(kind, page_name)
+        super(SaveOCRApi, self).post('', page_name, task_type=task_type)
