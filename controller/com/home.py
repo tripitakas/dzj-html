@@ -46,7 +46,8 @@ class HomeHandler(BaseHandler):
                         task_type = params.get('task_type')
                         msg = d.get('msg', d['name'])
                         if 'page_kind' in msg:
-                            msg = msg.replace('{page_kind}', page_kinds[t['context'][:2]])
+                            kind = t['context'][:2]
+                            msg = msg.replace('{page_kind}', page_kinds.get(kind, kind))
                         if 'page_name' in msg:
                             r = re.findall(r'^([A-Za-z0-9_]+)', t['context'])
                             msg = msg.replace('{page_name}', r and r[0] or '')
