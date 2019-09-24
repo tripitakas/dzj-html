@@ -95,7 +95,7 @@ class CharOrderReviewHandler(CutBaseHandler):
 
     def get(self, page_name):
         """ 进入字序审定页面 """
-        task_type = 'ocr_proof' if 'ocr' in self.request.path else 'char_cut_proof'
+        task_type = 'ocr_review' if 'ocr' in self.request.path else 'char_cut_proof'
         self.enter('char', 'review', page_name, task_type=task_type, template_name='task_char_order.html')
 
 
