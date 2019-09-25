@@ -18,10 +18,10 @@ class CutHandler(TaskHandler):
            '/data/(cut_edit)/@page_name']
 
     steps = {
-        '1': {'name': 'char_box', 'name_zh': '字框', 'field': 'cut.chars'},
-        '2': {'name': 'block_box', 'name_zh': '栏框', 'field': 'cut.blocks'},
-        '3': {'name': 'column_box', 'name_zh': '列框', 'field': 'cut.columns'},
-        '4': {'name': 'char_order', 'name_zh': '字序', 'field': 'cut.chars'},
+        '1': {'name': 'char_box', 'name_zh': '字框', 'field': 'chars'},
+        '2': {'name': 'block_box', 'name_zh': '栏框', 'field': 'blocks'},
+        '3': {'name': 'column_box', 'name_zh': '列框', 'field': 'columns'},
+        '4': {'name': 'char_order', 'name_zh': '字序', 'field': 'chars'},
     }
 
     def get(self, task_type, page_name):
@@ -36,18 +36,18 @@ class CutHandler(TaskHandler):
 
             mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
-
             data_field = self.steps[step]['field']
             boxes = self.prop(page, data_field)
             box_type = data_field.split('.')[-1].rstrip('s'),
-
-            is_last_step = step == (self.prop(page, 'tasks.%s.steps.todo') or [''])[-1]
+            steps_todo = self.prop(page, 'tasks.%s.steps.todo') or ['']
+            is_first_step, is_last_step = step == steps_todo[0], step == steps_todo[-1]
             sub_title = '%s.%s' % (step, self.steps[step]['name_zh'])
             template = 'task_char_order.html' if step == '4' else 'task_cut_do.html'
             kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)), **{}) if step == '4' else {}
             self.render(
                 template, page=page, task_type=task_type, readonly=readonly, mode=mode, name=page['name'],
-                box_version=1, boxes=boxes, box_type=box_type, sub_title=sub_title, is_last_step=is_last_step,
+                box_version=1, boxes=boxes, box_type=box_type, sub_title=sub_title,
+                is_first_step=is_first_step, is_last_step=is_last_step,
                 get_img=self.get_img, **kwargs
             )
 
@@ -57,11 +57,9 @@ class CutHandler(TaskHandler):
     @classmethod
     def char_render(cls, page, layout, **kwargs):
         """ 生成字序编号 """
-        need_ren = GenApi.get_invalid_char_ids(cls.prop(page, 'cut.chars')) or (
-                layout and layout != page.get('layout_type'))
+        need_ren = GenApi.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
         kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
-            cls.prop(page, 'cut.chars'), cls.prop(page, 'cut.columns'), cls.prop(page, 'cut.blocks'),
-            layout or page.get('layout_type'))
+            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
         return kwargs

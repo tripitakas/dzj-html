@@ -135,7 +135,7 @@
       boxes: JSON.stringify($.cut.exportBoxes())
     };
     var isChar = 'True' === '{{"char_cut" in task_type}}';
-    data[isChar ? 'submit_step' : 'submit'] = true
+    data[isChar ? 'submit_step' : 'submit'] = true;
     postApi('{{current_path}}', {
       data: data
     }, function () {

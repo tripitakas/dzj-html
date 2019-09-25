@@ -44,7 +44,7 @@
       <div class="m-header">
         <div class="left">
           <div class="back">
-            {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
+            {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
             <a onclick="leave()" title="{{title}}">
               <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
             </a>
@@ -83,12 +83,10 @@
               </div>
               <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
             </div>
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% end %}
-            {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_%s.png' % ('submit' if is_last_step else 'next')) }}" class="btn-img btn-submit" title="{{'提交' if is_last_step else '下一步'}}"/>
-            {% end %}
+            <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if is_first_step else ''}}" title="上一步"/>
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if is_last_step else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if is_last_step and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
           </div>
         </div>
       </div>
@@ -112,9 +110,9 @@
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
 <script>
-  var blocks = decodeJSON('{{page["cut"]["blocks"]}}');
-  var columns = decodeJSON('{{page["cut"]["columns"]}}');
-  var chars = '{{page["cut"]["chars"]}}';
+  var blocks = decodeJSON('{{page["blocks"]}}');
+  var columns = decodeJSON('{{page["columns"]}}');
+  var chars = '{{page["chars"]}}';
   $.cut.create({
     orderMode: true,
     readonly: true,
@@ -141,6 +139,7 @@
     $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
         : "{{ static_url('imgs/icon_rr_not.png') }}");
   }
+
   updateUndo();
 
   $('.btn-undo').click(function () {
@@ -219,15 +218,15 @@
         window.location.reload();
       }, 1000);
     });
-	});
+  });
 
   // 提交任务
   $('.btn-submit').on("click", function () {
     postApi('{{current_path.replace("/order", "")}}', {
       data: {
-      submit: true,
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
+        submit: true,
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
       }
     }, function () {
       // showSuccess('提交成功', '{{name}} ' + '已提交成功');
@@ -279,7 +278,7 @@
         cancelButtonText: "取消",
         closeOnConfirm: false
       };
-      swal(info, function() {
+      swal(info, function () {
         window.location = res.url;
       });
     } else if (res.code == '{{e.no_task_to_pick[0]}}') {
@@ -298,8 +297,8 @@
         cancelButtonText: "取消",
         closeOnConfirm: false
       };
-      swal(info,function() {
-          pick("/task/pick/{{task_type}}");
+      swal(info, function () {
+        pick("/task/pick/{{task_type}}");
       });
     } else {
       showError('发生错误', res.message);

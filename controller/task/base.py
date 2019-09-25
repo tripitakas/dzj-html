@@ -71,16 +71,16 @@ class TaskHandler(BaseHandler):
 
     # 数据锁注册表。在任务的领取、保存、提交、完成及退回等操作时，需要判断是否要检查数据锁时，以这个表来判断。
     task_shared_data_fields = {
-        'cut_proof': 'cut',
-        'cut_review': 'cut',
-        'cut_edit': 'cut',
+        'cut_proof': 'chars',
+        'cut_review': 'chars',
+        'cut_edit': 'chars',
         'text_review': 'text',
         'text_hard': 'text',
     }
 
     # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。
     data_auth_maps = {
-        'cut': {
+        'chars': {
             'tasks': ['cut_proof', 'cut_review',
                       'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
             'roles': ['切分专家']

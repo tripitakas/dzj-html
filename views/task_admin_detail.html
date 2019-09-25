@@ -8,6 +8,20 @@
 </div>
 <br/>
 
+<div class="sub-steps">
+  <h4 class="control-label">选择步骤</h4>
+  <div>
+    {% for t, v in Th.task_types.items() %}
+    {% if t != task_type %}
+    <label class="checkbox-inline">
+      <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
+    </label>
+    {% end %}
+    {% end %}
+  </div>
+</div>
+<br/>
+
 <div class="pre-tasks">
   <h4 class="control-label">选择前置任务</h4>
   <div>
