@@ -16,7 +16,7 @@ class GetReadyPagesApi(TaskHandler):
     URL = '/api/task/ready_pages/@task_type'
 
     def post(self, task_type):
-        """ 任务管理中，获取已就绪的页面列表 """
+        """ 任务管理中，获取已就绪或被退回的页面列表 """
         assert task_type in self.task_types.keys()
         try:
             data = self.get_request_data()
@@ -29,16 +29,22 @@ class GetReadyPagesApi(TaskHandler):
             if not condition['name']:
                 del condition['name']
 
+            status_field = 'tasks.%s.status' % task_type
             condition.update({'$or': [
-                {'tasks.%s.status' % task_type: self.STATUS_READY},
-                {'tasks.%s.status' % task_type: None}
+                {status_field: self.STATUS_READY},
+                {status_field: self.STATUS_RETURNED},
+                {status_field: None}
             ]})
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
             count = self.db.page.count_documents(condition)
-            pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size * (page_no - 1))
-            pages = [p['name'] for p in pages]
+            pages = list(self.db.page.find(condition, {'name': 1, status_field: 1}).limit(page_size).skip(
+                page_size * (page_no - 1)))
+            pages, statuses = [p['name'] for p in pages], [self.prop(p, status_field) for p in pages]
+            for i, s in enumerate(statuses):
+                if s == self.STATUS_RETURNED:
+                    pages[i] = '%s (退回)' % pages[i]
             response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
         except DbError as err:
@@ -64,17 +70,18 @@ class PublishTasksApi(TaskHandler):
             pages = self.find_task(page_names)
             log['un_existed'] = set(page_names) - set(page['name'] for page in pages)
 
-        # 检查已发布的页面（状态为OPENED\PENDING\PICKED\RETURNED\FINISHED）
+        # 检查已发布的页面（状态为OPENED\PENDING\PICKED\FINISHED）
         if pages:
             log['published_before'], pages = self.filter_task(pages, {task_type: [
-                self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_RETURNED, self.STATUS_FINISHED
+                self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_FINISHED
             ]})
 
-        # 检查未就绪的页面（状态不为STATUS_READY，也不是None）
+        # 检查未就绪的页面（状态不为STATUS_READY、STATUS_RETURNED，也不是None）
         if pages:
-            log['un_ready'], pages = self.filter_task(pages, {task_type: [self.STATUS_READY, None]}, equal=False)
+            log['un_ready'], pages = self.filter_task(pages, {task_type: [
+                self.STATUS_READY, self.STATUS_RETURNED, None]}, equal=False)
 
-        # 针对已就绪的页面（状态为READY），进行发布任务
+        # 针对已就绪或被退回的页面（状态为READY），进行发布任务
         if pages:
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
@@ -219,6 +226,7 @@ class PublishTasksPageNamesApi(PublishTasksApi):
             return self.send_error_response(err)
 
         page_names = data['pages'].split(',') if data.get('pages') else []
+        page_names = [p.split(' ')[0] for p in page_names]
         if len(page_names) > self.MAX_PUBLISH_RECORDS:
             return self.send_error_response(e.task_exceed_max, message='发布任务数量超过%s' % self.MAX_PUBLISH_RECORDS)
 
