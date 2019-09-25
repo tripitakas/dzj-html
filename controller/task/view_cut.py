@@ -6,106 +6,62 @@
 """
 
 import re
+import controller.errors as errors
 from controller.task.base import TaskHandler
 from controller.data.api_algorithm import GenerateCharIdApi as GenApi
 
 
-class CutBaseHandler(TaskHandler):
+class CutHandler(TaskHandler):
+    URL = ['/task/@cut_type/@page_name',
+           '/task/do/@cut_type/@page_name',
+           '/task/update/@cut_type/@page_name',
+           '/data/(cut_edit)/@page_name']
 
-    def enter(self, box_type, stage, name, **kwargs):
+    steps = {
+        '1': {'name': 'char_box', 'name_zh': '字框', 'field': 'cut.chars'},
+        '2': {'name': 'block_box', 'name_zh': '栏框', 'field': 'cut.blocks'},
+        '3': {'name': 'column_box', 'name_zh': '列框', 'field': 'cut.columns'},
+        '4': {'name': 'char_order', 'name_zh': '字序', 'field': 'cut.chars'},
+    }
+
+    def get(self, task_type, page_name):
         try:
-            task_type = kwargs.pop('task_type', '%s_cut_%s' % (box_type, stage))
-            data_field = self.get_shared_data_field(task_type)
-
-            page = self.db.page.find_one(dict(name=name))
+            page = self.db.page.find_one(dict(name=page_name))
             if not page:
                 return self.render('_404.html')
 
-            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
-            # 切字校对任务模式时，如果已完成字框校对，则进入字序校对
-            if re.search(r'/do/(char_cut|ocr)', self.request.path) and 'order' not in self.request.path \
-                    and self.prop(page, 'tasks.%s.submitted_steps' % task_type):
-                self.redirect('/task/do/%s/order/%s' % (task_type, name))
-            readonly = not self.check_auth(mode, page, task_type)
-            layout = int(self.get_query_argument('layout', 0))
-            kwargs = self.char_render(page, layout, **kwargs) if box_type == 'char' else kwargs
-            template_name = kwargs.pop('template_name', 'task_cut_do.html')
+            step = self.get_query_argument('step', '') or self.prop(page, 'tasks.%s.steps.current' % task_type) or '1'
+            if not re.match(r'\d+', step) or int(step) < 1 or int(step) > len(self.steps.keys()):
+                self.send_error_response(errors.task_step_error, render=True)
+
+            mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
+            readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
+
+            data_field = self.steps[step]['field']
+            boxes = self.prop(page, data_field)
+            box_type = data_field.split('.')[-1].rstrip('s'),
+
+            is_last_step = step == (self.prop(page, 'tasks.%s.steps.todo') or [''])[-1]
+            sub_title = '%s.%s' % (step, self.steps[step]['name_zh'])
+            template = 'task_char_order.html' if step == '4' else 'task_cut_do.html'
+            kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)), **{}) if step == '4' else {}
             self.render(
-                template_name, page=page, name=page['name'], boxes=page[data_field], get_img=self.get_img,
-                data_field=data_field, task_type=task_type, box_type=box_type, readonly=readonly, mode=mode,
-                box_version=1, **kwargs
+                template, page=page, task_type=task_type, readonly=readonly, mode=mode, name=page['name'],
+                box_version=1, boxes=boxes, box_type=box_type, sub_title=sub_title, is_last_step=is_last_step,
+                get_img=self.get_img, **kwargs
             )
 
         except Exception as e:
             self.send_db_error(e, render=True)
 
-    @staticmethod
-    def char_render(page, layout, **kwargs):
-        need_ren = GenApi.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
+    @classmethod
+    def char_render(cls, page, layout, **kwargs):
+        """ 生成字序编号 """
+        need_ren = GenApi.get_invalid_char_ids(cls.prop(page, 'cut.chars')) or (
+                layout and layout != page.get('layout_type'))
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
         kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
-            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
+            cls.prop(page, 'cut.chars'), cls.prop(page, 'cut.columns'), cls.prop(page, 'cut.blocks'),
+            layout or page.get('layout_type'))
         return kwargs
-
-
-class CutProofHandler(CutBaseHandler):
-    URL = ['/task/@box_type_cut_proof/@page_name',
-           '/task/do/@box_type_cut_proof/@page_name',
-           '/task/update/@box_type_cut_proof/@page_name',
-           '/data/edit/@box_types/@page_name']
-
-    def get(self, box_type, page_name):
-        """ 进入切分校对页面 """
-        self.enter(box_type, 'proof', page_name)
-
-
-class CutReviewHandler(CutBaseHandler):
-    URL = ['/task/@box_type_cut_review/@page_name',
-           '/task/do/@box_type_cut_review/@page_name',
-           '/task/update/@box_type_cut_review/@page_name']
-
-    def get(self, box_type, page_name):
-        """ 进入切分审定页面 """
-        self.enter(box_type, 'review', page_name)
-
-
-class CharOrderProofHandler(CutBaseHandler):
-    URL = ['/task/char_cut_proof/order/@page_name',
-           '/task/do/char_cut_proof/order/@page_name',
-           '/task/update/char_cut_proof/order/@page_name',
-           '/data/edit/char_order/@page_name']
-
-    def get(self, page_name):
-        """ 进入字序校对页面 """
-        self.enter('char', 'proof', page_name, template_name='task_char_order.html')
-
-
-class CharOrderReviewHandler(CutBaseHandler):
-    URL = ['/task/char_cut_review/order/@page_name',
-           '/task/do/char_cut_review/order/@page_name',
-           '/task/update/char_cut_review/order/@page_name']
-
-    def get(self, page_name):
-        """ 进入字序审定页面 """
-        self.enter('char', 'review', page_name, template_name='task_char_order.html')
-
-
-class OCRProofHandler(CutBaseHandler):
-    URL = ['/task/ocr_proof/@page_name',
-           '/task/do/ocr_proof/@page_name',
-           '/task/update/ocr_proof/@page_name']
-
-    def get(self, page_name):
-        """ 进入OCR校对页面 """
-        self.enter('char', 'proof', page_name, template_name='task_ocr_do.html', task_type='ocr_proof')
-
-
-class OCRReviewHandler(CutBaseHandler):
-    URL = ['/task/ocr_review/@page_name',
-           '/task/do/ocr_review/@page_name',
-           '/task/update/ocr_review/@page_name']
-
-    def get(self, page_name):
-        """ 进入OCR审定页面 """
-        self.enter('char', 'review', page_name, template_name='task_ocr_do.html', task_type='ocr_review')

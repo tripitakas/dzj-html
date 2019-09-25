@@ -50,7 +50,7 @@
             </a>
           </div>
           <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-          <div class="sub-title">/ 字框顺序</div>
+          <div class="sub-title">{{sub_title}}</div>
           <div class="help">
             <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
           </div>
@@ -62,7 +62,7 @@
           </div>
           <div class="slice-btns">
             <div class="btn-group">
-              <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">背景</button>
+              <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">图片</button>
               <button type="button" class="btn btn-default btn-sm" id="toggle-columns" title="显示列框">列框</button>
               <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
               <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
@@ -87,7 +87,7 @@
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
             {% end %}
             {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
+            <img src="{{ static_url('imgs/icon_%s.png' % ('submit' if is_last_step else 'next')) }}" class="btn-img btn-submit" title="{{'提交' if is_last_step else '下一步'}}"/>
             {% end %}
           </div>
         </div>
@@ -112,9 +112,9 @@
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
 <script>
-  var blocks = decodeJSON('{{page["blocks"]}}');
-  var columns = decodeJSON('{{page["columns"]}}');
-  var chars = '{{page["chars"]}}';
+  var blocks = decodeJSON('{{page["cut"]["blocks"]}}');
+  var columns = decodeJSON('{{page["cut"]["columns"]}}');
+  var chars = '{{page["cut"]["chars"]}}';
   $.cut.create({
     orderMode: true,
     readonly: true,

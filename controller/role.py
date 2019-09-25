@@ -12,7 +12,8 @@ import re
 
 url_placeholder = {
     'num': r'\d+',
-    'task_type': r'[a-z]+_cut_[a-z]+|text_\w+|ocr_\w+',
+    'cut_type': r'cut_proof|cut_review',
+    'task_type': r'cut_[a-z]+|text_\w+',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
@@ -28,7 +29,6 @@ role_maps = {
             '/api/user/list': ['GET'],
             '/api/task/page/@page_name': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],
-            '/api/data/submit_ocr/@img_file': ['POST'],
         }
     },
     '访客': {
@@ -54,124 +54,43 @@ role_maps = {
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
-            '/data/ocr': ['GET'],
-            '/data/ocr/@img_file': ['GET'],
-            '/api/data/ocr': ['POST'],
             '/data/punctuation': ['GET'],
             '/api/data/punctuation': ['POST'],
             '/data/cbeta/search': ['GET'],
             '/api/data/cbeta/search': ['POST'],
-            '/task/@task_type/@page_name': ['GET'],
             '/api/data/gen_char_id': ['POST'],
             '/api/task/page/@page_name': ['GET'],
+            '/task/@task_type/@page_name': ['GET'],
+        }
+    },
 
-            # 下列只读浏览页面暂时允许普通用户访问
-            '/task/block_cut_proof/@page_name': ['GET'],
-            '/task/column_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/@page_name': ['GET'],
-            '/task/char_cut_proof/order/@page_name': ['GET'],
-            '/task/char_cut_review/order/@page_name': ['GET'],
-            '/task/text_proof_@num/@page_name': ['GET'],
-            '/task/text_review/@page_name': ['GET'],
-        }
-    },
-    '切栏校对员': {
+    '切分校对员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/task/(lobby|my)/block_cut_proof': ['GET'],
-            '/api/task/pick/block_cut_proof': ['POST'],
-            '/task/(do|update)/block_cut_proof/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/block_cut_proof/@page_name': ['POST'],
+            '/task/(lobby|my)/cut_proof': ['GET'],
+            '/api/task/pick/cut_proof': ['POST'],
+            '/task/(do|update)/cut_proof/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/cut_proof/@page_name': ['POST'],
+            '/data/cut_edit/@page_name': ['GET'],
+            '/api/data/cut_edit/@page_name': ['POST'],
         }
     },
-    '切栏审定员': {
+    '切分审定员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/task/(lobby|my)/block_cut_review': ['GET'],
-            '/api/task/pick/block_cut_review': ['POST'],
-            '/task/(do|update)/block_cut_review/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/block_cut_review/@page_name': ['POST'],
-        }
-    },
-    '切列校对员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/column_cut_proof': ['GET'],
-            '/api/task/pick/column_cut_proof': ['POST'],
-            '/task/(do|update)/column_cut_proof/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/column_cut_proof/@page_name': ['POST'],
-            '/data/edit/blocks/@page_name': ['GET'],
-            '/api/data/edit/blocks/@page_name': ['POST'],
-        }
-    },
-    '切列审定员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/column_cut_review': ['GET'],
-            '/api/task/pick/column_cut_review': ['POST'],
-            '/task/(do|update)/column_cut_review/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/column_cut_review/@page_name': ['POST'],
-            '/data/edit/blocks/@page_name': ['GET'],
-            '/api/data/edit/blocks/@page_name': ['POST'],
-        }
-    },
-    '切字校对员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/char_cut_proof': ['GET'],
-            '/api/task/pick/char_cut_proof': ['POST'],
-            '/task/(do|update)/char_cut_proof/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/char_cut_proof/@page_name': ['POST'],
-            '/task/(do|update)/char_cut_proof/order/@page_name': ['GET'],
-            '/data/edit/(blocks|columns)/@page_name': ['GET'],
-            '/api/data/edit/(blocks|columns)/@page_name': ['POST'],
-        }
-    },
-    '切字审定员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/char_cut_review': ['GET'],
-            '/api/task/pick/char_cut_review': ['POST'],
-            '/task/(do|update)/char_cut_review/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/char_cut_review/@page_name': ['POST'],
-            '/task/(do|update)/char_cut_review/order/@page_name': ['GET'],
-            '/api/task/(do|update)/char_cut_review/order/@page_name': ['POST'],
-            '/data/edit/(blocks|columns)/@page_name': ['GET'],
-            '/api/data/edit/(blocks|columns)/@page_name': ['POST'],
-        }
-    },
-    'OCR校对员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/ocr_proof': ['GET'],
-            '/api/task/pick/ocr_proof': ['POST'],
-            '/task/(do|update)/ocr_proof/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/ocr_proof/@page_name': ['POST'],
-            '/task/(do|update)/ocr_proof/order/@page_name': ['GET'],
-        }
-    },
-    'OCR审定员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/task/(lobby|my)/ocr_review': ['GET'],
-            '/api/task/pick/ocr_review': ['POST'],
-            '/task/(do|update)/ocr_review/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/ocr_review/@page_name': ['POST'],
-            '/task/(do|update)/ocr_review/order/@page_name': ['GET'],
-            '/api/task/(do|update)/ocr_review/order/@page_name': ['POST'],
+            '/task/(lobby|my)/cut_review': ['GET'],
+            '/api/task/pick/cut_review': ['POST'],
+            '/task/(do|update)/cut_review/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/cut_review/@page_name': ['POST'],
+            '/data/cut_edit/@page_name': ['GET'],
+            '/api/data/cut_edit/@page_name': ['POST'],
         }
     },
     '切分专家': {
         'is_assignable': True,
-        'roles': ['普通用户', '切栏校对员', '切栏审定员', '切列校对员', '切列审定员', '切字校对员', '切字审定员'],
+        'roles': ['切分校对员', '切分审定员'],
     },
     '文字校对员': {
         'is_assignable': True,
@@ -235,8 +154,7 @@ role_maps = {
             '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
-            '/api/data/submit_ocr/@img_file': ['POST'],
-            '/api/data/submit_ocr/@img_file': ['GET'],
+            '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
         }
     },
     '用户管理员': {

@@ -58,6 +58,7 @@ task_return_only_picked = 3007, '只能退回进行中的任务'
 task_finished_not_allowed_do = 3008, '任务已完成，不能做任务，可以查看或更新'
 task_not_allowed_withdraw = 3009, '只能撤回已发布、等待前置任务或进行中的任务'
 task_not_allowed_reset = 3010, '只能重置已就绪的任务'
+task_step_error = 3011, '步骤参数有误'
 
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'
