@@ -161,7 +161,7 @@
       <div class="content-right hide">
         <div class="page-text">
           {% for n, col in enumerate(page['columns']) %}
-          <div><span class="num">{{n+1}}</span><span class="txt">{{col.get('txt', '') or ''}}</span></div>
+          <div id="col-{{col['column_id']}}"><span class="num">{{n+1}}</span><span class="txt">{{col.get('txt', '') or ''}}</span></div>
           {% end %}
         </div>
       </div>
@@ -222,6 +222,9 @@
   $.cut.onBoxChanged(function (char, box, reason) {
     onBoxChanged(char, box, reason);
     $char.val(char && char.ch || ''); // 显示到文本框
+    if (reason === 'txt_changed') {
+      buildLineText();
+    }
 
     // 按字序号浮动亮显当前行的字框
     var chars = $.cut.findCharsByLine(char.block_no, char.line_no);
@@ -233,6 +236,19 @@
         }
     );
   });
+  
+  function buildLineText() {
+    var columns = '{{",".join(c["column_id"] for c in page["columns"])}}'.split(',');
+    columns.forEach(function (column_id) {
+      var ids = column_id.replace('b', '').split('c');
+      var chars = $.cut.findCharsByLine(parseInt(ids[0]), parseInt(ids[1]));
+      var text = chars.map(function (c) {
+        return c.ch || '?';
+      }).join('');
+      $('#col-' + column_id).find('.txt').text(text);
+    });
+  }
+  buildLineText();
 
   // 应用文字改动
   $('.char-box button').click(function () {
@@ -242,7 +258,7 @@
       if (c.ch !== txt) {
         c.ch = txt;
         $.cut.state.edit.data('char', txt);
-        $.cut.notifyChanged(c.shape, 'changed');
+        $.cut.notifyChanged(c.shape, 'txt_changed');
       }
     } else {
       showError('没有改变！');

@@ -108,8 +108,11 @@ class OCRProofHandler(CutBaseHandler):
         """ 进入OCR校对页面 """
         self.enter('char', 'proof', page_name, template_name='task_ocr_do.html', task_type='ocr_proof')
 
+    def render(self, template_name, **kwargs):
+        CutBaseHandler.render(self, template_name, **kwargs)
 
-class OCRReviewHandler(CutBaseHandler):
+
+class OCRReviewHandler(OCRProofHandler):
     URL = ['/task/ocr_review/@page_name',
            '/task/do/ocr_review/@page_name',
            '/task/update/ocr_review/@page_name']
