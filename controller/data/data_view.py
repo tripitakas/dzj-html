@@ -123,6 +123,9 @@ class DataPageHandler(BaseHandler):
             condition = {"$or": [
                 {"name": {'$regex': '.*%s.*' % q}},
             ]}
+            source = self.get_query_argument('source', '')
+            if source:
+                condition['source'] = source
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             item_count = self.db.page.count_documents(condition)

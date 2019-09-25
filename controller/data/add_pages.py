@@ -112,7 +112,7 @@ def _add_repeat_pages(name, info, db, start, end, use_local_img):
     ))
 
 
-def add_page(name, info, db, img_name=None, use_local_img=False):
+def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
     if not db.page.find_one(dict(name=name)):
         meta = {k: '' for k in base_fields['str']}
         meta.update({k: {} for k in base_fields['dict']})
@@ -120,13 +120,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
         meta.update(dict(
             name=name,
             kind=name[:2],
-            width=int(info['imgsize']['width']),
-            height=int(info['imgsize']['height']),
+            width=int(info['imgsize']['width'] if 'imgsize' in info else info['width']),
+            height=int(info['imgsize']['height'] if 'imgsize' in info else info['height']),
             blocks=info.get('blocks', []),
             columns=info.get('columns', []),
             chars=info.get('chars', []),
-            create_time=datetime.now()
+            create_time=info.get('create_time') or datetime.now()
         ))
+        assert isinstance(meta.get('create_time'), datetime)
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
                 meta['ocr'] = '|'.join(info['ocr'])
@@ -136,6 +137,8 @@ def add_page(name, info, db, img_name=None, use_local_img=False):
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
+        if source:
+            meta['source'] = source
         # initialize tasks
         meta.update(dict(tasks={t: dict(status=task.STATUS_READY) for t in task_types}))
         data['count'] += 1
