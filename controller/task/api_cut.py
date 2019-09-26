@@ -5,6 +5,7 @@
 """
 import re
 from datetime import datetime
+import controller.validate as v
 import controller.errors as errors
 from controller.base import DbError
 from tornado.escape import json_decode
@@ -25,30 +26,38 @@ class SaveCutApi(SubmitTaskApi):
             根据情况，do和update需要检查任务归属和数据锁，edit需要检查数据锁。
         """
         try:
-            # 保存任务
+            # 检查参数及权限
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'step', 'boxes')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(errors.no_object)
+            steps_todo = self.prop(page, 'tasks.%s.steps.todo' % task_type)
+            if not data['step'] in steps_todo:
+                self.send_error_response(errors.task_step_error)
             mode = (re.findall('(do|update|edit)/', self.request.path) or ['do'])[0]
-            if not self.check_auth(mode, page_name, task_type):
+            if not self.check_auth(mode, page, task_type):
                 self.send_error_response(errors.data_unauthorized)
 
-            ret = {'updated': True}
+            # 保存数据
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
-
-            data = self.get_request_data()
-            boxes = json_decode(data.get('boxes', '[]'))
-            step = int(data.get('step', '1'))
-            is_last_step = step == len(CutHandler.step_names)
-            if boxes:
-                box_name = CutHandler.step_boxes[step - 1]
-                update.update({'cut.%s' % box_name: boxes})
-                if not is_last_step and data.get('submit'):
-                    update.update({'tasks.%s.current_step' % task_type: step + 1})
-
+            data_field = CutHandler.steps[data['step']]['field']
+            update.update({data_field: json_decode(data['boxes'])})
+            if data.get('submit'):
+                committed = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
+                if data['step'] not in committed:
+                    committed.append(data['step'])
+                update.update({'tasks.%s.steps.submitted' % task_type: committed})
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:
                 self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
             # 提交任务
-            if is_last_step and mode == 'do' and data.get('submit'):
+            ret = {'updated': True}
+            if mode == 'do' and data.get('submit') and data['step'] == steps_todo[-1]:
                 ret.update(self.submit(task_type, page_name))
 
             self.send_data_response(ret)

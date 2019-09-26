@@ -338,14 +338,6 @@
     });
   });
 
-  function getTaskOptions() {
-    var options = [];
-    $("#selectModal .pre-tasks :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        pre_tasks.push($(this).attr('title'));
-    });
-  }
-
   // 按所选页码发布任务
   $choosePagesModal.find('#select_modal_btn').click(function () {
     var selectedPages = [];
@@ -361,9 +353,15 @@
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
+    var sub_steps = [];
+    $("#selectModal .sub-steps :checkbox").each(function () {
+      if ($(this).is(':checked'))
+        sub_steps.push($(this).attr('title'));
+    });
     var data = {
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
+      sub_steps: sub_steps,
       priority: $choosePagesModal.find('.priority-list select').val(),
       page_names: selectedPages.join(',')
     };
@@ -393,16 +391,20 @@
     if (namesFile.size > (10 * 1024 * 1024)) {
       return showError('文件大小不能超过10M');
     }
-    // 前置任务
     var pre_tasks = [];
     $("#fileModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
-
+    var sub_steps = [];
+    $("#fileModal .sub-steps :checkbox").each(function () {
+      if ($(this).is(':checked'))
+        sub_steps.push($(this).attr('title'));
+    });
     var formData = new FormData();
     formData.append('task_type', '{{task_type}}');
     formData.append('pre_tasks', pre_tasks.join(','));
+    formData.append('sub_steps', sub_steps.join(','));
     formData.append('priority', $('#fileModal').find('.priority-list select').val());
     formData.append('pages_file', namesFile);
     console.log(formData);
@@ -431,17 +433,23 @@
   // 按页码前缀发布任务
   $prefixModal.find('#prefix_modal_btn').click(function () {
     var page_prefix = $('#page_prefix').val();
-    var pre_tasks = [];
     if (!page_prefix) {
       return showError('请输入页码前缀');
     }
+    var pre_tasks = [];
     $("#prefixModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
+    var sub_steps = [];
+    $("#prefixModal .sub-steps :checkbox").each(function () {
+      if ($(this).is(':checked'))
+        sub_steps.push($(this).attr('title'));
+    });
     var data = {
       task_type: '{{task_type}}',
       pre_tasks: pre_tasks,
+      sub_steps: sub_steps,
       priority: $prefixModal.find('.priority-list select').val()
     };
     console.log(data);

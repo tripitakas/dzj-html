@@ -32,7 +32,7 @@
   // 显示各种类型字框数量
   function showHighLightCount() {
     $('.hl-btn > button').each(function (i, btn) {
-      if (i > 0 || {{ int(box_type != "char") }}) {
+      if (i > 0 || '{{box_type}}' !== "char") {
         var type = btn.getAttribute('id').replace(/^.*-/, '');
         var boxes = $.cut.highlightBoxes(type, true);
         $(btn).find('.s-h-count').text(boxes.length);
@@ -82,6 +82,7 @@
     showHighLightCount();
     updateUndo();
   }
+
   $.cut.onBoxChanged(onBoxChanged);
 
   // 更多操作
@@ -89,38 +90,43 @@
     $('.more-group').toggleClass('hidden');
   });
 
+  // 修改字框
+  $('.ed-char-box').click(function () {
+    window.location = '{{"%s?step=char_box" % current_path}}';
+  });
+
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{name}}';
+    window.location = '{{"%s?step=block_box" % current_path}}';
   });
 
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{name}}';
-  });
-
-  // 修改字框
-  $('.ed-char-box').click(function () {
-    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{name}}';
+    window.location = '{{"%s?step=column_box" % current_path}}';
   });
 
   // 修改字序
   $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{name}}';
+    window.location = '{{"%s?step=char_order" % current_path}}';
   });
 
 </script>
 
 <script>
+  // 上一步
+  $('.btn-prev').on("click", function () {
+    window.location = '{{"%s?step=%s" % (current_path, steps["prev"])}}';
+  });
+
   // 保存任务
   $('.btn-save').on("click", function () {
-    postApi('{{current_path}}', {
-      data: {
-        submit: false,
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
-      }
-    }, function (data) {
+    var data = {
+      submit: false,
+      step: '{{steps["current"]}}',
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+    };
+    postApi('{{current_path}}', {data: data}, function () {
       showSuccess('保存成功', '{{name}} ' + '已保存成功');
       setTimeout(function () {
         window.location.reload();
@@ -128,22 +134,29 @@
     });
   });
 
-  // 提交任务
-  $('.btn-submit').on("click", function () {
+  // 下一步
+  $('.btn-next').on("click", function () {
     var data = {
+      submit: true,
+      step: '{{steps["current"]}}',
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
     };
-    var isChar = 'True' === '{{"char_cut" in task_type}}';
-    data[isChar ? 'submit_step' : 'submit'] = true;
-    postApi('{{current_path}}', {
-      data: data
-    }, function () {
-      if (isChar) {
-        window.location = '/task/do/{{task_type}}/order/{{name}}';
-      } else {
-        pick('/task/pick/{{task_type}}');
-      }
+    postApi('{{current_path}}', {data: data}, function () {
+      window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
+    });
+  });
+
+  // 提交任务
+  $('.btn-submit').on("click", function () {
+    var data = {
+      submit: true,
+      step: '{{steps["current"]}}',
+      box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+    };
+    postApi('{{current_path}}', {data: data}, function () {
+      pick('/task/pick/{{task_type}}');
     });
   });
 
