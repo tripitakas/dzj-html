@@ -26,7 +26,7 @@ class SaveCutApi(SubmitTaskApi):
             根据情况，do和update需要检查任务归属和数据锁，edit需要检查数据锁。
         """
         try:
-            # 检查参数及权限
+            # 检查参数
             data = self.get_request_data()
             rules = [(v.not_empty, 'step', 'boxes')]
             err = v.validate(data, rules)
@@ -38,6 +38,8 @@ class SaveCutApi(SubmitTaskApi):
             steps_todo = self.prop(page, 'tasks.%s.steps.todo' % task_type)
             if not data['step'] in steps_todo:
                 self.send_error_response(errors.task_step_error)
+
+            # 检查权限
             mode = (re.findall('(do|update|edit)/', self.request.path) or ['do'])[0]
             if not self.check_auth(mode, page, task_type):
                 self.send_error_response(errors.data_unauthorized)

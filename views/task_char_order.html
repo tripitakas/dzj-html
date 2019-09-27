@@ -50,7 +50,7 @@
             </a>
           </div>
           <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-          <div class="sub-title">{{sub_title}}</div>
+          <div class="sub-title">- {{sub_title}}</div>
           <div class="help">
             <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
           </div>
@@ -73,7 +73,7 @@
         </div>
         <div class="right">
           <div class="edit-btns">
-            <div class="more">
+            <div class="more hide">
               <div class="btn-group more-group hidden" role="group" aria-label="更多">
                 {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
                 <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_cut_proof/order/{{name}}{{'?layout=%d' % i}}">
@@ -228,15 +228,17 @@
 
   // 下一步
   $('.btn-next').on("click", function () {
-    var data = {
-      submit: true,
-      step: '{{steps["current"]}}',
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-    };
-    postApi('{{current_path}}', {data: data}, function () {
-      window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
-    });
+    if ('view' !== '{{mode}}') {
+      var data = {
+        submit: true,
+        step: '{{steps["current"]}}',
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
+      };
+      postApi('{{current_path}}', {data: data}, function () {
+      });
+    }
+    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
   });
 
   // 提交任务

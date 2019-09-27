@@ -56,14 +56,11 @@
         </div>
       </div><!--left-->
       <div class="right">
-        {% if readonly %}
-        <div class="tips">
+        <div class="tips {{'' if readonly else 'hide'}}">
           {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
         </div>
-        {% end %}
         <div class="edit-btns">
-          {% if box_type in ['column', 'char'] %}
-          <div class="more hide">
+          <div class="more {{'hide' if box_type in ['block', 'column', 'char'] else ''}}">
             <div class="btn-group more-group hidden" role="group" aria-label="更多">
               {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
               {% for type,text in more[box_type] %}
@@ -72,7 +69,6 @@
             </div>
             <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
           </div>
-          {% end %}
           <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps['is_first'] else ''}}" title="上一步"/>
           <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>

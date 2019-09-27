@@ -30,37 +30,39 @@ class CutHandler(TaskHandler):
             if not page:
                 return self.render('_404.html')
 
-            cur_step = self.get_query_argument('step', '')
+            current_step = self.get_query_argument('step', '')
             steps = self.prop(page, 'tasks.%s.steps' % task_type)
+            if not steps:   # 设置默认值，以便查看
+                steps = dict(todo=list(self.steps.keys()))
             mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
-            if not cur_step:
+            if not current_step:
                 if mode == 'do':
                     submitted = self.prop(page, 'tasks.%s.steps.submitted') or []
                     un_submitted = [s for s in steps['todo'] if s not in submitted]
                     if not un_submitted:
                         return self.send_error_response(errors.task_finished_not_allowed_do, render=True)
-                    cur_step = un_submitted[0]
+                    current_step = un_submitted[0]
                 else:
-                    cur_step = steps['todo'][0]
-            elif cur_step not in steps['todo']:
+                    current_step = steps['todo'][0]
+            elif current_step not in steps['todo']:
                 return self.send_error_response(errors.task_step_error, render=True)
 
-            index = steps['todo'].index(cur_step)
-            steps['current'] = cur_step
+            index = steps['todo'].index(current_step)
+            steps['current'] = current_step
             steps['is_first'] = index == 0
             steps['is_last'] = index == len(steps['todo']) - 1
             steps['prev'] = steps['todo'][index - 1] if index > 0 else None
             steps['next'] = steps['todo'][index + 1] if index < len(steps['todo']) - 1 else None
 
             readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
-            data_field = self.steps[cur_step]['field']
+            data_field = self.steps[current_step]['field']
             boxes = self.prop(page, data_field)
             box_type = data_field.split('.')[-1].rstrip('s')
-            sub_title = self.steps[cur_step]['name']
+            sub_title = self.steps[current_step]['name']
             layout = int(self.get_query_argument('layout', 0))
-            kwargs = self.char_render(page, layout, **{}) if cur_step == 'char_order' else {}
+            kwargs = self.char_render(page, layout, **{}) if current_step == 'char_order' else {}
             self.render(
-                self.steps[cur_step]['template'], page=page, task_type=task_type, readonly=readonly, mode=mode,
+                self.steps[current_step]['template'], page=page, task_type=task_type, readonly=readonly, mode=mode,
                 name=page['name'], box_version=1, boxes=boxes, box_type=box_type, sub_title=sub_title,
                 get_img=self.get_img, steps=steps, **kwargs
             )

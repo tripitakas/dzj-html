@@ -136,15 +136,16 @@
 
   // 下一步
   $('.btn-next').on("click", function () {
-    var data = {
-      submit: true,
-      step: '{{steps["current"]}}',
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-    };
-    postApi('{{current_path}}', {data: data}, function () {
-      window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
-    });
+    if ('view' !== '{{mode}}') {
+      var data = {
+        submit: true,
+        step: '{{steps["current"]}}',
+        box_type: '{{box_type}}',
+        boxes: JSON.stringify($.cut.exportBoxes())
+      };
+      postApi('{{current_path}}', {data: data}, function(){});
+    }
+    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
   });
 
   // 提交任务
