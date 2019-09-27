@@ -121,7 +121,6 @@ class RecognitionApi(BaseHandler):
             block = union_list(page['chars_pos'])
             block.update(dict(block_id='b1', no=1))
             page['blocks'] = [block]
-        if 'chars_pos' in page:
             page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
                                   cc=page['chars_cc'][i], txt=page['chars_text'][i])
                              for i, c in enumerate(page['chars_pos'])]

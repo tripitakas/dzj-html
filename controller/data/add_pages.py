@@ -133,6 +133,11 @@ def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
                 meta['ocr'] = '|'.join(info['ocr'])
             else:
                 meta['ocr'] = info['ocr'].replace('\n', '|')
+        if info.get('text'):
+            if isinstance(info['text'], list):
+                meta['text'] = '|'.join(info['text'])
+            else:
+                meta['text'] = info['text'].replace('\n', '|')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
