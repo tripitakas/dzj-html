@@ -213,6 +213,8 @@ class APITestCase(AsyncHTTPTestCase):
         data['force'] = data.get('force', '0')
         if 'cut' in data.get('task_type', ''):
             data['sub_steps'] = data.get('sub_steps', ['char_box', 'block_box', 'column_box', 'char_order'])
+        if 'text_proof' in data.get('task_type', ''):
+            data['sub_steps'] = data.get('sub_steps', ['select_compare_text', 'proof'])
         return self.fetch('/api/task/publish', body={'data': data})
 
     def set_task_status(self, task_type_status_maps, page_names=None):
