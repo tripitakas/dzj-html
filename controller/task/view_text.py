@@ -203,7 +203,7 @@ class TextReviewHandler(TextBaseHandler):
                 return self.render('_404.html')
 
             task_type = 'text_review'
-            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = not self.check_auth(mode, page, task_type)
             doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
             proof_doubt = ''

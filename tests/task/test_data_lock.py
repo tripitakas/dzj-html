@@ -3,6 +3,7 @@
 
 import tests.users as u
 from tests.testcase import APITestCase
+from tornado.escape import json_encode
 from controller.task.base import TaskHandler as Th
 
 
@@ -28,16 +29,17 @@ class TestDataLock(APITestCase):
     def test_data_lock(self):
         """ 测试切分校对数据锁机制 """
         for task_type in [
-            # 'block_cut_proof', 'block_cut_review',
-            # 'column_cut_proof', 'column_cut_review',
-            # 'char_cut_proof', 'char_cut_review',
+            'cut_proof', 'cut_review',
             'text_review', 'text_hard',
         ]:
             # 发布任务，前置任务为空
             self.login_as_admin()
             self.revert()
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
-            self.assert_code(200, self.publish(dict(task_type=task_type, pre_tasks=[], pages=','.join(page_names))))
+            data = dict(task_type=task_type, pre_tasks=[], pages=','.join(page_names))
+            if 'cut' in task_type:
+                data['sub_steps'] = ['char_box']
+            self.assert_code(200, self.publish(data))
 
             # 测试领取任务时，系统自动分配长时数据锁
             self.login(u.expert1[0], u.expert1[1])
@@ -47,28 +49,24 @@ class TestDataLock(APITestCase):
             lock = self.get_data_lock(name1, task_type)
             self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
 
-            # 测试保存任务时，数据锁不变
-            r = self.fetch('/api/task/do/%s/%s' % (task_type, name1), body={'data': {}})
-            self.assert_code(200, r, msg=task_type)
-            lock = self.get_data_lock(name1, task_type)
-            self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
-
             # 测试其它人无法获得数据锁
+            edit_type = 'cut_edit' if 'cut' in task_type else 'text_edit'
             self.login(u.expert2[0], u.expert2[1])
-            data_field = Th.get_shared_data_field(task_type)
-            self.fetch('/data/edit/%s/%s' % (data_field, name1))
-            lock = self.get_data_lock(name1, task_type)
+            self.fetch('/data/%s/%s' % (edit_type, name1))
+            lock = self.get_data_lock(name1, edit_type)
             self.assertNotEqual(lock.get('locked_by'), u.expert2[2])
 
             # 测试提交任务后，释放长时数据锁
             self.login(u.expert1[0], u.expert1[1])
-            self.assert_code(200, self.fetch('/api/task/do/%s/%s' % (task_type, name1),
-                                             body={'data': {'submit': True}}))
+            page = self._app.db.page.find_one({'name': name1})
+            data = {'step': 'char_box', 'submit': True, 'box_type': 'char', 'boxes': json_encode(page['chars'])}
+            r = self.fetch('/api/task/do/%s/%s' % (task_type, name1), body={'data': data})
+            self.assert_code(200, r, msg=task_type)
             lock = self.get_data_lock(name1, task_type)
             self.assertEqual(lock, {})
 
             # 测试用户update时，获取临时数据锁
-            self.assert_code(200, self.fetch('/task/update/%s/%s' % (task_type, name1)))
+            self.assert_code(200, self.fetch('/task/update/%s/%s' % (task_type, name1)), msg=task_type)
             lock = self.get_data_lock(name1, task_type)
             self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], True])
 
@@ -80,14 +78,14 @@ class TestDataLock(APITestCase):
 
             # 测试专家edit时，获取临时数据锁
             self.login(u.expert2[0], u.expert2[1])
-            r = self.fetch('/data/edit/%s/%s' % (data_field, name1))
+            r = self.fetch('/data/%s/%s' % (edit_type, name1))
             self.assert_code(200, r)
             lock = self.get_data_lock(name1, task_type)
-            self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert2[2], True])
+            self.assertEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert2[2], True], msg=task_type)
 
             # 测试数据锁未释放时，其它人不能获取数据锁
             self.login(u.expert1[0], u.expert1[1])
-            self.fetch('/data/edit/%s/%s' % (data_field, name1))
+            self.fetch('/data/%s/%s' % (edit_type, name1))
             lock = self.get_data_lock(name1, task_type)
             self.assertNotEqual(lock.get('locked_by'), u.expert1[2])
 

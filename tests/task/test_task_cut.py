@@ -93,8 +93,7 @@ class TestTaskFlow(APITestCase):
                 step = steps[-1]
                 page = self._app.db.page.find_one({'name': page_name})
                 box_type = step.split('_')[0]
-                data = {'step': step, 'submit': True, 'box_type': box_type, 'boxes': json_encode(page[box_type + 's']),
-                        'submit': True}
+                data = {'step': step, 'submit': True, 'box_type': box_type, 'boxes': json_encode(page[box_type + 's'])}
                 r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
                 self.assert_code(200, r, msg=task_type)
                 self.assertTrue(self.parse_response(r).get('submitted'))
