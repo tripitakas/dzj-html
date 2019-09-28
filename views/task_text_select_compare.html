@@ -106,13 +106,12 @@
           <div class="edit-btns">
             <img src="{{ static_url('imgs/icon_select.png') }}" class="btn-img btn-select" title="选中"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-ocr" title="OCR文本"/>
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% end %}
-            {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-next" title="提交"/>
-            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
-            {% end %}
+
+            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps['is_last'] else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps['is_last'] and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+
           </div>
         </div>
       </header>
@@ -236,7 +235,7 @@
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_proof/get_cmp/{{page["name"]}}', {data: {}}, function (data) {
+    postApi('/task/text_proof/get_compare/{{page["name"]}}', {data: {}}, function (data) {
       $('#cmp').html(data.cmp);
       var count = data.hit_page_codes.length;
       var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
@@ -251,7 +250,7 @@
   // 第几个比对本
   $(document).on('click', '#pagination a', function () {
     var obj = $(this);
-    postApi('/task/text_proof/get_cmp/{{page["name"]}}', {
+    postApi('/task/text_proof/get_compare/{{page["name"]}}', {
       data: {num: obj.text()}
     }, function (data) {
       $('#cmp').html(data.cmp);
@@ -269,7 +268,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'prev'
     };
-    postApi('/task/text_proof/get_cmp_neighbor', {
+    postApi('/task/text_proof/get_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html(res.txt + $('#cmp').html());
@@ -283,7 +282,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'next'
     };
-    postApi('/task/text_proof/get_cmp_neighbor', {
+    postApi('/task/text_proof/get_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html($('#cmp').html() + res.txt);
@@ -322,23 +321,20 @@
 <script>
   // 获取数据
   function getData(submit) {
-    var data = {
-      submit_step: submit,
+    return {
+      submit: submit,
       name: '{{page["name"]}}',
-      cmp: $('#selected').val(),
+      step: 'select_compare_text',
+      cmp: $('#selected').val()
     };
-    console.log(data);
-    return data;
   }
 
   // 保存任务
   $('.btn-save').on("click", function () {
-    if ($('#selected').val().trim() == '') {
+    if ($('#selected').val().trim() === '') {
       return showError('请选择文本', '尚未选择文本');
     }
-    postApi('/task/do/{{task_type}}/find_cmp/{{page["name"]}}', {
-      data: getData(false)
-    }, function () {
+    postApi('{{current_path}}', {data: getData(false)}, function () {
       showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
       setTimeout(function () {
         window.location.reload();
@@ -346,17 +342,16 @@
     });
   });
 
-  // 提交任务
+  // 下一步
   $('.btn-next').on("click", function () {
-    if ($('#selected').val().trim() == '') {
-      return showError('请选择文本', '尚未选择文本');
+    if ('view' !== '{{mode}}') {
+      if ($('#selected').val().trim() === '') {
+        return showError('请选择文本', '尚未选择文本');
+      }
+      postApi('{{current_path}}', {data: getData(true)}, function () {
+      });
     }
-    postApi('/task/do/{{task_type}}/find_cmp/{{page["name"]}}', {
-      data: getData(true)
-    }, function () {
-      // 跳转文字校对
-      window.location = '/task/do/{{task_type}}/{{page["name"]}}';
-    });
+    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
   });
 
   // 退回任务（注意，这里是退回整个文字校对任务）

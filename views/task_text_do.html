@@ -76,9 +76,7 @@
         <div class="more">
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
           <span class="btn-group more-group hidden" role="group" aria-label="更多">
-            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
-            {% end %}
+            <button type="button" class="btn btn-default btn-sm ed-box">切分框</button>
             {% if 'review' in task_type or 'hard' in task_type %}
             {% for i, s in enumerate(['校一', '校二', '校三']) %}
             {% if txts['cmp%d' % (i + 1)] %}
@@ -104,20 +102,13 @@
             <img src="{{ static_url('imgs/char_icon2.png') }}" class="btn-img btn-delete-line" title="删除该行"/>
             <img src="{{ static_url('imgs/char_icon3.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
             <img src="{{ static_url('imgs/char_icon4.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
-            {% if 'hard' not in task_type %}
-            <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt" title="存疑"/>
-            {% end %}
-            {% if 'review' in task_type or 'hard' in task_type %}
-            <img src="{{ static_url('imgs/icon_check.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
-            {% end %}
-            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text" title="原文"/>
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% if mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
-            {% end %}
-            {% end %}
+            <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt {{'hide' if 'hard' in task_type else ''}}" title="存疑"/>
+            <img src="{{ static_url('imgs/icon_check.png') }}" class="btn-img btn-check {{'' if 'review' in task_type or 'hard' in task_type else 'hide'}}" title="图文匹配检查"/>
+            <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
+            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
           </div>
         </div>
       </header>
@@ -361,24 +352,9 @@
     $('.more-group').toggleClass('hidden');
   });
 
-  // 修改栏框
-  $('.ed-block-box').click(function () {
-    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{page["name"]}}';
-  });
-
-  // 修改列框
-  $('.ed-column-box').click(function () {
-    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{page["name"]}}';
-  });
-
-  // 修改字框
-  $('.ed-char-box').click(function () {
-    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{page["name"]}}';
-  });
-
-  // 修改字序
-  $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
+  // 修改切分框
+  $('.ed-box').click(function () {
+    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}';
   });
 
   // 查看校一
@@ -482,26 +458,29 @@
 </script>
 
 <script>
+  // 上一步
+  $('.btn-prev').on("click", function () {
+    window.location = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
+  });
+
   // 获取任务数据
   function getData(submit) {
     var txtHtml = $('#sutra-text').html();
     var data = {
       submit: submit,
+      step: 'proof',
       name: '{{page["name"]}}',
       txt_html: JSON.stringify(txtHtml)
     };
-    if ('text_hard' != '{{task_type}}') {
+    if ('text_hard' !== '{{task_type}}') {
       data.doubt = $('#doubt-table-editable tbody').html();
     }
-    console.log(data);
     return data;
   }
 
   // 保存任务
   $('.btn-save').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(false)
-    }, function () {
+    postApi('{{current_path}}', {data: getData(false)}, function () {
       showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
       setTimeout(function () {
         window.location.reload();
@@ -511,10 +490,11 @@
 
   // 提交任务
   $('.btn-submit').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(true)
-    }, function () {
-      pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
+    postApi('{{current_path}}', {data: getData(true)}, function () {
+      showSuccess('成功', '任务已提交。');
+      setTimeout(function () {
+        pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
+      }, 500);
     });
   });
 

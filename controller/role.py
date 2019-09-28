@@ -110,6 +110,7 @@ role_maps = {
             '/api/task/(do|update|return|unlock)/text_proof_@num/@page_name': ['POST'],
             '/data/cut_edit/@page_name': ['GET'],
             '/api/data/cut_edit/@page_name': ['POST'],
+            '/api/data/unlock/cut_edit/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -122,6 +123,7 @@ role_maps = {
             '/api/task/(do|update|return|unlock)/text_review/@page_name': ['POST'],
             '/data/cut_edit/@page_name': ['GET'],
             '/api/data/cut_edit/@page_name': ['POST'],
+            '/api/data/unlock/cut_edit/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -132,8 +134,9 @@ role_maps = {
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@page_name': ['GET'],
             '/api/task/(do|update|return|unlock)/text_hard/@page_name': ['POST'],
-            '/data/edit/text/@page_name': ['GET'],
-            '/api/data/edit/text/@page_name': ['POST'],
+            '/data/text_edit/@page_name': ['GET'],
+            '/api/data/text_edit/@page_name': ['POST'],
+            '/api/data/unlock/text_edit/@page_name': ['POST'],
         }
     },
     '任务管理员': {

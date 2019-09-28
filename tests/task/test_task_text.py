@@ -38,18 +38,18 @@ class TestText(APITestCase):
             self.assert_code(200, r)
 
             # 第一步：选择比对文本
-            r = self.fetch('/task/do/%s/find_cmp/%s?_raw=1' % (task_type, name1))
+            r = self.fetch('/task/do/%s/%s?step=select_compare_text&_raw=1' % (task_type, name1))
             self.assert_code(200, r)
 
             # 测试获取比对本
             r = self.parse_response(
-                self.fetch('/api/task/text_proof/get_cmp/%s' % name1, body={'data': {'num': 1}}))
+                self.fetch('/api/task/text_proof/get_compare/%s' % name1, body={'data': {'num': 1}}))
             self.assertTrue(r.get('cmp'))
             self.assertTrue(r.get('hit_page_codes'))
 
             # 提交第一步
             r = self.fetch(
-                '/api/task/do/%s/find_cmp/%s?_raw=1' % (task_type, name1),
+                '/api/task/do/%s/select_compare/%s?_raw=1' % (task_type, name1),
                 body={'data': dict(submit_step=True, cmp=r.get('cmp'))}
             )
             self.assertTrue(self.parse_response(r).get('submitted'))
@@ -57,7 +57,7 @@ class TestText(APITestCase):
             self.assertIsNotNone(page['tasks'][task_type]['submitted_steps'])
 
             # 第二步：文字校对
-            r = self.fetch('/task/do/%s/%s?_raw=1' % (task_type, name1))
+            r = self.fetch('/task/do/%s/%s?step=proof&_raw=1' % (task_type, name1))
             self.assert_code(200, r)
 
             # 提交第二步
@@ -174,25 +174,25 @@ class TestText(APITestCase):
         r = self.fetch('/api/task/pick/text_proof_2', body={'data': {'page_name': name2}})
         self.assert_code(errors.task_text_proof_duplicated, r)
 
-    def test_api_get_cmp(self):
+    def test_api_get_compare(self):
         """ 测试选择比对文本 """
 
         # 测试获取比对本
         page_name = 'JX_165_7_75'
         self.login(u.expert1[0], u.expert1[1])
-        r = self.parse_response(self.fetch('/api/task/text_proof/get_cmp/%s' % page_name, body={'data': {'num': 1}}))
+        r = self.parse_response(self.fetch('/api/task/text_proof/get_compare/%s' % page_name, body={'data': {'num': 1}}))
         self.assertTrue(r.get('cmp'))
         self.assertTrue(r.get('hit_page_codes'))
         hit_page_codes = r.get('hit_page_codes')
 
         # 测试获取上一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'prev'}}
-        r = self.parse_response(self.fetch('/api/task/text_proof/get_cmp_neighbor', body=data))
+        r = self.parse_response(self.fetch('/api/task/text_proof/get_compare_neighbor', body=data))
         self.assertTrue(r.get('txt'))
 
         # 测试获取下一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'next'}}
-        r = self.parse_response(self.fetch('/api/task/text_proof/get_cmp_neighbor', body=data))
+        r = self.parse_response(self.fetch('/api/task/text_proof/get_compare_neighbor', body=data))
         self.assertTrue(r.get('txt'))
 
     def test_lobby_order(self):
