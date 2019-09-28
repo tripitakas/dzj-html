@@ -28,6 +28,24 @@
     .pre-tasks .checkbox-inline:nth-of-type(1) {
       margin-right: 10px;
     }
+
+    .siblings {
+      text-align: left;
+      margin-bottom: 10px;
+    }
+
+    .siblings ul li {
+      border-bottom: 0;
+    }
+
+    .siblings ul li:last-child {
+       padding: 0;
+    }
+
+    .siblings hr {
+      margin: 0;
+      border-top: 1px solid #d3dae7;
+    }
   </style>
 
 </head>
@@ -44,6 +62,14 @@
             <div class="collate-history">
               <div class="wrapper">
                 <div class="collate-list">
+                  <div class="siblings pagers {{'' if 'text' in task_type else 'hide'}}">
+                    <ul>
+                      <li class="{{'active' if task_type == 'text_proof_1' else ''}}"><a href="/task/admin/text_proof_1">文字校一</a></li>
+                      <li class="{{'active' if task_type == 'text_proof_2' else ''}}"><a href="/task/admin/text_proof_2">文字校二</a></li>
+                      <li class="{{'active' if task_type == 'text_proof_3' else ''}}"><a href="/task/admin/text_proof_3">文字校三</a></li>
+                    </ul>
+                    <hr/>
+                  </div>
                   <div class="operation bat-upload {{'hide' if 'text_hard' in task_type else ''}}">
                     <div class="btn-group dropdown">
                       <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
