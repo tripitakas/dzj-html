@@ -62,8 +62,7 @@
         <div class="edit-btns">
           <div class="more {{'hide' if box_type in ['block', 'column', 'char'] else ''}}">
             <div class="btn-group more-group hidden" role="group" aria-label="更多">
-              {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
-              {% for type,text in more[box_type] %}
+              {% for type, text in [('block', '栏框'), ('column', '列框'), ('order', '字序')] %}
               <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
               {% end %}
             </div>

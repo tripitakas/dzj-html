@@ -23,7 +23,7 @@ base_fields = {
 }
 
 task_types = [
-    'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof',
+    'cut_proof', 'cut_review',
     'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
 ]
 

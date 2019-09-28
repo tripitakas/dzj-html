@@ -37,7 +37,8 @@ class TaskAdminHandler(TaskHandler):
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
-                        default_pre_tasks=self.default_pre_tasks, default_task_steps=self.default_task_steps)
+                        default_pre_tasks=self.default_pre_tasks.get(task_type, {}),
+                        default_task_steps=self.default_task_steps.get(task_type, {}))
         except Exception as e:
             return self.send_db_error(e, render=True)
 

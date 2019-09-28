@@ -8,11 +8,11 @@
 </div>
 <br/>
 
-{% if default_task_steps.get(task_type) %}
+{% if default_task_steps %}
 <div class="sub-steps">
   <h4 class="control-label">选择子步骤</h4>
   <div>
-    {% for k, v in default_task_steps.get(task_type).items() %}
+    {% for k, v in default_task_steps.items() %}
     <label class="checkbox-inline">
       <input type="checkbox" title="{{k}}" checked>{{v.get('name')}}
     </label>
@@ -28,10 +28,17 @@
     {% for t, v in Th.task_types.items() %}
     {% if t != task_type %}
     <label class="checkbox-inline">
-      <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks.get(task_type,{}) else ''}}>{{v}}
+      <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks else ''}}>{{v}}
     </label>
     {% end %}
     {% end %}
   </div>
+</div>
+<br/>
+
+<div class="force">
+  <h4 class="control-label">任务已发布时，如何处理？</h4>
+  <input type="radio" name="force" value="0" style="margin-right: 10px">跳过
+  <input type="radio" name="force" value="1" style="margin: 0 10px">重新发布<br>
 </div>
 <br/>

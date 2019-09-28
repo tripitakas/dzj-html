@@ -52,6 +52,7 @@ def i18n_trans(key):
         'reel_code': '卷编码',
         'step': '步骤',
         'boxes': '框',
+        'force': '已发布时如何处理'
     }
     return maps[key] if key in maps else key
 

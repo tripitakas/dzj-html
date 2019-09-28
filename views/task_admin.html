@@ -69,7 +69,9 @@
                       <th><span>页编码</span></th>
                       <th><span>
 											    <div class="btn-group">
-												    <span class="sort" data-toggle="dropdown" aria-expanded="false">状态<span class="ion-android-sort "></span></span>
+												    <span class="sort" data-toggle="dropdown" aria-expanded="false">
+                              状态<span class="ion-android-sort "></span>
+                            </span>
                             <ul class="dropdown-menu" role="menu">
                             {% for k, v in Th.status_names.items() %}
                               <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
@@ -77,12 +79,13 @@
 													</ul>
 												</div>
                       </span></th>
-                      <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">优先级
-                        <span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
+                      <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
+                        优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
                       </span></th>
+                      <th><span>步骤</span></th>
                       <th><span>前置任务</span></th>
-                      <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">发布时间
-                        <span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
+                      <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
+                        发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                       </span></th>
                       <th><span>更新时间</span></th>
                       <th><span>领取人</span></th>
@@ -98,6 +101,10 @@
                       <td>{{t['name']}}</td>
                       <td>{{Th.status_names.get(Th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
                       <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                      <td>
+                        {% set sub_steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
+                        {{'/'.join([Th.prop(default_task_steps,'%s.name' % s) for s in sub_steps])}}
+                      </td>
                       <td>
                         {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
                         {{'/'.join([Th.task_types.get(p) for p in pre_tasks])}}
@@ -348,6 +355,9 @@
     if (selectedPages.length < 1) {
       return showError('未选择页面', '请选择要发布的页面。');
     }
+    if (!$('.force input:radio:checked').val()) {
+      return showError('请选择已发布时如何处理');
+    }
     var pre_tasks = [];
     $("#selectModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
@@ -360,6 +370,7 @@
     });
     var data = {
       task_type: '{{task_type}}',
+      force: $('.force input:radio:checked').val(),
       pre_tasks: pre_tasks,
       sub_steps: sub_steps,
       priority: $choosePagesModal.find('.priority-list select').val(),
@@ -391,6 +402,9 @@
     if (namesFile.size > (10 * 1024 * 1024)) {
       return showError('文件大小不能超过10M');
     }
+    if (!$('.force input:radio:checked').val()) {
+      return showError('请选择已发布时如何处理');
+    }
     var pre_tasks = [];
     $("#fileModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
@@ -403,6 +417,7 @@
     });
     var formData = new FormData();
     formData.append('task_type', '{{task_type}}');
+    formData.append('force', $('.force input:radio:checked').val());
     formData.append('pre_tasks', pre_tasks.join(','));
     formData.append('sub_steps', sub_steps.join(','));
     formData.append('priority', $('#fileModal').find('.priority-list select').val());
@@ -436,6 +451,9 @@
     if (!page_prefix) {
       return showError('请输入页码前缀');
     }
+    if (!$('.force input:radio:checked').val()) {
+      return showError('请选择已发布时如何处理');
+    }
     var pre_tasks = [];
     $("#prefixModal .pre-tasks :checkbox").each(function () {
       if ($(this).is(':checked'))
@@ -448,6 +466,7 @@
     });
     var data = {
       task_type: '{{task_type}}',
+      force: $('.force input:radio:checked').val(),
       pre_tasks: pre_tasks,
       sub_steps: sub_steps,
       priority: $prefixModal.find('.priority-list select').val()
