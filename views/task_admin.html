@@ -36,6 +36,7 @@
 
     .siblings ul li {
       border-bottom: 0;
+      border-color: #ccc;
     }
 
     .siblings ul li:last-child {
@@ -44,7 +45,7 @@
 
     .siblings hr {
       margin: 0;
-      border-top: 1px solid #d3dae7;
+      border-top: 1px solid #ccc;
     }
   </style>
 
@@ -62,7 +63,7 @@
             <div class="collate-history">
               <div class="wrapper">
                 <div class="collate-list">
-                  <div class="siblings pagers {{'' if 'text' in task_type else 'hide'}}">
+                  <div class="siblings pagers {{'' if 'text_proof' in task_type else 'hide'}}">
                     <ul>
                       <li class="{{'active' if task_type == 'text_proof_1' else ''}}"><a href="/task/admin/text_proof_1">文字校一</a></li>
                       <li class="{{'active' if task_type == 'text_proof_2' else ''}}"><a href="/task/admin/text_proof_2">文字校二</a></li>
