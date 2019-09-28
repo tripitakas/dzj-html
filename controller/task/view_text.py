@@ -46,7 +46,7 @@ class TextBaseHandler(TaskHandler):
             labels = dict(base='OCR', cmp='比对本')
         else:
             labels = dict(base='校一', cmp1='校二')
-            if len(self.prop(page, 'tasks.text_review.pre_tasks')) > 2:
+            if len(self.prop(page, 'tasks.text_review.pre_tasks') or []) > 2:
                 labels['cmp2'] = '校三'
         return labels
 
@@ -163,7 +163,7 @@ class TextProofHandler(TextBaseHandler):
             doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
-            CutBaseHandler.char_render(page, layout, **params)
+            CutHandler.char_render(page, layout, **params)
             cmp_data = page.get(self.save_fields[task_type])
             if not cmp_data:
                 segments = self.get_segments(page, task_type)
@@ -202,7 +202,7 @@ class TextReviewHandler(TextBaseHandler):
 
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
-            CutBaseHandler.char_render(page, layout, **params)
+            CutHandler.char_render(page, layout, **params)
             cmp_data = page.get(self.save_fields[task_type])
             if not cmp_data:
                 segments = self.get_segments(page, task_type)
@@ -238,7 +238,7 @@ class TextHardHandler(TextBaseHandler):
             doubt = self.prop(page, 'tasks.text_review.doubt')
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
-            CutBaseHandler.char_render(page, layout, **params)
+            CutHandler.char_render(page, layout, **params)
             cmp_data = page.get(self.save_fields[task_type])
 
             self.render(

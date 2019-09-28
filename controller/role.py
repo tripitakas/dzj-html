@@ -139,7 +139,7 @@ role_maps = {
         'routes': {
             '/task/info/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
-            '/task/admin/(cut|text)/status': ['GET'],
+            '/task/admin/task_status': ['GET'],
             '/api/task/ready_pages/@task_type': ['POST'],
             '/api/task/publish': ['POST'],
             '/api/task/publish/@page_prefix': ['POST'],
