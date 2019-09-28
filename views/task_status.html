@@ -108,9 +108,17 @@
 </div>
 
 {% include _base_js.html %}
-{% include task_selection_.html %}
+
 <script type="text/javascript">
-  <!--搜索-->
+  $('#checkbox-all').click(function() {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked) {
+      $items.removeAttr('checked');
+    } else {
+      $items.prop('checked', 'true');
+    }
+  });
+
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {

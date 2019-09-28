@@ -185,7 +185,7 @@
   window.leave = function () {
     // 当前页面模式，包括view/do/update/edit等
     if ('{{mode}}' === 'edit') {
-      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function () {
+      postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
         window.history.back();
       });
     } else if ('{{mode}}' === 'view') {

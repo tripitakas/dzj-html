@@ -49,7 +49,7 @@
               <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
             </a>
           </div>
-          <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
+          <div class="title" title="{{page['name']}}">切分校对</div>
           <div class="sub-title">- {{sub_title}}</div>
           <div class="help">
             <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
@@ -278,7 +278,7 @@
   window.leave = function () {
     // 当前页面模式，包括view/do/update/edit等
     if ('{{mode}}' === 'edit') {
-      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function () {
+      postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
         window.history.back();
       });
     } else if ('{{mode}}' === 'view') {

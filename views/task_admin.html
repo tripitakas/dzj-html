@@ -126,7 +126,7 @@
                       <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                       <td>
                         {% set sub_steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
-                        {{'/'.join([Th.prop(default_task_steps,'%s.name' % s) for s in sub_steps])}}
+                        {{'/'.join([Th.prop(default_steps, s) for s in sub_steps])}}
                       </td>
                       <td>
                         {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
@@ -171,7 +171,7 @@
           <h4 class="modal-title">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          {% include task_admin_detail.html %}
+          {% include task_admin_modal.html %}
           <div class="force">
             <h4 class="control-label">任务已发布时，如何处理？</h4>
             <input type="radio" name="prefix-force" value="0" style="margin-right: 10px" checked>跳过
@@ -200,7 +200,7 @@
           <h4 class="modal-title" id="upload-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          {% include task_admin_detail.html %}
+          {% include task_admin_modal.html %}
           <div class="force">
             <h4 class="control-label">任务已发布时，如何处理？</h4>
             <input type="radio" name="file-force" value="0" style="margin-right: 10px" checked>跳过
@@ -229,7 +229,7 @@
           <h4 class="modal-title" id="choose-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
         </div>
         <div class="modal-body">
-          {% include task_admin_detail.html %}
+          {% include task_admin_modal.html %}
           <div class="force">
             <h4 class="control-label">任务已发布时，如何处理？</h4>
             <input type="radio" name="select-force" value="0" style="margin-right: 10px" checked>跳过
@@ -266,11 +266,97 @@
   </div>
 </div>
 
-
 {% include _base_js.html %}
-{% include task_selection_.html %}
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
 <script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
+
+<script>
+  // 全选
+  $('#checkbox-all').click(function() {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked) {
+      $items.removeAttr('checked');
+    } else {
+      $items.prop('checked', 'true');
+    }
+  });
+
+  // 获取URL参数
+  function getUrlParam(name) {
+    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    return r != null ? unescape(r[2]) : null;
+  }
+
+  // 按优先级排序
+  $("#priority.sort").click(function () {
+    var order = getUrlParam('order');
+    if (order && order == '-priority')
+      order = 'priority';
+    else
+      order = '-priority';
+    window.location = "{{current_path}}?order=" + order;
+  });
+
+  // 按发布时间排序
+  $("#publish_time.sort").click(function () {
+    var order = getUrlParam('order');
+    if (order && order == '-publish_time')
+      order = 'publish_time';
+    else
+      order = '-publish_time';
+    window.location = "{{current_path}}?order=" + order;
+  });
+
+  // 搜索
+  $('#search-name').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode == "13") {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
+      window.location = url;
+    }
+  });
+
+  // 撤回任务
+  function withdraw(task_type, name) {
+    var info = {
+      title: "确定撤回吗？",
+      text: "任务" + name + "\n将被撤回！",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定撤回",
+      cancelButtonText: "取消",
+      closeOnConfirm: true
+    };
+    swal(info, function () {
+      postApi('/task/withdraw/' + task_type + '/' + name, {'data': {}}, function (res) {
+        window.location.reload();
+      });
+    });
+  }
+
+  // 重置任务
+  function reset(task_type, name) {
+    var info = {
+      title: "确定重置吗？",
+      text: "任务" + name + "\n将被重置为未就绪！",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定重置",
+      cancelButtonText: "取消",
+      closeOnConfirm: true
+    };
+    swal(info, function () {
+      postApi('/task/reset/' + task_type + '/' + name, {'data': {}}, function (res) {
+        window.location.reload();
+      });
+    });
+  }
+
+</script>
 
 <script>
   var pages = [];
@@ -517,83 +603,6 @@
 
 </script>
 
-<script>
-  // 任务管理
-  function getUrlParam(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    return r != null ? unescape(r[2]) : null;
-  }
-
-  // 按优先级排序
-  $("#priority.sort").click(function () {
-    var order = getUrlParam('order');
-    if (order && order == '-priority')
-      order = 'priority';
-    else
-      order = '-priority';
-    window.location = "{{current_path}}?order=" + order;
-  });
-
-  // 按发布时间排序
-  $("#publish_time.sort").click(function () {
-    var order = getUrlParam('order');
-    if (order && order == '-publish_time')
-      order = 'publish_time';
-    else
-      order = '-publish_time';
-    window.location = "{{current_path}}?order=" + order;
-  });
-
-  // 搜索
-  $('#search-name').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
-      var q = $(this).val().trim();
-      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
-      window.location = url;
-    }
-  });
-
-  // 撤回任务
-  function withdraw(task_type, name) {
-    var info = {
-      title: "确定撤回吗？",
-      text: "任务" + name + "\n将被撤回！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定撤回",
-      cancelButtonText: "取消",
-      closeOnConfirm: true
-    };
-    swal(info, function () {
-      postApi('/task/withdraw/' + task_type + '/' + name, {'data': {}}, function (res) {
-        window.location.reload();
-      });
-    });
-  }
-
-  // 重置任务
-  function reset(task_type, name) {
-    var info = {
-      title: "确定重置吗？",
-      text: "任务" + name + "\n将被重置为未就绪！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定重置",
-      cancelButtonText: "取消",
-      closeOnConfirm: true
-    };
-    swal(info, function () {
-      postApi('/task/reset/' + task_type + '/' + name, {'data': {}}, function (res) {
-        window.location.reload();
-      });
-    });
-  }
-
-</script>
 
 </body>
 </html>

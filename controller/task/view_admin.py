@@ -7,6 +7,7 @@
 from datetime import datetime
 from controller.task.base import TaskHandler
 from controller.task.view_cut import CutHandler
+from controller.task.view_text import TextProofHandler
 
 
 class TaskAdminHandler(TaskHandler):
@@ -19,9 +20,12 @@ class TaskAdminHandler(TaskHandler):
     }
 
     # 默认任务步骤
-    default_task_steps = {
-        'cut_proof': CutHandler.steps,
-        'cut_review': CutHandler.steps,
+    default_steps = {
+        'cut_proof': CutHandler.default_steps,
+        'cut_review': CutHandler.default_steps,
+        'text_proof_1': TextProofHandler.default_steps,
+        'text_proof_2': TextProofHandler.default_steps,
+        'text_proof_3': TextProofHandler.default_steps,
     }
 
     def get(self, task_type):
@@ -38,7 +42,7 @@ class TaskAdminHandler(TaskHandler):
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
                         default_pre_tasks=self.default_pre_tasks.get(task_type, {}),
-                        default_task_steps=self.default_task_steps.get(task_type, {}))
+                        default_steps=self.default_steps.get(task_type, {}))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
@@ -85,7 +89,7 @@ class TaskInfoHandler(TaskHandler):
             return value
 
         step_names = dict()
-        for steps in TaskAdminHandler.default_task_steps.values():
+        for steps in TaskAdminHandler.default_steps.values():
             step_names.update({k: v.get('name', '') for k, v in steps.items()})
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fields())

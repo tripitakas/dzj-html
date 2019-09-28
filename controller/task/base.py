@@ -76,6 +76,7 @@ class TaskHandler(BaseHandler):
         'cut_edit': 'chars',
         'text_review': 'text',
         'text_hard': 'text',
+        'text_edit': 'text',
     }
 
     # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。

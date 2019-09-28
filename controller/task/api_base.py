@@ -168,7 +168,8 @@ class SubmitTaskApi(TaskHandler):
 
 
 class UnlockTaskDataApi(TaskHandler):
-    URL = '/api/task/unlock/@task_type/@page_name'
+    URL = ['/api/task/unlock/@task_type/@page_name',
+           '/api/data/unlock/@edit_type/@page_name']
 
     def post(self, task_type, page_name):
         """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""

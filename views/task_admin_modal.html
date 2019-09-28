@@ -22,13 +22,13 @@
 </div>
 <br/>
 
-{% if default_task_steps %}
+{% if default_steps %}
 <div class="sub-steps">
   <h4 class="control-label">选择子步骤</h4>
   <div>
-    {% for k, v in default_task_steps.items() %}
+    {% for k, v in default_steps.items() %}
     <label class="checkbox-inline">
-      <input type="checkbox" title="{{k}}" checked>{{v.get('name')}}
+      <input type="checkbox" title="{{k}}" checked>{{v}}
     </label>
     {% end %}
   </div>
