@@ -189,10 +189,8 @@ class APITestCase(AsyncHTTPTestCase):
 
     def revert(self, status=TH.STATUS_READY):
         """ 还原所有任务的状态 """
-        task_types = [
-            'block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review', 'char_cut_proof',
-            'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
-        ]
+        task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
+                      'text_review', 'text_hard']
         pages = self._app.db.page.find()
         for page in pages:
             update = dict(tasks={}, lock={})
@@ -201,12 +199,7 @@ class APITestCase(AsyncHTTPTestCase):
             self._app.db.page.update_one({'name': page['name']}, {'$set': update})
 
     pre_tasks = {
-        'block_cut_proof': '',
-        'block_cut_review': 'block_cut_proof',
-        'column_cut_proof': '',
-        'column_cut_review': 'column_cut_proof',
-        'char_cut_proof': '',
-        'char_cut_review': 'char_cut_proof',
+        'cut_review': 'cut_proof',
         'text_proof_1': '',
         'text_proof_2': '',
         'text_proof_3': '',
@@ -217,6 +210,9 @@ class APITestCase(AsyncHTTPTestCase):
     def publish(self, data):
         if 'task_type' in data and 'pre_tasks' not in data:
             data['pre_tasks'] = self.pre_tasks.get(data['task_type'])
+        data['force'] = data.get('force', '0')
+        if 'cut' in data.get('task_type', ''):
+            data['sub_steps'] = data.get('sub_steps', ['char_box', 'block_box', 'column_box', 'char_order'])
         return self.fetch('/api/task/publish', body={'data': data})
 
     def set_task_status(self, task_type_status_maps, page_names=None):

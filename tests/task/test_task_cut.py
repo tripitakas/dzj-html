@@ -23,16 +23,14 @@ class TestTaskFlow(APITestCase):
 
     def test_cut_flow(self):
         """ 测试任务流程 """
-        for task_type in [
-            'block_cut_proof', 'block_cut_review',
-            'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review',
-        ]:
+        steps = ['char_box', 'block_box', 'column_box', 'char_order']
+        for task_type in ['cut_proof', 'cut_review']:
             # 发布任务
             self.login_as_admin()
             page_names = ['GL_1056_5_6', 'JX_165_7_12', 'QL_25_16']
             self.set_task_status({task_type: 'ready'}, page_names)
-            r = self.parse_response(self.publish(dict(task_type=task_type, pages=','.join(page_names))))
+            r = self.parse_response(
+                self.publish(dict(task_type=task_type, pages=','.join(page_names), sub_steps=steps)))
             published = r.get('data', {}).get('published')
             pending = r.get('data', {}).get('pending')
             if 'proof' in task_type:
@@ -43,8 +41,7 @@ class TestTaskFlow(APITestCase):
                 self.assertTrue(set(pending).issubset(set(page_names)), msg=task_type)
 
             # 任务大厅
-            lobby_type = 'text_proof' if 'text_proof' in task_type else task_type
-            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % lobby_type)
+            r = self.fetch('/task/lobby/%s?_raw=1&_no_auth=1' % task_type)
             self.assert_code(200, r, msg=task_type)
             r = self.parse_response(r)
             self.assertEqual(set(published), set([t['name'] for t in r['tasks']]), msg=task_type)
@@ -69,18 +66,22 @@ class TestTaskFlow(APITestCase):
             r = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {}}))
             self.assertEqual(errors.task_uncompleted[0], r.get('code'), msg=task_type)
 
-            # 保存第一个任务
-            box_type = task_type.split('_')[0]
-            data = {'box_type': box_type, 'boxes': json_encode(page[box_type + 's'])}
-            r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
-            self.assert_code(200, r, msg=task_type)
-            self.assertTrue(self.parse_response(r).get('updated'))
+            # 保存步骤
+            for step in steps:
+                box_type = step.split('_')[0]
+                data = {'step': step, 'box_type': box_type, 'boxes': json_encode(page[box_type + 's'])}
+                r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
+                self.assert_code(200, r, msg=task_type + ':' + step)
+                self.assertTrue(self.parse_response(r).get('updated'))
 
-            # 提交第一个任务
-            data['submit'] = True
-            r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
-            self.assert_code(200, r, msg=task_type)
-            self.assertTrue(self.parse_response(r).get('submitted'))
+            # 提交步骤
+            for step in steps:
+                box_type = step.split('_')[0]
+                data = {'step': step, 'submit': True, 'box_type': box_type, 'boxes': json_encode(page[box_type + 's'])}
+                r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
+                self.assert_code(200, r, msg=step)
+                if step == steps[-1]:  # 最后一步，提交任务
+                    self.assertTrue(self.parse_response(r).get('submitted'), msg=step)
 
             # 领取第二个任务
             page_name = page_names[1]
@@ -89,9 +90,11 @@ class TestTaskFlow(APITestCase):
 
             if 'proof' in task_type:
                 # 提交第二个任务
+                step = steps[-1]
                 page = self._app.db.page.find_one({'name': page_name})
-                box_type = task_type.split('_')[0]
-                data = {'box_type': box_type, 'boxes': json_encode(page[box_type + 's']), 'submit': True}
+                box_type = step.split('_')[0]
+                data = {'step': step, 'submit': True, 'box_type': box_type, 'boxes': json_encode(page[box_type + 's']),
+                        'submit': True}
                 r = self.fetch('/api/task/do/%s/%s?_raw=1' % (task_type, page_name), body={'data': data})
                 self.assert_code(200, r, msg=task_type)
                 self.assertTrue(self.parse_response(r).get('submitted'))
@@ -115,25 +118,25 @@ class TestTaskFlow(APITestCase):
     def test_cut_relation(self):
         """ 测试切分审校的前后依赖关系 """
         cut_pre_tasks = {
-            'block_cut_proof': 'block_cut_review',
-            'column_cut_proof': 'column_cut_review',
-            'char_cut_proof': 'char_cut_review',
+            'cut_proof': 'cut_review',
         }
-
+        steps = ['char_box', 'block_box', 'column_box', 'char_order']
         for t1, t2 in cut_pre_tasks.items():
             # 发布t1，领取t1并提交
             self.login_as_admin()
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
-            r = self.publish(dict(task_type=t1, pre_tasks=self.pre_tasks.get(t1), pages=','.join(page_names)))
+            r = self.publish(
+                dict(task_type=t1, sub_steps=steps, pre_tasks=self.pre_tasks.get(t1), pages=','.join(page_names)))
             self.assert_code(200, r)
             self.login(u.expert1[0], u.expert1[1])
             self.parse_response(self.fetch('/api/task/pick/' + t1, body={'data': {'page_name': page_names[0]}}))
             page = self._app.db.page.find_one({'name': page_names[0]})
-            box_type = t1.split('_')[0]
+            step = steps[-1]
+            box_type = step.split('_')[0]
             boxes = page[box_type + 's']
             r = self.fetch(
                 '/api/task/do/%s/%s?_raw=1' % (t1, page['name']),
-                body={'data': dict(submit=True, box_type=box_type, boxes=json_encode(boxes))}
+                body={'data': dict(step=steps[-1], submit=True, box_type=box_type, boxes=json_encode(boxes))}
             )
             self.assertTrue(self.parse_response(r).get('submitted'))
 
@@ -144,4 +147,3 @@ class TestTaskFlow(APITestCase):
             self.login(u.expert2[0], u.expert2[1])
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % t2))
             self.assertIn(page_names[0], [t['name'] for t in r.get('tasks')], msg=t2)
-
