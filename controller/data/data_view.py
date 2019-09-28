@@ -138,7 +138,7 @@ class DataPageHandler(BaseHandler):
 
 
 class DataSearchCbetaHandler(BaseHandler):
-    URL = '/data/cbeta/search'
+    URL = '/data/cbeta_search'
 
     def get(self):
         """ 检索cbeta库 """
