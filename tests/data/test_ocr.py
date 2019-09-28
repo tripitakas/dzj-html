@@ -16,7 +16,7 @@ class TestOCR(APITestCase):
         )
 
     def test_submit_ocr(self):
-        self._app.db.page.delete_one(dict(name='JS_100_527'))
+        self._app.db.page.delete_one(dict(name='JS_100_527_1'))
         r = self.fetch('/api/data/submit_ocr/JS_100_527_1.gif', body={})
         self.assert_code(200, r)
         r = self.parse_response(r)

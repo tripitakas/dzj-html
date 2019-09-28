@@ -12,7 +12,7 @@ class TestCharOrder(APITestCase):
         self.assert_code(200, self.register_and_login(dict(
             email=u.expert1[0], password=u.expert1[1], name=u.expert1[2])))
 
-    def test_simple(self):
+    def _test_char_order_simple(self):
         r = self.fetch('/task/char_cut_proof/order/GL_924_2_35?_raw=1')
         self.assert_code(200, r)
         r = self.parse_response(r)

@@ -25,6 +25,7 @@ class CutHandler(TaskHandler):
     }
 
     def get(self, task_type, page_name):
+        """切分审校"""
         try:
             page = self.db.page.find_one(dict(name=page_name))
             if not page:
