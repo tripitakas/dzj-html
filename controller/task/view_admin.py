@@ -77,16 +77,20 @@ class TaskInfoHandler(TaskHandler):
             elif key == 'status':
                 value = self.status_names.get(value)
             elif key == 'pre_tasks':
-                value = ' / '.join([self.task_types.get(t) for t in value])
+                value = '/'.join([self.task_types.get(t) for t in value])
+            elif key == 'steps':
+                value = '/'.join([step_names.get(t, '') for t in value.get('todo', [])])
             elif key == 'priority':
                 value = self.prior_names.get(int(value))
-
             return value
 
+        step_names = dict()
+        for steps in TaskAdminHandler.default_task_steps.values():
+            step_names.update({k: v.get('name', '') for k, v in steps.items()})
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fields())
             field_names = {
-                'status': '状态', 'pre_tasks': '前置任务', 'priority': '优先级',
+                'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
                 'publish_by': '发布人', 'publish_time': '发布时间',
                 'picked_by': '领取人', 'picked_time': '领取时间',
                 'updated_time': '更新时间', 'finished_time': '完成时间',
