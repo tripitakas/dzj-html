@@ -28,9 +28,9 @@ class TestDataLock(APITestCase):
     def test_data_lock(self):
         """ 测试切分校对数据锁机制 """
         for task_type in [
-            'block_cut_proof', 'block_cut_review',
-            'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review',
+            # 'block_cut_proof', 'block_cut_review',
+            # 'column_cut_proof', 'column_cut_review',
+            # 'char_cut_proof', 'char_cut_review',
             'text_review', 'text_hard',
         ]:
             # 发布任务，前置任务为空

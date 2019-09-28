@@ -51,5 +51,5 @@ class TestUserAdminViews(APITestCase):
                     self.assertRegex(view.URL, r'^/%s(/|$)' % pkg, msg=view.URL)
             elif isinstance(view.URL, list):
                 for _url in view.URL:
-                    if pkg not in ['com', 'tripitaka'] and '/data/edit' not in _url:
+                    if pkg not in ['com', 'tripitaka'] and not ('/data/' in _url and 'edit' in _url):
                         self.assertRegex(_url, r'^/%s(/|$)' % pkg, msg=_url)
