@@ -157,7 +157,10 @@
       boxes: JSON.stringify($.cut.exportBoxes())
     };
     postApi('{{current_path}}', {data: data}, function () {
-      pick('/task/pick/{{task_type}}');
+      showSuccess('成功', '任务已提交。');
+      setTimeout(function () {
+        pick('/task/pick/{{task_type}}');
+      }, 500);
     });
   });
 
