@@ -90,7 +90,7 @@ class TaskInfoHandler(TaskHandler):
 
         step_names = dict()
         for steps in TaskAdminHandler.default_steps.values():
-            step_names.update({k: v.get('name', '') for k, v in steps.items()})
+            step_names.update(steps)
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fields())
             field_names = {
