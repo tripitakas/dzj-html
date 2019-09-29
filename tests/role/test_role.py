@@ -38,5 +38,5 @@ class TestRole(APITestCase):
 
     def test_all_roles(self):
         roles = role.get_all_roles('切分专家,文字专家')
-        should = {'切分专家', '文字专家', '切分审定员', '切分校对员', '普通用户', '文字校对员', '文字审定员'}
+        should = {'普通用户', '切分专家', '文字专家', '切分审定员', '切分校对员', 'OCR校对员', 'OCR审定员', '文字校对员', '文字审定员'}
         self.assertEqual(set(roles), should)
