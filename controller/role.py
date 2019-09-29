@@ -12,8 +12,10 @@ import re
 
 url_placeholder = {
     'num': r'\d+',
+    'task_type': r'cut_proof|cut_review|ocr_proof|ocr_review|text_\w+',
     'cut_type': r'cut_proof|cut_review',
-    'task_type': r'cut_[a-z]+|text_\w+',
+    'ocr_type': r'ocr_proof|ocr_review',
+    'text_type': r'text_proof_\d|text_review',
     'edit_type': r'cut_edit|text_edit',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
@@ -112,7 +114,7 @@ role_maps = {
     },
     '切分专家': {
         'is_assignable': True,
-        'roles': ['切分校对员', '切分审定员'],
+        'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
             '/data/cut_edit/@page_name': ['GET'],
             '/api/data/cut_edit/@page_name': ['POST'],

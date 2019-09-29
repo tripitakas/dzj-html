@@ -43,6 +43,7 @@ class SaveCutApi(SubmitTaskApi):
                 self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
+            ret = {'updated': True}
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
             data_field = data['step'].strip('_box') + 's'
             update.update({data_field: json_decode(data['boxes'])})
@@ -56,7 +57,6 @@ class SaveCutApi(SubmitTaskApi):
                 self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
             # 提交任务
-            ret = {'updated': True}
             if mode == 'do' and data.get('submit') and data['step'] == steps_todo[-1]:
                 ret.update(self.submit(task_type, page_name))
 
@@ -95,6 +95,45 @@ class SaveCutEditApi(SubmitTaskApi):
             if r.modified_count:
                 self.add_op_log('save_edit_%s' % data_field, context=page_name)
             self.send_data_response({'updated': True})
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class SaveOCRApi(SaveCutApi):
+    URL = ['/api/task/do/@ocr_type/@page_name',
+           '/api/task/update/@ocr_type/@page_name']
+
+    def post(self, task_type, page_name):
+        """保存OCR校对、审定数据"""
+        try:
+            # 检查参数
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'boxes')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(errors.no_object)
+
+            # 检查权限
+            mode = (re.findall('(do|update)/', self.request.path) or ['do'])[0]
+            if not self.check_auth(mode, page, task_type):
+                self.send_error_response(errors.data_unauthorized)
+
+            # 保存数据
+            ret = {'updated': True}
+            update = {'chars': json_decode(data['boxes']), 'tasks.%s.updated_time' % task_type: datetime.now()}
+            r = self.db.page.update_one({'name': page_name}, {'$set': update})
+            if r.modified_count:
+                self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
+
+            # 提交任务
+            if mode == 'do' and data.get('submit'):
+                ret.update(self.submit(task_type, page_name))
+
+            self.send_data_response(ret)
 
         except DbError as e:
             self.send_db_error(e)

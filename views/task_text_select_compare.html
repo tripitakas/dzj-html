@@ -109,8 +109,8 @@
 
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
-            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps['is_last'] else ''}}" title="下一步"/>
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps['is_last'] and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
 
           </div>
         </div>

@@ -26,6 +26,8 @@ class CommonLeft(UIModule):
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon_subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/lobby/cut_review'),
+                dict(name='OCR校对', icon='icon_subitem', link='/task/lobby/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/lobby/ocr_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/lobby/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/lobby/text_review'),
                 dict(name='难字审定', icon='icon_subitem', link='/task/lobby/text_hard'),
@@ -33,6 +35,8 @@ class CommonLeft(UIModule):
             dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon_subitem', link='/task/my/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/my/cut_review'),
+                dict(name='OCR校对', icon='icon_subitem', link='/task/my/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/my/ocr_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/my/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/my/text_review'),
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
@@ -41,6 +45,8 @@ class CommonLeft(UIModule):
                 dict(name='任务状态', icon='icon_subitem', link='/task/admin/task_status'),
                 dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
+                dict(name='OCR校对', icon='icon_subitem', link='/task/admin/ocr_proof'),
+                dict(name='OCR审定', icon='icon_subitem', link='/task/admin/ocr_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof_1'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
                 dict(name='难字审定', icon='icon_subitem', link='/task/admin/text_hard'),
@@ -100,9 +106,6 @@ class Pager(UIModule):
             pager['page_count'] = math.ceil(pager['item_count'] / pager['page_size'])  # 一共有多少页
             pager['display_count'] = conf['display_count']  # pager导航条中显示多少个页码
             pager['path'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
-            source = re.search(r'source=[a-z0-9]+', self.request.uri)
-            if source and 'source' not in pager['path']:
-                pager['path'] += ('&' if '?' in pager['path'] else '?') + source.group()
             pager['link'] = '&' if '?' in pager['path'] else '?'  # 当前path
             gap, if_left, cur_page = int(pager['display_count'] / 2), int(pager['display_count']) % 2, pager['cur_page']
             start, end = cur_page - gap, cur_page + gap - 1 + if_left

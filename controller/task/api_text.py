@@ -115,6 +115,8 @@ class SaveTextProofApi(SubmitTaskApi):
         self.send_data_response({'updated': True})
 
     def save_proof(self, num, page_name, mode, data):
+        # 保存数据
+        ret = {'updated': True}
         task_type = 'text_proof_' + num
         assert task_type in self.text_task_names()
         doubt = data.get('doubt', '').strip('\n')
@@ -127,7 +129,6 @@ class SaveTextProofApi(SubmitTaskApi):
             self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
         # 提交任务
-        ret = {'updated': True}
         if mode == 'do' and data.get('submit'):
             ret.update(self.submit(task_type, page_name))
 
@@ -149,6 +150,7 @@ class SaveTextReviewApi(SubmitTaskApi):
                 self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
+            ret = {'updated': True}
             data = self.get_request_data()
             doubt = data.get('doubt', '').strip('\n')
             update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
@@ -170,7 +172,6 @@ class SaveTextReviewApi(SubmitTaskApi):
                 self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
             # 提交任务
-            ret = {'updated': True}
             if mode == 'do' and data.get('submit'):
                 ret.update(self.submit(task_type, page_name))
 
@@ -194,6 +195,7 @@ class SaveTextHardApi(SubmitTaskApi):
                 self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
+            ret = {'updated': True}
             data = self.get_request_data()
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
             txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
@@ -207,7 +209,6 @@ class SaveTextHardApi(SubmitTaskApi):
                 self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
 
             # 提交任务
-            ret = {'updated': True}
             if mode == 'do' and data.get('submit'):
                 ret.update(self.submit(task_type, page_name))
 

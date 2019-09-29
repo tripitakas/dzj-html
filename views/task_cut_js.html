@@ -1,128 +1,15 @@
-<script>
-  var boxes = '{{boxes}}';
-  $.cut.create({
-    '{{box_type}}Mode': true,
-    name: '{{box_type}}_{{name}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    holder: 'holder',
-    scrollContainer: '.bd-container',
-    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
-    chars: boxes
-  });
-  $.cut.bindKeys();
-</script>
-
-<script>
-  // 更新Undo
-  function updateUndo() {
-    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-        : "{{ static_url('imgs/icon_lr_not.png') }}");
-    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-        : "{{ static_url('imgs/icon_rr_not.png') }}");
-  }
-
-  updateUndo();
-
-  $('.btn-undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  // 显示各种类型字框数量
-  function showHighLightCount() {
-    $('.hl-btn > button').each(function (i, btn) {
-      if (i > 0 || '{{box_type}}' !== "char") {
-        var type = btn.getAttribute('id').replace(/^.*-/, '');
-        var boxes = $.cut.highlightBoxes(type, true);
-        $(btn).find('.s-h-count').text(boxes.length);
-      }
-    });
-  }
-
-  showHighLightCount();
-
-  // 切换切分框状态
-  $('.hl-btn > button').click(function () {
-    var type = this.getAttribute('id').replace(/^.*-/, '');
-    $.cut.switchHighlightBoxes(type);
-  });
-
-  // 缩小画布
-  $('.btn-reduce').click(function () {
-    if ($.cut.data.ratio > 0.5) {
-      $.cut.setRatio($.cut.data.ratio * 0.9);
-    }
-  });
-
-  // 放大画布
-  $('.btn-enlarge').click(function () {
-    if ($.cut.data.ratio < 5) {
-      $.cut.setRatio($.cut.data.ratio * 1.5);
-    }
-  });
-
-  // 显示图片
-  $('#hl-pic').click(function () {
-    if ($('#holder image').css('visibility') == 'hidden')
-      $('#holder image').css('visibility', 'visible');
-    else
-      $('#holder image').css('visibility', 'hidden');
-  });
-
-  // 操作切分框
-  function onBoxChanged(char, box, reason) {
-    if (reason === 'removed' || reason === 'added' || reason === 'changed') {
-      var type = $.cut.data.hlType;
-      if (type) {
-        $.cut.clearHighlight();
-        $.cut.highlightBoxes(type, false, true);
-      }
-    }
-    showHighLightCount();
-    updateUndo();
-  }
-
-  $.cut.onBoxChanged(onBoxChanged);
-
-  // 更多操作
-  $('.btn-ed-box').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
-
-  // 修改字框
-  $('.ed-char-box').click(function () {
-    window.location = '{{"%s?step=char_box" % current_path}}';
-  });
-
-  // 修改栏框
-  $('.ed-block-box').click(function () {
-    window.location = '{{"%s?step=block_box" % current_path}}';
-  });
-
-  // 修改列框
-  $('.ed-column-box').click(function () {
-    window.location = '{{"%s?step=column_box" % current_path}}';
-  });
-
-  // 修改字序
-  $('.ed-order-box').click(function () {
-    window.location = '{{"%s?step=char_order" % current_path}}';
-  });
-
-</script>
-
+<script src="{{ static_url('js/task.js') }}"></script>
 <script>
   // 上一步
   $('.btn-prev').on("click", function () {
-    window.location = '{{"%s?step=%s" % (current_path, steps["prev"])}}';
+    window.location = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
   });
 
   // 保存任务
   $('.btn-save').on("click", function () {
     var data = {
       submit: false,
-      step: '{{steps["current"]}}',
+      step: '{{steps.get("current")}}',
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
     };
@@ -139,20 +26,21 @@
     if ('view' !== '{{mode}}') {
       var data = {
         submit: true,
-        step: '{{steps["current"]}}',
+        step: '{{steps.get("current")}}',
         box_type: '{{box_type}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       };
-      postApi('{{current_path}}', {data: data}, function(){});
+      postApi('{{current_path}}', {data: data}, function () {
+      });
     }
-    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
+    window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
   });
 
   // 提交任务
   $('.btn-submit').on("click", function () {
     var data = {
       submit: true,
-      step: '{{steps["current"]}}',
+      step: '{{steps.get("current")}}',
       box_type: '{{box_type}}',
       boxes: JSON.stringify($.cut.exportBoxes())
     };
@@ -197,59 +85,81 @@
 
 </script>
 
-{% import controller.errors as e %}
+
 <script>
-  // 领取新任务（从任务大厅拷贝）
-  function pick(url, page_name) {
-    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
-    postApi(url, data, function (res) {
-      if (res && res.url) {
-        window.location = res.url;
+  // 更新Undo
+  function updateUndo() {
+    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
+        : "{{ static_url('imgs/icon_lr_not.png') }}");
+    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
+        : "{{ static_url('imgs/icon_rr_not.png') }}");
+  }
+
+  updateUndo();
+
+  $('.btn-undo').click(function () {
+    $.cut.undo();
+    updateUndo();
+  });
+
+  // 显示各种类型字框数量
+  function showHighLightCount() {
+    $('.hl-btn > button').each(function (i, btn) {
+      if (i > 0 || '{{box_type}}' !== "char") {
+        var type = btn.getAttribute('id').replace(/^.*-/, '');
+        var boxes = $.cut.highlightBoxes(type, true);
+        $(btn).find('.s-h-count').text(boxes.length);
       }
-    }, function (res) {
-      error_callback(res);
     });
   }
 
-  // 领取任务失败回调
-  function error_callback(res) {
-    console.log(res);
-    if (res.code == '{{e.task_uncompleted[0]}}') {
-      var info = {
-        title: "是否继续未完成的任务？",
-        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定继续",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        window.location = res.url;
-      });
-    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
-      showError('暂无新任务', res.message);
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    } else if (res.code != 500) {
-      var info = {
-        title: "是否领取其它任务？",
-        text: res.message,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定领取",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        pick("/task/pick/{{task_type}}");
-      });
-    } else {
-      showError('发生错误', res.message);
+  showHighLightCount();
+
+  // 切换切分框状态
+  $('.hl-btn > button').click(function () {
+    var type = this.getAttribute('id').replace(/^.*-/, '');
+    $.cut.switchHighlightBoxes(type);
+  });
+
+
+  // 缩小画布
+  $('.btn-reduce').click(function () {
+    if ($.cut.data.ratio > 0.5) {
+      $.cut.setRatio($.cut.data.ratio * 0.9);
     }
+  });
+
+  // 放大画布
+  $('.btn-enlarge').click(function () {
+    if ($.cut.data.ratio < 5) {
+      $.cut.setRatio($.cut.data.ratio * 1.5);
+    }
+  });
+
+  // 显示图片
+  $('#hl-pic').click(function () {
+    if ($('#holder image').css('visibility') == 'hidden')
+      $('#holder image').css('visibility', 'visible');
+    else
+      $('#holder image').css('visibility', 'hidden');
+  });
+
+  // 操作切分框
+  function onBoxChanged(char, box, reason) {
+    if (reason === 'removed' || reason === 'added' || reason === 'changed') {
+      var type = $.cut.data.hlType;
+      if (type) {
+        $.cut.clearHighlight();
+        $.cut.highlightBoxes(type, false, true);
+      }
+      showHighLightCount();
+    } else if (reason === 'navigate') {
+      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
+    }
+    updateUndo();
   }
 
+  $.cut.onBoxChanged(onBoxChanged);
+
 </script>
+

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{th.task_types.get(task_type)}}</title>
+  <title>OCR校对</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -82,7 +81,7 @@
             <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
           </a>
         </div>
-        <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
+        <div class="title" title="{{page['name']}}">OCR校对</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
@@ -97,9 +96,9 @@
         </div>
         <div class="slice-btns">
           <div class="btn-group">
-            <button type="button" class="btn btn-default btn-sm fl" id="bar-order" title="切换显示或隐藏字框浮动条的字序">序</button>
-            <button type="button" class="btn btn-default btn-sm fl" id="bar-txt" title="切换显示或隐藏字框浮动条的文字">字</button>
-            <button type="button" class="btn btn-default btn-sm fl" id="hl-pic" title="切换显示或隐藏页面图">图</button>
+            <button type="button" class="btn btn-default btn-sm fl" id="bar-order" title="切换显示或隐藏字框浮动条的字序">字序</button>
+            <button type="button" class="btn btn-default btn-sm fl" id="bar-txt" title="切换显示或隐藏字框浮动条的文字">文字</button>
+            <button type="button" class="btn btn-default btn-sm fl" id="hl-pic" title="切换显示或隐藏页面图">图片</button>
           </div>
           <div class="btn-group hl-btn">
             <button type="button" class="btn btn-default btn-sm" id="hl-all" title="切换所有字框的高亮状态">所有<sup class="s-h-count"></sup></button>
@@ -127,24 +126,17 @@
         </div>
         {% end %}
         <div class="edit-btns">
-          {% if box_type in ['column', 'char'] %}
-          <div class="more hide">
+          <div class="more">
             <div class="btn-group more-group hidden" role="group" aria-label="更多">
-              {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
-              {% for type,text in more[box_type] %}
+              {% for type, text in [('block', '栏框'), ('column', '列框'), ('order', '字序')] %}
               <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
               {% end %}
             </div>
             <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
           </div>
-          {% end %}
-          {% if not readonly %}
-          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-          {% end %}
-          {% if not readonly and mode == 'do' %}
-          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
-          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-submit" title="下一步"/>
-          {% end %}
+          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
+          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if not readonly and mode == 'do' else 'hide'}}" title="提交"/>
         </div>
       </div><!--right-->
     </div>
@@ -161,7 +153,7 @@
       <div class="content-right hide">
         <div class="page-text">
           {% for n, col in enumerate(page['columns']) %}
-          <div id="col-{{col['column_id']}}"><span class="num">{{n+1}}</span><span class="txt">{{col.get('txt', '') or ''}}</span></div>
+          <div id="col-{{col.get('column_id')}}"><span class="num">{{n+1}}</span><span class="txt">{{col.get('txt', '') or ''}}</span></div>
           {% end %}
         </div>
       </div>
@@ -206,6 +198,20 @@
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
+<script>
+  var boxes = '{{boxes}}';
+  $.cut.create({
+    '{{box_type}}Mode': true,
+    name: '{{box_type}}_{{name}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    scrollContainer: '.bd-container',
+    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
+    chars: boxes
+  });
+  $.cut.bindKeys();
+</script>
 {% include task_cut_js.html %}
 
 <script>
@@ -237,8 +243,9 @@
     );
   });
 
+  // 生成行文本
   function buildLineText() {
-    var columns = '{{",".join(c["column_id"] for c in page["columns"])}}'.split(',');
+    var columns = '{{",".join(c.get("column_id", "") for c in page["columns"])}}'.split(',');
     columns.forEach(function (column_id) {
       var ids = column_id.replace('b', '').split('c');
       var chars = $.cut.findCharsByLine(parseInt(ids[0]), parseInt(ids[1]));
@@ -248,6 +255,7 @@
       $('#col-' + column_id).find('.txt').text(text);
     });
   }
+
   buildLineText();
 
   // 应用文字改动
@@ -278,11 +286,53 @@
     }
   });
 
+  // 显示、隐藏右侧区域
+  $('.m-header .zone-control .zone-right').click(function () {
+    $('.main .content .content-right').toggleClass('hide');
+  });
+
+  // 切换显示或隐藏字框浮动条的字序
+  $('#bar-order').click(function () {
+    showOrder = !showOrder;
+    $.cut.notifyChanged($.cut.state.edit, 'navigate');
+  });
+
+  // 切换显示或隐藏字框浮动条的文字
+  $('#bar-txt').click(function () {
+    showText = !showText;
+    $.cut.notifyChanged($.cut.state.edit, 'navigate');
+  });
+
+  // 更多操作
+  $('.btn-ed-box').click(function () {
+    $('.more-group').toggleClass('hidden');
+  });
+
+  // 修改字框
+  $('.ed-char-box').click(function () {
+    window.location = '{{"/data/cut_edit/%s?step=char_box" % name}}';
+  });
+
+  // 修改栏框
+  $('.ed-block-box').click(function () {
+    window.location = '{{"/data/cut_edit/%s?step=block_box" % name}}';
+  });
+
+  // 修改列框
+  $('.ed-column-box').click(function () {
+    window.location = '{{"/data/cut_edit/%s?step=column_box" % name}}';
+  });
+
+  // 修改字序
+  $('.ed-order-box').click(function () {
+    window.location = '{{"/data/cut_edit/%s?step=char_order" % name}}';
+  });
+
   // 帮助
   $('.btn-help').click(function () {
     swal({
       title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
-      text: '<ul>' + [
+      text: '<ul class="help">' + [
         '1~5：页面放大', 'shift+5~9: 页面缩小', '+/-：逐级缩放',
         '方向键：在字框间导航', 'w a s d：移动当前字框',
         'alt+方向键：缩小字框', 'shift+方向键：放大字框',
@@ -295,22 +345,6 @@
         return '<li>' + t + '</li>';
       }).join('') + '</ul>'
     });
-  });
-
-  // 显示、隐藏右侧区域
-  $('.m-header .zone-control .zone-right').click(function () {
-    $('.main .content .content-right').toggleClass('hide');
-  });
-
-  // 切换显示或隐藏字框浮动条的字序
-  $('#bar-order').click(function () {
-    showOrder = !showOrder;
-    $.cut.notifyChanged($.cut.state.edit, 'navigate');
-  });
-  // 切换显示或隐藏字框浮动条的文字
-  $('#bar-txt').click(function () {
-    showText = !showText;
-    $.cut.notifyChanged($.cut.state.edit, 'navigate');
   });
 
 </script>

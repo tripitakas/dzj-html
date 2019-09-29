@@ -28,6 +28,8 @@ class TaskHandler(BaseHandler):
     task_types = {
         'cut_proof': '切分校对',
         'cut_review': '切分审定',
+        'ocr_proof': 'OCR校对',
+        'ocr_review': 'OCR审定',
         'text_proof_1': '文字校一',
         'text_proof_2': '文字校二',
         'text_proof_3': '文字校三',

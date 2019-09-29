@@ -16,6 +16,8 @@ def main(db_name='tripitaka', uri='localhost'):
         'tasks': {
             'cut_proof': {'status': 'ready'},
             'cut_review': {'status': 'ready'},
+            'ocr_proof': {'status': 'ready'},
+            'ocr_review': {'status': 'ready'},
             'text_proof_1': {'status': 'ready'},
             'text_proof_2': {'status': 'ready'},
             'text_proof_3': {'status': 'ready'},
@@ -23,7 +25,8 @@ def main(db_name='tripitaka', uri='localhost'):
         },
         'lock': {}
     }
-    db.page.update_many({}, {'$set': update})
+    r = db.page.update_many({}, {'$set': update})
+    print('%s records updated!' % r.modified_count)
 
 
 if __name__ == '__main__':

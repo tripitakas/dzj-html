@@ -64,14 +64,16 @@
                     <tr>
                       <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>页编码</span></th>
-                      {% for i, item in enumerate(['切分校对','切分审定','文字校一','文字校二','文字校三','文字审定']) %}
+                      {% set task_types = ['cut_proof','cut_review','ocr_proof','ocr_review','text_proof_1','text_proof_2','text_proof_3','text_review'] %}
+                      {% set task_names = ['切分校对','切分审定','OCR校对','OCR审定','文字校一','文字校二','文字校三','文字审定'] %}
+                      {% for i, item in enumerate(task_names) %}
                       <th>
                         <div class="btn-group">
                           <span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
                           <span class="ion-android-sort "></span>
                           <ul class="dropdown-menu" role="menu">
                             {% for k, v in th.status_names.items() %}
-                            <li><a href="{{current_path}}?type={{['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review'][i]}}&status={{k}}">{{v}}</a></li>
+                            <li><a href="{{current_path}}?type={{task_types[i]}}&status={{k}}">{{v}}</a></li>
                             {% end %}
                           </ul>
                         </div>
@@ -85,7 +87,7 @@
                     <tr id="{{t['name']}}" class="task-tr">
                       <td><input type="checkbox" name="" id="" value=""/></td>
                       <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
-                      {% for item in ['cut_proof','cut_review','text_proof_1','text_proof_2','text_proof_3','text_review'] %}
+                      {% for item in task_types %}
                       <td class="{{th.prop(t, 'tasks.%s.status' % item)}}">
                         <a href="/task/{{item}}/{{t['name']}}">
                           {{th.status_names.get(th.prop(t, 'tasks.%s.status' % item), '')}}

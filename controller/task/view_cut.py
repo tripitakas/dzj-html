@@ -47,7 +47,7 @@ class CutHandler(TaskHandler):
         current_step = self.get_query_argument('step', '')
         if not current_step:
             if mode == 'do':
-                submitted = self.prop(page, 'tasks.%s.steps.submitted') or []
+                submitted = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
                 un_submitted = [s for s in steps['todo'] if s not in submitted]
                 if not un_submitted:
                     return self.send_error_response(errors.task_finished_not_allowed_do, render=True)
@@ -66,7 +66,7 @@ class CutHandler(TaskHandler):
         return steps
 
     def char_box(self, task_type, page, mode, steps):
-        readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
+        readonly = not self.check_auth(mode, page, task_type)
         self.render(
             'task_cut_do.html', page=page, name=page['name'], task_type=task_type, readonly=readonly, mode=mode,
             box_version=1, boxes=page.get('chars'), box_type='char', sub_title=self.default_steps['char_box'],
@@ -74,7 +74,7 @@ class CutHandler(TaskHandler):
         )
 
     def column_box(self, task_type, page, mode, steps):
-        readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
+        readonly = not self.check_auth(mode, page, task_type)
         self.render(
             'task_cut_do.html', page=page, name=page['name'], task_type=task_type, readonly=readonly, mode=mode,
             box_version=1, boxes=page.get('columns'), box_type='column', sub_title=self.default_steps['column_box'],
@@ -82,7 +82,7 @@ class CutHandler(TaskHandler):
         )
 
     def block_box(self, task_type, page, mode, steps):
-        readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
+        readonly = not self.check_auth(mode, page, task_type)
         self.render(
             'task_cut_do.html', page=page, name=page['name'], task_type=task_type, readonly=readonly, mode=mode,
             box_version=1, boxes=page.get('blocks'), box_type='block', sub_title=self.default_steps['block_box'],
@@ -90,7 +90,7 @@ class CutHandler(TaskHandler):
         )
 
     def char_order(self, task_type, page, mode, steps):
-        readonly = mode == 'view' or not self.check_auth(mode, page, task_type)
+        readonly = not self.check_auth(mode, page, task_type)
         kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)), **{})
         self.render(
             'task_char_order.html', page=page, name=page['name'], task_type=task_type, readonly=readonly, mode=mode,
@@ -107,3 +107,28 @@ class CutHandler(TaskHandler):
         kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
             page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
         return kwargs
+
+
+class OCRHandler(TaskHandler):
+    URL = ['/task/@ocr_type/@page_name',
+           '/task/do/@ocr_type/@page_name',
+           '/task/update/@ocr_type/@page_name']
+
+    def get(self, ocr_type, page_name):
+        """ 进入OCR校对、审定页面 """
+        try:
+            page = self.db.page.find_one(dict(name=page_name))
+            if not page:
+                return self.render('_404.html')
+
+            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
+            readonly = not self.check_auth(mode, page, ocr_type)
+            kwargs = CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **{})
+            self.render(
+                'task_ocr_do.html', page=page, name=page['name'], task_type=ocr_type, readonly=readonly, mode=mode,
+                box_version=1, box_type='char', boxes=page.get('chars'), get_img=self.get_img, steps=dict(),
+                **kwargs
+            )
+
+        except Exception as e:
+            self.send_db_error(e, render=True)

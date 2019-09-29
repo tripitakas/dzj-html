@@ -76,18 +76,18 @@
             <div class="more hide">
               <div class="btn-group more-group hidden" role="group" aria-label="更多">
                 {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_cut_proof/order/{{name}}{{'?layout=%d' % i}}">
+                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/cut_proof/{{name}}{{'?step=char_order&layout=%d' % i}}">
                   {{txt}}
                 </a>
                 {% end %}
               </div>
               <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
             </div>
-            <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps['is_first'] else ''}}" title="上一步"/>
+            <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
-            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps['is_last'] else ''}}" title="下一步"/>
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps['is_last'] and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
           </div>
         </div>
       </div>
@@ -109,7 +109,6 @@
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
-
 <script>
   var blocks = decodeJSON('{{page["blocks"]}}');
   var columns = decodeJSON('{{page["columns"]}}');
@@ -125,41 +124,15 @@
     version: '{{box_version}}',
     chars: chars
   });
-
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
 </script>
 
+{% include task_cut_js.html %}
+
 <script>
-  // 更新Undo
-  function updateUndo() {
-    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-        : "{{ static_url('imgs/icon_lr_not.png') }}");
-    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-        : "{{ static_url('imgs/icon_rr_not.png') }}");
-  }
-
-  updateUndo();
-
-  $('.btn-undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  $.cut.onBoxChanged(function (char, box, reason) {
-    if (reason === 'navigate') {
-      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
-    }
-    updateUndo();
-  });
-
-  $('#switch-image').click(function () {
-    var style = $.cut.data.image.node.style;
-    style.display = style.display === 'none' ? '' : 'none';
-  });
-
   // 显示字序待修正的字框
   $('#show-err-box').click(function () {
     $.cut.showErrorBoxes(true);
@@ -168,18 +141,10 @@
     $.cut.showErrorBoxes();
   }, 100);
 
-  // 缩小画布
-  $('.btn-reduce').click(function () {
-    if ($.cut.data.ratio > 0.5) {
-      $.cut.setRatio($.cut.data.ratio * 0.9);
-    }
-  });
-
-  // 放大画布
-  $('.btn-enlarge').click(function () {
-    if ($.cut.data.ratio < 5) {
-      $.cut.setRatio($.cut.data.ratio * 1.5);
-    }
+  // 显隐图片
+  $('#switch-image').click(function () {
+    var style = $.cut.data.image.node.style;
+    style.display = style.display === 'none' ? '' : 'none';
   });
 
   // 显隐列框
@@ -192,11 +157,6 @@
     $.cut.toggleBox('hide');
   });
 
-  // 更多操作
-  $('.btn-ed-box').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
-
   // 调整字框连线后重新设置字框编号
   $('#apply').click(function () {
     $.cut.applyLinks(blocks, columns);
@@ -204,148 +164,6 @@
 
 </script>
 
-<script>
-  // 上一步
-  $('.btn-prev').on("click", function () {
-    window.location = '{{"%s?step=%s" % (current_path, steps["prev"])}}';
-  });
-
-  // 保存任务
-  $('.btn-save').on("click", function () {
-    var data = {
-      submit: false,
-      step: '{{steps["current"]}}',
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-    };
-    postApi('{{current_path}}', {data: data}, function () {
-      showSuccess('保存成功', '{{name}} ' + '已保存成功');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1000);
-    });
-  });
-
-  // 下一步
-  $('.btn-next').on("click", function () {
-    if ('view' !== '{{mode}}') {
-      var data = {
-        submit: true,
-        step: '{{steps["current"]}}',
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
-      };
-      postApi('{{current_path}}', {data: data}, function () {
-      });
-    }
-    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
-  });
-
-  // 提交任务
-  $('.btn-submit').on("click", function () {
-    var data = {
-      submit: true,
-      step: '{{steps["current"]}}',
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-    };
-    postApi('{{current_path}}', {data: data}, function () {
-      showSuccess('成功', '任务已提交。');
-      setTimeout(function () {
-        pick('/task/pick/{{task_type}}');
-      }, 500);
-    });
-  });
-
-  // 退回任务
-  $('.btn-return').click(function () {
-    $('#returnModal').modal();
-  });
-
-  $(document).on('click', '#modal-return-btn', function () {
-    var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason: reason}
-    }, function () {
-      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
-      setTimeout(function () {
-        window.location = "/task/lobby/{{task_type}}";
-      }, 1000);
-    });
-  });
-
-  // 离开页面时解锁数据
-  window.leave = function () {
-    // 当前页面模式，包括view/do/update/edit等
-    if ('{{mode}}' === 'edit') {
-      postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
-        window.history.back();
-      });
-    } else if ('{{mode}}' === 'view') {
-      window.history.back();
-    } else {
-      window.location = '/task/lobby/{{task_type}}';
-    }
-  };
-
-</script>
-
-{% import controller.errors as e %}
-<script>
-  // 领取新任务（从任务大厅拷贝）
-  function pick(url, page_name) {
-    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
-    postApi(url, data, function (res) {
-      if (res && res.url) {
-        window.location = res.url;
-      }
-    }, function (res) {
-      error_callback(res);
-    });
-  }
-
-  // 领取任务失败回调
-  function error_callback(res) {
-    console.log(res);
-    if (res.code == '{{e.task_uncompleted[0]}}') {
-      var info = {
-        title: "是否继续未完成的任务？",
-        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定继续",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        window.location = res.url;
-      });
-    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
-      showError('暂无新任务', res.message);
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    } else if (res.code != 500) {
-      var info = {
-        title: "是否领取其它任务？",
-        text: res.message,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定领取",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        pick("/task/pick/{{task_type}}");
-      });
-    } else {
-      showError('发生错误', res.message);
-    }
-  }
-
-</script>
 
 </body>
 </html>

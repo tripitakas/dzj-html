@@ -145,7 +145,7 @@ class TextProofHandler(TextBaseHandler):
         current_step = self.get_query_argument('step', '')
         if not current_step:
             if mode == 'do':
-                submitted = self.prop(page, 'tasks.%s.steps.submitted') or []
+                submitted = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
                 un_submitted = [s for s in steps['todo'] if s not in submitted]
                 if not un_submitted:
                     return self.send_error_response(errors.task_finished_not_allowed_do, render=True)

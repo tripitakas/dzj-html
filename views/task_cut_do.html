@@ -41,15 +41,15 @@
           <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
         </div>
         <div class="slice-btns">
-          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
+          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic" title="切换显示或隐藏页面图">图片</button>
           <div class="btn-group hl-btn">
-            <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-all" title="切换所有字框的高亮状态">所有<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-overlap" title="切换高亮显示重叠的字框">重叠<sup class="s-h-count"></sup></button>
             {% if box_type == 'char' %}
-            <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-large" title="切换高亮显示较大的字框">大框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-small" title="切换高亮显示较小的字框">小框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-narrow" title="切换高亮显示较窄的字框">窄框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-flat" title="切换高亮显示较扁的字框">扁框<sup class="s-h-count"></sup></button>
             {% end %}
           </div>
         </div>
@@ -59,19 +59,11 @@
           {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
         </div>
         <div class="edit-btns">
-          <div class="more {{'hide' if box_type in ['block', 'column', 'char'] else ''}}">
-            <div class="btn-group more-group hidden" role="group" aria-label="更多">
-              {% for type, text in [('block', '栏框'), ('column', '列框'), ('order', '字序')] %}
-              <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
-              {% end %}
-            </div>
-            <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
-          </div>
-          <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps['is_first'] else ''}}" title="上一步"/>
+          <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
           <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
-          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps['is_last'] else ''}}" title="下一步"/>
-          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps['is_last'] and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
         </div>
       </div><!--right-->
     </div>
@@ -117,23 +109,38 @@
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
-{% include task_cut_js.html %}
-
 <script>
+  var boxes = '{{boxes}}';
+  $.cut.create({
+    '{{box_type}}Mode': true,
+    name: '{{box_type}}_{{name}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    scrollContainer: '.bd-container',
+    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
+    chars: boxes
+  });
+  $.cut.bindKeys();
+
+  // 帮助
   $('.btn-help').click(function () {
     swal({
       title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
-      text: '<ul>' + [
+      text: '<ul class="help">' + [
         '1~5：页面放大', 'shift+5~9：页面缩小', '+/-：逐级缩放',
         '方向键：在字框间导航', 'w a s d：移动当前字框',
         'alt+方向键：缩小字框', 'shift+方向键：放大字框',
         'insert或n：增加字框', 'DEL：删除当前字框',
         'z：撤销', 'r：重做', 'ESC：放弃拖拽改动'
       ].map(function (t) {
-        return '<li>' + t + '</li>';
+        var ts = t.split('：');
+        return '<li>' + '<span class="head">' + ts[0] + ':</span>' + '<span>' + ts[1] + '</span>' + '</li>';
       }).join('') + '</ul>'
     });
   });
 </script>
+{% include task_cut_js.html %}
+
 </body>
 </html>
