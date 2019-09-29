@@ -12,6 +12,6 @@ handlers = [
     api_publish.GetReadyPagesApi, api_publish.PublishTasksPageNamesApi, api_publish.PublishTasksPagePrefixApi,
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveTextHardApi,
     api_text.GetCompareTextApi, api_text.GetCompareNeighborApi,
-    api_cut.SaveCutApi, api_cut.SaveEditApi
+    api_cut.SaveCutApi, api_cut.SaveCutEditApi
 ]
 modules = {'TextArea': view_text.TextArea}

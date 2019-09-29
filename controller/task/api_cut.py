@@ -66,7 +66,7 @@ class SaveCutApi(SubmitTaskApi):
             self.send_db_error(e)
 
 
-class SaveEditApi(SubmitTaskApi):
+class SaveCutEditApi(SubmitTaskApi):
     URL = '/api/data/cut_edit/@page_name'
 
     def post(self, page_name):
