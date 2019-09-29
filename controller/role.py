@@ -57,6 +57,9 @@ role_maps = {
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
+            '/data/ocr': ['GET'],
+            '/data/ocr/@img_file': ['GET'],
+            '/api/data/ocr': ['POST'],
             '/data/punctuation': ['GET'],
             '/api/data/punctuation': ['POST'],
             '/data/cbeta_search': ['GET'],
@@ -85,6 +88,26 @@ role_maps = {
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update)/cut_review/@page_name': ['GET'],
             '/api/task/(do|update|return|unlock)/cut_review/@page_name': ['POST'],
+        }
+    },
+    'OCR校对员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_proof': ['GET'],
+            '/api/task/pick/ocr_proof': ['POST'],
+            '/task/(do|update)/ocr_proof/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_proof/@page_name': ['POST'],
+        }
+    },
+    'OCR审定员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/task/(lobby|my)/ocr_review': ['GET'],
+            '/api/task/pick/ocr_review': ['POST'],
+            '/task/(do|update)/ocr_review/@page_name': ['GET'],
+            '/api/task/(do|update|return|unlock)/ocr_review/@page_name': ['POST'],
         }
     },
     '切分专家': {

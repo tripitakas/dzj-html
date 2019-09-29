@@ -16,7 +16,7 @@ class GetReadyPagesApi(TaskHandler):
     URL = '/api/task/ready_pages/@task_type'
 
     def post(self, task_type):
-        """ 任务管理中，获取已就绪的页面列表 """
+        """ 任务管理中，获取已就绪或被退回的页面列表 """
         assert task_type in self.task_types.keys()
         try:
             data = self.get_request_data()
@@ -29,16 +29,22 @@ class GetReadyPagesApi(TaskHandler):
             if not condition['name']:
                 del condition['name']
 
+            status_field = 'tasks.%s.status' % task_type
             condition.update({'$or': [
-                {'tasks.%s.status' % task_type: self.STATUS_READY},
-                {'tasks.%s.status' % task_type: None}
+                {status_field: self.STATUS_READY},
+                {status_field: self.STATUS_RETURNED},
+                {status_field: None}
             ]})
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
             count = self.db.page.count_documents(condition)
-            pages = self.db.page.find(condition, {'name': 1}).limit(page_size).skip(page_size * (page_no - 1))
-            pages = [p['name'] for p in pages]
+            pages = list(self.db.page.find(condition, {'name': 1, status_field: 1}).limit(page_size).skip(
+                page_size * (page_no - 1)))
+            pages, statuses = [p['name'] for p in pages], [self.prop(p, status_field) for p in pages]
+            for i, s in enumerate(statuses):
+                if s == self.STATUS_RETURNED:
+                    pages[i] = '%s (退回)' % pages[i]
             response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
         except DbError as err:
@@ -46,9 +52,9 @@ class GetReadyPagesApi(TaskHandler):
 
 
 class PublishTasksApi(TaskHandler):
-    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
-    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
-    MAX_PUBLISH_RECORDS = 50000  # 用户单次发布任务最大值
+    MAX_IN_FIND_RECORDS = 50000     # Mongodb单次in查询的最大值
+    MAX_UPDATE_RECORDS = 10000      # Mongodb单次update的最大值
+    MAX_PUBLISH_RECORDS = 50000     # 用户单次发布任务最大值
 
     def publish_task(self, task_type, pre_tasks, sub_steps, priority, force=False, page_names=None, pages=None):
         """ 发布某个任务类型的任务。

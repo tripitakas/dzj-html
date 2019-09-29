@@ -30,6 +30,10 @@ class TaskAdminHandler(TaskHandler):
 
     def get(self, task_type):
         """ 任务管理 """
+
+        def is_enabled(mod):
+            return not self.config.get('disable_modules') or mod not in self.config['disable_modules']
+
         try:
             q = self.get_query_argument('q', '').upper()
             status = self.get_query_argument('status', '')
@@ -41,7 +45,7 @@ class TaskAdminHandler(TaskHandler):
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
-                        default_pre_tasks=self.default_pre_tasks.get(task_type, {}),
+                        default_pre_tasks=self.default_pre_tasks.get(task_type, {}), is_enabled=is_enabled,
                         default_steps=self.default_steps.get(task_type, {}))
         except Exception as e:
             return self.send_db_error(e, render=True)

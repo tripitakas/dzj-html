@@ -123,6 +123,9 @@ class DataPageHandler(BaseHandler):
             condition = {"$or": [
                 {"name": {'$regex': '.*%s.*' % q}},
             ]}
+            source = self.get_query_argument('source', '')
+            if source:
+                condition['source'] = source
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             item_count = self.db.page.count_documents(condition)
@@ -131,7 +134,7 @@ class DataPageHandler(BaseHandler):
             query = self.db.page.find(condition)
             pages = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_page.html', q=q, pages=pages, pager=pager)
+            self.render('data_page.html', q=q, pages=pages, pager=pager, source=source)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
