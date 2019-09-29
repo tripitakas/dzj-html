@@ -43,6 +43,39 @@
       margin: 0;
       border-top: 1px solid #ccc;
     }
+
+    .sty-table td.returned {
+      cursor: pointer;
+    }
+
+    .sty-table td .page-name {
+      color: #333333;
+      font-size: 14px;
+    }
+
+    .sty-table td.unready {
+      color: #333333;
+    }
+
+    .sty-table td.ready {
+      color: #666666;
+    }
+
+    .sty-table td.pending {
+      color: #D2691E;
+    }
+
+    .sty-table td.opened {
+      color: #8B4513;
+    }
+
+    .sty-table td.picked {
+      color: #FF0000;
+    }
+
+    .sty-table td.finished {
+      color: #228B22;
+    }
   </style>
 
 </head>
@@ -121,8 +154,10 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}" class="task-tr">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
-                      <td>{{t['name']}}</td>
-                      <td>{{Th.status_names.get(Th.prop(t, 'tasks.%s.status' % task_type)) or ''}}</td>
+                      <td><a class="page-name" href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
+                      {% set status = Th.prop(t, 'tasks.%s.status' % task_type) %}
+                      {% set reason = Th.prop(t, 'tasks.%s.returned_reason' % task_type) or '' %}
+                      <td class="{{status}}" title="{{reason}}">{{Th.status_names.get(status) or ''}}</td>
                       <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                       <td>
                         {% set sub_steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
@@ -142,7 +177,7 @@
                         {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['ready'] %}
                         <a class="reset" onclick=reset('{{task_type}}','{{t["name"]}}')>重置</a>
                         {% end %}
-                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending'] %}
+                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending', 'returned'] %}
                         <a class="withdraw" onclick=withdraw('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>
@@ -272,7 +307,7 @@
 
 <script>
   // 全选
-  $('#checkbox-all').click(function() {
+  $('#checkbox-all').click(function () {
     var $items = $(".task-tr [type='checkbox']");
     if (!this.checked) {
       $items.removeAttr('checked');
@@ -598,6 +633,15 @@
           location.reload();
         }
       }, 1000);
+    });
+  });
+
+  // 显示退回理由
+  $('.sty-table td.returned').click(function () {
+    swal({
+      title: "退回理由", text: $(this).attr('title'),
+      showConfirmButton: false, showCancelButton: true,
+      cancelButtonText: "关闭", cancelButtonColor: "#b8906f"
     });
   });
 

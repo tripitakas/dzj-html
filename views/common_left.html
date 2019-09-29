@@ -47,7 +47,9 @@
   });
 
   $(document).ready(function () {
-    var cur_menu = $(location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-'));
+    var id = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    id = id.replace('-2', '-1').replace('-3', '-1');
+    var cur_menu = $(id);
     cur_menu.addClass('sub-active');
     cur_menu.parent().removeClass('sub-ul-hidden');
   });

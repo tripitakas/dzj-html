@@ -595,6 +595,7 @@ a:hover {
     font-size: 12px;
     margin-right: 10px;
     color: #B8906F;
+    cursor: pointer;
 }
 
 .sty-table td a:hover {

@@ -105,25 +105,25 @@ $('.m-header .btn-ed-box').click(function () {
 // 查看栏框
 $('.show-block-box').click(function () {
   var page_code = $('.m-pager .btn-page.to input').attr('title').trim();
-  window.location = '/task/block_cut_proof/' + page_code;
+  window.location = '/task/cut_proof/' + page_code + '?step=block_box';
 });
 
 // 查看列框
 $('.show-column-box').click(function () {
   var page_code = $('.m-pager .btn-page.to input').attr('title').trim();
-  window.location = '/task/column_cut_proof/' + page_code;
+  window.location = '/task/cut_proof/' + page_code + '?step=column_box';
 });
 
 // 查看字框
 $('.show-char-box').click(function () {
   var page_code = $('.m-pager .btn-page.to input').attr('title').trim();
-  window.location = '/task/char_cut_proof/' + page_code;
+  window.location = '/task/cut_proof/' + page_code + '?step=char_box';
 });
 
 // 查看字序
 $('.show-order-box').click(function () {
   var page_code = $('.m-pager .btn-page.to input').attr('title').trim();
-  window.location = '/task/char_cut_proof/order/' + page_code;
+  window.location = '/task/cut_proof/' + page_code + '?step=char_order';
 });
 
 // 增加文本字号

@@ -61,7 +61,7 @@ class TaskHandler(BaseHandler):
 
     """ 数据锁介绍
     1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-      1.tasks。同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
+      1.tasks。同一page的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof_1对chars而言）
       2.roles。数据专家角色对所有page的授权字段
     2）数据锁的类型：
       1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
