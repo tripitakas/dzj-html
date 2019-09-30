@@ -91,7 +91,7 @@ class CutHandler(TaskHandler):
 
     def char_order(self, task_type, page, mode, steps):
         readonly = not self.check_auth(mode, page, task_type)
-        kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)), **{})
+        kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)))
         self.render(
             'task_char_order.html', page=page, name=page['name'], task_type=task_type, readonly=readonly, mode=mode,
             box_version=1, boxes=page.get('chars'), box_type='char', sub_title=self.default_steps['char_box'],
@@ -123,7 +123,7 @@ class OCRHandler(TaskHandler):
 
             mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
             readonly = not self.check_auth(mode, page, ocr_type)
-            kwargs = CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **{})
+            kwargs = CutHandler.char_render(page, int(self.get_query_argument('layout', 0)))
             self.render(
                 'task_ocr_do.html', page=page, name=page['name'], task_type=ocr_type, readonly=readonly, mode=mode,
                 box_version=1, box_type='char', boxes=page.get('chars'), get_img=self.get_img, steps=dict(),
