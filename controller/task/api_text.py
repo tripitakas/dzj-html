@@ -12,7 +12,7 @@ from controller.data.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
 from controller.task.api_base import SubmitTaskApi
-from controller.task.view_text import TextBaseHandler, TextProofHandler
+from controller.task.view_text import TextTools, TextProofHandler
 from controller.data.esearch import find_one, find_neighbor
 
 
@@ -99,10 +99,12 @@ class SaveTextProofApi(SubmitTaskApi):
             self.send_db_error(e)
 
     def save_compare_text(self, num, page, mode, data):
+        # 保存数据
         task_type = 'text_proof_' + num
-        update = {'tasks.%s.updated_time' % task_type: datetime.now()}
-        data_field = TextBaseHandler.compare_fields.get(task_type)
-        update.update({data_field: data['cmp'].strip('\n')})
+        update = {'tasks.%s.cmp' % task_type: data['cmp'].strip('\n')}
+        update.update({'tasks.%s.updated_time' % task_type: datetime.now()})
+
+        # 提交步骤
         if data.get('submit'):
             submitted = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
             if data['step'] not in submitted:
@@ -118,12 +120,10 @@ class SaveTextProofApi(SubmitTaskApi):
         # 保存数据
         ret = {'updated': True}
         task_type = 'text_proof_' + num
-        assert task_type in self.text_task_names()
         doubt = data.get('doubt', '').strip('\n')
         update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
         txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-        data_field = TextBaseHandler.result_fields.get(task_type)
-        update.update({data_field: txt_html})
+        update.update({'tasks.%s.txt_html' % task_type: txt_html})
         r = self.db.page.update_one({'name': page_name}, {'$set': update})
         if r.modified_count:
             self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
@@ -155,10 +155,9 @@ class SaveTextReviewApi(SubmitTaskApi):
             doubt = data.get('doubt', '').strip('\n')
             update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
             txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-            data_field = TextBaseHandler.result_fields.get(task_type)
             if txt_html:
-                update.update({data_field: txt_html})
-                update.update({'text': TextBaseHandler.get_txt_from_html(txt_html)})
+                update.update({'txt_html': txt_html})
+                update.update({'text': TextTools.html2txt(txt_html)})
 
             # 生成难字任务
             if mode == 'do' and data.get('submit') and doubt:
@@ -199,10 +198,9 @@ class SaveTextHardApi(SubmitTaskApi):
             data = self.get_request_data()
             update = {'tasks.%s.updated_time' % task_type: datetime.now()}
             txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-            data_field = TextBaseHandler.result_fields.get(task_type)
             if txt_html:
-                update.update({data_field: txt_html})
-                update.update({'text': TextBaseHandler.get_txt_from_html(txt_html)})
+                update.update({'txt_html': txt_html})
+                update.update({'text': TextTools.html2txt(txt_html)})
 
             r = self.db.page.update_one({'name': page_name}, {'$set': update})
             if r.modified_count:

@@ -16,7 +16,7 @@ class GetReadyPagesApi(TaskHandler):
     URL = '/api/task/ready_pages/@task_type'
 
     def post(self, task_type):
-        """ 任务管理中，获取已就绪或被退回的页面列表 """
+        """ 任务管理中，获取已就绪的页面列表 """
         assert task_type in self.task_types.keys()
         try:
             data = self.get_request_data()
@@ -30,11 +30,7 @@ class GetReadyPagesApi(TaskHandler):
                 del condition['name']
 
             status_field = 'tasks.%s.status' % task_type
-            condition.update({'$or': [
-                {status_field: self.STATUS_READY},
-                {status_field: self.STATUS_RETURNED},
-                {status_field: None}
-            ]})
+            condition.update({status_field: self.STATUS_READY})
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
@@ -42,9 +38,6 @@ class GetReadyPagesApi(TaskHandler):
             pages = list(self.db.page.find(condition, {'name': 1, status_field: 1}).limit(page_size).skip(
                 page_size * (page_no - 1)))
             pages, statuses = [p['name'] for p in pages], [self.prop(p, status_field) for p in pages]
-            for i, s in enumerate(statuses):
-                if s == self.STATUS_RETURNED:
-                    pages[i] = '%s (退回)' % pages[i]
             response = {'pages': pages, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
         except DbError as err:
@@ -52,9 +45,9 @@ class GetReadyPagesApi(TaskHandler):
 
 
 class PublishTasksApi(TaskHandler):
-    MAX_IN_FIND_RECORDS = 50000     # Mongodb单次in查询的最大值
-    MAX_UPDATE_RECORDS = 10000      # Mongodb单次update的最大值
-    MAX_PUBLISH_RECORDS = 50000     # 用户单次发布任务最大值
+    MAX_IN_FIND_RECORDS = 50000  # Mongodb单次in查询的最大值
+    MAX_UPDATE_RECORDS = 10000  # Mongodb单次update的最大值
+    MAX_PUBLISH_RECORDS = 50000  # 用户单次发布任务最大值
 
     def publish_task(self, task_type, pre_tasks, sub_steps, priority, force=False, page_names=None, pages=None):
         """ 发布某个任务类型的任务。
@@ -75,13 +68,13 @@ class PublishTasksApi(TaskHandler):
         if pages:
             log['un_ready'], pages = self.filter_task(pages, {task_type: [self.STATUS_UNREADY, None]})
 
-        # 不强制发布时，检查已发布的页面（状态为OPENED\PENDING\PICKED\RETURNED\FINISHED）
+        # 不强制发布时，检查已发布的页面，包括已退回的页面（状态为OPENED\PENDING\PICKED\RETURNED\FINISHED）
         if not force and pages:
             log['published_before'], pages = self.filter_task(pages, {task_type: [
                 self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_RETURNED, self.STATUS_FINISHED
             ]})
 
-        # 发布页面任务
+        # 发布剩下的页面
         if pages:
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
@@ -131,15 +124,10 @@ class PublishTasksApi(TaskHandler):
             for names in lst:
                 condition = {'name': {'$in': names}, 'tasks.%s.status' % task_type: {
                     '$nin': [self.STATUS_UNREADY, None]}}
-                r = self.db.page.update_many(condition, {'$set': {
-                    'tasks.%s.status' % task_type: status,
-                    'tasks.%s.priority' % task_type: int(priority),
-                    'tasks.%s.steps.todo' % task_type: sub_steps,
-                    'tasks.%s.pre_tasks' % task_type: pre_tasks,
-                    'tasks.%s.publish_time' % task_type: publish_time,
-                    'tasks.%s.publish_user_id' % task_type: self.current_user['_id'],
-                    'tasks.%s.publish_by' % task_type: self.current_user['name'],
-                }})
+                meta = dict(status=status, priority=int(priority), steps=dict(todo=sub_steps), pre_tasks=pre_tasks,
+                            publish_time=publish_time, publish_user_id=self.current_user['_id'],
+                            publish_by=self.current_user['name'])
+                r = self.db.page.update_many(condition, {'$set': {'tasks.%s' % task_type: meta}})
                 if r.matched_count != len(names):
                     condition.update({
                         'tasks.%s.status' % task_type: status,

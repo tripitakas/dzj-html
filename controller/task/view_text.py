@@ -13,46 +13,9 @@ from controller.task.view_cut import CutHandler
 from controller.data.diff import Diff
 
 
-class TextBaseHandler(TaskHandler):
-    compare_fields = {'text_proof_1': 'cmp1', 'text_proof_2': 'cmp2', 'text_proof_3': 'cmp3'}
-    result_fields = {'text_proof_1': 'txt1_html', 'text_proof_2': 'txt2_html', 'text_proof_3': 'txt3_html',
-                     'text_review': 'txt_html', 'text_hard': 'txt_html'}
-
-    def get_segments(self, page, task_type):
-        if 'proof' in task_type:
-            base = page.get('ocr').replace('|', '\n')
-            cmp = self.prop(page, self.compare_fields.get(task_type))
-            segments = Diff.diff(base, cmp or base, label=dict(cmp1='cmp'))[0]
-        else:
-            txt1 = self.get_txt_from_html(page.get('txt1_html'))
-            txt2 = self.get_txt_from_html(page.get('txt2_html'))
-            txt3 = self.get_txt_from_html(page.get('txt3_html'))
-            segments = Diff.diff(txt1, txt2 or txt1, txt3 or txt1)[0]
-        return segments
-
-    def get_texts(self, page, task_type):
-        if 'proof' in task_type:
-            ocr = page.get('ocr').replace('|', '\n')
-            cmp = self.prop(page, self.compare_fields.get(task_type))
-            texts = dict(ocr=ocr, cmp=cmp)
-        else:
-            txt1 = self.get_txt_from_html(page.get('txt1_html'))
-            txt2 = self.get_txt_from_html(page.get('txt2_html'))
-            txt3 = self.get_txt_from_html(page.get('txt3_html'))
-            texts = dict(cmp1=txt1, cmp2=txt2, cmp3=txt3)
-        return texts
-
-    def get_labels(self, page, task_type):
-        if 'proof' in task_type:
-            labels = dict(base='OCR', cmp='比对本')
-        else:
-            labels = dict(base='校一', cmp1='校二')
-            if len(self.prop(page, 'tasks.text_review.pre_tasks') or []) > 2:
-                labels['cmp2'] = '校三'
-        return labels
-
-    @staticmethod
-    def get_txt_from_html(html):
+class TextTools(object):
+    @classmethod
+    def html2txt(cls, html):
         lines = []
         regex = re.compile("<li.*?>.*?</li>", re.M | re.S)
         for line in regex.findall(html):
@@ -61,9 +24,31 @@ class TextBaseHandler(TaskHandler):
                 lines.append(txt + '\n')
         return ''.join(lines)
 
+    @classmethod
+    def get_texts(cls, page, task_type):
+        if 'text_proof' in task_type:
+            ocr = re.sub(r'\|+', '\n', page.get('ocr') or '')
+            cmp1, cmp2 = TaskHandler.prop(page, 'tasks.%s.cmp' % task_type), ''
+            if cmp1 and isinstance(cmp1, list):
+                cmp1 = cmp1[0]
+                cmp2 = cmp1[1] if len(cmp1) > 1 else ''
+            texts = dict(base=ocr, cmp1=cmp1, cmp2=cmp2)
+        else:
+            base = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.cmp'))
+            cmp1 = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.cmp'))
+            cmp2 = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.cmp'))
+            texts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
+        return texts
+
+    @classmethod
+    def get_segments(cls, page, task_type):
+        texts = cls.get_texts(page, task_type)
+        segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
+        return segments
+
     @staticmethod
-    def check_segments(segments, chars, params=None):
-        """ 检查segments """
+    def format_segments(segments, chars, params=None):
+        """ 格式化segments """
         params = params or {}
 
         # 按列对字框分组，提取列号
@@ -72,8 +57,7 @@ class TextBaseHandler(TaskHandler):
 
         # 然后逐行对应并分配栏列号，匹配时不做文字比较
         # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
-        line_no = 0
-        matched_boxes = []
+        line_no, matched_boxes = 0, []
         for seg in segments:
             if seg['line_no'] > len(column_ids):
                 break
@@ -115,7 +99,7 @@ class TextBaseHandler(TaskHandler):
             c.pop('char_no', 0)
 
 
-class TextProofHandler(TextBaseHandler):
+class TextProofHandler(TaskHandler, TextTools):
     URL = ['/task/text_proof_@num/@page_name',
            '/task/do/text_proof_@num/@page_name',
            '/task/update/text_proof_@num/@page_name']
@@ -135,7 +119,7 @@ class TextProofHandler(TextBaseHandler):
             if steps['current'] == 'select_compare_text':
                 self.select_compare_text(task_type, page, mode, steps)
             else:
-                self.proof(task_type, page, mode, steps)
+                self.proofread(task_type, page, mode, steps)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -165,31 +149,31 @@ class TextProofHandler(TextBaseHandler):
 
     def select_compare_text(self, task_type, page, mode, steps):
         readonly = not self.check_auth(mode, page, task_type)
-        cmp = page.get(self.compare_fields[task_type])
+        cmp = self.prop(page, 'tasks.%s.cmp' % task_type)
+        num = task_type.replace('text_proof_', '')
         self.render(
             'task_text_select_compare.html',
-            task_type=task_type, page=page, mode=mode, num=task_type.replace('text_proof_', ''), steps=steps,
-            ocr=page.get('ocr'), cmp=cmp, readonly=readonly, get_img=self.get_img,
+            task_type=task_type, page=page, mode=mode, readonly=readonly, num=num, steps=steps,
+            ocr=page.get('ocr'), cmp=cmp, get_img=self.get_img,
         )
 
-    def proof(self, task_type, page, mode, steps):
+    def proofread(self, task_type, page, mode, steps):
         readonly = not self.check_auth(mode, page, task_type)
         doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
         params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-        cmp_data = page.get(self.result_fields[task_type])
+        texts = self.get_texts(page, task_type)
+        cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
         if not cmp_data:
-            segments = self.get_segments(page, task_type)
-            cmp_data = self.check_segments(segments, page['chars'], params)
+            segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
+            cmp_data = self.format_segments(segments, page['chars'], params)
         self.render(
-            'task_text_do.html',
-            task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly, steps=steps,
-            txts=self.get_texts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
-            **params
+            'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
+            texts=texts, cmp_data=cmp_data, doubt=doubt, steps=steps, get_img=self.get_img, **params
         )
 
 
-class TextReviewHandler(TextBaseHandler):
+class TextReviewHandler(TaskHandler, TextTools):
     URL = ['/task/text_review/@page_name',
            '/task/do/text_review/@page_name',
            '/task/update/text_review/@page_name',
@@ -213,24 +197,23 @@ class TextReviewHandler(TextBaseHandler):
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
             CutHandler.char_render(page, layout, **params)
-            cmp_data = page.get(self.result_fields[task_type])
+            texts = self.get_texts(page, task_type)
+            cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
             if not cmp_data:
-                segments = self.get_segments(page, task_type)
-                cmp_data = self.check_segments(segments, page['chars'], params)
+                segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
+                cmp_data = self.format_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_do.html',
-                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                proof_doubt=proof_doubt, get_img=self.get_img, txts=self.get_texts(page, task_type),
-                labels=self.get_labels(page, task_type), steps=dict(is_first=True, is_last=True),
-                **params
+                'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
+                texts=texts, cmp_data=cmp_data, doubt=doubt, proof_doubt=proof_doubt, get_img=self.get_img,
+                steps=dict(is_first=True, is_last=True), **params
             )
 
         except Exception as e:
             self.send_db_error(e, render=True)
 
 
-class TextHardHandler(TextBaseHandler):
+class TextHardHandler(TaskHandler, TextTools):
     URL = ['/task/text_hard/@page_name',
            '/task/do/text_hard/@page_name',
            '/task/update/text_hard/@page_name']
@@ -247,15 +230,11 @@ class TextHardHandler(TextBaseHandler):
             readonly = not self.check_auth(mode, page, task_type)
             doubt = self.prop(page, 'tasks.text_review.doubt')
             params = dict(mismatch_lines=[])
-            layout = int(self.get_query_argument('layout', 0))
-            CutHandler.char_render(page, layout, **params)
-            cmp_data = page.get(self.result_fields[task_type])
-
+            CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
+            cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
             self.render(
-                'task_text_do.html',
-                task_type=task_type, page=page, cmp_data=cmp_data, doubt=doubt, mode=mode, readonly=readonly,
-                txts=self.get_texts(page, task_type), get_img=self.get_img, labels=self.get_labels(page, task_type),
-                **params
+                'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
+                cmp_data=cmp_data, doubt=doubt, get_img=self.get_img, **params
             )
 
         except Exception as e:
@@ -266,11 +245,8 @@ class TextArea(UIModule):
     """文字校对的文字区"""
 
     def render(self, segments, raw=False):
-        cur_line_no = 0
-        items = []
-        lines = []
+        cur_line_no, items, lines = 0, [], []
         blocks = [dict(block_no=1, lines=lines)]
-
         for item in segments:
             if isinstance(item.get('ocr'), list):
                 item['unicode'] = item['ocr']
@@ -287,10 +263,8 @@ class TextArea(UIModule):
                 item['offset'] = 0
             elif items:
                 item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
-                items.append(item)
+                if item['base'] != '\n':
+                    items.append(item)
             item['block_no'] = blocks[-1]['block_no']
 
-        cmp_names = dict(base='基准', cmp='外源', cmp1='校一', cmp2='校二', cmp3='校三')
-        if raw:
-            return dict(blocks=blocks, cmp_names=cmp_names)
-        return self.render_string('task_text_area.html', blocks=blocks, cmp_names=cmp_names)
+        return dict(blocks=blocks) if raw else self.render_string('task_text_area.html', blocks=blocks)

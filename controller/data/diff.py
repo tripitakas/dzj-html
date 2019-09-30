@@ -6,6 +6,7 @@
 """
 import re
 from controller.data.variant import is_variant
+
 try:
     from cdifflib import CSequenceMatcher
 except ImportError:  # Windows上跳过安装cdifflib
@@ -30,6 +31,8 @@ class Diff(object):
         if label:
             lbl.update(label)
         base = Diff.pre_ocr(base)
+        if not cmp1:
+            return Diff._diff_one(base, {'base': lbl['base']}), []
         ret = Diff._diff(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
         err = []
         if cmp2:
@@ -41,6 +44,30 @@ class Diff(object):
             ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
             err.extend(_err)
         return ret, err
+
+    @classmethod
+    def _diff_one(cls, base, label=None):
+        """ 将单独一份文本按照diff格式输出 """
+        lbl = {'base': 'base'}
+        if label:
+            lbl.update(label)
+        ret, line_no = [], 1
+        for line in base.split('\n'):
+            ret.append({'line_no': line_no, 'is_same': True, lbl['base']: line})
+            ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
+            line_no += 1
+
+        # 设置起止位置
+        line_no, start = 1, 0
+        for r in ret:
+            if r['line_no'] != line_no:  # 换行
+                line_no += 1
+                start = 0
+            end = start + len(r[lbl['base']])
+            r['range'] = (start, end)
+            start = end
+        return ret
+
 
     @classmethod
     def _diff(cls, base, cmp, check_variant=True, label=None):
@@ -60,7 +87,7 @@ class Diff(object):
                         t2 = ''
                     elif k == len(lst1) - 1 and t2:
                         ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
-                    if k < len(lst1) - 1:   # 换行
+                    if k < len(lst1) - 1:  # 换行
                         ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
                         line_no += 1
             else:
@@ -122,13 +149,13 @@ class Diff(object):
             if s == e:  # 点位置
                 if not merge_pos or (merge_pos and s >= merge_pos[-1][1]):
                     merge_pos.append((s, e))
-            else:   # 字位置
+            else:  # 字位置
                 if merge_pos:
                     _s, _e = merge_pos[-1]
                     # assert _s <= s
                     if _e < s:  # 没有交集，直接插入
                         merge_pos.append((s, e))
-                    else:   # 有交集，弹出最后一个元素，插入二者并集
+                    else:  # 有交集，弹出最后一个元素，插入二者并集
                         merge_pos.pop()
                         merge_pos.append((_s, e if e > _e else _e))
                 else:

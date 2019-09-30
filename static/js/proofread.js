@@ -5,6 +5,7 @@
  */
 
 /*-----------切分字框相关代码----------------*/
+
 var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
 var showOrder = false;                    // 是否显示字框对应序号
@@ -23,12 +24,6 @@ function findBestBoxes(offset, block_no, line_no, cmp) {
       }
     }
   });
-}
-
-function unicodeValuesToText(values) {
-  return values.map(function (c) {
-    return /^[A-Za-z0-9?*]$/.test(c) ? c : c.length > 2 ? decodeURIComponent(c) : ' ';
-  }).join('');
 }
 
 function getLineText($line) {
@@ -71,7 +66,7 @@ function getCursorPosition(element) {
   return caretOffset;
 }
 
-// 高亮一行中字组元素对应的字框
+// 点击文字区域时，高亮文字所对应的字框
 function highlightBox($span, first) {
   if (!$span) {
     $span = currentSpan[0];
@@ -112,8 +107,7 @@ function highlightBox($span, first) {
     }
     if (boxes.length > 1) {
       boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, chTmp) || boxes[0];
-    }
-    else if (!boxes.length) {
+    } else if (!boxes.length) {
       boxes = $.cut.findCharsByLine(block_no, line_no, function (ch, box, i) {
         return i === offsetInLine;
       });
@@ -154,83 +148,34 @@ function highlightBox($span, first) {
 
 /*-----------文本区域相关代码----------------*/
 
-// 检查图文匹配，针对字数不匹配的行加下划线
-function checkMismatch(report) {
-  var mismatch = [];
-  var total = '', ocrColumns = [];
-  var lineNos = $('#sutra-text .line').map(function () {
-    var blockNo = parseInt($(this).parent().attr('id').replace(/[^0-9]/g, ''));
-    var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
-    return {blockNo: blockNo, lineNo: lineNo};
-  }).get();
-
-  $.cut.data.chars.forEach(function (c) {
-    if (c.shape && c.line_no) {
-      var t = c.block_no + ',' + c.line_no;
-      if (ocrColumns.indexOf(t) < 0) {
-        ocrColumns.push(t);
-      }
-    }
-  });
-  if (ocrColumns.length !== lineNos.length) {
-    total = '文本 ' + lineNos.length + ' 行，图像 ' + ocrColumns.length + ' 行。';
-  }
-  lineNos.forEach(function (no) {
-    var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
-    var $line = $('#block-' + no.blockNo + ' #line-' + no.lineNo);
-    var text = $line.text().replace(/\s/g, '');
-    var len = getLineText($line).length;
-    $line.toggleClass('mismatch', boxes.length !== len);
-    if (boxes.length !== len) {
-      mismatch.push('第 ' + no.lineNo + ' 行，文本 ' + len + ' 字，图像 ' + boxes.length +
-          ' 字。\n' + text + '\n');
-    }
-  });
-  if (report && (total || mismatch.length)) {
-    swal('图文不匹配', total + '\n' + mismatch.join('\n'));
-  }
-}
-
-$(document).ready(function () {
-  checkMismatch();
-});
-
-$(document).on('click', '.btn-check', function () {
-  checkMismatch(true);
-});
-
 // 单击异文，弹框提供选择
 $(document).on('click', '.not-same', function (e) {
   e.stopPropagation();
-  highlightBox($(this), true);
 
-  // 如果是异体字且当前异体字状态是隐藏，则直接返回
-  if ($(this).hasClass('variant') && !$(this).hasClass('variant-highlight')) {
-    return;
-  }
+  // 设置当前span
+  $('.current-span').attr("contentEditable", "false");
+  $('.current-span').removeClass("current-span");
+  $(this).addClass('current-span');
 
   // 设置当前异文
-  $('.not-same').removeClass('current-not-same');
+  $(".current-not-same").removeClass('current-not-same');
   $(this).addClass('current-not-same');
 
-
-  var $dlg = $("#pfread-dialog");
   $("#pfread-dialog-cmp").text($(this).attr("cmp"));
   $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
   $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
   $("#pfread-dialog-base").text($(this).attr("base"));
   $("#pfread-dialog-slct").text($(this).text());
 
-  $dlg.show();
+  var $dlg = $("#pfread-dialog");
   $dlg.offset({top: $(this).offset().top + 40, left: $(this).offset().left - 4});
+  $dlg.show();
 
   //当弹框超出文字框时，向上弹出
   var r_h = $(".right.fr").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
-
   var shouldUp = false;
-
   $('.dialog-abs').removeClass('dialog-common-t');
   $('.dialog-abs').addClass('dialog-common');
   if (o_t + d_h > r_h) {
@@ -264,21 +209,19 @@ $(document).on('click', '.not-same', function (e) {
     $mark.css('marginLeft', parseInt(ml) - offset);
   }
 
-  // 隐藏当前可编辑同文
-  var $curSpan = $('.current-span');
-  $curSpan.attr("contentEditable", "false");
-  $curSpan.removeClass("current-span");
+  // 高亮字框
+  highlightBox($(this));
 
 });
 
-// 单击同文，显示当前span
+// 单击同文，设置当前span
 $(document).on('click', '.same', function () {
-  $(".same").removeClass("current-span");
+  $(".current-span").removeClass("current-span");
   $(this).addClass("current-span");
   highlightBox($(this));
 });
 
-// 双击同文，设置可编辑
+// 双击同文，设置为可编辑
 $(document).on('dblclick', '.same', function () {
   $(".same").attr("contentEditable", "false");
   $(this).attr("contentEditable", "true");
@@ -292,13 +235,6 @@ $(document).on('click', '.pfread .right', function (e) {
     $("#pfread-dialog").offset({top: 0, left: 0});
     $("#pfread-dialog").hide();
   }
-  // 取消当前可编辑同文
-  var $curSpan = $('.current-span');
-  var _con2 = $curSpan;
-  if (!_con2.is(e.target) && _con2.has(e.target).length === 0) {
-    $curSpan.attr("contentEditable", "false");
-    $curSpan.removeClass("current-span");
-  }
 });
 
 // 滚动文本区滚动条
@@ -308,22 +244,21 @@ $('.pfread .right').scroll(function () {
 });
 
 // 点击异文选择框的各个选项
-$(document).on('click', '#pfread-dialog-base, #pfread-dialog-cmp, #pfread-dialog-cmp1, #pfread-dialog-cmp2',
-    function () {
-      $('#pfread-dialog-slct').text($(this).text());
-    }
-);
+$(document).on('click', '#pfread-dialog .option', function () {
+  $('#pfread-dialog-slct').text($(this).text());
+});
 
 $(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function () {
-  $('.current-not-same').text($(this).text());
+  $('.current-not-same').text($(this).text()).addClass('selected');
   if ($(this).text() === '') {
-    $('.current-not-same').addClass('emptyplace');
+    $('.current-not-same').addClass('empty-place');
   } else {
-    $('.current-not-same').removeClass('emptyplace');
+    $('.current-not-same').removeClass('empty-place');
   }
 });
 
 /*-----------导航条----------------*/
+
 // 缩小画布
 $(document).on('click', '.btn-reduce', function () {
   if ($.cut.data.ratio > 0.5) {
@@ -388,21 +323,18 @@ $(document).on('click', '.btn-txt-hidden', function () {
   highlightBox();
 });
 
-
 // 上一条异文
 function previousDiff() {
   var current = $('.current-not-same');
-  var idx;
-  idx = $('.pfread .right .not-same').index(current);
+  var $notSame = $('.pfread .right .not-same');
+  var idx = $notSame.index(current);
   if (idx < 1) {
     return;
   }
-  $('.pfread .right .not-same').eq(idx - 1).click();
-
+  $notSame.eq(idx - 1).click();
   if ($('.dialog-abs').offset().top < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
   }
-
 }
 
 $(document).on('click', '.btn-previous', previousDiff);
@@ -412,15 +344,12 @@ $.mapKey('tab', previousDiff);
 // 下一条异文
 function nextDiff() {
   var current = $('.current-not-same');
-  var idx, $notSame;
-  $notSame = $('.pfread .right .not-same');
-  idx = $notSame.index(current);
+  var $notSame = $('.pfread .right .not-same');
+  var idx = $notSame.index(current);
   $notSame.eq(idx + 1).click();
-
   if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
   }
-
 }
 
 $(document).on('click', '.btn-next', nextDiff);
@@ -508,8 +437,8 @@ $(document).on('click', '.btn-variants-normal', function () {
 });
 
 // 显示空位符
-$(document).on('click', '.btn-emptyplaces', function () {
-  $('.emptyplace').toggleClass("hidden");
+$(document).on('click', '.btn-empty-places', function () {
+  $('.empty-place').toggleClass("hidden");
 });
 
 // 弹出原文
@@ -517,6 +446,61 @@ $(document).on('click', '.btn-text', function () {
   $('#txtModal').modal();
 });
 
+// 检查图文匹配
+function checkMismatch(report) {
+  var mismatch = [];
+  var total = '', ocrColumns = [];
+  var lineNos = $('#sutra-text .line').map(function () {
+    var blockNo = parseInt($(this).parent().attr('id').replace(/[^0-9]/g, ''));
+    var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
+    return {blockNo: blockNo, lineNo: lineNo};
+  }).get();
+
+  $.cut.data.chars.forEach(function (c) {
+    if (c.shape && c.line_no) {
+      var t = c.block_no + ',' + c.line_no;
+      if (ocrColumns.indexOf(t) < 0) {
+        ocrColumns.push(t);
+      }
+    }
+  });
+  if (ocrColumns.length !== lineNos.length) {
+    total = '总行数#文本' + lineNos.length + '行#图片 ' + ocrColumns.length + '行';
+  }
+  lineNos.forEach(function (no) {
+    var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
+    var $line = $('#block-' + no.blockNo + ' #line-' + no.lineNo);
+    var len = getLineText($line).length;
+    $line.toggleClass('mismatch', boxes.length !== len);
+    if (boxes.length !== len) {
+      mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
+    }
+  });
+  if (report) {
+    if ((total || mismatch.length)) {
+      mismatch.splice(0, 0, total);
+      var text = mismatch.map(function (t) {
+        var ts = t.split('#');
+        return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
+      }).join('');
+      text = '<ul class="help">' + text + '</ul>';
+      // text = '<ul class="help tips"><li><span class="head">总行数:</span><span>' + total + '</span></li>' + text + '</ul>';
+      swal({title: "图文不匹配", text: text, showConfirmButton: false, allowOutsideClick: true, html: true});
+    } else {
+      swal({title: "图文匹配", showConfirmButton: false, allowOutsideClick: true, timer: 500});
+    }
+  }
+}
+
+$(document).ready(function () {
+  checkMismatch();
+});
+
+$(document).on('click', '.btn-check', function () {
+  checkMismatch(true);
+});
+
+/*-----------存疑相关代码----------------*/
 
 // 存疑对话框
 $(document).on('click', '.btn-doubt', function () {
@@ -557,7 +541,6 @@ $(document).on('click', '#doubt_save_btn', function () {
   var offset0 = parseInt($span.attr('offset'));
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
-
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
