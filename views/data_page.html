@@ -63,9 +63,9 @@
                     <tr>
                       <td>{{p.get('name')}}</td>
                       <td>{{'是'}}</td>
-                      <td><a href="/task/block_cut_proof/{{p.get('name')}}">{{'是' if p.get('blocks') else '否'}}</a></td>
-                      <td><a href="/task/column_cut_proof/{{p.get('name')}}">{{'是' if p.get('columns') else '否'}}</a></td>
-                      <td><a href="/task/char_cut_proof/{{p.get('name')}}">{{'是' if p.get('chars') else '否'}}</a></td>
+                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=block_box">{{'是' if p.get('blocks') else '否'}}</a></td>
+                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=column_box">{{'是' if p.get('columns') else '否'}}</a></td>
+                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=char_box">{{'是' if p.get('chars') else '否'}}</a></td>
                       <td><a href="/task/text_proof_1/{{p.get('name')}}">{{'是' if p.get('text') else '否'}}</a></td>
                       <td>{{to_date_str(p.get('create_time'))}}</td>
                       <td>{{p.get('create_by') or ''}}</td>

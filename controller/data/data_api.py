@@ -17,7 +17,7 @@ except Exception:
 
 
 class CbetaSearchApi(BaseHandler):
-    URL = '/api/data/cbeta/search'
+    URL = '/api/data/cbeta_search'
 
     def post(self):
         """ CBETA检索 """

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{th.task_types.get(task_type)}}</title>
+  <title>切分校对-{{name}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -15,7 +14,6 @@
   <style>
     .bd-container {
       max-width: 100%;
-      overflow-x: auto;
     }
   </style>
 </head>
@@ -23,74 +21,55 @@
 <body class="widescreen">
 <div class="app-main">
   <div class="main">
-    <div class="">
-
-      <div class="m-header">
-        <div class="left">
-          <div class="back">
-            {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
-            <a onclick="leave()" title="{{title}}">
-              <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
-            </a>
-          </div>
-          <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-          <div class="help">
-            <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
-          </div>
-          <div class="edit-btns">
-            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
-            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
-            <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
-            <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
-          </div>
-          <div class="slice-btns">
-            <button type="button" class="btn btn-default btn-sm fl" id="hl-pic">图片</button>
-            <div class="btn-group hl-btn">
-              <button type="button" class="btn btn-default btn-sm" id="hl-all">所有<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-overlap">重叠<sup class="s-h-count"></sup></button>
-              {% if box_type == 'char' %}
-              <button type="button" class="btn btn-default btn-sm" id="hl-large">大框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-small">小框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-narrow">窄框<sup class="s-h-count"></sup></button>
-              <button type="button" class="btn btn-default btn-sm" id="hl-flat">扁框<sup class="s-h-count"></sup></button>
-              {% end %}
-            </div>
-          </div>
-        </div><!--left-->
-        <div class="right">
-          {% if readonly %}
-          <div class="tips">
-            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
-          </div>
-          {% end %}
-          <div class="edit-btns">
-            {% if box_type in ['column', 'char'] %}
-            <div class="more">
-              <div class="btn-group more-group hidden" role="group" aria-label="更多">
-                {% set more = dict(column=[('block', '栏框')],char=[('block', '栏框'), ('column', '列框'), ('order', '字序')])%}
-                {% for type,text in more[box_type] %}
-                <button type="button" class="btn btn-default btn-sm ed-{{type}}-box" title="修改{{text}}">{{text}}</button>
-                {% end %}
-              </div>
-              <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
-            </div>
-            {% end %}
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% end %}
-            {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
+    <div class="m-header">
+      <div class="left">
+        <div class="back">
+          {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
+          <a onclick="leave()" title="{{title}}">
+            <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
+          </a>
+        </div>
+        <div class="title" title="{{page['name']}}">切分校对</div>
+        <div class="sub-title">- {{sub_title}}</div>
+        <div class="help">
+          <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
+        </div>
+        <div class="edit-btns">
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
+          <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
+        </div>
+        <div class="slice-btns">
+          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic" title="切换显示或隐藏页面图">图片</button>
+          <div class="btn-group hl-btn">
+            <button type="button" class="btn btn-default btn-sm" id="hl-all" title="切换所有字框的高亮状态">所有<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-overlap" title="切换高亮显示重叠的字框">重叠<sup class="s-h-count"></sup></button>
+            {% if box_type == 'char' %}
+            <button type="button" class="btn btn-default btn-sm" id="hl-large" title="切换高亮显示较大的字框">大框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-small" title="切换高亮显示较小的字框">小框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-narrow" title="切换高亮显示较窄的字框">窄框<sup class="s-h-count"></sup></button>
+            <button type="button" class="btn btn-default btn-sm" id="hl-flat" title="切换高亮显示较扁的字框">扁框<sup class="s-h-count"></sup></button>
             {% end %}
           </div>
-        </div><!--right-->
-      </div>
-
-      <div class="full-bd bd-container">
-        <!-- holder为显示切分框和页面图的画布容器 -->
-        <div id="holder"></div>
-      </div>
-
+        </div>
+      </div><!--left-->
+      <div class="right">
+        <div class="tips {{'' if readonly else 'hide'}}">
+          {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+        </div>
+        <div class="edit-btns">
+          <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
+          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
+          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+        </div>
+      </div><!--right-->
+    </div>
+    <div class="full-bd bd-container">
+      <!-- holder为显示切分框和页面图的画布容器 -->
+      <div id="holder"></div>
     </div>
   </div>
 
@@ -130,23 +109,38 @@
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
-{% include task_cut_base.html %}
-
 <script>
+  var boxes = '{{boxes}}';
+  $.cut.create({
+    '{{box_type}}Mode': true,
+    name: '{{box_type}}_{{name}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    scrollContainer: '.bd-container',
+    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
+    chars: boxes
+  });
+  $.cut.bindKeys();
+
+  // 帮助
   $('.btn-help').click(function () {
     swal({
       title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
-      text: '<ul>' + [
-        '1~5：页面放大', 'shift+5~9: 页面缩小', '+/-：逐级缩放',
+      text: '<ul class="tips">' + [
+        '1~5：页面放大', 'shift+5~9：页面缩小', '+/-：逐级缩放',
         '方向键：在字框间导航', 'w a s d：移动当前字框',
         'alt+方向键：缩小字框', 'shift+方向键：放大字框',
         'insert或n：增加字框', 'DEL：删除当前字框',
-        'z: 撤销', 'r: 重做', 'ESC：放弃拖拽改动'
+        'z：撤销', 'r：重做', 'ESC：放弃拖拽改动'
       ].map(function (t) {
-        return '<li>' + t + '</li>';
+        var ts = t.split('：');
+        return '<li>' + '<span class="head">' + ts[0] + ':</span>' + '<span>' + ts[1] + '</span>' + '</li>';
       }).join('') + '</ul>'
     });
   });
 </script>
+{% include task_cut_js.html %}
+
 </body>
 </html>

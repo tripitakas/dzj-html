@@ -595,6 +595,7 @@ a:hover {
     font-size: 12px;
     margin-right: 10px;
     color: #B8906F;
+    cursor: pointer;
 }
 
 .sty-table td a:hover {
@@ -790,7 +791,7 @@ a:hover {
     cursor: pointer;
 }
 
-.m-header .btn-emptyplaces {
+.m-header .btn-empty-places {
     margin: 8px 6px;
 }
 
@@ -878,4 +879,22 @@ a.download-template {
 
 .modal .tick {
     word-wrap:break-word;
+}
+
+.sweet-alert .tips li {
+    font-weight: normal;
+    display: flex;
+    justify-content: center;
+}
+
+.sweet-alert .tips li span{
+    flex: 1;
+    display: inline-block;
+    text-align: left;
+}
+
+.sweet-alert .tips li span.head {
+    flex: 1;
+    text-align: right;
+    padding-right: 20px;
 }

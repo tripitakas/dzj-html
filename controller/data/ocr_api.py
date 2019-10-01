@@ -7,13 +7,14 @@
 from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
-from controller import errors
+from controller import errors as e
 from controller import helper
 from controller.layout.v2 import calc
-from tests.add_pages import add_page
+from controller.data.add_pages import add_page
 from PIL import Image
 from os import path, remove
 from operator import itemgetter
+from glob2 import glob
 import logging
 import re
 import json
@@ -60,8 +61,8 @@ class RecognitionApi(BaseHandler):
                 if mark.size != (w, h):
                     mark = mark.resize((w, h))
                 im = Image.alpha_composite(im, mark)
-            except ValueError as e:
-                logging.error('%s: %s' % (img_file, str(e)))
+            except ValueError as err:
+                logging.error('%s: %s' % (img_file, str(err)))
             im.convert('L').save(gif_file, 'GIF')
 
             if gif_file != img_file:
@@ -93,7 +94,8 @@ class RecognitionApi(BaseHandler):
         data['filename'] = filename
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
         self.call_back_api(url, connect_timeout=5, request_timeout=20,
-                           handle_error=lambda t: self.send_error_response(errors.ocr, message=errors.ocr[1] % t),
+                           handle_error=lambda t: self.send_error_response(e.ocr_err,
+                                                                           message=e.ocr_err[1] % (t or '无法访问')),
                            body=img[0]['body'], method='POST', handle_response=handle_response)
 
     @staticmethod
@@ -114,13 +116,14 @@ class RecognitionApi(BaseHandler):
                 ret = union(ret, r)
             return dict(x=ret[0], y=ret[1], w=ret[2] - ret[0], h=ret[3] - ret[1])
 
-        block = union_list(page['chars_pos'])
-        block.update(dict(block_id='b1', no=1))
-        page['blocks'] = [block]
-        page['columns'] = []
-        page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
-                              cc=page['chars_cc'][i], txt=page['chars_text'][i])
-                         for i, c in enumerate(page['chars_pos'])]
+        page['blocks'], page['columns'] = [], []
+        if 'chars_pos' in page:
+            block = union_list(page['chars_pos'])
+            block.update(dict(block_id='b1', no=1))
+            page['blocks'] = [block]
+            page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
+                                  cc=page['chars_cc'][i], txt=page['chars_text'][i])
+                             for i, c in enumerate(page['chars_pos'])]
         chars = calc(page['chars'], page['blocks'], [])
         for c_i, c in enumerate(chars):
             page['chars'][c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
@@ -134,8 +137,9 @@ class RecognitionApi(BaseHandler):
             if column_id not in columns:
                 columns[column_id] = dict(column_id=column_id, block_no=c['block_no'], line_no=c['line_no'],
                                           txt='', no=c['line_no'])
-                chars_col = [s for i, s in enumerate(page['chars_pos']) if chars[i]['block_id'] == c[
-                    'block_no'] and chars[i]['column_id'] == c['line_no']]
+                chars_col = [[s['x'], s['y'], s['x'] + s['w'], s['y'] + s['h']]
+                             for i, s in enumerate(page['chars']) if chars[i]['block_id'] == c[
+                                 'block_no'] and chars[i]['column_id'] == c['line_no']]
                 columns[column_id].update(union_list(chars_col))
                 page['columns'].append(columns[column_id])
                 max_h = c['h']
@@ -159,26 +163,50 @@ class SubmitRecognitionApi(BaseHandler):
         upload_ocr = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr')
         img_file = path.join(upload_ocr, img_name)
         if not path.exists(img_file):
-            return self.send_error_response(errors.ocr_img_not_existed)
+            return self.send_error_response(e.ocr_img_not_existed)
         json_file = path.join(upload_ocr, img_name.split('.')[0] + '.json')
         if not path.exists(json_file):
-            return self.send_error_response(errors.ocr_json_not_existed)
+            return self.send_error_response(e.ocr_json_not_existed)
 
+        page = self.upload_page(self, json_file, img_file)
+        if page:
+            self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
+            self.send_data_response(dict(name=page['imgname'], id=page['id']))
+
+    def get(self, result_folder):
+        """批量导入OCR结果"""
+        result_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', result_folder)
+        if not path.exists(result_path) or not path.isdir(result_path):
+            return self.send_error_response(e.ocr_img_not_existed)
+        files = sorted(glob(path.join(result_path, '**', '*.json')))
+        added = []
+        existed = 0
+        for json_file in files:
+            page = self.upload_page(self, json_file, None, ignore_error=True)
+            if page == e.ocr_page_existed:
+                existed += 1
+            elif isinstance(page, dict):
+                added.append(page['imgname'])
+        self.add_op_log('submit_ocr_batch', context=str(len(added)))
+        self.send_data_response(dict(count=len(added), pages=added, existed=existed))
+
+    @staticmethod
+    def upload_page(self, json_file, img_file, ignore_error=False):
         page = json.load(open(json_file))
         page = RecognitionApi.ocr2page(page)
 
+        page['imgname'] = path.basename(json_file).split('.')[0]
         if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
-            return self.send_error_response(errors.ocr_invalid_name)
+            return e.ocr_invalid_name if ignore_error else self.send_error_response(e.ocr_invalid_name)
         r = add_page(page['imgname'], page, self.db)
         if not r:
-            return self.send_error_response(errors.ocr_page_existed)
+            return e.ocr_page_existed if ignore_error else self.send_error_response(e.ocr_page_existed)
 
-        if 'secret_key' in self.config['img']:
+        if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload(self, img_file)
 
         page['id'] = str(r.inserted_id)
-        self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
-        self.send_data_response(dict(name=page['imgname'], id=page['id']))
+        return page
 
     @staticmethod
     def upload(self, img_file):
@@ -198,5 +226,5 @@ class SubmitRecognitionApi(BaseHandler):
             s3.meta.client.upload_file(img_file, 'pages', key)
             logging.info('%s uploaded' % key)
             return key
-        except (Boto3Error, BotoCoreError) as e:
-            logging.error('fail to upload %s: %s' % (key, str(e).split(': ')[-1]))
+        except (Boto3Error, BotoCoreError) as err:
+            logging.error('fail to upload %s: %s' % (key, str(err).split(': ')[-1]))

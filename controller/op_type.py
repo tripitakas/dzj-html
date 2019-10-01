@@ -8,6 +8,7 @@ page_kinds = {'GL': '高丽藏', 'JX': '嘉兴藏', 'QL': '乾隆藏', 'YB': '�
 op_types = {
     'visit': dict(name='页面访问'),
     'submit_ocr': dict(name='OCR提交', trends=True, msg='创建了{page_name}任务'),
+    'submit_ocr_batch': dict(name='OCR批量导入', trends=True, msg='导入了{context}个页面'),
     'pick_{task_type}': dict(name='领取任务', trends=True, msg='领取了{page_kind}{task_type}任务'),
     'return_{task_type}': dict(name='退回任务', trends=True, msg='退回了{page_kind}{task_type}任务'),
     'submit_{task_type}': dict(name='提交任务', trends=True, msg='完成了{page_kind}{task_type}任务'),
@@ -55,7 +56,9 @@ def get_op_def(op_type, params=None):
         for k in op_types:
             re_map.append((re.compile(k.replace('{task_type}', '([a-z0-9_]+)')), k))
     for r, k in re_map:
-        if r.match(op_type) and op_type != 'reset_password':
+        if op_type == 'reset_password':
+            return op_types[op_type]
+        if r.match(op_type):
             if params is not None:
                 v = r.findall(op_type)
                 if v and 'task_type' in k:

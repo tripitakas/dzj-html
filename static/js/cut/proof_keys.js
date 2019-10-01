@@ -150,7 +150,7 @@
       // 显示浮动面板
       if (chars.length) {
         data.bandNumberBox = data.paper.rect(box.x - 5, box.y - 5, box.width + 10, box.y2 - box.y + 10)
-          .attr({fill: '#fff', stroke: 'rgba(0,0,0,.2)'});
+          .attr({fill: 'rgba(255,255,255,1)', stroke: 'rgba(0,0,0,.2)'});
       }
       // 显示每个字框的浮动序号框
       chars.forEach(function(c, i) {

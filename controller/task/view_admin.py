@@ -6,21 +6,34 @@
 """
 from datetime import datetime
 from controller.task.base import TaskHandler
+from controller.task.view_cut import CutHandler
+from controller.task.view_text import TextProofHandler
 
 
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
-    # 默认前置任务，发布任务时供管理员参考
+    # 默认前置任务
     default_pre_tasks = {
-        'block_cut_review': ['block_cut_proof'],
-        'column_cut_review': ['column_cut_proof'],
-        'char_cut_review': ['char_cut_proof'],
+        'cut_review': ['cut_proof'],
         'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
+    }
+
+    # 默认任务步骤
+    default_steps = {
+        'cut_proof': CutHandler.default_steps,
+        'cut_review': CutHandler.default_steps,
+        'text_proof_1': TextProofHandler.default_steps,
+        'text_proof_2': TextProofHandler.default_steps,
+        'text_proof_3': TextProofHandler.default_steps,
     }
 
     def get(self, task_type):
         """ 任务管理 """
+
+        def is_enabled(mod):
+            return not self.config.get('disable_modules') or mod not in self.config['disable_modules']
+
         try:
             q = self.get_query_argument('q', '').upper()
             status = self.get_query_argument('status', '')
@@ -32,16 +45,17 @@ class TaskAdminHandler(TaskHandler):
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
-                        default_pre_tasks=self.default_pre_tasks)
+                        default_pre_tasks=self.default_pre_tasks.get(task_type, {}), is_enabled=is_enabled,
+                        default_steps=self.default_steps.get(task_type, {}))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
 
-class TaskCutStatusHandler(TaskHandler):
-    URL = '/task/admin/cut/status'
+class TaskStatusHandler(TaskHandler):
+    URL = '/task/admin/task_status'
 
     def get(self):
-        """ 切分任务状态 """
+        """ 任务状态 """
 
         try:
             status = self.get_query_argument('status', '')
@@ -53,28 +67,7 @@ class TaskCutStatusHandler(TaskHandler):
                 task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_cut_status.html', tasks=tasks, pager=pager)
-        except Exception as e:
-            self.send_db_error(e, render=True)
-
-
-class TaskTextStatusHandler(TaskHandler):
-    URL = '/task/admin/text/status'
-
-    def get(self):
-        """ 文字任务状态 """
-
-        try:
-            status = self.get_query_argument('status', '')
-            task_type = self.get_query_argument('type', '')
-            q = self.get_query_argument('q', '').upper()
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            tasks, total_count = self.get_tasks_by_type(
-                task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
-            )
-            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_text_status.html', tasks=tasks, pager=pager)
+            self.render('task_status.html', tasks=tasks, pager=pager)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -92,16 +85,20 @@ class TaskInfoHandler(TaskHandler):
             elif key == 'status':
                 value = self.status_names.get(value)
             elif key == 'pre_tasks':
-                value = ' / '.join([self.task_types.get(t) for t in value])
+                value = '/'.join([self.task_types.get(t) for t in value])
+            elif key == 'steps':
+                value = '/'.join([step_names.get(t, '') for t in value.get('todo', [])])
             elif key == 'priority':
                 value = self.prior_names.get(int(value))
-
             return value
 
+        step_names = dict()
+        for steps in TaskAdminHandler.default_steps.values():
+            step_names.update(steps)
         try:
             page = self.db.page.find_one({'name': page_name}, self.simple_fields())
             field_names = {
-                'status': '状态', 'pre_tasks': '前置任务', 'priority': '优先级',
+                'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
                 'publish_by': '发布人', 'publish_time': '发布时间',
                 'picked_by': '领取人', 'picked_time': '领取时间',
                 'updated_time': '更新时间', 'finished_time': '完成时间',

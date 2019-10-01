@@ -28,13 +28,13 @@ class TestTaskPublish(APITestCase):
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(set(pages), set(_pages))
 
-    def test_publish_tasks(self):
-        """ 测试发布审校任务 """
+    def test_publish_tasks_common(self):
+        """ 测试发布任务 """
         self.add_first_user_as_admin_then_login()
 
         """ 测试异常情况 """
         # 页面为空
-        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages='')))
+        r = self.parse_response(self.publish(dict(task_type='cut_proof', pages='')))
         self.assertIn('pages', r['error'])
 
         # 任务类型有误
@@ -43,14 +43,12 @@ class TestTaskPublish(APITestCase):
         self.assertIn('task_type', r['error'])
 
         # 优先级有误，必须为1/2/3
-        r = self.parse_response(self.publish(dict(task_type='block_cut_proof', pages=pages, priority='高')))
+        r = self.parse_response(self.publish(dict(task_type='cut_proof', pages=pages, priority='高')))
         self.assertIn('priority', r['error'])
 
         # 测试正常情况
         for task_type in [
-            'block_cut_proof', 'block_cut_review',
-            'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review',
+            'cut_proof', 'cut_review',
             'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review'
         ]:
             pages_un_existed = ['GL_not_existed_1', 'JX_not_existed_2']
@@ -109,7 +107,7 @@ class TestTaskPublish(APITestCase):
         self.add_first_user_as_admin_then_login()
         # 创建文件
         pages = ['GL_1056_5_6', 'JX_165_7_12']
-        self.set_task_status({'block_cut_proof': 'ready'}, pages)
+        self.set_task_status({'cut_proof': 'ready'}, pages)
         filename = os.path.join(self._app.BASE_DIR, 'static', 'upload', 'file2upload.txt')
         with open(filename, 'w') as f:
             for page in pages:
@@ -117,21 +115,24 @@ class TestTaskPublish(APITestCase):
         self.assertTrue(os.path.exists(filename))
 
         # 测试正常发布
-        task_type = 'block_cut_proof'
-        body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
+        task_type = 'cut_proof'
+        steps = ['char_box', 'block_box', 'column_box', 'char_order']
+        body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type, ''),
+                    force='0', sub_steps=','.join(steps))
         r = self.parse_response(self.fetch('/api/task/publish', files=dict(pages_file=filename), body=body))
         self.assertEqual(set(r.get('published')), set(pages))
 
         # 测试任务类型有误
         task_type = 'error_task_type'
-        body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type))
+        body = dict(task_type=task_type, priority=1, pre_tasks=self.pre_tasks.get(task_type, ''),
+                    force='0', sub_steps=','.join(steps))
         r = self.parse_response(self.fetch('/api/task/publish', files=dict(pages_file=filename), body=body))
         self.assertIn('task_type', r['error'])
 
     def test_publish_many_tasks(self, size=10000):
         """ 测试发布大规模任务 """
         for task_type in [
-            'block_cut_proof', 'block_cut_review',
+            'cut_proof', 'cut_review',
         ]:
             pages = self._app.db.page.find({}, {'name': 1}).limit(size)
             page_names = [page['name'] for page in pages]
@@ -143,9 +144,7 @@ class TestTaskPublish(APITestCase):
     def test_withdraw_task(self):
         """ 测试管理员撤回任务 """
         for task_type in [
-            'block_cut_proof', 'block_cut_review',
-            'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review',
+            'cut_proof', 'cut_review',
         ]:
             # 发布任务
             self.login_as_admin()
@@ -173,9 +172,7 @@ class TestTaskPublish(APITestCase):
     def test_reset_task(self):
         """ 测试管理员重置任务 """
         for task_type in [
-            'block_cut_proof', 'block_cut_review',
-            'column_cut_proof', 'column_cut_review',
-            'char_cut_proof', 'char_cut_review',
+            'cut_proof', 'cut_review',
         ]:
             # 重置未发布的任务
             self.login_as_admin()

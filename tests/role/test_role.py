@@ -7,11 +7,11 @@ from controller import validate as v
 
 
 class TestRole(APITestCase):
-    def test_func(self):
-        self.assertTrue(role.can_access('切分专家', '/task/do/block_cut_proof/GL_1_1_1', 'GET'))
-        self.assertFalse(role.can_access('', '/task/do/block_cut_proof/GL_1_1_1', 'GET'))
+    def test_role_func(self):
+        self.assertTrue(role.can_access('切分专家', '/task/do/cut_proof/GL_1_1_1', 'GET'))
+        self.assertFalse(role.can_access('', '/task/do/cut_proof/GL_1_1_1', 'GET'))
 
-        self.assertEqual(role.get_route_roles('/task/do/block_cut_proof/GL_1_1', 'GET'), ['切栏校对员', '切分专家'])
+        self.assertEqual(role.get_route_roles('/task/do/cut_proof/GL_1_1', 'GET'), ['切分校对员', '切分专家'])
 
         routes = role.get_role_routes('切分专家, 数据管理员')
         self.assertIn('/api/task/page/@page_name', routes)
@@ -38,6 +38,5 @@ class TestRole(APITestCase):
 
     def test_all_roles(self):
         roles = role.get_all_roles('切分专家,文字专家')
-        should = {'切分专家', '文字专家', '切列审定员', '切列校对员', '普通用户', '文字校对员','切字校对员', '切栏审定员',
-                  '文字审定员', '切栏校对员', '切字审定员'}
+        should = {'普通用户', '切分专家', '文字专家', '切分审定员', '切分校对员', 'OCR校对员', 'OCR审定员', '文字校对员', '文字审定员'}
         self.assertEqual(set(roles), should)

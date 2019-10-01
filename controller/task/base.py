@@ -26,14 +26,10 @@ from controller.base import BaseHandler
 class TaskHandler(BaseHandler):
     # 任务类型表
     task_types = {
+        'cut_proof': '切分校对',
+        'cut_review': '切分审定',
         'ocr_proof': 'OCR校对',
         'ocr_review': 'OCR审定',
-        'block_cut_proof': '切栏校对',
-        'block_cut_review': '切栏审定',
-        'column_cut_proof': '切列校对',
-        'column_cut_review': '切列审定',
-        'char_cut_proof': '切字校对',
-        'char_cut_review': '切字审定',
         'text_proof_1': '文字校一',
         'text_proof_2': '文字校二',
         'text_proof_3': '文字校三',
@@ -65,7 +61,7 @@ class TaskHandler(BaseHandler):
 
     """ 数据锁介绍
     1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-      1.tasks。同一page的同阶任务（如block_cut_proor对blocks而言）或高阶任务（如column_cut_proof/char_cut_proof对blocks而言）
+      1.tasks。同一page的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof_1对chars而言）
       2.roles。数据专家角色对所有page的授权字段
     2）数据锁的类型：
       1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
@@ -77,34 +73,19 @@ class TaskHandler(BaseHandler):
 
     # 数据锁注册表。在任务的领取、保存、提交、完成及退回等操作时，需要判断是否要检查数据锁时，以这个表来判断。
     task_shared_data_fields = {
-        'block_cut_proof': 'blocks',
-        'block_cut_review': 'blocks',
-        'column_cut_proof': 'columns',
-        'column_cut_review': 'columns',
-        'char_cut_proof': 'chars',
-        'char_cut_review': 'chars',
+        'cut_proof': 'chars',
+        'cut_review': 'chars',
+        'cut_edit': 'chars',
         'text_review': 'text',
         'text_hard': 'text',
-        'ocr_proof': 'chars',
-        'ocr_review': 'chars',
+        'text_edit': 'text',
     }
 
     # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。
     data_auth_maps = {
-        'blocks': {
-            'tasks': ['block_cut_proof', 'block_cut_review', 'column_cut_proof', 'column_cut_review',
-                      'char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2',
-                      'text_proof_3', 'text_review', 'text_hard'],
-            'roles': ['切分专家']
-        },
-        'columns': {
-            'tasks': ['column_cut_proof', 'column_cut_review', 'char_cut_proof', 'char_cut_review',
-                      'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
-            'roles': ['切分专家']
-        },
         'chars': {
-            'tasks': ['char_cut_proof', 'char_cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
-                      'text_review', 'text_hard'],
+            'tasks': ['cut_proof', 'cut_review',
+                      'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
             'roles': ['切分专家']
         },
         'text': {

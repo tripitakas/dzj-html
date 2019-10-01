@@ -49,7 +49,12 @@ def i18n_trans(key):
         'sutra_code': '经编码',
         'sutra_name': '经名',
         'reel_no': '卷序号',
-        'reel_code': '卷编码'
+        'reel_code': '卷编码',
+        'step': '步骤',
+        'boxes': '框',
+        'force': '已发布时如何处理',
+        'cmp': '比对文本',
+        'txt_html': '校对文本'
     }
     return maps[key] if key in maps else key
 

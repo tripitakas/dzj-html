@@ -46,7 +46,8 @@ class HomeHandler(BaseHandler):
                         task_type = params.get('task_type')
                         msg = d.get('msg', d['name'])
                         if 'page_kind' in msg:
-                            msg = msg.replace('{page_kind}', page_kinds[t['context'][:2]])
+                            kind = t['context'][:2]
+                            msg = msg.replace('{page_kind}', page_kinds.get(kind, kind))
                         if 'page_name' in msg:
                             r = re.findall(r'^([A-Za-z0-9_]+)', t['context'])
                             msg = msg.replace('{page_name}', r and r[0] or '')
@@ -54,6 +55,8 @@ class HomeHandler(BaseHandler):
                             msg = msg.replace('{task_type}', TaskHandler.all_types().get(task_type, task_type))
                         if 'count' in msg:
                             msg = msg.replace('{count}', re.findall(r'^(\d+)', t['context'])[0])
+                        if 'context' in msg:
+                            msg = msg.replace('{context}', t['context'])
                         context = msg
                 except Exception:
                     traceback.print_exc()

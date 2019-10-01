@@ -3,33 +3,46 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>任务管理-文字状态</title>
+  <title>任务管理-任务状态</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
 
   <style>
-    .collate-history table tr td.status_none {
-      color: #999;
-    }
-
-    .collate-history table tr td.status_pending {
-      color: #666;
-    }
-
-    .collate-history table tr td.status_ended {
-      color: #0f0;
-    }
-
-    .collate-history table tr td.status_opened {
-      color: #007;
-    }
-
     .sty-table td a {
+      color: #333333;
       font-size: 14px;
     }
+
+    .sty-table td.unready a {
+      color: #333333;
+    }
+
+    .sty-table td.ready a {
+      color: #666666;
+    }
+
+    .sty-table td.pending a {
+       color: #D2691E;
+    }
+
+    .sty-table td.opened a {
+      color: #8B4513;
+    }
+
+    .sty-table td.picked a {
+      color: #BB5500;
+    }
+    .sty-table td.returned a {
+      color: #FF0000;
+    }
+
+    .sty-table td.finished a {
+      color: #228B22;
+    }
   </style>
+  
 </head>
 
 <body>
@@ -54,14 +67,16 @@
                     <tr>
                       <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>页编码</span></th>
-                      {% for i, item in enumerate(['文字校一','文字校二','文字校三','文字审定']) %}
+                      {% set task_types = ['cut_proof','cut_review','ocr_proof','ocr_review','text_proof_1','text_proof_2','text_proof_3','text_review'] %}
+                      {% set task_names = ['切分校对','切分审定','OCR校对','OCR审定','文字校一','文字校二','文字校三','文字审定'] %}
+                      {% for i, item in enumerate(task_names) %}
                       <th>
                         <div class="btn-group">
                           <span class="sort" data-toggle="dropdown" aria-expanded="false">{{item}}</span>
                           <span class="ion-android-sort "></span>
                           <ul class="dropdown-menu" role="menu">
                             {% for k, v in th.status_names.items() %}
-                            <li><a href="{{current_path}}?type={{['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review'][i]}}&status={{k}}">{{v}}</a></li>
+                            <li><a href="{{current_path}}?type={{task_types[i]}}&status={{k}}">{{v}}</a></li>
                             {% end %}
                           </ul>
                         </div>
@@ -75,14 +90,13 @@
                     <tr id="{{t['name']}}" class="task-tr">
                       <td><input type="checkbox" name="" id="" value=""/></td>
                       <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
-                      {% for i in range(1,4) %}
-                      <td><a href="/task/text_proof_{{i}}/{{t['name']}}">
-                        {{th.status_names.get(th.prop(t, 'tasks.text_proof_%d.status' % i), '')}}
-                      </a></td>
+                      {% for item in task_types %}
+                      <td class="{{th.prop(t, 'tasks.%s.status' % item)}}">
+                        <a href="/task/{{item}}/{{t['name']}}">
+                          {{th.status_names.get(th.prop(t, 'tasks.%s.status' % item), '')}}
+                        </a>
+                      </td>
                       {% end %}
-                      <td><a href="/task/text_review/{{t['name']}}">
-                        {{th.status_names.get(th.prop(t, 'tasks.text_review.status'), '')}}
-                      </a></td>
                     </tr>
                     {% end %}
                     </tbody>
@@ -99,9 +113,17 @@
 </div>
 
 {% include _base_js.html %}
-{% include task_selection_.html %}
+
 <script type="text/javascript">
-  <!--搜索-->
+  $('#checkbox-all').click(function() {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked) {
+      $items.removeAttr('checked');
+    } else {
+      $items.prop('checked', 'true');
+    }
+  });
+
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {

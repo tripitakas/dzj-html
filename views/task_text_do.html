@@ -14,10 +14,6 @@
   <![endif]-->
 
   <style>
-    .pfread-in {
-      padding-top: 50px;
-    }
-
     .modal-content .modal-header {
       height: 40px;
       padding-bottom: 0px;
@@ -37,18 +33,22 @@
       color: #fff;
     }
 
+    .match-tips .head {
+      max-width: 40%;
+    }
+
+    #txtModal .modal-body {
+      display: flex;
+    }
+
     #txtModal textarea {
-      width: 100%;
+      flex: 1;
       font-size: 1.2em;
       border: 1px solid #ddd;
       margin-bottom: 10px;
       padding: 8px;
     }
 
-    #txtModal.show-all textarea {
-      width: calc(50% - 4px);
-      display: inline-block;
-    }
   </style>
 </head>
 
@@ -60,14 +60,10 @@
       <header class="m-header">
         <div class="back">
           {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
-          <a onclick="leave()" title="{{title}}">
-            <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
-          </a>
+          <a onclick="leave()" title="{{title}}"><img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/></a>
         </div>
         <div class="title" title='{{page["name"]}}'>{{stage}}</div>
-        <div class="help">
-          <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
-        </div>
+        <div class="help"><img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/></div>
         <div class="edit-btns">
           <img src="{{ static_url('imgs/icon_aim.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
@@ -76,48 +72,37 @@
         <div class="more">
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
           <span class="btn-group more-group hidden" role="group" aria-label="更多">
-            {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-            <button type="button" class="btn btn-default btn-sm ed-{{type}}-box">{{text}}</button>
-            {% end %}
-            {% if 'review' in task_type or 'hard' in task_type %}
-            {% for i, s in enumerate(['校一', '校二', '校三']) %}
-            {% if txts['cmp%d' % (i + 1)] %}
-            <button type="button" class="btn btn-default btn-sm" id="text-proof-{{i + 1}}">{{s}}</button>
-            {% end %}
-            {% end %}
-            {% end %}
+            <button type="button" class="btn btn-default btn-sm ed-char-box" title="修改字框">字框</button>
+            <button type="button" class="btn btn-default btn-sm ed-block-box" title="修改栏框">栏框</button>
+            <button type="button" class="btn btn-default btn-sm ed-column-box" title="修改列框">列框</button>
+            <button type="button" class="btn btn-default btn-sm ed-char-order" title="修改字序">字序</button>
+            {% set editable = 'review' in task_type or 'hard' in task_type %}
+            <button type="button" class="btn btn-default btn-sm ed-text-proof-1 {{'' if editable and texts.get('cmp1') else 'hide'}}" title="修改字序">校一</button>
+            <button type="button" class="btn btn-default btn-sm ed-text-proof-2 {{'' if editable and texts.get('cmp2') else 'hide'}}" title="修改字序">校二</button>
+            <button type="button" class="btn btn-default btn-sm ed-text-proof-3 {{'' if editable and texts.get('cmp3') else 'hide'}}" title="修改字序">校三</button>
           </span>
         </div>
         <div class="right">
-          {% if readonly %}
-          <div class="tips">
+          <div class="tips {{'' if readonly else 'hide'}}">
             {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
           </div>
-          {% end %}
           <div class="edit-btns">
             <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
             <div class="btn-txt btn-font-reduce" title="减少字号">A-</div>
             <div class="btn-txt btn-previous" title="上一条异文"><</div>
             <div class="btn-txt btn-next" title="下一条异文">></div>
-            <div class="btn-txt btn-emptyplaces" title="显示空位符"></div>
-            <!--<img src="{{ static_url('imgs/char_icon1.png') }}" class="btn-img btn-check" title="图文匹配检查"/>-->
-            <img src="{{ static_url('imgs/char_icon2.png') }}" class="btn-img btn-delete-line" title="删除该行"/>
-            <img src="{{ static_url('imgs/char_icon3.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
-            <img src="{{ static_url('imgs/char_icon4.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
-            {% if 'hard' not in task_type %}
-            <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt" title="存疑"/>
-            {% end %}
-            {% if 'review' in task_type or 'hard' in task_type %}
-            <img src="{{ static_url('imgs/icon_check.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
-            {% end %}
+            <div class="btn-txt btn-empty-places" title="显示空位符"></div>
+            <img src="{{ static_url('imgs/icon_delete.png') }}" class="btn-img btn-delete-line" title="删除该行"/>
+            <img src="{{ static_url('imgs/icon_add_up.png') }}" class="btn-img btn-add-up-line" title="向上增行"/>
+            <img src="{{ static_url('imgs/icon_add_down.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
+            <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt {{'hide' if 'hard' in task_type else ''}}" title="存疑"/>
+            <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text" title="原文"/>
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% if mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
-            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return" title="退回"/>
-            {% end %}
-            {% end %}
+            <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
+            <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
+            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
+            <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
           </div>
         </div>
       </header>
@@ -139,25 +124,6 @@
               {% end %}
             </div>
             <!--/.sutra-text-->
-            <div class="pfread-dialog" id="pfread-dialog">
-              <div class="dialog-common dialog-abs">
-                <div class="dlg-before"></div>
-                {% for k, v in labels.items() %}
-                <dl class="item">
-                  <dt>{{v}}</dt>
-                  <dd class="text" id="pfread-dialog-{{k}}">&nbsp;</dd>
-                </dl>
-                {% end %}
-                <dl class="item">
-                  <dt>选择结果</dt>
-                  <dd class="text">
-                    <span id="pfread-dialog-slct" type="text" placeholder="请选择或输入……" contenteditable="true"></span>
-                  </dd>
-                </dl>
-                <div class="dlg-after"></div>
-              </div>
-            </div>
-            <!--/.pfread-dialog-->
             <div class="char-list doubt-list">
               <div class="char-list-tab">
                 {% if 'proof' in task_type %}
@@ -185,7 +151,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% raw doubt if doubt else '' %}
+                {% raw doubt or '' %}
                 </tbody>
               </table>
               {% if 'text_review' in task_type %}
@@ -200,18 +166,41 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% raw proof_doubt if proof_doubt else '' %}
+                {% raw proof_doubt or '' %}
                 </tbody>
               </table>
               {% end %}
-
             </div>
             <!--/.char-list-->
           </div>
+          <div class="pfread-dialog" id="pfread-dialog">
+            <div class="dialog-common dialog-abs">
+              <div class="dlg-before"></div>
+              <dl class="item{{'' if texts.get('base') else ' hide'}}">
+                <dt>文本一</dt>
+                <dd class="text option" id="pfread-dialog-base">&nbsp;</dd>
+              </dl>
+              <dl class="item{{'' if texts.get('cmp1') else ' hide'}}">
+                <dt>文本二</dt>
+                <dd class="text option" id="pfread-dialog-cmp1">&nbsp;</dd>
+              </dl>
+              <dl class="item{{'' if texts.get('cmp2') else ' hide'}}">
+                <dt>文本三</dt>
+                <dd class="text option" id="pfread-dialog-cmp2">&nbsp;</dd>
+              </dl>
+              <dl class="item">
+                <dt>选择结果</dt>
+                <dd class="text">
+                  <span id="pfread-dialog-slct" contenteditable="true" placeholder="请选择或输入……"></span>
+                </dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
+          </div>
+          <!--/.pfread-dialog-->
         </div>
         <!--/.right-->
       </div>
-
     </div>
   </div>
 
@@ -222,21 +211,18 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <div class="modal-header">
             <div class="btn-group" role="group">
-              <button class="btn btn-default" id="show-ocr">OCR</button>
-              <button class="btn btn-default" id="show-cmp">比对本</button>
-              {% if txts.get('cmp') and txts.get('ocr') != txts.get('cmp') %}
-              <button class="btn btn-default" id="show-all">两者</button>
-              {% end %}
+              <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">文本一</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">文本二</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">文本三</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-all">所有</button>
             </div>
-            <button class="btn btn-default m-l-10" id="save-txt">保存</button>
-            <span class="m-l-10">{{page["name"]}}</span>
           </div>
           <div class="modal-body">
             {% import re %}
-            {% for k, txt in txts.items() %}
-            <textarea id="{{k}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt or ''))}}</textarea>
+            {% set _texts = {k:v for k, v in texts.items() if v} %}
+            {% for k, txt in _texts.items() %}
+            <textarea id="{{k}}" style="{{'display: inline-block' if k == 'base' else 'display: none'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt or ''))}}</textarea>
             {% end %}
-            <p style="font-style: italic"><b>说明</b>：用两个空行作栏分隔符，可以直接编辑文本。</p>
           </div>
         </div>
       </div>
@@ -303,6 +289,7 @@
 {% include _cut_base.html %}
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
+<script src="{{ static_url('js/task.js') }}"></script>
 
 <script>
   var char_data = decodeJSON('{{page.get("chars", [])}}');
@@ -342,60 +329,51 @@
 
   $(document).ready(function () {
     heightAdaptive();
-    // 隐藏存疑列表的操作按钮
-    if ('text_review' == '{{task_type}}') {
-      $('table#doubt-table-view tr').find('td:eq(4)').hide();
-    }
-    if ('text_hard' == '{{task_type}}') {
-      $('table tr').find('td:eq(4)').hide();
-    }
-
   });
-
   $(window).resize(function () {
     heightAdaptive();
   });
-
+  $(document).ready(function () {
+    // 隐藏存疑列表的操作按钮
+    if ('text_review' === '{{task_type}}') {
+      $('table#doubt-table-view tr').find('td:eq(4)').hide();
+    }
+    if ('text_hard' === '{{task_type}}') {
+      $('table tr').find('td:eq(4)').hide();
+    }
+  });
   // 更多操作
   $('.btn-ed-box').click(function () {
     $('.more-group').toggleClass('hidden');
   });
-
-  // 修改栏框
-  $('.ed-block-box').click(function () {
-    window.location = '{{"/task/block_cut_proof" if readonly else "/data/edit/blocks"}}/{{page["name"]}}';
-  });
-
-  // 修改列框
-  $('.ed-column-box').click(function () {
-    window.location = '{{"/task/column_cut_proof" if readonly else "/data/edit/columns"}}/{{page["name"]}}';
-  });
-
   // 修改字框
   $('.ed-char-box').click(function () {
-    window.location = '{{"/task/char_cut_proof" if readonly else "/data/edit/chars"}}/{{page["name"]}}';
+    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=char_box';
   });
-
+  // 修改栏框
+  $('.ed-block-box').click(function () {
+    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=block_box';
+  });
+  // 修改列框
+  $('.ed-column-box').click(function () {
+    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=column_box';
+  });
   // 修改字序
-  $('.ed-order-box').click(function () {
-    window.location = '{{"/task/char_cut_proof/order" if readonly else "/data/edit/char_order"}}/{{page["name"]}}';
+  $('.ed-char-order').click(function () {
+    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=char_order';
   });
-
   // 查看校一
-  $('#text-proof-1').click(function () {
+  $('.ed-text-proof-1').click(function () {
     window.location = "/task/text_proof_1/" + '{{page["name"]}}';
   });
-
   // 查看校二
-  $('#text-proof-2').click(function () {
+  $('.ed-text-proof-2').click(function () {
     window.location = "/task/text_proof_2/" + '{{page["name"]}}';
   });
-
   // 查看校三
-  $('#text-proof-3').click(function () {
+  $('.ed-text-proof-3').click(function () {
     window.location = "/task/text_proof_3/" + '{{page["name"]}}';
   });
-
   // 离开页面
   window.leave = function () {
     if ('{{mode}}' === 'do') {
@@ -404,12 +382,83 @@
       window.history.back();
     }
   };
+  // 帮助
+  $('.btn-help').click(function () {
+    swal({
+      title: '帮助', showConfirmButton: false, allowOutsideClick: true, html: true,
+      text: '<ul class="tips">' + [
+        '1. 图片区域，操作快捷键同切分校对　',
+        '2. 文本区域，单击红色异文弹出提示框',
+        '　　可选择文本，也可直接编辑结果　　　',
+        '3. 文本区域，双击黑色同文可进行修改',
+        '4. 其余操作，自行点击按钮可知　　　'
+      ].map(function (t) {
+        return '<li>' + t + '</li>';
+      }).join('') + '</ul>'
+    });
+  });
 
+</script>
+
+<script>
+  // 上一步
+  $('.btn-prev').on("click", function () {
+    window.location = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
+  });
+
+  // 获取任务数据
+  function getData(submit) {
+    var data = {
+      submit: submit,
+      step: 'proof',
+      name: '{{page["name"]}}',
+      txt_html: JSON.stringify($('#sutra-text').html())
+    };
+    if ('text_hard' !== '{{task_type}}') {
+      data.doubt = $('#doubt-table-editable tbody').html();
+    }
+    return data;
+  }
+
+  // 保存任务
+  $('.btn-save').on("click", function () {
+    postApi('{{current_path}}', {data: getData(false)}, function () {
+      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1000);
+    });
+  });
+  // 提交任务
+  $('.btn-submit').on("click", function () {
+    postApi('{{current_path}}', {data: getData(true)}, function () {
+      showSuccess('成功', '任务已提交。');
+      setTimeout(function () {
+        pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
+      }, 500);
+    });
+  });
+  // 退回任务
+  $('.btn-return').click(function () {
+    $('#returnModal').modal();
+  });
+  $(document).on('click', '#modal-return-btn', function () {
+    var reason = $('#return_reason').val();
+    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+      data: {reason: reason}
+    }, function () {
+      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
+      setTimeout(function () {
+        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
+      }, 1000);
+    });
+  });
 </script>
 
 <script>
   // 原文等对话框允许拖动
   $('.modal-header').on('mousedown', function (downEvt) {
+    var $txtModel = $('#txtModal');
     var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
     var x = downEvt.pageX - $txtModel.offset().left;
     var y = downEvt.pageY - $txtModel.offset().top;
@@ -430,167 +479,16 @@
     });
   });
 
-  var $txtModel = $('#txtModal');
-  var $ocrBtn = $txtModel.find('#show-ocr'), $cmpBtn = $txtModel.find('#show-cmp');
-  var $ocrArea = $txtModel.find('#ocr'), $cmpArea = $txtModel.find('#cmp');
-  var $saveTxtBtn = $txtModel.find('#save-txt'), $showAll = $txtModel.find('#show-all');
+  $('#txtModal .btn-txt').click(function () {
+    $(this).removeClass('btn-default').addClass('btn-primary');
+    $(this).siblings().removeClass('btn-primary').addClass('btn-default');
+    var txtType = $(this).attr('id').replace('show-', '');
+    if (txtType === 'all')
+      $('#txtModal textarea').show();
+    else
+      $('#txtModal #' + txtType).show().siblings().hide();
 
-  function switchModalText(txtType) {
-    $ocrBtn.toggleClass('btn-primary', txtType === 'ocr');
-    $ocrBtn.toggleClass('btn-default', txtType !== 'ocr');
-    $cmpBtn.toggleClass('btn-primary', txtType === 'cmp');
-    $cmpBtn.toggleClass('btn-default', txtType !== 'cmp');
-    $showAll.toggleClass('btn-primary', txtType === 'all');
-    $showAll.toggleClass('btn-default', txtType !== 'all');
-    $ocrArea.toggle(txtType === 'ocr' || txtType === 'all');
-    $cmpArea.toggle(txtType === 'cmp' || txtType === 'all');
-    $saveTxtBtn.toggleClass('disabled', txtType === 'ocr');
-    $txtModel.toggleClass('show-all', txtType === 'all');
-  }
-
-  $ocrBtn.click(function () {
-    switchModalText('ocr');
   });
-  $cmpBtn.click(function () {
-    switchModalText('cmp');
-  });
-  $showAll.click(function () {
-    switchModalText('all');
-  });
-  switchModalText('{{"all" if txts.get("ocr") != txts.get("cmp") else "cmp"}}');
-
-  // 原文的保存
-  $saveTxtBtn.click(function () {
-    if ($saveTxtBtn.hasClass('disabled')) {
-      return;
-    }
-    var txt = $cmpArea.val().replace(/-/g, '');
-    save_({
-      name: '{{page["name"]}}',
-      txt: JSON.stringify(txt)
-    }, function (res) {
-      if (res.changed) {
-        window.location.reload();
-      } else {
-        setTimeout(function () {
-          $('#txtModal [data-dismiss]').click();
-        }, 1000);
-      }
-    });
-  });
-
-</script>
-
-<script>
-  // 获取任务数据
-  function getData(submit) {
-    var txtHtml = $('#sutra-text').html();
-    var data = {
-      submit: submit,
-      name: '{{page["name"]}}',
-      txt_html: JSON.stringify(txtHtml)
-    };
-    if ('text_hard' != '{{task_type}}') {
-      data.doubt = $('#doubt-table-editable tbody').html();
-    }
-    console.log(data);
-    return data;
-  }
-
-  // 保存任务
-  $('.btn-save').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(false)
-    }, function () {
-      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1000);
-    });
-  });
-
-  // 提交任务
-  $('.btn-submit').on("click", function () {
-    postApi('/task/do/{{task_type}}/{{page["name"]}}', {
-      data: getData(true)
-    }, function () {
-      pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
-    });
-  });
-
-  // 退回任务
-  $('.btn-return').click(function () {
-    $('#returnModal').modal();
-  });
-
-  $(document).on('click', '#modal-return-btn', function () {
-    var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
-      data: {reason: reason}
-    }, function () {
-      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    });
-  });
-
-</script>
-
-{% import controller.errors as e %}
-<script>
-  // 领取新任务(从任务大厅拷贝)
-  function pick(url, page_name) {
-    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
-    postApi(url, data, function (res) {
-      if (res && res.url) {
-        window.location = res.url;
-      }
-    }, function (res) {
-      error_callback(res);
-    });
-  }
-
-  // 领取任务失败回调
-  function error_callback(res) {
-    console.log(res);
-    if (res.code == '{{e.task_uncompleted[0]}}') {
-      var info = {
-        title: "是否继续未完成的任务？",
-        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定继续",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        window.location = res.url;
-      });
-    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
-      showError('暂无新任务', res.message);
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    } else if (res.code != 500) {
-      var info = {
-        title: "是否领取其它任务？",
-        text: res.message,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定领取",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function () {
-        pick("/task/pick/{{task_type}}");
-      });
-    } else {
-      showError('发生错误', res.message);
-    }
-  }
 
 </script>
 

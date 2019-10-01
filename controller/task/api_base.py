@@ -19,7 +19,7 @@ class PickTaskApi(TaskHandler):
     @staticmethod
     def pick(self, task_type, page_name=None):
         """ 领取任务。
-        :param task_type: 任务类型。可以是block_cut_proof/text_proof_1等，也可以为text_proof
+        :param task_type: 任务类型。可以是cut_proof/text_proof_1等，也可以为text_proof
         :param page_name: 任务名称。如果为空，则任取一个。
         """
         try:
@@ -168,7 +168,8 @@ class SubmitTaskApi(TaskHandler):
 
 
 class UnlockTaskDataApi(TaskHandler):
-    URL = '/api/task/unlock/@task_type/@page_name'
+    URL = ['/api/task/unlock/@task_type/@page_name',
+           '/api/data/unlock/@edit_type/@page_name']
 
     def post(self, task_type, page_name):
         """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
