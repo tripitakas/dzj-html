@@ -57,6 +57,9 @@ class TaskStatusHandler(TaskHandler):
     def get(self):
         """ 任务状态 """
 
+        def is_enabled(mod):
+            return not self.config.get('disable_modules') or mod not in self.config['disable_modules']
+
         try:
             status = self.get_query_argument('status', '')
             task_type = self.get_query_argument('type', '')
@@ -66,8 +69,13 @@ class TaskStatusHandler(TaskHandler):
             tasks, total_count = self.get_tasks_by_type(
                 task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
             )
+            task_types = {
+                'cut_proof': '切分校对', 'cut_review': '切分审定', 'ocr_proof': 'OCR校对', 'ocr_review': 'OCR审定',
+                'text_proof_1': '文字校一', 'text_proof_2': '文字校二', 'text_proof_3': '文字校三', 'text_review': '文字审定',
+            }
+            display_task_types = {k: v for k, v in task_types.items() if is_enabled(v)}
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_status.html', tasks=tasks, pager=pager)
+            self.render('task_status.html', tasks=tasks, pager=pager, display_task_types=display_task_types)
         except Exception as e:
             self.send_db_error(e, render=True)
 
