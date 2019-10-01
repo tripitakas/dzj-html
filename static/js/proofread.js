@@ -82,18 +82,18 @@ function highlightBox($span, first) {
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
-  var cmpCursor = ($span.attr('cmp') || '')[offsetInSpan];
+  var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
   var text = $span.text().replace(/\s/g, '');
   var i, chTmp, all, cmp_ch;
 
   // 根据文字的栏列号匹配到字框的列，然后根据文字精确匹配列中的字框
   var boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
-    return ch === ocrCursor || ch === cmpCursor;
+    return ch === ocrCursor || ch === cmp1Cursor;
   });
   // 行内多字能匹配时就取char_no位置最接近的，不亮显整列
   if (boxes.length > 1) {
     boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, function (ch) {
-      return ch === ocrCursor || ch === cmpCursor;
+      return ch === ocrCursor || ch === cmp1Cursor;
     }) || boxes[0];
   }
   // 或者用span任意字精确匹配
@@ -168,20 +168,17 @@ $(document).on('click', '.not-same', function (e) {
   $("#pfread-dialog-slct").text($(this).text());
 
   var $dlg = $("#pfread-dialog");
-  $dlg.offset({top: $(this).offset().top + 40, left: $(this).offset().left - 4});
-  $dlg.show();
+  $dlg.offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4}).show();
 
   //当弹框超出文字框时，向上弹出
   var r_h = $(".right.fr").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   var shouldUp = false;
-  $('.dialog-abs').removeClass('dialog-common-t');
-  $('.dialog-abs').addClass('dialog-common');
+  $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
     $dlg.offset({top: $(this).offset().top - 180});
-    $('.dialog-abs').removeClass('dialog-common');
-    $('.dialog-abs').addClass('dialog-common-t');
+    $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
     shouldUp = true;
   }
 
@@ -228,19 +225,17 @@ $(document).on('dblclick', '.same', function () {
 });
 
 // 单击文本区的空白区域
-$(document).on('click', '.pfread .right', function (e) {
+$(document).on('click', '.pfread-in .right', function (e) {
   // 隐藏对话框
-  var _con1 = $('#pfread-dialog');
-  if (!_con1.is(e.target) && _con1.has(e.target).length === 0) {
-    $("#pfread-dialog").offset({top: 0, left: 0});
-    $("#pfread-dialog").hide();
+  var dlg = $('#pfread-dialog');
+  if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
+    dlg.offset({top: 0, left: 0}).hide();
   }
 });
 
 // 滚动文本区滚动条
 $('.pfread .right').scroll(function () {
-  $("#pfread-dialog").offset({top: 0, left: 0});
-  $("#pfread-dialog").hide();
+  $("#pfread-dialog").offset({top: 0, left: 0}).hide();
 });
 
 // 点击异文选择框的各个选项
@@ -483,7 +478,7 @@ function checkMismatch(report) {
         var ts = t.split('#');
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
-      text = '<ul class="help">' + text + '</ul>';
+      text = '<ul class="tips">' + text + '</ul>';
       // text = '<ul class="help tips"><li><span class="head">总行数:</span><span>' + total + '</span></li>' + text + '</ul>';
       swal({title: "图文不匹配", text: text, showConfirmButton: false, allowOutsideClick: true, html: true});
     } else {

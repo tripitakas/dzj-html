@@ -18,37 +18,15 @@ class TextTools(object):
     def html2txt(cls, html):
         lines = []
         regex = re.compile("<li.*?>.*?</li>", re.M | re.S)
-        for line in regex.findall(html):
+        for line in regex.findall(html or ''):
             if 'delete' not in line:
                 txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
                 lines.append(txt + '\n')
         return ''.join(lines)
 
-    @classmethod
-    def get_texts(cls, page, task_type):
-        if 'text_proof' in task_type:
-            ocr = re.sub(r'\|+', '\n', page.get('ocr') or '')
-            cmp1, cmp2 = TaskHandler.prop(page, 'tasks.%s.cmp' % task_type), ''
-            if cmp1 and isinstance(cmp1, list):
-                cmp1 = cmp1[0]
-                cmp2 = cmp1[1] if len(cmp1) > 1 else ''
-            texts = dict(base=ocr, cmp1=cmp1, cmp2=cmp2)
-        else:
-            base = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.cmp'))
-            cmp1 = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.cmp'))
-            cmp2 = cls.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.cmp'))
-            texts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
-        return texts
-
-    @classmethod
-    def get_segments(cls, page, task_type):
-        texts = cls.get_texts(page, task_type)
-        segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
-        return segments
-
     @staticmethod
-    def format_segments(segments, chars, params=None):
-        """ 格式化segments """
+    def check_segments(segments, chars, params=None):
+        """ 检查segments """
         params = params or {}
 
         # 按列对字框分组，提取列号
@@ -57,7 +35,8 @@ class TextTools(object):
 
         # 然后逐行对应并分配栏列号，匹配时不做文字比较
         # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
-        line_no, matched_boxes = 0, []
+        line_no = 0
+        matched_boxes = []
         for seg in segments:
             if seg['line_no'] > len(column_ids):
                 break
@@ -119,7 +98,7 @@ class TextProofHandler(TaskHandler, TextTools):
             if steps['current'] == 'select_compare_text':
                 self.select_compare_text(task_type, page, mode, steps)
             else:
-                self.proofread(task_type, page, mode, steps)
+                self.proof(task_type, page, mode, steps)
         except Exception as e:
             self.send_db_error(e, render=True)
 
@@ -157,16 +136,21 @@ class TextProofHandler(TaskHandler, TextTools):
             ocr=page.get('ocr'), cmp=cmp, get_img=self.get_img,
         )
 
-    def proofread(self, task_type, page, mode, steps):
+    def proof(self, task_type, page, mode, steps):
         readonly = not self.check_auth(mode, page, task_type)
         doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
         params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-        texts = self.get_texts(page, task_type)
+        ocr = re.sub(r'\|+', '\n', page.get('ocr') or '')
+        cmp1, cmp2 = self.prop(page, 'tasks.%s.cmp' % task_type), ''
+        if cmp1 and isinstance(cmp1, list):
+            cmp1 = cmp1[0]
+            cmp2 = cmp1[1] if len(cmp1) > 1 else ''
+        texts = dict(base=ocr, cmp1=cmp1, cmp2=cmp2)
         cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
         if not cmp_data:
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
-            cmp_data = self.format_segments(segments, page['chars'], params)
+            cmp_data = self.check_segments(segments, page['chars'], params)
         self.render(
             'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
             texts=texts, cmp_data=cmp_data, doubt=doubt, steps=steps, get_img=self.get_img, **params
@@ -197,11 +181,14 @@ class TextReviewHandler(TaskHandler, TextTools):
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
             CutHandler.char_render(page, layout, **params)
-            texts = self.get_texts(page, task_type)
+            base = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.cmp'))
+            cmp1 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.cmp'))
+            cmp2 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.cmp'))
+            texts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
             cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
-                cmp_data = self.format_segments(segments, page['chars'], params)
+                cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
                 'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,

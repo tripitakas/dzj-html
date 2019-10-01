@@ -33,28 +33,28 @@ class Diff(object):
         base = Diff.pre_ocr(base)
         if not cmp1:
             return Diff._diff_one(base, {'base': lbl['base']}), []
-        ret = Diff._diff(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
+        ret = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
         err = []
         if cmp2:
-            ret2 = Diff._diff(base, Diff.pre_cmp(cmp2), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
+            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
             ret, _err = Diff._merge_by_combine(ret, ret2, base_key=lbl['base'])
             err.extend(_err)
         if cmp3:
-            ret3 = Diff._diff(base, Diff.pre_cmp(cmp3), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp3']})
+            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp3']})
             ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
             err.extend(_err)
         return ret, err
 
     @classmethod
     def _diff_one(cls, base, label=None):
-        """ 将单独一份文本按照diff格式输出 """
-        lbl = {'base': 'base'}
+        """ 将单独一份文本按照_diff_two的格式输出 """
+        _label = {'base': 'base'}
         if label:
-            lbl.update(label)
+            _label.update(label)
         ret, line_no = [], 1
         for line in base.split('\n'):
-            ret.append({'line_no': line_no, 'is_same': True, lbl['base']: line})
-            ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
+            ret.append({'line_no': line_no, 'is_same': True, _label['base']: line})
+            ret.append({'line_no': line_no, 'is_same': True, _label['base']: '\n'})
             line_no += 1
 
         # 设置起止位置
@@ -63,17 +63,16 @@ class Diff(object):
             if r['line_no'] != line_no:  # 换行
                 line_no += 1
                 start = 0
-            end = start + len(r[lbl['base']])
+            end = start + len(r[_label['base']])
             r['range'] = (start, end)
             start = end
         return ret
 
-
     @classmethod
-    def _diff(cls, base, cmp, check_variant=True, label=None):
-        lbl = {'base': 'base', 'cmp': 'cmp'}
+    def _diff_two(cls, base, cmp, check_variant=True, label=None):
+        _label = {'base': 'base', 'cmp': 'cmp'}
         if label:
-            lbl.update(label)
+            _label.update(label)
         ret, line_no = [], 1
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
@@ -83,16 +82,16 @@ class Diff(object):
                 lst1 = t1.split('\n')
                 for k, _t1 in enumerate(lst1):
                     if _t1 != '':
-                        ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
+                        ret.append({'line_no': line_no, 'is_same': False, _label['base']: _t1, _label['cmp']: t2})
                         t2 = ''
                     elif k == len(lst1) - 1 and t2:
-                        ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
+                        ret.append({'line_no': line_no, 'is_same': False, _label['base']: _t1, _label['cmp']: t2})
                     if k < len(lst1) - 1:  # 换行
-                        ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
+                        ret.append({'line_no': line_no, 'is_same': True, _label['base']: '\n'})
                         line_no += 1
             else:
                 is_same = True if tag == 'equal' else False
-                r = {'line_no': line_no, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
+                r = {'line_no': line_no, 'is_same': is_same, _label['base']: t1, _label['cmp']: t2}
                 if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and is_variant(t1, t2):
                     r['is_variant'] = True
                 ret.append(r)
@@ -103,7 +102,7 @@ class Diff(object):
             if r['line_no'] != line_no:  # 换行
                 line_no += 1
                 start = 0
-            end = start + len(r[lbl['base']])
+            end = start + len(r[_label['base']])
             r['range'] = (start, end)
             start = end
 

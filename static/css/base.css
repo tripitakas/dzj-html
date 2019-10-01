@@ -881,18 +881,19 @@ a.download-template {
     word-wrap:break-word;
 }
 
-.help li {
+.sweet-alert .tips li {
     font-weight: normal;
     display: flex;
+    justify-content: center;
 }
 
-.help li span{
+.sweet-alert .tips li span{
     flex: 1;
     display: inline-block;
     text-align: left;
 }
 
-.help li span.head {
+.sweet-alert .tips li span.head {
     flex: 1;
     text-align: right;
     padding-right: 20px;

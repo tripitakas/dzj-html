@@ -14,10 +14,6 @@
   <![endif]-->
 
   <style>
-    .pfread-in {
-      padding-top: 50px;
-    }
-
     .modal-content .modal-header {
       height: 40px;
       padding-bottom: 0px;
@@ -37,22 +33,22 @@
       color: #fff;
     }
 
-    .help .head {
+    .match-tips .head {
       max-width: 40%;
     }
 
+    #txtModal .modal-body {
+      display: flex;
+    }
+
     #txtModal textarea {
-      width: 100%;
+      flex: 1;
       font-size: 1.2em;
       border: 1px solid #ddd;
       margin-bottom: 10px;
       padding: 8px;
     }
 
-    #txtModal.show-all textarea {
-      width: calc(50% - 4px);
-      display: inline-block;
-    }
   </style>
 </head>
 
@@ -215,19 +211,17 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <div class="modal-header">
             <div class="btn-group" role="group">
-              <button class="btn btn-default" id="show-base">文本一</button>
-              <button class="btn btn-default" id="show-cmp1">文本二</button>
-              {% if texts.get('cmp1') %}
-              <button class="btn btn-default" id="show-all">两者</button>
-              {% end %}
+              <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">文本一</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">文本二</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">文本三</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-all">所有</button>
             </div>
-            <button class="btn btn-default m-l-10 hide" id="save-txt">保存</button>
           </div>
           <div class="modal-body">
             {% import re %}
-            {% set _texts = {k:v for k, v  in texts.items() if v} %}
+            {% set _texts = {k:v for k, v in texts.items() if v} %}
             {% for k, txt in _texts.items() %}
-            <textarea id="{{k}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt or ''))}}</textarea>
+            <textarea id="{{k}}" style="{{'display: inline-block' if k == 'base' else 'display: none'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt or ''))}}</textarea>
             {% end %}
           </div>
         </div>
@@ -335,20 +329,19 @@
 
   $(document).ready(function () {
     heightAdaptive();
-    // 隐藏存疑列表的操作按钮
-    if ('text_review' == '{{task_type}}') {
-      $('table#doubt-table-view tr').find('td:eq(4)').hide();
-    }
-    if ('text_hard' == '{{task_type}}') {
-      $('table tr').find('td:eq(4)').hide();
-    }
-
   });
-
   $(window).resize(function () {
     heightAdaptive();
   });
-
+  $(document).ready(function () {
+    // 隐藏存疑列表的操作按钮
+    if ('text_review' === '{{task_type}}') {
+      $('table#doubt-table-view tr').find('td:eq(4)').hide();
+    }
+    if ('text_hard' === '{{task_type}}') {
+      $('table tr').find('td:eq(4)').hide();
+    }
+  });
   // 更多操作
   $('.btn-ed-box').click(function () {
     $('.more-group').toggleClass('hidden');
@@ -389,6 +382,21 @@
       window.history.back();
     }
   };
+  // 帮助
+  $('.btn-help').click(function () {
+    swal({
+      title: '帮助', showConfirmButton: false, allowOutsideClick: true, html: true,
+      text: '<ul class="tips">' + [
+        '1. 图片区域，操作快捷键同切分校对　',
+        '2. 文本区域，单击红色异文弹出提示框',
+        '　　可选择文本，也可直接编辑结果　　　',
+        '3. 文本区域，双击黑色同文可进行修改',
+        '4. 其余操作，自行点击按钮可知　　　'
+      ].map(function (t) {
+        return '<li>' + t + '</li>';
+      }).join('') + '</ul>'
+    });
+  });
 
 </script>
 
@@ -400,12 +408,11 @@
 
   // 获取任务数据
   function getData(submit) {
-    var txtHtml = $('#sutra-text').html();
     var data = {
       submit: submit,
       step: 'proof',
       name: '{{page["name"]}}',
-      txt_html: JSON.stringify(txtHtml)
+      txt_html: JSON.stringify($('#sutra-text').html())
     };
     if ('text_hard' !== '{{task_type}}') {
       data.doubt = $('#doubt-table-editable tbody').html();
@@ -451,6 +458,7 @@
 <script>
   // 原文等对话框允许拖动
   $('.modal-header').on('mousedown', function (downEvt) {
+    var $txtModel = $('#txtModal');
     var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
     var x = downEvt.pageX - $txtModel.offset().left;
     var y = downEvt.pageY - $txtModel.offset().top;
@@ -470,54 +478,18 @@
       $('body').off('mousemove.draggable');
     });
   });
-  var $txtModel = $('#txtModal');
-  var $baseBtn = $txtModel.find('#show-base'), $cmp1Btn = $txtModel.find('#show-cmp1');
-  var $baseArea = $txtModel.find('#base'), $cmp1Area = $txtModel.find('#cmp1');
-  var $saveTxtBtn = $txtModel.find('#save-txt'), $showAll = $txtModel.find('#show-all');
 
-  function switchModalText(txtType) {
-    $baseBtn.toggleClass('btn-primary', txtType === 'base');
-    $baseBtn.toggleClass('btn-default', txtType !== 'base');
-    $cmp1Btn.toggleClass('btn-primary', txtType === 'cmp1');
-    $cmp1Btn.toggleClass('btn-default', txtType !== 'cmp1');
-    $showAll.toggleClass('btn-primary', txtType === 'all');
-    $showAll.toggleClass('btn-default', txtType !== 'all');
-    $baseArea.toggle(txtType === 'base' || txtType === 'all');
-    $cmp1Area.toggle(txtType === 'cmp1' || txtType === 'all');
-    $saveTxtBtn.toggleClass('disabled', txtType === 'base');
-    $txtModel.toggleClass('show-all', txtType === 'all');
-  }
+  $('#txtModal .btn-txt').click(function () {
+    $(this).removeClass('btn-default').addClass('btn-primary');
+    $(this).siblings().removeClass('btn-primary').addClass('btn-default');
+    var txtType = $(this).attr('id').replace('show-', '');
+    if (txtType === 'all')
+      $('#txtModal textarea').show();
+    else
+      $('#txtModal #' + txtType).show().siblings().hide();
 
-  $baseBtn.click(function () {
-    switchModalText('base');
   });
-  $cmp1Btn.click(function () {
-    switchModalText('cmp1');
-  });
-  $showAll.click(function () {
-    switchModalText('all');
-  });
-  switchModalText('{{"all" if texts.get("base") != texts.get("cmp1") else "cmp1"}}');
-  
-  // 原文的保存
-  $saveTxtBtn.click(function () {
-    if ($saveTxtBtn.hasClass('disabled')) {
-      return;
-    }
-    var txt = $cmp1Area.val().replace(/-/g, '');
-    save_({
-      name: '{{page["name"]}}',
-      txt: JSON.stringify(txt)
-    }, function (res) {
-      if (res.changed) {
-        window.location.reload();
-      } else {
-        setTimeout(function () {
-          $('#txtModal [data-dismiss]').click();
-        }, 1000);
-      }
-    });
-  });
+
 </script>
 
 </body>
