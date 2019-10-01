@@ -25,7 +25,8 @@ def main(db_name='tripitaka', uri='localhost'):
         },
         'lock': {}
     }
-    r = db.page.update_many({}, {'$set': update})
+    fields = ['cmp1', 'txt1_html', 'cmp2', 'txt2_html', 'cmp3', 'txt3_html']
+    r = db.page.update_many({}, {'$set': update, '$unset': {k: '' for k in fields}})
     print('%s records updated!' % r.modified_count)
 
 
