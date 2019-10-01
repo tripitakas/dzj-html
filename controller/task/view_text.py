@@ -22,7 +22,7 @@ class TextTools(object):
             if 'delete' not in line:
                 txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
                 lines.append(txt + '\n')
-        return ''.join(lines)
+        return ''.join(lines).rstrip('\n')
 
     @staticmethod
     def check_segments(segments, chars, params=None):
@@ -181,11 +181,11 @@ class TextReviewHandler(TaskHandler, TextTools):
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
             CutHandler.char_render(page, layout, **params)
-            base = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.cmp'))
-            cmp1 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.cmp'))
-            cmp2 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.cmp'))
+            base = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.txt_html'))
+            cmp1 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.txt_html'))
+            cmp2 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.txt_html'))
             texts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
-            cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
+            cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
                 cmp_data = self.check_segments(segments, page['chars'], params)
@@ -218,10 +218,15 @@ class TextHardHandler(TaskHandler, TextTools):
             doubt = self.prop(page, 'tasks.text_review.doubt')
             params = dict(mismatch_lines=[])
             CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-            cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
+            cmp_data = self.prop(page, 'txt_html')
+            base = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_1.txt_html'))
+            cmp1 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_2.txt_html'))
+            cmp2 = self.html2txt(TaskHandler.prop(page, 'tasks.text_proof_3.txt_html'))
+            texts = dict(base=base, cmp1=cmp1, cmp2=cmp2)
             self.render(
                 'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
-                cmp_data=cmp_data, doubt=doubt, get_img=self.get_img, **params
+                texts=texts, cmp_data=cmp_data, doubt=doubt, get_img=self.get_img,
+                steps=dict(is_first=True, is_last=True), **params
             )
 
         except Exception as e:

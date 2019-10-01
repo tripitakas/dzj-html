@@ -161,10 +161,9 @@ $(document).on('click', '.not-same', function (e) {
   $(".current-not-same").removeClass('current-not-same');
   $(this).addClass('current-not-same');
 
-  $("#pfread-dialog-cmp").text($(this).attr("cmp"));
+  $("#pfread-dialog-base").text($(this).attr("base"));
   $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
   $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
-  $("#pfread-dialog-base").text($(this).attr("base"));
   $("#pfread-dialog-slct").text($(this).text());
 
   var $dlg = $("#pfread-dialog");
@@ -450,6 +449,7 @@ function checkMismatch(report) {
     var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
+  console.log(lineNos.length);
 
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.line_no) {
@@ -459,9 +459,7 @@ function checkMismatch(report) {
       }
     }
   });
-  if (ocrColumns.length !== lineNos.length) {
-    total = '总行数#文本' + lineNos.length + '行#图片 ' + ocrColumns.length + '行';
-  }
+  total = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = $('#block-' + no.blockNo + ' #line-' + no.lineNo);
