@@ -16,7 +16,7 @@ from tornado import web
 from tornado.options import define, options
 from tornado.util import PY3
 from tornado.log import access_log
-from controller.role import url_placeholder
+from controller.auth import url_placeholder
 
 __version__ = '0.0.54.90925'
 BASE_DIR = path.dirname(path.dirname(__file__))

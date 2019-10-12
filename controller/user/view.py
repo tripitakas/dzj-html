@@ -7,7 +7,7 @@
 import math
 import logging
 from controller.base import BaseHandler
-from controller.role import assignable_roles
+from controller import  auth
 
 
 
@@ -68,7 +68,8 @@ class UserRolesHandler(BaseHandler):
             logging.info('%d users' % len(users))
             init_roles = self.config.get('user', {}).get('init_roles', '')
             disable_roles = self.config.get('user', {}).get('disable_roles') or ''
-            roles = [r for r in assignable_roles if r not in disable_roles]
+
+            roles = [r for r in auth.get_assignable_roles() if r not in disable_roles]
         except Exception as e:
             return self.send_db_error(e, render=True)
 

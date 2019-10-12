@@ -9,7 +9,7 @@ from operator import itemgetter
 from os import path
 from controller.task.base import TaskHandler
 from tornado.web import RequestHandler
-from controller.role import get_route_roles
+from controller.auth import get_route_roles
 import re
 import inspect
 

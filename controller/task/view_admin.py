@@ -13,26 +13,35 @@ from controller.task.view_text import TextProofHandler
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
-    # 默认前置任务
-    default_pre_tasks = {
-        'cut_review': ['cut_proof'],
-        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
-    }
+    def is_mod_enabled(self, mod):
+        disable_modules = self.config.get('disable_modules')
+        return not disable_modules or mod not in disable_modules
 
-    # 默认任务步骤
-    default_steps = {
-        'cut_proof': CutHandler.default_steps,
-        'cut_review': CutHandler.default_steps,
-        'text_proof_1': TextProofHandler.default_steps,
-        'text_proof_2': TextProofHandler.default_steps,
-        'text_proof_3': TextProofHandler.default_steps,
-    }
+    def get_tasks_by_type(self, task_type, status=None, q=None, order=None, page_size=0, page_no=1):
+        """获取任务管理/任务列表"""
+        if task_type not in self.task_types:
+            return [], 0
+
+        task_meta = self.task_types[task_type]
+        table, table_id = task_meta['data']['table'], task_meta['data']['id']
+        condition = {'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type}
+        query = self.db.task.find(condition)
+        if status:
+            condition.update({'status': status})
+        if q:
+            condition.update({table_id: {'$regex': '.*%s.*' % q}})
+        total_count = self.db.page.count_documents(condition)
+
+        if order:
+            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort(order, asc)
+        page_size = page_size or self.config['pager']['page_size']
+        page_no = page_no if page_no >= 1 else 1
+        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(pages), total_count
 
     def get(self, task_type):
-        """ 任务管理 """
-
-        def is_enabled(mod):
-            return not self.config.get('disable_modules') or mod not in self.config['disable_modules']
+        """ 任务管理/任务列表 """
 
         try:
             q = self.get_query_argument('q', '').upper()
@@ -41,44 +50,17 @@ class TaskAdminHandler(TaskHandler):
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             tasks, total_count = self.get_tasks_by_type(
-                task_type, type_status=status, order=order, name=q, page_size=page_size, page_no=cur_page
+                task_type, status=status, q=q, order=order, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order,
-                        default_pre_tasks=self.default_pre_tasks.get(task_type, {}), is_enabled=is_enabled,
-                        default_steps=self.default_steps.get(task_type, {}))
+            task_meta = self.task_types[task_type]
+            self.render(
+                'task_admin.html',
+                task_type=task_type, tasks=tasks, pager=pager, order=order, is_mod_enabled=self.is_mod_enabled,
+                default_pre_tasks=task_meta.get('pre_tasks', {}), default_steps=task_meta.get('steps', {})
+            )
         except Exception as e:
             return self.send_db_error(e, render=True)
-
-
-# to delete
-class TaskStatusHandler(TaskHandler):
-    URL = '/task/admin/task_status'
-
-    def get(self):
-        """ 任务状态 """
-
-        def is_enabled(mod):
-            return not self.config.get('disable_modules') or mod not in self.config['disable_modules']
-
-        try:
-            status = self.get_query_argument('status', '')
-            task_type = self.get_query_argument('type', '')
-            q = self.get_query_argument('q', '').upper()
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            tasks, total_count = self.get_tasks_by_type(
-                task_type=task_type, type_status=status, name=q, page_size=page_size, page_no=cur_page
-            )
-            task_types = {
-                'cut_proof': '切分校对', 'cut_review': '切分审定', 'ocr_proof': 'OCR校对', 'ocr_review': 'OCR审定',
-                'text_proof_1': '文字校一', 'text_proof_2': '文字校二', 'text_proof_3': '文字校三', 'text_review': '文字审定',
-            }
-            display_task_types = {k: v for k, v in task_types.items() if is_enabled(v)}
-            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('task_status.html', tasks=tasks, pager=pager, display_task_types=display_task_types)
-        except Exception as e:
-            self.send_db_error(e, render=True)
 
 
 class TaskInfoHandler(TaskHandler):

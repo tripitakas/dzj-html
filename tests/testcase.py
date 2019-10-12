@@ -11,7 +11,7 @@ from tornado.util import PY3
 from bson import json_util
 import re
 import controller as c
-import controller.role as role
+import controller.auth as auth
 from controller.app import Application
 from controller.task.base import TaskHandler as TH
 from tests.users import admin
@@ -156,7 +156,7 @@ class APITestCase(AsyncHTTPTestCase):
         r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         self.assert_code(200, r)
         u = self.parse_response(r)
-        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(role.assignable_roles))})
+        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
         self.assert_code(200, r)
         return r
 

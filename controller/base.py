@@ -23,7 +23,7 @@ from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
 from controller import errors as e
-from controller.role import get_route_roles, can_access
+from controller.auth import get_route_roles, can_access
 from controller.helper import get_date_time
 from controller.op_type import get_op_name
 
