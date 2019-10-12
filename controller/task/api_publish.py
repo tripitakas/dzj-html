@@ -178,7 +178,7 @@ class PublishTasksApi(TaskHandler):
         lst = [page_names[length * i: length * (i + 1)] for i in range(0, math.ceil(total / length))]
         pages = []
         for _page_names in lst:
-            _pages = self.db.page.find({'name': {'$in': _page_names}}, self.simple_fields())
+            _pages = self.db.page.find({'name': {'$in': _page_names}})
             pages.extend(list(_pages))
         return pages
 
@@ -256,7 +256,7 @@ class PublishTasksPagePrefixApi(PublishTasksApi):
 
         force = data['force'] == '1'
         condition = {'name': {'$regex': '.*%s.*' % page_prefix, '$options': '$i'}}
-        pages = self.db.page.find(condition, self.simple_fields())
+        pages = self.db.page.find(condition)
         log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('sub_steps', []),
                                 data.get('priority', 1), force, pages=pages)
         self.send_data_response({k: v_ for k, v_ in log.items() if v_})

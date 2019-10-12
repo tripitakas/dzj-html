@@ -38,7 +38,7 @@ class PickTaskApi(TaskHandler):
                 return self.pick_one_from_lobby(self, task_type)
 
             # 检查页面是否存在
-            task = self.db.page.find_one({'name': page_name}, self.simple_fields())
+            task = self.db.page.find_one({'name': page_name})
             if not task:
                 return self.send_error_response(errors.no_object)
 
@@ -47,7 +47,7 @@ class PickTaskApi(TaskHandler):
                 return self.send_error_response(errors.task_not_published)
 
             # 检查任务对应的数据是否被锁定。如果没有申明要保护，则直接跳过。
-            data_field = self.get_shared_data_field(task_type)
+            data_field = self.get_shared_data(task_type)
             if (data_field and data_field in self.data_auth_maps
                     and self.prop(task, 'lock.%s.locked_user_id' % data_field)):
                 return self.send_error_response(errors.data_is_locked)
@@ -75,7 +75,7 @@ class PickTaskApi(TaskHandler):
             task_field + '.picked_time': datetime.now(),
             task_field + '.updated_time': datetime.now(),
         }
-        data_field = self.get_shared_data_field(task_type)
+        data_field = self.get_shared_data(task_type)
         if data_field:
             update['lock.' + data_field] = {
                 "is_temp": False,
@@ -108,7 +108,7 @@ class ReturnTaskApi(TaskHandler):
     def post(self, task_type, page_name):
         """ 用户主动退回当前任务 """
         try:
-            page = self.db.page.find_one({'name': page_name}, self.simple_fields())
+            page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object)
             elif self.prop(page, 'tasks.%s.picked_user_id' % task_type) != self.current_user['_id']:
@@ -125,7 +125,7 @@ class ReturnTaskApi(TaskHandler):
                 data_field + '.returned_reason': self.get_request_data().get('reason'),
             }
             # 检查数据锁
-            data_field = self.get_shared_data_field(task_type)
+            data_field = self.get_shared_data(task_type)
             if data_field and data_field in self.data_auth_maps:
                 update.update({'lock.' + data_field: dict()})
                 ret['data_lock_released'] = True
@@ -151,7 +151,7 @@ class SubmitTaskApi(TaskHandler):
         }
 
         # 释放数据锁
-        data_field = self.get_shared_data_field(task_type)
+        data_field = self.get_shared_data(task_type)
         if data_field in self.data_auth_maps:
             update['lock.' + data_field] = {}
             ret['data_lock_released'] = True
@@ -174,7 +174,7 @@ class UnlockTaskDataApi(TaskHandler):
     def post(self, task_type, page_name):
         """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
         try:
-            data_field = self.get_shared_data_field(task_type)
+            data_field = self.get_shared_data(task_type)
             self.release_temp_data_lock(page_name, data_field)
             self.send_data_response()
         except DbError as e:
@@ -195,7 +195,7 @@ class WithDrawTaskApi(TaskHandler):
                 return self.send_error_response(errors.task_not_allowed_withdraw)
 
             update = {'tasks.%s' % task_type: dict(status=self.STATUS_READY)}
-            data_field = self.get_shared_data_field(task_type)
+            data_field = self.get_shared_data(task_type)
             if data_field:  # 释放数据锁
                 update.update({'lock.'+data_field: dict()})
             r = self.db.page.update_one(dict(name=page_name), {'$set': update})

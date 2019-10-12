@@ -51,6 +51,7 @@ class TaskAdminHandler(TaskHandler):
             return self.send_db_error(e, render=True)
 
 
+# to delete
 class TaskStatusHandler(TaskHandler):
     URL = '/task/admin/task_status'
 
@@ -104,7 +105,7 @@ class TaskInfoHandler(TaskHandler):
         for steps in TaskAdminHandler.default_steps.values():
             step_names.update(steps)
         try:
-            page = self.db.page.find_one({'name': page_name}, self.simple_fields())
+            page = self.db.page.find_one({'name': page_name})
             field_names = {
                 'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
                 'publish_by': '发布人', 'publish_time': '发布时间',

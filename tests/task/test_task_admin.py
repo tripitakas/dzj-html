@@ -165,7 +165,7 @@ class TestTaskPublish(APITestCase):
             page = self._app.db.page.find_one({'name': page_name})
             self.assertIn(task_type, page['tasks'])
             self.assertEqual(page['tasks'][task_type]['status'], 'ready')
-            data_field = Th.get_shared_data_field(task_type)
+            data_field = Th.get_shared_data(task_type)
             if data_field:
                 self.assertEqual(page['lock'][data_field], {})
 

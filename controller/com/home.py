@@ -52,7 +52,7 @@ class HomeHandler(BaseHandler):
                             r = re.findall(r'^([A-Za-z0-9_]+)', t['context'])
                             msg = msg.replace('{page_name}', r and r[0] or '')
                         if 'task_type' in msg:
-                            msg = msg.replace('{task_type}', TaskHandler.all_types().get(task_type, task_type))
+                            msg = msg.replace('{task_type}', TaskHandler.task_names().get(task_type, task_type))
                         if 'count' in msg:
                             msg = msg.replace('{count}', re.findall(r'^(\d+)', t['context'])[0])
                         if 'context' in msg:

@@ -24,17 +24,29 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler):
-    # 任务类型表
+    # 任务类型定义表。
+    # pre_tasks：默认的前置任务
+    # steps：默认的子步骤
+    # shared_data：该任务共享和保护的数据字段
     task_types = {
-        'cut_proof': '切分校对',
-        'cut_review': '切分审定',
-        'ocr_proof': 'OCR校对',
-        'ocr_review': 'OCR审定',
-        'text_proof_1': '文字校一',
-        'text_proof_2': '文字校二',
-        'text_proof_3': '文字校三',
-        'text_review': '文字审定',
-        'text_hard': '难字审定',
+        'cut_proof': {'name': '切分校对', 'pre_tasks': None, 'steps': None, 'shared_data': 'page.chars'},
+        'cut_review': {'name': '切分审定', 'pre_tasks': ['cut_proof'], 'steps': None, 'shared_data': 'page.chars'},
+        'text_proof': {'name': '文字校对', 'pre_tasks': None, 'steps': None, 'shared_data': 'page.chars'},
+        'text_review': {'name': '文字审定', 'pre_tasks': ['text_review'], 'steps': None, 'shared_data': 'page.chars'},
+        'text_hard': {'name': '难字审定', 'pre_tasks': ['text_review'], 'steps': None, 'shared_data': 'page.chars'},
+    }
+
+    # 数据锁权限配置表。
+    # 在update或edit操作时，需要检查数据锁资质，以这个表来判断。
+    data_auth_maps = {
+        'page.chars': {
+            'tasks': ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard'],
+            'roles': ['切分专家']
+        },
+        'page.text': {
+            'tasks': ['text_review', 'text_hard'],
+            'roles': ['文字专家']
+        },
     }
 
     # 任务状态表
@@ -46,58 +58,14 @@ class TaskHandler(BaseHandler):
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
     status_names = {
-        STATUS_UNREADY: '数据未就绪',
-        STATUS_READY: '数据已就绪',
-        STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务',
-        STATUS_PICKED: '进行中',
-        STATUS_RETURNED: '已退回',
-        STATUS_FINISHED: '已完成',
+        STATUS_UNREADY: '数据未就绪', STATUS_READY: '数据已就绪', STATUS_OPENED: '已发布未领取',
+        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中',
+        STATUS_RETURNED: '已退回', STATUS_FINISHED: '已完成',
     }
 
     prior_names = {3: '高', 2: '中', 1: '低'}
 
     MAX_RECORDS = 10000
-
-    """ 数据锁介绍
-    1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-      1.tasks。同一page的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof_1对chars而言）
-      2.roles。数据专家角色对所有page的授权字段
-    2）数据锁的类型：
-      1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
-      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时，分配临时数据锁，在窗口离开时解锁，或定时自动回收。
-    3）数据锁的使用：
-      1.首先在task_shared_data_fields中注册需要共享的数据字段；
-      2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
-    """
-
-    # 数据锁注册表。在任务的领取、保存、提交、完成及退回等操作时，需要判断是否要检查数据锁时，以这个表来判断。
-    task_shared_data_fields = {
-        'cut_proof': 'chars',
-        'cut_review': 'chars',
-        'cut_edit': 'chars',
-        'text_review': 'text',
-        'text_hard': 'text',
-        'text_edit': 'text',
-    }
-
-    # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。
-    data_auth_maps = {
-        'chars': {
-            'tasks': ['cut_proof', 'cut_review',
-                      'text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'],
-            'roles': ['切分专家']
-        },
-        'text': {
-            'tasks': ['text_review', 'text_hard'],
-            'roles': ['文字专家']
-        },
-    }
-
-    @classmethod
-    def get_shared_data_field(cls, task_type):
-        """ 获取任务保护的共享字段 """
-        return cls.task_shared_data_fields.get(task_type)
 
     @classmethod
     def prop(cls, obj, key):
@@ -106,96 +74,8 @@ class TaskHandler(BaseHandler):
         return obj
 
     @classmethod
-    def all_types(cls):
-        all_types = {'text_proof': '文字校对'}
-        all_types.update(cls.task_types)
-        return all_types
-
-    @classmethod
-    def cut_task_names(cls):
-        return {k: v for k, v in cls.task_types.items() if 'cut_' in k}
-
-    @classmethod
-    def text_task_names(cls):
-        return {k: v for k, v in cls.task_types.items() if 'text_' in k}
-
-    @classmethod
-    def simple_fields(cls, include=None):
-        """ 去掉一些内容较长的字段，如果需要保留，可以通过include进行设置 """
-        simple = ['name', 'width', 'height', 'tasks', 'lock']
-        include = [] if not include else include
-        return {prop: 1 for prop in set(simple + include)}
-
-    def find_my_tasks(self, page_name):
-        """ 检查page_name对应的page中，当前用户有哪些任务 """
-        page = self.db.page.find_one({'name': page_name}, self.simple_fields())
-        tasks = []
-        for k, task in page['tasks'].items():
-            if task.get('picked_user_id') == self.current_user['_id']:
-                tasks.append(k)
-        return tasks
-
-    def has_data_lock(self, page_name, data_field, is_temp=None):
-        """ 检查page_name对应的page中，当前用户是否拥有data_field对应的数据 """
-        condition = {'name': page_name, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
-        assert is_temp in [None, True, False]
-        if is_temp is not None:
-            condition.update({'lock.%s.is_temp' % data_field: is_temp})
-        n = self.db.page.count_documents(condition)
-        return n > 0
-
-    def is_data_locked(self, page_name, data_field):
-        """检查page_name对应的page中，data_field对应的数据是否已经被锁定"""
-        page = self.db.page.find_one({'name': page_name}, self.simple_fields())
-        return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
-
-    def get_temp_data_lock(self, page_name, data_field):
-        """ 将page_name对应的page中，data_field对应的数据锁分配给当前用户，成功时返回True，失败时返回errors.xxx。
-            它提供给update或edit时，分配临时锁，不能获取长时锁（长时锁由系统在任务领取时分配，是任务提交时释放）。
-        """
-
-        def assign_lock(lock_type):
-            """ lock_type指的是来自哪个任务或者哪个角色 """
-            r = self.db.page.update_one({'name': page_name}, {'$set': {
-                'lock.' + data_field: {
-                    "is_temp": True,
-                    "lock_type": lock_type,
-                    "locked_by": self.current_user['name'],
-                    "locked_user_id": self.current_user['_id'],
-                    "locked_time": datetime.now(),
-                }
-            }})
-            return r.matched_count > 0
-
-        assert data_field in self.data_auth_maps
-
-        if self.has_data_lock(page_name, data_field):
-            return True
-
-        # 检查是否有数据编辑对应的roles（有一个角色即可）
-        user_all_roles = role.get_all_roles(self.current_user['roles'])
-        roles = list(set(user_all_roles) & set(self.data_auth_maps[data_field]['roles']))
-        if roles:
-            if not self.is_data_locked(page_name, data_field):
-                return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
-            else:
-                return errors.data_is_locked
-
-        # 检查是否有同一page的同阶或高阶tasks
-        my_tasks = self.find_my_tasks(page_name)
-        tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
-        if tasks:
-            if not self.is_data_locked(page_name, data_field):
-                return True if assign_lock(dict(tasks=tasks)) else errors.data_lock_failed
-            else:
-                return errors.data_is_locked
-
-        return errors.data_unauthorized
-
-    def release_temp_data_lock(self, page_name, data_field):
-        """ 将page_name对应的page中，data_field对应的数据锁释放。 """
-        if data_field and data_field in self.data_auth_maps and self.has_data_lock(page_name, data_field, is_temp=True):
-            self.db.page.update_one({'name': page_name}, {'$set': {'lock.%s' % data_field: {}}})
+    def task_names(cls):
+        return {k: v.get('name') for k, v in cls.task_types.items()}
 
     def check_auth(self, mode, page, task_type):
         """ 检查任务权限以及数据锁 """
@@ -221,7 +101,7 @@ class TaskHandler(BaseHandler):
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
         auth = False
         if mode in ['do', 'update', 'edit']:
-            data_field = self.get_shared_data_field(task_type)
+            data_field = self.get_shared_data(task_type)
             if not data_field or data_field not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
                 auth = True
             elif (self.has_data_lock(page['name'], data_field)
@@ -262,7 +142,7 @@ class TaskHandler(BaseHandler):
 
     def get_my_tasks_by_type(self, task_type, status=None, name=None, order=None, page_size=0, page_no=1):
         """获取我的任务/任务列表"""
-        if task_type not in self.all_types():
+        if task_type not in self.task_types:
             return [], 0
 
         assert status is None or status in [self.STATUS_PICKED, self.STATUS_FINISHED]
@@ -284,7 +164,7 @@ class TaskHandler(BaseHandler):
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
-        query = self.db.page.find(condition, self.simple_fields())
+        query = self.db.page.find(condition)
         total_count = self.db.page.count_documents(condition)
 
         if order:
@@ -310,7 +190,7 @@ class TaskHandler(BaseHandler):
             priority = self.prop(page, 'tasks.%s.priority' % t) or 0
             return priority
 
-        if task_type not in self.all_types():
+        if task_type not in self.task_types:
             return [], 0
         if task_type == 'text_proof':
             condition = {'$or': [{'tasks.text_proof_%s.status' % i: self.STATUS_OPENED} for i in [1, 2, 3]]}
@@ -320,7 +200,7 @@ class TaskHandler(BaseHandler):
         else:
             condition = {'tasks.%s.status' % task_type: self.STATUS_OPENED}
         total_count = self.db.page.count_documents(condition)
-        pages = list(self.db.page.find(condition, self.simple_fields()).limit(self.MAX_RECORDS))
+        pages = list(self.db.page.find(condition).limit(self.MAX_RECORDS))
         random.shuffle(pages)
         pages.sort(key=cmp_to_key(lambda a, b: get_priority(a) - get_priority(b)), reverse=True)
         page_size = page_size or self.config['pager']['page_size']
@@ -347,7 +227,7 @@ class TaskHandler(BaseHandler):
         if name:
             condition['name'] = {'$regex': '.*%s.*' % name}
 
-        query = self.db.page.find(condition, self.simple_fields())
+        query = self.db.page.find(condition)
         total_count = self.db.page.count_documents(condition)
 
         if order:
@@ -358,3 +238,89 @@ class TaskHandler(BaseHandler):
         page_no = page_no if page_no >= 1 else 1
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
+
+    """ 数据锁介绍
+    1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
+      1.tasks。同一page的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof对chars而言）
+      2.roles。数据专家角色对所有page的授权字段
+    2）数据锁的类型：
+      1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
+      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时，分配临时数据锁，在窗口离开时解锁，或定时自动回收。
+    3）数据锁的使用：
+      1.首先在task_shared_data_fields中注册需要共享的数据字段；
+      2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
+    """
+
+    @classmethod
+    def get_shared_data(cls, task_type):
+        """ 获取任务保护的共享字段 """
+        return cls.prop(cls.task_types, '%s.shared_data' % task_type)
+
+    def has_data_lock(self, table, id_name, id_value, data_field, is_temp=None):
+        """ 检查当前用户是否拥有某数据锁
+        :param table 数据表，即mongodb的collection
+        :param id_name 作为id的字段名称
+        :param id_value 作为id的字段值
+        :param data_field 检查哪个数据字段
+        :param is_temp 是否为临时锁
+         """
+        assert is_temp in [None, True, False]
+        condition = {id_name: id_value, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
+        if is_temp is not None:
+            condition.update({'lock.%s.is_temp' % data_field: is_temp})
+        n = self.db[table].count_documents(condition)
+        return n > 0
+
+    def is_data_locked(self, table, id_name, id_value, data_field):
+        """检查数据是否已经被锁定"""
+        page = self.db[table].find_one({id_name: id_value})
+        return True if self.prop(page, 'lock.%s.locked_user_id' % data_field) else False
+
+    def get_temp_data_lock(self, table, id_name, id_value, data_field):
+        """ 将临时数据锁分配给当前用户。（长时数据锁由系统在任务领取时分配，是任务提交时释放）。
+        :return 成功时返回True，失败时返回errors.xxx。
+
+        """
+
+        def assign_lock(lock_type):
+            """ lock_type指的是来自哪个任务或者哪个角色 """
+            r = self.db[table].update_one({id_name: id_value}, {'$set': {
+                'lock.' + data_field: {
+                    "is_temp": True,
+                    "lock_type": lock_type,
+                    "locked_by": self.current_user['name'],
+                    "locked_user_id": self.current_user['_id'],
+                    "locked_time": datetime.now(),
+                }
+            }})
+            return r.matched_count > 0
+
+        assert data_field in self.data_auth_maps
+        if self.has_data_lock(table, id_name, id_value, data_field):
+            return True
+        # 检查是否有数据锁对应的角色（有一个角色即可）
+        user_all_roles = role.get_all_roles(self.current_user['roles'])
+        roles = list(set(user_all_roles) & set(self.data_auth_maps[data_field]['roles']))
+        if roles:
+            if not self.is_data_locked(table, id_name, id_value, data_field):
+                return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
+            else:
+                return errors.data_is_locked
+        # 检查当前用户拥有该数据的哪些任务
+        tasks = self.db.task.find_one({'data': dict(table=table, id_name=id_name, id_value=id_value)})
+        my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
+                    and t.get('status') != self.STATUS_RETURNED]
+        # 检查当前用户是否有该数据的同阶或高阶任务
+        tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
+        if tasks:
+            if not self.is_data_locked(table, id_name, id_value, data_field):
+                return True if assign_lock(dict(tasks=tasks)) else errors.data_lock_failed
+            else:
+                return errors.data_is_locked
+
+        return errors.data_unauthorized
+
+    def release_temp_data_lock(self, table, id_name, id_value, data_field):
+        """ 释放临时数据锁 """
+        if data_field in self.data_auth_maps and self.has_data_lock(table, id_name, id_value, data_field, is_temp=True):
+            self.db[table].update_one({id_name: id_value}, {'$set': {'lock.%s' % data_field: dict()}})

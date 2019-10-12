@@ -15,7 +15,7 @@ class TestPeriodicTask(APITestCase):
 
     def get_data_lock(self, page_name, task_type):
         page = self._app.db.page.find_one({'name': page_name})
-        data_field = Th.get_shared_data_field(task_type)
+        data_field = Th.get_shared_data(task_type)
         return data_field and Th.prop(page, 'lock.' + data_field)
 
     def test_do_task_release(self):

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -64,7 +64,7 @@
             {% for task_type, info in page.get('tasks').items() %}
             <div class="task">
               <span class="task_type">
-                <a href="/task/{{task_type}}/{{page['name']}}">{{th.task_types.get(task_type)}}</a>
+                <a href="/task/{{task_type}}/{{page['name']}}">{{Th.task_types.get(task_type)}}</a>
               </span>
               {% for k, v in info.items() %}
               {% if k in field_names and v %}
