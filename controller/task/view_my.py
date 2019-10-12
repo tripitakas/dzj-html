@@ -16,16 +16,14 @@ class MyTaskHandler(TaskHandler):
             return [], 0
 
         task_meta = self.task_types[task_type]
-        table, table_id = task_meta['data']['table'], task_meta['data']['id']
         condition = {
-            'task_type': task_type, 'picked_user_id': self.current_user['_id'],
+            'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type,
+            'picked_user_id': self.current_user['_id'],
             'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]}
         }
-        if task_meta.get('groups'):
-            condition.update({'task_type': {'$regex': '.*%s.*' % task_type}})
         if q:
-            condition.update({table_id: {'$regex': '.*%s.*' % q}})
-        query = self.db[table].find(condition)
+            condition.update({'id_value': {'$regex': '.*%s.*' % q}})
+        query = self.db[task_meta['data']['collection']].find(condition)
         total_count = self.db.page.count_documents(condition)
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)

@@ -6,8 +6,6 @@
 """
 from datetime import datetime
 from controller.task.base import TaskHandler
-from controller.task.view_cut import CutHandler
-from controller.task.view_text import TextProofHandler
 
 
 class TaskAdminHandler(TaskHandler):
@@ -23,15 +21,14 @@ class TaskAdminHandler(TaskHandler):
             return [], 0
 
         task_meta = self.task_types[task_type]
-        table, table_id = task_meta['data']['table'], task_meta['data']['id']
         condition = {'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type}
-        query = self.db.task.find(condition)
         if status:
             condition.update({'status': status})
         if q:
-            condition.update({table_id: {'$regex': '.*%s.*' % q}})
-        total_count = self.db.page.count_documents(condition)
+            condition.update({'id_value': {'$regex': '.*%s.*' % q}})
+        total_count = self.db.task.count_documents(condition)
 
+        query = self.db.task.find(condition)
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(order, asc)
@@ -84,8 +81,6 @@ class TaskInfoHandler(TaskHandler):
             return value
 
         step_names = dict()
-        for steps in TaskAdminHandler.default_steps.values():
-            step_names.update(steps)
         try:
             page = self.db.page.find_one({'name': page_name})
             field_names = {

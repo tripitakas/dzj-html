@@ -16,38 +16,41 @@ class TaskLobbyHandler(TaskHandler):
 
         def get_skip_no():
             condition.update({'priority': 3})
-            n3 = self.db[table].count_documents(condition)
+            n3 = self.db.task.count_documents(condition)
             condition.update({'priority': 2})
-            n2 = self.db[table].count_documents(condition)
+            n2 = self.db.task.count_documents(condition)
             del condition['priority']
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
+
+        def de_duplicate():
+            """根据id_value去重"""
+            _tasks, _id_values = [], []
+            for task in tasks:
+                if task.get('id_value') not in _id_values:
+                    _tasks.append(task)
+                    _id_values.append(task.get(id_name))
+            return _tasks[:page_size]
 
         if task_type not in self.task_types:
             return [], 0
 
         task_meta = self.task_types[task_type]
-        table, table_id = task_meta['data']['table'], task_meta['data']['id']
+        collection, id_name = task_meta['data']['collection'], task_meta['data']['id']
         page_size = page_size or self.config['pager']['page_size']
         if task_meta.get('groups'):
             condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED}
-            total_count = self.db[table].count_documents(condition)
+            total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
-            documents = list(self.db[table].find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
-            # 根据table_id去重
-            _documents, _doc_ids = [], []
-            for document in documents:
-                if document.get(table_id) not in _doc_ids:
-                    _documents.append(document)
-                    _doc_ids.append(document.get(table_id))
-            documents = _documents[:page_size]
+            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
+            tasks = de_duplicate()
         else:
             condition = {'task_type': task_type, 'status': self.STATUS_OPENED}
-            total_count = self.db[table].count_documents(condition)
+            total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
-            documents = list(self.db[table].find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
+            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
 
-        return documents, total_count
+        return tasks, total_count
 
     def get(self, task_type):
         """ 任务大厅 """
