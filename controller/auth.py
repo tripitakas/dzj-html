@@ -151,8 +151,9 @@ role_route_maps = {
             '/task/info/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/publish': ['POST'],
-            '/api/task/publish/@page_prefix': ['POST'],
+            '/api/task/publish_by_ids': ['POST'],
+            '/api/task/publish_by_file': ['POST'],
+            '/api/task/publish_by_prefix': ['POST'],
             '/api/task/(withdraw|reset)/@task_type/@page_name': ['POST'],
         }
     },

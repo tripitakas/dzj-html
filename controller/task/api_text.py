@@ -162,7 +162,7 @@ class SaveTextReviewApi(SubmitTaskApi):
             # 生成难字任务
             if mode == 'do' and data.get('submit') and doubt:
                 update.update({
-                    'tasks.text_hard.status': self.TASK_OPENED, 'tasks.text_hard.publish_time': datetime.now(),
+                    'tasks.text_hard.status': self.STATUS_OPENED, 'tasks.text_hard.publish_time': datetime.now(),
                 })
                 self.add_op_log('publish_text_hard', context=page_name)
 

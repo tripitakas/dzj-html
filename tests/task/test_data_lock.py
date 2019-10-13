@@ -16,7 +16,7 @@ class TestDataLock(APITestCase):
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]], '切分专家,文字专家'
         )
-        self.revert()
+        self.delete_all_tasks()
 
     def tearDown(self):
         super(TestDataLock, self).tearDown()
@@ -34,12 +34,12 @@ class TestDataLock(APITestCase):
         ]:
             # 发布任务，前置任务为空
             self.login_as_admin()
-            self.revert()
+            self.delete_all_tasks()
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
             data = dict(task_type=task_type, pre_tasks=[], pages=','.join(page_names))
             if 'cut' in task_type:
-                data['sub_steps'] = ['char_box']
-            self.assert_code(200, self.publish(data))
+                data['steps'] = ['char_box']
+            self.assert_code(200, self.publish_tasks(data))
 
             # 测试领取任务时，系统自动分配长时数据锁
             self.login(u.expert1[0], u.expert1[1])

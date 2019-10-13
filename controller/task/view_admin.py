@@ -17,11 +17,10 @@ class TaskAdminHandler(TaskHandler):
 
     def get_tasks_by_type(self, task_type, status=None, q=None, order=None, page_size=0, page_no=1):
         """获取任务管理/任务列表"""
-        if task_type not in self.task_types:
+        if task_type not in self.all_task_types():
             return [], 0
 
-        task_meta = self.task_types[task_type]
-        condition = {'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type}
+        condition = {'task_type': {'$regex': '.*%s.*' % task_type} if task_type in self.task_groups else task_type}
         if status:
             condition.update({'status': status})
         if q:
@@ -50,7 +49,7 @@ class TaskAdminHandler(TaskHandler):
                 task_type, status=status, q=q, order=order, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            task_meta = self.task_types[task_type]
+            task_meta = self.all_task_types().get(task_type)
             self.render(
                 'task_admin.html',
                 task_type=task_type, tasks=tasks, pager=pager, order=order, is_mod_enabled=self.is_mod_enabled,

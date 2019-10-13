@@ -3,8 +3,8 @@
 """
 @desc: 任务Handler基类
     1. 任务状态。
-    任务数据未到位时，状态为“unready”。上传数据后，程序进行检查，如果满足发布条件，则状态置为“ready”。
-    发布任务只能发布状态为“ready”的任务。如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
+    任务依赖的数据由TaskHandler.task_types.input_field定义，如果该数据就绪，则可以发布任务。
+    如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
     用户领取任务后，状态为“picked”，退回任务后，状态为“returned”，提交任务后，状态为“finished”。
     2. 前置任务
     任务配置表中定义了默认的前置任务。
@@ -25,12 +25,8 @@ class TaskHandler(BaseHandler):
     # pre_tasks：默认的前置任务
     # data.collection：任务所对应数据表
     # data.id：数据表的主键名称
-    # data.input_field：该任务依赖的数据字段
+    # data.input_field：该任务依赖的数据字段，该字段就绪，则可以发布任务
     # data.shared_field：该任务共享和保护的数据字段
-    # groups：一组任务。
-    #     对于同一个数据的一组任务而言，用户只能领取其中的一个。
-    #     在任务大厅和我的任务中，任务组中的任务将合并显示。
-    #     任务组仅在以上两处起作用，不影响其他任务管理功能。
     task_types = {
         'cut_proof': {
             'name': '切分校对',
@@ -52,11 +48,6 @@ class TaskHandler(BaseHandler):
             'name': '文字校三',
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
         },
-        'text_proof': {
-            'name': '文字校对',
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
-        },
         'text_review': {
             'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
@@ -64,6 +55,18 @@ class TaskHandler(BaseHandler):
         'text_hard': {
             'name': '难字审定', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        },
+    }
+
+    # 任务组定义表。
+    # 对于同一数据的一组任务而言，用户只能领取其中的一个。
+    # 在任务大厅和我的任务中，任务组中的任务将合并显示。
+    # 任务组仅在以上两处起作用，不影响其他任务管理功能。
+    task_groups = {
+        'text_proof': {
+            'name': '文字校对',
+            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
+            'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
     }
 
@@ -80,24 +83,24 @@ class TaskHandler(BaseHandler):
     }
 
     # 任务状态表
-    TASK_OPENED = 'opened'
-    TASK_PENDING = 'pending'
-    TASK_PICKED = 'picked'
-    TASK_RETURNED = 'returned'
-    TASK_RETRIEVED = 'retrieved'
-    TASK_FINISHED = 'finished'
+    STATUS_OPENED = 'opened'
+    STATUS_PENDING = 'pending'
+    STATUS_PICKED = 'picked'
+    STATUS_RETURNED = 'returned'
+    STATUS_RETRIEVED = 'retrieved'
+    STATUS_FINISHED = 'finished'
     task_status_names = {
-        TASK_OPENED: '已发布未领取', TASK_PENDING: '等待前置任务', TASK_PICKED: '进行中',
-        TASK_RETURNED: '已退回', TASK_RETRIEVED: '已回收', TASK_FINISHED: '已完成',
+        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中',
+        STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已回收', STATUS_FINISHED: '已完成',
     }
 
     # 数据状态表
-    DATA_UNREADY = 'unready'
-    DATA_TODO = 'todo'
-    DATA_READY = 'ready'
-    DATA_PUBLISHED = 'published'
+    STATUS_UNREADY = 'unready'
+    STATUS_TODO = 'todo'
+    STATUS_READY = 'ready'
+    STATUS_PUBLISHED = 'published'
     data_status_names = {
-        DATA_UNREADY: '未就绪', DATA_TODO: '待办', DATA_READY: '已就绪', DATA_PUBLISHED: '已发布'
+        STATUS_UNREADY: '未就绪', STATUS_TODO: '待办', STATUS_READY: '已就绪', STATUS_PUBLISHED: '已发布'
     }
 
     # 任务优先级
@@ -110,8 +113,14 @@ class TaskHandler(BaseHandler):
         return obj
 
     @classmethod
+    def all_task_types(cls):
+        task_types = cls.task_types.copy()
+        task_types.update(cls.task_groups)
+        return task_types
+
+    @classmethod
     def task_names(cls):
-        return {k: v.get('name') for k, v in cls.task_types.items()}
+        return {k: v.get('name') for k, v in cls.all_task_types().items()}
 
     def find_one(self, task_type, id_value, picked_user_id):
         assert task_type in self.task_types
@@ -138,9 +147,9 @@ class TaskHandler(BaseHandler):
             if not self.current_user or not task:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
             # 检查任务状态以及是否为进行中或已完成（已完成的任务可以update）
-            if task['status'] not in [self.TASK_PICKED, self.TASK_FINISHED]:
+            if task['status'] not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
-            if mode == 'do' and task['status'] == self.TASK_FINISHED:
+            if mode == 'do' and task['status'] == self.STATUS_FINISHED:
                 return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=id_value)
 
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
@@ -163,12 +172,12 @@ class TaskHandler(BaseHandler):
         for task in self.db.task.find(condition):
             pre_tasks = task.get('pre_tasks', {})
             if task_type in pre_tasks:
-                pre_tasks[task_type] = self.TASK_FINISHED
-                unfinished_pre_tasks = [v for v in pre_tasks.values() if v != self.TASK_FINISHED]
-                update = {'pre_task.%s' % task_type: self.TASK_FINISHED}
+                pre_tasks[task_type] = self.STATUS_FINISHED
+                unfinished_pre_tasks = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
+                update = {'pre_task.%s' % task_type: self.STATUS_FINISHED}
                 # 如果当前任务状态为悬挂，且所有前置任务均已完成，则设置状态为已发布
-                if task['status'] == self.TASK_PENDING and not unfinished_pre_tasks:
-                    update.update({'status': self.TASK_OPENED})
+                if task['status'] == self.STATUS_PENDING and not unfinished_pre_tasks:
+                    update.update({'status': self.STATUS_OPENED})
                 self.db.task.update_one({'_id', task['_id']}, {'$set': update})
 
     """ 数据锁介绍
@@ -243,7 +252,7 @@ class TaskHandler(BaseHandler):
         # 获取当前用户拥有该数据的所有任务
         tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, id_value=id_value)})
         my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
-                    and t.get('status') != self.TASK_RETURNED]
+                    and t.get('status') != self.STATUS_RETURNED]
         # 检查当前用户是否有该数据的同阶或高阶任务
         tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
         if tasks:

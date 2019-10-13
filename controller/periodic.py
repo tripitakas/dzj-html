@@ -34,7 +34,7 @@ def periodic_task(app, opt=None):
                         update = {'lock.%s' % field: {}}
                         values = {'$set': update}
                         if not lock.get('is_temp'):
-                            update['tasks.%s.status' % task_type] = Th.TASK_OPENED
+                            update['tasks.%s.status' % task_type] = Th.STATUS_OPENED
                             values['$unset'] = {}
                             for k in Th.prop(page, 'tasks.%s' % task_type):
                                 if k.startswith('picked'):

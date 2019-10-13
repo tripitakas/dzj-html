@@ -24,7 +24,7 @@ class PickTaskApi(TaskHandler):
         """
         try:
             # 检查是否有未完成的任务
-            uncompleteds = self.get_my_tasks_by_type(task_type, status=self.TASK_PICKED)[0]
+            uncompleteds = self.get_my_tasks_by_type(task_type, status=self.STATUS_PICKED)[0]
             if uncompleteds:
                 message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleteds[0]['name']
                 url = '/task/do/%s/%s' % (task_type, uncompleteds[0]['name'])
@@ -43,7 +43,7 @@ class PickTaskApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
 
             # 检查页面状态是否为已发布（不可为其它状态，如未就绪、未发布、已领取等等）
-            if self.prop(task, 'tasks.%s.status' % task_type) != self.TASK_OPENED:
+            if self.prop(task, 'tasks.%s.status' % task_type) != self.STATUS_OPENED:
                 return self.send_error_response(errors.task_not_published)
 
             # 检查任务对应的数据是否被锁定。如果没有申明要保护，则直接跳过。
@@ -71,7 +71,7 @@ class PickTaskApi(TaskHandler):
         update = {
             task_field + '.picked_user_id': self.current_user['_id'],
             task_field + '.picked_by': self.current_user['name'],
-            task_field + '.status': self.TASK_PICKED,
+            task_field + '.status': self.STATUS_PICKED,
             task_field + '.picked_time': datetime.now(),
             task_field + '.updated_time': datetime.now(),
         }
@@ -113,14 +113,14 @@ class ReturnTaskApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
             elif self.prop(page, 'tasks.%s.picked_user_id' % task_type) != self.current_user['_id']:
                 return self.send_error_response(errors.unauthorized)
-            elif self.prop(page, 'tasks.%s.status' % task_type) == self.TASK_FINISHED:
+            elif self.prop(page, 'tasks.%s.status' % task_type) == self.STATUS_FINISHED:
                 return self.send_error_response(errors.task_return_only_picked)
-            elif self.prop(page, 'tasks.%s.status' % task_type) != self.TASK_PICKED:
+            elif self.prop(page, 'tasks.%s.status' % task_type) != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_return_only_picked)
 
             data_field, ret = 'tasks.' + task_type, {'returned': True}
             update = {
-                data_field + '.status': self.TASK_RETURNED,
+                data_field + '.status': self.STATUS_RETURNED,
                 data_field + '.updated_time': datetime.now(),
                 data_field + '.returned_reason': self.get_request_data().get('reason'),
             }
@@ -146,7 +146,7 @@ class SubmitTaskApi(TaskHandler):
         # 更新当前任务
         ret = {'submitted': True}
         update = {
-            'tasks.%s.status' % task_type: self.TASK_FINISHED,
+            'tasks.%s.status' % task_type: self.STATUS_FINISHED,
             'tasks.%s.finished_time' % task_type: datetime.now(),
         }
 
@@ -191,10 +191,10 @@ class WithDrawTaskApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
             status = self.prop(page, 'tasks.%s.status' % task_type)
-            if status not in [self.TASK_OPENED, self.TASK_PENDING, self.TASK_PICKED]:
+            if status not in [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED]:
                 return self.send_error_response(errors.task_not_allowed_withdraw)
 
-            update = {'tasks.%s' % task_type: dict(status=self.TASK_READY)}
+            update = {'tasks.%s' % task_type: dict(status=self.STATUS_READY)}
             data_field = self.get_shared_data(task_type)
             if data_field:  # 释放数据锁
                 update.update({'lock.'+data_field: dict()})
@@ -218,10 +218,10 @@ class ResetTaskApi(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object)
             status = self.prop(page, 'tasks.%s.status' % task_type)
-            if status != self.TASK_READY:
+            if status != self.STATUS_READY:
                 return self.send_error_response(errors.task_not_allowed_reset)
 
-            update = {'tasks.%s' % task_type: dict(status=self.TASK_UNREADY)}
+            update = {'tasks.%s' % task_type: dict(status=self.STATUS_UNREADY)}
             r = self.db.page.update_one(dict(name=page_name), {'$set': update})
             if not r.matched_count:
                 return self.send_error_response(errors.no_object)

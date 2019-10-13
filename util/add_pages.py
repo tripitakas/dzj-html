@@ -24,11 +24,6 @@ page_meta = {
     'name': '', 'width': '', 'height': '',
     'un_sutra_id': '', 'sutra_id': '', 'reel_id': '', 'reel_page_no': '', 'lock': {},
     'ocr': '', 'text': '', 'text_normal': '', 'blocks': [], 'columns': [], 'chars': [],
-    'status_tasks': {
-        'cut_proof': 'ready', 'cut_review': 'ready', 'text_proof_1': 'ready',
-        'text_proof_2': 'ready', 'text_proof_3': 'ready',
-        'text_review': 'ready', 'text_hard': 'ready'
-    },
 }
 
 

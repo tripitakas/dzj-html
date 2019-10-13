@@ -12,14 +12,14 @@ class MyTaskHandler(TaskHandler):
 
     def get_my_tasks_by_type(self, task_type, q=None, order=None, page_size=0, page_no=1):
         """获取我的任务/任务列表"""
-        if task_type not in self.task_types:
+        if task_type not in self.all_task_types():
             return [], 0
 
-        task_meta = self.task_types[task_type]
+        task_meta = self.all_task_types()[task_type]
         condition = {
             'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type,
             'picked_user_id': self.current_user['_id'],
-            'status': {"$in": [self.TASK_PICKED, self.TASK_FINISHED]}
+            'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]}
         }
         if q:
             condition.update({'id_value': {'$regex': '.*%s.*' % q}})

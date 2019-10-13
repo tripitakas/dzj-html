@@ -16,7 +16,7 @@ class TestTaskFlow(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
             '切分专家,文字专家'
         )
-        self.revert()
+        self.delete_all_tasks()
 
     def tearDown(self):
         super(TestTaskFlow, self).tearDown()
@@ -30,7 +30,7 @@ class TestTaskFlow(APITestCase):
             page_names = ['GL_1056_5_6', 'JX_165_7_12', 'QL_25_16']
             self.set_task_status({task_type: 'ready'}, page_names)
             r = self.parse_response(
-                self.publish(dict(task_type=task_type, pages=','.join(page_names), sub_steps=steps)))
+                self.publish_tasks(dict(task_type=task_type, pages=','.join(page_names), steps=steps)))
             published = r.get('data', {}).get('published')
             pending = r.get('data', {}).get('pending')
             if 'proof' in task_type:
@@ -124,8 +124,8 @@ class TestTaskFlow(APITestCase):
             # 发布t1，领取t1并提交
             self.login_as_admin()
             page_names = ['GL_1056_5_6', 'JX_165_7_12']
-            r = self.publish(
-                dict(task_type=t1, sub_steps=steps, pre_tasks=self.pre_tasks.get(t1), pages=','.join(page_names)))
+            r = self.publish_tasks(
+                dict(task_type=t1, steps=steps, pre_tasks=self.pre_tasks.get(t1), pages=','.join(page_names)))
             self.assert_code(200, r)
             self.login(u.expert1[0], u.expert1[1])
             self.parse_response(self.fetch('/api/task/pick/' + t1, body={'data': {'page_name': page_names[0]}}))
@@ -141,7 +141,7 @@ class TestTaskFlow(APITestCase):
 
             # 发布t2，任务大厅应有任务
             self.login_as_admin()
-            r = self.publish(dict(task_type=t2, pre_tasks=self.pre_tasks.get(t2), pages=','.join(page_names)))
+            r = self.publish_tasks(dict(task_type=t2, pre_tasks=self.pre_tasks.get(t2), pages=','.join(page_names)))
             self.assert_code(200, r)
             self.login(u.expert2[0], u.expert2[1])
             r = self.parse_response(self.fetch('/task/lobby/%s?_raw=1' % t2))

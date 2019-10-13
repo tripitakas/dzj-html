@@ -133,7 +133,7 @@
                               状态<span class="ion-android-sort "></span>
                             </span>
                             <ul class="dropdown-menu" role="menu">
-                            {% for k, v in Th.status_names.items() %}
+                            {% for k, v in Th.task_status_names.items() %}
                               <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
@@ -161,11 +161,11 @@
                       <td><a class="doc-name" href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
                       {% set status = Th.prop(t, 'tasks.%s.status' % task_type) %}
                       {% set reason = Th.prop(t, 'tasks.%s.returned_reason' % task_type) or '' %}
-                      <td class="{{status}}" title="{{reason}}">{{Th.status_names.get(status) or ''}}</td>
+                      <td class="{{status}}" title="{{reason}}">{{Th.task_status_names.get(status) or ''}}</td>
                       <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
                       <td>
-                        {% set sub_steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
-                        {{'/'.join([Th.prop(default_steps, s) for s in sub_steps])}}
+                        {% set steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
+                        {{'/'.join([Th.prop(default_steps, s) for s in steps])}}
                       </td>
                       <td>
                         {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
@@ -211,6 +211,12 @@
         </div>
         <div class="modal-body">
           {% include task_admin_modal.html %}
+          <div class="force">
+            <h4 class="control-label">任务已发布时，如何处理？</h4>
+            <input type="radio" name="prefix-force" value="0" style="margin-right: 10px" checked>跳过
+            <input type="radio" name="prefix-force" value="1" style="margin: 0 10px">重新发布<br>
+          </div>
+          <br/>
           <h4 class="control-label">输入页码前缀</h4>
           <input type="text" class="form-control" id="doc_prefix" placeholder="请输入页码前缀，如GL_2"/>
         </div>
@@ -234,6 +240,12 @@
         </div>
         <div class="modal-body">
           {% include task_admin_modal.html %}
+          <div class="force">
+            <h4 class="control-label">任务已发布时，如何处理？</h4>
+            <input type="radio" name="file-force" value="0" style="margin-right: 10px" checked>跳过
+            <input type="radio" name="file-force" value="1" style="margin: 0 10px">重新发布<br>
+          </div>
+          <br/>
           <i>请选择CSV或TXT格式文件，大小不超过10M</i>
           <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
         </div>
@@ -509,15 +521,16 @@
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
-    var sub_steps = [];
+    var steps = [];
     $("#selectModal .sub-steps :checkbox").each(function () {
       if ($(this).is(':checked'))
-        sub_steps.push($(this).attr('title'));
+        steps.push($(this).attr('title'));
     });
     var data = {
       task_type: '{{task_type}}',
+      force: $('#selectModal .force input:radio:checked').val(),
       pre_tasks: pre_tasks,
-      sub_steps: sub_steps,
+      steps: steps,
       priority: $chooseDocsModal.find('.priority-list select').val(),
       doc_names: selectedDocs.join(',')
     };
@@ -552,15 +565,16 @@
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
-    var sub_steps = [];
+    var steps = [];
     $("#fileModal .sub-steps :checkbox").each(function () {
       if ($(this).is(':checked'))
-        sub_steps.push($(this).attr('title'));
+        steps.push($(this).attr('title'));
     });
     var formData = new FormData();
     formData.append('task_type', '{{task_type}}');
+    formData.append('force', $('#fileModal .force input:radio:checked').val());
     formData.append('pre_tasks', pre_tasks.join(','));
-    formData.append('sub_steps', sub_steps.join(','));
+    formData.append('steps', steps.join(','));
     formData.append('priority', $('#fileModal').find('.priority-list select').val());
     formData.append('docs_file', namesFile);
     console.log(formData);
@@ -597,15 +611,16 @@
       if ($(this).is(':checked'))
         pre_tasks.push($(this).attr('title'));
     });
-    var sub_steps = [];
+    var steps = [];
     $("#prefixModal .sub-steps :checkbox").each(function () {
       if ($(this).is(':checked'))
-        sub_steps.push($(this).attr('title'));
+        steps.push($(this).attr('title'));
     });
     var data = {
       task_type: '{{task_type}}',
+      force: $('#prefixModal .force input:radio:checked').val(),
       pre_tasks: pre_tasks,
-      sub_steps: sub_steps,
+      steps: steps,
       priority: $prefixModal.find('.priority-list select').val()
     };
     console.log(data);

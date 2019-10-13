@@ -19,16 +19,15 @@ class GetReadyTasksApi(TaskHandler):
         assert task_type in self.task_types
         try:
             data = self.get_request_data()
-            task_meta = self.task_types[task_type]
-            collection, id_name = task_meta['data']['collection'], task_meta['data']['id']
+            d = self.task_types[task_type]['data']
+            collection, id_name, input_field = d['collection'], d['id'], d['input_field']
             id_value = dict()
             if data.get('prefix'):
                 id_value.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
             if data.get('exclude'):
                 id_value.update({'$nin': data.get('exclude')})
             condition = {id_name: id_value} if id_value else {}
-            condition.update({'status': self.DATA_READY})
-
+            condition.update({input_field: {'$nin': [None, '']}})   # 任务所依赖的数据字段存在且不为空
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
             count = self.db[collection].count_documents(condition)
@@ -46,14 +45,14 @@ class PublishTasksByIdsApi(PublishTasksHandler):
     def post(self):
         """ 根据数据id发布任务。
         @param task_type 任务类型
-        @param sub_steps list，步骤
+        @param steps list，步骤
         @param pre_tasks list，前置任务
         @param ids str，待发布的任务名称
         @param priority str，1/2/3，数字越大优先级越高
         """
         data = self.get_request_data()
         rules = [
-            (v.not_empty, 'ids', 'task_type', 'priority'),
+            (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force'),
             (v.is_priority, 'priority'),
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
@@ -63,12 +62,13 @@ class PublishTasksByIdsApi(PublishTasksHandler):
             return self.send_error_response(err)
 
         try:
-            ids = data['ids'].split(',') if data.get('ids') else []
-            if len(ids) > self.MAX_PUBLISH_RECORDS:
+            doc_ids = data['doc_ids'].split(',') if data.get('doc_ids') else []
+            if len(doc_ids) > self.MAX_PUBLISH_RECORDS:
                 return self.send_error_response(e.task_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
 
+            force = data['force'] == '1'
             log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
-                                    data['priority'], ids=ids)
+                                    data['priority'], force, doc_ids=doc_ids)
             self.send_data_response({k: value for k, value in log.items() if value})
 
         except DbError as err:
@@ -80,15 +80,16 @@ class PublishTasksByFileApi(PublishTasksByIdsApi):
 
     def get_request_data(self):
         ids_file = self.request.files.get('ids_file')
-        ids_str = str(ids_file[0]['body'], encoding='utf-8')
+        ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
         pre_task = self.get_body_argument('pre_tasks', '')
         steps = self.get_body_argument('steps', '')
         data = {
-            'ids': re.sub(r'\n+', ',', ids_str),
+            'doc_ids': re.sub(r'\n+', ',', ids_str),
             'task_type': self.get_body_argument('task_type', ''),
             'priority': self.get_body_argument('priority', 1),
+            'force': self.get_body_argument('force', ''),
             'pre_tasks': pre_task and pre_task.split(',') or [],
-            'sub_steps': steps and steps.split(',') or []
+            'steps': steps and steps.split(',') or []
         }
         return data
 
@@ -97,7 +98,7 @@ class PublishTasksByFileApi(PublishTasksByIdsApi):
         super().post()
 
 
-class PublishTasksPagePrefixApi(PublishTasksByIdsApi):
+class PublishTasksByPrefixApi(PublishTasksByIdsApi):
     URL = r'/api/task/publish_by_prefix'
 
     def get_request_data(self):
@@ -110,8 +111,8 @@ class PublishTasksPagePrefixApi(PublishTasksByIdsApi):
         condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'},
                      input_field: {"$nin": [None, '']}}
         docs = self.db[collection].find(condition)
-        ids = [doc.get(id_name) for doc in docs]
-        data.update({'ids': ids})
+        doc_ids = [doc.get(id_name) for doc in docs]
+        data.update({'doc_ids': doc_ids})
         return data
 
     def post(self):

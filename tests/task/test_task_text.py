@@ -15,7 +15,7 @@ class TestText(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3, u.expert3]],
             '切分专家,文字专家'
         )
-        self.revert()
+        self.delete_all_tasks()
 
     def tearDown(self):
         super(TestText, self).tearDown()
@@ -29,7 +29,7 @@ class TestText(APITestCase):
         for i, task_type in enumerate(['text_proof_1', 'text_proof_2', 'text_proof_3']):
             # 发布任务
             self.login_as_admin()
-            r = self.publish(dict(task_type=task_type, pages=','.join(page_names)))
+            r = self.publish_tasks(dict(task_type=task_type, pages=','.join(page_names)))
             self.assertListEqual(self.parse_response(r).get('published'), page_names)
 
             # 领取任务
@@ -68,7 +68,7 @@ class TestText(APITestCase):
 
         # 发布审定任务
         self.login_as_admin()
-        r = self.parse_response(self.publish(dict(task_type='text_review', pages=','.join(page_names))))
+        r = self.parse_response(self.publish_tasks(dict(task_type='text_review', pages=','.join(page_names))))
         self.assertEqual(r.get('published'), [name1])
         self.assertEqual(r.get('pending'), [name2])
 
@@ -109,7 +109,7 @@ class TestText(APITestCase):
         name1 = page_names[0]
         name2 = page_names[1]
         for t in ['text_proof_1', 'text_proof_2', 'text_proof_3']:
-            r = self.publish(dict(task_type=t, pre_tasks=self.pre_tasks.get(t), pages=','.join(page_names)))
+            r = self.publish_tasks(dict(task_type=t, pre_tasks=self.pre_tasks.get(t), pages=','.join(page_names)))
             self.assertListEqual(self.parse_response(r).get('published'), page_names)
             # 查看校对页面
             r = self.parse_response(self.fetch('/task/%s/%s?_raw=1' % (t, name1)))
@@ -201,11 +201,11 @@ class TestText(APITestCase):
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""
         self.login_as_admin()
-        self.publish(dict(task_type='text_proof_1', pages='GL_1056_5_6', priority=2))
-        self.publish(dict(task_type='text_proof_1', pages='JX_165_7_12', priority=3))
-        self.publish(dict(task_type='text_proof_2', pages='JX_165_7_12', priority=2))
-        self.publish(dict(task_type='text_proof_3', pages='JX_165_7_12', priority=1))
-        self.publish(dict(task_type='text_proof_2', pages='JX_165_7_30', priority=1))
+        self.publish_tasks(dict(task_type='text_proof_1', pages='GL_1056_5_6', priority=2))
+        self.publish_tasks(dict(task_type='text_proof_1', pages='JX_165_7_12', priority=3))
+        self.publish_tasks(dict(task_type='text_proof_2', pages='JX_165_7_12', priority=2))
+        self.publish_tasks(dict(task_type='text_proof_3', pages='JX_165_7_12', priority=1))
+        self.publish_tasks(dict(task_type='text_proof_2', pages='JX_165_7_30', priority=1))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):
