@@ -13,11 +13,11 @@ import shutil
 import pymongo
 from tornado.util import PY3
 from os import path, listdir, mkdir
-from controller.task.base import TaskHandler as Th
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-IMG_PATH = path.join(path.dirname(__file__), '..', '..', 'static', 'img')
+IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
+
 data = dict(count=0)
 
 page_meta = {
@@ -25,9 +25,9 @@ page_meta = {
     'un_sutra_id': '', 'sutra_id': '', 'reel_id': '', 'reel_page_no': '', 'lock': {},
     'ocr': '', 'text': '', 'text_normal': '', 'blocks': [], 'columns': [], 'chars': [],
     'status_tasks': {
-        'cut_proof': Th.DATA_READY, 'cut_review': Th.DATA_READY, 'text_proof_1': Th.DATA_READY,
-        'text_proof_2': Th.DATA_READY, 'text_proof_3': Th.DATA_READY,
-        'text_review': Th.DATA_READY, 'text_hard': Th.DATA_READY
+        'cut_proof': 'ready', 'cut_review': 'ready', 'text_proof_1': 'ready',
+        'text_proof_2': 'ready', 'text_proof_3': 'ready',
+        'text_review': 'ready', 'text_hard': 'ready'
     },
 }
 
@@ -145,7 +145,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :return: 新导入的页面的个数
     """
     if not json_path:
-        txt_path = json_path = img_path = path.join(path.dirname(__file__), 'sample')
+        txt_path = json_path = img_path = path.join(path.dirname(__file__), '..', 'tests', 'sample')
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:
