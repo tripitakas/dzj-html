@@ -1,8 +1,8 @@
 <div class="pre-tasks">
   <h4 class="control-label">选择前置任务</h4>
   <div>
-    {% for t, v in Th.task_types.items() %}
-    {% if t != task_type and is_enabled(v) %}
+    {% for t, v in Th.task_names().items() %}
+    {% if t != task_type and is_mod_enabled(v) and not Th.task_types[t].get('groups') %}
     <label class="checkbox-inline">
       <input type="checkbox" title="{{t}}" {{'checked' if t in default_pre_tasks else ''}}>{{v}}
     </label>

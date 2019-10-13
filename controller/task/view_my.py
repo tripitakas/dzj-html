@@ -19,7 +19,7 @@ class MyTaskHandler(TaskHandler):
         condition = {
             'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type,
             'picked_user_id': self.current_user['_id'],
-            'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]}
+            'status': {"$in": [self.TASK_PICKED, self.TASK_FINISHED]}
         }
         if q:
             condition.update({'id_value': {'$regex': '.*%s.*' % q}})

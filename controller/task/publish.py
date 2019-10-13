@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+@desc: 发布任务
+    任务对应的数据就绪后，需要设置对应的数据状态为已就绪，以便进行任务发布。
+    任务发布后，将数据状态设置为已发布。任务退回或回收后，需要将数据状态重置为已就绪，以便重新发布。
 @time: 2018/12/27
 """
 from datetime import datetime
@@ -35,7 +38,7 @@ class PublishTasksHandler(TaskHandler):
         # 状态为OPENED\PENDING\PICKED\FINISHED的任务，不可以重新发布新任务
         # 其余状态，包括RETURNED\RETRIEVED的任务，都可以重新发布新任务
         if doc_ids:
-            ss = [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_FINISHED]
+            ss = [self.TASK_OPENED, self.TASK_PENDING, self.TASK_PICKED, self.TASK_FINISHED]
             condition = dict(task_type=task_type, status={'$in': ss}, id_value={'$in': doc_ids})
             log['published_ever'] = set(t.get('id_value') for t in self.db.task.find(condition, {'id_value': 1}))
             doc_ids = doc_ids - log['published_ever']
@@ -49,16 +52,16 @@ class PublishTasksHandler(TaskHandler):
 
                 # 针对前置任务未完成的情况（只要有一个未完成即可），发布为PENDING
                 condition = dict(task_type={'$in': pre_tasks}, collection=collection, id_name=id_name,
-                                 id_value={'$in': doc_ids}, status={"$ne": self.STATUS_FINISHED})
+                                 id_value={'$in': doc_ids}, status={"$ne": self.TASK_FINISHED})
                 log['published'] = set(t.get('id_value') for t in self.db.task.find(condition, {'id_value': 1}))
-                self._publish_task(task_type, self.STATUS_PENDING, priority, pre_tasks, steps, log['published'])
+                self._publish_task(task_type, self.TASK_PENDING, priority, pre_tasks, steps, log['published'])
                 doc_ids = doc_ids - log['published']
 
                 # 其余为前置任务已完成的情况，发布为OPENED
-                self._publish_task(task_type, self.STATUS_OPENED, priority, pre_tasks, steps, doc_ids)
+                self._publish_task(task_type, self.TASK_OPENED, priority, pre_tasks, steps, doc_ids)
                 log['pending'] = doc_ids
             else:
-                self._publish_task(task_type, self.STATUS_OPENED, priority, pre_tasks, steps, doc_ids)
+                self._publish_task(task_type, self.TASK_OPENED, priority, pre_tasks, steps, doc_ids)
                 log['published'] = doc_ids
 
         return {k: value for k, value in log.items() if value}

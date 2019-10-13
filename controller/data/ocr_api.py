@@ -10,7 +10,7 @@ from controller.base import BaseHandler
 from controller import errors as e
 from controller import helper
 from controller.layout.v2 import calc
-from controller.data.add_pages import add_page
+from util.add_pages import add_page
 from PIL import Image
 from os import path, remove
 from operator import itemgetter
@@ -24,6 +24,7 @@ from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 import hashlib
 import subprocess
+
 
 
 class RecognitionApi(BaseHandler):

@@ -39,13 +39,13 @@ class TaskLobbyHandler(TaskHandler):
         collection, id_name = task_meta['data']['collection'], task_meta['data']['id']
         page_size = page_size or self.config['pager']['page_size']
         if task_meta.get('groups'):
-            condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED}
+            condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.TASK_OPENED}
             total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
             tasks = de_duplicate()
         else:
-            condition = {'task_type': task_type, 'status': self.STATUS_OPENED}
+            condition = {'task_type': task_type, 'status': self.TASK_OPENED}
             total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))

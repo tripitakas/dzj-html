@@ -12,8 +12,8 @@ class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
     def is_mod_enabled(self, mod):
-        disable_modules = self.config.get('disable_modules')
-        return not disable_modules or mod not in disable_modules
+        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
+        return not disabled_mods or mod not in disabled_mods
 
     def get_tasks_by_type(self, task_type, status=None, q=None, order=None, page_size=0, page_no=1):
         """获取任务管理/任务列表"""
@@ -71,7 +71,7 @@ class TaskInfoHandler(TaskHandler):
             if isinstance(value, datetime):
                 value = value.strftime('%Y-%m-%d %H:%M')
             elif key == 'status':
-                value = self.status_names.get(value)
+                value = self.task_status_names.get(value)
             elif key == 'pre_tasks':
                 value = '/'.join([self.task_types.get(t) for t in value])
             elif key == 'steps':

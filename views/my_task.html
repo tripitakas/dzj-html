@@ -51,9 +51,9 @@
                       <td>{{to_date_str(Th.prop(task, 'tasks.%s.picked_time' % t))}}</td>
                       <td>{{to_date_str(Th.prop(task, 'tasks.%s.finished_time' % t))}}</td>
                       <td>
-                        {% if Th.prop(task, 'tasks.%s.status' % t) == Th.STATUS_PICKED %}
+                        {% if Th.prop(task, 'tasks.%s.status' % t) == Th.TASK_PICKED %}
                           <a class="do" href="/task/do/{{t}}/{{task['name']}}">继续</a>
-                        {% elif Th.prop(task, 'tasks.%s.status' % t) == Th.STATUS_FINISHED %}
+                        {% elif Th.prop(task, 'tasks.%s.status' % t) == Th.TASK_FINISHED %}
                           <a class="view" href="/task/{{t}}/{{task['name']}}">查看</a>
                           <a class="update" href="/task/update/{{t}}/{{task['name']}}">修改</a>
                         {% end %}

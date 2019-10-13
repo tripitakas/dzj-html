@@ -187,7 +187,7 @@ class APITestCase(AsyncHTTPTestCase):
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
         return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
 
-    def revert(self, status=TH.STATUS_READY):
+    def revert(self, status=TH.TASK_READY):
         """ 还原所有任务的状态 """
         task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
                       'text_review', 'text_hard']

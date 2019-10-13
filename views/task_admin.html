@@ -2,7 +2,7 @@
 {% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <title>任务管理-{{Th.task_types.get(task_type)}}</title>
+  <title>任务管理-{{Th.task_names().get(task_type)}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
@@ -48,7 +48,7 @@
       cursor: pointer;
     }
 
-    .sty-table td .page-name {
+    .sty-table td .doc-name {
       color: #333333;
       font-size: 14px;
     }
@@ -158,7 +158,7 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}" class="task-tr">
                       <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
-                      <td><a class="page-name" href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
+                      <td><a class="doc-name" href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
                       {% set status = Th.prop(t, 'tasks.%s.status' % task_type) %}
                       {% set reason = Th.prop(t, 'tasks.%s.returned_reason' % task_type) or '' %}
                       <td class="{{status}}" title="{{reason}}">{{Th.status_names.get(status) or ''}}</td>
@@ -169,7 +169,7 @@
                       </td>
                       <td>
                         {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
-                        {{'/'.join([Th.task_types.get(p) for p in pre_tasks])}}
+                        {{'/'.join([Th.task_names().get(p) for p in pre_tasks])}}
                       </td>
                       <td>{{to_date_str(Th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
                       <td>{{to_date_str(Th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
@@ -207,18 +207,12 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">发布任务-{{Th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title">发布任务-{{Th.task_names().get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           {% include task_admin_modal.html %}
-          <div class="force">
-            <h4 class="control-label">任务已发布时，如何处理？</h4>
-            <input type="radio" name="prefix-force" value="0" style="margin-right: 10px" checked>跳过
-            <input type="radio" name="prefix-force" value="1" style="margin: 0 10px">重新发布<br>
-          </div>
-          <br/>
           <h4 class="control-label">输入页码前缀</h4>
-          <input type="text" class="form-control" id="page_prefix" placeholder="请输入页码前缀，如GL_2"/>
+          <input type="text" class="form-control" id="doc_prefix" placeholder="请输入页码前缀，如GL_2"/>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -236,16 +230,10 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="upload-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title" id="upload-docs">发布任务-{{Th.task_names().get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           {% include task_admin_modal.html %}
-          <div class="force">
-            <h4 class="control-label">任务已发布时，如何处理？</h4>
-            <input type="radio" name="file-force" value="0" style="margin-right: 10px" checked>跳过
-            <input type="radio" name="file-force" value="1" style="margin: 0 10px">重新发布<br>
-          </div>
-          <br/>
           <i>请选择CSV或TXT格式文件，大小不超过10M</i>
           <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
         </div>
@@ -260,21 +248,15 @@
 
 <!--按所选页码发布 -->
 <div class="panel-body" style="padding-bottom: 2px;">
-  <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
+  <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-pages">发布任务-{{Th.task_types.get(task_type)}}</h4>
+          <h4 class="modal-title" id="choose-docs">发布任务-{{Th.task_names().get(task_type)}}</h4>
         </div>
         <div class="modal-body">
           {% include task_admin_modal.html %}
-          <div class="force">
-            <h4 class="control-label">任务已发布时，如何处理？</h4>
-            <input type="radio" name="select-force" value="0" style="margin-right: 10px" checked>跳过
-            <input type="radio" name="select-force" value="1" style="margin: 0 10px">重新发布<br>
-          </div>
-          <br/>
           <div class="form-group">
             <div>
               <div class="ms-container my-container">
@@ -398,9 +380,9 @@
 </script>
 
 <script>
-  var pages = [];
+  var docs = [];
   var searchStr = '';
-  var $choosePagesModal = $('#selectModal');
+  var $chooseDocsModal = $('#selectModal');
   var $prefixModal = $('#prefixModal');
   var $myMultiSelect = $('#my_multi_select');
 
@@ -433,18 +415,18 @@
     // 待选对象-翻页
     $("#pagination a").on("click", function () {
       var page = $(this).attr('title').trim();
-      var selectedPages = [];
+      var selectedDocs = [];
       $(".ms-selection .ms-selected").each(function () {
-        selectedPages.push($(this).text());
+        selectedDocs.push($(this).text());
       });
       if ($(".ms-selectable .ms-elem-selectable:not(.ms-selected)").length == 0 && page > 1) {
         page = page - 1;
       }
-      var data = {prefix: searchStr, page: page, exclude: selectedPages};
-      postApi('/task/ready_pages/{{task_type}}', {data: data}, function (res) {
-        pages = selectedPages.concat(res.data.pages);
+      var data = {prefix: searchStr, page: page, exclude: selectedDocs};
+      postApi('/task/ready/{{task_type}}', {data: data}, function (res) {
+        docs = selectedDocs.concat(res.data.docs);
         showModal(page, res.data.page_size, res.data.total_count);
-        $myMultiSelect.multiSelect('select', selectedPages)
+        $myMultiSelect.multiSelect('select', selectedDocs)
       });
     });
   }
@@ -456,16 +438,17 @@
 
   // 待选对象-搜索
   $(".ms-selectable .ser-btn").on('click', function () {
-    var selectedPages = []
+    var selectedDocs = []
     $(".ms-selection .ms-selected").each(function () {
-      selectedPages.push($(this).text());
+      selectedDocs.push($(this).text());
     });
     var selectableInput = $('#selectable_input').val().trim();
-    postApi('/task/ready_pages/{{task_type}}', {data: {prefix: selectableInput, exclude: selectedPages}}, function (res) {
+    var data = {prefix: selectableInput, exclude: selectedDocs};
+    postApi('/task/ready/{{task_type}}', {data: data}, function (res) {
       searchStr = selectableInput;  // 设置全局变量
-      pages = selectedPages.concat(res.data.pages);
+      docs = selectedDocs.concat(res.data.docs);
       showModal(1, res.data.page_size, res.data.total_count);
-      $myMultiSelect.multiSelect('select', selectedPages)
+      $myMultiSelect.multiSelect('select', selectedDocs)
     });
   });
 
@@ -497,28 +480,28 @@
   });
 
   function showModal(pageNo, pageSize, totalCount) {
-    $myMultiSelect.html(pages.map(function (p) {
+    $myMultiSelect.html(docs.map(function (p) {
       return '<option value="' + p + '">' + p + '</option>';
     }).join('\n'));
     $myMultiSelect.multiSelect('refresh');
     displayPagination(pageNo, pageSize, totalCount);
   }
 
-  $choosePagesModal.on('shown.bs.modal', function () {
-    postApi('/task/ready_pages/{{task_type}}', {data: {}}, function (res) {
-      pages = res.data.pages;
+  $chooseDocsModal.on('shown.bs.modal', function () {
+    postApi('/task/ready/{{task_type}}', {data: {}}, function (res) {
+      docs = res.data.docs;
       showModal(1, res.data.page_size, res.data.total_count);
     });
   });
 
   // 按所选页码发布任务
-  $choosePagesModal.find('#select_modal_btn').click(function () {
-    var selectedPages = [];
+  $chooseDocsModal.find('#select_modal_btn').click(function () {
+    var selectedDocs = [];
     var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
     selections.each(function () {
-      selectedPages.push($(this).text());
+      selectedDocs.push($(this).text());
     });
-    if (selectedPages.length < 1) {
+    if (selectedDocs.length < 1) {
       return showError('未选择页面', '请选择要发布的页面。');
     }
     var pre_tasks = [];
@@ -533,11 +516,10 @@
     });
     var data = {
       task_type: '{{task_type}}',
-      force: $('#selectModal .force input:radio:checked').val(),
       pre_tasks: pre_tasks,
       sub_steps: sub_steps,
-      priority: $choosePagesModal.find('.priority-list select').val(),
-      page_names: selectedPages.join(',')
+      priority: $chooseDocsModal.find('.priority-list select').val(),
+      doc_names: selectedDocs.join(',')
     };
     console.log(data);
     postApi('/task/publish', {data: data}, function (res) {
@@ -577,11 +559,10 @@
     });
     var formData = new FormData();
     formData.append('task_type', '{{task_type}}');
-    formData.append('force', $('#fileModal .force input:radio:checked').val());
     formData.append('pre_tasks', pre_tasks.join(','));
     formData.append('sub_steps', sub_steps.join(','));
     formData.append('priority', $('#fileModal').find('.priority-list select').val());
-    formData.append('pages_file', namesFile);
+    formData.append('docs_file', namesFile);
     console.log(formData);
     $.ajax({
       url: '/api/task/publish',
@@ -607,8 +588,8 @@
 
   // 按页码前缀发布任务
   $prefixModal.find('#prefix_modal_btn').click(function () {
-    var page_prefix = $('#page_prefix').val();
-    if (!page_prefix) {
+    var doc_prefix = $('#doc_prefix').val();
+    if (!doc_prefix) {
       return showError('请输入页码前缀');
     }
     var pre_tasks = [];
@@ -623,13 +604,12 @@
     });
     var data = {
       task_type: '{{task_type}}',
-      force: $('#prefixModal .force input:radio:checked').val(),
       pre_tasks: pre_tasks,
       sub_steps: sub_steps,
       priority: $prefixModal.find('.priority-list select').val()
     };
     console.log(data);
-    postApi('/task/publish/' + page_prefix, {data: data}, function (res) {
+    postApi('/task/publish/' + doc_prefix, {data: data}, function (res) {
       var len = (res.data.published || []).length + (res.data.pending || []).length;
       showSuccess('已发布任务', len + ' 个页面已发布。');
       setTimeout(function () {

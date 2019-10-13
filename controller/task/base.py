@@ -11,7 +11,7 @@
     业务管理员在发布任务时，可以对前置任务进行修改，比如文字审定需要两次或者三次校对。发布任务后，任务的前置任务将记录在数据库中。
     如果任务包含前置任务，系统发布任务后，状态为“pending”。当前置任务状态都变为“finished”时，自动将当前任务发布为“opened”。
     3. 发布任务
-    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（page_name）
+    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（page_name）。
 @time: 2019/3/11
 """
 from datetime import datetime
@@ -80,18 +80,24 @@ class TaskHandler(BaseHandler):
     }
 
     # 任务状态表
-    STATUS_UNREADY = 'unready'
-    STATUS_READY = 'ready'
-    STATUS_OPENED = 'opened'
-    STATUS_PENDING = 'pending'
-    STATUS_PICKED = 'picked'
-    STATUS_RETURNED = 'returned'
-    STATUS_RETRIEVED = 'retrieved'
-    STATUS_FINISHED = 'finished'
-    status_names = {
-        STATUS_UNREADY: '数据未就绪', STATUS_READY: '数据已就绪', STATUS_OPENED: '已发布未领取',
-        STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回',
-        STATUS_RETRIEVED: '已回收', STATUS_FINISHED: '已完成',
+    TASK_OPENED = 'opened'
+    TASK_PENDING = 'pending'
+    TASK_PICKED = 'picked'
+    TASK_RETURNED = 'returned'
+    TASK_RETRIEVED = 'retrieved'
+    TASK_FINISHED = 'finished'
+    task_status_names = {
+        TASK_OPENED: '已发布未领取', TASK_PENDING: '等待前置任务', TASK_PICKED: '进行中',
+        TASK_RETURNED: '已退回', TASK_RETRIEVED: '已回收', TASK_FINISHED: '已完成',
+    }
+
+    # 数据状态表
+    DATA_UNREADY = 'unready'
+    DATA_TODO = 'todo'
+    DATA_READY = 'ready'
+    DATA_PUBLISHED = 'published'
+    data_status_names = {
+        DATA_UNREADY: '未就绪', DATA_TODO: '待办', DATA_READY: '已就绪', DATA_PUBLISHED: '已发布'
     }
 
     # 任务优先级
@@ -132,9 +138,9 @@ class TaskHandler(BaseHandler):
             if not self.current_user or not task:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
             # 检查任务状态以及是否为进行中或已完成（已完成的任务可以update）
-            if task['status'] not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
+            if task['status'] not in [self.TASK_PICKED, self.TASK_FINISHED]:
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
-            if mode == 'do' and task['status'] == self.STATUS_FINISHED:
+            if mode == 'do' and task['status'] == self.TASK_FINISHED:
                 return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=id_value)
 
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
@@ -157,14 +163,13 @@ class TaskHandler(BaseHandler):
         for task in self.db.task.find(condition):
             pre_tasks = task.get('pre_tasks', {})
             if task_type in pre_tasks:
-                pre_tasks[task_type] = self.STATUS_FINISHED
-                unfinished_pre_tasks = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
-                update = {'pre_task.%s' % task_type: self.STATUS_FINISHED}
+                pre_tasks[task_type] = self.TASK_FINISHED
+                unfinished_pre_tasks = [v for v in pre_tasks.values() if v != self.TASK_FINISHED]
+                update = {'pre_task.%s' % task_type: self.TASK_FINISHED}
                 # 如果当前任务状态为悬挂，且所有前置任务均已完成，则设置状态为已发布
-                if task['status'] == self.STATUS_PENDING and not unfinished_pre_tasks:
-                    update.update({'status': self.STATUS_OPENED})
+                if task['status'] == self.TASK_PENDING and not unfinished_pre_tasks:
+                    update.update({'status': self.TASK_OPENED})
                 self.db.task.update_one({'_id', task['_id']}, {'$set': update})
-
 
     """ 数据锁介绍
     1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
@@ -238,7 +243,7 @@ class TaskHandler(BaseHandler):
         # 获取当前用户拥有该数据的所有任务
         tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, id_value=id_value)})
         my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
-                    and t.get('status') != self.STATUS_RETURNED]
+                    and t.get('status') != self.TASK_RETURNED]
         # 检查当前用户是否有该数据的同阶或高阶任务
         tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
         if tasks:

@@ -15,25 +15,24 @@ class GetReadyTasksApi(TaskHandler):
     URL = '/api/task/ready/@task_type'
 
     def post(self, task_type):
-        """ 查找任务对应的数据表collection，获取数据已就绪的任务列表 """
+        """ 查找任务对应的collection，获取已就绪的数据列表 """
         assert task_type in self.task_types
         try:
             data = self.get_request_data()
-
             task_meta = self.task_types[task_type]
             collection, id_name = task_meta['data']['collection'], task_meta['data']['id']
-            id_value = {}
+            id_value = dict()
             if data.get('prefix'):
                 id_value.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
             if data.get('exclude'):
                 id_value.update({'$nin': data.get('exclude')})
             condition = {id_name: id_value} if id_value else {}
-            condition.update({'status': self.STATUS_READY})
+            condition.update({'status': self.DATA_READY})
 
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
-            count = self.db.page.count_documents(condition)
-            docs = self.db.page.find(condition).limit(page_size).skip(page_size * (page_no - 1))
+            count = self.db[collection].count_documents(condition)
+            docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
             response = {'docs': [d[id_name] for d in list(docs)], 'page_size': page_size,
                         'page_no': page_no, 'total_count': count}
             self.send_data_response(response)
