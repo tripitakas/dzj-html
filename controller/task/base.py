@@ -11,7 +11,7 @@
     业务管理员在发布任务时，可以对前置任务进行修改，比如文字审定需要两次或者三次校对。发布任务后，任务的前置任务将记录在数据库中。
     如果任务包含前置任务，系统发布任务后，状态为“pending”。当前置任务状态都变为“finished”时，自动将当前任务发布为“opened”。
     3. 发布任务
-    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、页面集合（page_name）。
+    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、文档集合（doc_ids）。
 @time: 2019/3/11
 """
 from datetime import datetime
@@ -122,53 +122,88 @@ class TaskHandler(BaseHandler):
     def task_names(cls):
         return {k: v.get('name') for k, v in cls.all_task_types().items()}
 
-    def find_one(self, task_type, id_value, picked_user_id):
-        assert task_type in self.task_types
-        task_data = self.task_types[task_type]['data']
-        collection, id_name = task_data['collection'], task_data['id']
-        return self.db.task.find_one(dict(task_type=task_type, collection=collection, id_name=id_name,
-                                          id_value=id_value, picked_user_id=picked_user_id))
+    @classmethod
+    def task_meta(cls, task_type):
+        d = cls.task_types.get(task_type)['data']
+        return d['collection'], d['id'], d.get('input_field'), d.get('shared_field')
 
-    def check_auth(self, task_type, mode, id_value):
+    def find_tasks(self, task_type, doc_id=None, status=None, size=None, mine=False):
+        assert task_type in self.task_types
+        collection, id_name = self.task_meta(task_type)[:2]
+        condition = dict(task_type=task_type, collection=collection, id_name=id_name)
+        if doc_id:
+            condition.update({'doc_id': doc_id if isinstance(doc_id, str) else {'$in': doc_id}})
+        if status:
+            condition.update({'status': status if isinstance(status, str) else {'$in': status}})
+        if mine:
+            condition.update({'picked_user_id': self.current_user['_id']})
+        tasks = self.db.task.find(condition)
+        if size:
+            tasks.limit(size)
+        return list(tasks)
+
+    def check_auth(self, task_type, mode, doc_id):
         """ 检查当前用户是否拥有任务的权限以及数据锁
         :return 如果mode为do或update，而用户没有任务权限，则直接抛出错误
                 如果mode为do或update或edit，而用户没有获得数据锁，则返回False，表示没有写权限
                 其余情况，返回True，表示通过授权检查
         """
         assert task_type in self.task_types
-        task_data = self.task_types[task_type]['data']
-        collection, id_name, shared_field = task_data['collection'], task_data['id'], task_data.get('shared_field')
-
+        collection, id_name, input_field, shared_field = self.task_meta(task_type)
         # do/update模式下，需要检查任务权限，直接抛出错误
         if mode in ['do', 'update']:
             render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
             # 检查任务是否已分配给当前用户
-            task = self.find_one(task_type, id_value, self.current_user['_id'])
+            collection, id_name = self.task_meta(task_type)[:2]
+            task = self.db.task.find_one(dict(collection=collection, id_name=id_name, doc_id=doc_id,
+                                              task_type=task_type, picked_user_id=self.current_user['_id']))
             if not self.current_user or not task:
-                return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=doc_id)
             # 检查任务状态以及是否为进行中或已完成（已完成的任务可以update）
             if task['status'] not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
-                return self.send_error_response(errors.task_unauthorized, render=render, reason=id_value)
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=doc_id)
             if mode == 'do' and task['status'] == self.STATUS_FINISHED:
-                return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=id_value)
+                return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=doc_id)
 
         # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
         auth = False
         if mode in ['do', 'update', 'edit']:
             if not shared_field or shared_field not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
                 auth = True
-            elif (self.has_data_lock(collection, id_name, id_value, shared_field)
-                  or self.get_temp_data_lock(collection, id_name, id_value, shared_field) is True):
+            elif (self.has_data_lock(collection, id_name, doc_id, shared_field)
+                  or self.get_data_lock(collection, id_name, doc_id, shared_field) is True):
                 auth = True
 
         return auth
 
-    def update_post_tasks(self, task_type, id_value):
+    def finish_task(self, task_type, doc_id):
+        """ 完成任务提交 """
+        # 更新当前任务
+        collection, id_name = self.task_meta(task_type)[:2]
+        update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
+        condition = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id=doc_id,
+                         picked_user_id=self.current_user['_id'], status=self.STATUS_PICKED)
+        self.db.task.update_one(condition, {'$set': update})
+        ret = {'finished': True}
+
+        # 释放数据锁
+        shared_field = self.get_shared_field(task_type)
+        if shared_field and shared_field in self.data_auth_maps:
+            update['lock.' + shared_field] = {}
+            self.db[collection].update_one({id_name: doc_id}, {'$set': update})
+            ret['data_lock_released'] = True
+
+        # 更新后置任务
+        self.update_post_tasks(doc_id, task_type)
+        ret['post_tasks_updated'] = True
+
+        return ret
+
+    def update_post_tasks(self, task_type, doc_id):
         """ 任务完成提交后，更新后置任务的状态 """
         assert task_type in self.task_types
-        task_data = self.task_types[task_type]['data']
-        collection, id_name = task_data['collection'], task_data['id']
-        condition = dict(collection=collection, id_name=id_name, id_value=id_value)
+        collection, id_name = self.task_meta(task_type)[:2]
+        condition = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id=doc_id)
         for task in self.db.task.find(condition):
             pre_tasks = task.get('pre_tasks', {})
             if task_type in pre_tasks:
@@ -186,7 +221,7 @@ class TaskHandler(BaseHandler):
       2.roles。数据专家角色对所有page的授权字段
     2）数据锁的类型：
       1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
-      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时，分配临时数据锁，在窗口离开时解锁，或定时自动回收。
+      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时分配临时数据锁，在窗口离开时解锁，或定时自动回收。
     3）数据锁的使用：
       1.首先在task_shared_data_fields中注册需要共享的数据字段；
       2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
@@ -194,31 +229,31 @@ class TaskHandler(BaseHandler):
     """
 
     @classmethod
-    def get_shared_data(cls, task_type):
+    def get_shared_field(cls, task_type):
         """ 获取任务保护的共享字段 """
-        return cls.prop(cls.task_types, '%s.shared_data' % task_type)
+        return cls.prop(cls.task_types, '%s.shared_field' % task_type)
 
-    def has_data_lock(self, collection, id_name, id_value, data_field, is_temp=None):
+    def has_data_lock(self, collection, id_name, doc_id, data_field, is_temp=None):
         """ 检查当前用户是否拥有某数据锁
         :param collection 数据表，即mongodb的collection
         :param id_name 作为id的字段名称
-        :param id_value 作为id的字段值
+        :param doc_id 作为id的字段值
         :param data_field 检查哪个数据字段
         :param is_temp 是否为临时锁
          """
         assert is_temp in [None, True, False]
-        condition = {id_name: id_value, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
+        condition = {id_name: doc_id, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
         if is_temp is not None:
             condition.update({'lock.%s.is_temp' % data_field: is_temp})
         n = self.db[collection].count_documents(condition)
         return n > 0
 
-    def is_data_locked(self, collection, id_name, id_value, data_field):
+    def is_data_locked(self, collection, id_name, doc_id, shared_field):
         """检查数据是否已经被锁定"""
-        data = self.db[collection].find_one({id_name: id_value})
-        return True if self.prop(data, 'lock.%s.locked_user_id' % data_field) else False
+        data = self.db[collection].find_one({id_name: doc_id})
+        return True if self.prop(data, 'lock.%s.locked_user_id' % shared_field) else False
 
-    def get_temp_data_lock(self, collection, id_name, id_value, data_field):
+    def get_data_lock(self, collection, id_name, doc_id, shared_field):
         """ 将临时数据锁分配给当前用户。（长时数据锁由系统在任务领取时分配，是任务提交时释放）。
         :return 成功时返回True，失败时返回errors.xxx。
 
@@ -226,8 +261,8 @@ class TaskHandler(BaseHandler):
 
         def assign_lock(lock_type):
             """ lock_type指的是来自哪个任务或者哪个角色 """
-            r = self.db[collection].update_one({id_name: id_value}, {'$set': {
-                'lock.' + data_field: {
+            r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
+                'lock.' + shared_field: {
                     "is_temp": True,
                     "lock_type": lock_type,
                     "locked_by": self.current_user['name'],
@@ -237,34 +272,34 @@ class TaskHandler(BaseHandler):
             }})
             return r.matched_count > 0
 
-        assert data_field in self.data_auth_maps
+        assert shared_field in self.data_auth_maps
         # 如果当前用户已有数据锁，则直接返回
-        if self.has_data_lock(collection, id_name, id_value, data_field):
+        if self.has_data_lock(collection, id_name, doc_id, shared_field):
             return True
         # 检查当前用户是否有数据锁对应的角色（有一个角色即可）
         user_all_roles = auth.get_all_roles(self.current_user['roles'])
-        roles = list(set(user_all_roles) & set(self.data_auth_maps[data_field]['roles']))
+        roles = list(set(user_all_roles) & set(self.data_auth_maps[shared_field]['roles']))
         if roles:
-            if not self.is_data_locked(collection, id_name, id_value, data_field):
+            if not self.is_data_locked(collection, id_name, doc_id, shared_field):
                 return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
-        # 获取当前用户拥有该数据的所有任务
-        tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, id_value=id_value)})
+        # 获取当前用户拥有的该数据的所有任务
+        tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, doc_id=doc_id)})
         my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
                     and t.get('status') != self.STATUS_RETURNED]
         # 检查当前用户是否有该数据的同阶或高阶任务
-        tasks = list(set(my_tasks) & set(self.data_auth_maps[data_field]['tasks']))
+        tasks = list(set(my_tasks) & set(self.data_auth_maps[shared_field]['tasks']))
         if tasks:
-            if not self.is_data_locked(collection, id_name, id_value, data_field):
+            if not self.is_data_locked(collection, id_name, doc_id, shared_field):
                 return True if assign_lock(dict(tasks=tasks)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
 
         return errors.data_unauthorized
 
-    def release_temp_data_lock(self, collection, id_name, id_value, data_field):
-        """ 释放临时数据锁 """
-        if data_field in self.data_auth_maps and \
-                self.has_data_lock(collection, id_name, id_value, data_field, is_temp=True):
-            self.db[collection].update_one({id_name: id_value}, {'$set': {'lock.%s' % data_field: dict()}})
+    def release_data_lock(self, collection, id_name, doc_id, shared_field, is_temp=True):
+        """ 释放数据锁 """
+        if shared_field in self.data_auth_maps and self.has_data_lock(
+                collection, id_name, doc_id, shared_field, is_temp=is_temp):
+            self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})

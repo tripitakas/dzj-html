@@ -16,6 +16,7 @@ url_placeholder = {
     'edit_type': r'cut_edit|text_edit',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
+    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
@@ -154,7 +155,7 @@ role_route_maps = {
             '/api/task/publish_by_ids': ['POST'],
             '/api/task/publish_by_file': ['POST'],
             '/api/task/publish_by_prefix': ['POST'],
-            '/api/task/(withdraw|reset)/@task_type/@page_name': ['POST'],
+            '/api/task/(retrieve|reset)/@task_type/@page_name': ['POST'],
         }
     },
     '数据管理员': {

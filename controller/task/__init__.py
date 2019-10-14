@@ -1,14 +1,14 @@
-from . import api_base, api_publish, api_text, api_cut, view_admin, view_cut, view_lobby, view_my, view_text
+from . import api, api_publish, api_text, api_cut, view, view_cut, view_text
 
 views = [
-    view_lobby.TaskLobbyHandler, view_my.MyTaskHandler,
-    view_admin.TaskAdminHandler, view_admin.TaskInfoHandler,
+    view.TaskLobbyHandler, view.MyTaskHandler,
+    view.TaskAdminHandler, view.TaskInfoHandler,
     view_text.TextProofHandler, view_text.TextReviewHandler, view_text.TextHardHandler,
     view_cut.CutHandler, view_cut.OCRHandler,
 ]
 handlers = [
-    api_base.PickTaskApi, api_base.ReturnTaskApi, api_base.GetPageApi,
-    api_base.UnlockTaskDataApi, api_base.WithDrawTaskApi, api_base.ResetTaskApi,
+    api.PickTaskApi, api.ReturnTaskApi, api.GetPageApi,
+    api.UnlockTaskDataApi, api.RetrieveTaskApi, api.DeleteTasksApi,
     api_publish.GetReadyTasksApi, api_publish.PublishTasksByFileApi, api_publish.PublishTasksByPrefixApi,
     api_publish.PublishTasksByIdsApi,
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveTextHardApi,

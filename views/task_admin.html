@@ -182,7 +182,7 @@
                         <a class="reset" onclick=reset('{{task_type}}','{{t["name"]}}')>重置</a>
                         {% end %}
                         {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending', 'returned'] %}
-                        <a class="withdraw" onclick=withdraw('{{task_type}}','{{t["name"]}}')>撤回</a>
+                        <a class="retrieve" onclick=retrieve('{{task_type}}','{{t["name"]}}')>撤回</a>
                         {% end %}
                       </td>
                     </tr>
@@ -352,7 +352,7 @@
   });
 
   // 撤回任务
-  function withdraw(task_type, name) {
+  function retrieve(task_type, name) {
     var info = {
       title: "确定撤回吗？",
       text: "任务" + name + "\n将被撤回！",
@@ -364,7 +364,7 @@
       closeOnConfirm: true
     };
     swal(info, function () {
-      postApi('/task/withdraw/' + task_type + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/retrieve/' + task_type + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });
@@ -383,7 +383,7 @@
       closeOnConfirm: true
     };
     swal(info, function () {
-      postApi('/task/reset/' + task_type + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/delete/' + task_type + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });

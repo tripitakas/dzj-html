@@ -19,14 +19,13 @@ class GetReadyTasksApi(TaskHandler):
         assert task_type in self.task_types
         try:
             data = self.get_request_data()
-            d = self.task_types[task_type]['data']
-            collection, id_name, input_field = d['collection'], d['id'], d['input_field']
-            id_value = dict()
+            collection, id_name, input_field, shared_field = self.task_meta(task_type)
+            doc_id = dict()
             if data.get('prefix'):
-                id_value.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
+                doc_id.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
             if data.get('exclude'):
-                id_value.update({'$nin': data.get('exclude')})
-            condition = {id_name: id_value} if id_value else {}
+                doc_id.update({'$nin': data.get('exclude')})
+            condition = {id_name: doc_id} if doc_id else {}
             condition.update({input_field: {'$nin': [None, '']}})   # 任务所依赖的数据字段存在且不为空
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
@@ -106,8 +105,7 @@ class PublishTasksByPrefixApi(PublishTasksByIdsApi):
         data = super().get_request_data()
         if not data.get('prefix') or not data.get('prefix'):
             return data
-        d = self.task_types[data['task_type']]['data']
-        collection, id_name, input_field = d['collection'], d['id'], d['input_field']
+        collection, id_name, input_field, shared_field = self.task_meta(data['task_type'])
         condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'},
                      input_field: {"$nin": [None, '']}}
         docs = self.db[collection].find(condition)

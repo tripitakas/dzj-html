@@ -407,7 +407,7 @@
   });
 
   // 获取任务数据
-  function getData(submit) {
+  function getData(finish_task) {
     var data = {
       submit: submit,
       step: 'proof',
@@ -430,7 +430,7 @@
     });
   });
   // 提交任务
-  $('.btn-submit').on("click", function () {
+  $('.btn-finish_task').on("click", function () {
     postApi('{{current_path}}', {data: getData(true)}, function () {
       showSuccess('成功', '任务已提交。');
       setTimeout(function () {

@@ -23,7 +23,7 @@ class TestDataLock(APITestCase):
 
     def get_data_lock(self, page_name, task_type):
         page = self._app.db.page.find_one({'name': page_name})
-        data_field = Th.get_shared_data(task_type)
+        data_field = Th.get_shared_field(task_type)
         return page and data_field and page['lock'].get(data_field)
 
     def test_data_lock(self):

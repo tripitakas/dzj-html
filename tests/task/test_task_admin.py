@@ -9,9 +9,6 @@ from controller.task.base import TaskHandler as Th
 
 
 class TestTaskPublish(APITestCase):
-    task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2',
-                  'text_proof_3', 'text_review', 'text_hard']
-
     def setUp(self):
         super(TestTaskPublish, self).setUp()
         self.add_first_user_as_admin_then_login()
@@ -32,7 +29,8 @@ class TestTaskPublish(APITestCase):
 
     def test_get_ready_tasks(self):
         """ 测试获取已就绪的任务列表 """
-        for task_type in self.task_types:
+        task_types = list(Th.task_types.keys())
+        for task_type in task_types:
             self.login_as_admin()
             r = self.fetch('/api/task/ready/%s' % task_type, body={'data': {}})
             data = self.parse_response(r)
@@ -61,8 +59,7 @@ class TestTaskPublish(APITestCase):
         # task_types = ['text_review']
         for task_type in task_types:
             # 获取任务的meta信息
-            t = Th.task_types.get(task_type)
-            collection, id_name, input_field = t['data']['collection'], t['data']['id'], t['data'].get('input_field')
+            collection, id_name, input_field, shared_field = Th.task_meta(task_type)
 
             # 测试数据不存在
             docs_un_existed = ['not_existed_1', 'not_existed_2']
@@ -90,14 +87,14 @@ class TestTaskPublish(APITestCase):
 
             # 测试已退回的任务，可以重新发布
             docs_returned = list(docs_published_before)
-            self._app.db.task.update_many({'id_value': {'$in': docs_returned}}, {'$set': {'status': 'returned'}})
+            self._app.db.task.update_many({'doc_id': {'$in': docs_returned}}, {'$set': {'status': 'returned'}})
             r = self.parse_response(
                 self.publish_tasks(dict(task_type=task_type, doc_ids=','.join(docs_returned))))
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assert_status(docs_returned, r, {task_type: status}, msg=task_type)
 
     def test_publish_tasks_file(self):
-        """ 测试以文件方式发布审校任务 """
+        """ 测试以文件方式发布任务 """
         self.add_first_user_as_admin_then_login()
         # 创建文件
         pages = ['QL_25_733', 'YB_22_346']
@@ -115,7 +112,8 @@ class TestTaskPublish(APITestCase):
             t = Th.task_types.get(task_type)
             pre_tasks = ','.join(t.get('pre_tasks')) if t.get('pre_tasks') else ''
             body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0')
-            data = self.parse_response(self.fetch('/api/task/publish_by_file', files=dict(ids_file=filename), body=body))
+            data = self.parse_response(
+                self.fetch('/api/task/publish_by_file', files=dict(ids_file=filename), body=body))
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, data, msg=task_type)
             self.assertEqual(set(data.get(status)), set(pages), msg=task_type)
@@ -136,7 +134,31 @@ class TestTaskPublish(APITestCase):
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, r['data'])
 
-    def test_withdraw_task(self):
+    def test_pick_task(self):
+        """ 测试领取任务 """
+        task_types = list(Th.task_types.keys())
+        # task_types = ['cut_proof']
+        for task_type in task_types:
+            # 发布任务
+            self.login_as_admin()
+            docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
+            r = self.publish_tasks(dict(doc_ids=','.join(docs_ready), task_type=task_type, pre_tasks=[]))
+            self.assert_code(200, r)
+
+            # 领取第一个任务
+            doc_id = docs_ready[0]
+            self.login(u.expert1[0], u.expert1[1])
+            data = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {'doc_id': doc_id}}))
+            self.assertEqual(doc_id, data.get('doc_id'), msg=task_type)
+            task = self._app.db.task.find_one({'doc_id': doc_id})
+            self.assertEqual(task['status'], 'picked')
+            self.assertEqual(task['picked_by'], u.expert1[2])
+
+            # 领取第二个任务时，报错，提示有未完成的任务
+            r = self.fetch('/api/task/pick/' + task_type, body={'data': {'doc_id': docs_ready[1]}})
+            self.assert_code(errors.task_uncompleted[0], r, msg=task_type)
+
+    def test_retrieve_task(self):
         """ 测试管理员撤回任务 """
         for task_type in [
             'cut_proof', 'cut_review',
@@ -154,12 +176,12 @@ class TestTaskPublish(APITestCase):
                 self.login_as_admin()
 
             # 管理员撤回任务
-            r = self.parse_response(self.fetch('/api/task/withdraw/%s/%s' % (task_type, doc_id), body={'data': {}}))
+            r = self.parse_response(self.fetch('/api/task/retrieve/%s/%s' % (task_type, doc_id), body={'data': {}}))
             self.assertEqual(doc_id, r.get('doc_id'), msg=task_type)
             page = self._app.db.page.find_one({'name': doc_id})
             self.assertIn(task_type, page['tasks'])
             self.assertEqual(page['tasks'][task_type]['status'], 'ready')
-            data_field = Th.get_shared_data(task_type)
+            data_field = Th.get_shared_field(task_type)
             if data_field:
                 self.assertEqual(page['lock'][data_field], {})
 
@@ -172,7 +194,7 @@ class TestTaskPublish(APITestCase):
             self.login_as_admin()
             doc_ids = ['GL_1056_5_6', 'JX_165_7_12', 'QL_25_16']
             doc_id = doc_ids[0]
-            r = self.parse_response(self.fetch('/api/task/reset/%s/%s' % (task_type, doc_id), body={'data': {}}))
+            r = self.parse_response(self.fetch('/api/task/delete/%s/%s' % (task_type, doc_id), body={'data': {}}))
             self.assertEqual(doc_id, r.get('doc_id'), msg=task_type)
             page = self._app.db.page.find_one({'name': doc_id})
             self.assertIn(task_type, page['tasks'])
@@ -183,5 +205,5 @@ class TestTaskPublish(APITestCase):
 
             # 不能重置已发布的任务
             doc_id = 'GL_1056_5_6'
-            r = self.fetch('/api/task/reset/%s/%s' % (task_type, doc_id), body={'data': {}})
+            r = self.fetch('/api/task/delete/%s/%s' % (task_type, doc_id), body={'data': {}})
             self.assert_code(errors.task_not_allowed_reset, r, msg=task_type)

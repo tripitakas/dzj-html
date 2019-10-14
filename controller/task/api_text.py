@@ -11,7 +11,7 @@ from controller.base import DbError
 from controller.data.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
-from controller.task.api_base import SubmitTaskApi
+from controller.task.api import FinishTaskApi
 from controller.task.view_text import TextTools, TextProofHandler
 from controller.data.esearch import find_one, find_neighbor
 
@@ -64,7 +64,7 @@ class GetCompareNeighborApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveTextProofApi(SubmitTaskApi):
+class SaveTextProofApi(FinishTaskApi):
     URL = ['/api/task/do/text_proof_@num/@page_name',
            '/api/task/update/text_proof_@num/@page_name']
 
@@ -130,12 +130,12 @@ class SaveTextProofApi(SubmitTaskApi):
 
         # 提交任务
         if mode == 'do' and data.get('submit'):
-            ret.update(self.submit(task_type, page_name))
+            ret.update(self.finish_task(task_type, page_name))
 
         self.send_data_response(ret)
 
 
-class SaveTextReviewApi(SubmitTaskApi):
+class SaveTextReviewApi(FinishTaskApi):
     URL = ['/api/task/do/text_review/@page_name',
            '/api/task/update/text_review/@page_name',
            '/api/data/text_edit/@page_name']
@@ -172,7 +172,7 @@ class SaveTextReviewApi(SubmitTaskApi):
 
             # 提交任务
             if mode == 'do' and data.get('submit'):
-                ret.update(self.submit(task_type, page_name))
+                ret.update(self.finish_task(task_type, page_name))
 
             self.send_data_response(ret)
 
@@ -180,7 +180,7 @@ class SaveTextReviewApi(SubmitTaskApi):
             self.send_db_error(e)
 
 
-class SaveTextHardApi(SubmitTaskApi):
+class SaveTextHardApi(FinishTaskApi):
     URL = ['/api/task/do/text_hard/@page_name',
            '/api/task/update/text_hard/@page_name']
 
@@ -208,7 +208,7 @@ class SaveTextHardApi(SubmitTaskApi):
 
             # 提交任务
             if mode == 'do' and data.get('submit'):
-                ret.update(self.submit(task_type, page_name))
+                ret.update(self.finish_task(task_type, page_name))
 
             self.send_data_response(ret)
 

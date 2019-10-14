@@ -17,7 +17,7 @@ op_types = {
     'save_update_{task_type}': dict(name='原任务保存'),
     'save_edit_{task_type}': dict(name='任务修改保存'),
     'sel_cmp_{task_type}': dict(name='比对文本保存'),
-    'withdraw_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
+    'retrieve_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
     'reset_{task_type}': dict(name='重置任务', trends=True, msg='重置了{page_name}{task_type}任务'),
     'auto_unlock': dict(name='自动回收任务'),
     'login_no_user': dict(name='账号不存在'),

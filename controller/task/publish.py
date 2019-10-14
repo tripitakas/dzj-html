@@ -23,8 +23,7 @@ class PublishTasksHandler(TaskHandler):
 
         log = dict()
         # 检查数据是否存在
-        d = self.task_types[task_type]['data']
-        collection, id_name, input_field = d['collection'], d['id'], d.get('input_field')
+        collection, id_name, input_field, shared_field = self.task_meta(task_type)
         docs = list(self.db[collection].find({id_name: {'$in': doc_ids}}))
         log['un_existed'] = set(doc_ids) - set([doc.get(id_name) for doc in docs])
         doc_ids = [doc.get(id_name) for doc in docs]
@@ -38,8 +37,8 @@ class PublishTasksHandler(TaskHandler):
         # 去掉状态为OPENED\PENDING\PICKED\FINISHED的任务，留下其余状态（包括已退回或已撤回）的任务，准备发布
         if not force and doc_ids:
             ss = [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_FINISHED]
-            condition = dict(task_type=task_type, status={'$in': ss}, id_value={'$in': list(doc_ids)})
-            log['published_before'] = set(t.get('id_value') for t in self.db.task.find(condition, {'id_value': 1}))
+            condition = dict(task_type=task_type, status={'$in': ss}, doc_id={'$in': list(doc_ids)})
+            log['published_before'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
             doc_ids = set(doc_ids) - log['published_before']
 
         # 发布新任务
@@ -51,9 +50,9 @@ class PublishTasksHandler(TaskHandler):
 
                 # 针对前置任务均已完成的情况，发布为OPENED
                 condition = dict(task_type={'$in': pre_tasks}, collection=collection, id_name=id_name,
-                                 id_value={'$in': list(doc_ids)}, status=self.STATUS_FINISHED)
-                tasks_finished = list(self.db.task.find(condition, {'task_type': 1, 'id_value': 1}))
-                log['published'] = self._select_pre_tasks_all_finished_id_values(tasks_finished, pre_tasks)
+                                 doc_id={'$in': list(doc_ids)}, status=self.STATUS_FINISHED)
+                tasks_finished = list(self.db.task.find(condition, {'task_type': 1, 'doc_id': 1}))
+                log['published'] = self._select_pre_tasks_all_finished_doc_ids(tasks_finished, pre_tasks)
                 self._publish_task(task_type, self.STATUS_OPENED, priority, pre_tasks, steps, list(log['published']))
                 doc_ids = doc_ids - log['published']
 
@@ -66,34 +65,33 @@ class PublishTasksHandler(TaskHandler):
 
         return {k: value for k, value in log.items() if value}
 
-    def _publish_task(self, task_type, status, priority, pre_tasks, steps, id_values):
+    def _publish_task(self, task_type, status, priority, pre_tasks, steps, doc_ids):
         """ 发布新任务 """
         assert task_type in self.task_types
-        task_data = self.task_types[task_type]['data']
-        collection, id_name = task_data['collection'], task_data['id']
-        meta = dict(task_type=task_type, collection=collection, id_name=id_name, id_value='', status=status,
+        collection, id_name = self.task_meta(task_type)[:2]
+        meta = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id='', status=status,
                     priority=int(priority), steps=dict(todo=steps), pre_tasks={t: '' for t in pre_tasks or []},
                     input='', result='', created_time=datetime.now(), updated_time=datetime.now(),
                     publish_time=datetime.now(), publish_user_id=self.current_user['_id'],
                     publish_by=self.current_user['name'])
         tasks = []
-        for id_value in id_values:
+        for doc_id in doc_ids:
             task = meta.copy()
-            task.update({'id_value': id_value})
+            task.update({'doc_id': doc_id})
             tasks.append(task)
 
         if tasks:
             self.db.task.insert_many(tasks, ordered=False)
-            self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(id_values), ','.join(id_values)))
+            self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
-    def _select_pre_tasks_all_finished_id_values(self, tasks_finished, pre_tasks_required):
-        """ 在已完成的任务列表中，过滤出前置任务全部完成的id_value"""
+    def _select_pre_tasks_all_finished_doc_ids(self, tasks_finished, pre_tasks_required):
+        """ 在已完成的任务列表中，过滤出前置任务全部完成的doc_id"""
         tasks = dict()
         pre_tasks_required = set(pre_tasks_required)
         for task in tasks_finished:
-            if task.get('id_value') not in task:
-                tasks[task.get('id_value')] = set(task.get('task_type'))
+            if task.get('doc_id') not in task:
+                tasks[task.get('doc_id')] = set(task.get('task_type'))
             else:
-                tasks[task.get('id_value')].add(task.get('task_type'))
-        id_values = [k for k, v in tasks.items() if v == pre_tasks_required]
-        return set(id_values)
+                tasks[task.get('doc_id')].add(task.get('task_type'))
+        doc_ids = [k for k, v in tasks.items() if v == pre_tasks_required]
+        return set(doc_ids)

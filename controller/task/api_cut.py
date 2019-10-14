@@ -10,10 +10,10 @@ import controller.errors as errors
 from controller.base import DbError
 from tornado.escape import json_decode
 from controller.task.view_cut import CutHandler
-from controller.task.api_base import SubmitTaskApi
+from controller.task.api import FinishTaskApi
 
 
-class SaveCutApi(SubmitTaskApi):
+class SaveCutApi(FinishTaskApi):
     URL = ['/api/task/do/@cut_type/@page_name',
            '/api/task/update/@cut_type/@page_name']
 
@@ -58,7 +58,7 @@ class SaveCutApi(SubmitTaskApi):
 
             # 提交任务
             if mode == 'do' and data.get('submit') and data['step'] == steps_todo[-1]:
-                ret.update(self.submit(task_type, page_name))
+                ret.update(self.finish_task(task_type, page_name))
 
             self.send_data_response(ret)
 
@@ -66,7 +66,7 @@ class SaveCutApi(SubmitTaskApi):
             self.send_db_error(e)
 
 
-class SaveCutEditApi(SubmitTaskApi):
+class SaveCutEditApi(FinishTaskApi):
     URL = '/api/data/cut_edit/@page_name'
 
     def post(self, page_name):
@@ -131,7 +131,7 @@ class SaveOCRApi(SaveCutApi):
 
             # 提交任务
             if mode == 'do' and data.get('submit'):
-                ret.update(self.submit(task_type, page_name))
+                ret.update(self.finish_task(task_type, page_name))
 
             self.send_data_response(ret)
 

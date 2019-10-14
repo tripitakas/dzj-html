@@ -53,7 +53,8 @@ def i18n_trans(key):
         'boxes': '框',
         'force': '已发布时如何处理',
         'cmp': '比对文本',
-        'txt_html': '校对文本'
+        'txt_html': '校对文本',
+        'tasks': '任务列表'
     }
     return maps[key] if key in maps else key
 
