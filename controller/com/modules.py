@@ -37,16 +37,7 @@ class CommonLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
-                dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
-                dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
-                dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof_1'),
-                dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
-                dict(name='难字审定', icon='icon_subitem', link='/task/admin/text_hard'),
-            ]),
-            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
-                dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
-                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
+                dict(name='页任务', icon='icon_subitem', link='/task/admin/page'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
@@ -54,6 +45,11 @@ class CommonLeft(UIModule):
                 dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
+            ]),
+            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
+                dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
+                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
+                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='文字识别', icon='icon_subitem', link='/data/ocr'),

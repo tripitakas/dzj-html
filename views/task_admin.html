@@ -1,86 +1,18 @@
 <!DOCTYPE html>
+{% import json %}
 {% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <title>任务管理-{{Th.task_names().get(task_type)}}</title>
+  <title>任务管理{{dict(page='-页任务',reel='-卷任务').get(collection) or ''}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
   <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet" type="text/css"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-
-  <style>
-    .modal .ms-container {
-      width: 100%;
-    }
-
-    .modal .control-label {
-      padding: 10px 0;
-    }
-
-    .modal .my-container {
-      background: none;
-    }
-
-    .siblings {
-      text-align: left;
-      margin-bottom: 10px;
-    }
-
-    .siblings ul li {
-      border-bottom: 0;
-      border-color: #ccc;
-    }
-
-    .siblings ul li:last-child {
-      padding: 0;
-    }
-
-    .siblings hr {
-      margin: 0;
-      border-top: 1px solid #ccc;
-    }
-
-    .sty-table td.returned {
-      cursor: pointer;
-    }
-
-    .sty-table td .doc-name {
-      color: #333333;
-      font-size: 14px;
-    }
-
-    .sty-table td.unready {
-      color: #333333;
-    }
-
-    .sty-table td.ready {
-      color: #666666;
-    }
-
-    .sty-table td.pending {
-      color: #D2691E;
-    }
-
-    .sty-table td.opened {
-      color: #8B4513;
-    }
-
-    .sty-table td.picked {
-      color: #BB5500;
-    }
-
-    .sty-table td.returned {
-      color: #FF0000;
-    }
-
-    .sty-table td.finished {
-      color: #228B22;
-    }
-  </style>
 
 </head>
 
@@ -96,25 +28,17 @@
             <div class="collate-history">
               <div class="wrapper">
                 <div class="collate-list">
-                  <div class="siblings pagers {{'' if 'text_proof' in task_type else 'hide'}}">
-                    <ul>
-                      <li class="{{'active' if task_type == 'text_proof_1' else ''}}"><a href="/task/admin/text_proof_1">文字校一</a></li>
-                      <li class="{{'active' if task_type == 'text_proof_2' else ''}}"><a href="/task/admin/text_proof_2">文字校二</a></li>
-                      <li class="{{'active' if task_type == 'text_proof_3' else ''}}"><a href="/task/admin/text_proof_3">文字校三</a></li>
-                    </ul>
-                    <hr/>
-                  </div>
-                  <div class="operation bat-upload {{'hide' if 'text_hard' in task_type else ''}}">
+                  <div class="operation bat-publish">
+                    <span id="bat-remove" class="btn btn-default dropdown-toggle waves-effect">批量刪除</span>
                     <div class="btn-group dropdown">
                       <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
                         发布任务 <i class="caret"></i>
                       </button>
                       <ul class="dropdown-menu" role="menu">
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#prefixModal">按页码前缀发布</a></li>
+                        {% for k, v in Th.task_types.items()%}
+                        <li><a class="task-type" id="{{k}}" href="javascript:void(0);">{{v.get('name')}}</a></li>
                         <li class="divider"></li>
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#selectModal">按所选页码发布</a></li>
-                        <li class="divider"></li>
-                        <li><a href="javascript:void(0);" data-toggle="modal" data-target="#fileModal">按页码文件发布</a></li>
+                        {% end %}
                       </ul>
                     </div>
                   </div>
@@ -128,26 +52,41 @@
                       <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>页编码</span></th>
                       <th><span>
-											    <div class="btn-group">
-												    <span class="sort" data-toggle="dropdown" aria-expanded="false">
-                              状态<span class="ion-android-sort "></span>
-                            </span>
-                            <ul class="dropdown-menu" role="menu">
+                        <div class="btn-group">
+                          <span class="filter" id="task-types" data-toggle="dropdown" aria-expanded="false">
+                            任务类型<span class="ion-android-sort "></span>
+                          </span>
+                          <ul class="dropdown-menu" role="menu">
+                            {% for k, v in Th.task_types.items() %}
+                              <li><a href="{{current_path}}?task_type={{k}}">{{v.get('name')}}</a></li>
+                            {% end %}
+													</ul>
+												</div>
+                      </span></th>
+                      <th><span>
+                        <div class="btn-group">
+                          <span class="filter" id="statuses" data-toggle="dropdown" aria-expanded="false">
+                            状态<span class="ion-android-sort "></span>
+                          </span>
+                          <ul class="dropdown-menu" role="menu">
                             {% for k, v in Th.task_status_names.items() %}
                               <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
                             {% end %}
 													</ul>
 												</div>
                       </span></th>
-                      <th><span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
-                        优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
-                      </span></th>
+                      <th>
+                        <span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
+                          优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
+                        </span>
+                      </th>
                       <th><span>步骤</span></th>
                       <th><span>前置任务</span></th>
-                      <th><span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
-                        发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
-                      </span></th>
-                      <th><span>更新时间</span></th>
+                      <th>
+                        <span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
+                          发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
+                        </span>
+                      </th>
                       <th><span>领取人</span></th>
                       <th><span>领取时间</span></th>
                       <th><span>完成时间</span></th>
@@ -156,34 +95,22 @@
                     </thead>
                     <tbody>
                     {% for t in tasks %}
-                    <tr id="{{t['name']}}" class="task-tr">
-                      <th><span><input type="checkbox" name="{{t['name']}}" value=""/></span></th>
-                      <td><a class="doc-name" href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
-                      {% set status = Th.prop(t, 'tasks.%s.status' % task_type) %}
-                      {% set reason = Th.prop(t, 'tasks.%s.returned_reason' % task_type) or '' %}
-                      <td class="{{status}}" title="{{reason}}">{{Th.task_status_names.get(status) or ''}}</td>
-                      <td>{{Th.prior_names.get(Th.prop(t, 'tasks.%s.priority' % task_type)) or ''}}</td>
+                    <tr id="{{t['doc_id']}}" class="task-tr">
+                      <th><span><input type="checkbox" name="{{t['doc_id']}}" value=""/></span></th>
+                      <td><a class="doc-name" href="/task/info/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                      <td>{{Th.task_names().get(t['task_type']) or ''}}</td>
+                      <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
+                      <td>{{Th.prior_names.get(t['priority']) or ''}}</td>
+                      <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps') or []])}}</td>
+                      <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
+                      <td>{{to_date_str(t.get('publish_time'))}}</td>
+                      <td>{{t.get('picked_by') or ''}}</td>
+                      <td>{{to_date_str(t.get('picked_time'))}}</td>
+                      <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
-                        {% set steps = Th.prop(t, 'tasks.%s.steps.todo' % task_type) or [] %}
-                        {{'/'.join([Th.prop(default_steps, s) for s in steps])}}
-                      </td>
-                      <td>
-                        {% set pre_tasks = Th.prop(t, 'tasks.%s.pre_tasks' % task_type) or [] %}
-                        {{'/'.join([Th.task_names().get(p) for p in pre_tasks])}}
-                      </td>
-                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.publish_time' % task_type))}}</td>
-                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.updated_time' % task_type))}}</td>
-                      <td>{{Th.prop(t, 'tasks.%s.picked_by' % task_type) or ''}}</td>
-                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.picked_time' % task_type))}}</td>
-                      <td>{{to_date_str(Th.prop(t, 'tasks.%s.finished_time' % task_type))}}</td>
-                      <td>
-                        <a class="view" href="/task/{{task_type}}/{{t['name']}}">查看</a>
-                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['ready'] %}
-                        <a class="reset" onclick=reset('{{task_type}}','{{t["name"]}}')>重置</a>
-                        {% end %}
-                        {% if Th.prop(t, 'tasks.%s.status' % task_type) in ['opened', 'picked', 'pending', 'returned'] %}
-                        <a class="retrieve" onclick=retrieve('{{task_type}}','{{t["name"]}}')>撤回</a>
-                        {% end %}
+                        <a class="view" href="/task/{{t['task_type']}}/{{t['doc_id']}}">查看</a>
+                        <a class="remove{{'' if t['status'] in ['pending', 'opened'] else ' hide'}}" onclick=remove('{{t["_id"]}}','{{t["doc_id"]}}')>刪除</a>
+                        <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
                       </td>
                     </tr>
                     {% end %}
@@ -200,93 +127,81 @@
   </div>
 </div>
 
-<!--按页码前缀发布-->
 <div class="panel-body" style="padding-bottom: 2px;">
-  <div id="prefixModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">发布任务-{{Th.task_names().get(task_type)}}</h4>
+          <h4 class="modal-title" id="choose-docs">发布任务-<span id="task-type-name"></span></h4>
         </div>
         <div class="modal-body">
-          {% include task_admin_modal.html %}
-          <div class="force">
-            <h4 class="control-label">任务已发布时，如何处理？</h4>
-            <input type="radio" name="prefix-force" value="0" style="margin-right: 10px" checked>跳过
-            <input type="radio" name="prefix-force" value="1" style="margin: 0 10px">重新发布<br>
-          </div>
-          <br/>
-          <h4 class="control-label">输入页码前缀</h4>
-          <input type="text" class="form-control" id="doc_prefix" placeholder="请输入页码前缀，如GL_2"/>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="prefix_modal_btn">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!--按页码文件发布-->
-<div class="panel-body" style="padding-bottom: 2px;">
-  <div id="fileModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="upload-docs">发布任务-{{Th.task_names().get(task_type)}}</h4>
-        </div>
-        <div class="modal-body">
-          {% include task_admin_modal.html %}
-          <div class="force">
-            <h4 class="control-label">任务已发布时，如何处理？</h4>
-            <input type="radio" name="file-force" value="0" style="margin-right: 10px" checked>跳过
-            <input type="radio" name="file-force" value="1" style="margin: 0 10px">重新发布<br>
-          </div>
-          <br/>
-          <i>请选择CSV或TXT格式文件，大小不超过10M</i>
-          <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="file_modal_btn">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!--按所选页码发布 -->
-<div class="panel-body" style="padding-bottom: 2px;">
-  <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-docs">发布任务-{{Th.task_names().get(task_type)}}</h4>
-        </div>
-        <div class="modal-body">
-          {% include task_admin_modal.html %}
-          <div class="form-group">
+          <div class="pre-tasks">
+            <h4 class="control-label">选择前置任务</h4>
             <div>
-              <div class="ms-container my-container">
-                <div class="ms-selectable">
-                  <div class="selectableHeader">待选对象<a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a></div>
-                  <div><i class="ser-btn"></i>
-                    <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，回车可进行搜索">
+              {% for t, v in Th.task_names().items() %}
+              {% if is_mod_enabled(v) %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{t}}">{{v}}
+              </label>
+              {% end %}
+              {% end %}
+            </div>
+          </div>
+          <div class="steps">
+            <h4 class="control-label">选择子步骤</h4>
+            <div id="step-items">
+              <label class="checkbox-inline"><input type="checkbox" title="">子步骤</label>
+            </div>
+          </div>
+          <div class="priority-list">
+            <h4 class="control-label">选择优先级</h4>
+            <input type="radio" name="priority" value="3" style="margin-right: 10px" checked>高
+            <input type="radio" name="priority" value="2" style="margin: 0 10px">中
+            <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+          </div>
+          <div class="force">
+            <h4 class="control-label">任务已发布时，如何处理？</h4>
+            <input type="radio" name="force" value="0" style="margin: 0 10px 0 0" checked>跳过
+            <input type="radio" name="force" value="1" style="margin: 0 10px">重新发布<br>
+          </div>
+          <div class="id-values">
+            <h4 class="control-label">选择待发布的任务</h4>
+            <ul class="nav nav-tabs" id="tabContent">
+              <li class="active"><a href="#source-prefix" data-toggle="tab">按编码前缀</a></li>
+              <li><a id="select-ids" href="#source-select" data-toggle="tab">逐个选择编码</a></li>
+              <li><a href="#source-file" data-toggle="tab">上传编码文件</a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="source-prefix">
+                <input type="text" class="form-control" id="id_prefix" placeholder="请输入编码前缀，如GL_2"/>
+              </div>
+              <div class="tab-pane" id="source-select">
+                <div class="form-group">
+                  <div>
+                    <div class="ms-container my-container">
+                      <div class="ms-selectable">
+                        <div class="selectableHeader">待选对象<a href="javascript:void(0);" class="right_btn" id="select_all_btn">全选</a></div>
+                        <div><i class="ser-btn"></i>
+                          <input type="text" class="form-control search-input" id="selectable_input" placeholder="请输入关键字，回车可进行搜索">
+                        </div>
+                      </div>
+                      <div class="ms-selection">
+                        <div class="selectionHeader">已选对象<a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a></div>
+                        <div><input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，自动搜索已选对象"></div>
+                      </div>
+                    </div>
+                    <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
+                      <option value=""></option>
+                    </select>
+                    <div id="pagination" class="ms-search-pagination"></div>
                   </div>
                 </div>
-                <div class="ms-selection">
-                  <div class="selectionHeader">已选对象<a href="javascript:void(0);" class="right_btn" id="deselect_all_btn">全删</a></div>
-                  <div><input type="text" class="form-control search-input" id="selected_input" placeholder="请输入关键字，自动搜索已选对象"></div>
-                </div>
               </div>
-              <select name="my-select[]" style="width:500px; display:none;" class="multi-select" multiple="multiple" id="my_multi_select">
-                <option value=""></option>
-              </select>
-              <div id="pagination" class="ms-search-pagination"></div>
+              <div class="tab-pane" id="source-file">
+                <i>请选择CSV或TXT格式文件，大小不超过10M</i>
+                <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
+              </div>
             </div>
           </div>
         </div>
@@ -307,83 +222,58 @@
   // 全选
   $('#checkbox-all').click(function () {
     var $items = $(".task-tr [type='checkbox']");
-    if (!this.checked) {
+    if (!this.checked)
       $items.removeAttr('checked');
-    } else {
+    else
       $items.prop('checked', 'true');
-    }
   });
 
-  // 获取URL参数
-  function getUrlParam(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    return r != null ? unescape(r[2]) : null;
-  }
-
-  // 按优先级排序
-  $("#priority.sort").click(function () {
-    var order = getUrlParam('order');
-    if (order && order == '-priority')
-      order = 'priority';
-    else
-      order = '-priority';
-    window.location = "{{current_path}}?order=" + order;
-  });
-
-  // 按发布时间排序
-  $("#publish_time.sort").click(function () {
-    var order = getUrlParam('order');
-    if (order && order == '-publish_time')
-      order = 'publish_time';
-    else
-      order = '-publish_time';
-    window.location = "{{current_path}}?order=" + order;
+  // 排序
+  $(".sort").click(function () {
+    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+    window.location = "{{current_path}}?order=" + direction + $(this).attr('id');
   });
 
   // 搜索
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
+    if (keyCode === 13) {
       var q = $(this).val().trim();
-      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
-      window.location = url;
+      window.location = q === '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
     }
   });
 
+  // 显示退回理由
+  $('.sty-table td.returned').click(function () {
+    swal({
+      title: "退回理由", text: $(this).attr('title'),
+      showConfirmButton: false, allowOutsideClick: true
+    });
+  });
+
   // 撤回任务
-  function retrieve(task_type, name) {
+  function retrieve(_id, doc_id) {
     var info = {
-      title: "确定撤回吗？",
-      text: "任务" + name + "\n将被撤回！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定撤回",
-      cancelButtonText: "取消",
-      closeOnConfirm: true
+      type: "warning", title: "确定撤回吗？", text: "任务" + doc_id + "\n将被撤回！",
+      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定撤回", cancelButtonText: "取消"
     };
     swal(info, function () {
-      postApi('/task/retrieve/' + task_type + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/retrieve/' + taskType + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });
   }
 
-  // 重置任务
-  function reset(task_type, name) {
+  // 删除任务
+  function remove(_id, doc_id) {
     var info = {
-      title: "确定重置吗？",
-      text: "任务" + name + "\n将被重置为未就绪！",
-      type: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定重置",
-      cancelButtonText: "取消",
-      closeOnConfirm: true
+      type: "warning", title: "确定删除吗？", text: "任务" + doc_id + "\n将被删除！",
+      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定删除", cancelButtonText: "取消"
     };
     swal(info, function () {
-      postApi('/task/delete/' + task_type + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/delete/' + taskType + '/' + name, {'data': {}}, function (res) {
         window.location.reload();
       });
     });
@@ -391,12 +281,90 @@
 
 </script>
 
+
 <script>
   var docs = [];
+  var taskType = '';
   var searchStr = '';
-  var $chooseDocsModal = $('#selectModal');
-  var $prefixModal = $('#prefixModal');
+  var $publishModal = $('#publishModal');
   var $myMultiSelect = $('#my_multi_select');
+  var taskTypes = decodeJSON('{{Th.task_types}}');
+
+  // 点击发布任务，弹出对话框
+  $(".bat-publish .task-type").on("click", function () {
+    taskType = $(this).attr('id');
+    $('#task-type-name').html(taskTypes[taskType]['name']);
+    var steps = taskTypes[taskType]['steps'];
+    if (typeof steps === 'undefined') {
+      $('#publishModal .steps').addClass('hide');
+      $('.steps #step-items').html('');
+    } else {
+      $('#publishModal .steps').removeClass('hide');
+      $('.steps #step-items').html($.map(steps, function (v, k) {
+        return "<label class='checkbox-inline'><input type='checkbox' title='" + k + "' checked>" + v + "</label>";
+      }).join('\n'));
+    }
+    $myMultiSelect.multiSelect('destroy');
+    $('#publishModal').modal();
+  });
+
+  // 发布任务
+  $publishModal.find('#select_modal_btn').click(function () {
+    var force = $publishModal.find('.force input:radio:checked').val();
+    var priority = $publishModal.find('.priority-list input:radio:checked').val();
+    var preTasks = $.map($publishModal.find('.pre-tasks :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('title');
+    });
+    var steps = $.map($publishModal.find('.steps :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('title');
+    });
+    var isFile = false;
+    var formData = new FormData();
+    var data = {task_type: taskType, priority: priority, force: force, pre_tasks: preTasks, steps: steps};
+    var source = $('.tab-content .tab-pane.active').attr('id');
+    switch (source) {
+      case 'source-prefix':
+        if (!$('#id_prefix').val())
+          return showError('请输入页码前缀');
+        data['prefix'] = $('#id_prefix').val();
+        break;
+
+      case 'source-select':
+        var selections = $('#ms-my_multi_select .ms-selection .ms-selected').css('display', 'red');
+        var selectedDocs = $.map(selections, function (item) {
+          return item.innerText;
+        });
+        if (selectedDocs.length < 1)
+          return showError('未选择页面', '请选择要发布的页面。');
+        data['doc_ids'] = selectedDocs;
+        break;
+
+      case 'source-file':
+        var idsFile = $('#upload')[0].files[0];
+        if (typeof idsFile === "undefined")
+          return showError('请选择文件');
+        if (!/\.(csv|txt)$/.test(idsFile.name))
+          return showError('文件不是CSV或TXT类型');
+        if (idsFile.size > (10 * 1024 * 1024))
+          return showError('文件大小不能超过10M');
+        formData.append('data', JSON.stringify(data));
+        formData.append('ids_file', idsFile);
+        isFile = true;
+        break;
+    }
+    console.log(data);
+    postApi('/task/publish', isFile ? formData : {data: data}, function (res) {
+      var len = (res.data.published || []).length + (res.data.pending || []).length;
+      showSuccess('已发布任务', len + ' 个页面已发布。');
+      setTimeout(function () {
+        if (len)
+          location.reload();
+      }, 1000);
+    }, null, isFile);
+
+  });
 
   // 初始化选择模块
   $myMultiSelect.multiSelect({
@@ -410,7 +378,7 @@
       $('#pagination').html('');
       return;
     }
-    var displayCount = 5;	// 显示多少个页码
+    var displayCount = 5;	// 显示多少个编码
     var start = pageNo - parseInt(displayCount / 2);
     start = start < 1 ? 1 : start;
     var end = start + displayCount - 1;
@@ -431,11 +399,11 @@
       $(".ms-selection .ms-selected").each(function () {
         selectedDocs.push($(this).text());
       });
-      if ($(".ms-selectable .ms-elem-selectable:not(.ms-selected)").length == 0 && page > 1) {
+      if ($(".ms-elem-selectable:not(.ms-selected)").length === 0 && page > 1) {
         page = page - 1;
       }
       var data = {prefix: searchStr, page: page, exclude: selectedDocs};
-      postApi('/task/ready/{{task_type}}', {data: data}, function (res) {
+      postApi('/task/ready/' + taskType, {data: data}, function (res) {
         docs = selectedDocs.concat(res.data.docs);
         showModal(page, res.data.page_size, res.data.total_count);
         $myMultiSelect.multiSelect('select', selectedDocs)
@@ -450,13 +418,13 @@
 
   // 待选对象-搜索
   $(".ms-selectable .ser-btn").on('click', function () {
-    var selectedDocs = []
+    var selectedDocs = [];
     $(".ms-selection .ms-selected").each(function () {
       selectedDocs.push($(this).text());
     });
     var selectableInput = $('#selectable_input').val().trim();
     var data = {prefix: selectableInput, exclude: selectedDocs};
-    postApi('/task/ready/{{task_type}}', {data: data}, function (res) {
+    postApi('/task/ready/' + taskType, {data: data}, function (res) {
       searchStr = selectableInput;  // 设置全局变量
       docs = selectedDocs.concat(res.data.docs);
       showModal(1, res.data.page_size, res.data.total_count);
@@ -476,7 +444,7 @@
   // 已选对象-搜索
   $("#selected_input").on('input propertychange', function () {
     var inputval = new RegExp($(this).val().trim(), "i");
-    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected');
+    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-elem-selection.ms-selected');
     selections.each(function () {
       if ($(this).text().match(inputval)) {
         $(this).show();
@@ -499,149 +467,14 @@
     displayPagination(pageNo, pageSize, totalCount);
   }
 
-  $chooseDocsModal.on('shown.bs.modal', function () {
-    postApi('/task/ready/{{task_type}}', {data: {}}, function (res) {
+  $publishModal.on('shown.bs.modal', function () {
+    postApi('/task/ready/' + taskType, {data: {}}, function (res) {
       docs = res.data.docs;
       showModal(1, res.data.page_size, res.data.total_count);
     });
   });
 
-  // 按所选页码发布任务
-  $chooseDocsModal.find('#select_modal_btn').click(function () {
-    var selectedDocs = [];
-    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-selection .ms-elem-selection.ms-selected').css('display', 'red');
-    selections.each(function () {
-      selectedDocs.push($(this).text());
-    });
-    if (selectedDocs.length < 1) {
-      return showError('未选择页面', '请选择要发布的页面。');
-    }
-    var pre_tasks = [];
-    $("#selectModal .pre-tasks :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        pre_tasks.push($(this).attr('title'));
-    });
-    var steps = [];
-    $("#selectModal .sub-steps :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        steps.push($(this).attr('title'));
-    });
-    var data = {
-      task_type: '{{task_type}}',
-      force: $('#selectModal .force input:radio:checked').val(),
-      pre_tasks: pre_tasks,
-      steps: steps,
-      priority: $chooseDocsModal.find('.priority-list select').val(),
-      doc_names: selectedDocs.join(',')
-    };
-    console.log(data);
-    postApi('/task/publish', {data: data}, function (res) {
-      var len = (res.data.published || []).length + (res.data.pending || []).length;
-      showSuccess('已发布任务', len + ' 个页面已发布。');
-      setTimeout(function () {
-        if (len) {
-          location.reload();
-        }
-      }, 1000);
-    });
-  });
-
-  // 按页码文件发布任务
-  $('#fileModal').find('#file_modal_btn').click(function () {
-    // 页码文件
-    if (typeof $('#upload')[0].files[0] == "undefined") {
-      return showError('请选择文件');
-    }
-    var namesFile = $('#upload')[0].files[0];
-    var regex = /\.(csv|txt)$/;
-    if (!regex.test(namesFile.name)) {
-      return showError('文件不是CSV或TXT类型');
-    }
-    if (namesFile.size > (10 * 1024 * 1024)) {
-      return showError('文件大小不能超过10M');
-    }
-    var pre_tasks = [];
-    $("#fileModal .pre-tasks :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        pre_tasks.push($(this).attr('title'));
-    });
-    var steps = [];
-    $("#fileModal .sub-steps :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        steps.push($(this).attr('title'));
-    });
-    var formData = new FormData();
-    formData.append('task_type', '{{task_type}}');
-    formData.append('force', $('#fileModal .force input:radio:checked').val());
-    formData.append('pre_tasks', pre_tasks.join(','));
-    formData.append('steps', steps.join(','));
-    formData.append('priority', $('#fileModal').find('.priority-list select').val());
-    formData.append('docs_file', namesFile);
-    console.log(formData);
-    $.ajax({
-      url: '/api/task/publish',
-      type: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function (res) {
-        if (res.status === 'failed') {
-          showError('错误', res.message);
-        } else {
-          var len = (res.data.published || []).length + (res.data.pending || []).length;
-          showSuccess('已发布任务', len + ' 个页面已发布。');
-          setTimeout(function () {
-            if (len) {
-              location.reload();
-            }
-          }, 1000);
-        }
-      }
-    });
-  });
-
-  // 按页码前缀发布任务
-  $prefixModal.find('#prefix_modal_btn').click(function () {
-    var doc_prefix = $('#doc_prefix').val();
-    if (!doc_prefix) {
-      return showError('请输入页码前缀');
-    }
-    var pre_tasks = [];
-    $("#prefixModal .pre-tasks :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        pre_tasks.push($(this).attr('title'));
-    });
-    var steps = [];
-    $("#prefixModal .sub-steps :checkbox").each(function () {
-      if ($(this).is(':checked'))
-        steps.push($(this).attr('title'));
-    });
-    var data = {
-      task_type: '{{task_type}}',
-      force: $('#prefixModal .force input:radio:checked').val(),
-      pre_tasks: pre_tasks,
-      steps: steps,
-      priority: $prefixModal.find('.priority-list select').val()
-    };
-    console.log(data);
-    postApi('/task/publish/' + doc_prefix, {data: data}, function (res) {
-      var len = (res.data.published || []).length + (res.data.pending || []).length;
-      showSuccess('已发布任务', len + ' 个页面已发布。');
-      setTimeout(function () {
-        if (len) {
-          location.reload();
-        }
-      }, 1000);
-    });
-  });
-
-  // 显示退回理由
-  $('.sty-table td.returned').click(function () {
-    swal({title: "退回理由", text: $(this).attr('title'), showConfirmButton: false, allowOutsideClick: true});
-  });
-
 </script>
-
 
 </body>
 </html>

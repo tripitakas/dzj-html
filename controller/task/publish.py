@@ -52,7 +52,7 @@ class PublishTasksHandler(TaskHandler):
                 condition = dict(task_type={'$in': pre_tasks}, collection=collection, id_name=id_name,
                                  doc_id={'$in': list(doc_ids)}, status=self.STATUS_FINISHED)
                 tasks_finished = list(self.db.task.find(condition, {'task_type': 1, 'doc_id': 1}))
-                log['published'] = self._select_pre_tasks_all_finished_doc_ids(tasks_finished, pre_tasks)
+                log['published'] = self._select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks)
                 self._publish_task(task_type, self.STATUS_OPENED, priority, pre_tasks, steps, list(log['published']))
                 doc_ids = doc_ids - log['published']
 
@@ -68,11 +68,14 @@ class PublishTasksHandler(TaskHandler):
     def _publish_task(self, task_type, status, priority, pre_tasks, steps, doc_ids):
         """ 发布新任务 """
         assert task_type in self.task_types
+        now = datetime.now()
+        steps = {s: '' for s in steps or []}
+        pre_tasks = {t: '' for t in pre_tasks or []}
         collection, id_name = self.task_meta(task_type)[:2]
         meta = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id='', status=status,
-                    priority=int(priority), steps=dict(todo=steps), pre_tasks={t: '' for t in pre_tasks or []},
-                    input='', result='', created_time=datetime.now(), updated_time=datetime.now(),
-                    publish_time=datetime.now(), publish_user_id=self.current_user['_id'],
+                    priority=int(priority), steps=steps, pre_tasks=pre_tasks, input='', result='',
+                    create_time=now, updated_time=now, publish_time=now,
+                    publish_user_id=self.current_user['_id'],
                     publish_by=self.current_user['name'])
         tasks = []
         for doc_id in doc_ids:
@@ -84,7 +87,8 @@ class PublishTasksHandler(TaskHandler):
             self.db.task.insert_many(tasks, ordered=False)
             self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
-    def _select_pre_tasks_all_finished_doc_ids(self, tasks_finished, pre_tasks_required):
+    @staticmethod
+    def _select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks_required):
         """ 在已完成的任务列表中，过滤出前置任务全部完成的doc_id"""
         tasks = dict()
         pre_tasks_required = set(pre_tasks_required)

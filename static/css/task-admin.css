@@ -1,0 +1,115 @@
+.modal .ms-container {
+    width: 100%;
+}
+
+.modal .control-label {
+    padding: 10px 0;
+}
+
+.modal .my-container {
+    background: none;
+}
+
+.siblings {
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.siblings ul li {
+    border-bottom: 0;
+    border-color: #ccc;
+}
+
+.siblings ul li:last-child {
+    padding: 0;
+}
+
+.siblings hr {
+    margin: 0;
+    border-top: 1px solid #ccc;
+}
+
+.sty-table td.returned {
+    cursor: pointer;
+}
+
+.sty-table td .doc-name {
+    color: #333333;
+    font-size: 14px;
+}
+
+.sty-table td.unready {
+    color: #333333;
+}
+
+.sty-table td.ready {
+    color: #666666;
+}
+
+.sty-table td.pending {
+    color: #D2691E;
+}
+
+.sty-table td.opened {
+    color: #8B4513;
+}
+
+.sty-table td.picked {
+    color: #BB5500;
+}
+
+.sty-table td.returned {
+    color: #FF0000;
+}
+
+.sty-table td.finished {
+    color: #228B22;
+}
+
+.filter {
+    cursor: pointer;
+}
+
+.modal .tab-content {
+    padding: 0;
+}
+
+.checkbox-inline {
+    margin-right: 10px;
+}
+
+.bat-publish .open > .dropdown-menu {
+    min-width: 96px;
+}
+
+.bat-publish .dropdown-menu > li > a {
+    padding: 2px 20px;
+}
+
+.bat-publish .divider:last-child {
+    display: none;
+}
+
+.id-values .nav.nav-tabs + .tab-content {
+    padding: 15px 0 0;
+    box-shadow: 0 0 0;
+}
+
+.id-values .nav > li > a {
+    padding: 0 15px 0 0;
+    line-height: 20px;
+}
+
+.id-values .nav.nav-tabs {
+    border: 0;
+    box-shadow: 0 0 0;
+}
+
+#publishModal .modal-body {
+    padding: 5px 0;
+}
+
+#publishModal .modal-body > div {
+    padding: 5px 0;
+}
+

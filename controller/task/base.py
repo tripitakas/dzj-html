@@ -30,22 +30,27 @@ class TaskHandler(BaseHandler):
     task_types = {
         'cut_proof': {
             'name': '切分校对',
+            'steps': {'char_box': '字框', 'block_box': '栏框', 'column_box': '列框', 'char_order': '字序'},
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'chars'},
         },
         'cut_review': {
             'name': '切分审定', 'pre_tasks': ['cut_proof'],
+            'steps': {'char_box': '字框', 'block_box': '栏框', 'column_box': '列框', 'char_order': '字序'},
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'chars'},
         },
         'text_proof_1': {
             'name': '文字校一',
+            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
         },
         'text_proof_2': {
             'name': '文字校二',
+            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
         },
         'text_proof_3': {
             'name': '文字校三',
+            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
         },
         'text_review': {
@@ -121,6 +126,13 @@ class TaskHandler(BaseHandler):
     @classmethod
     def task_names(cls):
         return {k: v.get('name') for k, v in cls.all_task_types().items()}
+
+    @classmethod
+    def step_names(cls):
+        step_names = dict()
+        for t in cls.task_types.values():
+            step_names.update(t.get('steps') or {})
+        return step_names
 
     @classmethod
     def task_meta(cls, task_type):

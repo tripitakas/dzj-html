@@ -14,6 +14,7 @@ url_placeholder = {
     'cut_type': r'cut_proof|cut_review',
     'text_type': r'text_proof_\d|text_review',
     'edit_type': r'cut_edit|text_edit',
+    'collection_type': r'page|reel',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
@@ -149,12 +150,10 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
+            '/api/task/publish': ['POST'],
             '/task/info/@page_name': ['GET'],
-            '/task/admin/@task_type': ['GET'],
+            '/task/admin/@collection_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/publish_by_ids': ['POST'],
-            '/api/task/publish_by_file': ['POST'],
-            '/api/task/publish_by_prefix': ['POST'],
             '/api/task/(retrieve|reset)/@task_type/@page_name': ['POST'],
         }
     },

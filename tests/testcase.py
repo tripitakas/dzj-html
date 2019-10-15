@@ -197,7 +197,7 @@ class APITestCase(AsyncHTTPTestCase):
             data['steps'] = data.get('steps', ['char_box', 'block_box', 'column_box', 'char_order'])
         if 'text_proof' in data.get('task_type', ''):
             data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
-        return self.fetch('/api/task/publish_by_ids', body={'data': data})
+        return self.fetch('/api/task/publish', body={'data': data})
 
     def delete_all_tasks(self):
         """ 清空任务 """

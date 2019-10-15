@@ -65,7 +65,7 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     back_cover_pages.sort(key=cmp_to_key(cmp_code))
 
     # volume_code, tripitaka_code, envelop_no, volume_no, content_page_count, content_pages, front_cover_pages,
-    # back_cover_pages, remark, created_time, updated_time
+    # back_cover_pages, remark, create_time, updated_time
     volume_code = '%s_%s_%s' % (tripitaka, pick_int(envelop), pick_int(volume)
                                 ) if envelop else '%s_%s' % (tripitaka, pick_int(volume))
     row = [volume_code, tripitaka, pick_int(envelop), pick_int(volume),
@@ -90,7 +90,7 @@ def generate_volume_from_dir(tripitaka='LQ', root='/Users/zyg/Desktop/lq/tripita
         return reorder_files(root, reorder_dir, tripitaka)
     assert level in [1, 2]
     fields = ['volume_code', 'tripitaka_code', 'envelop_no', 'volume_no', 'content_page_count', 'content_pages',
-              'front_cover_pages', 'back_cover_pages', 'remark', 'created_time', 'updated_time']
+              'front_cover_pages', 'back_cover_pages', 'remark', 'create_time', 'updated_time']
     rows = []
     sutras, reels = [], []
     if level == 1:

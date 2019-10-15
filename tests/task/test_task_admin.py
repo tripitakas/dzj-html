@@ -59,6 +59,7 @@ class TestTaskPublish(APITestCase):
         # task_types = ['text_review']
         for task_type in task_types:
             # 获取任务的meta信息
+            t = Th.task_types.get(task_type)
             collection, id_name, input_field, shared_field = Th.task_meta(task_type)
 
             # 测试数据不存在
@@ -110,16 +111,16 @@ class TestTaskPublish(APITestCase):
         for task_type in task_types:
             # 获取任务的meta信息
             t = Th.task_types.get(task_type)
-            pre_tasks = ','.join(t.get('pre_tasks')) if t.get('pre_tasks') else ''
+            pre_tasks = t.get('pre_tasks') or []
             body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0')
             data = self.parse_response(
-                self.fetch('/api/task/publish_by_file', files=dict(ids_file=filename), body=body))
+                self.fetch('/api/task/publish', files=dict(ids_file=filename), body=dict(data=body)))
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, data, msg=task_type)
             self.assertEqual(set(data.get(status)), set(pages), msg=task_type)
 
             # 测试文件为空
-            data = self.parse_response(self.fetch('/api/task/publish_by_file', files=dict(), body=body))
+            data = self.parse_response(self.fetch('/api/task/publish', files=dict(), body=body))
             self.assertIn('error', data, msg=task_type)
 
     def test_publish_many_tasks(self, size=10000):

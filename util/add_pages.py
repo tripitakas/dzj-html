@@ -21,7 +21,7 @@ IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 data = dict(count=0)
 
 page_meta = {
-    'name': '', 'width': '', 'height': '',
+    'name': '', 'width': '', 'height': '', 'batch': '',
     'un_sutra_id': '', 'sutra_id': '', 'reel_id': '', 'reel_page_no': '', 'lock': {},
     'ocr': '', 'text': '', 'text_normal': '', 'blocks': [], 'columns': [], 'chars': [],
 }

@@ -9,8 +9,7 @@ views = [
 handlers = [
     api.PickTaskApi, api.ReturnTaskApi, api.GetPageApi,
     api.UnlockTaskDataApi, api.RetrieveTaskApi, api.DeleteTasksApi,
-    api_publish.GetReadyTasksApi, api_publish.PublishTasksByFileApi, api_publish.PublishTasksByPrefixApi,
-    api_publish.PublishTasksByIdsApi,
+    api_publish.GetReadyTasksApi, api_publish.PublishTasksApi,
     api_text.SaveTextProofApi, api_text.SaveTextReviewApi, api_text.SaveTextHardApi,
     api_text.GetCompareTextApi, api_text.GetCompareNeighborApi,
     api_cut.SaveCutApi, api_cut.SaveCutEditApi, api_cut.SaveOCRApi,
