@@ -22,3 +22,10 @@ class TestOCR(APITestCase):
         r = self.parse_response(r)
         self.assertIn('name', r)
         self.assert_code(errors.ocr_page_existed, self.fetch('/api/data/submit_ocr/JS_100_527_1.gif', body={}))
+
+    def _test_import_images(self):
+        """请求批量导入藏经图"""
+        self.login(u.data1[0], u.data1[1])
+        data = dict(user_code='upload', tripitaka_code='LQ', folder='5-冠導七十五法名目')
+        r = self.fetch('/api/data/import_images', body={'data': data})
+        self.assert_code(200, r)

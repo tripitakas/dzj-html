@@ -8,9 +8,11 @@ from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
 from controller import errors as e
+import controller.validate as v
 from controller import helper
 from controller.layout.v2 import calc
 from controller.data.add_pages import add_page
+
 from PIL import Image
 from os import path, remove
 from operator import itemgetter
@@ -232,3 +234,27 @@ class SubmitRecognitionApi(BaseHandler):
             return key
         except (Boto3Error, BotoCoreError) as err:
             logging.error('fail to upload %s: %s' % (key, str(err).split(': ')[-1]))
+
+
+class ImportImagesApi(BaseHandler):
+    URL = '/api/data/import_images'
+
+    def post(self):
+        """请求批量导入藏经图"""
+
+        def handle_response(res):
+            self.send_data_response()
+
+        data = self.get_request_data()
+        rules = [
+            (v.not_empty, 'user_code', 'tripitaka_code', 'folder'),
+            (v.is_tripitaka, 'tripitaka_code'),
+        ]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        url = '%s?%s' % (self.config['ocr_api'][:-3] + 'import_images', urlencode(data))
+        self.call_back_api(url, request_timeout=20, handle_response=handle_response,
+                           handle_error=lambda t: self.send_error_response(e.ocr_import,
+                                                                           message=e.ocr_import[1] % (t or '无法访问')))

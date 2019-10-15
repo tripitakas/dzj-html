@@ -9,5 +9,5 @@ views = [
 ]
 handlers = [
     g.GenerateCharIdApi, data_api.PunctuationApi, data_api.CbetaSearchApi,
-    ocr_api.RecognitionApi, ocr_api.SubmitRecognitionApi,
+    ocr_api.RecognitionApi, ocr_api.SubmitRecognitionApi, ocr_api.ImportImagesApi,
 ]
