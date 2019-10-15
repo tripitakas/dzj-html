@@ -38,7 +38,8 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     rows, content_pages, front_cover_pages, back_cover_pages = [], [], [], []
     volume_path = path.join(root, envelop, volume) if envelop else path.join(root, volume)
     for fn in sorted(os.listdir(volume_path)):
-        if fn.startswith('.') or path.isdir(path.join(root, volume, fn)) or fn.endswith('.json'):
+        ext = fn.split('.')[-1].lower()
+        if fn[0] in '._~' or path.isdir(path.join(root, volume, fn)) or ext not in ['jpg', 'png', 'tif', 'gif']:
             continue
         page, suffix = fn.split('.', maxsplit=2)
         # 判断是否包含hash后缀
@@ -77,14 +78,14 @@ def get_volume_info(tripitaka, root, volume, envelop=None):
     return row
 
 
-def generate_volume_from_dir(tripitaka='LQ', root='/Users/zyg/Desktop/lq/tripitaka-web/static/upload/正法明目/LQ', level=2,
+def generate_volume_from_dir(tripitaka='LQ', root='/foo/bar/正法明目/LQ', level=2,
                              reorder_dir='', gen_sutra=True):
-    """ 扫描藏经文件夹，生成存储结构信息
+    """ 扫描藏经图文件夹，生成存储结构信息，只识别jpg|png|tif|gif文件，忽略其他格式文件
     :param tripitaka 藏经代码，如JX/GL等等
     :param root 待扫描的藏经文件目录，其中封面和封底的文件名最后一个数前有f或b
     :param level 图片的存储层次，如果是【藏-册-页】模式，则存储层次为1，如为【藏-函-册-页】【藏-经-卷-页】模式，则层次为2
-    :param reorder_dir 是否重新对文件编号，是则指定输出目录
-    :param gen_sutra 是否生成经目文件 Sutra-*.csv
+    :param reorder_dir 是否重新对文件编号并规范为页面名，是则指定输出目录，忽略其他参数
+    :param gen_sutra 是否生成经目文件 Sutra-*.csv、Reel-*.csv，是则在root参数的目录下生成经目文件
     """
     if reorder_dir:
         return reorder_files(root, reorder_dir, tripitaka)
@@ -155,6 +156,7 @@ def generate_volume_from_dir(tripitaka='LQ', root='/Users/zyg/Desktop/lq/tripita
 
 
 def reorder_files(src_dir, dst_dir, prefix):
+    """在遍历的每个子目录下按原始文件名顺序从1起重新改名为统一规范（XX_m_n.*、XX_m_m_n.*）的文件名，后缀前的文件名相同则编为相同号n"""
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
     orders = {}

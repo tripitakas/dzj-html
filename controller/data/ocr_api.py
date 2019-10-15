@@ -30,8 +30,10 @@ class RecognitionApi(BaseHandler):
     URL = '/api/data/ocr'
 
     def post(self):
-        """藏经OCR接口"""
+        """对上传的一个藏经图作OCR的接口"""
+
         def handle_response(r):
+            """OCR已完成的通知"""
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
             gif_file = img_file.split('.')[0] + '.gif'
             json_file = img_file.split('.')[0] + '.json'
@@ -80,10 +82,10 @@ class RecognitionApi(BaseHandler):
                 data[k] = to_basestring(v[0])
         img = self.request.files.get('img')
         assert img
-        filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))  # 去掉汉字和特殊符号
+        filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))  # 去掉路径、汉字和特殊符号
         ext = filename.split('.')[-1].lower()
         filename = '%s.%s' % (filename.split('.')[0], ext)
-        if '_' not in filename:
+        if '_' not in filename:  # 如果图片文件名不是规范的页面名，则从路径提取藏别、卷册名，生成页面名
             m = re.search(r'([/\\][A-Za-z]{2})?([/\\][0-9]+){1,3}$', path.dirname(filename))
             if m:
                 filename = re.sub(r'[/\\]', '_', m.group(0)[1:]) + '_' + filename
@@ -92,6 +94,8 @@ class RecognitionApi(BaseHandler):
 
         logging.info('recognize %s...' % filename)
         data['filename'] = filename
+
+        # 将图片内容转发到OCR服务，OCR结果将以JSON内容返回
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
         self.call_back_api(url, connect_timeout=5, request_timeout=20,
                            handle_error=lambda t: self.send_error_response(e.ocr_err,
@@ -203,13 +207,13 @@ class SubmitRecognitionApi(BaseHandler):
             return e.ocr_page_existed if ignore_error else self.send_error_response(e.ocr_page_existed)
 
         if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
-            SubmitRecognitionApi.upload(self, img_file)
+            SubmitRecognitionApi.upload_oss(self, img_file)
 
         page['id'] = str(r.inserted_id)
         return page
 
     @staticmethod
-    def upload(self, img_file):
+    def upload_oss(self, img_file):
         oss = self.config['img']
         session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'],
                           region_name=oss['region_name'])

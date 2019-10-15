@@ -18,6 +18,7 @@ from pymongo.errors import PyMongoError
 from tornado import gen
 from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPError
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
@@ -278,7 +279,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         def callback(r):
             if r.error:
                 if handle_error:
-                    handle_error(r.error)
+                    handle_error(str(r.error))
                 else:
                     self.render('_error.html', code=500, message='错误1: ' + str(r.error))
             else:
@@ -309,12 +310,18 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         client = AsyncHTTPClient()
         url = re.sub('[\'"]', '', url)
-        if not re.match(r'http(s)?://', url):
-            url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-            yield client.fetch(url, headers=self.request.headers,
-                               callback=callback, validate_cert=False, **kwargs)
-        else:
-            yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+        try:
+            if not re.match(r'http(s)?://', url):
+                url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
+                yield client.fetch(url, headers=self.request.headers,
+                                   callback=callback, validate_cert=False, **kwargs)
+            else:
+                yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+        except (OSError, HTTPError) as err_con:
+            if handle_error:
+                handle_error('服务无响应: ' + str(err_con))
+            else:
+                self.render('_error.html', code=500, message=str(err_con))
 
     def _handle_body(self, body, params_for_handler, handle_response, handle_error):
         if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
@@ -328,7 +335,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         else:
             body = json_util.loads(body)
             if body.get('error'):
-                body['error'] = body.get('message')
+                body['error'] = body.get('message') or body['error']
                 if handle_error:
                     handle_error(body['error'])
                 else:
