@@ -3,22 +3,105 @@
 """
 @time: 2018/12/27
 """
+import re
+from bson import objectid
 from controller import errors
 from datetime import datetime
+import controller.errors as e
 import controller.validate as v
 from controller.base import DbError
-from bson import objectid
-from controller.task.base import TaskHandler
 from .view import TaskLobbyHandler as Lobby
+from controller.task.base import TaskHandler
+from controller.task.publish import PublishBaseHandler
+
+
+class GetReadyTasksApi(TaskHandler):
+    URL = '/api/task/ready/@task_type'
+
+    def post(self, task_type):
+        """ 查找任务对应的collection，获取已就绪的数据列表 """
+        assert task_type in self.task_types
+        try:
+            data = self.get_request_data()
+            collection, id_name, input_field, shared_field = self.task_meta(task_type)
+            doc_id = dict()
+            if data.get('prefix'):
+                doc_id.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
+            if data.get('exclude'):
+                doc_id.update({'$nin': data.get('exclude')})
+            condition = {id_name: doc_id} if doc_id else {}
+            if input_field:
+                condition.update({input_field: {'$nin': [None, '']}})  # 任务所依赖的数据字段存在且不为空
+            page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
+            page_size = int(self.config['pager']['page_size'])
+            count = self.db[collection].count_documents(condition)
+            docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
+            response = {'docs': [d[id_name] for d in list(docs)], 'page_size': page_size,
+                        'page_no': page_no, 'total_count': count}
+            self.send_data_response(response)
+        except DbError as err:
+            self.send_db_error(err)
+
+
+class PublishTasksApi(PublishBaseHandler):
+    URL = r'/api/task/publish'
+
+    def get_doc_ids(self, data):
+        doc_ids = data.get('doc_ids')
+        if not doc_ids:
+            ids_file = self.request.files.get('ids_file')
+            if ids_file:
+                ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
+                ids_str = re.sub(r'\n+', '|', ids_str)
+                doc_ids = ids_str.split(r'|')
+            elif data.get('prefix'):
+                collection, id_name, input_field, shared_field = self.task_meta(data['task_type'])
+                condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'},
+                             input_field: {"$nin": [None, '']}}
+                docs = self.db[collection].find(condition)
+                doc_ids = [doc.get(id_name) for doc in docs]
+        return doc_ids
+
+    def post(self):
+        """ 根据数据id发布任务。
+        @param task_type 任务类型
+        @param steps list，步骤
+        @param pre_tasks list，前置任务
+        @param ids str，待发布的任务名称
+        @param priority str，1/2/3，数字越大优先级越高
+        """
+        data = self.get_request_data()
+        data['doc_ids'] = self.get_doc_ids(data)
+        rules = [
+            (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force'),
+            (v.is_priority, 'priority'),
+            (v.in_list, 'task_type', list(self.task_types.keys())),
+            (v.in_list, 'pre_tasks', list(self.task_types.keys())),
+        ]
+        err = v.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        try:
+            doc_ids = data['doc_ids'].split(',') if isinstance(data['doc_ids'], str) else data['doc_ids']
+            if len(doc_ids) > self.MAX_PUBLISH_RECORDS:
+                return self.send_error_response(e.task_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
+
+            force = data['force'] == '1'
+            log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
+                                    data['priority'], force, doc_ids=doc_ids)
+            self.send_data_response({k: value for k, value in log.items() if value})
+
+        except DbError as err:
+            self.send_db_error(err)
 
 
 class PickTaskApi(TaskHandler):
     URL = '/api/task/pick/@task_type'
 
-    def post(self, task_type, doc_id=None):
+    def post(self, task_type):
         """ 领取任务。
         :param task_type: 任务类型。如果是组任务，用户只能领取一份数据的一组任务中的一个。
-        :param doc_id: 任务名称。如果为空，则任取一个。
         """
         try:
             # 检查是否有未完成的任务
@@ -30,49 +113,42 @@ class PickTaskApi(TaskHandler):
             }
             uncompleted = self.db.task.find_one(condition)
             if uncompleted:
-                message = '您还有未完成的任务(%s)，请完成后再领取新任务' % uncompleted['doc_id']
-                url = '/task/do/%s/%s' % (task_type, uncompleted['doc_id'])
+                url = '/task/do/%s/%s' % (task_type, uncompleted['_id'])
                 return self.send_error_response(
-                    (errors.task_uncompleted[0], message),
-                    **{'uncompleted_id': uncompleted['doc_id'], 'url': url}
+                    e.task_uncompleted, **{'doc_id': uncompleted['doc_id'], 'url': url}
                 )
 
-            # 如果doc_id为空，则任取一个任务
-            doc_id = self.get_request_data().get('doc_id')
-            if not doc_id:
-                task = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)
+            # 如果_id为空，则任取一个任务
+            _id = self.get_request_data().get('_id')
+            if not _id:
+                task = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)[0][0]
                 return self.assign_task(task)
 
-            # 检查任务是否存在
-            collection, id_name = self.task_meta(task_type)[:2]
-            tasks = list(self.db.task.find({
-                'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type,
-                'collection': collection, 'id_name': id_name, 'doc_id': doc_id
-            }))
-            if not tasks:
-                return self.send_error_response(errors.no_object)
-
-            # 检查任务状态是否为已发布
-            opened_tasks = [t for t in tasks if t['status'] == self.STATUS_OPENED]
-            if not opened_tasks:
-                return self.send_error_response(errors.task_not_published)
+            # 检查任务及任务状态
+            task = self.db.task.find_one({'_id': objectid.ObjectId(_id)})
+            if not task:
+                return self.send_error_response(e.no_object)
+            if task['status'] != self.STATUS_OPENED:
+                return self.send_error_response(e.task_not_published)
 
             # 如果任务有共享数据，则检查对应的数据是否被锁定
-            shared_field = task_meta['data'].get('shared_field')
+            shared_field = self.get_shared_field(task_type)
+            c, i, d = task['collection'], task['id_name'], task['doc_id']
             if shared_field and shared_field in self.data_auth_maps:
-                if self.is_data_locked(collection, id_name, doc_id, shared_field):
-                    return self.send_error_response(errors.data_is_locked)
+                if self.is_data_locked(c, i, d, shared_field):
+                    return self.send_error_response(e.data_is_locked)
 
-            # 如果任务为组任务，则检查用户是否曾领取该组任务中的任务
-            picked_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']]
-            if task_meta.get('groups') and picked_tasks:
-                return self.send_error_response(errors.task_text_proof_duplicated)
+            # 如果任务为组任务，则检查用户是否曾领取过该组任务
+            condition = dict(task_type=task_type, collection=c, id_name=i, doc_id=d,
+                             picked_user_id=self.current_user['_id'])
+            if task_meta.get('groups') and self.db.task.find_one(condition):
+                return self.send_error_response(e.group_task_duplicated)
 
-            # 将任务和数据锁分配给用户
-            return self.assign_task(opened_tasks[0])
+            # 分配任务及数据锁
+            return self.assign_task(task)
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as err:
+            self.send_db_error(err)
 
     def assign_task(self, task):
         """ 分配任务和数据锁（如果有）给当前用户。
@@ -102,8 +178,8 @@ class PickTaskApi(TaskHandler):
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
         self.add_op_log('pick_' + task['task_type'], context=task['doc_id'])
-        return self.send_data_response({'url': '/task/do/%s/%s' % (task['task_type'], task['doc_id']),
-                                        'doc_id': task['doc_id']})
+        return self.send_data_response({'url': '/task/do/%s/%s' % (task['task_type'], task['_id']),
+                                        'doc_id': task['doc_id'], '_id': task['_id']})
 
 
 class ReturnTaskApi(TaskHandler):
@@ -189,7 +265,7 @@ class DeleteTasksApi(TaskHandler):
 # to delete
 class FinishTaskApi(TaskHandler):
 
-    def finish_task(self, task_type, doc_id):
+    def finish_task_to_delete(self, task_type, doc_id):
         """ 完成任务提交 """
         # 更新当前任务
         ret = {'submitted': True}

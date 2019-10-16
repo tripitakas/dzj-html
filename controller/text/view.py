@@ -9,7 +9,7 @@ from tornado.web import UIModule
 import controller.errors as errors
 from tornado.escape import url_escape
 from controller.task.base import TaskHandler
-from controller.task.view_cut import CutHandler
+from controller.cut.view import CutHandler
 from controller.data.diff import Diff
 
 

@@ -11,9 +11,9 @@ from controller.base import BaseHandler, DbError
 try:
     import punctuation
 
-    puncstr = punctuation.punc_str
+    punc_str = punctuation.punc_str
 except Exception:
-    puncstr = lambda s: s
+    punc_str = lambda s: s
 
 
 class CbetaSearchApi(BaseHandler):
@@ -56,7 +56,7 @@ class PunctuationApi(BaseHandler):
         try:
             data = self.get_request_data()
             q = data.get('q', '').strip()
-            res = puncstr(q) if q else ''
+            res = punc_str(q) if q else ''
             self.send_data_response(dict(res=res))
 
         except DbError as e:

@@ -25,19 +25,17 @@
   $('.btn-next').on("click", function () {
     if ('view' !== '{{mode}}') {
       var data = {
-        submit: true,
-        step: '{{steps.get("current")}}',
-        box_type: '{{box_type}}',
+        submit: true, box_type: '{{box_type}}', step: '{{steps.get("current")}}',
         boxes: JSON.stringify($.cut.exportBoxes())
       };
       postApi('{{current_path}}', {data: data}, function () {
+        window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
       });
     }
-    window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
   });
 
   // 提交任务
-  $('.btn-finish_task').on("click", function () {
+  $('.btn-submit').on("click", function () {
     var data = {
       submit: true,
       step: '{{steps.get("current")}}',

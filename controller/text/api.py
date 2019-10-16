@@ -12,7 +12,7 @@ from controller.data.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
 from controller.task.api import FinishTaskApi
-from controller.task.view_text import TextTools, TextProofHandler
+from controller.text.view import TextTools, TextProofHandler
 from controller.data.esearch import find_one, find_neighbor
 
 

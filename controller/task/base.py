@@ -2,91 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 任务Handler基类
-    1. 任务状态。
-    任务依赖的数据由TaskHandler.task_types.input_field定义，如果该数据就绪，则可以发布任务。
-    如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
-    用户领取任务后，状态为“picked”，退回任务后，状态为“returned”，提交任务后，状态为“finished”。
-    2. 前置任务
-    任务配置表中定义了默认的前置任务。
-    业务管理员在发布任务时，可以对前置任务进行修改，比如文字审定需要两次或者三次校对。发布任务后，任务的前置任务将记录在数据库中。
-    如果任务包含前置任务，系统发布任务后，状态为“pending”。当前置任务状态都变为“finished”时，自动将当前任务发布为“opened”。
-    3. 发布任务
-    一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、文档集合（doc_ids）。
 @time: 2019/3/11
 """
 from datetime import datetime
 import controller.auth as auth
 import controller.errors as errors
+from .conf import TaskConfig
 from controller.base import BaseHandler
 
 
-class TaskHandler(BaseHandler):
-    # 任务类型定义表。
-    # pre_tasks：默认的前置任务
-    # data.collection：任务所对应数据表
-    # data.id：数据表的主键名称
-    # data.input_field：该任务依赖的数据字段，该字段就绪，则可以发布任务
-    # data.shared_field：该任务共享和保护的数据字段
-    task_types = {
-        'cut_proof': {
-            'name': '切分校对',
-            'steps': {'char_box': '字框', 'block_box': '栏框', 'column_box': '列框', 'char_order': '字序'},
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'chars'},
-        },
-        'cut_review': {
-            'name': '切分审定', 'pre_tasks': ['cut_proof'],
-            'steps': {'char_box': '字框', 'block_box': '栏框', 'column_box': '列框', 'char_order': '字序'},
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'chars'},
-        },
-        'text_proof_1': {
-            'name': '文字校一',
-            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-        },
-        'text_proof_2': {
-            'name': '文字校二',
-            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-        },
-        'text_proof_3': {
-            'name': '文字校三',
-            'steps': {'select_compare_text': '选择比对文本', 'proof': '文字校对'},
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-        },
-        'text_review': {
-            'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'text_hard': {
-            'name': '难字审定', 'pre_tasks': ['text_review'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-    }
-
-    # 任务组定义表。
-    # 对于同一数据的一组任务而言，用户只能领取其中的一个。
-    # 在任务大厅和我的任务中，任务组中的任务将合并显示。
-    # 任务组仅在以上两处起作用，不影响其他任务管理功能。
-    task_groups = {
-        'text_proof': {
-            'name': '文字校对',
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
-        },
-    }
-
-    # 数据锁权限配置表。在update或edit操作时，需要检查数据锁资质，以这个表来判断。
-    data_auth_maps = {
-        'page.chars': {
-            'tasks': ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard'],
-            'roles': ['切分专家']
-        },
-        'page.text': {
-            'tasks': ['text_review', 'text_hard'],
-            'roles': ['文字专家']
-        },
-    }
-
+class TaskHandler(BaseHandler, TaskConfig):
     # 任务状态表
     STATUS_OPENED = 'opened'
     STATUS_PENDING = 'pending'
@@ -103,41 +28,10 @@ class TaskHandler(BaseHandler):
     STATUS_UNREADY = 'unready'
     STATUS_TODO = 'todo'
     STATUS_READY = 'ready'
-    STATUS_PUBLISHED = 'published'
-    data_status_names = {
-        STATUS_UNREADY: '未就绪', STATUS_TODO: '待办', STATUS_READY: '已就绪', STATUS_PUBLISHED: '已发布'
-    }
+    data_status_names = {STATUS_UNREADY: '未就绪', STATUS_TODO: '待办', STATUS_READY: '已就绪'}
 
     # 任务优先级
     prior_names = {3: '高', 2: '中', 1: '低'}
-
-    @classmethod
-    def prop(cls, obj, key):
-        for s in key.split('.'):
-            obj = obj.get(s) if isinstance(obj, dict) else None
-        return obj
-
-    @classmethod
-    def all_task_types(cls):
-        task_types = cls.task_types.copy()
-        task_types.update(cls.task_groups)
-        return task_types
-
-    @classmethod
-    def task_names(cls):
-        return {k: v.get('name') for k, v in cls.all_task_types().items()}
-
-    @classmethod
-    def step_names(cls):
-        step_names = dict()
-        for t in cls.task_types.values():
-            step_names.update(t.get('steps') or {})
-        return step_names
-
-    @classmethod
-    def task_meta(cls, task_type):
-        d = cls.task_types.get(task_type)['data']
-        return d['collection'], d['id'], d.get('input_field'), d.get('shared_field')
 
     def find_tasks(self, task_type, doc_id=None, status=None, size=None, mine=False):
         assert task_type in self.task_types
@@ -154,78 +48,72 @@ class TaskHandler(BaseHandler):
             tasks.limit(size)
         return list(tasks)
 
-    def check_auth(self, task_type, mode, doc_id):
-        """ 检查当前用户是否拥有任务的权限以及数据锁
+    def check_auth(self, task, mode):
+        """ 检查当前用户是否拥有相应的任务权限及数据锁
         :return 如果mode为do或update，而用户没有任务权限，则直接抛出错误
                 如果mode为do或update或edit，而用户没有获得数据锁，则返回False，表示没有写权限
                 其余情况，返回True，表示通过授权检查
         """
-        assert task_type in self.task_types
-        collection, id_name, input_field, shared_field = self.task_meta(task_type)
-        # do/update模式下，需要检查任务权限，直接抛出错误
+        assert task['task_type'] in self.task_types
+        # 检查任务权限
+        reason = '%s@%s' % (task['task_type'], task['doc_id'])
+        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
         if mode in ['do', 'update']:
-            render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
-            # 检查任务是否已分配给当前用户
-            collection, id_name = self.task_meta(task_type)[:2]
-            task = self.db.task.find_one(dict(collection=collection, id_name=id_name, doc_id=doc_id,
-                                              task_type=task_type, picked_user_id=self.current_user['_id']))
-            if not self.current_user or not task:
-                return self.send_error_response(errors.task_unauthorized, render=render, reason=doc_id)
-            # 检查任务状态以及是否为进行中或已完成（已完成的任务可以update）
-            if task['status'] not in [self.STATUS_PICKED, self.STATUS_FINISHED]:
-                return self.send_error_response(errors.task_unauthorized, render=render, reason=doc_id)
-            if mode == 'do' and task['status'] == self.STATUS_FINISHED:
-                return self.send_error_response(errors.task_finished_not_allowed_do, render=render, reason=doc_id)
+            if task['picked_user_id'] != self.current_user.get('_id'):
+                return self.send_error_response(errors.task_unauthorized, render=render, reason=reason)
+            if mode == 'do' and task['status'] != self.STATUS_PICKED:
+                return self.send_error_response(errors.task_can_only_do_picked, render=render, reason=reason)
+            if mode == 'update' and task['status'] != self.STATUS_FINISHED:
+                return self.send_error_response(errors.task_can_only_update_finished, render=render, reason=reason)
 
-        # do/update/edit模式下，需要检查数据锁（在配置表中申明的字段才进行检查）
+        # 检查数据锁
         auth = False
         if mode in ['do', 'update', 'edit']:
-            if not shared_field or shared_field not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
+            s = self.get_shared_field(task['task_type'])
+            c, i, d = task['collection'], task['id_name'], task['doc_id']
+            if not s or s not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
                 auth = True
-            elif (self.has_data_lock(collection, id_name, doc_id, shared_field)
-                  or self.get_data_lock(collection, id_name, doc_id, shared_field) is True):
+            elif self.has_data_lock(c, i, d, s) or self.get_data_lock(c, i, d, s) is True:
                 auth = True
 
         return auth
 
-    def finish_task(self, task_type, doc_id):
+    def finish_task(self, task):
         """ 完成任务提交 """
         # 更新当前任务
-        collection, id_name = self.task_meta(task_type)[:2]
-        update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
-        condition = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id=doc_id,
-                         picked_user_id=self.current_user['_id'], status=self.STATUS_PICKED)
-        self.db.task.update_one(condition, {'$set': update})
         ret = {'finished': True}
-
+        update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
+        self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         # 释放数据锁
-        shared_field = self.get_shared_field(task_type)
+        shared_field = self.get_shared_field(task['task_type'])
         if shared_field and shared_field in self.data_auth_maps:
             update['lock.' + shared_field] = {}
-            self.db[collection].update_one({id_name: doc_id}, {'$set': update})
+            self.db[task['collection']].update_one({task['id_name']: task['doc_id']}, {'$set': update})
             ret['data_lock_released'] = True
-
         # 更新后置任务
-        self.update_post_tasks(doc_id, task_type)
+        self.update_post_tasks(task)
         ret['post_tasks_updated'] = True
 
         return ret
 
-    def update_post_tasks(self, task_type, doc_id):
+    def update_post_tasks(self, task):
         """ 任务完成提交后，更新后置任务的状态 """
-        assert task_type in self.task_types
-        collection, id_name = self.task_meta(task_type)[:2]
-        condition = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id=doc_id)
-        for task in self.db.task.find(condition):
-            pre_tasks = task.get('pre_tasks', {})
-            if task_type in pre_tasks:
-                pre_tasks[task_type] = self.STATUS_FINISHED
-                unfinished_pre_tasks = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
-                update = {'pre_task.%s' % task_type: self.STATUS_FINISHED}
-                # 如果当前任务状态为悬挂，且所有前置任务均已完成，则设置状态为已发布
-                if task['status'] == self.STATUS_PENDING and not unfinished_pre_tasks:
-                    update.update({'status': self.STATUS_OPENED})
-                self.db.task.update_one({'_id', task['_id']}, {'$set': update})
+        task_type = task['task_type']
+        condition = dict(collection=task['collection'], id_name=task['id_name'], doc_id=task['doc_id'])
+        tasks = list(self.db.task.find(condition))
+        finished = [t['task_type'] for t in tasks if t['status'] == self.STATUS_FINISHED] + [task_type]
+        for t in tasks:
+            pre_tasks = t.get('pre_tasks', {})
+            # 检查任务t的所有前置任务的状态
+            for pre_task in pre_tasks:
+                if pre_task in finished:
+                    pre_tasks[pre_task] = self.STATUS_FINISHED
+            update = {'pre_tasks': pre_tasks}
+            # 如果当前任务状态为悬挂，且所有前置任务均已完成，则设置状态为已发布
+            unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
+            if t['status'] == self.STATUS_PENDING and not unfinished:
+                update.update({'status': self.STATUS_OPENED})
+            self.db.task.update_one({'_id': t['_id']}, {'$set': update})
 
     """ 数据锁介绍
     1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
@@ -245,18 +133,18 @@ class TaskHandler(BaseHandler):
         """ 获取任务保护的共享字段 """
         return cls.prop(cls.task_types, '%s.shared_field' % task_type)
 
-    def has_data_lock(self, collection, id_name, doc_id, data_field, is_temp=None):
+    def has_data_lock(self, collection, id_name, doc_id, shared_field, is_temp=None):
         """ 检查当前用户是否拥有某数据锁
         :param collection 数据表，即mongodb的collection
         :param id_name 作为id的字段名称
         :param doc_id 作为id的字段值
-        :param data_field 检查哪个数据字段
+        :param shared_field 检查哪个数据字段
         :param is_temp 是否为临时锁
          """
         assert is_temp in [None, True, False]
-        condition = {id_name: doc_id, 'lock.%s.locked_user_id' % data_field: self.current_user['_id']}
+        condition = {id_name: doc_id, 'lock.%s.locked_user_id' % shared_field: self.current_user['_id']}
         if is_temp is not None:
-            condition.update({'lock.%s.is_temp' % data_field: is_temp})
+            condition.update({'lock.%s.is_temp' % shared_field: is_temp})
         n = self.db[collection].count_documents(condition)
         return n > 0
 
@@ -268,7 +156,6 @@ class TaskHandler(BaseHandler):
     def get_data_lock(self, collection, id_name, doc_id, shared_field):
         """ 将临时数据锁分配给当前用户。（长时数据锁由系统在任务领取时分配，是任务提交时释放）。
         :return 成功时返回True，失败时返回errors.xxx。
-
         """
 
         def assign_lock(lock_type):
@@ -285,7 +172,8 @@ class TaskHandler(BaseHandler):
             return r.matched_count > 0
 
         assert shared_field in self.data_auth_maps
-        # 如果当前用户已有数据锁，则直接返回
+
+        # 检查当前用户是否已有数据锁
         if self.has_data_lock(collection, id_name, doc_id, shared_field):
             return True
         # 检查当前用户是否有数据锁对应的角色（有一个角色即可）
@@ -296,11 +184,10 @@ class TaskHandler(BaseHandler):
                 return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
             else:
                 return errors.data_is_locked
-        # 获取当前用户拥有的该数据的所有任务
+        # 检查当前用户是否有该数据的同阶或高阶任务
         tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, doc_id=doc_id)})
         my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
                     and t.get('status') != self.STATUS_RETURNED]
-        # 检查当前用户是否有该数据的同阶或高阶任务
         tasks = list(set(my_tasks) & set(self.data_auth_maps[shared_field]['tasks']))
         if tasks:
             if not self.is_data_locked(collection, id_name, doc_id, shared_field):

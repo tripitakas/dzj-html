@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% import json %}
 {% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
@@ -101,7 +100,7 @@
                       <td>{{Th.task_names().get(t['task_type']) or ''}}</td>
                       <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
                       <td>{{Th.prior_names.get(t['priority']) or ''}}</td>
-                      <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps') or []])}}</td>
+                      <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps',{}).get('todo') or []])}}</td>
                       <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
                       <td>{{to_date_str(t.get('publish_time'))}}</td>
                       <td>{{t.get('picked_by') or ''}}</td>
@@ -300,8 +299,8 @@
       $('.steps #step-items').html('');
     } else {
       $('#publishModal .steps').removeClass('hide');
-      $('.steps #step-items').html($.map(steps, function (v, k) {
-        return "<label class='checkbox-inline'><input type='checkbox' title='" + k + "' checked>" + v + "</label>";
+      $('.steps #step-items').html($.map(steps, function (k) {
+        return "<label class='checkbox-inline'><input type='checkbox' title='" + k[0] + "' checked>" + k[1] + "</label>";
       }).join('\n'));
     }
     $myMultiSelect.multiSelect('destroy');

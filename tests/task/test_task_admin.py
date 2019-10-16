@@ -3,6 +3,7 @@
 
 import os
 import tests.users as u
+from bson import objectid
 from controller import errors
 from tests.testcase import APITestCase
 from controller.task.base import TaskHandler as Th
@@ -146,17 +147,16 @@ class TestTaskPublish(APITestCase):
             r = self.publish_tasks(dict(doc_ids=','.join(docs_ready), task_type=task_type, pre_tasks=[]))
             self.assert_code(200, r)
 
-            # 领取第一个任务
-            doc_id = docs_ready[0]
+            # 随机领取第一个任务
             self.login(u.expert1[0], u.expert1[1])
-            data = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {'doc_id': doc_id}}))
-            self.assertEqual(doc_id, data.get('doc_id'), msg=task_type)
-            task = self._app.db.task.find_one({'doc_id': doc_id})
+            data = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {}}))
+            self.assertIn('_id', data, msg=task_type)
+            task = self._app.db.task.find_one({'_id': objectid.ObjectId(data['_id'])})
             self.assertEqual(task['status'], 'picked')
             self.assertEqual(task['picked_by'], u.expert1[2])
 
             # 领取第二个任务时，报错，提示有未完成的任务
-            r = self.fetch('/api/task/pick/' + task_type, body={'data': {'doc_id': docs_ready[1]}})
+            r = self.fetch('/api/task/pick/' + task_type, body={'data': {}})
             self.assert_code(errors.task_uncompleted[0], r, msg=task_type)
 
     def test_retrieve_task(self):

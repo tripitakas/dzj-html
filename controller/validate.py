@@ -20,7 +20,6 @@ def validate(data, rules):
     :return: 如果校验有误，则返回校验错误，格式为{key: (error_code, message)}，其中，key为data的属性。无误，则无返回值。
     """
     errs = {}
-    data['self'] = data.copy()
     for rule in rules:
         func = rule[0]
         kw = {para: data.get(para) for para in rule[1:] if isinstance(para, str)}

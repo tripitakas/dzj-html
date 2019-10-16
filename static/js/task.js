@@ -20,14 +20,11 @@ function error_callback(res) {
   console.log(res);
   var task_type = window.location.pathname.split('/')[3];
   var meta = {
-    title: "是否继续未完成的任务？",
-    text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-    type: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#b8906f",
-    confirmButtonText: "确定继续",
-    cancelButtonText: "取消",
-    closeOnConfirm: false
+    type: "warning", title: "是否继续未完成的任务？",
+    text: "您还有未完成的任务" + res.doc_id + "，不能领取新任务！",
+    showCancelButton: true, closeOnConfirm: false, confirmButtonColor: "#b8906f",
+    confirmButtonText: "确定继续", cancelButtonText: "取消"
+
   };
   if (res.code === 3002) {  // error.task_uncompleted
     swal(meta, function () {
@@ -36,8 +33,7 @@ function error_callback(res) {
   } else if (res.code === 3003) { // error.no_task_to_pick
     showError('暂无新任务', res.message);
     setTimeout(function () {
-      var lobby_type = task_type.indexOf('text_proof') === -1 ? task_type : 'text_proof';
-      window.location = "/task/lobby/" + lobby_type;
+      window.location = "/task/lobby/" + task_type;
     }, 1000);
   } else if (res.code !== 500) {
     meta.title = '是否领取其它任务？';

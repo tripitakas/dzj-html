@@ -11,8 +11,9 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'task_type': r'cut_proof|cut_review|ocr_proof|ocr_review|text_\w+',
-    'cut_type': r'cut_proof|cut_review',
-    'text_type': r'text_proof_\d|text_review',
+    'task_id': r'\w{24}',
+    'cut_task': r'cut_proof|cut_review',
+    'text_task': r'text_proof_\d|text_review',
     'edit_type': r'cut_edit|text_edit',
     'collection_type': r'page|reel',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
@@ -80,8 +81,8 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/cut_proof': ['GET'],
             '/api/task/pick/cut_proof': ['POST'],
-            '/task/(do|update)/cut_proof/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/cut_proof/@page_name': ['POST'],
+            '/task/(do|update)/cut_proof/@task_id': ['GET'],
+            '/api/task/(do|update|return|unlock)/cut_proof/@task_id': ['POST'],
         }
     },
     '切分审定员': {
@@ -90,17 +91,17 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/cut_review': ['GET'],
             '/api/task/pick/cut_review': ['POST'],
-            '/task/(do|update)/cut_review/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/cut_review/@page_name': ['POST'],
+            '/task/(do|update)/cut_review/@task_id': ['GET'],
+            '/api/task/(do|update|return|unlock)/cut_review/@task_id': ['POST'],
         }
     },
     '切分专家': {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/data/cut_edit/@page_name': ['GET'],
-            '/api/data/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/cut_edit/@page_name': ['POST'],
+            '/data/cut_edit/@task_id': ['GET'],
+            '/api/data/cut_edit/@task_id': ['POST'],
+            '/api/data/unlock/cut_edit/@task_id': ['POST'],
         }
     },
     '文字校对员': {

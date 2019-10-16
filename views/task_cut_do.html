@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  {% set name = page.get('name') %}
   <title>切分校对-{{name}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
@@ -30,7 +31,7 @@
           </a>
         </div>
         <div class="title" title="{{page['name']}}">切分校对</div>
-        <div class="sub-title">- {{sub_title}}</div>
+        <div class="sub-title">- {{step_name}}</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
