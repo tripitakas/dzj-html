@@ -108,7 +108,7 @@ class TaskConfig(object):
 
     @classmethod
     def task_meta(cls, task_type):
-        d = cls.task_types.get(task_type)['data']
+        d = cls.all_task_types().get(task_type)['data']
         return d['collection'], d['id'], d.get('input_field'), d.get('shared_field')
 
     @classmethod

@@ -7,6 +7,7 @@ import re
 from datetime import datetime
 import controller.validate as v
 import controller.errors as errors
+from bson.objectid import ObjectId
 from controller.base import DbError
 from controller.data.diff import Diff
 from tornado.escape import json_decode
@@ -65,10 +66,10 @@ class GetCompareNeighborApi(TaskHandler):
 
 
 class SaveTextProofApi(FinishTaskApi):
-    URL = ['/api/task/do/text_proof_@num/@page_name',
-           '/api/task/update/text_proof_@num/@page_name']
+    URL = ['/api/task/do/text_proof_@num/@task_id',
+           '/api/task/update/text_proof_@num/@task_id']
 
-    def post(self, num, page_name):
+    def post(self, num, task_id):
         """ 保存或提交文字校对任务 """
         try:
             # 检查参数
@@ -81,56 +82,53 @@ class SaveTextProofApi(FinishTaskApi):
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(errors.no_object)
+
+            task_type = 'text_proof_' + num
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            if not task:
+                return self.send_error_response(errors.no_object)
 
             # 检查权限
             mode = (re.findall('(do|update)/', self.request.path) or ['do'])[0]
-            if not self.check_auth(mode, page, 'text_proof_' + num):
-                self.send_error_response(errors.data_unauthorized)
+            if not self.check_auth(task, mode):
+                return self.send_error_response(errors.data_unauthorized)
 
             if data['step'] == 'select_compare_text':
-                return self.save_compare_text(num, page, mode, data)
+                return self.save_compare_text(task, mode, data)
             else:
-                return self.save_proof(num, page_name, mode, data)
+                return self.save_proof(task, mode, data)
 
         except DbError as e:
             self.send_db_error(e)
 
-    def save_compare_text(self, num, page, mode, data):
-        # 保存数据
-        task_type = 'text_proof_' + num
-        update = {'tasks.%s.cmp' % task_type: data['cmp'].strip('\n')}
-        update.update({'tasks.%s.updated_time' % task_type: datetime.now()})
-
-        # 提交步骤
+    def save_compare_text(self, task, mode, data):
+        result = task.get('result') or {}
+        result.update({'cmp': data['cmp'].strip('\n')})
+        update = {'result': result, 'updated_time': datetime.now()}
         if data.get('submit'):
-            submitted = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
+            submitted = self.prop(task, 'steps.submitted') or []
             if data['step'] not in submitted:
                 submitted.append(data['step'])
-            update.update({'tasks.%s.steps.submitted' % task_type: submitted})
-        r = self.db.page.update_one({'name': page['name']}, {'$set': update})
+            update.update({'steps.submitted': submitted})
+        r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         if r.modified_count:
-            self.add_op_log('save_%s_%s' % (mode, task_type), context=page['name'])
+            self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
 
         self.send_data_response({'updated': True})
 
-    def save_proof(self, num, page_name, mode, data):
+    def save_proof(self, task, mode, data):
         # 保存数据
         ret = {'updated': True}
-        task_type = 'text_proof_' + num
         doubt = data.get('doubt', '').strip('\n')
-        update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
         txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-        update.update({'tasks.%s.txt_html' % task_type: txt_html})
-        r = self.db.page.update_one({'name': page_name}, {'$set': update})
+        update = {'result.doubt': doubt, 'updated_time': datetime.now(), 'result.txt_html': txt_html}
+        r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         if r.modified_count:
-            self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
+            self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
 
         # 提交任务
         if mode == 'do' and data.get('submit'):
-            ret.update(self.finish_task(task_type, page_name))
+            ret.update(self.finish_task(task))
 
         self.send_data_response(ret)
 

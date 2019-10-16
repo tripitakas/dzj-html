@@ -4,10 +4,10 @@
 @desc: 任务Handler基类
 @time: 2019/3/11
 """
+from .conf import TaskConfig
 from datetime import datetime
 import controller.auth as auth
 import controller.errors as errors
-from .conf import TaskConfig
 from controller.base import BaseHandler
 
 

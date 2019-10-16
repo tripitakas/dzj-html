@@ -6,7 +6,7 @@
 """
 
 import re
-from bson import objectid
+from bson.objectid import ObjectId
 import controller.errors as errors
 from controller.task.base import TaskHandler
 from controller.data.api_algorithm import GenerateCharIdApi as GenApi
@@ -17,10 +17,10 @@ class CutHandler(TaskHandler):
            '/task/do/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
-    def get(self, cut_task, task_id):
+    def get(self, task_type, task_id):
         """ 切分校对页面 """
         try:
-            task = self.db.task.find_one(dict(task_type=cut_task, _id=objectid.ObjectId(task_id)))
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
             if not task:
                 return self.render('_404.html')
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
@@ -40,7 +40,7 @@ class CutHandler(TaskHandler):
                 template = 'task_char_order.html'
 
             self.render(
-                template, task_type=cut_task, page=page, steps=steps, readonly=readonly, mode=mode,
+                template, task_type=task_type, page=page, steps=steps, readonly=readonly, mode=mode,
                 boxes=boxes, box_type=box_type, step_name=step_name,
                 get_img=self.get_img, **kwargs
             )

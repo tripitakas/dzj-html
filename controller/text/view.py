@@ -7,10 +7,11 @@ import re
 from operator import itemgetter
 from tornado.web import UIModule
 import controller.errors as errors
+from bson.objectid import ObjectId
 from tornado.escape import url_escape
-from controller.task.base import TaskHandler
-from controller.cut.view import CutHandler
 from controller.data.diff import Diff
+from controller.cut.view import CutHandler
+from controller.task.base import TaskHandler
 
 
 class TextTools(object):
@@ -79,89 +80,62 @@ class TextTools(object):
 
 
 class TextProofHandler(TaskHandler, TextTools):
-    URL = ['/task/text_proof_@num/@page_name',
-           '/task/do/text_proof_@num/@page_name',
-           '/task/update/text_proof_@num/@page_name']
+    URL = ['/task/text_proof_@num/@task_id',
+           '/task/do/text_proof_@num/@task_id',
+           '/task/update/text_proof_@num/@task_id']
 
     default_steps = dict(select_compare_text='选择比对文本', proof='文字校对')
 
-    def get(self, num, page_name):
+    def get(self, num, task_id):
         """ 文字校对页面 """
         try:
-            page = self.db.page.find_one(dict(name=page_name))
-            if not page:
-                return self.render('_404.html')
-
             task_type = 'text_proof_' + num
-            mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
-            steps = self.init_steps(task_type, page, mode)
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            if not task:
+                return self.render('_404.html')
+            page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            if not page:
+                return self.send_error_response(errors.no_object, render=True)
+
+            mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
+            readonly = not self.check_auth(task, mode)
+            steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
-                self.select_compare_text(task_type, page, mode, steps)
+                self.select_compare_text(task, page, mode, steps, readonly, num)
             else:
-                self.proof(task_type, page, mode, steps)
+                self.proof(task, page, mode, steps, readonly)
         except Exception as e:
             self.send_db_error(e, render=True)
 
-    def init_steps(self, task_type, page, mode):
-        """ 检查并设置step参数，有误时直接返回 """
-        steps = self.prop(page, 'tasks.%s.steps' % task_type) or dict(todo=list(self.default_steps.keys()))
-        current_step = self.get_query_argument('step', '')
-        if not current_step:
-            if mode == 'do':
-                submitted = self.prop(page, 'tasks.%s.steps.submitted' % task_type) or []
-                un_submitted = [s for s in steps['todo'] if s not in submitted]
-                if not un_submitted:
-                    return self.send_error_response(errors.task_finished_not_allowed_do, render=True)
-                current_step = un_submitted[0]
-            else:
-                current_step = steps['todo'][0]
-        elif current_step not in steps['todo']:
-            return self.send_error_response(errors.task_step_error, render=True)
-
-        index = steps['todo'].index(current_step)
-        steps['current'] = current_step
-        steps['is_first'] = index == 0
-        steps['is_last'] = index == len(steps['todo']) - 1
-        steps['prev'] = steps['todo'][index - 1] if index > 0 else None
-        steps['next'] = steps['todo'][index + 1] if index < len(steps['todo']) - 1 else None
-        return steps
-
-    def select_compare_text(self, task_type, page, mode, steps):
-        readonly = not self.check_auth(mode, page, task_type)
-        cmp = self.prop(page, 'tasks.%s.cmp' % task_type)
-        num = task_type.replace('text_proof_', '')
+    def select_compare_text(self, task, page, mode, steps, readonly, num):
         self.render(
             'task_text_select_compare.html',
-            task_type=task_type, page=page, mode=mode, readonly=readonly, num=num, steps=steps,
-            ocr=page.get('ocr'), cmp=cmp, get_img=self.get_img,
+            task_type=task['task_type'], task_id=task['_id'], page=page, mode=mode, readonly=readonly, num=num,
+            steps=steps, ocr=page.get('ocr'), cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )
 
-    def proof(self, task_type, page, mode, steps):
-        readonly = not self.check_auth(mode, page, task_type)
-        doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
+    def proof(self, task, page, mode, steps, readonly):
+        doubt = self.prop(task, 'result.doubt')
         params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-        ocr = re.sub(r'\|+', '\n', page.get('ocr') or '')
-        cmp1, cmp2 = self.prop(page, 'tasks.%s.cmp' % task_type), ''
-        if cmp1 and isinstance(cmp1, list):
-            cmp1 = cmp1[0]
-            cmp2 = cmp1[1] if len(cmp1) > 1 else ''
-        texts = dict(base=ocr, cmp1=cmp1, cmp2=cmp2)
-        cmp_data = self.prop(page, 'tasks.%s.txt_html' % task_type)
+        ocr = re.sub(r'\|+', '\n', page.get('ocr')) or ''
+        cmp1 = self.prop(task, 'result.cmp')
+        texts = dict(base=ocr, cmp1=cmp1, cmp2='')
+        cmp_data = self.prop(task, 'result.txt_html')
         if not cmp_data:
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
         self.render(
-            'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
+            'task_text_do.html', task_type=task['task_type'], page=page, mode=mode, readonly=readonly,
             texts=texts, cmp_data=cmp_data, doubt=doubt, steps=steps, get_img=self.get_img, **params
         )
 
 
 class TextReviewHandler(TaskHandler, TextTools):
-    URL = ['/task/text_review/@page_name',
-           '/task/do/text_review/@page_name',
-           '/task/update/text_review/@page_name',
-           '/data/text_edit/@page_name']
+    URL = ['/task/text_review/@task_id',
+           '/task/do/text_review/@task_id',
+           '/task/update/text_review/@task_id',
+           '/data/text_edit/@task_id']
 
     def get(self, page_name):
         """ 文字审定页面 """
@@ -201,9 +175,9 @@ class TextReviewHandler(TaskHandler, TextTools):
 
 
 class TextHardHandler(TaskHandler, TextTools):
-    URL = ['/task/text_hard/@page_name',
-           '/task/do/text_hard/@page_name',
-           '/task/update/text_hard/@page_name']
+    URL = ['/task/text_hard/@task_id',
+           '/task/do/text_hard/@task_id',
+           '/task/update/text_hard/@task_id']
 
     def get(self, page_name):
         """ 难字审定页面 """

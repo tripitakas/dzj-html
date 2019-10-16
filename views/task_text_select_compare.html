@@ -88,7 +88,7 @@
           </a>
         </div>
         <div class="title" title='{{page["name"]}}'>文字校对</div>
-        <div class="sub-title" title='{{page["name"]}}'>/ 选择比对文本</div>
+        <div class="sub-title">-选择比对文本</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
@@ -310,7 +310,7 @@
   // 返回
   window.leave = function () {
     if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+      window.location = '/task/lobby/text_proof';
     } else {
       window.history.back();
     }
@@ -320,7 +320,7 @@
 
 <script>
   // 获取数据
-  function getData(finish_task) {
+  function getData(submit) {
     return {
       submit: submit,
       name: '{{page["name"]}}',
@@ -349,9 +349,11 @@
         return showError('请选择文本', '尚未选择文本');
       }
       postApi('{{current_path}}', {data: getData(true)}, function () {
+        window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
       });
+    } else {
+      window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
     }
-    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
   });
 
   // 退回任务（注意，这里是退回整个文字校对任务）
@@ -361,12 +363,12 @@
 
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+    postApi('/task/return/{{task_type}}/{{task_id}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";
+        window.location = "/task/lobby/text_proof";
       }, 1000);
     });
   });
