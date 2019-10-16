@@ -3,9 +3,9 @@
 
 import re
 from tornado.options import options
-from controller.data.diff import Diff
+from controller.text.diff import Diff
 from elasticsearch import Elasticsearch
-from controller.data.variant import normalize
+from controller.text.variant import normalize
 from controller.app import Application as App
 
 

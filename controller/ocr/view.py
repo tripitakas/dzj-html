@@ -6,7 +6,7 @@
 """
 
 from controller.base import BaseHandler
-from controller.data.ocr_api import RecognitionApi
+from .api import RecognitionApi
 import controller.errors as errors
 from os import path
 import json

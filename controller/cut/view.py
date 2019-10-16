@@ -9,7 +9,7 @@ import re
 from bson.objectid import ObjectId
 import controller.errors as errors
 from controller.task.base import TaskHandler
-from controller.data.api_algorithm import GenerateCharIdApi as GenApi
+from .sort import Sort
 
 
 class CutHandler(TaskHandler):
@@ -51,9 +51,9 @@ class CutHandler(TaskHandler):
     @classmethod
     def char_render(cls, page, layout, **kwargs):
         """ 生成字序编号 """
-        need_ren = GenApi.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
+        need_ren = Sort.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
-        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = GenApi.sort(
+        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = Sort.sort(
             page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
         return kwargs

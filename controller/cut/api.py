@@ -11,10 +11,12 @@ import controller.errors as errors
 from bson.objectid import ObjectId
 from controller.base import DbError
 from tornado.escape import json_decode
-from controller.task.api import FinishTaskApi
+from controller.task.base import TaskHandler
+from controller.base import BaseHandler
+from .sort import Sort
 
 
-class SaveCutApi(FinishTaskApi):
+class SaveCutApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
@@ -72,7 +74,7 @@ class SaveCutApi(FinishTaskApi):
             self.send_db_error(e)
 
 
-class SaveCutEditApi(FinishTaskApi):
+class SaveCutEditApi(TaskHandler):
     URL = '/api/data/cut_edit/@doc_id'
 
     def post(self, doc_id):
@@ -104,3 +106,34 @@ class SaveCutEditApi(FinishTaskApi):
 
         except DbError as e:
             self.send_db_error(e)
+
+
+class GenerateCharIdApi(BaseHandler):
+    URL = '/api/data/gen_char_id'
+
+    def post(self):
+        """根据坐标重新生成栏、列、字框的编号"""
+        data = self.get_request_data()
+        blocks = data['blocks']
+        columns = data['columns']
+        chars = data['chars']
+        chars_col = data.get('chars_col')  # 每列字框的序号 [[char_index_of_col1, ...], col2...]
+        reorder = data.get('reorder', dict(blocks=True, columns=True, chars=True))
+
+        assert isinstance(blocks, list)
+        assert isinstance(columns, list)
+        assert isinstance(chars, list)
+        assert not chars_col or isinstance(chars_col, list) and isinstance(chars_col[0], list) \
+            and isinstance(chars_col[0][0], int)
+
+        if reorder.get('blocks'):
+            blocks = Sort.sort_blocks(blocks)
+        if reorder.get('columns') and blocks:
+            columns = Sort.sort_columns(columns, blocks)
+
+        zero_char_id, layout_type = [], data.get('layout_type')
+        if reorder.get('chars') and chars:
+            zero_char_id, layout_type, chars_col = Sort.sort(chars, columns, blocks, layout_type, chars_col)
+
+        self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
+                                     zero_char_id=zero_char_id, layout_type=layout_type))

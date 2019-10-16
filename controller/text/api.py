@@ -9,12 +9,12 @@ import controller.validate as v
 import controller.errors as errors
 from bson.objectid import ObjectId
 from controller.base import DbError
-from controller.data.diff import Diff
+from controller.text.diff import Diff
 from tornado.escape import json_decode
 from controller.task.base import TaskHandler
 from controller.task.api import FinishTaskApi
 from controller.text.view import TextTools, TextProofHandler
-from controller.data.esearch import find_one, find_neighbor
+from controller.search.esearch import find_one, find_neighbor
 
 
 class GetCompareTextApi(TaskHandler):

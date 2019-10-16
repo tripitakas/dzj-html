@@ -9,3 +9,4 @@ handlers = [
 ]
 
 modules = {'TextArea': view.TextArea}
+

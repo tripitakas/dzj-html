@@ -5,7 +5,7 @@
 @time: 2019/6/4
 """
 import re
-from controller.data.variant import is_variant
+from .variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher

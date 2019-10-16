@@ -1,13 +1,14 @@
-from . import data_view, data_api, ocr_view
-from . import api_algorithm as g
-from . import ocr_api
+from . import view, tripitaka, volume, sutra, reel
 
 views = [
-    data_view.DataTripitakaHandler, data_view.DataVolumeHandler, data_view.DataSutraHandler, data_view.DataReelHandler,
-    data_view.DataPageHandler, data_view.DataSearchCbetaHandler, data_view.DataPunctuationHandler,
-    ocr_view.RecognitionHandler, ocr_view.RecognitionViewHandler
+    view.DataTripitakaHandler, view.DataVolumeHandler, view.DataSutraHandler, view.DataReelHandler,
+    view.TripitakaListHandler, view.TripitakaHandler,
+    view.DataPageHandler,
 ]
+
 handlers = [
-    g.GenerateCharIdApi, data_api.PunctuationApi, data_api.CbetaSearchApi,
-    ocr_api.RecognitionApi, ocr_api.SubmitRecognitionApi,
+    tripitaka.TripitakaAddOrUpdateApi, tripitaka.TripitakaUploadApi, tripitaka.TripitakaDeleteApi,
+    volume.VolumeAddOrUpdateApi, volume.VolumeUploadApi, volume.VolumeDeleteApi,
+    sutra.SutraAddOrUpdateApi, sutra.SutraUploadApi, sutra.SutraDeleteApi,
+    reel.ReelAddOrUpdateApi, reel.ReelUploadApi, reel.ReelDeleteApi,
 ]
