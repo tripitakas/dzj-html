@@ -48,6 +48,7 @@ op_types = {
     'delete_reel': dict(name='删除卷数据'),
     'upload_reel': dict(name='上传卷数据'),
     'import_images': dict(name='导入藏经图'),
+    'import_meta': dict(name='导入藏册页数据'),
 }  # 别忘了在 doc/op_log.md 也加上
 re_map = []
 

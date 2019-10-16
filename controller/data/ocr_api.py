@@ -8,7 +8,7 @@ from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
 from controller import errors as e
-import controller.validate as v
+import controller.validate as va
 from controller import helper
 from controller.layout.v2 import calc
 from controller.data.add_pages import add_page
@@ -26,6 +26,12 @@ from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 import hashlib
 import subprocess
+
+import csv
+from datetime import datetime
+from controller.tripitaka.reel import Reel
+from controller.tripitaka.sutra import Sutra
+from controller.tripitaka.volume import Volume
 
 
 class RecognitionApi(BaseHandler):
@@ -243,19 +249,79 @@ class ImportImagesApi(BaseHandler):
         """请求批量导入藏经图"""
 
         def handle_response(res):
-            self.add_op_log('import_images', context=str(res['count']))
+            self.add_op_log('import_images', context='%s,%s,%d' % (
+                data['user_code'], data['tripitaka_code'], res['count']))
             self.send_data_response(res)
 
         data = self.get_request_data()
         rules = [
-            (v.not_empty, 'user_code', 'tripitaka_code', 'folder'),
-            (v.is_tripitaka, 'tripitaka_code'),
+            (va.not_empty, 'user_code', 'tripitaka_code', 'folder'),
+            (va.is_tripitaka, 'tripitaka_code'),
         ]
-        err = v.validate(data, rules)
+        err = va.validate(data, rules)
         if err:
             return self.send_error_response(err)
 
         url = '%s?%s' % (self.config['ocr_api'][:-3] + 'import_images', urlencode(data))
         self.call_back_api(url, request_timeout=20, handle_response=handle_response,
+                           handle_error=lambda t: self.send_error_response(e.ocr_import,
+                                                                           message=e.ocr_import[1] % (t or '无法访问')))
+
+
+class ImportMetaApi(BaseHandler):
+    URL = '/api/data/import_meta'
+
+    def post(self):
+        """生成藏册页数据并导入"""
+
+        def handle_response(res):
+            self.add_op_log('import_meta', context='%s,%s,%d,%d' % (
+                data['user_code'], data['tripitaka_code'], len(res['pages']), len(res['volumes'])))
+
+            err_volumes = save(res, 'volumes', Volume)
+            err_sutras = save(res, 'sutras', Sutra)
+            err_reels = save(res, 'reels', Reel)
+
+            error = err_volumes or err_sutras or err_reels
+            if error:
+                return self.send_error_response(e.ocr_import, message=e.ocr_import[1] % error)
+
+            res['new_page_count'] = 0
+            for name in res['pages']:
+                assert re.match(r'^[A-Z]{2}(_\d+)+$', name)
+                if not self.db.page.find_one(dict(name=name)):
+                    page = dict(name=name, kind=name[:2], create_time=datetime.now())
+                    self.db.page.insert_one(page)
+                    res['new_page_count'] += 1
+                    logging.info('page %s added' % name)
+
+            self.call_back_api(url, body='', method='POST',
+                               handle_response=lambda r: self.send_data_response(res),
+                               handle_error=lambda t: logging.error(t))
+
+        def save(res, name, cls):
+            if res[name]:
+                with open(name + '.csv', 'w') as f:
+                    csv.writer(f).writerows(res[name])
+                with open(name + '.csv') as f:
+                    r = cls.save_many(self.db, file_stream=f, check_existed=True)
+                remove(name + '.csv')
+                if r.get('status') == 'success':
+                    logging.info('import %s success: %s' % (name, r.get('message')))
+                else:
+                    logging.error('import %s failed: %s' % (name, r.get('message')))
+                    return r.get('message')
+
+        data = self.get_request_data()
+        rules = [
+            (va.not_empty, 'user_code', 'tripitaka_code'),
+            (va.is_tripitaka, 'tripitaka_code'),
+        ]
+        err = va.validate(data, rules)
+        if err:
+            return self.send_error_response(err)
+
+        url = '%s?%s' % (self.config['ocr_api'][:-3] + 'build_meta', urlencode(data))
+        self.call_back_api(url, handle_response=handle_response,
                            handle_error=lambda t: self.send_error_response(e.ocr_import,
                                                                            message=e.ocr_import[1] % (t or '无法访问')))

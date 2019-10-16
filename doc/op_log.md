@@ -44,5 +44,6 @@
 | delete_reel | 删除卷数据 |
 | upload_reel | 上传卷数据 |
 | import_images | 导入藏经图 |
+| import_meta | 导入藏册页数据 |
 
 每种操作的含义见 [op_type.py](../controller/op_type.py)

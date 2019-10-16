@@ -187,6 +187,7 @@ role_maps = {
             '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
             '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
             '/api/data/import_images': ['POST'],
+            '/api/data/import_meta': ['POST'],
         }
     },
     '用户管理员': {

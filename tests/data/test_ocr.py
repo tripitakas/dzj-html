@@ -31,3 +31,14 @@ class TestOCR(APITestCase):
         self.assert_code(200, r)
         r = self.parse_response(r)
         self.assertIn('names', r)
+
+    def _test_import_meta(self):
+        """生成藏册页数据并导入"""
+        self.login(u.data1[0], u.data1[1])
+        data = dict(user_code='upload', tripitaka_code='LQ')
+        r = self.fetch('/api/data/import_meta', body={'data': data})
+        self.assert_code(200, r)
+        r = self.parse_response(r)
+        self.assertIn('volumes', r)
+        self.assertIn('sutras', r)
+        self.assertIn('reels', r)
