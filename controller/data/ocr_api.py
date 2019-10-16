@@ -243,7 +243,8 @@ class ImportImagesApi(BaseHandler):
         """请求批量导入藏经图"""
 
         def handle_response(res):
-            self.send_data_response()
+            self.add_op_log('import_images', context=str(res['count']))
+            self.send_data_response(res)
 
         data = self.get_request_data()
         rules = [

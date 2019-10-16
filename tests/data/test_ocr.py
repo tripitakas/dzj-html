@@ -29,3 +29,5 @@ class TestOCR(APITestCase):
         data = dict(user_code='upload', tripitaka_code='LQ', folder='5-冠導七十五法名目')
         r = self.fetch('/api/data/import_images', body={'data': data})
         self.assert_code(200, r)
+        r = self.parse_response(r)
+        self.assertIn('names', r)
