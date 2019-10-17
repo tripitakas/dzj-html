@@ -2,7 +2,7 @@
 {% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <title>任务管理{{dict(page='-页任务',reel='-卷任务').get(collection) or ''}}</title>
+  <title>任务管理-{{Th.get_task_name(task_type)}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
@@ -27,30 +27,36 @@
             <div class="collate-history">
               <div class="wrapper">
                 <div class="collate-list">
-                  <div class="operation bat-publish">
-                    <span id="bat-remove" class="btn btn-default dropdown-toggle waves-effect">批量刪除</span>
-                    <div class="btn-group dropdown">
-                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
-                        发布任务 <i class="caret"></i>
-                      </button>
-                      <ul class="dropdown-menu" role="menu">
-                        {% for k, v in Th.task_types.items()%}
-                        <li><a class="task-type" id="{{k}}" href="javascript:void(0);">{{v.get('name')}}</a></li>
-                        <li class="divider"></li>
-                        {% end %}
-                      </ul>
-                    </div>
+                  <div class="operation">
+                    <span class="btn btn-default waves-effect" id="bat-remove">批量刪除</span>
+                    <div class="btn-group dropdown bat-publish">
+                    {% if not task_conf.get('groups') %}
+                    <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
+                      发布任务
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
+                      发布任务 <i class="caret"></i>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                      {% for t in task_conf.get('groups') %}
+                      <li><a class="task-type" id="{{t}}" href="javascript:void(0);">{{Th.get_task_name(t)}}</a></li>
+                      <li class="divider"></li>
+                      {% end %}
+                    </ul>
+                    {% end %}
                   </div>
-                  <div class="search fr">
-                    <input id="search-name" type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
-                      <th><span>页编码</span></th>
-                      <th><span>
+                </div>
+                <div class="search fr">
+                  <input id="search-name" type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                    <th><span>页编码</span></th>
+                    <th><span>
                         <div class="btn-group">
                           <span class="filter" id="task-types" data-toggle="dropdown" aria-expanded="false">
                             任务类型<span class="ion-android-sort "></span>
@@ -62,7 +68,7 @@
 													</ul>
 												</div>
                       </span></th>
-                      <th><span>
+                    <th><span>
                         <div class="btn-group">
                           <span class="filter" id="statuses" data-toggle="dropdown" aria-expanded="false">
                             状态<span class="ion-android-sort "></span>
@@ -74,56 +80,56 @@
 													</ul>
 												</div>
                       </span></th>
-                      <th>
+                    <th>
                         <span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
                           优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>步骤</span></th>
-                      <th><span>前置任务</span></th>
-                      <th>
+                    </th>
+                    <th><span>步骤</span></th>
+                    <th><span>前置任务</span></th>
+                    <th>
                         <span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
                           发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>领取人</span></th>
-                      <th><span>领取时间</span></th>
-                      <th><span>完成时间</span></th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr id="{{t['doc_id']}}" class="task-tr">
-                      <th><span><input type="checkbox" name="{{t['doc_id']}}" value=""/></span></th>
-                      <td><a class="doc-name" href="/task/info/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
-                      <td>{{Th.task_names().get(t['task_type']) or ''}}</td>
-                      <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
-                      <td>{{Th.prior_names.get(t['priority']) or ''}}</td>
-                      <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps',{}).get('todo') or []])}}</td>
-                      <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
-                      <td>{{to_date_str(t.get('publish_time'))}}</td>
-                      <td>{{t.get('picked_by') or ''}}</td>
-                      <td>{{to_date_str(t.get('picked_time'))}}</td>
-                      <td>{{to_date_str(t.get('finished_time'))}}</td>
-                      <td>
-                        <a class="view" href="/task/{{t['task_type']}}/{{t['doc_id']}}">查看</a>
-                        <a class="remove{{'' if t['status'] in ['pending', 'opened'] else ' hide'}}" onclick=remove('{{t["_id"]}}','{{t["doc_id"]}}')>刪除</a>
-                        <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-                {% module Pager(pager) %}
+                    </th>
+                    <th><span>领取人</span></th>
+                    <th><span>领取时间</span></th>
+                    <th><span>完成时间</span></th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr id="{{t['doc_id']}}" class="task-tr">
+                    <th><span><input type="checkbox" name="{{t['doc_id']}}" value=""/></span></th>
+                    <td><a class="doc-name" href="/task/info/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                    <td>{{Th.task_names().get(t['task_type']) or ''}}</td>
+                    <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
+                    <td>{{Th.prior_names.get(t['priority']) or ''}}</td>
+                    <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps',{}).get('todo') or []])}}</td>
+                    <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
+                    <td>{{to_date_str(t.get('publish_time'))}}</td>
+                    <td>{{t.get('picked_by') or ''}}</td>
+                    <td>{{to_date_str(t.get('picked_time'))}}</td>
+                    <td>{{to_date_str(t.get('finished_time'))}}</td>
+                    <td>
+                      <a class="view" href="/task/{{t['task_type']}}/{{t['doc_id']}}">查看</a>
+                      <a class="remove{{'' if t['status'] in ['pending', 'opened'] else ' hide'}}" onclick=remove('{{t["_id"]}}','{{t["doc_id"]}}')>刪除</a>
+                      <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <div class="panel-body" style="padding-bottom: 2px;">
@@ -132,38 +138,47 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-docs">发布任务-<span id="task-type-name"></span></h4>
+          <h4 class="modal-title" id="choose-docs">发布任务-{{Th.get_task_name(task_type)}}</h4>
         </div>
         <div class="modal-body">
+
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
-              {% for t, v in Th.task_names().items() %}
-              {% if is_mod_enabled(v) %}
+              {% for t, v in Th.task_types.items() %}
+              {% if is_mod_enabled(v['name']) and t != task_type %}
               <label class="checkbox-inline">
-                <input type="checkbox" title="{{t}}">{{v}}
+                {% set pre_tasks = Th.prop(Th.task_types, "%s.pre_tasks" % task_type) or [] %}
+                <input type="checkbox" title="{{t}}" {{'checked' if t in pre_tasks else ''}}>{{v['name']}}
               </label>
               {% end %}
               {% end %}
             </div>
           </div>
-          <div class="steps">
+
+          {% set steps = Th.all_task_types()[task_type].get('steps')%}
+          <div class="steps{{ '' if steps else ' hide' }}">
             <h4 class="control-label">选择子步骤</h4>
             <div id="step-items">
-              <label class="checkbox-inline"><input type="checkbox" title="">子步骤</label>
+              {% for step in steps %}
+              <label class="checkbox-inline"><input type="checkbox" title="{{step[0]}}" checked>{{step[1]}}</label>
+              {% end %}
             </div>
           </div>
+
           <div class="priority-list">
             <h4 class="control-label">选择优先级</h4>
             <input type="radio" name="priority" value="3" style="margin-right: 10px" checked>高
             <input type="radio" name="priority" value="2" style="margin: 0 10px">中
             <input type="radio" name="priority" value="1" style="margin: 0 10px">低
           </div>
+
           <div class="force">
             <h4 class="control-label">任务已发布时，如何处理？</h4>
             <input type="radio" name="force" value="0" style="margin: 0 10px 0 0" checked>跳过
             <input type="radio" name="force" value="1" style="margin: 0 10px">重新发布<br>
           </div>
+
           <div class="id-values">
             <h4 class="control-label">选择待发布的任务</h4>
             <ul class="nav nav-tabs" id="tabContent">
@@ -203,6 +218,7 @@
               </div>
             </div>
           </div>
+
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -251,7 +267,7 @@
   });
 
   // 撤回任务
-  function retrieve(_id, doc_id) {
+  function retrieve(task_id, doc_id) {
     var info = {
       type: "warning", title: "确定撤回吗？", text: "任务" + doc_id + "\n将被撤回！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
@@ -265,7 +281,7 @@
   }
 
   // 删除任务
-  function remove(_id, doc_id) {
+  function remove(task_id, doc_id) {
     var info = {
       type: "warning", title: "确定删除吗？", text: "任务" + doc_id + "\n将被删除！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
@@ -280,32 +296,19 @@
 
 </script>
 
-
 <script>
   var docs = [];
-  var taskType = '';
   var searchStr = '';
+  var taskType = '{{task_type}}';
   var $publishModal = $('#publishModal');
   var $myMultiSelect = $('#my_multi_select');
-  var taskTypes = decodeJSON('{{Th.task_types}}');
 
   // 点击发布任务，弹出对话框
   $(".bat-publish .task-type").on("click", function () {
     taskType = $(this).attr('id');
-    $('#task-type-name').html(taskTypes[taskType]['name']);
-    var steps = taskTypes[taskType]['steps'];
-    if (typeof steps === 'undefined') {
-      $('#publishModal .steps').addClass('hide');
-      $('.steps #step-items').html('');
-    } else {
-      $('#publishModal .steps').removeClass('hide');
-      $('.steps #step-items').html($.map(steps, function (k) {
-        return "<label class='checkbox-inline'><input type='checkbox' title='" + k[0] + "' checked>" + k[1] + "</label>";
-      }).join('\n'));
-    }
-    $myMultiSelect.multiSelect('destroy');
-    $('#publishModal').modal();
+    $publishModal.modal();
   });
+
 
   // 发布任务
   $publishModal.find('#select_modal_btn').click(function () {

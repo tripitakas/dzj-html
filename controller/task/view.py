@@ -10,25 +10,22 @@ from controller.task.base import TaskHandler
 
 
 class TaskAdminHandler(TaskHandler):
-    URL = '/task/admin/@collection_type'
+    URL = '/task/admin/@task_type'
 
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
-    def get_tasks_by_collection(self, collection, task_type=None, status=None, q=None,
-                                order=None, page_size=0, page_no=1):
+    def get_tasks_by_type(self, task_type, status=None, q=None, order=None, page_size=0, page_no=1):
         """获取任务管理/任务列表"""
 
-        condition = {'collection': collection}
+        group_task = self.all_task_types()[task_type].get('groups')
+        condition = {'task_type': {'$regex': '.*%s.*' % task_type} if group_task else task_type}
         if status:
             condition.update({'status': status})
-        if task_type:
-            condition.update({'task_type': task_type})
         if q:
             condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
         total_count = self.db.task.count_documents(condition)
-
         query = self.db.task.find(condition)
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
@@ -38,23 +35,22 @@ class TaskAdminHandler(TaskHandler):
         pages = query.skip(page_size * (page_no - 1)).limit(page_size)
         return list(pages), total_count
 
-    def get(self, collection):
+    def get(self, task_type):
         """ 任务管理/任务列表 """
 
         try:
             q = self.get_query_argument('q', '').upper()
             status = self.get_query_argument('status', '')
-            task_type = self.get_query_argument('task_type', '')
             order = self.get_query_argument('order', '')
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            tasks, total_count = self.get_tasks_by_collection(
-                collection, task_type=task_type, status=status, q=q,
-                order=order, page_size=page_size, page_no=cur_page
+            tasks, total_count = self.get_tasks_by_type(
+                task_type, status=status, q=q, order=order, page_size=page_size, page_no=cur_page
             )
+            task_conf = self.all_task_types()[task_type]
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render(
-                'task_admin.html', collection=collection, tasks=tasks, pager=pager, order=order,
+                'task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
                 task_meta=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
             )
         except Exception as e:

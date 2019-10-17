@@ -4,5 +4,5 @@ views = [
     view.CutHandler
 ]
 handlers = [
-    api.SaveCutApi, api.SaveCutEditApi, api.GenerateCharIdApi
+    api.CutSaveApi, api.CutEditSaveApi, api.GenerateCharIdApi
 ]

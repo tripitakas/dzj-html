@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from controller import com, task, data, user, data, cut, text
 from controller.com import invalid
+from controller import com, cut, data, ocr, punc, search, task, text, user
 
-views = com.views + task.views + data.views + user.views + data.views + cut.views + text.views
-handlers = com.handlers + task.handlers + user.handlers + data.handlers
-handlers += cut.handlers + text.handlers + [invalid.ApiTable, invalid.ApiSourceHandler]
+views = com.views + cut.views + data.views + ocr.views + punc.views + search.views
+views += task.views + text.views + user.views
+
+handlers = com.handlers + cut.handlers + data.handlers + ocr.handlers + punc.handlers
+handlers += search.handlers + task.handlers + text.handlers + user.handlers
+
+handlers += [invalid.ApiTable, invalid.ApiSourceHandler]
+
 modules = dict(com.modules.items() | text.modules.items())
+
 InvalidPageHandler = invalid.InvalidPageHandler

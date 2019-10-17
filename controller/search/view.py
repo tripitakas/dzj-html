@@ -6,9 +6,10 @@
 """
 from controller.base import BaseHandler
 
-class DataSearchCbetaHandler(BaseHandler):
-    URL = '/data/cbeta_search'
+
+class SearchCbetaHandler(BaseHandler):
+    URL = '/search/cbeta'
 
     def get(self):
         """ 检索cbeta库 """
-        self.render('data_cbeta_search.html')
+        self.render('search_cbeta.html')

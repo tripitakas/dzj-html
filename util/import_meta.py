@@ -7,10 +7,10 @@ from glob2 import glob
 import os.path as path
 sys.path.append(path.dirname(path.dirname(__file__)))
 
-from controller.tripitaka.reel import Reel
-from controller.tripitaka.sutra import Sutra
-from controller.tripitaka.volume import Volume
-from controller.tripitaka.tripitaka import Tripitaka
+from controller.data.reel import Reel
+from controller.data.sutra import Sutra
+from controller.data.volume import Volume
+from controller.data.tripitaka import Tripitaka
 
 META_DIR = path.join(path.dirname(__file__), 'meta')
 

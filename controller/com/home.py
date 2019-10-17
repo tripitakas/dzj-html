@@ -9,8 +9,8 @@ import re
 import traceback
 from controller.base import BaseHandler
 from controller.helper import get_date_time
-from controller.op_type import get_op_def, op_in_recent_trends, page_kinds
 from controller.task.base import TaskHandler
+from controller.op_type import get_op_def, op_in_recent_trends, page_kinds
 
 
 class HomeHandler(BaseHandler):

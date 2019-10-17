@@ -12,17 +12,6 @@ from controller.base import BaseHandler
 from controller.helper import cmp_page_code
 
 
-class TripitakaListHandler(BaseHandler):
-    URL = '/tripitakas'
-
-    def get(self):
-        """ 藏经列表 """
-        fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
-        tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
-
-        self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
-
-
 class TripitakaHandler(BaseHandler):
     URL = '/t/@page_code'
 
@@ -79,6 +68,18 @@ class TripitakaHandler(BaseHandler):
 
         except Exception as e:
             self.send_db_error(e, render=True)
+
+
+class TripitakaListHandler(BaseHandler):
+    URL = '/tripitakas'
+
+    def get(self):
+        """ 藏经列表 """
+        fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
+        tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
+
+        self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
+
 
 class DataTripitakaHandler(BaseHandler):
     URL = '/data/tripitaka'

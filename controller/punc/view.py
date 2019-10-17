@@ -7,9 +7,9 @@
 from controller.base import BaseHandler
 
 
-class DataPunctuationHandler(BaseHandler):
-    URL = '/data/punctuation'
+class PunctuationHandler(BaseHandler):
+    URL = '/punctuate'
 
     def get(self):
         """ 自动标点 """
-        self.render('data_punctuation.html')
+        self.render('punctuate.html')

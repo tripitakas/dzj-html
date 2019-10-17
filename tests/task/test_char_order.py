@@ -21,16 +21,16 @@ class TestCharOrder(APITestCase):
         self.assertEqual(r.get('zero_char_id'), [])
 
     def test_gen_char_id(self):
-        r = self.parse_response(self.fetch('/api/data/gen_char_id', body={}))
+        r = self.parse_response(self.fetch('/api/cut/gen_char_id', body={}))
         self.assertIn('KeyError', r.get('message'))
-        r = self.fetch('/api/data/gen_char_id', body={'data': dict(blocks=[], columns=[], chars=[])})
+        r = self.fetch('/api/cut/gen_char_id', body={'data': dict(blocks=[], columns=[], chars=[])})
         self.assert_code(200, r)
 
         p = self.parse_response(self.fetch('/api/task/page/GL_924_2_35'))  # 单栏
         self.assertEqual(p.get('status'), 'success')
         err_ids = [c['char_id'] for c in p['chars'] if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
         self.assertTrue(err_ids)
-        r = self.parse_response(self.fetch('/api/data/gen_char_id', body={'data': p}))
+        r = self.parse_response(self.fetch('/api/cut/gen_char_id', body={'data': p}))
         self.assertEqual(p['blocks'], r['blocks'])
         self.assertEqual(p['columns'], r['columns'])
         chars = r['chars']

@@ -5,16 +5,15 @@
 """
 import re
 from datetime import datetime
+from bson.objectid import ObjectId
+from tornado.escape import json_decode
 import controller.validate as v
 import controller.errors as errors
-from bson.objectid import ObjectId
 from controller.base import DbError
-from controller.text.diff import Diff
-from tornado.escape import json_decode
 from controller.task.base import TaskHandler
 from controller.task.api import FinishTaskApi
+from controller.text.diff import Diff
 from controller.text.view import TextTools, TextProofHandler
-from controller.search.esearch import find_one, find_neighbor
 
 
 class GetCompareTextApi(TaskHandler):
@@ -22,6 +21,7 @@ class GetCompareTextApi(TaskHandler):
 
     def post(self, page_name):
         """ 获取ocr对应的比对文本 """
+        from controller.search.esearch import find_one
         try:
             page = self.db.page.find_one({'name': page_name})
             if page:
@@ -46,6 +46,7 @@ class GetCompareNeighborApi(TaskHandler):
         :param page_code: 当前cmp文本的page_code（es库中的page_code）
         :param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
         """
+        from controller.search.esearch import find_neighbor
         try:
             data = self.get_request_data()
             err = v.validate(data, [(v.not_empty, 'cmp_page_code', 'neighbor')])

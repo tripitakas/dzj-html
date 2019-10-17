@@ -111,7 +111,7 @@
       return;
     var $this = $(this);
     $this.text("检索中...");
-    postApi('/data/cbeta_search', {data: {q: q}}, function (res) {
+    postApi('/search/cbeta', {data: {q: q}}, function (res) {
       var $html = res.matches.map(function (item) {
         return "<div class='item'><div class='title'>" + item['_source']['page_code']
             + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";

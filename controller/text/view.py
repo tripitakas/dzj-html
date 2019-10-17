@@ -5,10 +5,10 @@
 """
 import re
 from operator import itemgetter
-from tornado.web import UIModule
-import controller.errors as errors
-from bson.objectid import ObjectId
 from tornado.escape import url_escape
+from tornado.web import UIModule
+from bson.objectid import ObjectId
+import controller.errors as errors
 from controller.text.diff import Diff
 from controller.cut.view import CutHandler
 from controller.task.base import TaskHandler

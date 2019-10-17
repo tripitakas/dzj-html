@@ -4,19 +4,19 @@
 @time: 2019/6/23
 """
 import re
-from .view import CutHandler
 from datetime import datetime
+from bson.objectid import ObjectId
+from .sort import Sort
+from .view import CutHandler
 import controller.validate as v
 import controller.errors as errors
-from bson.objectid import ObjectId
 from controller.base import DbError
 from tornado.escape import json_decode
-from controller.task.base import TaskHandler
 from controller.base import BaseHandler
-from .sort import Sort
+from controller.task.base import TaskHandler
 
 
-class SaveCutApi(TaskHandler):
+class CutSaveApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
@@ -74,8 +74,8 @@ class SaveCutApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveCutEditApi(TaskHandler):
-    URL = '/api/data/cut_edit/@doc_id'
+class CutEditSaveApi(TaskHandler):
+    URL = '/api/cut/edit/@doc_id'
 
     def post(self, doc_id):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
@@ -109,7 +109,7 @@ class SaveCutEditApi(TaskHandler):
 
 
 class GenerateCharIdApi(BaseHandler):
-    URL = '/api/data/gen_char_id'
+    URL = '/api/cut/gen_char_id'
 
     def post(self):
         """根据坐标重新生成栏、列、字框的编号"""

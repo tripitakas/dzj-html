@@ -348,19 +348,19 @@
   });
   // 修改字框
   $('.ed-char-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=char_box';
+    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=char_box';
   });
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=block_box';
+    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=block_box';
   });
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=column_box';
+    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=column_box';
   });
   // 修改字序
   $('.ed-char-order').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/data/cut_edit"}}/{{page["name"]}}?step=char_order';
+    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=char_order';
   });
   // 查看校一
   $('.ed-text-proof-1').click(function () {

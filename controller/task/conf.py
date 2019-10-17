@@ -58,6 +58,7 @@ class TaskConfig(object):
         'text_proof': {
             'name': '文字校对',
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
+            'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
             'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
     }

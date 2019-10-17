@@ -138,7 +138,7 @@
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/data/ocr?h_num=' + layout2num[layout][0] + '&v_num=' + layout2num[layout][1],
+      url: '/api/ocr?h_num=' + layout2num[layout][0] + '&v_num=' + layout2num[layout][1],
       type: 'POST',
       data: formData,
       processData: false,
@@ -148,7 +148,7 @@
           showError('上传失败', r.message);
         } else if (r.data.name) {
           // showSuccess('识别完成', r.data.name + ' 已识别完成。');
-          window.location = '/data/ocr/' + r.data.name;
+          window.location = '/ocr/' + r.data.name;
         }
         $('#progress').addClass('hide');
       }

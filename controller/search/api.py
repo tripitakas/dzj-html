@@ -5,12 +5,12 @@
 """
 import re
 from .esearch import find
-from controller.text.variant import normalize
 from controller.base import BaseHandler
+from controller.text.variant import normalize
 
 
 class CbetaSearchApi(BaseHandler):
-    URL = '/api/data/cbeta_search'
+    URL = '/api/search/cbeta'
 
     def post(self):
         """ CBETA检索 """

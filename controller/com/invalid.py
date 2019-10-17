@@ -5,13 +5,13 @@
 @time: 2018/6/23
 """
 
-from operator import itemgetter
-from os import path
-from controller.task.base import TaskHandler
-from tornado.web import RequestHandler
-from controller.auth import get_route_roles
 import re
 import inspect
+from os import path
+from operator import itemgetter
+from tornado.web import RequestHandler
+from controller.task.base import TaskHandler
+from controller.auth import get_route_roles
 
 
 class InvalidPageHandler(TaskHandler):

@@ -3,10 +3,10 @@
 
 import os
 import csv
+import shutil
 import os.path as path
 from functools import cmp_to_key
 from datetime import datetime, timedelta
-import shutil
 
 META_DIR = path.join(path.dirname(__file__), 'meta')
 db = ''

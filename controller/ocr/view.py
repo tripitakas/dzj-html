@@ -5,23 +5,23 @@
 @time: 2019/9/2
 """
 
-from controller.base import BaseHandler
+import json
+from os import path
 from .api import RecognitionApi
 import controller.errors as errors
-from os import path
-import json
+from controller.base import BaseHandler
 
 
 class RecognitionHandler(BaseHandler):
-    URL = '/data/ocr'
+    URL = '/ocr'
 
     def get(self):
         """ 藏经OCR页面 """
-        self.render('data_ocr.html')
+        self.render('ocr_upload.html')
 
 
 class RecognitionViewHandler(BaseHandler):
-    URL = '/data/ocr/@img_file'
+    URL = '/ocr/@img_file'
 
     def get(self, img_name):
         """ 藏经OCR页面 """
@@ -35,7 +35,7 @@ class RecognitionViewHandler(BaseHandler):
 
             page = json.load(open(json_file))
             page = RecognitionApi.ocr2page(page)
-            self.render('data_ocr_view.html', img_name=img_name,  page=page,
+            self.render('ocr_view.html', img_name=img_name,  page=page,
                         img=self.static_url('upload/ocr/' + img_name))
 
         except Exception as e:

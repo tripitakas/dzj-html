@@ -4,31 +4,29 @@
 @desc: 藏经OCR接口
 @time: 2019/9/2
 """
-from tornado.escape import to_basestring
-from urllib.parse import urlencode
-from controller.base import BaseHandler
-from controller import errors as e
-from controller import helper
-from controller.layout.v2 import calc
-from util.add_pages import add_page
-from PIL import Image
-from os import path, remove
-from operator import itemgetter
-from glob2 import glob
-import logging
 import re
 import json
-
+import hashlib
+import logging
+import subprocess
+from PIL import Image
+from glob2 import glob
+from os import path, remove
+from operator import itemgetter
+from urllib.parse import urlencode
+from util.add_pages import add_page
+from tornado.escape import to_basestring
 from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
-import hashlib
-import subprocess
-
+from controller import helper
+from controller import errors as e
+from controller.base import BaseHandler
+from controller.cut.sort_v2 import calc
 
 
 class RecognitionApi(BaseHandler):
-    URL = '/api/data/ocr'
+    URL = '/api/ocr'
 
     def post(self):
         """藏经OCR接口"""

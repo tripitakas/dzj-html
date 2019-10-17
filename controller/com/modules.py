@@ -37,7 +37,11 @@ class CommonLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
-                dict(name='页任务', icon='icon_subitem', link='/task/admin/page'),
+                dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
+                dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
+                dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof'),
+                dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
+                dict(name='难字校对', icon='icon_subitem', link='/task/admin/text_hard'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
@@ -52,9 +56,9 @@ class CommonLeft(UIModule):
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='文字识别', icon='icon_subitem', link='/data/ocr'),
-                dict(name='自动标点', icon='icon_subitem', link='/data/punctuation'),
-                dict(name='CBETA检索', icon='icon_subitem', link='/data/cbeta_search'),
+                dict(name='文字识别', icon='icon_subitem', link='/ocr'),
+                dict(name='自动标点', icon='icon_subitem', link='/punctuate'),
+                dict(name='CBETA检索', icon='icon_subitem', link='/search/cbeta'),
             ]),
             dict(name='帮助文档', icon='icon_help', link='/help'),
         ]

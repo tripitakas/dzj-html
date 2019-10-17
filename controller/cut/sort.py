@@ -3,11 +3,11 @@
 """
 @time: 2019/6/3
 """
+import re
+from operator import itemgetter
+from functools import cmp_to_key
 from .sort_v1 import calc as calc_old
 from .sort_v2 import calc as calc_new
-from functools import cmp_to_key
-from operator import itemgetter
-import re
 
 
 class Sort(object):
