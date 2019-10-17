@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller.data.rare import format_rare
-from controller.data.variant import normalize
+from controller.text.rare import format_rare
+from controller.text.variant import normalize
 
 
 class TestSpecialText(APITestCase):

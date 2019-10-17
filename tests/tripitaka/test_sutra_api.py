@@ -5,7 +5,6 @@ from os import path
 from glob2 import glob
 import controller.errors as e
 from tests.testcase import APITestCase
-from controller.tripitaka.volume import Volume
 
 
 class TestTaskFlow(APITestCase):
