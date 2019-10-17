@@ -119,13 +119,14 @@ class APITestCase(AsyncHTTPTestCase):
         headers = kwargs.get('headers', {})
         headers['Cookie'] = ''.join(['%s=%s;' % (x, morsel.value) for (x, morsel) in cookie.items()])
 
+        url = url if re.match('^http', url) else self.get_url(url)
         if files:
             boundary = uuid.uuid4().hex
             headers.update({'Content-Type': 'multipart/form-data; boundary=%s' % boundary})
             producer = partial(body_producer, boundary, files, kwargs.pop('body', {}))
-            request = HTTPRequest(self.get_url(url), headers=headers, body_producer=producer, **kwargs)
+            request = HTTPRequest(url, headers=headers, body_producer=producer, **kwargs)
         else:
-            request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
+            request = HTTPRequest(url, headers=headers, **kwargs)
 
         self.http_client.fetch(request, self.stop)
 
