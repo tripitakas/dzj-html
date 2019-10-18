@@ -188,6 +188,7 @@ role_maps = {
             '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
             '/api/data/import_images': ['POST'],
             '/api/data/import_meta': ['POST'],
+            '/data/import_images': ['GET'],
         }
     },
     '用户管理员': {

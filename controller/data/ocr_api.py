@@ -286,13 +286,13 @@ class ImportMetaApi(BaseHandler):
             if error:
                 return self.send_error_response(e.ocr_import, message=e.ocr_import[1] % error)
 
-            res['new_page_count'] = 0
+            res['new_pages'] = []
             for name in res['pages']:
                 assert re.match(r'^[A-Z]{2}(_\d+)+$', name)
                 if not self.db.page.find_one(dict(name=name)):
                     page = dict(name=name, kind=name[:2], create_time=datetime.now())
                     self.db.page.insert_one(page)
-                    res['new_page_count'] += 1
+                    res['new_pages'].append(name)
                     logging.info('page %s added' % name)
 
             self.call_back_api(url, body='', method='POST',
@@ -316,6 +316,9 @@ class ImportMetaApi(BaseHandler):
         rules = [
             (va.not_empty, 'user_code', 'tripitaka_code'),
             (va.is_tripitaka, 'tripitaka_code'),
+            (va.is_digit, 'h_num', 'v_num'),
+            (va.between, 'h_num', 1, 9),
+            (va.between, 'v_num', 1, 9),
         ]
         err = va.validate(data, rules)
         if err:

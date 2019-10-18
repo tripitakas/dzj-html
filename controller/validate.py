@@ -49,6 +49,9 @@ def i18n_trans(key):
         'sutra_name': '经名',
         'reel_no': '卷序号',
         'reel_code': '卷编码',
+        'user_code': '用户名',
+        'tripitaka_code': '藏别',
+        'folder': '目录名',
         'step': '步骤',
         'boxes': '框',
         'force': '已发布时如何处理',
@@ -209,12 +212,14 @@ def is_digit(**kw):
     return errs or None
 
 
-def between(min, max, **kw):
+def between(min_v, max_v, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
+    if isinstance(v, str) and re.match('^\d+$', v):
+        v = int(v)
     code, message = e.invalid_range
-    err = code, message % (i18n_trans(k), min, max)
-    if v < min or v > max:
+    err = code, message % (i18n_trans(k), min_v, max_v)
+    if isinstance(v, int) and (v < min_v or v > max_v):
         return {k: err}
 
 

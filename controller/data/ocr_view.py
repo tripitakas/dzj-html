@@ -40,3 +40,11 @@ class RecognitionViewHandler(BaseHandler):
 
         except Exception as e:
             return self.send_db_error(e, render=True)
+
+
+class ImportImagesHandler(BaseHandler):
+    URL = '/data/import_images'
+
+    def get(self):
+        """ 藏经图片的导入和OCR测试页面 """
+        self.render('data_import_images.html')

@@ -5,7 +5,7 @@ from . import ocr_api as api
 views = [
     data_view.DataTripitakaHandler, data_view.DataVolumeHandler, data_view.DataSutraHandler, data_view.DataReelHandler,
     data_view.DataPageHandler, data_view.DataSearchCbetaHandler, data_view.DataPunctuationHandler,
-    ocr_view.RecognitionHandler, ocr_view.RecognitionViewHandler
+    ocr_view.RecognitionHandler, ocr_view.RecognitionViewHandler, ocr_view.ImportImagesHandler,
 ]
 handlers = [
     g.GenerateCharIdApi, data_api.PunctuationApi, data_api.CbetaSearchApi,
