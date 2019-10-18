@@ -85,7 +85,7 @@ class TaskLobbyHandler(TaskHandler):
             return [], 0
 
         task_meta = self.all_task_types().get(task_type)
-        collection, id_name = self.task_meta(task_type)[:2]
+        collection, id_name = self.get_task_meta(task_type)[:2]
         page_size = page_size or self.config['pager']['page_size']
         if task_meta.get('groups'):
             condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED}

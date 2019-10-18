@@ -6,8 +6,8 @@
 import re
 from operator import itemgetter
 from functools import cmp_to_key
-from .sort_v1 import calc as calc_old
-from .sort_v2 import calc as calc_new
+from .v1 import calc as calc_old
+from .v2 import calc as calc_new
 
 
 class Sort(object):

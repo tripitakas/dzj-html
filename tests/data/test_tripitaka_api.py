@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from os import path
-import controller.errors as e
 from tests.testcase import APITestCase
+import controller.errors as e
 
 
 class TestTaskFlow(APITestCase):

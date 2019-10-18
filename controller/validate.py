@@ -7,6 +7,7 @@
 
 import re
 import controller.errors as e
+from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 
 
@@ -43,17 +44,19 @@ def i18n_trans(key):
         'gender': '性别',
         'priority': '优先级',
         'task_type': '任务类型',
-        'doc_ids': '数据ID',
+        'doc_ids': '数据',
         'sutra_code': '经编码',
         'sutra_name': '经名',
         'reel_no': '卷序号',
         'reel_code': '卷编码',
         'step': '步骤',
         'boxes': '框',
-        'force': '已发布时如何处理',
+        'force': '已完成时是否重新发布',
         'cmp': '比对文本',
         'txt_html': '校对文本',
-        'tasks': '任务列表'
+        'tasks': '任务列表',
+        'task_ids': '任务',
+        'user_id': '用户',
     }
     return maps[key] if key in maps else key
 

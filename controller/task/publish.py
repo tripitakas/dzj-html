@@ -2,15 +2,17 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 发布任务
-    1. 任务数据。
-    任务依赖的数据由TaskConfig.task_types[task_type].input_field定义，如果不依赖任何数据或该数据已就绪，则可以发布任务。
+    1. 任务数据已就绪
+    已就绪有两种情况：1. 任务不依赖任何数据；2. 任务依赖的数据已就绪，所依赖数据字段由
+    TaskConfig.task_types[task_type].input_field定义。
     2. 前置任务
     默认的前置任务由TaskConfig.task_types[task_type].pre_tasks定义
-    管理员在发布任务时，可以自由选择前置任务，任务发布后，该任务的前置任务将记录在数据库中。
-    如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则悬挂，状态为“pending”。
-    用户领取任务后，状态为“picked”，退回任务后，状态为“returned”，提交任务后，状态为“finished”。
+    管理员在发布任务时，可以自由选择前置任务，任务发布后，该任务的前置任务将记录在数据库中。每个任务都可以独立设置自己的前置任务。
+    如果没有前置任务，则直接发布，状态为“opened”；如果有前置任务，则检查前置任务的状态，如果前置任务均已完成，则发布为“opened”，
+    如果前置任务有一个未完成，则发布为“pending”。用户完成任务时，将检查并更新后置任务的任务状态。
     3. 发布任务
     一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、文档集合（doc_ids）。
+    可以发布已就绪、已退回、已撤回的任务。不可以发布已发布、悬挂或进行中的任务。已完成的任务，根据参数，也可以重新发布。
 @time: 2018/12/27
 """
 from datetime import datetime
@@ -30,7 +32,7 @@ class PublishBaseHandler(TaskHandler):
 
         log = dict()
         # 检查数据是否存在
-        collection, id_name, input_field, shared_field = self.task_meta(task_type)
+        collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
         docs = list(self.db[collection].find({id_name: {'$in': doc_ids}}))
         log['un_existed'] = set(doc_ids) - set([doc.get(id_name) for doc in docs])
         doc_ids = [doc.get(id_name) for doc in docs]
@@ -83,7 +85,7 @@ class PublishBaseHandler(TaskHandler):
         assert task_type in self.task_types
         now = datetime.now()
         steps = {'todo': steps}
-        collection, id_name = self.task_meta(task_type)[:2]
+        collection, id_name = self.get_task_meta(task_type)[:2]
         meta = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id='', status=status,
                     priority=int(priority), steps=steps, pre_tasks=pre_tasks, input=None, result=None,
                     create_time=now, updated_time=now, publish_time=now,

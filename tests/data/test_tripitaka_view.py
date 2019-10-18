@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-import controller.errors as e
 from glob2 import glob
 from os import path
+import controller.errors as e
 
 
 class TestTaskFlow(APITestCase):

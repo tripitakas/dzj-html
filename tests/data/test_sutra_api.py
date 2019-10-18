@@ -3,8 +3,8 @@
 
 from os import path
 from glob2 import glob
-import controller.errors as e
 from tests.testcase import APITestCase
+import controller.errors as e
 
 
 class TestTaskFlow(APITestCase):

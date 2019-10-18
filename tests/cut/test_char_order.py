@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import re
 import tests.users as u
 from tests.testcase import APITestCase
-import re
 
 
 class TestCharOrder(APITestCase):

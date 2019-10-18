@@ -50,7 +50,7 @@ class CutSaveApi(TaskHandler):
             update = {'updated_time': datetime.now()}
             data_field = re.sub('(_box|_order)', 's', data['step'])
             update.update({data_field: json_decode(data['boxes'])})
-            collection, id_name = self.task_meta(task_type)[:2]
+            collection, id_name = self.get_task_meta(task_type)[:2]
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
             # 提交步骤
@@ -75,9 +75,9 @@ class CutSaveApi(TaskHandler):
 
 
 class CutEditSaveApi(TaskHandler):
-    URL = '/api/cut/edit/@doc_id'
+    URL = '/api/data/edit/cut/@page_name'
 
-    def post(self, doc_id):
+    def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
         try:
             # 检查参数
@@ -86,7 +86,7 @@ class CutEditSaveApi(TaskHandler):
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
-            page = self.db.page.find_one({'name': doc_id})
+            page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(errors.no_object)
             steps_todo = CutHandler.default_steps.keys()
@@ -99,9 +99,9 @@ class CutEditSaveApi(TaskHandler):
 
             # 保存数据
             data_field = data['step'].strip('_box') + 's'
-            r = self.db.page.update_one({'name': doc_id}, {'$set': {data_field: json_decode(data['boxes'])}})
+            r = self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
             if r.modified_count:
-                self.add_op_log('save_edit_%s' % data_field, context=doc_id)
+                self.add_op_log('save_edit_%s' % data_field, context=page_name)
             self.send_data_response({'updated': True})
 
         except DbError as e:

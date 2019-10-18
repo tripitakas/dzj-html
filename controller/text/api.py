@@ -11,7 +11,6 @@ import controller.validate as v
 import controller.errors as errors
 from controller.base import DbError
 from controller.task.base import TaskHandler
-from controller.task.api import FinishTaskApi
 from controller.text.diff import Diff
 from controller.text.view import TextTools, TextProofHandler
 
@@ -66,7 +65,7 @@ class GetCompareNeighborApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveTextProofApi(FinishTaskApi):
+class SaveTextProofApi(TaskHandler):
     URL = ['/api/task/do/text_proof_@num/@task_id',
            '/api/task/update/text_proof_@num/@task_id']
 
@@ -134,10 +133,10 @@ class SaveTextProofApi(FinishTaskApi):
         self.send_data_response(ret)
 
 
-class SaveTextReviewApi(FinishTaskApi):
-    URL = ['/api/task/do/text_review/@doc_id',
-           '/api/task/update/text_review/@doc_id',
-           '/api/data/text_edit/@doc_id']
+class SaveTextReviewApi(TaskHandler):
+    URL = ['/api/task/do/text_review/@task_id',
+           '/api/task/update/text_review/@task_id',
+           '/api/data/edit/text/@page_name']
 
     def post(self, page_name):
         """ 文字审定提交 """
@@ -179,9 +178,9 @@ class SaveTextReviewApi(FinishTaskApi):
             self.send_db_error(e)
 
 
-class SaveTextHardApi(FinishTaskApi):
-    URL = ['/api/task/do/text_hard/@page_name',
-           '/api/task/update/text_hard/@page_name']
+class SaveTextHardApi(TaskHandler):
+    URL = ['/api/task/do/text_hard/@task_id',
+           '/api/task/update/text_hard/@task_id']
 
     def post(self, page_name):
         """ 难字审定提交 """

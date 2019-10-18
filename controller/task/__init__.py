@@ -5,8 +5,7 @@ views = [
 ]
 
 handlers = [
-    api.PickTaskApi, api.ReturnTaskApi, api.GetPageApi, api.UnlockTaskDataApi,
-    api.RetrieveTaskApi, api.DeleteTasksApi,
-    api.GetReadyTasksApi, api.PublishTasksApi,
+    api.PickTaskApi, api.ReturnTaskApi, api.UnlockTaskDataApi, api.RetrieveTaskApi,
+    api.DeleteTasksApi, api.GetReadyTasksApi, api.PublishTasksApi, api.AssignTasksApi,
+    api.FinishTaskApi,
 ]
-

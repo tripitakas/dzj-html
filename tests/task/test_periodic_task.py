@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import tests.users as u
 from tests.testcase import APITestCase
 from controller.periodic import periodic_task
 from controller.task.base import TaskHandler as Th
-import tests.users as u
 
 
 class TestPeriodicTask(APITestCase):

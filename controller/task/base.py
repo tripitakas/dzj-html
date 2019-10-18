@@ -35,7 +35,7 @@ class TaskHandler(BaseHandler, TaskConfig):
 
     def find_tasks(self, task_type, doc_id=None, status=None, size=None, mine=False):
         assert task_type in self.task_types
-        collection, id_name = self.task_meta(task_type)[:2]
+        collection, id_name = self.get_task_meta(task_type)[:2]
         condition = dict(task_type=task_type, collection=collection, id_name=id_name)
         if doc_id:
             condition.update({'doc_id': doc_id if isinstance(doc_id, str) else {'$in': doc_id}})
@@ -197,8 +197,17 @@ class TaskHandler(BaseHandler, TaskConfig):
 
         return errors.data_unauthorized
 
-    def release_data_lock(self, collection, id_name, doc_id, shared_field, is_temp=True):
+    def release_data_lock(self, doc_id, collection=None, id_name=None, shared_field=None,
+                          task_type=None, is_temp=True):
         """ 释放数据锁 """
-        if shared_field in self.data_auth_maps and self.has_data_lock(
-                collection, id_name, doc_id, shared_field, is_temp=is_temp):
-            self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
+        assert type(doc_id) in [str, list]
+        if not collection:
+            collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
+
+        if shared_field in self.data_auth_maps:
+            if isinstance(doc_id, str):
+                self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
+            else:
+                self.db[collection].update_many(
+                    {id_name: {'$in': doc_id}, 'is_temp': is_temp}, {'$set': {'lock.%s' % shared_field: dict()}}
+                )

@@ -22,7 +22,7 @@ from botocore.exceptions import BotoCoreError
 from controller import helper
 from controller import errors as e
 from controller.base import BaseHandler
-from controller.cut.sort_v2 import calc
+from controller.cut.v2 import calc
 
 
 class RecognitionApi(BaseHandler):
@@ -158,7 +158,7 @@ class SubmitRecognitionApi(BaseHandler):
     URL = '/api/data/submit_ocr/@img_file'
 
     def post(self, img_name):
-        """从OCR结果文件创建页面任务"""
+        """加载OCR结果文件至page表"""
         upload_ocr = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr')
         img_file = path.join(upload_ocr, img_name)
         if not path.exists(img_file):

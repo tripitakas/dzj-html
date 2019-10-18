@@ -11,14 +11,13 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'task_type': r'cut_proof|cut_review|ocr_proof|ocr_review|text_\w+',
-    'task_id': r'\w{24}',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
+    'task_id': r'\w{24}',
+    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'edit_type': r'cut_edit|text_edit',
-    'collection_type': r'page|reel',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
-    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
@@ -36,8 +35,8 @@ role_route_maps = {
         'is_assignable': False,
         'routes': {
             '/api/user/list': ['GET'],
-            '/api/task/page/@page_name': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
+            '/api/task/finish/@task_type/@task_id': ['POST'],
         }
     },
     '访客': {
@@ -64,15 +63,14 @@ role_route_maps = {
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
             '/ocr': ['GET'],
-            '/ocr/@img_file': ['GET'],
             '/api/ocr': ['POST'],
+            '/ocr/@img_file': ['GET'],
             '/punctuate': ['GET'],
             '/api/punctuate': ['POST'],
             '/search/cbeta': ['GET'],
             '/api/search/cbeta': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
-            '/api/task/page/@page_name': ['GET'],
-            '/task/@task_type/@page_name': ['GET'],
+            '/task/@task_type/@task_id': ['GET'],
         }
     },
     '切分校对员': {
@@ -99,9 +97,9 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/cut/edit/@task_id': ['GET'],
-            '/api/cut/edit/@task_id': ['POST'],
-            '/api/data/unlock/cut_edit/@task_id': ['POST'],
+            '/data/edit/cut/@page_name': ['GET'],
+            '/api/data/edit/cut/@page_name': ['POST'],
+            '/api/data/unlock/cut/@page_name': ['POST'],
         }
     },
     '文字校对员': {
@@ -112,12 +110,12 @@ role_route_maps = {
             '/api/task/pick/text_proof': ['POST'],
             '/api/task/pick/text_proof_@num': ['POST'],
             '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
-            '/api/task/text_proof/get_compare/@doc_id': ['POST'],
+            '/api/task/text_proof/get_compare/@page_name': ['POST'],
             '/api/task/text_proof/get_compare_neighbor': ['POST'],
             '/api/task/(do|update|return|unlock)/text_proof_@num/@task_id': ['POST'],
-            '/cut/edit/@page_name': ['GET'],
-            '/api/cut/edit/@page_name': ['POST'],
-            '/api/data/unlock/cut_edit/@page_name': ['POST'],
+            '/data/edit/cut/@page_name': ['GET'],
+            '/api/data/edit/cut/@page_name': ['POST'],
+            '/api/data/unlock/cut/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -128,9 +126,9 @@ role_route_maps = {
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update)/text_review/@task_id': ['GET'],
             '/api/task/(do|update|return|unlock)/text_review/@task_id': ['POST'],
-            '/cut/edit/@page_name': ['GET'],
-            '/api/cut/edit/@page_name': ['POST'],
-            '/api/data/unlock/cut_edit/@page_name': ['POST'],
+            '/data/edit/cut/@page_name': ['GET'],
+            '/api/data/edit/cut/@page_name': ['POST'],
+            '/api/data/unlock/cut/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -139,11 +137,11 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/text_hard': ['GET'],
             '/api/task/pick/text_hard': ['POST'],
-            '/task/(do|update)/text_hard/@page_name': ['GET'],
-            '/api/task/(do|update|return|unlock)/text_hard/@page_name': ['POST'],
-            '/data/text_edit/@page_name': ['GET'],
-            '/api/data/text_edit/@page_name': ['POST'],
-            '/api/data/unlock/text_edit/@page_name': ['POST'],
+            '/task/(do|update)/text_hard/@task_id': ['GET'],
+            '/api/task/(do|update|return|unlock)/text_hard/@task_id': ['POST'],
+            '/data/edit/text/@page_name': ['GET'],
+            '/api/data/edit/text/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '任务管理员': {
@@ -154,7 +152,7 @@ role_route_maps = {
             '/task/info/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/(retrieve|reset)/@task_type/@page_name': ['POST'],
+            '/api/task/(assign|retrieve|delete)/@task_type': ['POST'],
         }
     },
     '数据管理员': {
@@ -221,14 +219,15 @@ def can_access(role, path, method):
     return False
 
 
-def get_role_routes(role, routes=None):
+def get_role_routes(roles, routes=None):
     """
     获取指定角色对应的route集合
     :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
     """
-    assert type(role) == str, str(role)
+    assert type(roles) in [str, list]
+    if type(roles) == str:
+        roles = [r.strip() for r in roles.split(',')]
     routes = dict() if routes is None else routes
-    roles = [r.strip() for r in role.split(',')]
     for r in roles:
         for url, m in role_route_maps.get(r, {}).get('routes', {}).items():
             routes[url] = list(set(routes.get(url, []) + m))

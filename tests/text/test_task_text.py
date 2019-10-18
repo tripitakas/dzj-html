@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import tests.users as u
-from controller import errors
 from tests.testcase import APITestCase
 from tornado.escape import json_encode
+from controller import errors
 
 
 class TestText(APITestCase):
