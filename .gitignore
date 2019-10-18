@@ -43,9 +43,10 @@ coverage.xml
 target/
 
 # Project Files
+log/
 static/img/
 static/upload/
-log/
 meta/meta/
+meta/sample/
 app.yml
 _ocr*.*

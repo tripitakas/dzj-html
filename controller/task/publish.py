@@ -23,8 +23,8 @@ class PublishBaseHandler(TaskHandler):
     def publish_task(self, task_type, pre_tasks, steps, priority, force, doc_ids):
         """ 发布某个任务类型的任务。
         :return 格式如下：
-        { 'un_existed':[...], 'published_before':[...], 'un_ready':[...], 'published':[...], 'pending':[...],
-          'publish_failed':[...], 'pending_failed':[...], 'not_published':[...] }
+        { 'un_existed':[...], 'un_ready':[...], 'published_before':[...], 'finished':[...],
+            'published':[...], 'pending':[...]}
         """
         assert task_type in self.task_types
 
@@ -40,13 +40,18 @@ class PublishBaseHandler(TaskHandler):
             log['un_ready'] = [d.get(id_name) for d in docs if not d.get(input_field)]
             doc_ids = set(doc_ids) - set(log['un_ready'])
 
-        # force为False时，检查数据是否已发布。
-        # 去掉状态为OPENED\PENDING\PICKED\FINISHED的任务，准备发布其余状态（包括已退回或已撤回）的任务
-        if not force and doc_ids:
-            ss = [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED, self.STATUS_FINISHED]
+        # 去掉已发布和进行中的任务
+        if doc_ids:
+            ss = [self.STATUS_OPENED, self.STATUS_PENDING, self.STATUS_PICKED]
             condition = dict(task_type=task_type, status={'$in': ss}, doc_id={'$in': list(doc_ids)})
             log['published_before'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
             doc_ids = set(doc_ids) - log['published_before']
+
+        # 已完成的任务，如果不重新发布，则也去掉
+        if not force and doc_ids:
+            condition = dict(task_type=task_type, status=self.STATUS_FINISHED, doc_id={'$in': list(doc_ids)})
+            log['finished'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
+            doc_ids = set(doc_ids) - log['finished']
 
         # 发布新任务
         if doc_ids:
@@ -95,14 +100,14 @@ class PublishBaseHandler(TaskHandler):
             self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
     @staticmethod
-    def _select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks_required):
+    def _select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks):
         """ 在已完成的任务列表中，过滤出前置任务全部完成的doc_id"""
         tasks = dict()
-        pre_tasks_required = set(pre_tasks_required)
+        pre_tasks = set(pre_tasks)
         for task in tasks_finished:
             if task.get('doc_id') not in tasks:
                 tasks[task.get('doc_id')] = {task.get('task_type')}
             else:
                 tasks[task.get('doc_id')].add(task.get('task_type'))
-        doc_ids = [k for k, v in tasks.items() if v == pre_tasks_required]
+        doc_ids = [k for k, v in tasks.items() if v == pre_tasks]
         return set(doc_ids)

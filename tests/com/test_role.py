@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from tests.testcase import APITestCase
-from controller import auth
 from controller import validate as v
+from controller import auth
 
 
 class TestRole(APITestCase):

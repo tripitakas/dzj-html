@@ -137,16 +137,18 @@ class TextReviewHandler(TaskHandler, TextTools):
            '/task/update/text_review/@task_id',
            '/data/text_edit/@task_id']
 
-    def get(self, page_name):
+    def get(self, task_id):
         """ 文字审定页面 """
         try:
-            page = self.db.page.find_one(dict(name=page_name))
-            if not page:
-                return self.render('_404.html')
-
             task_type = 'text_review'
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            if not task:
+                return self.render('_404.html')
+            page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            if not page:
+                return self.send_error_response(errors.no_object, render=True)
             mode = (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_auth(mode, page, task_type)
+            readonly = not self.check_auth(task, mode)
             doubt = self.prop(page, 'tasks.%s.doubt' % task_type)
             proof_doubt = ''
             for i in range(1, 4):

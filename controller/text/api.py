@@ -135,9 +135,9 @@ class SaveTextProofApi(FinishTaskApi):
 
 
 class SaveTextReviewApi(FinishTaskApi):
-    URL = ['/api/task/do/text_review/@page_name',
-           '/api/task/update/text_review/@page_name',
-           '/api/data/text_edit/@page_name']
+    URL = ['/api/task/do/text_review/@doc_id',
+           '/api/task/update/text_review/@doc_id',
+           '/api/data/text_edit/@doc_id']
 
     def post(self, page_name):
         """ 文字审定提交 """
