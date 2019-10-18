@@ -9,9 +9,9 @@ from controller import errors
 from controller.task.base import TaskHandler as Th
 
 
-class TestTaskPublish(APITestCase):
+class TestTaskApi(APITestCase):
     def setUp(self):
-        super(TestTaskPublish, self).setUp()
+        super(TestTaskApi, self).setUp()
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
@@ -24,7 +24,7 @@ class TestTaskPublish(APITestCase):
         self.delete_all_tasks()
 
     def tearDown(self):
-        super(TestTaskPublish, self).tearDown()
+        super(TestTaskApi, self).tearDown()
 
     def assert_status(self, pages, response, task_type_status_maps, msg=None):
         for task_type, status in task_type_status_maps.items():

@@ -126,15 +126,15 @@ class MyTaskHandler(TaskHandler):
         }
         if q:
             condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
-        query = self.db[task_meta['data']['collection']].find(condition)
-        total_count = self.db.page.count_documents(condition)
+        total_count = self.db.task.count_documents(condition)
+        query = self.db.task.find(condition)
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(order, asc)
         page_size = page_size or self.config['pager']['page_size']
         page_no = page_no if page_no >= 1 else 1
-        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages), total_count
+        tasks = query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(tasks), total_count
 
     def get(self, task_type):
         """ 我的任务 """
