@@ -14,7 +14,7 @@
       boxes: JSON.stringify($.cut.exportBoxes())
     };
     postApi('{{current_path}}', {data: data}, function () {
-      showSuccess('保存成功', '{{name}} ' + '已保存成功');
+      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
       setTimeout(function () {
         window.location.reload();
       }, 1000);
@@ -23,7 +23,7 @@
 
   // 下一步
   $('.btn-next').on("click", function () {
-    if ('view' !== '{{mode}}') {
+    if ('view' !== '{{mode}}' && 'False' === '{{readonly}}') {
       var data = {
         submit: true, box_type: '{{box_type}}', step: '{{steps.get("current")}}',
         boxes: JSON.stringify($.cut.exportBoxes())
@@ -31,22 +31,26 @@
       postApi('{{current_path}}', {data: data}, function () {
         window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
       });
+    } else {
+      window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
     }
   });
 
   // 提交任务
   $('.btn-submit').on("click", function () {
     var data = {
-      submit: true,
-      step: '{{steps.get("current")}}',
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
+      submit: true, step: '{{steps.get("current")}}',
+      box_type: '{{box_type}}', boxes: JSON.stringify($.cut.exportBoxes())
     };
     postApi('{{current_path}}', {data: data}, function () {
-      showSuccess('成功', '任务已提交。');
+      showSuccess('成功', '已提交。');
       setTimeout(function () {
-        pick('/task/pick/{{task_type}}');
-      }, 500);
+        if ('do' === '{{mode}}') {
+          pick('/task/pick/{{task_type}}');
+        } else {
+          window.leave();
+        }
+      }, 1000);
     });
   });
 
@@ -57,7 +61,7 @@
 
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+    postApi('/task/return/{{task_type}}/{{task.get("_id")}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
@@ -67,17 +71,17 @@
     });
   });
 
-  // 离开页面时解锁数据
+  // 离开页面
   window.leave = function () {
-    // 当前页面模式，包括view/do/update/edit等
-    if ('{{mode}}' === 'edit') {
-      postApi('/data/unlock/{{task_type}}/{{name}}', {}, function () {
-        window.history.back();
-      });
-    } else if ('{{mode}}' === 'view') {
-      window.history.back();
+    if ('False' === '{{readonly}}') {
+      postApi('/data/unlock/box/{{page["name"]}}', {});
+    }
+    if ('{{mode}}' === 'do') {
+      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
     } else {
-      window.location = '/task/lobby/{{task_type}}';
+      window.history.back();
     }
   };
 

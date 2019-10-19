@@ -363,7 +363,7 @@
 
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{task_id}}', {
+    postApi('/task/return/{{task_type}}/{{task["_id"]}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');

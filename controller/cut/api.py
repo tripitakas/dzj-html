@@ -39,10 +39,12 @@ class CutApi(TaskHandler):
             if not data['step'] in steps_todo:
                 return self.send_error_response(errors.task_step_error)
 
-            # 检查权限
-            mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_auth(task, mode):
-                return self.send_error_response(errors.data_unauthorized)
+            # 检查任务权限及数据锁
+            mode = 'do' if 'do/' in self.request.path else 'update'
+            self.check_task_auth(task, mode)
+            r = self.check_task_lock(task, mode)
+            if r is not True:
+                return self.send_error_response(r)
 
             # 保存数据
             collection, id_name = self.get_task_meta(task_type)[:2]
@@ -61,9 +63,12 @@ class CutApi(TaskHandler):
                     self.add_op_log('save_%s_%s' % (mode, task_type), context=task_id)
 
             # 提交任务
-            if mode == 'do' and data.get('submit') and data['step'] == steps_todo[-1]:
-                self.finish_task(task)
-                self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
+            if data.get('submit') and data['step'] == steps_todo[-1]:
+                if mode == 'do':
+                    self.finish_task(task)
+                    self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
+                else:
+                    self.release_data_lock(task['doc_id'], shared_field='box')
 
             return self.send_data_response()
 
@@ -90,16 +95,20 @@ class CutEditApi(TaskHandler):
                 return self.send_error_response(errors.task_step_error)
 
             # 检查数据锁
-            if not self.has_data_lock('page', 'name', page_name, 'box', True):
+            if not self.has_data_lock(page_name, 'box', True):
                 return self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
-            data_field = CutApi.step_field_map.get(data['step'])
-            r = self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
+            step_data_field = CutApi.step_field_map.get(data['step'])
+            r = self.db.page.update_one({'name': page_name}, {'$set': {step_data_field: json_decode(data['boxes'])}})
             if r.modified_count:
-                self.add_op_log('save_edit_%s' % data_field, context=page_name)
+                self.add_op_log('save_edit_%s' % step_data_field, context=page_name)
 
-            return self.send_data_response({'updated': True})
+            # 释放数据锁
+            if data.get('submit'):
+                self.release_data_lock(page_name, shared_field='box')
+
+            return self.send_data_response()
 
         except DbError as e:
             return self.send_db_error(e)

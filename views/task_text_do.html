@@ -76,10 +76,6 @@
             <button type="button" class="btn btn-default btn-sm ed-block-box" title="修改栏框">栏框</button>
             <button type="button" class="btn btn-default btn-sm ed-column-box" title="修改列框">列框</button>
             <button type="button" class="btn btn-default btn-sm ed-char-order" title="修改字序">字序</button>
-            {% set editable = 'review' in task_type or 'hard' in task_type %}
-            <button type="button" class="btn btn-default btn-sm ed-text-proof-1 {{'' if editable and texts.get('cmp1') else 'hide'}}" title="修改字序">校一</button>
-            <button type="button" class="btn btn-default btn-sm ed-text-proof-2 {{'' if editable and texts.get('cmp2') else 'hide'}}" title="修改字序">校二</button>
-            <button type="button" class="btn btn-default btn-sm ed-text-proof-3 {{'' if editable and texts.get('cmp3') else 'hide'}}" title="修改字序">校三</button>
           </span>
         </div>
         <div class="right">
@@ -97,7 +93,7 @@
             <img src="{{ static_url('imgs/icon_add_down.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
             <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt {{'hide' if 'hard' in task_type else ''}}" title="存疑"/>
             <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
-            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text" title="原文"/>
+            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text {{'' if texts else 'hide'}}" title="原文"/>
             <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
@@ -348,36 +344,26 @@
   });
   // 修改字框
   $('.ed-char-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=char_box';
+    window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=char_box';
   });
   // 修改栏框
   $('.ed-block-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=block_box';
+    window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=block_box';
   });
   // 修改列框
   $('.ed-column-box').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=column_box';
+    window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=column_box';
   });
   // 修改字序
   $('.ed-char-order').click(function () {
-    window.location = '{{"/task/cut_proof" if readonly else "/cut/edit"}}/{{page["name"]}}?step=char_order';
-  });
-  // 查看校一
-  $('.ed-text-proof-1').click(function () {
-    window.location = "/task/text_proof_1/" + '{{page["name"]}}';
-  });
-  // 查看校二
-  $('.ed-text-proof-2').click(function () {
-    window.location = "/task/text_proof_2/" + '{{page["name"]}}';
-  });
-  // 查看校三
-  $('.ed-text-proof-3').click(function () {
-    window.location = "/task/text_proof_3/" + '{{page["name"]}}';
+    window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=char_order';
   });
   // 离开页面
   window.leave = function () {
     if ('{{mode}}' === 'do') {
       window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
     } else {
       window.history.back();
     }
@@ -432,7 +418,7 @@
   // 提交任务
   $('.btn-submit').on("click", function () {
     postApi('{{current_path}}', {data: getData(true)}, function () {
-      showSuccess('成功', '任务已提交。');
+      showSuccess('成功', '已提交。');
       setTimeout(function () {
         pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
       }, 500);
@@ -444,7 +430,7 @@
   });
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+    postApi('/task/return/{{task_type}}/{{task["_id"]}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');

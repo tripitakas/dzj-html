@@ -31,7 +31,7 @@ class TextProofHandler(TaskHandler, TextPack):
                 return self.send_error_response(errors.no_object, render=True)
 
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_auth(task, mode)
+            readonly = not self.check_task_auth(task, mode)
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
@@ -43,7 +43,7 @@ class TextProofHandler(TaskHandler, TextPack):
     def select_compare_text(self, task, page, mode, steps, readonly, num):
         self.render(
             'task_text_select_compare.html',
-            task_type=task['task_type'], task_id=task['_id'], page=page, mode=mode, readonly=readonly, num=num,
+            task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly, num=num,
             steps=steps, ocr=page.get('ocr'), cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )
 
@@ -59,7 +59,7 @@ class TextProofHandler(TaskHandler, TextPack):
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
         self.render(
-            'task_text_do.html', task_type=task['task_type'], page=page, mode=mode, readonly=readonly,
+            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly,
             texts=texts, cmp_data=cmp_data, doubt=doubt, steps=steps, get_img=self.get_img, **params
         )
 
@@ -73,15 +73,15 @@ class TextReviewHandler(TaskHandler, TextPack):
         """ 文字审定页面 """
 
         def get_proof_meta():
-            _doubt, _texts = '', []
+            _doubt, _texts = '', ['', '', '']
             for i in [1, 2, 3]:
                 condition = {'task_type': 'text_proof_%s' % i, 'doc_id': task['doc_id'],
                              'status': self.STATUS_FINISHED}
                 proof_task = self.db.task.find_one(condition)
                 if proof_task:
                     _doubt += self.prop(proof_task, 'result.doubt') or ''
-                    _texts.append(self.html2txt(TaskHandler.prop(proof_task, 'result.txt_html')))
-            return _doubt, _texts
+                    _texts[i - 1] = self.html2txt(TaskHandler.prop(proof_task, 'result.txt_html'))
+            return _doubt, dict(base=_texts[0], cmp1=_texts[1], cmp2=_texts[2])
 
         try:
             task_type = 'text_review'
@@ -93,7 +93,7 @@ class TextReviewHandler(TaskHandler, TextPack):
                 return self.send_error_response(errors.no_object, render=True)
 
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_auth(task, mode)
+            readonly = not self.check_task_auth(task, mode)
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
             CutHandler.char_render(page, layout, **params)
@@ -101,12 +101,12 @@ class TextReviewHandler(TaskHandler, TextPack):
             proof_doubt, texts = get_proof_meta()
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
-                segments = Diff.diff(texts[0], texts[1], texts[2])[0]
+                segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
-                texts=texts, cmp_data=cmp_data, review_doubt=review_doubt, proof_doubt=proof_doubt,
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=readonly,
+                texts=texts, cmp_data=cmp_data, doubt=review_doubt, proof_doubt=proof_doubt,
                 get_img=self.get_img, steps=dict(is_first=True, is_last=True), **params
             )
 
@@ -131,12 +131,12 @@ class TextHardHandler(TaskHandler, TextPack):
                 return self.send_error_response(errors.no_object, render=True)
 
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_auth(task, mode)
+            readonly = not self.check_task_auth(task, mode)
             hard = self.prop(task, 'result.hard')
             cmp_data = self.prop(page, 'txt_html')
             self.render(
-                'task_text_do.html', task_type=task_type, page=page, mode=mode, readonly=readonly,
-                texts=[], cmp_data=cmp_data, doubt=hard, get_img=self.get_img,
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=readonly,
+                texts={}, cmp_data=cmp_data, doubt=hard, get_img=self.get_img,
                 steps=dict(is_first=True, is_last=True)
             )
 
@@ -145,7 +145,8 @@ class TextHardHandler(TaskHandler, TextPack):
 
 
 class TextEditHandler(TaskHandler, TextPack):
-    URL = ['/data/edit/text/@page_name']
+    URL = ['/data/text/@page_name',
+           '/data/edit/text/@page_name']
 
     def get(self, page_name):
         """ 文字修改页面 """
@@ -154,6 +155,17 @@ class TextEditHandler(TaskHandler, TextPack):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
+
+            # 检查数据锁资质，edit模式且有资质时，分配数据锁
+            qualified = self.has_lock_qualification('page', 'name', page_name, 'text')
+            mode = 'edit' if 'edit/' in self.request.path else 'view'
+            has_lock = False
+            if mode == 'edit':
+                if not qualified:
+                    return self.send_error_response(errors.unauthorized, render=True)
+                else:
+                    r = self.get_data_lock('page', 'name', page_name, 'text')
+                    has_lock = r is True
 
             # 尝试获取数据锁
             r = self.get_data_lock('page', 'name', page_name, 'text')

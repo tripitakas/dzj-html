@@ -3,9 +3,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  {% set name = page.get('name') %}
   {% set box_version = 1 %}
-  <title>字序校对-{{name}}</title>
+  <title>字序校对-{{page["name"]}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -50,7 +49,7 @@
           </a>
         </div>
         <div class="title" title="{{page['name']}}">切分校对</div>
-        <div class="sub-title">- {{step_name}}</div>
+        <div class="sub-title">- {{Th.get_step_name(steps["current"])}}</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
@@ -72,14 +71,15 @@
         </div>
       </div>
       <div class="right">
+        <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
+          数据已被其他人锁定，暂时不能修改。
+        </div>
         <div class="edit-btns">
-          <div class="more hide">
+          <div class="more">
             <div class="btn-group more-group hidden" role="group" aria-label="更多">
-              {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-              <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/cut_proof/{{name}}{{'?step=char_order&layout=%d' % i}}">
-                {{txt}}
-              </a>
-              {% end %}
+              <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=1'}}">原始字序</a>
+              <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=2'}}">重排(旧算法)</a>
+              <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=3'}}">重排(新算法)</a>
             </div>
             <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
           </div>
@@ -87,7 +87,7 @@
           <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
-          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly else 'hide'}}" title="提交"/>
         </div>
       </div>
     </div>
@@ -114,11 +114,11 @@
   $.cut.create({
     orderMode: true,
     readonly: true,
-    name: '{{name}}_order',
+    name: '{{page["name"]}}_order',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
+    image: "{{get_img(page.get('img_name', page['name']), page.get('use_local_img'))}}",
     version: '{{box_version}}',
     chars: chars
   });
@@ -154,6 +154,10 @@
   // 调整字框连线后重新设置字框编号
   $('#apply').click(function () {
     $.cut.applyLinks(blocks, columns);
+  });
+  // 更多操作
+  $('.btn-ed-box').click(function () {
+    $('.more-group').toggleClass('hidden');
   });
 
 </script>

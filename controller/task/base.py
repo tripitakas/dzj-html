@@ -48,12 +48,8 @@ class TaskHandler(BaseHandler, TaskConfig):
             tasks.limit(size)
         return list(tasks)
 
-    def check_auth(self, task, mode):
-        """ 检查当前用户是否拥有相应的任务权限及数据锁
-        :return 如果mode为do或update，而用户没有任务权限，则直接抛出错误
-                如果mode为do或update或edit，而用户没有获得数据锁，则返回False，表示没有写权限
-                其余情况，返回True，表示通过授权检查
-        """
+    def check_task_auth(self, task, mode):
+        """ 检查当前用户是否拥有相应的任务权限 """
         assert task['task_type'] in self.task_types
         # 检查任务权限
         reason = '%s@%s' % (task['task_type'], task['doc_id'])
@@ -66,20 +62,20 @@ class TaskHandler(BaseHandler, TaskConfig):
             if mode == 'update' and task['status'] != self.STATUS_FINISHED:
                 return self.send_error_response(errors.task_can_only_update_finished, render=render, reason=reason)
 
-        # 检查数据锁
-        auth = False
+    def check_task_lock(self, task, mode):
+        """ 检查当前用户是否拥有相应的数据锁，成功时返回True，失败时返回错误代码 """
         if mode in ['do', 'update', 'edit']:
-            s = self.get_shared_field(task['task_type'])
-            c, i, d = task['collection'], task['id_name'], task['doc_id']
-            if not s or s not in self.data_auth_maps:  # 无共享字段或共享字段没有在授权表中
-                auth = True
-            elif self.has_data_lock(c, i, d, s) or self.get_data_lock(c, i, d, s) is True:
-                auth = True
-
-        return auth
+            shared_field = self.get_shared_field(task['task_type'])
+            # 没有共享字段时，通过检查
+            if not shared_field or shared_field not in self.data_auth_maps:
+                return True
+            # 有共享字段时，能获取数据锁，也通过检查
+            return self.get_data_lock(task['doc_id'], shared_field)
+        else:
+            return True
 
     def finish_task(self, task):
-        """ 完成任务提交 """
+        """ 任务提交 """
         # 更新当前任务
         update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
         self.db.task.update_one({'_id': task['_id']}, {'$set': update})
@@ -92,7 +88,7 @@ class TaskHandler(BaseHandler, TaskConfig):
         self.update_post_tasks(task)
 
     def update_post_tasks(self, task):
-        """ 任务完成提交后，更新后置任务的状态 """
+        """ 更新后置任务的状态 """
         task_type = task['task_type']
         condition = dict(collection=task['collection'], id_name=task['id_name'], doc_id=task['doc_id'])
         tasks = list(self.db.task.find(condition))
@@ -110,37 +106,59 @@ class TaskHandler(BaseHandler, TaskConfig):
                 update.update({'status': self.STATUS_OPENED})
             self.db.task.update_one({'_id': t['_id']}, {'$set': update})
 
-    def has_data_lock(self, collection, id_name, doc_id, shared_field, is_temp=None):
-        """ 检查当前用户是否拥有某数据锁
-        :param collection 数据表，即mongodb的collection
-        :param id_name 作为id的字段名称
-        :param doc_id 作为id的字段值
-        :param shared_field 检查哪个数据字段
-        :param is_temp 是否为临时锁
-         """
+    def has_data_lock(self, doc_id, shared_field, is_temp=None):
+        """ 检查当前用户是否拥有某数据锁 """
         assert is_temp in [None, True, False]
+        assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
+
         condition = {id_name: doc_id, 'lock.%s.locked_user_id' % shared_field: self.current_user['_id']}
         if is_temp is not None:
             condition.update({'lock.%s.is_temp' % shared_field: is_temp})
         n = self.db[collection].count_documents(condition)
         return n > 0
 
-    def is_data_locked(self, collection, id_name, doc_id, shared_field):
-        """检查数据是否已经被锁定"""
+    def is_data_locked(self, doc_id, shared_field):
+        """ 检查数据是否已经被锁定"""
+        assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
+
         data = self.db[collection].find_one({id_name: doc_id})
         return True if self.prop(data, 'lock.%s.locked_user_id' % shared_field) else False
 
-    def get_data_lock(self, collection, id_name, doc_id, shared_field):
-        """ 将临时数据锁分配给当前用户。（长时数据锁由系统在任务领取时分配，是任务提交时释放）。
-        :return 成功时返回True，失败时返回errors.xxx。
-        """
+    def get_lock_qualification(self, doc_id, shared_field):
+        """ 检查用户是否有数据锁资质并返回资质 """
+        assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
 
-        def assign_lock(lock_type):
-            """ lock_type指的是来自哪个任务或者哪个角色 """
+        # 检查当前用户是否有数据锁对应的专家角色（有一个角色即可）
+        user_all_roles = auth.get_all_roles(self.current_user['roles'])
+        roles = list(set(user_all_roles) & set(self.data_auth_maps[shared_field]['roles']))
+        if roles:
+            return dict(roles=roles)
+
+        # 检查当前用户是否有该数据的同阶或高阶任务
+        tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, doc_id=doc_id)})
+        my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
+                    and t.get('status') != self.STATUS_RETURNED]
+        tasks = list(set(my_tasks) & set(self.data_auth_maps[shared_field]['tasks']))
+        if tasks:
+            return dict(tasks=tasks)
+
+        return False
+
+    def get_data_lock(self, doc_id, shared_field):
+        """ 将临时数据锁分配给当前用户。成功时返回True，失败时返回错误代码 """
+
+        def assign_lock(qualification):
+            """ qualification指的是来自哪个任务或者哪个角色 """
             r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
                 'lock.' + shared_field: {
                     "is_temp": True,
-                    "lock_type": lock_type,
+                    "lock_type": qualification,
                     "locked_by": self.current_user['name'],
                     "locked_user_id": self.current_user['_id'],
                     "locked_time": datetime.now(),
@@ -149,42 +167,31 @@ class TaskHandler(BaseHandler, TaskConfig):
             return r.matched_count > 0
 
         assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
 
-        # 检查当前用户是否已有数据锁
-        if self.has_data_lock(collection, id_name, doc_id, shared_field):
+        if self.has_data_lock(doc_id, shared_field):
             return True
-        # 检查当前用户是否有数据锁对应的角色（有一个角色即可）
-        user_all_roles = auth.get_all_roles(self.current_user['roles'])
-        roles = list(set(user_all_roles) & set(self.data_auth_maps[shared_field]['roles']))
-        if roles:
-            if not self.is_data_locked(collection, id_name, doc_id, shared_field):
-                return True if assign_lock(dict(roles=roles)) else errors.data_lock_failed
-            else:
-                return errors.data_is_locked
-        # 检查当前用户是否有该数据的同阶或高阶任务
-        tasks = self.db.task.find_one({'data': dict(collection=collection, id_name=id_name, doc_id=doc_id)})
-        my_tasks = [t for t in tasks if t.get('picked_user_id') == self.current_user['_id']
-                    and t.get('status') != self.STATUS_RETURNED]
-        tasks = list(set(my_tasks) & set(self.data_auth_maps[shared_field]['tasks']))
-        if tasks:
-            if not self.is_data_locked(collection, id_name, doc_id, shared_field):
-                return True if assign_lock(dict(tasks=tasks)) else errors.data_lock_failed
-            else:
-                return errors.data_is_locked
 
-        return errors.data_unauthorized
+        if self.is_data_locked(doc_id, shared_field):
+            return errors.data_is_locked
 
-    def release_data_lock(self, doc_id, collection=None, id_name=None, shared_field=None,
-                          task_type=None, is_temp=True):
+        qualification = self.get_lock_qualification(doc_id, shared_field)
+        if qualification is False:
+            return errors.unauthorized
+
+        return True if assign_lock(qualification) else errors.data_lock_failed
+
+    def release_data_lock(self, doc_id, shared_field=None, is_temp=True):
         """ 释放数据锁 """
         assert type(doc_id) in [str, list]
-        if not collection:
-            collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
+        assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
 
         if shared_field in self.data_auth_maps:
             if isinstance(doc_id, str):
                 self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
             else:
-                self.db[collection].update_many(
-                    {id_name: {'$in': doc_id}, 'is_temp': is_temp}, {'$set': {'lock.%s' % shared_field: dict()}}
-                )
+                condition = {id_name: {'$in': doc_id}, 'is_temp': is_temp}
+                self.db[collection].update_many(condition, {'$set': {'lock.%s' % shared_field: dict()}})

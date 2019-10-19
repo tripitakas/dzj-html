@@ -139,6 +139,14 @@ class TestTaskApi(APITestCase):
             data = self.parse_response(self.fetch('/api/task/publish', files=dict(), body=body))
             self.assertIn('error', data, msg=task_type)
 
+    def test_publish_with_prefix(self):
+        # 测试正常情况
+        task_types = list(Th.task_types.keys())
+        # task_types = ['cut_review']
+        for task_type in task_types:
+            r = self.publish_tasks({"task_type": task_type, "prefix": "yb"})
+            self.assert_code(200, r)
+
     def test_publish_many_tasks(self, size=10000):
         """ 测试发布大规模任务 """
         task_types = list(Th.task_types.keys())

@@ -13,6 +13,7 @@ from controller.base import DbError
 from controller.text.diff import Diff
 from controller.text.pack import TextPack
 from controller.task.base import TaskHandler
+from elasticsearch.exceptions import ConnectionTimeout
 
 
 class GetCompareTextApi(TaskHandler):
@@ -35,6 +36,8 @@ class GetCompareTextApi(TaskHandler):
                 self.send_error_response(errors.no_object, message='页面%s不存在' % page_name)
 
         except DbError as e:
+            self.send_db_error(e)
+        except ConnectionTimeout as e:
             self.send_db_error(e)
 
 
@@ -92,7 +95,7 @@ class TextProofApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_auth(task, mode):
+            if not self.check_task_auth(task, mode):
                 return self.send_error_response(errors.data_unauthorized)
 
             if data['step'] == 'select_compare_text':
@@ -161,7 +164,7 @@ class TextReviewApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_auth(task, mode):
+            if not self.check_task_auth(task, mode):
                 self.send_error_response(errors.data_unauthorized)
 
             # 保存任务
@@ -206,7 +209,7 @@ class TextHardApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_auth(task, mode):
+            if not self.check_task_auth(task, mode):
                 self.send_error_response(errors.data_unauthorized)
 
             # 保存任务
@@ -224,6 +227,7 @@ class TextHardApi(TaskHandler):
                 if mode == 'do':
                     # do提交后，完成任务且释放数据锁
                     self.finish_task(task)
+                    self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
                 else:
                     # update提交后，释放数据锁
                     self.release_data_lock(task['doc_id'], task_type=task_type)
@@ -260,6 +264,10 @@ class TextEditApi(TaskHandler):
             r = self.db.page.update_one({'name': page_name}, {'$set': {'text': text, 'txt_html': txt_html}})
             if r.modified_count:
                 self.add_op_log('save_edit_text', context=page_name)
+
+            # 提交时，释放数据锁
+            if data.get('submit'):
+                self.release_data_lock(page_name, collection='page', id_name='name', shared_field='text')
 
             self.send_data_response()
 

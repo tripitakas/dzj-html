@@ -59,10 +59,10 @@ class PublishTasksApi(PublishBaseHandler):
                 doc_ids = ids_str.split(r'|')
             elif data.get('prefix'):
                 collection, id_name, input_field, shared_field = self.get_task_meta(data['task_type'])
-                condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'},
-                             input_field: {"$nin": [None, '']}}
-                docs = self.db[collection].find(condition)
-                doc_ids = [doc.get(id_name) for doc in docs]
+                condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'}}
+                if input_field:
+                    condition[input_field] = {"$nin": [None, '']}
+                doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         return doc_ids
 
     def post(self):
@@ -125,8 +125,10 @@ class PickTaskApi(TaskHandler):
             # 如果_id为空，则任取一个任务
             task_id = self.get_request_data().get('task_id')
             if not task_id:
-                task = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)[0][0]
-                return self.assign_task(task)
+                tasks = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)[0]
+                if not tasks:
+                    return self.send_error_response(errors.no_task_to_pick)
+                return self.assign_task(tasks[0])
 
             # 检查任务及任务状态
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
