@@ -3,22 +3,21 @@
 """
 @time: 2019/6/23
 """
-import re
 from datetime import datetime
+from tornado.escape import json_decode
 from bson.objectid import ObjectId
 from .sort import Sort
-from .view import CutHandler
 import controller.validate as v
 import controller.errors as errors
-from controller.base import DbError
-from tornado.escape import json_decode
-from controller.base import BaseHandler
+from controller.base import BaseHandler, DbError
 from controller.task.base import TaskHandler
 
 
-class CutSaveApi(TaskHandler):
+class CutApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
+
+    step_field_map = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
 
     def post(self, task_type, task_id):
         """ 保存数据。
@@ -35,22 +34,19 @@ class CutSaveApi(TaskHandler):
                 return self.send_error_response(err)
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                self.send_error_response(errors.no_object)
+                return self.send_error_response(errors.task_un_existed)
             steps_todo = self.prop(task, 'steps.todo')
             if not data['step'] in steps_todo:
-                self.send_error_response(errors.task_step_error)
+                return self.send_error_response(errors.task_step_error)
 
             # 检查权限
-            mode = (re.findall('(do|update)/', self.request.path) or ['do'])[0]
+            mode = 'do' if '/task/do' in self.request.path else 'update'
             if not self.check_auth(task, mode):
-                self.send_error_response(errors.data_unauthorized)
+                return self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
-            ret = {'updated': True}
-            update = {'updated_time': datetime.now()}
-            data_field = re.sub('(_box|_order)', 's', data['step'])
-            update.update({data_field: json_decode(data['boxes'])})
             collection, id_name = self.get_task_meta(task_type)[:2]
+            update = {self.step_field_map.get(data['step']): json_decode(data['boxes'])}
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
             # 提交步骤
@@ -66,16 +62,17 @@ class CutSaveApi(TaskHandler):
 
             # 提交任务
             if mode == 'do' and data.get('submit') and data['step'] == steps_todo[-1]:
-                ret.update(self.finish_task(task))
+                self.finish_task(task)
+                self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
 
-            self.send_data_response(ret)
+            return self.send_data_response()
 
         except DbError as e:
-            self.send_db_error(e)
+            return self.send_db_error(e)
 
 
-class CutEditSaveApi(TaskHandler):
-    URL = '/api/data/edit/cut/@page_name'
+class CutEditApi(TaskHandler):
+    URL = '/api/data/edit/box/@page_name'
 
     def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
@@ -88,24 +85,24 @@ class CutEditSaveApi(TaskHandler):
                 return self.send_error_response(err)
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                self.send_error_response(errors.no_object)
-            steps_todo = CutHandler.default_steps.keys()
-            if not data['step'] in steps_todo:
-                self.send_error_response(errors.task_step_error)
+                return self.send_error_response(errors.no_object)
+            if not data['step'] in CutApi.step_field_map:
+                return self.send_error_response(errors.task_step_error)
 
-            # 检查权限
-            if not self.check_auth('edit', page, 'cut_edit'):
-                self.send_error_response(errors.data_unauthorized)
+            # 检查数据锁
+            if not self.has_data_lock('page', 'name', page_name, 'box', True):
+                return self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
-            data_field = data['step'].strip('_box') + 's'
+            data_field = CutApi.step_field_map.get(data['step'])
             r = self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
             if r.modified_count:
                 self.add_op_log('save_edit_%s' % data_field, context=page_name)
-            self.send_data_response({'updated': True})
+
+            return self.send_data_response({'updated': True})
 
         except DbError as e:
-            self.send_db_error(e)
+            return self.send_db_error(e)
 
 
 class GenerateCharIdApi(BaseHandler):
@@ -123,8 +120,8 @@ class GenerateCharIdApi(BaseHandler):
         assert isinstance(blocks, list)
         assert isinstance(columns, list)
         assert isinstance(chars, list)
-        assert not chars_col or isinstance(chars_col, list) and isinstance(chars_col[0], list) \
-            and isinstance(chars_col[0][0], int)
+        if chars_col:
+            assert isinstance(chars_col, list) and isinstance(chars_col[0], list) and isinstance(chars_col[0][0], int)
 
         if reorder.get('blocks'):
             blocks = Sort.sort_blocks(blocks)
@@ -135,5 +132,5 @@ class GenerateCharIdApi(BaseHandler):
         if reorder.get('chars') and chars:
             zero_char_id, layout_type, chars_col = Sort.sort(chars, columns, blocks, layout_type, chars_col)
 
-        self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-                                     zero_char_id=zero_char_id, layout_type=layout_type))
+        return self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
+                                            zero_char_id=zero_char_id, layout_type=layout_type))

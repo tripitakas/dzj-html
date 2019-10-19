@@ -25,4 +25,4 @@ class PunctuationApi(BaseHandler):
             self.send_data_response(dict(res=res))
 
         except DbError as e:
-            return self.send_db_error(e)
+            self.send_db_error(e)

@@ -87,7 +87,7 @@ class PublishBaseHandler(TaskHandler):
         steps = {'todo': steps}
         collection, id_name = self.get_task_meta(task_type)[:2]
         meta = dict(task_type=task_type, collection=collection, id_name=id_name, doc_id='', status=status,
-                    priority=int(priority), steps=steps, pre_tasks=pre_tasks, input=None, result=None,
+                    priority=int(priority), steps=steps, pre_tasks=pre_tasks, input=None, result={},
                     create_time=now, updated_time=now, publish_time=now,
                     publish_user_id=self.current_user['_id'],
                     publish_by=self.current_user['name'])

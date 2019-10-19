@@ -81,7 +81,6 @@ class TaskHandler(BaseHandler, TaskConfig):
     def finish_task(self, task):
         """ 完成任务提交 """
         # 更新当前任务
-        ret = {'finished': True}
         update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
         self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         # 释放数据锁
@@ -89,12 +88,8 @@ class TaskHandler(BaseHandler, TaskConfig):
         if shared_field and shared_field in self.data_auth_maps:
             update['lock.' + shared_field] = {}
             self.db[task['collection']].update_one({task['id_name']: task['doc_id']}, {'$set': update})
-            ret['data_lock_released'] = True
         # 更新后置任务
         self.update_post_tasks(task)
-        ret['post_tasks_updated'] = True
-
-        return ret
 
     def update_post_tasks(self, task):
         """ 任务完成提交后，更新后置任务的状态 """

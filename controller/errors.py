@@ -34,7 +34,7 @@ invalid_volume_code = 1020, '册编码格式有误'
 invalid_sutra_code = 1021, '经编码格式有误'
 invalid_reel_code = 1022, '卷编码格式有误'
 
-no_user = 2001, '没有此用户'
+no_user = 2001, '用户不存在'
 user_existed = 2002, '账号已存在'
 incorrect_password = 2003, '密码错误'
 incorrect_old_password = 2012, '原始密码错误'
@@ -62,6 +62,9 @@ task_not_allowed_retrieve = 3010, '只能撤回已发布、等待前置任务或
 task_not_allowed_reset = 3011, '只能重置已就绪的任务'
 task_steps_todo_empty = 3012, '任务没有设置步骤'
 task_step_error = 3013, '步骤参数有误'
+task_un_existed = 3014, '任务不存在'
+box_type_error = 3015, '切分框类型错误'
+task_review_un_finished = 3006, '审定任务未完成'
 
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'

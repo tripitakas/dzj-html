@@ -82,9 +82,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
         if not need_roles:
-            self.send_error_response(e.url_not_found, render=not api)
+            return self.send_error_response(e.url_not_found, render=not api)
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
-        self.send_error_response(e.unauthorized, render=not api, message=message)
+        return self.send_error_response(e.unauthorized, render=not api, message=message)
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -209,7 +209,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             message = re.sub(r'^.+\]', '', message)
             message = '无法访问文档库' if code in [61] else '%s: %s' % (e.mongo_error[1], message)
             return self.send_error_response((e.mongo_error[0] + code, message))
-        self.send_error_response((status_code, message), **kwargs)
+        return self.send_error_response((status_code, message), **kwargs)
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
@@ -236,7 +236,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
-        self.send_error_response((default_error[0] + code, reason), render=render)
+        return self.send_error_response((default_error[0] + code, reason), render=render)
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip

@@ -85,7 +85,7 @@ class TaskConfig(object):
             'roles': ['切分专家']
         },
         'text': {
-            'collection': 'page', 'id': 'name', 'protect_fields': ['text'],
+            'collection': 'page', 'id': 'name', 'protect_fields': ['text', 'txt_html'],
             'tasks': ['text_review', 'text_hard'],
             'roles': ['文字专家']
         },

@@ -235,7 +235,7 @@
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_proof/get_compare/{{page["name"]}}', {data: {}}, function (data) {
+    postApi('/task/text_get_compare/{{page["name"]}}', {data: {}}, function (data) {
       $('#cmp').html(data.cmp);
       var count = data.hit_page_codes.length;
       var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
@@ -250,7 +250,7 @@
   // 第几个比对本
   $(document).on('click', '#pagination a', function () {
     var obj = $(this);
-    postApi('/task/text_proof/get_compare/{{page["name"]}}', {
+    postApi('/task/text_get_compare/{{page["name"]}}', {
       data: {num: obj.text()}
     }, function (data) {
       $('#cmp').html(data.cmp);
@@ -268,7 +268,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'prev'
     };
-    postApi('/task/text_proof/get_compare_neighbor', {
+    postApi('/task/text_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html(res.txt + $('#cmp').html());
@@ -282,7 +282,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'next'
     };
-    postApi('/task/text_proof/get_compare_neighbor', {
+    postApi('/task/text_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html($('#cmp').html() + res.txt);

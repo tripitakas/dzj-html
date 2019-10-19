@@ -21,13 +21,13 @@ class TripitakaHandler(BaseHandler):
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
             if not m:
-                self.send_error_response(errors.tptk_page_code_error, render=True)
+                return self.send_error_response(errors.tptk_page_code_error, render=True)
             tripitaka_code = m.group(1)
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code}) or {}
             if not tripitaka:
-                self.send_error_response(errors.tptk_not_existed, render=True)
+                return self.send_error_response(errors.tptk_not_existed, render=True)
             elif tripitaka.get('img_available') == '否':
-                self.send_error_response(errors.tptk_img_unavailable, render=True)
+                return self.send_error_response(errors.tptk_img_unavailable, render=True)
 
             # 根据存储模式补齐page_code
             store_pattern = tripitaka.get('store_pattern')
@@ -68,7 +68,7 @@ class TripitakaHandler(BaseHandler):
                         nav=nav, img_url=img_url, page_text=page_text, page=page)
 
         except Exception as e:
-            self.send_db_error(e, render=True)
+            return self.send_db_error(e, render=True)
 
 
 class TripitakaListHandler(BaseHandler):
@@ -247,4 +247,4 @@ class PageInfoHandler(BaseHandler):
             self.render('task_info.html', page=page, field_names=field_names, format_value=format_value)
 
         except Exception as e:
-            self.send_db_error(e, render=True)
+            return self.send_db_error(e, render=True)

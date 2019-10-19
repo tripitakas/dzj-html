@@ -73,3 +73,20 @@ class TestTaskView(APITestCase):
             d = self.parse_response(r)
             self.assertIn('tasks', d, msg=task_type)
             self.assertEqual(1, len(d['tasks']), msg=task_type)
+
+    def test_lobby_order(self):
+        """测试任务大厅的任务显示顺序"""
+        self.login_as_admin()
+        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2))
+        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3))
+        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_12'], priority=2))
+        self.publish_tasks(dict(task_type='text_proof_3', doc_ids=['JX_165_7_12'], priority=1))
+        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_30'], priority=1))
+
+        self.login(u.expert1[0], u.expert1[1])
+        for i in range(5):
+            r = self.parse_response(self.fetch('/task/lobby/text_proof?_raw=1'))
+            docs = [t['doc_id'] for t in r.get('tasks', [])]
+            self.assertEqual(set(docs), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
+            self.assertEqual(len(docs), len(set(docs)))  # 不同校次的同名页面只列出一个
+            self.assertEqual(docs, ['JX_165_7_12', 'GL_1056_5_6', 'JX_165_7_30'])  # 按优先级顺序排列

@@ -1,8 +1,8 @@
 from . import api, view
 
 views = [
-    view.CutHandler
+    view.CutHandler, view.CutEditHandler
 ]
 handlers = [
-    api.CutSaveApi, api.CutEditSaveApi, api.GenerateCharIdApi
+    api.CutApi, api.CutEditApi, api.GenerateCharIdApi
 ]

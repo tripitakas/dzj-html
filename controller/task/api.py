@@ -196,7 +196,6 @@ class ReturnTaskApi(TaskHandler):
             if not task:
                 return self.send_error_response(errors.no_object)
             # 退回任务
-            ret = {'returned': True}
             update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(),
                       'returned_reason': self.get_request_data().get('reason')}
             r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
@@ -206,7 +205,7 @@ class ReturnTaskApi(TaskHandler):
             # 释放数据锁（领取任务时分配的长时数据锁）
             self.release_data_lock(task['doc_id'], task_type=task_type, is_temp=False)
 
-            return self.send_data_response(ret)
+            return self.send_data_response()
 
         except DbError as err:
             return self.send_db_error(err)
@@ -226,7 +225,7 @@ class RetrieveTaskApi(TaskHandler):
                 return self.send_error_response(err)
 
             # 撤回进行中的任务
-            ret = {'retrieved': True, 'count': 0}
+            ret = {'count': 0}
             task_ids = [ObjectId(t) for t in data['task_ids']]
             update = {'status': self.STATUS_RETRIEVED, 'updated_time': datetime.now()}
             r = self.db.task.update_many({'_id': {'$in': task_ids}, 'status': self.STATUS_PICKED}, {'$set': update})
@@ -258,7 +257,7 @@ class DeleteTasksApi(TaskHandler):
                 return self.send_error_response(err)
 
             # 删除已发布或悬挂的任务
-            ret = {'deleted': True, 'count': 0}
+            ret = {'count': 0}
             task_ids = [ObjectId(t) for t in data['task_ids']]
             condition = {'_id': {'$in': task_ids}, 'status': {'$in': [self.STATUS_OPENED, self.STATUS_PENDING]}}
             r = self.db.task.delete_many(condition)
@@ -305,7 +304,7 @@ class AssignTasksApi(TaskHandler):
                 return self.send_error_response(e.task_unauthorized)
 
             # 分配已发布的任务
-            ret = {'assigned': True, 'count': 0}
+            ret = {'count': 0}
             opened_tasks = self.db.task.find({
                 '_id': {'$in': [ObjectId(t) for t in data['task_ids']]},
                 'status': self.STATUS_OPENED

@@ -30,6 +30,7 @@ class RecognitionApi(BaseHandler):
 
     def post(self):
         """藏经OCR接口"""
+
         def handle_response(r):
             img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
             gif_file = img_file.split('.')[0] + '.gif'
@@ -70,7 +71,7 @@ class RecognitionApi(BaseHandler):
                              '--no-comments', '--no-names', '--same-delay', '--same-loopcount', '--no-warnings',
                              '--', gif_file])
 
-            self.send_data_response(dict(name=path.basename(gif_file)))
+            return self.send_data_response(dict(name=path.basename(gif_file)))
 
         data = self.get_request_data()
         if not data:
@@ -92,10 +93,10 @@ class RecognitionApi(BaseHandler):
         logging.info('recognize %s...' % filename)
         data['filename'] = filename
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
-        self.call_back_api(url, connect_timeout=5, request_timeout=20,
-                           handle_error=lambda t: self.send_error_response(e.ocr_err,
-                                                                           message=e.ocr_err[1] % (t or '无法访问')),
-                           body=img[0]['body'], method='POST', handle_response=handle_response)
+        return self.call_back_api(url, connect_timeout=5, request_timeout=20,
+                                  handle_error=lambda t: self.send_error_response(e.ocr_err,
+                                                                                  message=e.ocr_err[1] % (t or '无法访问')),
+                                  body=img[0]['body'], method='POST', handle_response=handle_response)
 
     @staticmethod
     def ocr2page(page):
@@ -170,7 +171,7 @@ class SubmitRecognitionApi(BaseHandler):
         page = self.upload_page(self, json_file, img_file)
         if page:
             self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
-            self.send_data_response(dict(name=page['imgname'], id=page['id']))
+            return self.send_data_response(dict(name=page['imgname'], id=page['id']))
 
     def get(self, result_folder):
         """批量导入OCR结果"""
@@ -187,7 +188,7 @@ class SubmitRecognitionApi(BaseHandler):
             elif isinstance(page, dict):
                 added.append(page['imgname'])
         self.add_op_log('submit_ocr_batch', context=str(len(added)))
-        self.send_data_response(dict(count=len(added), pages=added, existed=existed))
+        return self.send_data_response(dict(count=len(added), pages=added, existed=existed))
 
     @staticmethod
     def upload_page(self, json_file, img_file, ignore_error=False):

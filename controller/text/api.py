@@ -10,16 +10,17 @@ from tornado.escape import json_decode
 import controller.validate as v
 import controller.errors as errors
 from controller.base import DbError
-from controller.task.base import TaskHandler
 from controller.text.diff import Diff
-from controller.text.view import TextTools, TextProofHandler
+from controller.text.pack import TextPack
+from controller.task.base import TaskHandler
 
 
 class GetCompareTextApi(TaskHandler):
-    URL = '/api/task/text_proof/get_compare/@page_name'
+    URL = '/api/task/text_get_compare/@page_name'
 
     def post(self, page_name):
-        """ 获取ocr对应的比对文本 """
+        """ 获取比对本
+        根据OCR文本，从CBETA库中获取相似的文本作为比对本"""
         from controller.search.esearch import find_one
         try:
             page = self.db.page.find_one({'name': page_name})
@@ -38,7 +39,7 @@ class GetCompareTextApi(TaskHandler):
 
 
 class GetCompareNeighborApi(TaskHandler):
-    URL = '/api/task/text_proof/get_compare_neighbor'
+    URL = '/api/task/text_compare_neighbor'
 
     def post(self):
         """ 获取比对文本的前后页文本
@@ -65,7 +66,7 @@ class GetCompareNeighborApi(TaskHandler):
             self.send_db_error(e)
 
 
-class SaveTextProofApi(TaskHandler):
+class TextProofApi(TaskHandler):
     URL = ['/api/task/do/text_proof_@num/@task_id',
            '/api/task/update/text_proof_@num/@task_id']
 
@@ -74,22 +75,23 @@ class SaveTextProofApi(TaskHandler):
         try:
             # 检查参数
             data = self.get_request_data()
+            task_type = 'text_proof_' + num
+            steps = [s[0] for s in self.task_types[task_type].get('steps')]
             rules = [
                 (v.not_empty, 'step'),
-                (v.not_both_empty, 'cmp', 'txt_html'),
-                (v.in_list, 'step', list(TextProofHandler.default_steps.keys()))
+                (v.in_list, 'step', steps),
+                (v.not_both_empty, 'cmp', 'txt_html')
             ]
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
 
-            task_type = 'text_proof_' + num
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
             if not task:
-                return self.send_error_response(errors.no_object)
+                return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = (re.findall('(do|update)/', self.request.path) or ['do'])[0]
+            mode = 'do' if '/task/do' in self.request.path else 'update'
             if not self.check_auth(task, mode):
                 return self.send_error_response(errors.data_unauthorized)
 
@@ -118,97 +120,148 @@ class SaveTextProofApi(TaskHandler):
 
     def save_proof(self, task, mode, data):
         # 保存数据
-        ret = {'updated': True}
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-        update = {'result.doubt': doubt, 'updated_time': datetime.now(), 'result.txt_html': txt_html}
+        update = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
         r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         if r.modified_count:
             self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
 
         # 提交任务
         if mode == 'do' and data.get('submit'):
-            ret.update(self.finish_task(task))
+            self.finish_task(task)
 
-        self.send_data_response(ret)
+        self.send_data_response()
 
 
-class SaveTextReviewApi(TaskHandler):
+class TextReviewApi(TaskHandler):
     URL = ['/api/task/do/text_review/@task_id',
-           '/api/task/update/text_review/@task_id',
-           '/api/data/edit/text/@page_name']
+           '/api/task/update/text_review/@task_id']
 
-    def post(self, page_name):
+    def _publish_hard_task(self, review_task, doubt):
+        """ 发布难字任务"""
+        now = datetime.now()
+        hard_task = dict(task_type='text_hard', collection='page', id_name='name', doc_id=review_task['doc_id'],
+                         status=self.STATUS_OPENED, priority=review_task['priority'], steps={'todo': []},
+                         pre_tasks={}, input={'from_task': review_task['_id']}, result={'hard': doubt},
+                         create_time=now, updated_time=now, publish_time=now,
+                         publish_user_id=self.current_user['_id'],
+                         publish_by=self.current_user['name'])
+        self.db.task.insert_one(hard_task)
+        self.add_op_log('publish_text_hard', context='1个任务: %s' % review_task['_id'])
+
+    def post(self, task_id):
         """ 文字审定提交 """
+
         try:
-            # 检查权限
             task_type = 'text_review'
-            mode = (re.findall('/(do|update|edit)/', self.request.path) or ['view'])[0]
-            if not self.check_auth(mode, page_name, task_type):
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            if not task:
+                return self.send_error_response(errors.no_object, message='任务不存在')
+
+            # 检查权限
+            mode = 'do' if '/task/do' in self.request.path else 'update'
+            if not self.check_auth(task, mode):
                 self.send_error_response(errors.data_unauthorized)
 
-            # 保存数据
-            ret = {'updated': True}
+            # 保存任务
             data = self.get_request_data()
             doubt = data.get('doubt', '').strip('\n')
-            update = {'tasks.%s.doubt' % task_type: doubt, 'tasks.%s.updated_time' % task_type: datetime.now()}
-            txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-            if txt_html:
-                update.update({'txt_html': txt_html})
-                update.update({'text': TextTools.html2txt(txt_html)})
+            txt_html = data.get('txt_html') and json_decode(data['txt_html']).strip('\n')
+            update = {'result.doubt': doubt, 'updated_time': datetime.now()}
+            self.db.task.update_one({'_id': task['_id']}, {'$set': update})
 
-            # 生成难字任务
-            if mode == 'do' and data.get('submit') and doubt:
-                update.update({
-                    'tasks.text_hard.status': self.STATUS_OPENED, 'tasks.text_hard.publish_time': datetime.now(),
-                })
-                self.add_op_log('publish_text_hard', context=page_name)
+            # 将结果保存到page表中
+            text = TextPack.html2txt(txt_html)
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': {'text': text, 'txt_html': txt_html}})
 
-            r = self.db.page.update_one({'name': page_name}, {'$set': update})
-            if r.modified_count:
-                self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
+            if data.get('submit'):
+                if mode == 'do':
+                    # do提交后，完成任务且释放数据锁
+                    self.finish_task(task)
+                else:
+                    # update提交后，释放数据锁
+                    self.release_data_lock(task['doc_id'], task_type=task_type)
+                # 生成难字任务
+                if doubt and not self.db.task.find_one({'input.from_task': task['_id']}):
+                    self._publish_hard_task(task, doubt)
 
-            # 提交任务
-            if mode == 'do' and data.get('submit'):
-                ret.update(self.finish_task(task_type, page_name))
-
-            self.send_data_response(ret)
+            self.send_data_response()
 
         except DbError as e:
             self.send_db_error(e)
 
 
-class SaveTextHardApi(TaskHandler):
+class TextHardApi(TaskHandler):
     URL = ['/api/task/do/text_hard/@task_id',
            '/api/task/update/text_hard/@task_id']
 
-    def post(self, page_name):
-        """ 难字审定提交 """
+    def post(self, task_id):
+        """ 难字审定提交，难字任务的结果存入文字审定的结果中"""
         try:
-            # 检查权限
             task_type = 'text_hard'
-            mode = (re.findall('/(do|update)/', self.request.path) or ['do'])[0]
-            if not self.check_auth(mode, page_name, task_type):
+            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            if not task:
+                return self.send_error_response(errors.no_object, message='任务不存在')
+
+            # 检查权限
+            mode = 'do' if '/task/do' in self.request.path else 'update'
+            if not self.check_auth(task, mode):
                 self.send_error_response(errors.data_unauthorized)
 
-            # 保存数据
-            ret = {'updated': True}
+            # 保存任务
             data = self.get_request_data()
-            update = {'tasks.%s.updated_time' % task_type: datetime.now()}
-            txt_html = data.get('txt_html') and re.sub(r'\|+$', '', json_decode(data['txt_html']).strip('\n'))
-            if txt_html:
-                update.update({'txt_html': txt_html})
-                update.update({'text': TextTools.html2txt(txt_html)})
+            hard = data.get('hard', '').strip('\n')
+            txt_html = data.get('txt_html') and json_decode(data['txt_html']).strip('\n')
+            update = {'result.hard': hard, 'updated_time': datetime.now()}
+            self.db.task.update_one({'_id': task['input']['from_task']}, {'$set': update})
 
-            r = self.db.page.update_one({'name': page_name}, {'$set': update})
+            # 将结果保存到page表的共享字段中
+            text = TextPack.html2txt(txt_html)
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': {'text': text, 'txt_html': txt_html}})
+
+            if data.get('submit'):
+                if mode == 'do':
+                    # do提交后，完成任务且释放数据锁
+                    self.finish_task(task)
+                else:
+                    # update提交后，释放数据锁
+                    self.release_data_lock(task['doc_id'], task_type=task_type)
+
+            self.send_data_response()
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
+class TextEditApi(TaskHandler):
+    URL = '/api/data/edit/text/@page_name'
+
+    def post(self, page_name):
+        """ 专家用户首先申请数据锁，然后可以修改数据。"""
+        try:
+            # 检查参数
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'txt_html')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(errors.no_object)
+
+            # 检查数据锁
+            if not self.has_data_lock('page', 'name', page_name, 'text', True):
+                return self.send_error_response(errors.data_unauthorized)
+
+            # 保存数据
+            txt_html = data.get('txt_html') and json_decode(data['txt_html']).strip('\n')
+            text = TextPack.html2txt(txt_html)
+            r = self.db.page.update_one({'name': page_name}, {'$set': {'text': text, 'txt_html': txt_html}})
             if r.modified_count:
-                self.add_op_log('save_%s_%s' % (mode, task_type), context=page_name)
+                self.add_op_log('save_edit_text', context=page_name)
 
-            # 提交任务
-            if mode == 'do' and data.get('submit'):
-                ret.update(self.finish_task(task_type, page_name))
-
-            self.send_data_response(ret)
+            self.send_data_response()
 
         except DbError as e:
             self.send_db_error(e)

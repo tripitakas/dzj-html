@@ -78,14 +78,13 @@ class TaskLobbyHandler(TaskHandler):
             for task in tasks:
                 if task.get('doc_id') not in _doc_ids:
                     _tasks.append(task)
-                    _doc_ids.append(task.get(id_name))
+                    _doc_ids.append(task.get('doc_id'))
             return _tasks[:page_size]
 
         if task_type not in self.all_task_types():
             return [], 0
 
         task_meta = self.all_task_types().get(task_type)
-        collection, id_name = self.get_task_meta(task_type)[:2]
         page_size = page_size or self.config['pager']['page_size']
         if task_meta.get('groups'):
             condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED}

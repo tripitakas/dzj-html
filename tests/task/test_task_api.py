@@ -73,7 +73,7 @@ class TestTaskApi(APITestCase):
             self.assert_status(docs_un_existed, r, {task_type: 'un_existed'})
 
             # 测试数据未就绪。（只有任务依赖于某个数据字段，才有未就绪的情况）
-            docs_un_ready = ['JX_165_7_75', 'JX_165_7_87']
+            docs_un_ready = ['JX_22_995']
             if input_field:
                 self._app.db[collection].update_many({id_name: {'$in': docs_un_ready}}, {'$unset': {input_field: ''}})
                 r = self.parse_response(self.publish_tasks(dict(task_type=task_type, doc_ids=docs_un_ready)))

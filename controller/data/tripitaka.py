@@ -160,7 +160,7 @@ class TripitakaAddOrUpdateApi(BaseHandler, Tripitaka):
                 self.send_error_response(r.get('errors'))
 
         except DbError as error:
-            return self.send_db_error(error)
+            self.send_db_error(error)
 
 
 class TripitakaDeleteApi(BaseHandler):
@@ -186,4 +186,4 @@ class TripitakaDeleteApi(BaseHandler):
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:
-            return self.send_db_error(error)
+            self.send_db_error(error)
