@@ -15,11 +15,12 @@ url_placeholder = {
     'text_task': r'text_proof_\d|text_review',
     'task_id': r'\w{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
-    'edit_type': r'cut_edit|text_edit',
+    'collection': r'page|reel',
+    'shared_field': r'box|text',
+    'box_type': 'block|column|char',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
-    'box_type': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
 }
 
@@ -37,6 +38,7 @@ role_route_maps = {
             '/api/user/list': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/finish/@task_type/@task_id': ['POST'],
+            '/api/data/lock/@shared_field/@doc_id': ['POST'],
         }
     },
     '访客': {
@@ -80,7 +82,8 @@ role_route_maps = {
             '/task/(lobby|my)/cut_proof': ['GET'],
             '/api/task/pick/cut_proof': ['POST'],
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
-            '/api/task/(do|update|return|unlock)/cut_proof/@task_id': ['POST'],
+            '/api/task/(do|update|return)/cut_proof/@task_id': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分审定员': {
@@ -90,16 +93,17 @@ role_route_maps = {
             '/task/(lobby|my)/cut_review': ['GET'],
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update)/cut_review/@task_id': ['GET'],
-            '/api/task/(do|update|return|unlock)/cut_review/@task_id': ['POST'],
+            '/api/task/(do|update|return)/cut_review/@task_id': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分专家': {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/data/edit/cut/@page_name': ['GET'],
-            '/api/data/edit/cut/@page_name': ['POST'],
-            '/api/data/unlock/cut/@page_name': ['POST'],
+            '/data/edit/box/@page_name': ['GET'],
+            '/api/data/edit/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '文字校对员': {
@@ -112,10 +116,11 @@ role_route_maps = {
             '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
             '/api/task/text_proof/get_compare/@page_name': ['POST'],
             '/api/task/text_proof/get_compare_neighbor': ['POST'],
-            '/api/task/(do|update|return|unlock)/text_proof_@num/@task_id': ['POST'],
-            '/data/edit/cut/@page_name': ['GET'],
-            '/api/data/edit/cut/@page_name': ['POST'],
-            '/api/data/unlock/cut/@page_name': ['POST'],
+            '/api/task/(do|update|return)/text_proof_@num/@task_id': ['POST'],
+            '/data/edit/box/@page_name': ['GET'],
+            '/api/data/edit/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -125,10 +130,11 @@ role_route_maps = {
             '/task/(lobby|my)/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update)/text_review/@task_id': ['GET'],
-            '/api/task/(do|update|return|unlock)/text_review/@task_id': ['POST'],
-            '/data/edit/cut/@page_name': ['GET'],
-            '/api/data/edit/cut/@page_name': ['POST'],
-            '/api/data/unlock/cut/@page_name': ['POST'],
+            '/api/task/(do|update|return)/text_review/@task_id': ['POST'],
+            '/data/edit/box/@page_name': ['GET'],
+            '/api/data/edit/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -138,7 +144,7 @@ role_route_maps = {
             '/task/(lobby|my)/text_hard': ['GET'],
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@task_id': ['GET'],
-            '/api/task/(do|update|return|unlock)/text_hard/@task_id': ['POST'],
+            '/api/task/(do|update|return)/text_hard/@task_id': ['POST'],
             '/data/edit/text/@page_name': ['GET'],
             '/api/data/edit/text/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],

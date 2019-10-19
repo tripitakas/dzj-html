@@ -15,7 +15,7 @@ class TestText(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3, u.expert3]],
             '切分专家,文字专家'
         )
-        self.delete_all_tasks()
+        self.delete_tasks_and_locks()
 
     def tearDown(self):
         super(TestText, self).tearDown()

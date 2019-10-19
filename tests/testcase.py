@@ -19,7 +19,6 @@ import controller.auth as auth
 from controller.app import Application
 from controller.task.base import TaskHandler as Th
 
-
 if PY3:
     import http.cookies as Cookie
 else:
@@ -199,6 +198,10 @@ class APITestCase(AsyncHTTPTestCase):
             data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
         return self.fetch('/api/task/publish', body={'data': data})
 
-    def delete_all_tasks(self):
-        """ 清空任务 """
+    def delete_tasks_and_locks(self):
+        """ 清空任务以及数据锁 """
         self._app.db.task.delete_many({})
+        self._app.db.page.update_many({}, {'$set': {'lock': {}}})
+
+    def get_one_task(self, task_type, doc_id):
+        return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})

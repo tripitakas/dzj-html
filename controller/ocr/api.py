@@ -14,7 +14,7 @@ from glob2 import glob
 from os import path, remove
 from operator import itemgetter
 from urllib.parse import urlencode
-from util.add_pages import add_page
+from utils.add_pages import add_page
 from tornado.escape import to_basestring
 from boto3.session import Session
 from boto3.exceptions import Boto3Error

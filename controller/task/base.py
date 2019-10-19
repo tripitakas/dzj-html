@@ -115,24 +115,6 @@ class TaskHandler(BaseHandler, TaskConfig):
                 update.update({'status': self.STATUS_OPENED})
             self.db.task.update_one({'_id': t['_id']}, {'$set': update})
 
-    """ 数据锁介绍
-    1）数据锁的目的：通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-      1.tasks。同一page的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof对chars而言）
-      2.roles。数据专家角色对所有page的授权字段
-    2）数据锁的类型：
-      1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
-      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时分配临时数据锁，在窗口离开时解锁，或定时自动回收。
-    3）数据锁的使用：
-      1.首先在task_shared_data_fields中注册需要共享的数据字段；
-      2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
-    4) 数据锁的存储：存储在数据记录的lock字段中。比如page表的数据锁，就存在page表的lock字段中。
-    """
-
-    @classmethod
-    def get_shared_field(cls, task_type):
-        """ 获取任务保护的共享字段 """
-        return cls.prop(cls.task_types, '%s.shared_field' % task_type)
-
     def has_data_lock(self, collection, id_name, doc_id, shared_field, is_temp=None):
         """ 检查当前用户是否拥有某数据锁
         :param collection 数据表，即mongodb的collection

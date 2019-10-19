@@ -21,7 +21,7 @@ class TestTaskApi(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
             '普通用户,单元测试用户'
         )
-        self.delete_all_tasks()
+        self.delete_tasks_and_locks()
 
     def tearDown(self):
         super(TestTaskApi, self).tearDown()

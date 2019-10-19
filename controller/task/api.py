@@ -41,9 +41,9 @@ class GetReadyTasksApi(TaskHandler):
             docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
             response = {'docs': [d[id_name] for d in list(docs)], 'page_size': page_size,
                         'page_no': page_no, 'total_count': count}
-            self.send_data_response(response)
+            return self.send_data_response(response)
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class PublishTasksApi(PublishBaseHandler):
@@ -93,10 +93,10 @@ class PublishTasksApi(PublishBaseHandler):
             force = data['force'] == '1'
             log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
                                     data['priority'], force, doc_ids=data['doc_ids'])
-            self.send_data_response({k: value for k, value in log.items() if value})
+            return self.send_data_response({k: value for k, value in log.items() if value})
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class PickTaskApi(TaskHandler):
@@ -152,7 +152,7 @@ class PickTaskApi(TaskHandler):
             return self.assign_task(task)
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
     def assign_task(self, task):
         """ 分配任务和数据锁（如果有）给当前用户。
@@ -209,7 +209,7 @@ class ReturnTaskApi(TaskHandler):
             return self.send_data_response(ret)
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class RetrieveTaskApi(TaskHandler):
@@ -238,10 +238,10 @@ class RetrieveTaskApi(TaskHandler):
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
             self.release_data_lock([t['doc_id'] for t in tasks], task_type=task_type, is_temp=False)
 
-            self.send_data_response(ret)
+            return self.send_data_response(ret)
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class DeleteTasksApi(TaskHandler):
@@ -270,10 +270,10 @@ class DeleteTasksApi(TaskHandler):
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
             self.release_data_lock([t['doc_id'] for t in tasks], task_type=task_type, is_temp=False)
 
-            self.send_data_response(ret)
+            return self.send_data_response(ret)
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class AssignTasksApi(TaskHandler):
@@ -337,10 +337,10 @@ class AssignTasksApi(TaskHandler):
                 doc_ids = [t['doc_id'] for t in opened_tasks]
                 self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$set': update})
 
-            self.send_data_response(ret)
+            return self.send_data_response(ret)
 
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
 
 
 class FinishTaskApi(TaskHandler):
@@ -355,18 +355,37 @@ class FinishTaskApi(TaskHandler):
             ret = self.finish_task(task)
             return self.send_data_response(ret)
         except DbError as err:
-            self.send_db_error(err)
+            return self.send_db_error(err)
+
+
+class LockTaskDataApi(TaskHandler):
+    URL = '/api/data/lock/@shared_field/@doc_id'
+
+    def post(self, shared_field, doc_id):
+        """ 获取临时数据锁。"""
+        assert shared_field in self.data_auth_maps
+        try:
+            meta = self.data_auth_maps[shared_field]
+            r = self.get_data_lock(meta['collection'], meta['id'], doc_id, shared_field)
+            if r is True:
+                return self.send_data_response()
+            else:
+                return self.send_error_response(r)
+
+        except DbError as err:
+            return self.send_db_error(err)
 
 
 class UnlockTaskDataApi(TaskHandler):
-    URL = ['/api/task/unlock/@task_type/@task_id',
-           '/api/data/unlock/@edit_type/@task_id']
+    URL = '/api/data/unlock/@shared_field/@doc_id'
 
-    def post(self, task_type, doc_id):
-        """ 释放数据锁。仅能释放由update和edit而申请的临时数据锁，不能释放do做任务的长时数据锁。"""
+    def post(self, shared_field, doc_id):
+        """ 释放临时数据锁。"""
+        assert shared_field in self.data_auth_maps
         try:
-            data_field = self.get_shared_field(task_type)
-            self.release_data_lock(doc_id, data_field)
-            self.send_data_response()
-        except DbError as e:
-            self.send_db_error(e)
+            meta = self.data_auth_maps[shared_field]
+            self.release_data_lock(doc_id, meta['collection'], meta['id'], shared_field)
+            return self.send_data_response()
+
+        except DbError as err:
+            return self.send_db_error(err)

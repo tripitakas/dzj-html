@@ -21,7 +21,7 @@ class TestPeriodicTask(APITestCase):
     def test_do_task_release(self):
         self.login_as_admin()
         # 发布任务，前置任务为空
-        self.delete_all_tasks()
+        self.delete_tasks_and_locks()
         self.assert_code(200, self.publish_tasks(dict(task_type='text_review', pages='GL_1056_5_6', pre_tasks=[])))
         # 领取任务
         self.login(u.expert1[0], u.expert1[1])
