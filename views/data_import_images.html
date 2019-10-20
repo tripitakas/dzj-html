@@ -63,7 +63,7 @@
 
     <div class="content">
       <div class="title">第一步：批量导入藏经图</div>
-      <form class="form-inline" action="#">
+      <form class="form-inline" id="import-images-form" action="#" οnsubmit="return false;">
         <div class="form-group">
           <label for="user_code">网盘用户名</label>
           <input type="text" class="form-control" id="user_code">
@@ -81,7 +81,7 @@
       </form>
 
       <div class="title">第二步：生成藏册页数据（启动OCR为可选）</div>
-      <form class="form-inline" action="#">
+      <form class="form-inline" id="import-meta-form" action="#" οnsubmit="return false;">
         <div class="form-group">
           <label for="h_num">水平线数</label>
           <input type="text" class="form-control" id="h_num" placeholder="可选">
