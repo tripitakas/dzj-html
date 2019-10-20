@@ -74,7 +74,7 @@
         </div>
         <div class="form-group">
           <label for="folder">目录名</label>
-          <input type="email" class="form-control" id="folder">
+          <input type="text" class="form-control" id="folder">
         </div>
         <button type="submit" class="btn btn-default" id="btn-import-images">导入</button>
         <p id="import-images-result" class="error"></p>
@@ -121,7 +121,9 @@
     postApi('/data/import_meta', {data: {user_code: user_code, tripitaka_code: tripitaka_code,
           h_num: $('#h_num').val(), v_num: $('#v_num').val()}},
         function (res) {
-          $('#import-meta-result').text('导入了' + res.new_pages.length + '个页面：' + res.new_pages.slice(0, 5).join(', '));
+          $('#import-meta-result').html(res.pages.length + '个页面中，新导入了' + res.new_pages.length + '个页面：'
+            + res.new_pages.slice(0, 5).join(', ') + '<br>'
+             + res.sutras.length + '经，' + res.reels.length + '卷，' + res.volumes.length + '册');
         }, function (error) {
           $('#import-meta-result').text('出错：' + error.message);
         });
