@@ -15,13 +15,12 @@ unlock_temp_minutes = 30  # 30分钟自动释放数据锁
 
 def periodic_task(app, opt=None):
     opt = opt or {}
-    if 'update_time' not in data or opt.get('at_once') or (
-            datetime.now() - data['update_time']).seconds > opt.get('interval', 600):
+    if 'update_time' not in data or opt.get('at_once') or (datetime.now() - data['update_time']).seconds > opt.get(
+            'interval', 600):
         data['update_time'] = datetime.now()
         try:
             task_time = datetime.now() - timedelta(minutes=opt.get('minutes', unlock_task_minutes))
             temp_time = datetime.now() - timedelta(minutes=opt.get('minutes', unlock_temp_minutes))
-            # fields = list(set(Th.task_shared_data_fields.values()))
             fields = []  # to update
             task_cond = [{'lock.%s.locked_time' % f: {'$lt': task_time}, 'lock.%s.is_temp' % f: False} for f in fields]
             temp_cond = [{'lock.%s.locked_time' % f: {'$lt': temp_time}, 'lock.%s.is_temp' % f: True} for f in fields]

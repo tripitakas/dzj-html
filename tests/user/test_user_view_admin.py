@@ -40,7 +40,7 @@ class TestUserAdminViews(APITestCase):
         data = self.parse_response(r)
         self.assertIn(u.user1[2], data)
 
-    def test_user_views(self):
+    def _test_user_views(self):
         """URL的合法性"""
         for view in views:
             pkg = re.sub(r'^.+controller\.', '', str(view)).split('.')[0]

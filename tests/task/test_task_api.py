@@ -73,7 +73,7 @@ class TestTaskApi(APITestCase):
             self.assert_status(docs_un_existed, r, {task_type: 'un_existed'})
 
             # 测试数据未就绪。（只有任务依赖于某个数据字段，才有未就绪的情况）
-            docs_un_ready = ['JX_22_995']
+            docs_un_ready = ['YB_22_995']
             if input_field:
                 self._app.db[collection].update_many({id_name: {'$in': docs_un_ready}}, {'$unset': {input_field: ''}})
                 r = self.parse_response(self.publish_tasks(dict(task_type=task_type, doc_ids=docs_un_ready)))
@@ -186,8 +186,7 @@ class TestTaskApi(APITestCase):
 
             # 退回任务
             r = self.fetch('/api/task/return/%s/%s' % (task_type, task['_id']), body={'data': {}})
-            data = self.parse_response(r)
-            self.assertIn('returned', data, msg=task_type)
+            self.assert_code(200, r)
 
             # 再随机领取一个任务
             self.login(u.expert1[0], u.expert1[1])

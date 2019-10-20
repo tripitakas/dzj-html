@@ -8,13 +8,9 @@ from controller import auth
 
 class TestRole(APITestCase):
     def test_role_func(self):
-        self.assertTrue(auth.can_access('切分专家', '/task/do/cut_proof/GL_1_1_1', 'GET'))
-        self.assertFalse(auth.can_access('', '/task/do/cut_proof/GL_1_1_1', 'GET'))
-
-        self.assertEqual(auth.get_route_roles('/task/do/cut_proof/GL_1_1', 'GET'), ['切分校对员', '切分专家'])
-
-        routes = auth.get_role_routes('切分专家, 数据管理员')
-        self.assertIn('/api/data/tripitaka', routes)
+        self.assertTrue(auth.can_access('切分专家', '/api/task/pick/cut_proof', 'POST'))
+        self.assertFalse(auth.can_access('', '/api/task/pick/cut_proof', 'POST'))
+        self.assertEqual(auth.get_route_roles('/api/task/pick/cut_proof', 'POST'), ['切分校对员', '切分专家'])
 
     def test_validate(self):
         data = {'name': '1234567890', 'phone': '', 'email': '', 'password': '', 'age': 8}

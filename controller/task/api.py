@@ -205,7 +205,8 @@ class ReturnTaskApi(TaskHandler):
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             shared_field = self.get_shared_field(task_type)
-            self.release_temp_lock(task['doc_id'], shared_field)
+            if shared_field:
+                self.release_temp_lock(task['doc_id'], shared_field)
 
             return self.send_data_response()
 
@@ -238,7 +239,8 @@ class RetrieveTaskApi(TaskHandler):
             # 释放数据锁（领取任务时分配的长时数据锁）
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
             shared_field = self.get_shared_field(task_type)
-            self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
+            if shared_field:
+                self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
 
             return self.send_data_response(ret)
 
@@ -271,7 +273,8 @@ class DeleteTasksApi(TaskHandler):
             # 释放数据锁（领取任务时分配的长时数据锁）
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
             shared_field = self.get_shared_field(task_type)
-            self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
+            if shared_field:
+                self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
 
             return self.send_data_response(ret)
 

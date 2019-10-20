@@ -153,7 +153,7 @@ class TextReviewApi(TaskHandler):
                          publish_user_id=self.current_user['_id'],
                          publish_by=self.current_user['name'])
         self.db.task.insert_one(hard_task)
-        self.add_op_log('publish_text_hard', context=review_task['_id'])
+        self.add_op_log('publish_text_hard', context=str(review_task['_id']))
 
     def post(self, task_id):
         """ 文字审定提交 """
@@ -213,8 +213,10 @@ class TextHardApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_task_auth(task, mode):
-                self.send_error_response(errors.data_unauthorized)
+            self.check_task_auth(task, mode)
+            r = self.check_task_lock(task, mode)
+            if r is not True:
+                return self.send_error_response(r)
 
             # 保存任务
             data = self.get_request_data()

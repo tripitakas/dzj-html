@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import tests.users as u
-from bson import objectid
 from tests.testcase import APITestCase
-from controller import errors
 from controller.task.base import TaskHandler as Th
 
 
@@ -42,12 +39,14 @@ class TestTaskView(APITestCase):
             r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
             self.assert_code(200, r, msg=task_type)
 
-        # 领取任务
+        # 领取并完成任务
         self.login(u.expert1[0], u.expert1[1])
         task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
         for task_type in task_types:
             task = self._app.db.task.find_one({'task_type': {'$regex': task_type + '.*'}, 'doc_id': docs_ready[0]})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
+            self.assert_code(200, r, msg=task_type)
+            r = self.fetch('/api/task/finish/%s/%s' % (task['task_type'], task['_id']), body={'data': {}})
             self.assert_code(200, r, msg=task_type)
 
         # 任务管理页面
