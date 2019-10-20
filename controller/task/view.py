@@ -5,6 +5,8 @@
 @time: 2018/12/26
 """
 import random
+from datetime import datetime
+from controller import errors
 from controller.task.base import TaskHandler
 
 
@@ -150,3 +152,40 @@ class MyTaskHandler(TaskHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
+
+class PageTaskInfoHandler(TaskHandler):
+    URL = '/task/page/@page_name'
+
+    def get(self, page_name):
+        """ 页面任务详情 """
+
+        def format_info(key, value):
+            """ 格式化任务信息"""
+            if isinstance(value, datetime):
+                value = value.strftime('%Y-%m-%d %H:%M')
+            elif key == 'task_type':
+                value = self.get_task_name(value)
+            elif key == 'status':
+                value = self.get_status_name(value)
+            elif key == 'pre_tasks':
+                value = '/'.join([self.get_task_name(t) for t in value])
+            elif key == 'steps':
+                value = '/'.join([self.get_step_name(t) for t in value.get('todo', [])])
+            elif key == 'priority':
+                value = self.get_priority_name(int(value))
+            return value
+
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(errors.no_object, message='页面不存在')
+            tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
+            display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
+                              'updated_time', 'finished_time', 'publish_by', 'publish_time',
+                              'picked_by', 'picked_time', 'returned_reason']
+
+            self.render('task_info.html', page=page, tasks=tasks, format_info=format_info,
+                        display_fields=display_fields)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)

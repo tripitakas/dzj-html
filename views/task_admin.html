@@ -105,10 +105,10 @@
                     {% for t in tasks %}
                     <tr id="{{t['doc_id']}}" class="task-tr">
                       <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
-                      <td><a class="doc-name" href="/task/info/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                      <td><a class="doc-name" href="/task/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
-                      <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
-                      <td>{{Th.prior_names.get(t['priority']) or ''}}</td>
+                      <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.get_status_name(t['status']) or ''}}</td>
+                      <td>{{Th.get_priority_name(t['priority']) or ''}}</td>
                       <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps',{}).get('todo') or []])}}</td>
                       <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
                       <td>{{to_date_str(t.get('publish_time'))}}</td>

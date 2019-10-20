@@ -155,7 +155,7 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/api/task/publish': ['POST'],
-            '/task/info/@page_name': ['GET'],
+            '/task/page/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/user/@task_type': ['POST'],

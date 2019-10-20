@@ -51,7 +51,7 @@
                   <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
-                      <th><input id="check-all" type="checkbox"/></th>
+                      <th><input id="check-all" type="checkbox"  value=""/></th>
                       <th>藏名</th>
                       <th>简称</th>
                       <th>编码</th>
@@ -66,7 +66,7 @@
                     <tbody>
                     {% for t in tripitakas %}
                     <tr id="{{t.get('_id')}}">
-                      <td><input type="checkbox"/></td>
+                      <th><span><input type="checkbox"  value=""/></span></th>
                       <td>{{t.get('name') or ''}}</td>
                       <td>{{t.get('short_name') or ''}}</td>
                       <td>{{t.get('tripitaka_code') or ''}}</td>

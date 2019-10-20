@@ -1,7 +1,7 @@
 from . import api, view
 
 views = [
-    view.TaskLobbyHandler, view.MyTaskHandler, view.TaskAdminHandler,
+    view.TaskLobbyHandler, view.MyTaskHandler, view.TaskAdminHandler, view.PageTaskInfoHandler
 ]
 
 handlers = [

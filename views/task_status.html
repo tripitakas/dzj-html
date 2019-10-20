@@ -87,11 +87,11 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}" class="task-tr">
                       <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
+                      <td><a href="/task/page/{{t['name']}}">{{t['name']}}</a></td>
                       {% for _task_type in display_task_types.keys() %}
                       <td class="{{Th.prop(t, 'tasks.%s.status' % _task_type)}}">
                         <a href="/task/{{_task_type}}/{{t['name']}}">
-                          {{Th.task_status_names.get(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
+                          {{Th.get_status_name(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
                         </a>
                       </td>
                       {% end %}

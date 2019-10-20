@@ -46,7 +46,7 @@
                     {% for t in tasks %}
                     <tr>
                       <td>{{t['doc_id']}}</td>
-                      <td>{{Th.task_status_names.get(t['status']) or ''}}</td>
+                      <td>{{Th.get_status_name(t['status']) or ''}}</td>
                       <td>{{to_date_str(t.get('picked_time'))}}</td>
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>

@@ -231,7 +231,7 @@ class PageInfoHandler(BaseHandler):
             elif key == 'steps':
                 value = '/'.join([step_names.get(t, '') for t in value.get('todo', [])])
             elif key == 'priority':
-                value = self.prior_names.get(int(value))
+                value = self.get_priority_name(int(value))
             return value
 
         step_names = dict()

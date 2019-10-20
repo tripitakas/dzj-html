@@ -56,15 +56,15 @@
                     <tbody>
                     {% for p in pages %}
                     <tr>
-                      <td>{{p.get('name')}}</td>
+                      <td><a class="doc-name" href="/task/page/{{p.get('name')}}">{{p.get('name')}}</a></td>
                       <td>{{p.get('batch') or ''}}</td>
                       <td>{{p.get('un_sutra_id') or ''}}</td>
                       <td>{{p.get('reel_id') or ''}}</td>
                       <td>{{p.get('reel_page_no') or ''}}</td>
-                      <td><a href="/task/text_proof_1/{{p.get('name')}}">{{'已就绪' if p.get('ocr') else ''}}</a></td>
-                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=block_box">{{'已就绪' if p.get('blocks') else ''}}</a></td>
-                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=column_box">{{'已就绪' if p.get('columns') else ''}}</a></td>
-                      <td><a href="/task/cut_proof/{{p.get('name')}}?step=char_box">{{'已就绪' if p.get('chars') else ''}}</a></td>
+                      <td><a href="/data/edit/text/{{p.get('name')}}">{{'已就绪' if p.get('ocr') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'已就绪' if p.get('blocks') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'已就绪' if p.get('columns') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'已就绪' if p.get('chars') else ''}}</a></td>
                       <td>{{to_date_str(p.get('create_time'))}}</td>
                       <td>{{to_date_str(p.get('updated_time'))}}</td>
                       </td>

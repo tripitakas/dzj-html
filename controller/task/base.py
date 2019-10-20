@@ -31,7 +31,29 @@ class TaskHandler(BaseHandler, TaskConfig):
     data_status_names = {STATUS_UNREADY: '未就绪', STATUS_TODO: '待办', STATUS_READY: '已就绪'}
 
     # 任务优先级
-    prior_names = {3: '高', 2: '中', 1: '低'}
+    priority_names = {3: '高', 2: '中', 1: '低'}
+
+    # 任务字段定义
+    task_fields = {
+        'task_type': '任务类型', 'collection': '数据集合', 'id_name': '文档ID名称', 'doc_id': '文档ID值',
+        'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
+        'updated_time': '更新时间', 'finished_time': '完成时间',
+        'publish_by': '发布人', 'publish_time': '发布时间',
+        'picked_by': '领取人', 'picked_time': '领取时间',
+        'returned_reason': '退回理由',
+    }
+
+    @classmethod
+    def get_status_name(cls, status):
+        return cls.task_status_names.get(status)
+
+    @classmethod
+    def get_priority_name(cls, priority):
+        return cls.priority_names.get(priority)
+
+    @classmethod
+    def get_field_name(cls, field):
+        return cls.task_fields.get(field)
 
     def find_tasks(self, task_type, doc_id=None, status=None, size=None, mine=False):
         assert task_type in self.task_types
