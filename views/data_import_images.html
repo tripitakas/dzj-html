@@ -76,7 +76,7 @@
           <label for="folder">目录名</label>
           <input type="text" class="form-control" id="folder">
         </div>
-        <button type="submit" class="btn btn-default" id="btn-import-images">导入</button>
+        <button type="submit" class="btn btn-default waves-effect" id="btn-import-images">导入</button>
         <p id="import-images-result" class="error"></p>
       </form>
 
@@ -90,9 +90,12 @@
           <label for="v_num">竖直线数</label>
           <input type="text" class="form-control" id="v_num" placeholder="可选">
         </div>
-        <button type="submit" class="btn btn-default" id="btn-import-meta">导入</button>
+        <button type="submit" class="btn btn-default waves-effect" id="btn-import-meta">导入</button>
         <p id="import-meta-result" class="error"></p>
       </form>
+
+      <div class="title">第三步：<button class="btn btn-default waves-effect" id="fetch-result">拉取OCR结果</button></div>
+      <div id="ocr-result"></div>
     </div>
   </div>
 
@@ -121,12 +124,24 @@
     postApi('/data/import_meta', {data: {user_code: user_code, tripitaka_code: tripitaka_code,
           h_num: $('#h_num').val(), v_num: $('#v_num').val()}},
         function (res) {
-          $('#import-meta-result').html(res.pages.length + '个页面中，新导入了' + res.new_pages.length + '个页面：'
-            + res.new_pages.slice(0, 5).join(', ') + '<br>'
+          $('#import-meta-result').text(res.pages.length + '个页面中，新导入了' + res.new_pages.length + '个页面：'
+            + res.new_pages.slice(0, 5).join(', ') + '... '
              + res.sutras.length + '经，' + res.reels.length + '卷，' + res.volumes.length + '册');
         }, function (error) {
           $('#import-meta-result').text('出错：' + error.message);
         });
+  });
+
+  $('#fetch-result').click(function () {
+    getApi('/data/fetch_ocr/' + $('#user_code').val(),
+      function (res) {
+        var $result = $('#ocr-result');
+        res.pages.forEach(function(p, i) {
+          $result.append('<p>' + (i + 1) + ': ' + p + '</p>');
+        });
+      }, function (error) {
+        $result.append('<p>出错：' + error.message + '</p>');
+      });
   });
 
 </script>

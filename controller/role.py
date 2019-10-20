@@ -22,6 +22,7 @@ url_placeholder = {
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'box_type': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
+    'user_code': '[A-Za-z0-9]+',
 }
 
 """ 角色列表。针对每个角色定义：
@@ -188,6 +189,7 @@ role_maps = {
             '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
             '/api/data/import_images': ['POST'],
             '/api/data/import_meta': ['POST'],
+            '/api/data/fetch_ocr/@user_code': ['GET'],
             '/data/import_images': ['GET'],
         }
     },
