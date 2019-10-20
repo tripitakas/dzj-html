@@ -95,7 +95,7 @@ class CutEditApi(TaskHandler):
                 return self.send_error_response(errors.task_step_error)
 
             # 检查数据锁
-            if not self.has_data_lock(page_name, 'box', True):
+            if not self.has_data_lock(page_name, 'box'):
                 return self.send_error_response(errors.data_unauthorized)
 
             # 保存数据

@@ -30,8 +30,11 @@ class TextProofHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
+            # 检查任务权限
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_task_auth(task, mode)
+            self.check_task_auth(task, mode)
+
+            readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
@@ -52,10 +55,11 @@ class TextProofHandler(TaskHandler, TextPack):
         params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
         ocr = re.sub(r'\|', '\n', page.get('ocr')) or ''
-        cmp1 = self.prop(task, 'result.cmp')
-        texts = dict(base=ocr, cmp1=cmp1, cmp2='')
+        cmp = self.prop(task, 'result.cmp')
+        texts = dict(base=ocr, cmp1=cmp, cmp2='')
         cmp_data = self.prop(task, 'result.txt_html')
-        if not cmp_data:
+        re_compare = self.get_query_argument('re_compare', 'false')
+        if not cmp_data or re_compare == 'true':
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
         self.render(
@@ -92,8 +96,11 @@ class TextReviewHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
+            # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_task_auth(task, mode)
+            self.check_task_auth(task, mode)
+            has_lock = self.check_task_lock(task, mode) is True
+
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
             CutHandler.char_render(page, layout, **params)
@@ -105,7 +112,7 @@ class TextReviewHandler(TaskHandler, TextPack):
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=readonly,
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=not has_lock,
                 texts=texts, cmp_data=cmp_data, doubt=review_doubt, proof_doubt=proof_doubt,
                 get_img=self.get_img, steps=dict(is_first=True, is_last=True), **params
             )
@@ -130,14 +137,19 @@ class TextHardHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
+            # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            readonly = not self.check_task_auth(task, mode)
+            self.check_task_auth(task, mode)
+            has_lock = self.check_task_lock(task, mode) is True
+
             hard = self.prop(task, 'result.hard')
             cmp_data = self.prop(page, 'txt_html')
+
+            # 缺省参数
+            args = dict(texts={}, steps=dict(is_first=True, is_last=True))
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=readonly,
-                texts={}, cmp_data=cmp_data, doubt=hard, get_img=self.get_img,
-                steps=dict(is_first=True, is_last=True)
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=not has_lock,
+                cmp_data=cmp_data, doubt=hard, get_img=self.get_img, **args
             )
 
         except Exception as e:
@@ -145,8 +157,7 @@ class TextHardHandler(TaskHandler, TextPack):
 
 
 class TextEditHandler(TaskHandler, TextPack):
-    URL = ['/data/text/@page_name',
-           '/data/edit/text/@page_name']
+    URL = '/data/edit/text/@page_name'
 
     def get(self, page_name):
         """ 文字修改页面 """
@@ -156,30 +167,16 @@ class TextEditHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            # 检查数据锁资质，edit模式且有资质时，分配数据锁
-            qualified = self.has_lock_qualification('page', 'name', page_name, 'text')
-            mode = 'edit' if 'edit/' in self.request.path else 'view'
-            has_lock = False
-            if mode == 'edit':
-                if not qualified:
-                    return self.send_error_response(errors.unauthorized, render=True)
-                else:
-                    r = self.get_data_lock('page', 'name', page_name, 'text')
-                    has_lock = r is True
+            # 获取数据锁
+            has_lock = self.get_data_lock(page_name, 'text') is True
+            cmp_data = self.prop(page, 'txt_html') or ''
 
-            # 尝试获取数据锁
-            r = self.get_data_lock('page', 'name', page_name, 'text')
-            if r is not True:
-                return self.send_error_response(r, render=True)
-
-            # 检查txt_html字段
-            cmp_data = self.prop(page, 'txt_html')
-            if not cmp_data:
-                return self.send_error_response(errors.task_review_un_finished, render=True,
-                                                message='文字审定任务完成后才能修改')
+            # 缺省参数
+            args = dict(task_type='', task=dict(), texts={}, doubt='', steps=dict(is_first=True, is_last=True))
             self.render(
-                'task_text_do.html', page=page, mode='edit', readonly=False, cmp_data=cmp_data,
-                get_img=self.get_img
+                'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,
+                get_img=self.get_img, **args
+
             )
 
         except Exception as e:

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   {% set stage = '文字校对' if 'proof' in task_type else '文字审定' if 'review' in task_type else '难字审定' %}
-  <title>{{stage}}</title>
+  <title>{{stage+'-'+page['name']}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -79,8 +79,8 @@
           </span>
         </div>
         <div class="right">
-          <div class="tips {{'' if readonly else 'hide'}}">
-            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+          <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
+            数据已被其他人锁定，暂时不能修改。
           </div>
           <div class="edit-btns">
             <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
@@ -93,12 +93,13 @@
             <img src="{{ static_url('imgs/icon_add_down.png') }}" class="btn-img btn-add-down-line" title="向下增行"/>
             <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img btn-doubt {{'hide' if 'hard' in task_type else ''}}" title="存疑"/>
             <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
+            <img src="{{ static_url('imgs/icon_compare.png') }}" class="btn-img btn-compare" title="重新比对"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text {{'' if texts else 'hide'}}" title="原文"/>
             <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
             <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
+            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly else 'hide'}}" title="提交"/>
           </div>
         </div>
       </header>
@@ -288,6 +289,7 @@
 <script src="{{ static_url('js/task.js') }}"></script>
 
 <script>
+  console.log('{{locals()}}');
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
@@ -338,36 +340,32 @@
       $('table tr').find('td:eq(4)').hide();
     }
   });
+
   // 更多操作
   $('.btn-ed-box').click(function () {
     $('.more-group').toggleClass('hidden');
   });
+
   // 修改字框
   $('.ed-char-box').click(function () {
     window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=char_box';
   });
+
   // 修改栏框
   $('.ed-block-box').click(function () {
     window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=block_box';
   });
+
   // 修改列框
   $('.ed-column-box').click(function () {
     window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=column_box';
   });
+
   // 修改字序
   $('.ed-char-order').click(function () {
     window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=char_order';
   });
-  // 离开页面
-  window.leave = function () {
-    if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
-    } else if ('{{mode}}' === 'update') {
-      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
-    } else {
-      window.history.back();
-    }
-  };
+
   // 帮助
   $('.btn-help').click(function () {
     swal({
@@ -387,6 +385,20 @@
 </script>
 
 <script>
+  // 重新比对
+  $('.btn-compare').on("click", function () {
+    swal({
+          type: "warning", title: "确定重新比对吗？", text: "重新比对将清空之前的校对结果！",
+          confirmButtonColor: "#b8906f", confirmButtonText: "确定", cancelButtonText: "取消",
+          showCancelButton: true, closeOnConfirm: false,
+        },
+        function () {
+          window.location = '{{r"%s?step=%s" % (current_path, steps.get("current"))}}' + '&re_compare=true';
+
+        }
+    );
+  });
+
   // 上一步
   $('.btn-prev').on("click", function () {
     window.location = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
@@ -395,9 +407,7 @@
   // 获取任务数据
   function getData(submit) {
     var data = {
-      submit: submit,
-      step: 'proof',
-      name: '{{page["name"]}}',
+      submit: submit, step: 'proof', name: '{{page["name"]}}',
       txt_html: JSON.stringify($('#sutra-text').html())
     };
     if ('text_hard' !== '{{task_type}}') {
@@ -420,17 +430,23 @@
     postApi('{{current_path}}', {data: getData(true)}, function () {
       showSuccess('成功', '已提交。');
       setTimeout(function () {
-        pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
-      }, 500);
+        if ('do' === '{{mode}}') {
+          pick("/task/pick/{{'text_proof' if 'text_proof' in task_type else task_type}}");
+        } else {
+          window.leave();
+        }
+      }, 1000);
+
     });
   });
+
   // 退回任务
   $('.btn-return').click(function () {
     $('#returnModal').modal();
   });
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{task["_id"]}}', {
+    postApi('/task/return/{{task_type}}/{{task.get("_id")}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
@@ -439,6 +455,21 @@
       }, 1000);
     });
   });
+
+  // 离开页面
+  window.leave = function () {
+    if ('False' === '{{readonly}}') {
+      postApi('/data/unlock/text/{{page["name"]}}', {});
+    }
+    if ('{{mode}}' === 'do') {
+      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else {
+      window.history.back();
+    }
+  };
+
 </script>
 
 <script>

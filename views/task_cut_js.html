@@ -77,9 +77,9 @@
       postApi('/data/unlock/box/{{page["name"]}}', {});
     }
     if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+      window.location = '/task/lobby/{{task_type}}';
     } else if ('{{mode}}' === 'update') {
-      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
+      window.location = '/task/my/{{task_type}}';
     } else {
       window.history.back();
     }

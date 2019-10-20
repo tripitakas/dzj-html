@@ -143,18 +143,22 @@
     var style = $.cut.data.image.node.style;
     style.display = style.display === 'none' ? '' : 'none';
   });
+
   // 显隐列框
   $('#toggle-columns').click(function () {
     $.cut.toggleColumns(columns);
   });
+
   // 显隐字框
   $('#toggle-chars').click(function () {
     $.cut.toggleBox('hide');
   });
+
   // 调整字框连线后重新设置字框编号
   $('#apply').click(function () {
     $.cut.applyLinks(blocks, columns);
   });
+
   // 更多操作
   $('.btn-ed-box').click(function () {
     $('.more-group').toggleClass('hidden');

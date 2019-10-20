@@ -189,7 +189,7 @@ class TaskHandler(BaseHandler, TaskConfig):
         id_name = self.data_auth_maps[shared_field]['id']
         collection = self.data_auth_maps[shared_field]['collection']
 
-        if shared_field in self.data_auth_maps:
+        if self.has_data_lock(doc_id, shared_field):
             if isinstance(doc_id, str):
                 self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
             else:

@@ -95,8 +95,7 @@ class TextProofApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_task_auth(task, mode):
-                return self.send_error_response(errors.data_unauthorized)
+            self.check_task_auth(task, mode)
 
             if data['step'] == 'select_compare_text':
                 return self.save_compare_text(task, mode, data)
@@ -131,8 +130,11 @@ class TextProofApi(TaskHandler):
             self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
 
         # 提交任务
-        if mode == 'do' and data.get('submit'):
-            self.finish_task(task)
+        if data.get('submit'):
+            if mode == 'do':
+                self.finish_task(task)
+            else:
+                self.release_data_lock(task['doc_id'], shared_field='box')
 
         self.send_data_response()
 
@@ -151,7 +153,7 @@ class TextReviewApi(TaskHandler):
                          publish_user_id=self.current_user['_id'],
                          publish_by=self.current_user['name'])
         self.db.task.insert_one(hard_task)
-        self.add_op_log('publish_text_hard', context='1个任务: %s' % review_task['_id'])
+        self.add_op_log('publish_text_hard', context=review_task['_id'])
 
     def post(self, task_id):
         """ 文字审定提交 """
@@ -164,8 +166,10 @@ class TextReviewApi(TaskHandler):
 
             # 检查权限
             mode = 'do' if '/task/do' in self.request.path else 'update'
-            if not self.check_task_auth(task, mode):
-                self.send_error_response(errors.data_unauthorized)
+            self.check_task_auth(task, mode)
+            r = self.check_task_lock(task, mode)
+            if r is not True:
+                return self.send_error_response(r)
 
             # 保存任务
             data = self.get_request_data()
@@ -184,7 +188,7 @@ class TextReviewApi(TaskHandler):
                     self.finish_task(task)
                 else:
                     # update提交后，释放数据锁
-                    self.release_data_lock(task['doc_id'], task_type=task_type)
+                    self.release_data_lock(task['doc_id'], shared_field='text')
                 # 生成难字任务
                 if doubt and not self.db.task.find_one({'input.from_task': task['_id']}):
                     self._publish_hard_task(task, doubt)
@@ -230,7 +234,7 @@ class TextHardApi(TaskHandler):
                     self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
                 else:
                     # update提交后，释放数据锁
-                    self.release_data_lock(task['doc_id'], task_type=task_type)
+                    self.release_data_lock(task['doc_id'], shared_field='text')
 
             self.send_data_response()
 
@@ -255,7 +259,7 @@ class TextEditApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
 
             # 检查数据锁
-            if not self.has_data_lock('page', 'name', page_name, 'text', True):
+            if not self.has_data_lock(page_name, 'text'):
                 return self.send_error_response(errors.data_unauthorized)
 
             # 保存数据
@@ -267,7 +271,7 @@ class TextEditApi(TaskHandler):
 
             # 提交时，释放数据锁
             if data.get('submit'):
-                self.release_data_lock(page_name, collection='page', id_name='name', shared_field='text')
+                self.release_data_lock(page_name, shared_field='text')
 
             self.send_data_response()
 

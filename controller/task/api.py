@@ -139,14 +139,13 @@ class PickTaskApi(TaskHandler):
 
             # 如果任务有共享数据，则检查对应的数据是否被锁定
             shared_field = self.get_shared_field(task_type)
-            c, i, d = task['collection'], task['id_name'], task['doc_id']
             if shared_field and shared_field in self.data_auth_maps:
-                if self.is_data_locked(c, i, d, shared_field):
+                if self.is_data_locked(task['doc_id'], shared_field):
                     return self.send_error_response(e.data_is_locked)
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
-            condition = dict(task_type=task_type_filter, collection=c, id_name=i, doc_id=d,
-                             picked_user_id=self.current_user['_id'])
+            condition = dict(task_type=task_type_filter, collection=task['collection'], id_name=task['id_name'],
+                             doc_id=task['doc_id'], picked_user_id=self.current_user['_id'])
             if task_meta.get('groups') and self.db.task.find_one(condition):
                 return self.send_error_response(e.group_task_duplicated)
 
@@ -205,7 +204,8 @@ class ReturnTaskApi(TaskHandler):
                 self.add_op_log('return_' + task_type, context=task_id)
 
             # 释放数据锁（领取任务时分配的长时数据锁）
-            self.release_data_lock(task['doc_id'], task_type=task_type, is_temp=False)
+            shared_field = self.get_shared_field(task_type)
+            self.release_data_lock(task['doc_id'], shared_field)
 
             return self.send_data_response()
 
@@ -366,8 +366,7 @@ class LockTaskDataApi(TaskHandler):
         """ 获取临时数据锁。"""
         assert shared_field in self.data_auth_maps
         try:
-            meta = self.data_auth_maps[shared_field]
-            r = self.get_data_lock(meta['collection'], meta['id'], doc_id, shared_field)
+            r = self.get_data_lock(doc_id, shared_field)
             if r is True:
                 return self.send_data_response()
             else:
@@ -384,8 +383,7 @@ class UnlockTaskDataApi(TaskHandler):
         """ 释放临时数据锁。"""
         assert shared_field in self.data_auth_maps
         try:
-            meta = self.data_auth_maps[shared_field]
-            self.release_data_lock(doc_id, meta['collection'], meta['id'], shared_field)
+            self.release_data_lock(doc_id, shared_field)
             return self.send_data_response()
 
         except DbError as err:

@@ -2,19 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 切分页面。
-切分页面有几种访问方式：
-1. 切分任务工作页面。任务用户通过do/update模式进行工作。管理员通过view模式查看任务现场。
-2. 切分数据查看、修改页面。所有人可以通过view模式访问数据查看页面。有资质的用户可以通过edit模式访问数据修改页面。
-由于数据共享的需求，有以下场景比较复杂：
-1. 任务用户update时，已被其他人锁定。此时用户仍然可以进入update页面，提示数据已被锁定。
-2. 有资质的用户edit时，已被其他人锁定。此时用户仍然可以进入edit页面，提示数据已被锁定。
-设计以下几个参数区分多种场景：
-1. mode，包括do/update/edit/view
-2. readonly，实际就是是否有数据锁，有则可写，无则只读
-3. qualified，是否有申请数据锁的资质
-不能访问页面的几种情况：
-1. 访问do和update页面时，没有任务权限
-2. 访问edit页面时，没有数据资质
+参数及场景说明：
+1. readonly，只读还是可写。用户有数据资质且申请到数据锁，则可写。否则，只读。
+2. mode，包括do/update/edit/view。以下场景都是已经通过角色检查之后的情况：
+ - do是做任务的模式。检查任务权限和数据锁，没有则无法访问页面。
+ - update是更新任务模式。检查任务权限，没有则无法访问。进一步检查数据锁。
+ - view是任务查看模式。不检查任务权限和数据锁，不能提交修改。
+ - edit是数据编辑模式。检查数据锁，没有则只读。
+ 只读时可访问页面，但是不能提交修改。
 @time: 2018/12/26
 """
 
@@ -41,10 +36,14 @@ class CutHandler(TaskHandler):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
+            # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
             self.check_task_auth(task, mode)
             has_lock = self.check_task_lock(task, mode) is True
+
+            # 设置步骤
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
+
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             boxes = page.get(box_type + 's')
             template = 'task_cut_do.html'
@@ -85,18 +84,16 @@ class CutEditHandler(TaskHandler):
                 return self.send_error_response(errors.no_object, render=True)
 
             # 获取数据锁
-            r = self.get_data_lock(page_name, 'box')
-            if r is not True:
-                return self.send_error_response(r, render=True)
+            has_lock = self.get_data_lock(page_name, 'box') is True
 
-            # 设置当前步骤
+            # 设置步骤
             default_steps = list(CutApi.step_field_map.keys())
             cur_step = self.get_query_argument('step', default_steps[0])
             if cur_step not in default_steps:
                 return self.send_error_response(errors.task_step_error)
-
             fake_task = dict(steps={'todo': default_steps})
             steps = self.init_steps(fake_task, 'edit', cur_step)
+
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             boxes = page.get(box_type + 's')
             template = 'task_cut_do.html'
@@ -106,7 +103,7 @@ class CutEditHandler(TaskHandler):
                 template = 'task_char_order.html'
 
             self.render(
-                template, task_type='', task=dict(), page=page, steps=steps, readonly=False, mode='edit',
+                template, task_type='', task=dict(), page=page, steps=steps, readonly=not has_lock, mode='edit',
                 boxes=boxes, box_type=box_type, get_img=self.get_img, **kwargs
             )
 

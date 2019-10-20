@@ -99,8 +99,8 @@
         </div>
         <div class="right">
           {% if readonly %}
-          <div class="tips">
-            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+          <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
+            数据已被其他人锁定，暂时不能修改。
           </div>
           {% end %}
           <div class="edit-btns">
@@ -110,7 +110,6 @@
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
             <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
 
           </div>
         </div>
@@ -307,10 +306,15 @@
     $('#ocrModal').modal();
   });
 
-  // 返回
+  // 离开页面
   window.leave = function () {
+    if ('False' === '{{readonly}}') {
+      postApi('/data/unlock/text/{{page["name"]}}', {});
+    }
     if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/text_proof';
+      window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
     } else {
       window.history.back();
     }
