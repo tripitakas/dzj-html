@@ -205,7 +205,7 @@ class ReturnTaskApi(TaskHandler):
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             shared_field = self.get_shared_field(task_type)
-            self.release_data_lock(task['doc_id'], shared_field)
+            self.release_temp_lock(task['doc_id'], shared_field)
 
             return self.send_data_response()
 
@@ -237,7 +237,8 @@ class RetrieveTaskApi(TaskHandler):
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
-            self.release_data_lock([t['doc_id'] for t in tasks], task_type=task_type, is_temp=False)
+            shared_field = self.get_shared_field(task_type)
+            self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
 
             return self.send_data_response(ret)
 
@@ -269,7 +270,8 @@ class DeleteTasksApi(TaskHandler):
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
-            self.release_data_lock([t['doc_id'] for t in tasks], task_type=task_type, is_temp=False)
+            shared_field = self.get_shared_field(task_type)
+            self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
 
             return self.send_data_response(ret)
 
@@ -283,9 +285,7 @@ class AssignTasksApi(TaskHandler):
     @staticmethod
     def can_user_access(task_type, user):
         user_roles = ','.join(get_all_roles(user.get('roles')))
-        r = can_access(user_roles, '/task/do/%s/5da9540a64c1d2ab6c94674b' % task_type, 'GET')
-        w = can_access(user_roles, '/api/task/do/%s/5da9540a64c1d2ab6c94674b' % task_type, 'POST')
-        return r and w
+        return can_access(user_roles, '/api/task/pick/%s' % task_type, 'POST')
 
     def post(self, task_type):
         """ 指派已发布的任务 """
@@ -305,15 +305,15 @@ class AssignTasksApi(TaskHandler):
             if not self.can_user_access(task_type, user):
                 return self.send_error_response(e.task_unauthorized)
 
-            # 分配已发布的任务
+            # 批量分配已发布的任务
             ret = {'count': 0}
             opened_tasks = self.db.task.find({
                 '_id': {'$in': [ObjectId(t) for t in data['task_ids']]},
                 'status': self.STATUS_OPENED
             })
             update = {
-                'picked_user_id': self.current_user['_id'],
-                'picked_by': self.current_user['name'],
+                'picked_user_id': user['_id'],
+                'picked_by': user['name'],
                 'status': self.STATUS_PICKED,
                 'picked_time': datetime.now(),
                 'updated_time': datetime.now(),
@@ -324,14 +324,14 @@ class AssignTasksApi(TaskHandler):
                 ret['count'] = r.modified_count
                 self.add_op_log('assign_' + task_type, context=opened_task_ids)
 
-            # 分配数据锁
+            # 批量分配数据锁
             shared_field = self.get_shared_field(task_type)
             if shared_field:
                 update = {
                     'lock.%s.is_temp' % shared_field: False,
                     'lock.%s.lock_type' % shared_field: dict(tasks=task_type),
-                    'lock.%s.locked_by' % shared_field: self.current_user['name'],
-                    'lock.%s.locked_user_id' % shared_field: self.current_user['_id'],
+                    'lock.%s.locked_by' % shared_field: user['name'],
+                    'lock.%s.locked_user_id' % shared_field: user['_id'],
                     'lock.%s.locked_time' % shared_field: datetime.now()
                 }
                 collection, id_name = self.get_task_meta(task_type)[:2]
@@ -383,7 +383,7 @@ class UnlockTaskDataApi(TaskHandler):
         """ 释放临时数据锁。"""
         assert shared_field in self.data_auth_maps
         try:
-            self.release_data_lock(doc_id, shared_field)
+            self.release_temp_lock(doc_id, shared_field)
             return self.send_data_response()
 
         except DbError as err:

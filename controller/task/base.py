@@ -21,7 +21,7 @@ class TaskHandler(BaseHandler, TaskConfig):
     STATUS_FINISHED = 'finished'
     task_status_names = {
         STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中',
-        STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已回收', STATUS_FINISHED: '已完成',
+        STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已撤回', STATUS_FINISHED: '已完成',
     }
 
     # 数据状态表
@@ -182,16 +182,20 @@ class TaskHandler(BaseHandler, TaskConfig):
 
         return True if assign_lock(qualification) else errors.data_lock_failed
 
-    def release_data_lock(self, doc_id, shared_field=None, is_temp=True):
-        """ 释放数据锁 """
-        assert type(doc_id) in [str, list]
+    def release_temp_lock(self, doc_id, shared_field=None):
+        """ 释放临时数据锁 """
+        assert isinstance(doc_id, str)
         assert shared_field in self.data_auth_maps
         id_name = self.data_auth_maps[shared_field]['id']
         collection = self.data_auth_maps[shared_field]['collection']
 
         if self.has_data_lock(doc_id, shared_field):
-            if isinstance(doc_id, str):
-                self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
-            else:
-                condition = {id_name: {'$in': doc_id}, 'is_temp': is_temp}
-                self.db[collection].update_many(condition, {'$set': {'lock.%s' % shared_field: dict()}})
+            self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
+
+    def release_task_lock(self, doc_ids, shared_field):
+        """ 释放任务的数据锁 """
+        assert isinstance(doc_ids, list)
+        assert shared_field in self.data_auth_maps
+        id_name = self.data_auth_maps[shared_field]['id']
+        collection = self.data_auth_maps[shared_field]['collection']
+        self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$set': {'lock.%s' % shared_field: dict()}})

@@ -134,7 +134,7 @@ class TextProofApi(TaskHandler):
             if mode == 'do':
                 self.finish_task(task)
             else:
-                self.release_data_lock(task['doc_id'], shared_field='box')
+                self.release_temp_lock(task['doc_id'], shared_field='box')
 
         self.send_data_response()
 
@@ -188,7 +188,7 @@ class TextReviewApi(TaskHandler):
                     self.finish_task(task)
                 else:
                     # update提交后，释放数据锁
-                    self.release_data_lock(task['doc_id'], shared_field='text')
+                    self.release_temp_lock(task['doc_id'], shared_field='text')
                 # 生成难字任务
                 if doubt and not self.db.task.find_one({'input.from_task': task['_id']}):
                     self._publish_hard_task(task, doubt)
@@ -234,7 +234,7 @@ class TextHardApi(TaskHandler):
                     self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
                 else:
                     # update提交后，释放数据锁
-                    self.release_data_lock(task['doc_id'], shared_field='text')
+                    self.release_temp_lock(task['doc_id'], shared_field='text')
 
             self.send_data_response()
 
@@ -271,7 +271,7 @@ class TextEditApi(TaskHandler):
 
             # 提交时，释放数据锁
             if data.get('submit'):
-                self.release_data_lock(page_name, shared_field='text')
+                self.release_temp_lock(page_name, shared_field='text')
 
             self.send_data_response()
 

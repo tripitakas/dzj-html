@@ -8,12 +8,14 @@
   <link href="{{ static_url('assets/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"/>
   <link href="{{ static_url('assets/jquery-multi-select/multi-select.css') }}" rel="stylesheet"/>
   <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('assets/select2/select2.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
 
 </head>
+
 
 <body>
 <div class="app-main">
@@ -28,7 +30,8 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span class="btn btn-default waves-effect" id="bat-remove">批量刪除</span>
+                    <span class="btn btn-default waves-effect" id="bat-assign">批量指派</span>
+                    <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
                     <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
                       {% if not task_conf.get('groups') %}
                       <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
@@ -101,7 +104,7 @@
                     <tbody>
                     {% for t in tasks %}
                     <tr id="{{t['doc_id']}}" class="task-tr">
-                      <th><span><input type="checkbox" name="{{t['doc_id']}}" value=""/></span></th>
+                      <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
                       <td><a class="doc-name" href="/task/info/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
                       <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.task_status_names.get(t['status']) or ''}}</td>
@@ -114,7 +117,6 @@
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
                         <a class="view" href="/task/{{t['task_type']}}/{{t['doc_id']}}">查看</a>
-                        <a class="remove{{'' if t['status'] in ['pending', 'opened'] else ' hide'}}" onclick=remove('{{t["_id"]}}','{{t["doc_id"]}}')>刪除</a>
                         <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
                       </td>
                     </tr>
@@ -126,6 +128,30 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="assignModal" class="modal fade" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="width: 400px; margin: auto">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="choose-users">选择用户</h4>
+        </div>
+        <div class="modal-body">
+          <div style="min-height: 150px; text-align: center">
+            <select id="select-user" class="form-control">
+              <option></option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="assign_modal_btn">确定</button>
         </div>
       </div>
     </div>
@@ -230,8 +256,10 @@
 </div>
 
 {% include _base_js.html %}
-<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
-<script type="text/javascript" src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
+<script src="{{ static_url('assets/select2/select2.min.js') }}"></script>
+<script src="{{ static_url('assets/select2/zh-CN.js') }}"></script>
+<script src="{{ static_url('assets/jquery-multi-select/jquery.multi-select.js') }}"></script>
+<script src="{{ static_url('assets/jquery-multi-select/jquery.quicksearch.js') }}"></script>
 
 <script>
   // 全选
@@ -267,32 +295,80 @@
   });
 
   // 撤回任务
-  function retrieve(task_id, doc_id) {
+  function retrieve(taskId, docId) {
     var info = {
-      type: "warning", title: "确定撤回吗？", text: "任务" + doc_id + "\n将被撤回！",
+      type: "warning", title: "确定撤回吗？", text: "任务" + docId + "将被撤回！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
       confirmButtonText: "确定撤回", cancelButtonText: "取消"
     };
     swal(info, function () {
-      postApi('/task/retrieve/' + taskType + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/retrieve/' + taskType, {'data': {'task_ids': [taskId]}}, function () {
         window.location.reload();
       });
     });
   }
 
-  // 删除任务
-  function remove(task_id, doc_id) {
+  // 批量删除
+  $('#bat-delete').click(function () {
+    var taskIds = $.map($('.task-tr :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('id');
+    });
+    if (taskIds.length === 0) {
+      showError('请选择任务', '当前没有选中任务。');
+      return;
+    }
     var info = {
-      type: "warning", title: "确定删除吗？", text: "任务" + doc_id + "\n将被删除！",
+      type: "warning", title: "确定删除吗？", text: "只能删除已发布未领取、等待前置任务两种状态的任务！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
       confirmButtonText: "确定删除", cancelButtonText: "取消"
     };
     swal(info, function () {
-      postApi('/task/delete/' + taskType + '/' + name, {'data': {}}, function (res) {
+      postApi('/task/delete/' + taskType, {'data': {'task_ids': taskIds}}, function () {
         window.location.reload();
       });
     });
-  }
+  });
+
+  // 批量指派任务
+  $('#bat-assign').click(function () {
+    if ($('.task-tr :checked').length === 0) {
+      showError('请选择任务', '当前没有选中任务。');
+      return;
+    }
+    $('#assignModal').modal();
+  });
+
+  $("#select-user").select2({
+    ajax: {
+      url: "/api/user/{{task_type}}",
+      type: 'POST',
+      dataType: 'json',
+      delay: 1000,
+      language: 'zh-CN',
+      allowClear: true,
+      width: "100%",
+      placeholder: "请选择",
+      maximumSelectionLength: 2,
+      data: function (params) {
+        return {'q': params.term, 'page': params.page || 1};
+      },
+      processResults: function (res) {
+        return res.data;
+      }
+    }
+  });
+
+  $('#assign_modal_btn').click(function () {
+    var taskIds = $.map($('.task-tr :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('id');
+    });
+    var data = {'task_ids': taskIds, 'user_id': $("#select-user").val()};
+    postApi('/task/assign/' + taskType, {'data': data}, function () {
+      window.location.reload();
+    });
+  });
 
 </script>
 
@@ -308,7 +384,6 @@
     taskType = $(this).attr('id');
     $publishModal.modal();
   });
-
 
   // 发布任务
   $publishModal.find('#select_modal_btn').click(function () {
@@ -356,7 +431,6 @@
         isFile = true;
         break;
     }
-    console.log(data);
     postApi('/task/publish', isFile ? formData : {data: data}, function (res) {
       var len = (res.data.published || []).length + (res.data.pending || []).length;
       showSuccess('已发布任务', len + ' 个页面已发布。');

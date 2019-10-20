@@ -158,6 +158,7 @@ role_route_maps = {
             '/task/info/@page_name': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
+            '/api/user/@task_type': ['POST'],
             '/api/task/(assign|retrieve|delete)/@task_type': ['POST'],
         }
     },
@@ -196,7 +197,6 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
-
     def match_exclude(p, exclude):
         for holder, regex in url_placeholder.items():
             if holder not in exclude:

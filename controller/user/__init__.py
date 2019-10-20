@@ -8,5 +8,5 @@ handlers = [
     api.LoginApi, api.LogoutApi, api.RegisterApi,
     api.ChangeUserProfileApi, api.ChangeUserRoleApi, api.ResetUserPasswordApi, api.DeleteUserApi,
     api.ChangeMyProfileApi, api.ChangeMyPasswordApi, api.UploadUserAvatarApi, api.SendUserEmailCodeApi,
-    api.SendUserPhoneCodeApi, api.ForgetPasswordApi,
+    api.SendUserPhoneCodeApi, api.ForgetPasswordApi, api.UsersOfTaskTypeApi,
 ]

@@ -113,3 +113,6 @@
     padding: 5px 0;
 }
 
+.select2-container {
+    width: 200px !important;
+}

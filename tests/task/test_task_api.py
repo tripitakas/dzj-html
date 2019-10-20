@@ -324,3 +324,12 @@ class TestTaskApi(APITestCase):
                 'data': {'task_ids': [task2['_id']], 'user_id': user2['_id']}
             })
             self.assertEqual(1, self.parse_response(r).get('count'), msg=task_type)
+
+    def test_get_users_by_task_type(self):
+        """ 测试获取能访问某个任务类型的用户列表 """
+        self.login_as_admin()
+        task_types = list(Th.task_types.keys())
+        # task_types = ['cut_proof']
+        for task_type in task_types:
+            r = self.fetch('/api/user/' + task_type, body={'data': {}})
+            self.assert_code(200, r, msg=task_type)

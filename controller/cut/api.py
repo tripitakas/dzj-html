@@ -68,7 +68,7 @@ class CutApi(TaskHandler):
                     self.finish_task(task)
                     self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
                 else:
-                    self.release_data_lock(task['doc_id'], shared_field='box')
+                    self.release_temp_lock(task['doc_id'], shared_field='box')
 
             return self.send_data_response()
 
@@ -106,7 +106,7 @@ class CutEditApi(TaskHandler):
 
             # 释放数据锁
             if data.get('submit'):
-                self.release_data_lock(page_name, shared_field='box')
+                self.release_temp_lock(page_name, shared_field='box')
 
             return self.send_data_response()
 
