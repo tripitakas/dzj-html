@@ -13,12 +13,10 @@ op_types = {
     'return_{task_type}': dict(name='退回任务', trends=True, msg='退回了{page_kind}{task_type}任务'),
     'submit_{task_type}': dict(name='提交任务', trends=True, msg='完成了{page_kind}{task_type}任务'),
     'publish_{task_type}': dict(name='发布任务', trends=True, msg='发布了{count}个{task_type}任务'),
-    'save_do_{task_type}': dict(name='新任务保存'),
-    'save_update_{task_type}': dict(name='原任务保存'),
-    'save_edit_{task_type}': dict(name='任务修改保存'),
-    'sel_cmp_{task_type}': dict(name='比对文本保存'),
+    'save_{task_type}': dict(name='任务保存'),
+    'edit_{data_field}': dict(name='数据修改保存'),
     'retrieve_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
-    'reset_{task_type}': dict(name='重置任务', trends=True, msg='重置了{page_name}{task_type}任务'),
+    'delete_{task_type}': dict(name='删除任务', trends=True, msg='删除了{page_name}{task_type}任务'),
     'auto_unlock': dict(name='自动回收任务'),
     'login_no_user': dict(name='账号不存在'),
     'login_fail': dict(name='账号密码不对'),
@@ -48,6 +46,7 @@ op_types = {
     'delete_reel': dict(name='删除卷数据'),
     'upload_reel': dict(name='上传卷数据'),
 }
+
 re_map = []
 
 

@@ -135,7 +135,7 @@ class TaskConfig(object):
         submitted = cls.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
         if not todo:
-            return errors.task_steps_todo_empty
+            return errors.task_steps_is_empty
         if cur_step and cur_step not in todo:
             return errors.task_step_error
         if not cur_step:

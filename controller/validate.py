@@ -88,7 +88,7 @@ def not_equal(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
-    code, message = e.not_allow_equal
+    code, message = e.both_times_equal
     err = code, message % (i18n_trans(k1), i18n_trans(k2))
     if v1 == v2:
         return {k1: err, k2: err}
@@ -225,7 +225,7 @@ def in_list(lst, **kw):
     """检查是否在lst列表中"""
     k, v = list(kw.items())[0]
     if v:
-        code, message = e.not_in_list
+        code, message = e.should_in_list
         err = code, message % (i18n_trans(k), lst)
         assert type(v) in [str, list]
         v = [v] if isinstance(v, str) else v

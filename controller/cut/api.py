@@ -102,7 +102,7 @@ class CutEditApi(TaskHandler):
             step_data_field = CutApi.step_field_map.get(data['step'])
             r = self.db.page.update_one({'name': page_name}, {'$set': {step_data_field: json_decode(data['boxes'])}})
             if r.modified_count:
-                self.add_op_log('save_edit_%s' % step_data_field, context=page_name)
+                self.add_op_log('edit_%s' % step_data_field, context=page_name)
 
             # 释放数据锁
             if data.get('submit'):

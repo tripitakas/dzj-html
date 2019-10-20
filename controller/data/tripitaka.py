@@ -70,7 +70,7 @@ class Tripitaka(object):
             if data:
                 r = db.tripitaka.update_one({'_id': item.get('_id')}, {'$set': item})
                 if not r.modified_count:
-                    return dict(status='failed', errors=e.no_change)
+                    return dict(status='failed', errors=e.not_changed)
                 return dict(status='success', id=item.get('_id'), update=True, insert=False)
             else:
                 return dict(status='failed', errors=e.tptk_id_not_existed)

@@ -175,7 +175,7 @@ class ChangeUserProfileApi(BaseHandler):
             sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
                     if f in user and user[f] != old_user.get(f)}
             if not sets:
-                return self.send_error_response(errors.no_change)
+                return self.send_error_response(errors.not_changed)
 
             r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
             if r.modified_count:
@@ -391,7 +391,7 @@ class ChangeMyProfileApi(BaseHandler):
                 )
             })
             if not r.modified_count:
-                return self.send_error_response(errors.no_change)
+                return self.send_error_response(errors.not_changed)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.add_op_log('change_profile')
@@ -475,7 +475,7 @@ class SendUserEmailCodeApi(BaseHandler):
             return True
 
         except Exception as e:
-            self.send_error_response(errors.verify_fail, message='发送邮件失败: [%s] %s' % (
+            self.send_error_response(errors.verify_failed, message='发送邮件失败: [%s] %s' % (
                 e.__class__.__name__, str(e)))
 
 
@@ -526,7 +526,7 @@ class SendUserPhoneCodeApi(BaseHandler):
             return response
 
         except Exception as e:
-            self.send_error_response(errors.verify_fail, message='发送邮件失败: [%s] %s' % (
+            self.send_error_response(errors.verify_failed, message='发送邮件失败: [%s] %s' % (
                 e.__class__.__name__, str(e)))
 
 

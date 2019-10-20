@@ -88,7 +88,7 @@ class PublishTasksApi(PublishBaseHandler):
         try:
             assert isinstance(data['doc_ids'], list)
             if len(data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
-                return self.send_error_response(e.task_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
+                return self.send_error_response(e.task_count_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
 
             force = data['force'] == '1'
             log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
@@ -135,7 +135,7 @@ class PickTaskApi(TaskHandler):
             if not task:
                 return self.send_error_response(e.no_object)
             if task['status'] != self.STATUS_OPENED:
-                return self.send_error_response(e.task_not_published)
+                return self.send_error_response(e.task_un_published)
 
             # 如果任务有共享数据，则检查对应的数据是否被锁定
             shared_field = self.get_shared_field(task_type)

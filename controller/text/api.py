@@ -269,7 +269,7 @@ class TextEditApi(TaskHandler):
             text = TextPack.html2txt(txt_html)
             r = self.db.page.update_one({'name': page_name}, {'$set': {'text': text, 'txt_html': txt_html}})
             if r.modified_count:
-                self.add_op_log('save_edit_text', context=page_name)
+                self.add_op_log('edit_text', context=page_name)
 
             # 提交时，释放数据锁
             if data.get('submit'):
