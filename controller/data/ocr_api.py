@@ -207,7 +207,7 @@ class SubmitRecognitionApi(BaseHandler):
         try:
             with open(json_file) as f:
                 page = json.load(f)
-        except ValueError as err:
+        except (ValueError, OSError) as err:
             logging.error('%s: %s' % (json_file, str(err)))
             return
         page = RecognitionApi.ocr2page(page)
