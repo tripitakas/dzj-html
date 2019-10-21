@@ -9,5 +9,5 @@ views = [
 ]
 handlers = [
     g.GenerateCharIdApi, data_api.PunctuationApi, data_api.CbetaSearchApi,
-    api.RecognitionApi, api.SubmitRecognitionApi, api.ImportImagesApi, api.ImportMetaApi,
+    api.RecognitionApi, api.SubmitRecognitionApi, api.ImportImagesApi, api.ImportMetaApi, api.FetchResultApi,
 ]

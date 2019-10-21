@@ -203,18 +203,21 @@ class SubmitRecognitionApi(BaseHandler):
         self.send_data_response(dict(count=len(added), pages=added, existed=existed))
 
     @staticmethod
-    def upload_page(self, json_file, img_file, ignore_error=False):
-        page = json.load(open(json_file))
+    def upload_page(self, json_file, img_file, ignore_error=False, update=False):
+        with open(json_file) as f:
+            page = json.load(f)
         page = RecognitionApi.ocr2page(page)
 
-        page['imgname'] = path.basename(json_file).split('.')[0]
+        img_name = path.basename(json_file).split('.')[0]
+        if re.match(r'^[A-Z]{2}(_[0-9]+)+$', img_name):
+            page['imgname'] = img_name
         if not re.match(r'^[a-zA-Z]{2}(_[0-9]+){2,3}', page['imgname']):
             return e.ocr_invalid_name if ignore_error else self.send_error_response(e.ocr_invalid_name)
-        r = add_page(page['imgname'], page, self.db)
+        r = add_page(page['imgname'], page, self.db, update=update)
         if not r:
             return e.ocr_page_existed if ignore_error else self.send_error_response(e.ocr_page_existed)
 
-        if 'secret_key' in self.config['img'] and img_file and path.exists(img_file):
+        if 'secret_key' in self.config['img'] and self.config['img'].get('salt') and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload_oss(self, img_file)
 
         page['id'] = str(r.inserted_id)
@@ -328,3 +331,43 @@ class ImportMetaApi(BaseHandler):
         self.call_back_api(url, handle_response=handle_response,
                            handle_error=lambda t: self.send_error_response(e.ocr_import,
                                                                            message=e.ocr_import[1] % (t or '无法访问')))
+
+
+class FetchResultApi(BaseHandler):
+    URL = '/api/data/fetch_ocr/@user_code'
+
+    def get(self, user_code):
+        """拉取OCR结果"""
+
+        def handle_list_response(res):
+            def handle_file(body):
+                json_file = path.join(self.BASE_DIR, 'static', 'upload', 'ocr', 'f%d.json' % abs(hash(body)))
+                with open(json_file, 'wb') as f:
+                    f.write(body)
+                pages.append(json_file)
+                loop()
+
+            def loop():
+                if res:
+                    json_file = res.pop()['path']
+                    logging.info('fetch %s' % json_file)
+                    self.call_back_api('%s/%s?remove=1' % (self.config['ocr_api'][:-3] + 'browse', json_file),
+                                       handle_response=handle_file, handle_error=handle_error, binary_response=True)
+                else:
+                    for json_file in pages:
+                        page = SubmitRecognitionApi.upload_page(self, json_file, None, update=True)
+                        if page:
+                            self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
+                            result.append(page['imgname'])
+                        remove(json_file)
+
+                    self.send_data_response(dict(pages=result))
+
+            pages, result = [], []
+            loop()
+
+        def handle_error(t):
+            self.send_error_response(e.ocr_import, message=e.ocr_import[1] % (t or '无法访问'))
+
+        url = '%s//work_path/_result/%s' % (self.config['ocr_api'][:-3] + 'browse', user_code)
+        self.call_back_api(url, handle_response=handle_list_response, handle_error=handle_error)

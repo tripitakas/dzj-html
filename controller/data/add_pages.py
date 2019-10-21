@@ -112,8 +112,9 @@ def _add_repeat_pages(name, info, db, start, end, use_local_img):
     ))
 
 
-def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
-    if not db.page.find_one(dict(name=name)):
+def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
+    exist = db.page.find_one(dict(name=name))
+    if update or not exist:
         meta = {k: '' for k in base_fields['str']}
         meta.update({k: {} for k in base_fields['dict']})
         meta.update({k: [] for k in base_fields['list']})
@@ -142,11 +143,15 @@ def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
-        if source:
-            meta['source'] = source
+        for field in ['source', 'h_num', 'v_num']:
+            if info.get(field):
+                meta[field] = info[field]
         # initialize tasks
         meta.update(dict(tasks={t: dict(status=task.STATUS_READY) for t in task_types}))
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
+        if exist:
+            meta.pop('create_time')
+            return update and db.page.update_one(dict(name=name), {'$set': meta})
         return db.page.insert_one(meta)

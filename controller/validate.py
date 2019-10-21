@@ -215,7 +215,7 @@ def is_digit(**kw):
 def between(min_v, max_v, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]
-    if isinstance(v, str) and re.match('^\d+$', v):
+    if isinstance(v, str) and re.match(r'^\d+$', v):
         v = int(v)
     code, message = e.invalid_range
     err = code, message % (i18n_trans(k), min_v, max_v)

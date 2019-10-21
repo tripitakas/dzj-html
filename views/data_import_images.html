@@ -134,14 +134,14 @@
 
   $('#fetch-result').click(function () {
     getApi('/data/fetch_ocr/' + $('#user_code').val(),
-      function (res) {
-        var $result = $('#ocr-result');
-        res.pages.forEach(function(p, i) {
-          $result.append('<p>' + (i + 1) + ': ' + p + '</p>');
+        function (res) {
+          var $result = $('#ocr-result');
+          res.pages.forEach(function(p, i) {
+            $result.append('<p>' + (i + 1) + ': ' + p + '</p>');
+          });
+        }, function (error) {
+          $result.append('<p>出错：' + error.message + '</p>');
         });
-      }, function (error) {
-        $result.append('<p>出错：' + error.message + '</p>');
-      });
   });
 
 </script>
