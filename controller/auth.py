@@ -22,6 +22,7 @@ url_placeholder = {
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
     'img_file': '[A-Za-z0-9._-]+',
+    'user_code': '[A-Za-z0-9]+',
 }
 
 """ 角色权限对应表，定义系统中的所有角色以及对应的route权限。
@@ -171,6 +172,10 @@ role_route_maps = {
             '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
             '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
             '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
+            '/api/data/import_images': ['POST'],
+            '/api/data/import_meta': ['POST'],
+            '/api/data/fetch_ocr/@user_code': ['GET'],
+            '/data/import_images': ['GET'],
         }
     },
     '用户管理员': {
