@@ -209,7 +209,7 @@ class SubmitRecognitionApi(BaseHandler):
                 page = json.load(f)
         except (ValueError, OSError) as err:
             logging.error('%s: %s' % (json_file, str(err)))
-            return
+            return e.ocr_json_not_existed if ignore_error else self.send_error_response(e.ocr_json_not_existed)
         page = RecognitionApi.ocr2page(page)
 
         img_name = path.basename(json_file).split('.')[0]
@@ -361,11 +361,12 @@ class FetchResultApi(BaseHandler):
                                        handle_response=handle_file, handle_error=handle_error, binary_response=True)
                 else:
                     for json_file in pages:
-                        page = SubmitRecognitionApi.upload_page(self, json_file, None, update=True)
-                        if page:
+                        page = SubmitRecognitionApi.upload_page(self, json_file, None, ignore_error=True, update=True)
+                        if page and isinstance(page, dict):
                             self.add_op_log('submit_ocr', target_id=page['id'], context=page['imgname'])
                             result.append(page['imgname'])
-                        remove(json_file)
+                        if path.exists(json_file):
+                            remove(json_file)
 
                     self.send_data_response(dict(pages=result))
 
