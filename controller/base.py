@@ -334,11 +334,11 @@ class BaseHandler(CorsMixin, RequestHandler):
                 handle_response(body, **params_for_handler)
         else:
             body = json_util.loads(body)
-            if body.get('error'):
+            if isinstance(body, dict) and body.get('error'):
                 body['error'] = body.get('message') or body['error']
                 if handle_error:
                     handle_error(body['error'])
                 else:
                     self.render('_error.html', **body)
             else:
-                handle_response(body.get('data') or body, **params_for_handler)
+                handle_response(isinstance(body, dict) and body.get('data') or body, **params_for_handler)
