@@ -4,7 +4,7 @@
 if [ ! -f meta/meta/Tripitaka.csv ] ; then
     tgz_file=$1
     if [ -z $1 ] ; then
-        tgz_file=meta.tgz
+        tgz_file=meta/meta.tgz
     fi
     tar zxvf $tgz_file
 fi
@@ -12,7 +12,7 @@ fi
 if [ ! -f sample/GL/GL_924_2_35.jpg ] ; then
     tgz_file=$1
     if [ -z $1 ] ; then
-        tgz_file=sample.tgz
+        tgz_file=meta/sample.tgz
     fi
     tar zxvf $tgz_file
 fi

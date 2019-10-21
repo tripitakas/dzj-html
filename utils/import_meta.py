@@ -12,7 +12,7 @@ from controller.data.sutra import Sutra
 from controller.data.volume import Volume
 from controller.data.tripitaka import Tripitaka
 
-META_DIR = path.join(path.dirname(__file__), 'meta')
+META_DIR = path.join(path.dirname(__file__), '..', 'meta', 'meta')
 
 
 def import_tripitaka(db, csv_file, reset=False):

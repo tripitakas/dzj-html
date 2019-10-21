@@ -8,7 +8,7 @@ import os.path as path
 from functools import cmp_to_key
 from datetime import datetime, timedelta
 
-META_DIR = path.join(path.dirname(__file__), 'meta')
+META_DIR = path.join(path.dirname(__file__), '..', 'meta', 'meta')
 db = ''
 
 
