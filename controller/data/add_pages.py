@@ -151,7 +151,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
+
+        info.pop('id', 0)
         if exist:
             meta.pop('create_time')
-            return update and db.page.update_one(dict(name=name), {'$set': meta})
-        return db.page.insert_one(meta)
+            r = update and db.page.update_one(dict(name=name), {'$set': meta})
+            info['id'] = str(exist['_id'])
+        else:
+            r = db.page.insert_one(meta)
+            info['id'] = str(r.inserted_id)
+
+        return r

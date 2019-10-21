@@ -224,7 +224,6 @@ class SubmitRecognitionApi(BaseHandler):
         if 'secret_key' in self.config['img'] and self.config['img'].get('salt') and img_file and path.exists(img_file):
             SubmitRecognitionApi.upload_oss(self, img_file)
 
-        page['id'] = str(r.inserted_id)
         return page
 
     @staticmethod
@@ -355,7 +354,7 @@ class FetchResultApi(BaseHandler):
                 if res:
                     json_file = res.pop()['path']
                     if not json_file.endswith('.json'):
-                        loop()
+                        return loop()
                     logging.info('fetch %s' % json_file)
                     self.call_back_api('%s/%s?remove=1' % (self.config['ocr_api'][:-3] + 'browse', json_file),
                                        handle_response=handle_file, handle_error=handle_error, binary_response=True)
