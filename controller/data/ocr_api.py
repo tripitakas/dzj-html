@@ -341,7 +341,7 @@ class FetchResultApi(BaseHandler):
 
         def handle_list_response(res):
             def handle_file(body):
-                json_file = path.join(self.BASE_DIR, 'static', 'upload', 'ocr', 'f%d.json' % abs(hash(body)))
+                json_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'f%d.json' % abs(hash(body)))
                 with open(json_file, 'wb') as f:
                     f.write(body)
                 pages.append(json_file)
