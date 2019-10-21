@@ -47,6 +47,6 @@ log/
 static/img/
 static/upload/
 meta/meta/
-meta/sample/
+/sample/
 app.yml
 _ocr*.*

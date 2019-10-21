@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
 # 本脚本的执行结果相当于在“数据管理-页数据”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
-# python tests/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
+# python utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 
 import re
@@ -64,8 +64,9 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False):
                     ret.add(name)
 
 
-def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
-    if not db.page.find_one(dict(name=name)):
+def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
+    exist = db.page.find_one(dict(name=name))
+    if update or not exist:
         meta = page_meta.copy()
         meta.update(dict(
             name=name,
@@ -85,12 +86,24 @@ def add_page(name, info, db, img_name=None, use_local_img=False, source=None):
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
-        if source:
-            meta['source'] = source
+
+        for field in ['source', 'h_num', 'v_num']:
+            if info.get(field):
+                meta[field] = info[field]
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
             name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
-        return db.page.insert_one(meta)
+
+        info.pop('id', 0)
+        if exist:
+            meta.pop('create_time')
+            r = update and db.page.update_one(dict(name=name), {'$set': meta})
+            info['id'] = str(exist['_id'])
+        else:
+            r = db.page.insert_one(meta)
+            info['id'] = str(r.inserted_id)
+
+        return r
 
 
 def add_texts(src_path, pages, db):
@@ -140,7 +153,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :return: 新导入的页面的个数
     """
     if not json_path:
-        txt_path = json_path = img_path = path.join(path.dirname(__file__), '..', 'meta', 'sample')
+        txt_path = json_path = img_path = path.join(path.dirname(__file__), '..', 'sample')
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:
