@@ -204,8 +204,12 @@ class SubmitRecognitionApi(BaseHandler):
 
     @staticmethod
     def upload_page(self, json_file, img_file, ignore_error=False, update=False):
-        with open(json_file) as f:
-            page = json.load(f)
+        try:
+            with open(json_file) as f:
+                page = json.load(f)
+        except ValueError as err:
+            logging.error('%s: %s' % (json_file, str(err)))
+            return
         page = RecognitionApi.ocr2page(page)
 
         img_name = path.basename(json_file).split('.')[0]
@@ -350,6 +354,8 @@ class FetchResultApi(BaseHandler):
             def loop():
                 if res:
                     json_file = res.pop()['path']
+                    if not json_file.endswith('.json'):
+                        loop()
                     logging.info('fetch %s' % json_file)
                     self.call_back_api('%s/%s?remove=1' % (self.config['ocr_api'][:-3] + 'browse', json_file),
                                        handle_response=handle_file, handle_error=handle_error, binary_response=True)
