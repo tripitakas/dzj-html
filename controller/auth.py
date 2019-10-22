@@ -168,6 +168,7 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/data/@collection': ['GET'],
+            '/api/data/pages': ['POST'],
             '/api/data/publish_ocr': ['POST'],
             '/api/data/upload_cloud': ['POST'],
             '/api/data/@collection': ['POST'],

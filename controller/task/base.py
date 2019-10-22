@@ -24,12 +24,6 @@ class TaskHandler(BaseHandler, TaskConfig):
         STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已撤回', STATUS_FINISHED: '已完成',
     }
 
-    # 数据状态表
-    STATUS_UNREADY = 'unready'
-    STATUS_TODO = 'todo'
-    STATUS_READY = 'ready'
-    data_status_names = {STATUS_UNREADY: '未就绪', STATUS_TODO: '待办', STATUS_READY: '已就绪'}
-
     # 任务优先级
     priority_names = {3: '高', 2: '中', 1: '低'}
 

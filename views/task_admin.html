@@ -543,6 +543,7 @@
     displayPagination(pageNo, pageSize, totalCount);
   }
 
+  // 初始化选择列表
   $publishModal.on('shown.bs.modal', function () {
     postApi('/task/ready/' + taskType, {data: {}}, function (res) {
       docs = res.data.docs;

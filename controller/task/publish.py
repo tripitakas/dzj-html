@@ -49,7 +49,7 @@ class PublishBaseHandler(TaskHandler):
             log['published_before'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
             doc_ids = set(doc_ids) - log['published_before']
 
-        # 已完成的任务，如果不重新发布，则也去掉
+        # 去掉已完成的任务（如果不重新发布）
         if not force and doc_ids:
             condition = dict(task_type=task_type, status=self.STATUS_FINISHED, doc_id={'$in': list(doc_ids)})
             log['finished'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
