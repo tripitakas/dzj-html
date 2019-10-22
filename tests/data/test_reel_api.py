@@ -16,7 +16,7 @@ class TestReelApi(APITestCase):
     def tearDown(self):
         super(TestReelApi, self).tearDown()
 
-    def test_api_reel_upload(self):
+    def test_api_reel__upload(self):
         # 测试上传卷csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(META_DIR, 'Reel-*.csv'))

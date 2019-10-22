@@ -16,7 +16,7 @@ class TestSutraApi(APITestCase):
     def tearDown(self):
         super(TestSutraApi, self).tearDown()
 
-    def test_api_sutra_upload(self):
+    def test_api_sutra__upload(self):
         # 测试上传经csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(META_DIR, 'Sutra-*.csv'))

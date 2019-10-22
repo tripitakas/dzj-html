@@ -15,7 +15,7 @@ class TestTripitakaApi(APITestCase):
     def tearDown(self):
         super(TestTripitakaApi, self).tearDown()
 
-    def test_api_tripitaka_upload(self):
+    def test_api_tripitaka__upload(self):
         # 测试上传csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         tripitaka_file = path.join(META_DIR, 'Tripitaka.csv')

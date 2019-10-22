@@ -16,7 +16,7 @@ class TestVolumeApi(APITestCase):
     def tearDown(self):
         super(TestVolumeApi, self).tearDown()
 
-    def test_api_volume_upload(self):
+    def test_api_volume__upload(self):
         # 测试上传csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(META_DIR, 'Volume-*.csv'))
