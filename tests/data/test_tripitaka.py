@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from os import path
+from glob2 import glob
 from tests.testcase import APITestCase
 import controller.errors as e
 
