@@ -225,9 +225,9 @@ class PageInfoHandler(BaseHandler):
             if isinstance(value, datetime):
                 value = value.strftime('%Y-%m-%d %H:%M')
             elif key == 'status':
-                value = self.task_status_names.get(value)
+                value = self.get_status_name.get(value)
             elif key == 'pre_tasks':
-                value = '/'.join([self.task_types.get(t) for t in value])
+                value = '/'.join([self.get_task_name(t) for t in value])
             elif key == 'steps':
                 value = '/'.join([step_names.get(t, '') for t in value.get('todo', [])])
             elif key == 'priority':
@@ -248,3 +248,11 @@ class PageInfoHandler(BaseHandler):
 
         except Exception as e:
             return self.send_db_error(e, render=True)
+
+
+class ImportImagesHandler(BaseHandler):
+    URL = '/data/import_images'
+
+    def get(self):
+        """ 导入图片 """
+        self.render('data_import_images.html')

@@ -27,5 +27,5 @@ class TestSearch(APITestCase):
 
     def test_api_punctuate(self):
         q = '初靜慮地受生諸天即受彼地離生喜樂第二靜慮地諸天受定生喜樂'
-        r = self.fetch('/api/punctuate', body={'data': {'q': q}})
+        r = self.fetch('/api/punc/punctuate', body={'data': {'q': q}})
         self.assert_code(200, r)

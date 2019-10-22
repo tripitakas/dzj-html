@@ -15,7 +15,7 @@ url_placeholder = {
     'text_task': r'text_proof_\d|text_review',
     'task_id': r'\w{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
-    'collection': r'page|reel',
+    'collection': r'tripitaka|sutra|volume|reel|page',
     'shared_field': r'box|text',
     'box_type': 'block|column|char',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
@@ -65,11 +65,11 @@ role_route_maps = {
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
             '/t/@page_code': ['GET'],
-            '/ocr': ['GET'],
-            '/api/ocr': ['POST'],
+            '/ocr/recognize': ['GET'],
+            '/api/ocr/recognize': ['POST'],
             '/ocr/@img_file': ['GET'],
-            '/punctuate': ['GET'],
-            '/api/punctuate': ['POST'],
+            '/punc/punctuate': ['GET'],
+            '/api/punc/punctuate': ['POST'],
             '/search/cbeta': ['GET'],
             '/api/search/cbeta': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
@@ -167,10 +167,12 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/data/(tripitaka|volume|sutra|reel|page)': ['GET'],
-            '/api/data/(tripitaka|volume|sutra|reel|page)': ['POST'],
-            '/api/data/(tripitaka|volume|sutra|reel|page)/upload': ['POST'],
-            '/api/data/(tripitaka|volume|sutra|reel|page)/delete': ['POST'],
+            '/data/@collection': ['GET'],
+            '/api/data/publish_ocr': ['POST'],
+            '/api/data/upload_cloud': ['POST'],
+            '/api/data/@collection': ['POST'],
+            '/api/data/@collection/upload': ['POST'],
+            '/api/data/@collection/delete': ['POST'],
             '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
             '/api/data/import_images': ['POST'],
             '/api/data/import_meta': ['POST'],
@@ -202,6 +204,7 @@ def can_access(role, path, method):
     :param path: 浏览器请求path
     :param method: http请求方法，如GET/POST
     """
+
     def match_exclude(p, exclude):
         for holder, regex in url_placeholder.items():
             if holder not in exclude:

@@ -7,14 +7,14 @@ from os import path
 import controller.errors as e
 
 
-class TestTaskFlow(APITestCase):
+class TestTripitakaView(APITestCase):
 
     def setUp(self):
-        super(TestTaskFlow, self).setUp()
+        super(TestTripitakaView, self).setUp()
         self.add_first_user_as_admin_then_login()
 
     def tearDown(self):
-        super(TestTaskFlow, self).tearDown()
+        super(TestTripitakaView, self).tearDown()
 
     def test_view_tripitaka(self):
         """ 测试藏经阅读 """

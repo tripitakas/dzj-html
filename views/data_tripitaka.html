@@ -224,14 +224,14 @@
     $('#updateModal').modal();
     $("#updateModal .modal-title").html('修改藏数据');
     $('#_id').val($(this).parents('tr').attr('id'));
-    $('#name').val(children.eq(1).text());
-    $('#short_name').val(children.eq(2).text());
-    $('#tripitaka_code').val(children.eq(3).text());
-    $('#store_pattern').val(children.eq(4).text());
-    $("#img_available").find("option[value = '" + children.eq(5).text() + "']").attr("selected", "selected");
-    $('#img_prefix').val(children.eq(6).text());
-    $('#img_suffix').val(children.eq(7).text());
-    $('#remark').val(children.eq(8).text());
+    $('#name').val(children.eq(0).text());
+    $('#short_name').val(children.eq(1).text());
+    $('#tripitaka_code').val(children.eq(2).text());
+    $('#store_pattern').val(children.eq(3).text());
+    $("#img_available").find("option[value = '" + children.eq(4).text() + "']").attr("selected", "selected");
+    $('#img_prefix').val(children.eq(5).text());
+    $('#img_suffix').val(children.eq(6).text());
+    $('#remark').val(children.eq(7).text());
   });
 
   // 修改-提交
@@ -257,7 +257,6 @@
     }, function (error) {
       return showError('提交失败', error.message);
     });
-    $('#updateModal').modal('hide');
   });
 
 </script>

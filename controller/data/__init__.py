@@ -1,14 +1,11 @@
-from . import view, tripitaka, volume, sutra, reel
+from . import view, api
 
 views = [
-    view.DataPageHandler,
-    view.TripitakaListHandler, view.TripitakaHandler,
+    view.DataPageHandler, view.TripitakaListHandler, view.TripitakaHandler,
     view.DataTripitakaHandler, view.DataVolumeHandler, view.DataSutraHandler, view.DataReelHandler,
+    view.ImportImagesHandler,
 ]
 
 handlers = [
-    reel.ReelAddOrUpdateApi, reel.ReelUploadApi, reel.ReelDeleteApi,
-    sutra.SutraAddOrUpdateApi, sutra.SutraUploadApi, sutra.SutraDeleteApi,
-    volume.VolumeAddOrUpdateApi, volume.VolumeUploadApi, volume.VolumeDeleteApi,
-    tripitaka.TripitakaAddOrUpdateApi, tripitaka.TripitakaUploadApi, tripitaka.TripitakaDeleteApi,
+    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi
 ]

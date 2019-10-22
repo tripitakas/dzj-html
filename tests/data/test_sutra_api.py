@@ -7,14 +7,14 @@ from tests.testcase import APITestCase
 import controller.errors as e
 
 
-class TestTaskFlow(APITestCase):
+class TestSutraApi(APITestCase):
 
     def setUp(self):
-        super(TestTaskFlow, self).setUp()
+        super(TestSutraApi, self).setUp()
         self.add_first_user_as_admin_then_login()
 
     def tearDown(self):
-        super(TestTaskFlow, self).tearDown()
+        super(TestSutraApi, self).tearDown()
 
     def test_api_sutra_upload(self):
         # 测试上传经csv文件

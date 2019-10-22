@@ -6,14 +6,14 @@ from tests.testcase import APITestCase
 import controller.errors as e
 
 
-class TestTaskFlow(APITestCase):
+class TestTripitakaApi(APITestCase):
 
     def setUp(self):
-        super(TestTaskFlow, self).setUp()
+        super(TestTripitakaApi, self).setUp()
         self.add_first_user_as_admin_then_login()
 
     def tearDown(self):
-        super(TestTaskFlow, self).tearDown()
+        super(TestTripitakaApi, self).tearDown()
 
     def test_api_tripitaka_upload(self):
         # 测试上传csv文件
@@ -26,7 +26,7 @@ class TestTaskFlow(APITestCase):
     def test_api_tripitaka_add_or_update(self):
         tripitaka = self._app.db.tripitaka.find_one()
         # 测试修改一条信息
-        tripitaka['remark'] = '测试数据'
+        tripitaka['tripitaka_code'] = 'CS'
         r = self.fetch('/api/data/tripitaka', body={'data': tripitaka})
         self.assert_code(200, r)
 

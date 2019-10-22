@@ -7,14 +7,14 @@ from tests.testcase import APITestCase
 import controller.errors as e
 
 
-class TestTaskFlow(APITestCase):
+class TestReelApi(APITestCase):
 
     def setUp(self):
-        super(TestTaskFlow, self).setUp()
+        super(TestReelApi, self).setUp()
         self.add_first_user_as_admin_then_login()
 
     def tearDown(self):
-        super(TestTaskFlow, self).tearDown()
+        super(TestReelApi, self).tearDown()
 
     def test_api_reel_upload(self):
         # 测试上传卷csv文件
