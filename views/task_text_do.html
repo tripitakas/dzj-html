@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  {% set stage = '文字校对' if 'proof' in task_type else '文字审定' if 'review' in task_type else '难字审定' %}
+  {% set stage = '文字审定' if 'review' in task_type else '难字审定' if 'hard' in task_type else '文字校对' %}
   <title>{{stage+'-'+page['name']}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}

@@ -13,11 +13,11 @@ from controller.base import BaseHandler
 
 
 class RecognitionHandler(BaseHandler):
-    URL = '/ocr'
+    URL = '/ocr/recognize'
 
     def get(self):
         """ 藏经OCR页面 """
-        self.render('ocr_upload.html')
+        self.render('ocr_recognize.html')
 
 
 class RecognitionViewHandler(BaseHandler):
@@ -40,11 +40,3 @@ class RecognitionViewHandler(BaseHandler):
 
         except Exception as e:
             return self.send_db_error(e, render=True)
-
-
-class ImportImagesHandler(BaseHandler):
-    URL = '/data/import_images'
-
-    def get(self):
-        """ 藏经图片的导入和OCR测试页面 """
-        self.render('data_import_images.html')

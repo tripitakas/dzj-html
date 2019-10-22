@@ -8,8 +8,8 @@ from controller.base import BaseHandler
 
 
 class PunctuationHandler(BaseHandler):
-    URL = '/punctuate'
+    URL = '/punc/punctuate'
 
     def get(self):
         """ 自动标点 """
-        self.render('punctuate.html')
+        self.render('punc_punctuate.html')

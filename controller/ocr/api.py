@@ -29,13 +29,11 @@ import subprocess
 
 import csv
 from datetime import datetime
-from controller.data.reel import Reel
-from controller.data.sutra import Sutra
-from controller.data.volume import Volume
+from controller.data.data import Reel, Volume, Sutra
 
 
 class RecognitionApi(BaseHandler):
-    URL = '/api/data/ocr'
+    URL = '/api/ocr/recognize'
 
     def post(self):
         """对上传的一个藏经图作OCR的接口"""

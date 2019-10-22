@@ -14,7 +14,7 @@ except Exception:
 
 
 class PunctuationApi(BaseHandler):
-    URL = '/api/punctuate'
+    URL = '/api/punc/punctuate'
 
     def post(self):
         """ 自动标点 """

@@ -59,7 +59,7 @@
     var q = $('#punc-input').val();
     if (q.trim().length === 0)
       return;
-    postApi('/punctuate', {data: {q: q}}, function (data) {
+    postApi('/punc/punctuate', {data: {q: q}}, function (data) {
       $('#punc-input').val(data.res);
     });
   });
