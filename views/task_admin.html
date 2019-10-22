@@ -116,7 +116,7 @@
                       <td>{{to_date_str(t.get('picked_time'))}}</td>
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
-                        <a class="view" href="/task/{{t['task_type']}}/{{t['doc_id']}}">查看</a>
+                        <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
                         <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
                       </td>
                     </tr>
@@ -208,15 +208,12 @@
           <div class="id-values">
             <h4 class="control-label">选择待发布的任务</h4>
             <ul class="nav nav-tabs" id="tabContent">
-              <li class="active"><a href="#source-prefix" data-toggle="tab">按编码前缀</a></li>
-              <li><a id="select-ids" href="#source-select" data-toggle="tab">逐个选择编码</a></li>
+              <li class="active"><a id="select-ids" href="#source-select" data-toggle="tab">逐个选择编码</a></li>
+              <li><a href="#source-prefix" data-toggle="tab">按编码前缀</a></li>
               <li><a href="#source-file" data-toggle="tab">上传编码文件</a></li>
             </ul>
             <div class="tab-content">
-              <div class="tab-pane active" id="source-prefix">
-                <input type="text" class="form-control" id="id_prefix" placeholder="请输入编码前缀，如GL_2"/>
-              </div>
-              <div class="tab-pane" id="source-select">
+              <div class="tab-pane active" id="source-select">
                 <div class="form-group">
                   <div>
                     <div class="ms-container my-container">
@@ -237,6 +234,9 @@
                     <div id="pagination" class="ms-search-pagination"></div>
                   </div>
                 </div>
+              </div>
+              <div class="tab-pane" id="source-prefix">
+                <input type="text" class="form-control" id="id_prefix" placeholder="请输入编码前缀，如GL_2"/>
               </div>
               <div class="tab-pane" id="source-file">
                 <i>请选择CSV或TXT格式文件，大小不超过10M</i>
