@@ -27,9 +27,13 @@ function error_callback(res) {
 
   };
   if (res.code === 3002) {  // error.task_uncompleted
-    swal(meta, function () {
+    if (location.pathname.indexOf('/task/do') !== -1) {
       window.location = res.url;
-    });
+    } else {
+      swal(meta, function () {
+        window.location = res.url;
+      });
+    }
   } else if (res.code === 3003) { // error.no_task_to_pick
     showError('暂无新任务', res.message);
     setTimeout(function () {
