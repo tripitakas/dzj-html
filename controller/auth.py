@@ -13,6 +13,7 @@ url_placeholder = {
     'task_type': r'cut_proof|cut_review|ocr_proof|ocr_review|text_\w+',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
+    'data_task': r'ocr|upload_cloud|import_image',
     'task_id': r'\w{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'collection': r'tripitaka|sutra|volume|reel|page',
@@ -163,22 +164,24 @@ role_route_maps = {
             '/api/task/(assign|retrieve|delete)/@task_type': ['POST'],
         }
     },
+    '数据处理员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api/data/(pick|submit)/@data_task': ['POST']
+        }
+    },
     '数据管理员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
             '/data/@collection': ['GET'],
             '/api/data/pages': ['POST'],
-            '/api/data/publish_ocr': ['POST'],
-            '/api/data/upload_cloud': ['POST'],
             '/api/data/@collection': ['POST'],
-            '/api/data/@collection/upload': ['POST'],
-            '/api/data/@collection/delete': ['POST'],
-            '/api/data/submit_ocr/@img_file': ['GET', 'POST'],
-            '/api/data/import_images': ['POST'],
-            '/api/data/import_meta': ['POST'],
-            '/api/data/fetch_ocr/@user_code': ['GET'],
-            '/data/import_images': ['GET'],
+            '/api/data/@collection/(upload|delete)': ['POST'],
+            '/api/data/publish/@data_task': ['POST'],
+            '/data/import_image': ['GET'],
+            '/api/data/delete/import_image': ['POST'],
         }
     },
     '用户管理员': {

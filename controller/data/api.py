@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 from datetime import datetime
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
 import controller.validate as v
+from controller import errors
 from controller.base import BaseHandler, DbError
 from .data import Tripitaka, Volume, Reel, Sutra
+from .base import DataHandler
 
 try:
     from StringIO import StringIO
@@ -103,89 +104,181 @@ class GetReadyPagesApi(BaseHandler):
             return self.send_db_error(err)
 
 
-class PublishTodoPages(BaseHandler):
-    # 数据状态表
-    STATUS_TODO = 'todo'
-    STATUS_FAILED = 'failed'
-    STATUS_FINISHED = 'finished'
-    status_names = {STATUS_TODO: '排队中', STATUS_FAILED: '失败', STATUS_FINISHED: '已完成'}
+class PublishPageTaskApi(DataHandler):
+    URL = '/api/data/publish/(ocr|upload_cloud)'
 
-    def publish_todo_page(self, page_names, force, data_field):
-        """ 发布待办页面。
-        :param page_names 待发布的页面
-        :param force 页面已完成时，是否重新发布
-        :param data_field 更新page表的哪个字段
-        :return 格式如下：{'un_existed':[...],  'finished':[...], 'published':[...]}
-        """
-        assert data_field in ['ocr_status', 'upload_status']
+    def post(self, data_task):
+        """ 发布页面数据任务。"""
+        try:
+            self.publish(data_task)
+        except DbError as err:
+            return self.send_db_error(err)
 
-        log = dict()
 
-        # 检查页面是否存在
-        pages = list(self.db['page'].find({'name': {'$in': page_names}}))
-        log['un_existed'] = set(page_names) - set([page.get('name') for page in pages])
-        page_names = [page.get('name') for page in pages]
+class PublishImportImagesApi(DataHandler):
+    URL = '/api/data/publish/import_image'
 
-        # 去掉已完成的页面（如果不重新发布）
-        if not force and page_names:
-            condition = dict(status=self.STATUS_FINISHED, page_id={'$in': list(page_names)})
-            log['finished'] = set(t.get('name') for t in self.db.page.find(condition, {'name': 1}))
-            page_names = set(page_names) - log['finished']
+    def post(self):
+        """ 发布图片导入任务"""
 
-        # 设置页面状态
-        if page_names:
-            update = {data_field: self.STATUS_TODO, 'updated_time': datetime.now()}
-            self.db.page.update_many({'name': {'$in': list(page_names)}}, {'$set': update})
-            log['published'] = page_names
-
-        return {k: value for k, value in log.items() if value}
-
-    @classmethod
-    def get_status_name(cls, status):
-        return cls.status_names.get(status)
-
-    def get_doc_ids(self, data):
-        doc_ids = data.get('doc_ids')
-        if not doc_ids:
-            ids_file = self.request.files.get('ids_file')
-            if ids_file:
-                ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
-                ids_str = re.sub(r'\n+', '|', ids_str)
-                doc_ids = ids_str.split(r'|')
-            elif data.get('prefix'):
-                condition = {'name': {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'}}
-                doc_ids = [doc.get('name') for doc in self.db.page.find(condition)]
-        return doc_ids
-
-    def publish(self, data_field):
-        data = self.get_request_data()
-        data['doc_ids'] = self.get_doc_ids(data)
-        rules = [(v.not_empty, 'doc_ids', 'force')]
-        err = v.validate(data, rules)
-        if err:
-            return self.send_error_response(err)
+        def get_item():
+            item = {k: data.get(k) or '' for k in ['dir', 'redo', 'remark']}
+            item['redo'] = item['redo'] == '1'
+            item.update(dict(
+                status=self.STATUS_TODO, create_time=datetime.now(), updated_time=datetime.now(),
+                publish_user_id=self.current_user['_id'], publish_by=self.current_user['name']
+            ))
+            return item
 
         try:
-            assert isinstance(data['doc_ids'], list)
-            force = data['force'] == '1'
-            log = self.publish_todo_page(data['doc_ids'], force, data_field)
-            return self.send_data_response({k: value for k, value in log.items() if value})
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'dir', 'redo')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+            self.db['import'].insert_one(get_item())
+
+            self.send_data_response()
+            self.add_op_log('publish_import_image_task', context='%s,%s' % (data['dir'], data['redo']))
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class PickPageTasksApi(DataHandler):
+    URL = '/api/data/pick/(ocr|upload_cloud)'
+
+    def post(self, data_task):
+        """ 领取待办数据（OCR、上传云图）任务 """
+        try:
+            data = self.get_request_data()
+            size = int(data.get('size') or 1)
+            condition = {'tasks.%s.status' % data_task: self.STATUS_TODO}
+            pages = list(self.db.page.find(condition).limit(size))
+            if not pages:
+                self.send_error_response(errors.no_object)
+
+            page_names = [p['name'] for p in pages]
+            update = dict(status=self.STATUS_PICKED, picked_time=datetime.now(), updated_time=datetime.now(),
+                          picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
+            self.db.page.update_many({'name': {'$in': page_names}}, {'$set': update})
+
+            self.send_data_response(page_names)
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class PickImportImagesApi(DataHandler):
+    URL = '/api/data/pick/import_image'
+
+    def post(self):
+        """ 领取待办导入图片任务 """
+        try:
+            task = self.db['import'].find_one({'status': self.STATUS_TODO})
+            if not task:
+                self.send_error_response(errors.no_object)
+
+            update = dict(status=self.STATUS_PICKED, picked_time=datetime.now(), updated_time=datetime.now(),
+                          picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
+            self.db['import'].update_one({'_id': task['_id']}, {'$set': update})
+
+            self.send_data_response(task)
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class SubmitOcrApi(DataHandler):
+    URL = '/api/data/submit/ocr'
+
+    def post(self):
+        """ 批量提交OCR结果
+        提交格式：{'result':[{'name':'name1', 'blocks':[], }, {'name':'name2',}....]}"""
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'result')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            pre = 'tasks.ocr.'
+            for page in data['result']:
+                if page.get('chars'):
+                    update = {pre + 'status': self.STATUS_FINISHED, pre + 'finished_time': datetime.now(),
+                              pre + 'updated_time': datetime.now()}
+                    for field in ['blocks', 'columns', 'chars', 'ocr']:
+                        if data.get(field):
+                            update[field] = data[field]
+                else:
+                    update = {pre + 'status': self.STATUS_FAILED, pre + 'updated_time': datetime.now(),
+                              pre + 'message': page.get('message')}
+                self.db.page.update_one({'name': page['name']}, {'$set': update})
+
+            self.send_data_response()
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class SubmitUploadCloudApi(DataHandler):
+    URL = '/api/data/submit/upload_cloud'
+
+    def post(self):
+        """ 批量提交上传云图的结果
+        提交格式：{'result':[{'name':'name1', status: 'success', message: ''}, {'name':'name2',}....]}
+        """
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'result')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            pre = 'tasks.upload_cloud.'
+            for page in data['result']:
+                status = self.STATUS_FINISHED if page['status'] == 'success' else self.STATUS_FAILED
+                update = {pre + 'status': status, pre + 'message': data.get('message'),
+                          pre + 'finished_time': datetime.now(), pre + 'updated_time': datetime.now()}
+                self.db.page.update_one({'name': page['name']}, {'$set': update})
+
+            self.send_data_response()
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class SubmitImportImagesApi(DataHandler):
+    URL = '/api/data/submit/import_image'
+
+    def post(self):
+        """ 提交导入图片任务 """
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, '_id', 'status'), (v.exist, self.db['import'], '_id')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            status = self.STATUS_FINISHED if data['status'] == 'success' else self.STATUS_FAILED
+            update = {'status': status, 'finished_time': datetime.now(), 'updated_time': datetime.now(),
+                      'remark': data.get('message')}
+            self.db['import'].update_one({'_id': ObjectId(data['_id'])}, {'$set': update})
+            self.send_data_response()
 
         except DbError as err:
             return self.send_db_error(err)
 
 
-class PublishOcrApi(PublishTodoPages):
-    URL = '/api/data/publish_ocr'
+class DeleteImportImagesApi(DataHandler):
+    URL = '/api/data/delete/import_image'
 
     def post(self):
-        """ 发布待OCR的页面。"""
-        self.publish('ocr_status')
+        """ 删除导入图片任务 """
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, '_id'), (v.exist, self.db['import'], '_id')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
 
+            self.db['import'].delete_one({'_id': ObjectId(data['_id'])})
+            self.send_data_response()
 
-class UploadCloudApi(PublishTodoPages):
-    URL = '/api/data/upload_cloud'
-
-    def post(self):
-        """ 发布待OCR的页面。"""
-        self.publish('upload_status')
+        except DbError as err:
+            return self.send_db_error(err)

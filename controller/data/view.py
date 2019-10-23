@@ -251,8 +251,21 @@ class PageInfoHandler(BaseHandler):
 
 
 class ImportImagesHandler(BaseHandler):
-    URL = '/data/import_images'
+    URL = '/data/import_image'
 
     def get(self):
-        """ 导入图片 """
-        self.render('data_import_images.html')
+        """ 数据管理-导入图片 """
+        try:
+            item_count = self.db['import'].count_documents({})
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            query = self.db['import'].find({})
+            items = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+
+            self.render('data_import.html', items=items, pager=pager)
+
+        except Exception as e:
+            return self.send_db_error(e, render=True)

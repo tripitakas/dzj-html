@@ -49,6 +49,7 @@ class CommonLeft(UIModule):
                 dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
+                dict(name='导图片', icon='icon_subitem', link='/data/import_image'),
             ]),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),

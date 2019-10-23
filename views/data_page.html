@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% from controller.task.base import TaskHandler as Th %}
-{% from controller.data.api import PublishTodoPages as Pub %}
+{% from controller.data.base import DataHandler as Dt %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -17,6 +17,7 @@
   <style>
     .sty-table td a {
       font-size: 14px;
+      color: #13171c;
     }
 
   </style>
@@ -36,9 +37,6 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
-                    <span class="btn btn-default waves-effect">
-                      <a href="/data/import_images" style="color: #fff">载入图片</a>
-                    </span>
                     <div class="btn-group dropdown">
                       <button type="button" class="btn btn-default waves-effect" id="publish-ocr" style="margin-right: 8px">
                         进行OCR
@@ -59,14 +57,12 @@
                       <th><span class="sort">统一经编码</span><span class="ion-arrow-down-b"></span></th>
                       <th><span class="sort">卷编码</span><span class="ion-arrow-down-b"></span></th>
                       <th><span class="sort">卷内页序号</span></th>
-                      <th><span class="sort">OCR</span></th>
+                      <th><span class="sort">进行OCR</span></th>
                       <th><span class="sort">上传云端</span></th>
                       <th><span class="sort">OCR文本</span></th>
                       <th><span class="sort">OCR栏框</span></th>
                       <th><span class="sort">OCR列框</span></th>
                       <th><span class="sort">OCR字框</span></th>
-                      <th><span>创建时间</span></th>
-                      <th><span>更新时间</span></th>
                     </tr>
                     </thead>
 
@@ -77,14 +73,12 @@
                       <td>{{p.get('uni_sutra_id') or ''}}</td>
                       <td>{{p.get('reel_id') or ''}}</td>
                       <td>{{p.get('reel_page_no') or ''}}</td>
-                      <td>{{Pub.get_status_name(p.get('ocr_status')) or ''}}</td>
-                      <td>{{Pub.get_status_name(p.get('upload_status')) or ''}}</td>
+                      <td>{{Dt.get_status_name(Th.prop(p, 'tasks.ocr.status')) or ''}}</td>
+                      <td>{{Dt.get_status_name(Th.prop(p, 'tasks.upload_cloud.status')) or ''}}</td>
                       <td><a href="/data/edit/text/{{p.get('name')}}">{{'已就绪' if p.get('ocr') else ''}}</a></td>
                       <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'已就绪' if p.get('blocks') else ''}}</a></td>
                       <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'已就绪' if p.get('columns') else ''}}</a></td>
                       <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'已就绪' if p.get('chars') else ''}}</a></td>
-                      <td>{{to_date_str(p.get('create_time'))}}</td>
-                      <td>{{to_date_str(p.get('updated_time'))}}</td>
                       </td>
                     </tr>
                     {% end %}
@@ -245,7 +239,7 @@
         isFile = true;
         break;
     }
-    var url = modalType === 'ocr' ? '/data/publish_ocr' : '/data/upload_cloud';
+    var url = modalType === 'ocr' ? '/data/publish/ocr' : '/data/publish/upload_cloud';
     postApi(url, isFile ? formData : {data: data}, function (res) {
       var len = (res.data.published || []).length;
       showSuccess('已发布页面', len + ' 个页面已发布。');

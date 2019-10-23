@@ -71,13 +71,13 @@ class RecognitionApi(BaseHandler):
                 im = Image.alpha_composite(im, mark)
             except ValueError as err:
                 logging.error('%s: %s' % (img_file, str(err)))
-            im.convert('L').save(gif_file, 'GIF')
 
+            im.convert('L').save(gif_file, 'GIF')
             if gif_file != img_file:
                 remove(img_file)
-            subprocess.call(['gifsicle', '-o', gif_file, '-O3', '--careful',
-                             '--no-comments', '--no-names', '--same-delay', '--same-loopcount', '--no-warnings',
-                             '--', gif_file])
+
+            subprocess.call(['gifsicle', '-o', gif_file, '-O3', '--careful', '--no-comments', '--no-names',
+                             '--same-delay', '--same-loopcount', '--no-warnings', '--', gif_file])
 
             self.send_data_response(dict(name=path.basename(gif_file)))
 
@@ -97,16 +97,16 @@ class RecognitionApi(BaseHandler):
                 filename = re.sub(r'[/\\]', '_', m.group(0)[1:]) + '_' + filename
             if len(filename) < 7:
                 filename = '%d.%s' % (hash(img[0]['filename']) % 10000, ext)
-
-        logging.info('recognize %s...' % filename)
         data['filename'] = filename
 
         # 将图片内容转发到OCR服务，OCR结果将以JSON内容返回
+        logging.info('recognize %s...' % filename)
         url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
-        self.call_back_api(url, connect_timeout=5, request_timeout=20,
-                           handle_error=lambda t: self.send_error_response(e.ocr_err,
-                                                                           message=e.ocr_err[1] % (t or '无法访问')),
-                           body=img[0]['body'], method='POST', handle_response=handle_response)
+        self.call_back_api(
+            url, connect_timeout=5, request_timeout=20, body=img[0]['body'], method='POST',
+            handle_error=lambda t: self.send_error_response(e.ocr_err, message=e.ocr_err[1] % (t or '无法访问')),
+            handle_response=handle_response
+        )
 
     @staticmethod
     def ocr2page(page):
@@ -131,9 +131,10 @@ class RecognitionApi(BaseHandler):
             block = union_list(page['chars_pos'])
             block.update(dict(block_id='b1', no=1))
             page['blocks'] = [block]
-            page['chars'] = [dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1],
-                                  cc=page['chars_cc'][i], txt=page['chars_text'][i])
-                             for i, c in enumerate(page['chars_pos'])]
+            page['chars'] = [
+                dict(x=c[0], y=c[1], w=c[2] - c[0], h=c[3] - c[1], cc=page['chars_cc'][i], txt=page['chars_text'][i])
+                for i, c in enumerate(page['chars_pos'])
+            ]
         chars = calc(page['chars'], page['blocks'], [])
         for c_i, c in enumerate(chars):
             page['chars'][c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
@@ -147,9 +148,11 @@ class RecognitionApi(BaseHandler):
             if column_id not in columns:
                 columns[column_id] = dict(column_id=column_id, block_no=c['block_no'], line_no=c['line_no'],
                                           txt='', no=c['line_no'])
-                chars_col = [[s['x'], s['y'], s['x'] + s['w'], s['y'] + s['h']]
-                             for i, s in enumerate(page['chars']) if chars[i]['block_id'] == c[
-                                 'block_no'] and chars[i]['column_id'] == c['line_no']]
+                chars_col = [
+                    [s['x'], s['y'], s['x'] + s['w'], s['y'] + s['h']]
+                    for i, s in enumerate(page['chars'])
+                    if chars[i]['block_id'] == c['block_no'] and chars[i]['column_id'] == c['line_no']
+                ]
                 columns[column_id].update(union_list(chars_col))
                 page['columns'].append(columns[column_id])
                 max_h = c['h']
@@ -246,32 +249,6 @@ class SubmitRecognitionApi(BaseHandler):
             logging.error('fail to upload %s: %s' % (key, str(err).split(': ')[-1]))
 
 
-class ImportImagesApi(BaseHandler):
-    URL = '/api/data/import_images'
-
-    def post(self):
-        """请求批量导入藏经图"""
-
-        def handle_response(res):
-            self.add_op_log('import_images', context='%s,%s,%d' % (
-                data['user_code'], data['tripitaka_code'], res['count']))
-            self.send_data_response(res)
-
-        data = self.get_request_data()
-        rules = [
-            (va.not_empty, 'user_code', 'tripitaka_code', 'folder'),
-            (va.is_tripitaka, 'tripitaka_code'),
-        ]
-        err = va.validate(data, rules)
-        if err:
-            return self.send_error_response(err)
-
-        url = '%s?%s' % (self.config['ocr_api'][:-3] + 'import_images', urlencode(data))
-        self.call_back_api(url, request_timeout=20, handle_response=handle_response,
-                           handle_error=lambda t: self.send_error_response(e.ocr_import,
-                                                                           message=e.ocr_import[1] % (t or '无法访问')))
-
-
 class ImportMetaApi(BaseHandler):
     URL = '/api/data/import_meta'
 
@@ -299,9 +276,8 @@ class ImportMetaApi(BaseHandler):
                     res['new_pages'].append(name)
                     logging.info('page %s added' % name)
 
-            self.call_back_api(url, body='', method='POST',
-                               handle_response=lambda r: self.send_data_response(res),
-                               handle_error=lambda t: logging.error(t))
+            self.call_back_api(url, body='', method='POST', handle_error=lambda t: logging.error(t),
+                               handle_response=lambda r: self.send_data_response(res))
 
         def save(res, name, cls):
             if res[name]:
@@ -329,9 +305,10 @@ class ImportMetaApi(BaseHandler):
             return self.send_error_response(err)
 
         url = '%s?%s' % (self.config['ocr_api'][:-3] + 'build_meta', urlencode(data))
-        self.call_back_api(url, handle_response=handle_response,
-                           handle_error=lambda t: self.send_error_response(e.ocr_import,
-                                                                           message=e.ocr_import[1] % (t or '无法访问')))
+        self.call_back_api(
+            url, handle_response=handle_response,
+            handle_error=lambda t: self.send_error_response(e.ocr_import, message=e.ocr_import[1] % (t or '无法访问'))
+        )
 
 
 class FetchResultApi(BaseHandler):
@@ -355,7 +332,8 @@ class FetchResultApi(BaseHandler):
                         return loop()
                     logging.info('fetch %s' % json_file)
                     self.call_back_api('%s/%s?remove=1' % (self.config['ocr_api'][:-3] + 'browse', json_file),
-                                       handle_response=handle_file, handle_error=handle_error, binary_response=True)
+                                       handle_response=handle_file, handle_error=handle_error,
+                                       binary_response=True)
                 else:
                     for json_file in pages:
                         page = SubmitRecognitionApi.upload_page(self, json_file, None, ignore_error=True, update=True)
@@ -373,5 +351,5 @@ class FetchResultApi(BaseHandler):
         def handle_error(t):
             self.send_error_response(e.ocr_import, message=e.ocr_import[1] % (t or '无法访问'))
 
-        url = '%s//work_path/_result/%s' % (self.config['ocr_api'][:-3] + 'browse', user_code)
-        self.call_back_api(url, handle_response=handle_list_response, handle_error=handle_error)
+        self.call_back_api('%s//work_path/_result/%s' % (self.config['ocr_api'][:-3] + 'browse', user_code),
+                           handle_response=handle_list_response, handle_error=handle_error)

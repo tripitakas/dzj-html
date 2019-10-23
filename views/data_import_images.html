@@ -109,7 +109,7 @@
     var tripitaka_code = $('#tripitaka_code').val();
     var folder = $('#folder').val();
 
-    postApi('/data/import_images', {data: {user_code: user_code, tripitaka_code: tripitaka_code, folder: folder}},
+    postApi('/data/import_image', {data: {user_code: user_code, tripitaka_code: tripitaka_code, folder: folder}},
         function (res) {
           $('#import-images-result').text('复制了' + res.names.length + '个图片：' + res.names.slice(0, 5).join(', '));
         }, function (error) {

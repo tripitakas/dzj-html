@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+{% from controller.data.base import DataHandler as Dt %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>数据管理-导图片</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet" type="text/css"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .sty-table td a {
+      font-size: 14px;
+    }
+
+    #pan-name {
+      width: 140px;
+      display: inline-flex;
+    }
+
+    #pan-path {
+      width: 60%;
+      display: inline-flex;
+    }
+
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="data-management", sub="" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="operation">
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
+                        新建导入
+                      </button>
+                    </div>
+                  </div>
+                  <div class="search fr">
+                    <input id="search-input" type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                    <thead>
+                    <tr>
+                      <th><span>导入哪个文件夹</span></th>
+                      <th><span class="sort">文件重复时如何处理</span></th>
+                      <th><span class="sort">状态</span></th>
+                      <th><span class="sort">备注</span></th>
+                      <th><span>创建人</span></th>
+                      <th><span>创建时间</span></th>
+                      <th><span>更新时间</span></th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for i in items %}
+                    <tr>
+                      <td>{{i.get('dir') or ''}}</td>
+                      <td>{{'是' if i.get('redo') else '否'}}</td>
+                      <td>{{Dt.get_status_name(i.get('status')) or ''}}</td>
+                      <td>{{i.get('remark') or ''}}</td>
+                      <td>{{i.get('publish_by') or ''}}</td>
+                      <td>{{to_date_str(i.get('create_time'))}}</td>
+                      <td>{{to_date_str(i.get('updated_time'))}}</td>
+                      <td><a class="delete" id="{{i['_id']}}">删除</a></td>
+                      </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="modal-title">新建导入图片</h4>
+        </div>
+        <div class="modal-body">
+          <div class="id-values">
+            <h4 class="control-label">导入哪个文件夹</h4>
+            <ul class="nav nav-tabs" id="tabContent">
+              <li class="active"><a href="#tab-pan" data-toggle="tab">网盘目录</a></li>
+              <li><a href="#tab-manual" data-toggle="tab">手工输入</a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab-pan">
+                <input type="text" class="form-control" id="pan-name" placeholder="请输入网盘用户名"/>
+                @<input type="text" class="form-control" id="pan-path" placeholder="请输入网盘相对路径"/>
+              </div>
+              <div class="tab-pane" id="tab-manual">
+                <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
+              </div>
+            </div>
+            <div class="redo" style="margin-top: 15px">
+              <h4 class="control-label">文件重复时如何处理？</h4>
+              <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
+              <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<script>
+  // 排序
+  $(".sort").on("click", function () {
+    $(this).toggleClass('toggle');
+    $(this).next().toggleClass('toggle');
+  });
+
+  // 搜索
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === "13") {
+      var q = $(this).val().trim();
+      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    }
+  });
+
+  // 新建
+  $("#modal_confirm").click(function () {
+    var active = $('.tab-content .tab-pane.active').attr('id');
+    var dir2import = $('#manual-dir').val();
+    if (active === 'tab-pan') {
+      var panName = $('#pan-name').val().trim();
+      var panPath = $('#pan-path').val().trim();
+      dir2import = '/srv/nextcloud/data/' + panName + '/files/' + panPath;
+    }
+    var data = {dir: dir2import, redo: $('#publishModal .redo input:radio:checked').val()};
+    postApi('/data/publish/import_image', {data: data}, function (res) {
+      showSuccess('成功', '数据已提交。');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+  // 删除
+  $(".delete").on("click", function () {
+    postApi('/data/delete/import_image', {data: {_id: $(this).attr('id')}}, function (res) {
+      showSuccess('成功', '数据已删除。');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+
+</script>
+
+</body>
+</html>

@@ -45,7 +45,7 @@ op_types = {
     'update_reel': dict(name='修改卷数据'),
     'delete_reel': dict(name='删除卷数据'),
     'upload_reel': dict(name='上传卷数据'),
-    'import_images': dict(name='导入藏经图'),
+    'import_image': dict(name='导入藏经图'),
     'import_meta': dict(name='导入藏册页数据'),
 }
 

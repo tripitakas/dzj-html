@@ -390,7 +390,7 @@
     swal({
           type: "warning", title: "确定重新比对吗？", text: "重新比对将清空之前的校对结果！",
           confirmButtonColor: "#b8906f", confirmButtonText: "确定", cancelButtonText: "取消",
-          showCancelButton: true, closeOnConfirm: false,
+          showCancelButton: true, closeOnConfirm: false
         },
         function () {
           window.location = '{{r"%s?step=%s" % (current_path, steps.get("current"))}}' + '&re_compare=true';

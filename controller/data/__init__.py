@@ -8,5 +8,6 @@ views = [
 
 handlers = [
     api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi, api.GetReadyPagesApi,
-    api.PublishOcrApi, api.UploadCloudApi,
+    api.PublishPageTaskApi, api.PublishImportImagesApi, api.PickPageTasksApi, api.PickImportImagesApi,
+    api.SubmitOcrApi, api.SubmitUploadCloudApi, api.SubmitImportImagesApi, api.DeleteImportImagesApi,
 ]

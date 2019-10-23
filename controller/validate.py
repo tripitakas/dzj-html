@@ -251,7 +251,7 @@ def has_fields(fields, **kw):
 
 def not_existed(collection=None, exclude_id=None, **kw):
     """
-    校验数据库中是否已存在kw中对应的记录
+    校验数据库中是否不存在kw中对应的记录，存在则报错
     :param collection: mongdb的collection
     :param exclude_id: 校验时，排除某个id对应的记录
     """
@@ -263,6 +263,21 @@ def not_existed(collection=None, exclude_id=None, **kw):
             if exclude_id:
                 condition['_id'] = {'$ne': exclude_id}
             if v and collection.find_one(condition):
+                errs[k] = code, message % i18n_trans(k)
+    return errs or None
+
+
+def exist(collection=None, **kw):
+    """
+    校验数据库中是否存在kw中对应的记录，不存在则报错
+    :param collection: mongdb的collection
+    """
+    errs = {}
+    code, message = e.record_existed
+    if collection:
+        for k, v in kw.items():
+            condition = {k: ObjectId(v) if k == '_id' else v}
+            if v and not collection.find_one(condition):
                 errs[k] = code, message % i18n_trans(k)
     return errs or None
 

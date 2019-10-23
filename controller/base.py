@@ -245,7 +245,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def add_op_log(self, op_type, target_id=None, context=None, nickname=None):
         op_name = get_op_name(op_type)
-        op_name = op_name or op_type    # 暂时取消对op_type的检查
+        op_name = op_name or op_type  # 暂时取消对op_type的检查
         assert op_name, op_type + ' need add into op_type.py'
         logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
         try:
@@ -276,7 +276,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         return url
 
     @gen.coroutine
-    def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+    def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):
         def callback(r):
             if r.error:
                 if handle_error:

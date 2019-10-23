@@ -5,5 +5,5 @@ views = [
 ]
 handlers = [
     api.RecognitionApi, api.SubmitRecognitionApi,
-    api.RecognitionApi, api.SubmitRecognitionApi, api.ImportImagesApi, api.ImportMetaApi, api.FetchResultApi,
+    api.RecognitionApi, api.SubmitRecognitionApi, api.ImportMetaApi, api.FetchResultApi,
 ]
