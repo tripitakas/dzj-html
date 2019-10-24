@@ -15,7 +15,7 @@ class TestDataLock(APITestCase):
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
-            '切分专家,文字专家,单元测试用户'
+            '切分专家,文字专家,数据处理员,单元测试用户'
         )
         self.delete_tasks_and_locks()
 
