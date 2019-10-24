@@ -5,12 +5,9 @@ import sys
 import pymongo
 from glob2 import glob
 import os.path as path
-sys.path.append(path.dirname(path.dirname(__file__)))
 
-from controller.data.reel import Reel
-from controller.data.sutra import Sutra
-from controller.data.volume import Volume
-from controller.data.tripitaka import Tripitaka
+sys.path.append(path.dirname(path.dirname(__file__)))
+from controller.data.data import Tripitaka, Volume, Reel, Sutra
 
 META_DIR = path.join(path.dirname(__file__), '..', 'meta', 'meta')
 
@@ -19,7 +16,7 @@ def import_tripitaka(db, csv_file, reset=False):
     """ 导入tripitaka数据 """
     sys.stdout.write('importing tripitaka: %s...\n' % path.basename(csv_file))
     with open(csv_file) as fn:
-        r = Tripitaka.save_many(db, file_stream=fn, check_existed=reset)
+        r = Tripitaka.save_many(db, 'tripitaka', file_stream=fn, check_existed=reset)
         if r.get('status') == 'success':
             sys.stdout.write('import success: %s\n' % r.get('message'))
         else:
@@ -30,7 +27,7 @@ def import_volume(db, csv_file, reset=False):
     """ 导入volume数据 """
     sys.stdout.write('importing volume: %s...\n' % path.basename(csv_file))
     with open(csv_file) as fn:
-        r = Volume.save_many(db, file_stream=fn, check_existed=reset)
+        r = Volume.save_many(db, 'volume', file_stream=fn, check_existed=reset)
         if r.get('status') == 'success':
             sys.stdout.write('import success: %s\n' % r.get('message'))
         else:
@@ -41,7 +38,7 @@ def import_sutra(db, csv_file, reset=False):
     """ 导入sutra数据 """
     sys.stdout.write('importing sutra: %s...\n' % path.basename(csv_file))
     with open(csv_file) as fn:
-        r = Sutra.save_many(db, file_stream=fn, check_existed=reset)
+        r = Sutra.save_many(db, 'sutra', file_stream=fn, check_existed=reset)
         if r.get('status') == 'success':
             sys.stdout.write('import success: %s\n' % r.get('message'))
         else:
@@ -52,7 +49,7 @@ def import_reel(db, csv_file, reset=False):
     """ 导入reel数据 """
     sys.stdout.write('importing reel: %s...\n' % path.basename(csv_file))
     with open(csv_file) as fn:
-        r = Reel.save_many(db, file_stream=fn, check_existed=not reset)
+        r = Reel.save_many(db, 'reel', file_stream=fn, check_existed=not reset)
         if r.get('status') == 'success':
             sys.stdout.write('import success: %s\n' % r.get('message'))
         else:

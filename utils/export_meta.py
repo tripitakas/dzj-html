@@ -5,10 +5,9 @@ import sys
 import csv
 import pymongo
 import os.path as path
-from controller.data.reel import Reel
-from controller.data.sutra import Sutra
-from controller.data.volume import Volume
-from controller.data.tripitaka import Tripitaka
+
+sys.path.append(path.dirname(path.dirname(__file__)))
+from controller.data.data import Tripitaka, Volume, Reel, Sutra
 
 META_DIR = path.join(path.dirname(__file__), '..', 'meta', 'meta')
 db = ''
@@ -19,11 +18,11 @@ def export_tripitaka():
     sys.stdout.write('exporting tripitaka: %s...' % path.basename(filename))
     with open(filename, 'w', newline='') as fn:
         writer = csv.writer(fn)
-        heads = [Tripitaka.get_field_name(f) for f in Tripitaka.fields]
+        heads = [f[1] for f in Tripitaka.fields]
         writer.writerow(heads)
         rows = list(db.tripitaka.find())
         for row in rows:
-            info = [row.get(r) for r in Tripitaka.fields]
+            info = [row.get(f[0]) for f in Tripitaka.fields]
             writer.writerow(info)
         sys.stdout.write('%s records exported\n' % len(rows))
 
@@ -33,11 +32,11 @@ def export_volume(tripitaka):
     sys.stdout.write('exporting tripitaka: %s...' % path.basename(filename))
     with open(filename, 'w', newline='') as fn:
         writer = csv.writer(fn)
-        heads = [Volume.get_field_name(f) for f in Volume.fields]
+        heads = [f[1] for f in Volume.fields]
         writer.writerow(heads)
         rows = list(db.volume.find({'tripitaka_code': tripitaka}).sort([('envelop_no', 1), ('volume_no', 1)]))
         for row in rows:
-            info = [row.get(f) for f in Volume.fields]
+            info = [row.get(f[0]) for f in Volume.fields]
             writer.writerow(info)
         sys.stdout.write('%s records exported\n' % len(rows))
 
@@ -47,11 +46,11 @@ def export_sutra(tripitaka):
     sys.stdout.write('exporting tripitaka: %s...' % path.basename(filename))
     with open(filename, 'w', newline='') as fn:
         writer = csv.writer(fn)
-        heads = [Sutra.get_field_name(f) for f in Sutra.fields]
+        heads = [f[1] for f in Sutra.fields]
         writer.writerow(heads)
         rows = list(db.sutra.find({'sutra_code': {'$regex': '^%s.*' % tripitaka}}))
         for row in rows:
-            info = [row.get(f) for f in Sutra.fields]
+            info = [row.get(f[0]) for f in Sutra.fields]
             writer.writerow(info)
         sys.stdout.write('%s records exported\n' % len(rows))
 
@@ -61,11 +60,11 @@ def export_reel(tripitaka):
     sys.stdout.write('exporting tripitaka: %s...' % path.basename(filename))
     with open(filename, 'w', newline='') as fn:
         writer = csv.writer(fn)
-        heads = [Reel.get_field_name(f) for f in Reel.fields]
+        heads = [f[1] for f in Reel.fields]
         writer.writerow(heads)
         rows = list(db.reel.find({'sutra_code': {'$regex': '^%s.*' % tripitaka}}))
         for row in rows:
-            info = [row.get(f) for f in Reel.fields]
+            info = [row.get(f[0]) for f in Reel.fields]
             writer.writerow(info)
         sys.stdout.write('%s records exported\n' % len(rows))
 
