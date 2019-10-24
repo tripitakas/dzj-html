@@ -57,6 +57,19 @@ def cmp_page_code(a, b):
     return 0
 
 
+def is_box_changed(page_a, page_b):
+    """检查两个页面的切分信息是否发生了修改"""
+    for field in ['blocks', 'columns', 'chars']:
+        a, b = page_a.get(field), page_b.get(field)
+        if len(a) != len(b):
+            return True
+        for i in range(len(a)):
+            for j in ['x', 'y', 'w', 'h']:
+                if a[i][j] != b[i][j]:
+                    return True
+    return False
+
+
 def random_code():
     code = ''
     for i in range(4):

@@ -6,7 +6,6 @@
 """
 import re
 import math
-from datetime import datetime
 from functools import cmp_to_key
 import controller.errors as errors
 from controller.base import BaseHandler
@@ -209,63 +208,6 @@ class DataPageHandler(BaseHandler):
             pages = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             self.render('data_page.html', q=q, pages=pages, pager=pager)
-
-        except Exception as e:
-            return self.send_db_error(e, render=True)
-
-
-class PageInfoHandler(BaseHandler):
-    URL = '/data/page/@page_name'
-
-    def get(self, page_name):
-        """ 任务详情 """
-
-        def format_value(key, value):
-            """ 格式化任务信息"""
-            if isinstance(value, datetime):
-                value = value.strftime('%Y-%m-%d %H:%M')
-            elif key == 'status':
-                value = self.get_status_name.get(value)
-            elif key == 'pre_tasks':
-                value = '/'.join([self.get_task_name(t) for t in value])
-            elif key == 'steps':
-                value = '/'.join([step_names.get(t, '') for t in value.get('todo', [])])
-            elif key == 'priority':
-                value = self.get_priority_name(int(value))
-            return value
-
-        step_names = dict()
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            field_names = {
-                'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
-                'publish_by': '发布人', 'publish_time': '发布时间',
-                'picked_by': '领取人', 'picked_time': '领取时间',
-                'updated_time': '更新时间', 'finished_time': '完成时间',
-                'returned_reason': '退回理由',
-            }
-            self.render('task_info.html', page=page, field_names=field_names, format_value=format_value)
-
-        except Exception as e:
-            return self.send_db_error(e, render=True)
-
-
-class ImportImagesHandler(BaseHandler):
-    URL = '/data/import_image'
-
-    def get(self):
-        """ 数据管理-导入图片 """
-        try:
-            item_count = self.db['import'].count_documents({})
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page and max_page < cur_page else cur_page
-            query = self.db['import'].find({})
-            items = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-
-            self.render('data_import.html', items=items, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

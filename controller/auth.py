@@ -10,10 +10,10 @@ import re
 # url占位符
 url_placeholder = {
     'num': r'\d+',
-    'task_type': r'cut_proof|cut_review|ocr_proof|ocr_review|text_\w+',
+    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
-    'data_task': r'ocr|upload_cloud|import_image',
+    'data_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_id': r'\w{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'collection': r'tripitaka|sutra|volume|reel|page',
@@ -168,20 +168,21 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/api/data/(pick|submit)/@data_task': ['POST']
+            '/task/(lobby|my)/@data_task': ['GET'],
+            '/api/task/pick/@data_task': ['POST'],
+            '/api/task/pick_many/@data_task': ['POST'],
+            '/api/task/return/@data_task/@task_id': ['POST'],
+            '/api/task/submit/@data_task': ['POST'],
+            '/api/data/@collection/upload': ['POST'],
         }
     },
     '数据管理员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@collection': ['GET'],
-            '/api/data/pages': ['POST'],
             '/api/data/@collection': ['POST'],
-            '/api/data/@collection/(upload|delete)': ['POST'],
-            '/api/data/publish/@data_task': ['POST'],
-            '/data/import_image': ['GET'],
-            '/api/data/delete/import_image': ['POST'],
+            '/api/data/@collection/delete': ['POST'],
         }
     },
     '用户管理员': {

@@ -74,6 +74,9 @@ class PublishTasksApi(PublishBaseHandler):
         @param priority str，1/2/3，数字越大优先级越高
         """
         data = self.get_request_data()
+        if data.get('task_type') in ['import_image']:
+            return self.publish_import_image()
+
         data['doc_ids'] = self.get_doc_ids(data)
         rules = [
             (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force'),
@@ -88,12 +91,37 @@ class PublishTasksApi(PublishBaseHandler):
         try:
             assert isinstance(data['doc_ids'], list)
             if len(data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
-                return self.send_error_response(e.task_count_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
+                return self.send_error_response(e.task_count_exceed_max,
+                                                message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
 
             force = data['force'] == '1'
             log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
                                     data['priority'], force, doc_ids=data['doc_ids'])
             return self.send_data_response({k: value for k, value in log.items() if value})
+
+        except DbError as err:
+            return self.send_db_error(err)
+
+    def publish_import_image(self):
+        """ 发布图片导入任务"""
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'dir', 'redo')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+
+            now, status = datetime.now(), self.STATUS_OPENED
+            task = dict(task_type='import_image', collection=None, id_name=None, doc_id=None, status=status,
+                        priority=None, steps=None, pre_tasks=None, input=None, result={},
+                        create_time=now, updated_time=now, publish_time=now,
+                        publish_user_id=self.current_user['_id'],
+                        publish_by=self.current_user['name'])
+            task['input'] = dict(dir=data['dir'], redo=data['redo'] == '1', remark=data.get('remark'))
+
+            self.db.task.insert_one(task)
+            self.send_data_response()
+            self.add_op_log('publish_import_image', context='%s,%s' % (data['dir'], data['redo']))
 
         except DbError as err:
             return self.send_db_error(err)
@@ -184,7 +212,7 @@ class PickTaskApi(TaskHandler):
 
         self.add_op_log('pick_' + task['task_type'], context=task['doc_id'])
         return self.send_data_response({'url': '/task/do/%s/%s' % (task['task_type'], task['_id']),
-                                        'doc_id': task['doc_id'], 'task_id': task['_id']})
+                                        'task': task, 'doc_id': task['doc_id'], 'task_id': task['_id']})
 
 
 class ReturnTaskApi(TaskHandler):

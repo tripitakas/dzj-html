@@ -21,7 +21,6 @@
       display: block;
       padding: 20px 20px 0;
       clear: both;
-
     }
 
     .task_type {
@@ -30,6 +29,13 @@
       display: block;
       clear: both;
       background: #fff;
+    }
+
+    .task_type a {
+      font-size: 12px;
+      margin-left: 10px;
+      color: #B8906F;
+      cursor: pointer;
     }
 
     .info {
@@ -42,10 +48,6 @@
       font-weight: bold;
       width: 20%;
     }
-
-    .info-value {
-    }
-
   </style>
 
 </head>
@@ -63,8 +65,10 @@
             <div class="tasks"></div>
             {% for task in tasks %}
             <div class="task">
-              <span class="task_type">
-                <a href="/task/{{task['task_type']}}/{{task['_id']}}">{{Th.get_task_name(task['task_type'])}}</a>
+              <span class="task_type"> {{Th.get_task_name(task['task_type'])}}
+                {% if not task['task_type'] in ['upload_cloud', 'ocr_box', 'ocr_text'] %}
+                <a href="/task/{{task['task_type']}}/{{task['_id']}}">查看</a>
+                {% end %}
               </span>
               {% for k, v in task.items() %}
               {% if k in display_fields and v %}

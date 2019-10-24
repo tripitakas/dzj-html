@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% from controller.data.base import DataHandler as Dt %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -22,7 +22,6 @@
     }
 
     #pan-path {
-      width: 60%;
       display: inline-flex;
     }
 
@@ -43,9 +42,10 @@
               <div class="wrapper">
                 <div class="collate-list">
                   <div class="operation">
+                    <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
                     <div class="btn-group dropdown">
                       <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
-                        新建导入
+                        发布任务
                       </button>
                     </div>
                   </div>
@@ -56,6 +56,7 @@
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
+                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                       <th><span>导入哪个文件夹</span></th>
                       <th><span class="sort">文件重复时如何处理</span></th>
                       <th><span class="sort">状态</span></th>
@@ -63,22 +64,20 @@
                       <th><span>创建人</span></th>
                       <th><span>创建时间</span></th>
                       <th><span>更新时间</span></th>
-                      <th><span>操作</span></th>
                     </tr>
                     </thead>
 
                     <tbody>
-                    {% for i in items %}
-                    <tr>
-                      <td>{{i.get('dir') or ''}}</td>
-                      <td>{{'是' if i.get('redo') else '否'}}</td>
-                      <td>{{Dt.get_status_name(i.get('status')) or ''}}</td>
-                      <td>{{i.get('remark') or ''}}</td>
-                      <td>{{i.get('publish_by') or ''}}</td>
-                      <td>{{to_date_str(i.get('create_time'))}}</td>
-                      <td>{{to_date_str(i.get('updated_time'))}}</td>
-                      <td><a class="delete" id="{{i['_id']}}">删除</a></td>
-                      </td>
+                    {% for t in tasks %}
+                    <tr class="task-tr">
+                      <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
+                      <td>{{Th.prop(t, 'input.dir') or ''}}</td>
+                      <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
+                      <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
+                      <td>{{Th.prop(t, 'input.remark') or ''}}</td>
+                      <td>{{t.get('publish_by') or ''}}</td>
+                      <td>{{to_date_str(t.get('create_time'))}}</td>
+                      <td>{{to_date_str(t.get('updated_time'))}}</td>
                     </tr>
                     {% end %}
                     </tbody>
@@ -101,7 +100,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="modal-title">新建导入图片</h4>
+          <h4 class="modal-title" id="modal-title">发布任务-导入图片</h4>
         </div>
         <div class="modal-body">
           <div class="id-values">
@@ -112,18 +111,25 @@
             </ul>
             <div class="tab-content">
               <div class="tab-pane active" id="tab-pan">
-                <input type="text" class="form-control" id="pan-name" placeholder="请输入网盘用户名"/>
-                @<input type="text" class="form-control" id="pan-path" placeholder="请输入网盘相对路径"/>
+                <div style="display: flex">
+                  <input type="text" class="form-control" id="pan-name" placeholder="请输入网盘用户名"/>
+                  <span style="margin-top: 5px">@</span>
+                  <input type="text" class="form-control" id="pan-path" placeholder="请输入网盘相对路径"/>
+                </div>
               </div>
               <div class="tab-pane" id="tab-manual">
                 <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
               </div>
             </div>
-            <div class="redo" style="margin-top: 15px">
-              <h4 class="control-label">文件重复时如何处理？</h4>
-              <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
-              <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
-            </div>
+          </div>
+          <div>
+            <h4 class="control-label">文件重复时如何处理？</h4>
+            <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
+            <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
+          </div>
+          <div>
+            <h4 class="control-label">备注</h4>
+            <input type="text" class="form-control" id="remark" placeholder="备注"/>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -138,6 +144,15 @@
 {% include _base_js.html %}
 
 <script>
+  // 全选
+  $('#checkbox-all').click(function () {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked)
+      $items.removeAttr('checked');
+    else
+      $items.prop('checked', 'true');
+  });
+
   // 排序
   $(".sort").on("click", function () {
     $(this).toggleClass('toggle');
@@ -153,17 +168,20 @@
     }
   });
 
-  // 新建
+  // 发布任务
   $("#modal_confirm").click(function () {
+    var dir = $('#manual-dir').val();
     var active = $('.tab-content .tab-pane.active').attr('id');
-    var dir2import = $('#manual-dir').val();
     if (active === 'tab-pan') {
       var panName = $('#pan-name').val().trim();
       var panPath = $('#pan-path').val().trim();
-      dir2import = '/srv/nextcloud/data/' + panName + '/files/' + panPath;
+      panPath = panPath.charAt(0) === '/' ? panPath.substr(1) : panPath;
+      dir = '/srv/nextcloud/data/' + panName + '/files/' + panPath;
     }
-    var data = {dir: dir2import, redo: $('#publishModal .redo input:radio:checked').val()};
-    postApi('/data/publish/import_image', {data: data}, function (res) {
+    var redo = $('#publishModal input:radio:checked').val();
+    var remark = $('#publishModal #remark').val();
+    var data = {task_type: 'import_image', dir: dir, redo: redo, remark: remark};
+    postApi('/task/publish', {data: data}, function (res) {
       showSuccess('成功', '数据已提交。');
       setTimeout(function () {
         window.location.reload();
@@ -173,18 +191,27 @@
     });
   });
 
-  // 删除
-  $(".delete").on("click", function () {
-    postApi('/data/delete/import_image', {data: {_id: $(this).attr('id')}}, function (res) {
-      showSuccess('成功', '数据已删除。');
-      setTimeout(function () {
+  // 批量删除
+  $('#bat-delete').click(function () {
+    var taskIds = $.map($('.task-tr :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('id');
+    });
+    if (taskIds.length === 0) {
+      showError('请选择任务', '当前没有选中任务。');
+      return;
+    }
+    var info = {
+      type: "warning", title: "确定删除吗？", text: "只能删除已发布未领取的任务！",
+      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定删除", cancelButtonText: "取消"
+    };
+    swal(info, function () {
+      postApi('/task/delete/import_image', {'data': {'task_ids': taskIds}}, function () {
         window.location.reload();
-      }, 1500);
-    }, function (error) {
-      return showError('提交失败', error.message);
+      });
     });
   });
-
 
 </script>
 

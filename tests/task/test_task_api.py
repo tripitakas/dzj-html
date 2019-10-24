@@ -15,7 +15,7 @@ class TestTaskApi(APITestCase):
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
-            '切分专家,文字专家,单元测试用户'
+            '切分专家,文字专家,数据处理员,单元测试用户'
         )
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
@@ -34,14 +34,14 @@ class TestTaskApi(APITestCase):
 
     def test_get_ready_tasks(self):
         """ 测试获取已就绪的任务列表 """
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         for task_type in task_types:
             self.login_as_admin()
             r = self.fetch('/api/task/ready/%s' % task_type, body={'data': {}})
             data = self.parse_response(r)
             self.assertIn('docs', data)
 
-    def test_publish_tasks(self):
+    def test_publish_tasks_by_doc_ids(self):
         """ 测试发布任务 """
         self.add_first_user_as_admin_then_login()
 
@@ -60,12 +60,12 @@ class TestTaskApi(APITestCase):
         self.assertIn('priority', r['error'])
 
         # 测试正常情况
-        task_types = list(Th.task_types.keys())
-        # task_types = ['cut_review']
+        task_types = Th.get_page_tasks()
+        # task_types = ['ocr_box']
         for task_type in task_types:
             # 获取任务的meta信息
-            t = Th.task_types.get(task_type)
             collection, id_name, input_field, shared_field = Th.get_task_meta(task_type)
+            t = Th.task_types.get(task_type)
 
             # 测试数据不存在
             docs_un_existed = ['not_existed_1', 'not_existed_2']
@@ -110,7 +110,7 @@ class TestTaskApi(APITestCase):
             # 清空任务，以不影响后续任务
             self._app.db.task.delete_many({'doc_id': {'$in': docs_finished}})
 
-    def test_publish_tasks_file(self):
+    def test_publish_tasks_by_file(self):
         """ 测试以文件方式发布任务 """
         self.add_first_user_as_admin_then_login()
         # 创建文件
@@ -122,7 +122,7 @@ class TestTaskApi(APITestCase):
         self.assertTrue(os.path.exists(filename))
 
         # 测试正常情况
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_review']
         for task_type in task_types:
             # 获取任务的meta信息
@@ -139,9 +139,9 @@ class TestTaskApi(APITestCase):
             data = self.parse_response(self.fetch('/api/task/publish', files=dict(), body=body))
             self.assertIn('error', data, msg=task_type)
 
-    def test_publish_with_prefix(self):
+    def test_publish_tasks_by_prefix(self):
         # 测试正常情况
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_review']
         for task_type in task_types:
             r = self.publish_tasks({"task_type": task_type, "prefix": "yb"})
@@ -149,7 +149,7 @@ class TestTaskApi(APITestCase):
 
     def test_publish_many_tasks(self, size=10000):
         """ 测试发布大规模任务 """
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_review']
         for task_type in task_types:
             t = Th.task_types.get(task_type)
@@ -161,7 +161,7 @@ class TestTaskApi(APITestCase):
 
     def test_pick_and_return_task(self):
         """ 测试领取和退回任务 """
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_proof']
         for task_type in task_types:
             # 发布任务
@@ -186,7 +186,7 @@ class TestTaskApi(APITestCase):
 
             # 退回任务
             r = self.fetch('/api/task/return/%s/%s' % (task_type, task['_id']), body={'data': {}})
-            self.assert_code(200, r)
+            self.assert_code(200, r, msg=task_type)
 
             # 再随机领取一个任务
             self.login(u.expert1[0], u.expert1[1])
@@ -241,7 +241,7 @@ class TestTaskApi(APITestCase):
 
     def test_retrieve_tasks(self):
         """ 测试管理员撤回进行中的任务 """
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_proof']
         for task_type in task_types:
             # 管理员发布任务
@@ -265,7 +265,7 @@ class TestTaskApi(APITestCase):
 
     def test_delete_tasks(self):
         """ 测试管理员删除已发布或悬挂的任务 """
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_proof']
         for task_type in task_types:
             # 管理员发布任务
@@ -292,8 +292,8 @@ class TestTaskApi(APITestCase):
 
     def test_assign_tasks(self):
         """ 测试管理员指派任务给某个用户 """
-        task_types = list(Th.task_types.keys())
-        # task_types = ['text_proof_1']
+        task_types = Th.get_page_tasks()
+        task_types = ['ocr_box']
         for task_type in task_types:
             # 管理员发布任务
             self.login_as_admin()
@@ -327,8 +327,33 @@ class TestTaskApi(APITestCase):
     def test_get_users_by_task_type(self):
         """ 测试获取能访问某个任务类型的用户列表 """
         self.login_as_admin()
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         # task_types = ['cut_proof']
         for task_type in task_types:
             r = self.fetch('/api/user/' + task_type, body={'data': {}})
             self.assert_code(200, r, msg=task_type)
+
+    def test_publish_import_image(self):
+        """测试发布图片导入任务"""
+        # 发布任务
+        task_type = 'import_image'
+        data = dict(task_type=task_type, dir='/srv/test/abc', redo='1')
+        r = self.fetch('/api/task/publish', body={'data': data})
+        self.assert_code(200, r)
+
+        # 测试可以删除已发布的任务
+        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.dir': data['dir']})
+        r = self.fetch('/api/task/delete/import_image', body={'data': {'task_ids': [str(task['_id'])]}})
+        self.assertEqual(1, self.parse_response(r).get('count'), msg=task_type)
+
+        # 发布任务
+        task_type = 'import_image'
+        data = dict(task_type=task_type, dir='/srv/test/xyz', redo='0')
+        r = self.fetch('/api/task/publish', body={'data': data})
+        self.assert_code(200, r)
+
+        # 测试不能删除已完成的任务
+        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.dir': data['dir']})
+        self._app.db.task.update_one({'_id': task['_id']}, {'$set': {'status': 'finished'}})
+        r = self.fetch('/api/task/delete/import_image', body={'data': {'task_ids': [str(task['_id'])]}})
+        self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)

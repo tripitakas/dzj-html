@@ -4,6 +4,7 @@
 @desc: 任务管理
 @time: 2018/12/26
 """
+import math
 import random
 from datetime import datetime
 from controller import errors
@@ -50,8 +51,9 @@ class TaskAdminHandler(TaskHandler):
             )
             task_conf = self.all_task_types()[task_type]
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
+            template = 'task_admin_import.html' if task_type == 'import_image' else 'task_admin.html'
             self.render(
-                'task_admin.html', task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
+                template, task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
                 task_meta=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
             )
         except Exception as e:
@@ -158,6 +160,7 @@ class PageTaskInfoHandler(TaskHandler):
 
     def get(self, page_name):
         """ 页面任务详情 """
+        from functools import cmp_to_key
 
         def format_info(key, value):
             """ 格式化任务信息"""
@@ -179,7 +182,11 @@ class PageTaskInfoHandler(TaskHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object, message='页面不存在')
+
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
+            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
+                     'text_proof_2', 'text_proof_3', 'text_review', 'text_hard']
+            tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
             display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
                               'updated_time', 'finished_time', 'publish_by', 'publish_time',
                               'picked_by', 'picked_time', 'returned_reason']

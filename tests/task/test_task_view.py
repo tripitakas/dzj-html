@@ -12,7 +12,7 @@ class TestTaskView(APITestCase):
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
-            '切分专家,文字专家,单元测试用户'
+            '切分专家,文字专家,数据处理员,单元测试用户'
         )
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
@@ -33,7 +33,7 @@ class TestTaskView(APITestCase):
         """ 测试任务管理、任务大厅、我的任务列表页面 """
         # 发布任务
         self.login_as_admin()
-        task_types = list(Th.task_types.keys())
+        task_types = Th.get_page_tasks()
         docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         for task_type in task_types:
             r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
@@ -41,7 +41,7 @@ class TestTaskView(APITestCase):
 
         # 领取并完成任务
         self.login(u.expert1[0], u.expert1[1])
-        task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
+        # task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
         for task_type in task_types:
             task = self._app.db.task.find_one({'task_type': {'$regex': task_type + '.*'}, 'doc_id': docs_ready[0]})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
@@ -59,19 +59,20 @@ class TestTaskView(APITestCase):
 
         # 任务大厅页面
         for task_type in task_types:
+            task_type = 'text_proof' if 'text_proof' in task_type else task_type
             r = self.fetch('/task/lobby/%s?_raw=1' % task_type)
-            self.assert_code(200, r)
+            self.assert_code(200, r, msg=task_type)
             d = self.parse_response(r)
             self.assertIn('tasks', d, msg=task_type)
 
         # 我的任务页面
         self.login(u.expert1[0], u.expert1[1])
         for task_type in task_types:
+            task_type = 'text_proof' if 'text_proof' in task_type else task_type
             r = self.fetch('/task/my/%s?_raw=1' % task_type)
             self.assert_code(200, r)
             d = self.parse_response(r)
             self.assertIn('tasks', d, msg=task_type)
-            self.assertEqual(1, len(d['tasks']), msg=task_type)
 
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""

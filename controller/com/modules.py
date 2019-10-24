@@ -37,8 +37,12 @@ class CommonLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
+                dict(name='导入图片', icon='icon_subitem', link='/task/admin/import_image'),
+                dict(name='上传云端', icon='icon_subitem', link='/task/admin/upload_cloud'),
+                dict(name='OCR字框', icon='icon_subitem', link='/task/admin/ocr_box'),
                 dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
+                dict(name='OCR文字', icon='icon_subitem', link='/task/admin/ocr_text'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
                 dict(name='难字校对', icon='icon_subitem', link='/task/admin/text_hard'),
@@ -49,7 +53,6 @@ class CommonLeft(UIModule):
                 dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
-                dict(name='导图片', icon='icon_subitem', link='/data/import_image'),
             ]),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),

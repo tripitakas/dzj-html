@@ -48,6 +48,21 @@ class TaskConfig(object):
             'name': '难字审定', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
+        'ocr_box': {
+            'name': 'OCR字框',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
+        },
+        'ocr_text': {
+            'name': 'OCR文字',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        },
+        'upload_cloud': {
+            'name': '上传云端',
+            'data': {'collection': 'page', 'id': 'name'},
+        },
+        'import_image': {
+            'name': '导入图片',
+        },
     }
 
     # 任务组定义表。
@@ -124,9 +139,13 @@ class TaskConfig(object):
         return cls.step_names().get(step)
 
     @classmethod
+    def get_page_tasks(cls):
+        return [t for t, v in cls.task_types.items() if cls.prop(v, 'data.collection') == 'page']
+
+    @classmethod
     def get_task_meta(cls, task_type):
-        d = cls.all_task_types().get(task_type)['data']
-        return d['collection'], d['id'], d.get('input_field'), d.get('shared_field')
+        d = cls.prop(cls.all_task_types(), '%s.data' % task_type) or dict()
+        return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
 
     @classmethod
     def init_steps(cls, task, mode, cur_step=''):

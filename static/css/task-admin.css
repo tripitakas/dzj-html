@@ -29,13 +29,10 @@
     border-top: 1px solid #ccc;
 }
 
-.sty-table td.returned {
-    cursor: pointer;
-}
-
 .sty-table td .doc-name {
     color: #333333;
     font-size: 14px;
+    text-decoration: underline;
 }
 
 .sty-table td.unready {
@@ -60,6 +57,8 @@
 
 .sty-table td.returned {
     color: #FF0000;
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 .sty-table td.finished {
