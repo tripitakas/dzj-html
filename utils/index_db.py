@@ -12,11 +12,14 @@ def main(db_name='tripitaka', uri='localhost'):
     """
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
-    db.page.create_index('name')
-    task_types = ['cut_proof', 'cut_review', 'ocr_proof', 'ocr_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
-                  'text_review']
-    for task_type in task_types:
-        db.page.create_index('tasks.%s.status' % task_type)
+    fields2index = {
+        'page': ['name'],
+        'user': ['name', 'email', 'phone'],
+        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
+    }
+    for collection, fields in fields2index.items():
+        for field in fields:
+            db[collection].create_index(field)
 
 
 if __name__ == '__main__':
