@@ -21,8 +21,8 @@ IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 data = dict(count=0)
 
 page_meta = dict(name='', width='', height='', uni_sutra_id='', sutra_id='', reel_id='', reel_page_no='',
-                 ocr='', text='', txt_html='', blocks=[], columns=[], chars=[],
-                 lock={}, text_status='', box_status='')
+                 lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
+                 ocr='', text='', txt_html='')
 
 
 def create_dir(dirname):

@@ -208,6 +208,11 @@ class PickTaskApi(TaskHandler):
                 'lock.%s.locked_user_id' % shared_field: self.current_user['_id'],
                 'lock.%s.locked_time' % shared_field: datetime.now()
             }
+            # 设置数据的任务阶段
+            if shared_field == 'box':
+                update['box_stage'] = task['task_type']
+            elif shared_field == 'text':
+                update['text_stage'] = task['task_type']
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
         self.add_op_log('pick_' + task['task_type'], context=task['doc_id'])

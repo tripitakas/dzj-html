@@ -15,8 +15,19 @@ class TaskConfig(object):
     # data.input_field：该任务依赖的数据字段，该字段就绪，则可以发布任务
     # data.shared_field：该任务共享和保护的数据字段
     task_types = {
+        'import_image': {
+            'name': '导入图片',
+        },
+        'upload_cloud': {
+            'name': '上传云端',
+            'data': {'collection': 'page', 'id': 'name'},
+        },
+        'ocr_box': {
+            'name': 'OCR字框',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
+        },
         'cut_proof': {
-            'name': '切分校对',
+            'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
             'steps': [['char_box', '字框'], ['block_box', '栏框'], ['column_box', '列框'], ['char_order', '字序']],
         },
@@ -25,18 +36,22 @@ class TaskConfig(object):
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
             'steps': [['char_box', '字框'], ['block_box', '栏框'], ['column_box', '列框'], ['char_order', '字序']],
         },
+        'ocr_text': {
+            'name': 'OCR文字', 'pre_tasks': ['cut_review'],
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        },
         'text_proof_1': {
-            'name': '文字校一',
+            'name': '文字校一', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
             'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
         },
         'text_proof_2': {
-            'name': '文字校二',
+            'name': '文字校二', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
             'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
         },
         'text_proof_3': {
-            'name': '文字校三',
+            'name': '文字校三', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
             'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
         },
@@ -47,21 +62,6 @@ class TaskConfig(object):
         'text_hard': {
             'name': '难字审定', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'ocr_box': {
-            'name': 'OCR字框',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-        },
-        'ocr_text': {
-            'name': 'OCR文字',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'upload_cloud': {
-            'name': '上传云端',
-            'data': {'collection': 'page', 'id': 'name'},
-        },
-        'import_image': {
-            'name': '导入图片',
         },
     }
 
