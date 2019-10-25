@@ -64,6 +64,11 @@ class Data(object):
         return False
 
     @classmethod
+    def after_upsert(cls, db, collection, docs):
+        """ update/insert之后 """
+        return
+
+    @classmethod
     def save_one(cls, db, collection, doc):
         """ 插入或更新一条记录
         :param db 数据库连接
@@ -92,13 +97,14 @@ class Data(object):
                 return dict(status='failed', errors=e.tptk_code_existed)
 
     @classmethod
-    def save_many(cls, db, collection, docs=None, file_stream=None, check_existed=True):
+    def save_many(cls, db, collection, docs=None, file_stream=None, update=True, updated_fields=None):
         """ 批量插入或更新数据
         :param db 数据库连接
         :param collection 待插入的数据集
         :param docs 待插入的数据。
+        :param update 是否更新旧数据。
+        :param updated_fields 更新哪些字段。默认为空，更新所有字段。
         :param file_stream 已打开的文件流。docs不为空时，将忽略这个字段。
-        :param check_existed 插入前是否检查数据库
         :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
         """
         # 从文件流中读取数据
@@ -110,6 +116,7 @@ class Data(object):
                 return dict(status='failed', code=e.tptk_field_error[0],
                             message='缺以下字段：%s' % ','.join(need_fields))
             docs = [{heads[i]: item for i, item in enumerate(row)} for row in rows[1:]]
+
         # 逐个校验数据
         valid_docs, valid_codes, error_codes = [], [], []
         for i, doc in enumerate(docs):
@@ -122,22 +129,35 @@ class Data(object):
             else:
                 valid_docs.append(cls.get_doc(doc))
                 valid_codes.append(doc.get(cls.key))
-        # 更新数据库中的重复记录
-        existed_codes = []
-        if check_existed:
+
+        # 剔除数据库中的重复记录
+        existed_docs = []
+        if valid_docs:
             existed_record = list(db[collection].find({cls.key: {'$in': valid_codes}}))
             existed_codes = [i.get(cls.key) for i in existed_record]
             existed_docs = [i for i in valid_docs if i.get(cls.key) in existed_codes]
             valid_docs = [i for i in valid_docs if i.get(cls.key) not in existed_codes]
+
+        # 更新数据库中的重复记录
+        if update:
             for doc in existed_docs:
+                if updated_fields:
+                    doc = {k: v for k, v in doc.items() if k in updated_fields}
+                assert cls.key in doc
                 db[collection].update_one({cls.key: doc.get(cls.key)}, {'$set': doc})
+                cls.after_upsert(db, collection, doc)
+
         # 插入新的数据记录
         if valid_docs:
             db[collection].insert_many(valid_docs)
+            cls.after_upsert(db, collection, valid_codes)
 
         error_tip = '：' + ','.join([i[0] for i in error_codes]) if error_codes else ''
-        message = '总共%s条记录，插入%s条，更新%s条，%s条无效数据%s。' % (
-            len(docs), len(valid_docs), len(existed_codes), len(error_codes), error_tip)
+        message = '导入%s，总共%s条记录，插入%s条，%s条旧数据，更新%s条，%s条无效数据%s。' % (
+            collection, len(docs), len(valid_docs), len(existed_docs), len(existed_docs) if update else 0,
+            len(error_codes), error_tip)
+        print(message)
+
         return dict(status='success', errors=error_codes, message=message)
 
 
@@ -151,7 +171,7 @@ class Tripitaka(Data):
 
 
 class Reel(Data):
-    fields = [['unified_sutra_code', '统一编码'], ['sutra_code', '经编码'], ['sutra_name', '经名'],
+    fields = [['uni_sutra_code', '统一经编码'], ['sutra_code', '经编码'], ['sutra_name', '经名'],
               ['reel_code', '卷编码'], ['reel_no', '卷序号'], ['start_volume', '起始册'],
               ['start_page', '起始页'], ['end_volume', '终止册'], ['end_page', '终止页'],
               ['remark', '备注']]
@@ -169,7 +189,7 @@ class Reel(Data):
 
 
 class Sutra(Data):
-    fields = [['unified_sutra_code', '统一编码'], ['sutra_code', '经编码'], ['sutra_name', '经名'],
+    fields = [['uni_sutra_code', '统一经编码'], ['sutra_code', '经编码'], ['sutra_name', '经名'],
               ['due_reel_count', '应存卷数'], ['existed_reel_count', '实存卷数'], ['author', '作译者'],
               ['trans_time', '翻译时间'], ['start_volume', '起始册'], ['start_page', '起始页'],
               ['end_volume', '终止册'], ['end_page', '终止页'], ['remark', '备注']]
@@ -210,3 +230,40 @@ class Volume(Data):
             doc['back_cover_pages'] = back_cover_pages
 
         return doc
+
+    @classmethod
+    def after_upsert(cls, db, collection, docs):
+        """ 册数据在update或insert后，需要同步更新page表"""
+        pages = []
+        docs = [docs] if isinstance(docs, dict) else docs
+        for volume in docs:
+            content_pages = volume.get('content_pages') or []
+            for page_name in content_pages:
+                page = Page.metadata()
+                page['name'] = page_name
+                pages.append(page)
+        # !important 册数据更新page页面时，仅插入新数据，不更新旧数据
+        return Page.save_many(db, 'page', pages, update=False)
+
+
+class Page(Data):
+    fields = [['name', '页编码'], ['width', '宽度'], ['height', '高度'], ['img_path', '图片路径'],
+              ['img_cloud_path', '云图路径'], ['uni_sutra_code', '统一经编码'], ['sutra_code', '经编码'],
+              ['reel_code', '卷编码'], ['reel_page_no', '卷内页序号'], ['lock', '数据锁'],
+              ['box_stage', '框阶段'], ['text_stage', '文本阶段'],
+              ['blocks', '栏框'], ['columns', '列框'], ['chars', '字框'],
+              ['ocr', 'OCR'], ['text', '文本'], ['txt_html', '文本HTML']]
+    rules = [(v.not_empty, 'name'),
+             (v.is_page, 'name'),
+             (v.is_sutra, 'uni_sutra_code'),
+             (v.is_sutra, 'sutra_code'),
+             (v.is_reel, 'reel_code'),
+             (v.is_digit, 'reel_page_no')]
+    key = 'name'
+
+    @classmethod
+    def metadata(cls):
+        return dict(name='', width='', height='', img_path='', img_cloud_path='',
+                    uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
+                    lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
+                    ocr='', text='', txt_html='')

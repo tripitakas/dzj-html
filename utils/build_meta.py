@@ -141,14 +141,14 @@ def generate_volume_from_dir(tripitaka='LQ', root='/foo/bar/正法明目/LQ', le
         writer.writerows(rows)
     if level == 2 and gen_sutra:
         with open(path.join(root, 'Sutra-%s.csv' % tripitaka), 'w', newline='') as fn:
-            fields = 'unified_sutra_code,sutra_code,sutra_name,due_reel_count,existed_reel_count,author,' \
+            fields = 'uni_sutra_code,sutra_code,sutra_name,due_reel_count,existed_reel_count,author,' \
                      'trans_time,start_volume,start_page,end_volume,end_page,remark'.split(',')
             writer = csv.writer(fn)
             writer.writerow(fields)
             writer.writerows([s.get(k, '') for k in fields] for s in sutras)
 
         with open(path.join(root, 'Reel-%s.csv' % tripitaka), 'w', newline='') as fn:
-            fields = 'unified_sutra_code,sutra_code,sutra_name,reel_code,reel_no,start_volume,start_page,' \
+            fields = 'uni_sutra_code,sutra_code,sutra_name,reel_code,reel_no,start_volume,start_page,' \
                      'end_volume,end_page,remark'.split(',')
             writer = csv.writer(fn)
             writer.writerow(fields)

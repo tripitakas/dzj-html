@@ -73,7 +73,7 @@
                     {% for s in sutras %}
                     <tr id="{{s['_id']}}">
                       <td><input type="checkbox"/></td>
-                      <td>{{s.get('unified_sutra_code') or ''}}</td>
+                      <td>{{s.get('uni_sutra_code') or ''}}</td>
                       <td>{{s.get('sutra_code') or ''}}</td>
                       <td>{{s.get('sutra_name') or ''}}</td>
                       <td>{{s.get('due_reel_count') or ''}}</td>
@@ -119,7 +119,7 @@
             <div class="form-group">
               <label class="col-sm-2 control-label">统一编码</label>
               <div class="col-md-10">
-                <input type="text" class="form-control" id="unified_sutra_code">
+                <input type="text" class="form-control" id="uni_sutra_code">
               </div>
             </div>
             <div class="form-group">
@@ -241,7 +241,7 @@
     $('#updateModal').modal();
     $("#updateModal .modal-title").html('新增经数据');
     $('#_id').val('');
-    $('#unified_sutra_code').val('');
+    $('#uni_sutra_code').val('');
     $('#sutra_code').val('');
     $('#sutra_name').val('');
     $('#due_reel_count').val('');
@@ -261,7 +261,7 @@
     $('#updateModal').modal();
     $("#updateModal .modal-title").html('修改经数据');
     $('#_id').val($(this).parents('tr').attr('id'));
-    $('#unified_sutra_code').val(children.eq(1).text());
+    $('#uni_sutra_code').val(children.eq(1).text());
     $('#sutra_code').val(children.eq(2).text());
     $('#sutra_name').val(children.eq(3).text());
     $('#due_reel_count').val(children.eq(4).text());
@@ -278,7 +278,7 @@
   // 修改-提交
   $("#modal_confirm").click(function () {
     var data = {
-      unified_sutra_code: $('#unified_sutra_code').val(),
+      uni_sutra_code: $('#uni_sutra_code').val(),
       sutra_code: $('#sutra_code').val(),
       sutra_name: $('#sutra_name').val(),
       due_reel_count: $('#due_reel_count').val(),

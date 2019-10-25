@@ -208,6 +208,16 @@ def is_reel(**kw):
         return {k: e.invalid_reel_code}
 
 
+def is_page(**kw):
+    """ 检查是否为页编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[A-Z]{1,2}[_\w]+$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_reel_code}
+
+
 def is_digit(**kw):
     """ 检查是否为数字。"""
     code, message = e.invalid_digit

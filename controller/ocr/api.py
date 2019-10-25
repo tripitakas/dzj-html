@@ -284,7 +284,7 @@ class ImportMetaApi(BaseHandler):
                 with open(name + '.csv', 'w') as f:
                     csv.writer(f).writerows(res[name])
                 with open(name + '.csv') as f:
-                    r = cls.save_many(self.db, file_stream=f, check_existed=True)
+                    r = cls.save_many(self.db, file_stream=f)
                 remove(name + '.csv')
                 if r.get('status') == 'success':
                     logging.info('import %s success: %s' % (name, r.get('message')))

@@ -12,70 +12,32 @@ from controller.data.data import Tripitaka, Volume, Reel, Sutra
 META_DIR = path.join(path.dirname(__file__), '..', 'meta', 'meta')
 
 
-def import_tripitaka(db, csv_file, reset=False):
-    """ 导入tripitaka数据 """
-    sys.stdout.write('importing tripitaka: %s...\n' % path.basename(csv_file))
+def import_meta(db, collection, csv_file):
+    sys.stdout.write('importing %s: %s...\n' % (collection, path.basename(csv_file)))
     with open(csv_file) as fn:
-        r = Tripitaka.save_many(db, 'tripitaka', file_stream=fn, check_existed=reset)
-        if r.get('status') == 'success':
-            sys.stdout.write('import success: %s\n' % r.get('message'))
-        else:
-            sys.stdout.write('import failed: %s\n' % r.get('message'))
+        collection_class = eval(collection.capitalize())
+        collection_class.save_many(db, collection, file_stream=fn)
 
 
-def import_volume(db, csv_file, reset=False):
-    """ 导入volume数据 """
-    sys.stdout.write('importing volume: %s...\n' % path.basename(csv_file))
-    with open(csv_file) as fn:
-        r = Volume.save_many(db, 'volume', file_stream=fn, check_existed=reset)
-        if r.get('status') == 'success':
-            sys.stdout.write('import success: %s\n' % r.get('message'))
-        else:
-            sys.stdout.write('import failed: %s\n' % r.get('message'))
-
-
-def import_sutra(db, csv_file, reset=False):
-    """ 导入sutra数据 """
-    sys.stdout.write('importing sutra: %s...\n' % path.basename(csv_file))
-    with open(csv_file) as fn:
-        r = Sutra.save_many(db, 'sutra', file_stream=fn, check_existed=reset)
-        if r.get('status') == 'success':
-            sys.stdout.write('import success: %s\n' % r.get('message'))
-        else:
-            sys.stdout.write('import failed: %s\n' % r.get('message'))
-
-
-def import_reel(db, csv_file, reset=False):
-    """ 导入reel数据 """
-    sys.stdout.write('importing reel: %s...\n' % path.basename(csv_file))
-    with open(csv_file) as fn:
-        r = Reel.save_many(db, 'reel', file_stream=fn, check_existed=not reset)
-        if r.get('status') == 'success':
-            sys.stdout.write('import success: %s\n' % r.get('message'))
-        else:
-            sys.stdout.write('import failed: %s\n' % r.get('message'))
-
-
-def main(db_name='tripitaka', uri='localhost', reset=True):
+def main(db_name='tripitaka_test', uri='localhost', collections='tripitaka,sutra,reel,volume',
+         which='', reset=False):
+    """ 导入基础数据
+    :param collections, 导入哪些数据集合，多个时用逗号分隔，如'tripitaka,sutra,reel,volume'
+    :param which, 导入哪部藏经，比如GL（高丽藏）。默认为空，导入所有藏经。
+    :param reset, 是否清空collections
+    """
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
-    if reset:
-        db.tripitaka.drop()
-        db.sutra.drop()
-        db.reel.drop()
-        db.volume.drop()
+    for collection in collections.split(','):
+        if reset:
+            db[collection].drop()
 
-    if path.exists(path.join(META_DIR, 'Tripitaka.csv')):
-        import_tripitaka(db, path.join(META_DIR, 'Tripitaka.csv'), reset)
-
-    for filename in glob(path.join(META_DIR, 'Volume-*.csv')):
-        import_volume(db, filename, reset)
-
-    for filename in glob(path.join(META_DIR, 'Sutra-*.csv')):
-        import_sutra(db, filename, reset)
-
-    for filename in glob(path.join(META_DIR, 'Reel-*.csv')):
-        import_reel(db, filename, reset)
+        if which:  # 导入某部藏经
+            filename = path.join(META_DIR, '%s-%s.csv' % (collection, which))
+            import_meta(db, collection, filename)
+        else:  # 导入所有藏经
+            for filename in glob(path.join(META_DIR, '%s*.csv' % collection)):
+                import_meta(db, collection, filename)
 
 
 if __name__ == '__main__':

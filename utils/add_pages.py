@@ -20,7 +20,8 @@ IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
 
 data = dict(count=0)
 
-page_meta = dict(name='', width='', height='', uni_sutra_id='', sutra_id='', reel_id='', reel_page_no='',
+page_meta = dict(name='', width='', height='', img_path='', img_cloud_path='',
+                 uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
                  lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                  ocr='', text='', txt_html='')
 

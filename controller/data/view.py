@@ -142,7 +142,7 @@ class DataSutraHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"uni_sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
@@ -168,7 +168,7 @@ class DataReelHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '').upper()
             condition = {"$or": [
-                {"unified_sutra_code": {'$regex': '.*%s.*' % q}},
+                {"uni_sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_code": {'$regex': '.*%s.*' % q}},
                 {"sutra_name": {'$regex': '.*%s.*' % q}},
             ]}
