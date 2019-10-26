@@ -292,12 +292,6 @@ def copy_and_rename(base, import_dir, work_dir, force=False):
     """ 将文件夹拷贝到工作目录，并且按照规范格式重命名 """
     tripitaka = get_tripitaka_code(base, import_dir)
     for root, dirs, files in os.walk(import_dir, topdown=True):
-        for dir in dirs:
-            mid_dir = path.join(root, dir).replace(base, '').split('/')[1:]  # 去掉第一个藏经代码
-            mid_dir = [str(pick_int(r)) for r in mid_dir]
-            to_dir = path.join(tripitaka, '/'.join(mid_dir))
-            if not path.exists(to_dir):
-                os.makedirs(to_dir)
         for filename in files:
             if filename.split('.')[-1] not in ['jpg', 'png', 'tif', 'gif']:
                 continue
