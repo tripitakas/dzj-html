@@ -6,7 +6,7 @@ import pymongo
 
 def main(db_name='tripitaka', uri='localhost'):
     """
-    重置page表
+    数据库加索引
     :param db_name: 数据库名
     :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     """
