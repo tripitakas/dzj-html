@@ -64,11 +64,6 @@ class Data(object):
         return False
 
     @classmethod
-    def after_upsert(cls, db, collection, docs):
-        """ update/insert之后 """
-        return
-
-    @classmethod
     def save_one(cls, db, collection, doc):
         """ 插入或更新一条记录
         :param db 数据库连接
@@ -145,12 +140,10 @@ class Data(object):
                     doc = {k: v for k, v in doc.items() if k in updated_fields}
                 assert cls.key in doc
                 db[collection].update_one({cls.key: doc.get(cls.key)}, {'$set': doc})
-                cls.after_upsert(db, collection, doc)
 
         # 插入新的数据记录
         if valid_docs:
             db[collection].insert_many(valid_docs)
-            cls.after_upsert(db, collection, valid_codes)
 
         error_tip = '：' + ','.join([i[0] for i in error_codes]) if error_codes else ''
         message = '导入%s，总共%s条记录，插入%s条，%s条旧数据，更新%s条，%s条无效数据%s。' % (
@@ -230,20 +223,6 @@ class Volume(Data):
             doc['back_cover_pages'] = back_cover_pages
 
         return doc
-
-    @classmethod
-    def after_upsert(cls, db, collection, docs):
-        """ 册数据在update或insert后，需要同步更新page表"""
-        pages = []
-        docs = [docs] if isinstance(docs, dict) else docs
-        for volume in docs:
-            content_pages = volume.get('content_pages') or []
-            for page_name in content_pages:
-                page = Page.metadata()
-                page['name'] = page_name
-                pages.append(page)
-        # !important 册数据更新page页面时，仅插入新数据，不更新旧数据
-        return Page.save_many(db, 'page', pages, update=False)
 
 
 class Page(Data):
