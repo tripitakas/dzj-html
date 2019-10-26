@@ -67,7 +67,7 @@ def build(import_dir, import_base='', work_dir='', force=False):
     if r is not True:
         return r
 
-    # # 生成基础数据
+    # 生成基础数据
     gen_volumes(import_base, import_dir)
     gen_sutras(import_base, import_dir)
     gen_reels(import_base, import_dir)
