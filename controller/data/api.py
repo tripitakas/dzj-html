@@ -6,7 +6,7 @@ from tornado.escape import to_basestring
 import controller.validate as v
 from controller import errors
 from controller.base import BaseHandler, DbError
-from .data import Tripitaka, Volume, Reel, Sutra
+from .data import Tripitaka, Volume, Reel, Sutra, Page
 from controller.task.base import TaskHandler
 from .submit import SubmitDataTaskApi
 
@@ -21,12 +21,15 @@ class DataUploadApi(BaseHandler):
 
     def post(self, collection):
         """ 批量上传 """
-        assert collection in ['tripitaka', 'volume', 'sutra', 'reel']
+        assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         collection_class = eval(collection.capitalize())
-        upload_csv = self.request.files.get('csv')
-        content = to_basestring(upload_csv[0]['body'])
+        upload_file = self.request.files.get('csv') or self.request.files.get('json')
+        content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
-            r = collection_class.save_many(self.db, collection, file_stream=fn)
+            if collection == 'page':
+                r = Page.insert_new(self.db, file_stream=fn)
+            else:
+                r = collection_class.save_many(self.db, collection, file_stream=fn)
             if r.get('status') == 'success':
                 self.add_op_log('upload_%s' % collection, context=r.get('message'))
                 self.send_data_response({'message': r.get('message'), 'errors': r.get('errors')})

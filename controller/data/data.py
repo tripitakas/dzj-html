@@ -246,3 +246,22 @@ class Page(Data):
                     uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
                     lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                     ocr='', text='', txt_html='')
+
+    @classmethod
+    def insert_new(cls, db, file_stream=None):
+        """ 插入新页面
+        :param db 数据库连接
+        :param file_stream 已打开的文件流。
+        :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
+        """
+        page_names = json.load(file_stream)
+        existed_pages = list(db.page.find({'name': {'$in': page_names}}, {'name': 1}))
+        new_names = set(page_names) - set([p['name'] for p in existed_pages])
+        pages = []
+        for page_name in new_names:
+            page = cls.metadata()
+            page['name'] = page_name
+            pages.append(page)
+        if pages:
+            r = db.page.insert_many(pages)
+        return dict(status='success', inserted_ids=r.inserted_ids if pages else [])
