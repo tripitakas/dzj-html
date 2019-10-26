@@ -28,7 +28,7 @@ class TestTextTask(APITestCase):
         for i, task_type in enumerate(['text_proof_1', 'text_proof_2', 'text_proof_3']):
             # 发布任务
             self.login_as_admin()
-            r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready))
+            r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
             self.assert_code(200, r)
 
             # 领取任务

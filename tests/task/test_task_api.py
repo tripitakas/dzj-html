@@ -224,6 +224,8 @@ class TestTaskApi(APITestCase):
                 self.login_as_admin()
                 docs_ready = ['QL_25_16']
                 d = self.parse_response(self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready)))
+                if task_type in ['text_proof_1', 'text_proof_2']:
+                    continue
                 self.assert_status(docs_ready, d, {task_type: 'pending'}, msg=task_type)
 
                 # 发布所有前置任务

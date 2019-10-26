@@ -77,11 +77,11 @@ class TestTaskView(APITestCase):
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""
         self.login_as_admin()
-        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2))
-        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3))
-        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_12'], priority=2))
-        self.publish_tasks(dict(task_type='text_proof_3', doc_ids=['JX_165_7_12'], priority=1))
-        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_30'], priority=1))
+        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2, pre_tasks=[]))
+        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3, pre_tasks=[]))
+        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_12'], priority=2, pre_tasks=[]))
+        self.publish_tasks(dict(task_type='text_proof_3', doc_ids=['JX_165_7_12'], priority=1, pre_tasks=[]))
+        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_30'], priority=1, pre_tasks=[]))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):

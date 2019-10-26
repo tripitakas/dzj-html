@@ -75,8 +75,8 @@ def build(import_dir, import_base='', work_dir='', force=False):
     # 拷贝导入目录至工作目录并重命名
     copy_and_rename(import_base, import_dir, work_dir, force=force)
 
-    # # 生成页面基础数据
-    # gen_pages(dst_dir, import_dir)
+    # 生成页面基础数据
+    gen_pages(import_base, import_dir, work_dir)
 
 
 def check_valid(base, import_dir):
@@ -264,16 +264,26 @@ def gen_reels(base, import_dir):
             writer.writerows(reels)
 
 
-def gen_pages(src_dir, dst_dir):
+def gen_pages(base, import_dir, work_dir, suffix=''):
     """ 生成页面名称的json文件。
     从src_dir下读页面文件，结果存放在dst_dir下page.json文件中。
     """
+
+    def get_base_name(fullname):
+        return path.basename(fullname).split('.')[0]
+
     # 读取页面文件名
-    pages = [path.basename(img).split('.')[0] for img in glob(src_dir, '**', '.+.(jpg|png|tif|gif)')]
+    tripitaka = get_tripitaka_code(base, import_dir)
+    mid_dir = import_dir.replace(base, '').split('/')[1:]  # 去掉第一个藏经代码
+    mid_dir = [str(pick_int(r)) for r in mid_dir]
+    pages_dir = path.join(work_dir, tripitaka, '/'.join(mid_dir))
+    suffix = suffix if suffix else get_suffix(import_dir)
+    pages = [get_base_name(img) for img in glob(path.join(pages_dir, '**', '*.%s' % suffix))
+             if '_f' not in get_base_name(img) and '_b' not in get_base_name(img)]
     pages.sort(key=cmp_to_key(cmp_code))
 
     # 保存文件
-    filename = path.join(dst_dir, '_pages-%s.json' % datetime.now().strftime('%Y%m%d%H%M'))
+    filename = path.join(import_dir, '_pages-%s.json' % datetime.now().strftime('%Y%m%d%H%M'))
     with open(filename, 'w') as fn:
         fn.write(json.dumps(pages))
 
