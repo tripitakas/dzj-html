@@ -40,6 +40,8 @@ class HomeHandler(BaseHandler):
                 user_trends[t['user_id']] = time
 
                 context, params = '', {}
+                if not isinstance(t['context'], str):
+                    t['context'] = ''
                 try:
                     d = get_op_def(t['type'], params)
                     if d:

@@ -24,7 +24,7 @@ def periodic_task(app, opt=None):
             fields = []  # to update
             task_cond = [{'lock.%s.locked_time' % f: {'$lt': task_time}, 'lock.%s.is_temp' % f: False} for f in fields]
             temp_cond = [{'lock.%s.locked_time' % f: {'$lt': temp_time}, 'lock.%s.is_temp' % f: True} for f in fields]
-            for page in app.db.page.find({'$or': task_cond + temp_cond}):
+            for page in (app.db.page.find({'$or': task_cond + temp_cond}) if task_cond + temp_cond else []):
                 for field in fields:
                     lock = page['lock'].get(field)
                     if lock and lock.get('locked_time') and lock['locked_time'] < task_time:
