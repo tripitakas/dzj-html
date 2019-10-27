@@ -25,6 +25,9 @@ from tornado.options import options
 class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
+    def check_xsrf_cookie(self):
+        pass  # 登录不检查 xsrf
+
     def post(self):
         """ 登录 """
         user = self.get_request_data()
