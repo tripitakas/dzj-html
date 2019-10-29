@@ -29,7 +29,9 @@ class DataUploadApi(BaseHandler):
             if collection == 'page':
                 r = Page.insert_new(self.db, file_stream=fn)
             else:
-                r = collection_class.save_many(self.db, collection, file_stream=fn)
+                update = False if collection == 'tripitaka' else True
+                r = collection_class.save_many(self.db, collection, file_stream=fn, update=update)
+
             if r.get('status') == 'success':
                 self.add_op_log('upload_%s' % collection, context=r.get('message'))
                 self.send_data_response({'message': r.get('message'), 'errors': r.get('errors')})
@@ -88,6 +90,19 @@ class PickDataTasksApi(TaskHandler):
 
     def post(self, data_task):
         """ 批量领取数据任务 """
+
+        def get_tasks():
+            # ocr_text任务时，需要把blocks/columns/chars等参数传过去
+            if data_task == 'ocr_text':
+                pages = self.db.page.find({'name': {'$in': [t['doc_id'] for t in tasks]}})
+                pages = {p['name']: dict(blocks=p.get('blocks'), columns=p.get('columns'), chars=p.get('chars'))
+                         for p in pages}
+                for t in tasks:
+                    t['input'] = pages[t['doc_id']]
+
+            return [dict(task_id=str(t['_id']), priority=t['priority'], page_name=t.get('doc_id'),
+                         input=t.get('input')) for t in tasks]
+
         try:
             data = self.get_request_data()
             size = int(data.get('size') or 1)
@@ -103,7 +118,7 @@ class PickDataTasksApi(TaskHandler):
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': update})
             if r.modified_count:
-                self.send_data_response([dict(task_id=str(t['_id']), page_name=t['doc_id']) for t in tasks])
+                self.send_data_response(get_tasks())
 
         except DbError as err:
             return self.send_db_error(err)

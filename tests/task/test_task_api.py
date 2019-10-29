@@ -339,12 +339,12 @@ class TestTaskApi(APITestCase):
         """测试发布图片导入任务"""
         # 发布任务
         task_type = 'import_image'
-        data = dict(task_type=task_type, dir='/srv/test/abc', redo='1')
+        data = dict(task_type=task_type, import_dir='/srv/test/abc', redo='1')
         r = self.fetch('/api/task/publish', body={'data': data})
         self.assert_code(200, r)
 
         # 测试可以删除已发布的任务
-        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.dir': data['dir']})
+        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.import_dir': data['import_dir']})
         r = self.fetch('/api/task/delete/import_image', body={'data': {'task_ids': [str(task['_id'])]}})
         self.assertEqual(1, self.parse_response(r).get('count'), msg=task_type)
 
@@ -355,7 +355,7 @@ class TestTaskApi(APITestCase):
         self.assert_code(200, r)
 
         # 测试不能删除已完成的任务
-        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.dir': data['dir']})
+        task = self._app.db.task.find_one({'task_type': 'import_image', 'input.import_dir': data['import_dir']})
         self._app.db.task.update_one({'_id': task['_id']}, {'$set': {'status': 'finished'}})
         r = self.fetch('/api/task/delete/import_image', body={'data': {'task_ids': [str(task['_id'])]}})
         self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)

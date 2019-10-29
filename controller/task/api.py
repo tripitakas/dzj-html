@@ -106,7 +106,7 @@ class PublishTasksApi(PublishBaseHandler):
         """ 发布图片导入任务"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'dir', 'redo')]
+            rules = [(v.not_empty, 'import_dir', 'redo')]
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
@@ -117,11 +117,12 @@ class PublishTasksApi(PublishBaseHandler):
                         create_time=now, updated_time=now, publish_time=now,
                         publish_user_id=self.current_user['_id'],
                         publish_by=self.current_user['name'])
-            task['input'] = dict(dir=data['dir'], redo=data['redo'] == '1', remark=data.get('remark'))
+            task['input'] = dict(pan_name=data.get('pan_name'), import_dir=data['import_dir'],
+                                 redo=data['redo'] == '1', remark=data.get('remark'))
 
             self.db.task.insert_one(task)
             self.send_data_response()
-            self.add_op_log('publish_import_image', context='%s,%s' % (data['dir'], data['redo']))
+            self.add_op_log('publish_import_image', context='%s,%s' % (data['import_dir'], data['redo']))
 
         except DbError as err:
             return self.send_db_error(err)

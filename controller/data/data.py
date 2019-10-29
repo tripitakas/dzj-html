@@ -156,9 +156,8 @@ class Data(object):
 
 class Tripitaka(Data):
     fields = [['tripitaka_code', '编码'], ['name', '藏名'], ['short_name', '简称'], ['store_pattern', '存储模式'],
-              ['img_available', '图片是否就绪'], ['img_prefix', '图片前缀'], ['img_suffix', '图片后缀'],
-              ['remark', '备注']]
-    rules = [(v.not_empty, 'tripitaka_code', 'name', 'short_name'),
+              ['img_available', '图片是否就绪'], ['remark', '备注']]
+    rules = [(v.not_empty, 'tripitaka_code', 'name'),
              (v.is_tripitaka, 'tripitaka_code')]
     key = 'tripitaka_code'
 

@@ -57,8 +57,9 @@
                     <thead>
                     <tr>
                       <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                      <th><span>网盘名称</span></th>
                       <th><span>导入哪个文件夹</span></th>
-                      <th><span class="sort">文件重复时如何处理</span></th>
+                      <th><span class="sort">图片重复时如何处理</span></th>
                       <th><span class="sort">状态</span></th>
                       <th><span class="sort">备注</span></th>
                       <th><span>创建人</span></th>
@@ -71,7 +72,8 @@
                     {% for t in tasks %}
                     <tr class="task-tr">
                       <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
-                      <td>{{Th.prop(t, 'input.dir') or ''}}</td>
+                      <td>{{Th.prop(t, 'input.pan_name') or ''}}</td>
+                      <td>{{Th.prop(t, 'input.import_dir') or ''}}</td>
                       <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
                       <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
                       <td>{{Th.prop(t, 'input.remark') or ''}}</td>
@@ -114,7 +116,7 @@
                 <div style="display: flex">
                   <input type="text" class="form-control" id="pan-name" placeholder="请输入网盘用户名"/>
                   <span style="margin-top: 5px">@</span>
-                  <input type="text" class="form-control" id="pan-path" placeholder="请输入网盘相对路径"/>
+                  <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘相对路径"/>
                 </div>
               </div>
               <div class="tab-pane" id="tab-manual">
@@ -123,7 +125,7 @@
             </div>
           </div>
           <div>
-            <h4 class="control-label">文件重复时如何处理？</h4>
+            <h4 class="control-label">图片重复时如何处理？</h4>
             <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
             <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
           </div>
@@ -162,7 +164,7 @@
   // 搜索
   $('#search-input').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode === "13") {
+    if (keyCode === 13) {
       var q = $(this).val().trim();
       window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
     }
@@ -170,17 +172,13 @@
 
   // 发布任务
   $("#modal_confirm").click(function () {
-    var dir = $('#manual-dir').val();
     var active = $('.tab-content .tab-pane.active').attr('id');
-    if (active === 'tab-pan') {
-      var panName = $('#pan-name').val().trim();
-      var panPath = $('#pan-path').val().trim();
-      panPath = panPath.charAt(0) === '/' ? panPath.substr(1) : panPath;
-      dir = '/srv/nextcloud/data/' + panName + '/files/' + panPath;
-    }
+    var panName = active === 'tab-pan' ? $('#pan-name').val().trim() : '';
+    var import_dir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
     var redo = $('#publishModal input:radio:checked').val();
     var remark = $('#publishModal #remark').val();
-    var data = {task_type: 'import_image', dir: dir, redo: redo, remark: remark};
+    var data = {task_type: 'import_image', import_dir: import_dir, pan_name: panName, redo: redo, remark: remark};
+    console.log(data);
     postApi('/task/publish', {data: data}, function (res) {
       showSuccess('成功', '数据已提交。');
       setTimeout(function () {

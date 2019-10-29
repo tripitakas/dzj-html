@@ -56,9 +56,7 @@
                       <th>简称</th>
                       <th>编码</th>
                       <th>存储模式</th>
-                      <th>图片就绪</th>
-                      <th>图片前缀</th>
-                      <th>图片后缀</th>
+                      <th>图片是否就绪</th>
                       <th>备注</th>
                       <th>操作</th>
                     </tr>
@@ -72,8 +70,6 @@
                       <td>{{t.get('tripitaka_code') or ''}}</td>
                       <td>{{t.get('store_pattern') or ''}}</td>
                       <td>{{t.get('img_available') or ''}}</td>
-                      <td>{{t.get('img_prefix') or ''}}</td>
-                      <td>{{t.get('img_suffix') or ''}}</td>
                       <td>{{t.get('remark') or ''}}</td>
                       <td>
                         <a class="btn-delete">删除</a>
@@ -140,18 +136,6 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="col-md-2 control-label">图片前缀</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="" id="img_prefix">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">图片后缀</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="" id="img_suffix">
-              </div>
-            </div>
-            <div class="form-group">
               <label class="col-md-2 control-label">备注</label>
               <div class="col-md-10">
                 <textarea class="form-control" value="" id="remark"></textarea>
@@ -214,8 +198,6 @@
     $('#tripitaka_code').val('');
     $('#store_pattern').val('');
     $("#img_available").find("option[value = '否']").attr("selected", "selected");
-    $('#img_prefix').val('');
-    $('#img_suffix').val('');
   });
 
   // 修改-弹框
@@ -229,8 +211,6 @@
     $('#tripitaka_code').val(children.eq(2).text());
     $('#store_pattern').val(children.eq(3).text());
     $("#img_available").find("option[value = '" + children.eq(4).text() + "']").attr("selected", "selected");
-    $('#img_prefix').val(children.eq(5).text());
-    $('#img_suffix').val(children.eq(6).text());
     $('#remark').val(children.eq(7).text());
   });
 
@@ -242,8 +222,6 @@
       tripitaka_code: $('#tripitaka_code').val(),
       store_pattern: $('#store_pattern').val(),
       img_available: $('#img_available').val(),
-      img_prefix: $('#img_prefix').val(),
-      img_suffix: $('#img_suffix').val(),
       remark: $('#remark').val()
     };
     if ($('#_id').val().trim().length !== 0) {

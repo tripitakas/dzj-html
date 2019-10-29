@@ -51,14 +51,17 @@ class TestApi(APITestCase):
     def test_api_import_image(self):
         # 发布任务
         task_type = 'import_image'
-        data = dict(task_type=task_type, dir='/srv/test/abc', redo='1')
+        data = dict(task_type=task_type, import_dir='/srv/test1/abc', redo='1')
+        r = self.fetch('/api/task/publish', body={'data': data})
+        self.assert_code(200, r)
+        data = dict(task_type=task_type, import_dir='/srv/test2/def', redo='0')
         r = self.fetch('/api/task/publish', body={'data': data})
         self.assert_code(200, r)
         # 测试领取任务
-        r = self.fetch('/api/task/pick/' + task_type, body={'data': {}})
+        r = self.fetch('/api/task/pick_many/' + task_type, body={'data': {'size': 100}})
         self.assert_code(200, r)
         # 测试提交任务
-        task_id = self.parse_response(r)['data']['task_id']
+        task_id = self.parse_response(r)['data'][0]['task_id']
         tasks = [dict(task_type=task_type, task_id=task_id, status='success')]
         r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
         self.assert_code(200, r, msg=task_type)

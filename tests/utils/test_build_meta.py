@@ -27,7 +27,7 @@ class TestBuildMeta(APITestCase):
                 if filename.split('.')[-1] in ['csv', 'json']:
                     os.remove(path.join(root, filename))
 
-        # 测试获取跟目录
+        # 测试获取根目录
         import_dir = '/srv/nextcloud/data/zhangsan/files/XX-某藏/1-正法明目'
         base = get_import_base(import_dir)
         self.assertEqual(base, '/srv/nextcloud/data/zhangsan/files/')
