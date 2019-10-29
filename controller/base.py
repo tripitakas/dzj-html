@@ -66,7 +66,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         try:
-            user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
+            cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
+            user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
                 return self.send_error_response(e.no_user) if api else self.redirect(login_url)
         except MongoError as err:
