@@ -64,6 +64,8 @@
                       <th><span class="sort">备注</span></th>
                       <th><span>创建人</span></th>
                       <th><span>创建时间</span></th>
+                      <th><span>领取人</span></th>
+                      <th><span>领取时间</span></th>
                       <th><span>更新时间</span></th>
                     </tr>
                     </thead>
@@ -79,6 +81,8 @@
                       <td>{{Th.prop(t, 'input.remark') or ''}}</td>
                       <td>{{t.get('publish_by') or ''}}</td>
                       <td>{{to_date_str(t.get('create_time'))}}</td>
+                      <td>{{t.get('picked_by') or ''}}</td>
+                      <td>{{to_date_str(t.get('picked_time'))}}</td>
                       <td>{{to_date_str(t.get('updated_time'))}}</td>
                     </tr>
                     {% end %}

@@ -15,13 +15,15 @@ class TaskHandler(BaseHandler, TaskConfig):
     # 任务状态表
     STATUS_OPENED = 'opened'
     STATUS_PENDING = 'pending'
+    STATUS_ASSIGNED = 'assigned'
     STATUS_PICKED = 'picked'
     STATUS_RETURNED = 'returned'
     STATUS_RETRIEVED = 'retrieved'
     STATUS_FINISHED = 'finished'
     task_status_names = {
-        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_PICKED: '进行中',
-        STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已撤回', STATUS_FINISHED: '已完成',
+        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_ASSIGNED: '已指派',
+        STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已撤回',
+        STATUS_FINISHED: '已完成',
     }
 
     # 任务优先级

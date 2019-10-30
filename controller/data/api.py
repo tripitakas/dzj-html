@@ -112,13 +112,39 @@ class PickDataTasksApi(TaskHandler):
             if not tasks:
                 self.send_error_response(errors.no_task_to_pick)
 
-            # 批量分配任务
-            update = dict(status=self.STATUS_PICKED, picked_time=datetime.now(), updated_time=datetime.now(),
+            # 批量指派任务
+            update = dict(status=self.STATUS_ASSIGNED, picked_time=datetime.now(), updated_time=datetime.now(),
                           picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': update})
             if r.modified_count:
-                self.send_data_response(get_tasks())
+                self.send_data_response(dict(tasks=get_tasks()))
+
+        except DbError as err:
+            return self.send_db_error(err)
+
+
+class ConfirmPickDataTasksApi(TaskHandler):
+    URL = '/api/task/confirm_pick/@data_task'
+
+    def post(self, data_task):
+        """ 确认批量领取任务成功 """
+
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'tasks')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            task_ids = [ObjectId(t['task_id']) for t in data['tasks']]
+            if task_ids:
+                self.db.task.update_many(
+                    {'_id': {'$in': task_ids}},
+                    {'$set': {'status': self.STATUS_PICKED, 'picked_time': datetime.now()}}
+                )
+                self.send_data_response()
+            self.send_error_response(errors.no_object)
 
         except DbError as err:
             return self.send_db_error(err)
@@ -128,12 +154,13 @@ class SubmitDataTasksApi(SubmitDataTaskApi):
     URL = '/api/task/submit/@data_task'
 
     def post(self, task_type):
-        """ 批量提交数据任务。提交格式如下：
-        {'tasks':[
-            {'task_type': '', 'task_id':'', 'status':'success', 'page':{}, ...},
-            {'task_type': '', 'task_id':'', 'status':'failed', 'message':''},
-        ]}
-        其中，task_id是任务id，status为success/failed，page是成功时的页面数据，...表示其它数据内容，message为失败时的错误信息。
+        """ 批量提交数据任务。提交参数为tasks，格式如下：
+        [
+        {'task_type': '', 'ocr_task_id':'', 'task_id':'', 'page_name':'', 'status':'success', 'result':{}},
+        {'task_type': '', 'ocr_task_id':'','task_id':'', 'page_name':'', 'status':'failed', 'message':''},
+        ]
+        其中，ocr_task_id是远程任务id，task_id是本地任务id，status为success/failed，
+        result是成功时的数据，message为失败时的错误信息。
         """
         try:
             data = self.get_request_data()
@@ -142,11 +169,12 @@ class SubmitDataTasksApi(SubmitDataTaskApi):
             if err:
                 self.send_error_response(err)
 
-            ret = []
+            tasks = []
             for task in data['tasks']:
-                r = self.submit_one(task) if task['task_type'] == task_type else '任务类型不一致'
-                ret.append(dict(task_id=task['task_id'], status='success' if r is True else 'failed', message=r))
-            self.send_data_response(ret)
+                r = self.submit_one(task)
+                tasks.append(dict(ocr_task_id=task['ocr_task_id'], task_id=task['task_id'],
+                                  status='success' if r is True else 'failed', message=r))
+            self.send_data_response(dict(tasks=tasks))
 
         except DbError as err:
             return self.send_db_error(err)

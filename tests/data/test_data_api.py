@@ -27,25 +27,26 @@ class TestApi(APITestCase):
             # 测试批量领取任务
             r = self.fetch('/api/task/pick_many/' + task_type, body={'data': {'size': 3}})
             self.assert_code(200, r, msg=task_type)
+            data = self.parse_response(r)
 
             # 测试批量提交任务
             tasks = []
-            for task in self.parse_response(r).get('data'):
+            for task in data['data']['tasks']:
                 page = self._app.db.page.find_one({'name': task['page_name']})
                 page['img_cloud_path'] = 'http://cloud.tripitakas.net/abc.png'
                 status = 'success' if page else 'failed'
                 message = '' if page else '页面未找到'
-                tasks.append(dict(task_type=task_type, task_id=task['task_id'], status=status, page=page,
-                                  message=message))
+                tasks.append(dict(ocr_task_id=task['task_id'], task_id=task['task_id'], task_type=task_type,
+                                  page_name=task['page_name'], status=status, result=page, message=message))
             r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
             self.assert_code(200, r, msg=task_type)
 
             # 测试ocr_text任务不可以修改坐标信息
             if task_type == 'ocr_text':
-                tasks[0]['page']['blocks'][0]['h'] = 0
+                tasks[0]['result']['blocks'][0]['h'] = 0
                 r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
                 self.assert_code(200, r, msg=task_type)
-                d = self.parse_response(r)['data']
+                d = self.parse_response(r)['data']['tasks']
                 self.assertEqual('failed', d[0]['status'])
 
     def test_api_import_image(self):
@@ -61,7 +62,7 @@ class TestApi(APITestCase):
         r = self.fetch('/api/task/pick_many/' + task_type, body={'data': {'size': 100}})
         self.assert_code(200, r)
         # 测试提交任务
-        task_id = self.parse_response(r)['data'][0]['task_id']
-        tasks = [dict(task_type=task_type, task_id=task_id, status='success')]
+        task_id = self.parse_response(r)['data']['tasks'][0]['task_id']
+        tasks = [dict(ocr_task_id=task_id, task_id=task_id, task_type=task_type, status='success')]
         r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
         self.assert_code(200, r, msg=task_type)
