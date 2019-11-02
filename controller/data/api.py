@@ -86,7 +86,7 @@ class DataDeleteApi(BaseHandler):
 
 
 class PickDataTasksApi(TaskHandler):
-    URL = '/api/task/pick_many/@data_task'
+    URL = '/api/task/fetch_many/@data_task'
 
     def post(self, data_task):
         """ 批量领取数据任务 """
@@ -100,7 +100,7 @@ class PickDataTasksApi(TaskHandler):
                 for t in tasks:
                     t['input'] = pages[t['doc_id']]
 
-            return [dict(task_id=str(t['_id']), priority=t['priority'], page_name=t.get('doc_id'),
+            return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
                          input=t.get('input')) for t in tasks]
 
         try:
@@ -125,7 +125,7 @@ class PickDataTasksApi(TaskHandler):
 
 
 class ConfirmPickDataTasksApi(TaskHandler):
-    URL = '/api/task/confirm_pick/@data_task'
+    URL = '/api/task/confirm_fetch/@data_task'
 
     def post(self, data_task):
         """ 确认批量领取任务成功 """
@@ -139,10 +139,8 @@ class ConfirmPickDataTasksApi(TaskHandler):
 
             task_ids = [ObjectId(t['task_id']) for t in data['tasks']]
             if task_ids:
-                self.db.task.update_many(
-                    {'_id': {'$in': task_ids}},
-                    {'$set': {'status': self.STATUS_PICKED, 'picked_time': datetime.now()}}
-                )
+                self.db.task.update_many({'_id': {'$in': task_ids}},
+                                         {'$set': {'status': self.STATUS_PICKED}})
                 self.send_data_response()
             self.send_error_response(errors.no_object)
 
@@ -173,7 +171,8 @@ class SubmitDataTasksApi(SubmitDataTaskApi):
             for task in data['tasks']:
                 r = self.submit_one(task)
                 tasks.append(dict(ocr_task_id=task['ocr_task_id'], task_id=task['task_id'],
-                                  status='success' if r is True else 'failed', message=r))
+                                  status='success' if r is True else 'failed',
+                                  page_name=task.get('page_name'), message=r))
             self.send_data_response(dict(tasks=tasks))
 
         except DbError as err:

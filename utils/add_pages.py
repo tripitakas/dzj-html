@@ -6,7 +6,6 @@
 
 
 import re
-import os
 import sys
 import json
 import shutil
@@ -14,15 +13,13 @@ import pymongo
 from tornado.util import PY3
 from os import path, listdir, mkdir
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-IMG_PATH = path.join(path.dirname(__file__), '..', 'static', 'img')
+BASE_DIR = path.dirname(path.dirname(__file__))
+sys.path.append(BASE_DIR)
 
 data = dict(count=0)
-
-page_meta = dict(name='', width='', height='', img_path='', img_cloud_path='',
-                 uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
-                 lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
+page_meta = dict(name='', width='', height='', img_path='', img_cloud_path='', sutra_code='',
+                 uni_sutra_code='', reel_code='', reel_page_no='', lock={}, box_stage='',
+                 text_stage='', blocks=[], columns=[], chars=[],
                  ocr='', text='', txt_html='')
 
 
@@ -67,14 +64,11 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
     exist = db.page.find_one(dict(name=name))
     if update or not exist:
         meta = page_meta.copy()
+        width = int(info['imgsize']['width'] if 'imgsize' in info else info['width'])
+        height = int(info['imgsize']['height'] if 'imgsize' in info else info['height'])
         meta.update(dict(
-            name=name,
-            kind=name[:2],
-            width=int(info['imgsize']['width'] if 'imgsize' in info else info['width']),
-            height=int(info['imgsize']['height'] if 'imgsize' in info else info['height']),
-            blocks=info.get('blocks', []),
-            columns=info.get('columns', []),
-            chars=info.get('chars', []),
+            name=name, kind=name[:2], width=width, height=height, blocks=info.get('blocks', []),
+            columns=info.get('columns', []), chars=info.get('chars', []),
         ))
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
@@ -85,13 +79,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
-
         for field in ['source', 'h_num', 'v_num']:
             if info.get(field):
                 meta[field] = info[field]
+
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
-            name, meta['width'], meta['height'], len(meta['blocks']), len(meta['columns']), len(meta['chars'])))
+            name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
+        ))
 
         info.pop('id', 0)
         if exist:
@@ -124,13 +119,14 @@ def add_texts(src_path, pages, db):
 def copy_img_files(src_path, pages):
     if not path.exists(src_path):
         return
-    create_dir(IMG_PATH)
+    img_path = path.join(BASE_DIR, 'static', 'img')
+    create_dir(img_path)
     for fn in listdir(src_path):
         filename = path.join(src_path, fn)
         if path.isdir(filename):
             copy_img_files(filename, pages)
         elif fn.endswith('.jpg') and fn[:-4] in pages:
-            dst_file = path.join(IMG_PATH, fn[:2])
+            dst_file = path.join(img_path, fn[:2])
             create_dir(dst_file)
             dst_file = path.join(dst_file, fn)
             if not path.exists(dst_file):
@@ -152,7 +148,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :return: 新导入的页面的个数
     """
     if not json_path:
-        txt_path = json_path = img_path = path.join(path.dirname(__file__), '..', 'sample')
+        txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:

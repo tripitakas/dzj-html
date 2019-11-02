@@ -71,6 +71,6 @@ class SubmitDataTaskApi(TaskHandler):
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         else:
-            task_update = {'status': self.STATUS_RETURNED, 'updated_time': now, 'returned_reason': task.get('message')}
+            task_update = {'status': self.STATUS_RETURNED, 'updated_time': now, 'result': task.get('result')}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True

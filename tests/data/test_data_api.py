@@ -25,7 +25,7 @@ class TestApi(APITestCase):
             self.assert_code(200, r)
 
             # 测试批量领取任务
-            r = self.fetch('/api/task/pick_many/' + task_type, body={'data': {'size': 3}})
+            r = self.fetch('/api/task/fetch_many/' + task_type, body={'data': {'size': 3}})
             self.assert_code(200, r, msg=task_type)
             data = self.parse_response(r)
 
@@ -59,7 +59,7 @@ class TestApi(APITestCase):
         r = self.fetch('/api/task/publish', body={'data': data})
         self.assert_code(200, r)
         # 测试领取任务
-        r = self.fetch('/api/task/pick_many/' + task_type, body={'data': {'size': 100}})
+        r = self.fetch('/api/task/fetch_many/' + task_type, body={'data': {'size': 100}})
         self.assert_code(200, r)
         # 测试提交任务
         task_id = self.parse_response(r)['data']['tasks'][0]['task_id']

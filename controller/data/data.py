@@ -263,4 +263,7 @@ class Page(Data):
             pages.append(page)
         if pages:
             r = db.page.insert_many(pages)
-        return dict(status='success', inserted_ids=r.inserted_ids if pages else [])
+        message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (
+            len(page_names), len(pages), len(existed_pages))
+        print(message)
+        return dict(status='success', message=message, inserted_ids=r.inserted_ids if pages else [])

@@ -170,8 +170,8 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/@data_task': ['GET'],
             '/api/task/pick/@data_task': ['POST'],
-            '/api/task/pick_many/@data_task': ['POST'],
             '/api/task/return/@data_task/@task_id': ['POST'],
+            '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],
             '/api/task/submit/@data_task': ['POST'],
             '/api/data/@collection/upload': ['POST'],
         }

@@ -7,5 +7,5 @@ views = [
 
 handlers = [
     api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi,
-    api.PickDataTasksApi, api.SubmitDataTasksApi,
+    api.PickDataTasksApi, api.SubmitDataTasksApi, api.ConfirmPickDataTasksApi,
 ]
