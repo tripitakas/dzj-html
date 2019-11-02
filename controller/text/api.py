@@ -22,7 +22,7 @@ class GetCompareTextApi(TaskHandler):
     def post(self, page_name):
         """ 获取比对本
         根据OCR文本，从CBETA库中获取相似的文本作为比对本"""
-        from controller.search.esearch import find_one
+        from controller.tool.esearch import find_one
         try:
             page = self.db.page.find_one({'name': page_name})
             if page:
@@ -49,7 +49,7 @@ class GetCompareNeighborApi(TaskHandler):
         :param page_code: 当前cmp文本的page_code（es库中的page_code）
         :param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
         """
-        from controller.search.esearch import find_neighbor
+        from controller.tool.esearch import find_neighbor
         try:
             data = self.get_request_data()
             err = v.validate(data, [(v.not_empty, 'cmp_page_code', 'neighbor')])

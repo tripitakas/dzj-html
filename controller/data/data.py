@@ -36,7 +36,7 @@ class Data(object):
             return name
         else:
             fields = [s[0] for s in cls.fields if s[1] == name]
-            return fields and fields[0]
+            return fields and fields[0] or ''
 
     @classmethod
     def validate(cls, doc):

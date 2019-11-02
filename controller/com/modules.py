@@ -60,9 +60,9 @@ class CommonLeft(UIModule):
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='文字识别', icon='icon_subitem', link='/ocr/recognize'),
-                dict(name='自动标点', icon='icon_subitem', link='/punc/punctuate'),
-                dict(name='CBETA检索', icon='icon_subitem', link='/search/cbeta'),
+                dict(name='文字识别', icon='icon_subitem', link='/tool/ocr'),
+                dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
+                dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),
             ]),
             dict(name='帮助文档', icon='icon_help', link='/help'),
         ]

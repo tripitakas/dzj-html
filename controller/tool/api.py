@@ -5,12 +5,34 @@
 """
 import re
 from .esearch import find
-from controller.base import BaseHandler
 from controller.text.variant import normalize
+from controller.base import BaseHandler, DbError
+
+try:
+    import punctuation
+
+    punc_str = punctuation.punc_str
+except Exception:
+    punc_str = lambda s: s
+
+
+class PunctuationApi(BaseHandler):
+    URL = '/api/tool/punctuate'
+
+    def post(self):
+        """ 自动标点 """
+        try:
+            data = self.get_request_data()
+            q = data.get('q', '').strip()
+            res = punc_str(q) if q else ''
+            self.send_data_response(dict(res=res))
+
+        except DbError as e:
+            self.send_db_error(e)
 
 
 class CbetaSearchApi(BaseHandler):
-    URL = '/api/search/cbeta'
+    URL = '/api/tool/search'
 
     def post(self):
         """ CBETA检索 """

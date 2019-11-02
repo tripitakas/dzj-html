@@ -16,12 +16,3 @@ if [ ! -f sample/GL/GL_924_2_35.jpg ] ; then
     fi
     tar zxvf $tgz_file
 fi
-
-
-if [ ! -f import_sample/YY/1-正法-明目/1-封面/1.png ] ; then
-    tgz_file=$1
-    if [ -z $1 ] ; then
-        tgz_file=meta/import_sample.tgz
-    fi
-    tar zxvf $tgz_file
-fi

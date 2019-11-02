@@ -1,8 +1,5 @@
-from . import api, view
+from . import api
 
-views = [
-    view.RecognitionHandler, view.RecognitionViewHandler,
-]
 handlers = [
     api.RecognitionApi, api.SubmitRecognitionApi,
     api.RecognitionApi, api.SubmitRecognitionApi, api.ImportMetaApi, api.FetchResultApi,

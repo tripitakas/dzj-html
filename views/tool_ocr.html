@@ -138,7 +138,7 @@
     var formData = new FormData();
     formData.append('img', imgFile);
     $.ajax({
-      url: '/api/ocr/recognize?h_num=' + layout2num[layout][0] + '&v_num=' + layout2num[layout][1],
+      url: '/api/tool/ocr?h_num=' + layout2num[layout][0] + '&v_num=' + layout2num[layout][1],
       type: 'POST',
       data: formData,
       processData: false,
