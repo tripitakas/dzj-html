@@ -4,18 +4,12 @@
 @desc: 藏经OCR接口
 @time: 2019/9/2
 """
-from tornado.escape import to_basestring
 from urllib.parse import urlencode
 from controller.base import BaseHandler
 from controller import errors as e
 import controller.validate as va
-from controller import helper
-from controller.cut.v2 import calc
 from utils.add_pages import add_page
-
-from PIL import Image
 from os import path, remove
-from operator import itemgetter
 from glob2 import glob
 import logging
 import re
@@ -26,88 +20,10 @@ from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 import hashlib
-import subprocess
 
 import csv
 from datetime import datetime
 from controller.data.data import Reel, Volume, Sutra
-
-
-class RecognitionApi(BaseHandler):
-    URL = '/api/tool/ocr'
-
-    def post(self):
-        """对上传的一个藏经图作OCR的接口"""
-
-        def handle_response(r):
-            """OCR已完成的通知"""
-            img_file = path.join(self.application.BASE_DIR, 'static', 'upload', 'ocr', filename)
-            gif_file = img_file.split('.')[0] + '.gif'
-            json_file = img_file.split('.')[0] + '.json'
-
-            # 缓存图片和OCR结果到 upload/ocr 目录
-            with open(img_file, 'wb') as f:
-                f.write(img[0]['body'])
-            with open(json_file, 'w') as f:
-                r['create_time'] = helper.get_date_time()
-                json.dump(r, f, ensure_ascii=False)
-
-            # 缩小图片
-            im = Image.open(img_file).convert('RGBA')
-            w, h = im.size
-            if w > 1200 or h > 1200:
-                if w > 1200:
-                    h = round(1200 * h / w)
-                    w = 1200
-                if h > 1200:
-                    w = round(1200 * w / h)
-                    h = 1200
-                im.thumbnail((int(w), int(h)), Image.ANTIALIAS)
-
-            # 图片加水印、变为灰度图，保存为gif
-            try:
-                mark = Image.open(path.join(path.dirname(__file__), 'rushi.png'))
-                if mark.size != (w, h):
-                    mark = mark.resize((w, h))
-                im = Image.alpha_composite(im, mark)
-            except ValueError as err:
-                logging.error('%s: %s' % (img_file, str(err)))
-
-            im.convert('L').save(gif_file, 'GIF')
-            if gif_file != img_file:
-                remove(img_file)
-
-            subprocess.call(['gifsicle', '-o', gif_file, '-O3', '--careful', '--no-comments', '--no-names',
-                             '--same-delay', '--same-loopcount', '--no-warnings', '--', gif_file])
-
-            self.send_data_response(dict(name=path.basename(gif_file)))
-
-        data = self.get_request_data()
-        if not data:
-            data = dict(self.request.arguments)
-            for k, v in data.items():
-                data[k] = to_basestring(v[0])
-        img = self.request.files.get('img')
-        assert img
-        filename = re.sub(r'[^A-Za-z0-9._-]', '', path.basename(img[0]['filename']))  # 去掉路径、汉字和特殊符号
-        ext = filename.split('.')[-1].lower()
-        filename = '%s.%s' % (filename.split('.')[0], ext)
-        if '_' not in filename:  # 如果图片文件名不是规范的页面名，则从路径提取藏别、卷册名，生成页面名
-            m = re.search(r'([/\\][A-Za-z]{2})?([/\\][0-9]+){1,3}$', path.dirname(filename))
-            if m:
-                filename = re.sub(r'[/\\]', '_', m.group(0)[1:]) + '_' + filename
-            if len(filename) < 7:
-                filename = '%d.%s' % (hash(img[0]['filename']) % 10000, ext)
-        data['filename'] = filename
-
-        # 将图片内容转发到OCR服务，OCR结果将以JSON内容返回
-        logging.info('recognize %s...' % filename)
-        url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
-        self.call_back_api(
-            url, connect_timeout=5, request_timeout=20, body=img[0]['body'], method='POST',
-            handle_error=lambda t: self.send_error_response(e.ocr_err, message=e.ocr_err[1] % (t or '无法访问')),
-            handle_response=handle_response
-        )
 
 
 class SubmitRecognitionApi(BaseHandler):
@@ -153,7 +69,7 @@ class SubmitRecognitionApi(BaseHandler):
         except (ValueError, OSError) as err:
             logging.error('%s: %s' % (json_file, str(err)))
             return e.ocr_json_not_existed if ignore_error else self.send_error_response(e.ocr_json_not_existed)
-        page =ocr2page(page)
+        page = ocr2page(page)
 
         img_name = path.basename(json_file).split('.')[0]
         if re.match(r'^[A-Z]{2}(_[0-9]+)+$', img_name):
