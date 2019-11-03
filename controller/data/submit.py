@@ -10,11 +10,15 @@ from controller.helper import is_box_changed
 
 class SubmitDataTaskApi(TaskHandler):
     def submit_one(self, task):
-        _task = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
-        if not _task:
+        tsk = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
+        if not tsk:
             return errors.task_un_existed
-        if self.prop(task, 'page_name') and self.prop(task, 'page_name') != _task.get('doc_id'):
+        elif tsk['picked_user_id'] != self.current_user['_id']:
+            return errors.task_unauthorized
+        page_name = self.prop(task, 'page_name')
+        if page_name and page_name != tsk.get('doc_id'):
             return errors.doc_id_not_equal
+
         try:
             if task['task_type'] in ['ocr_box', 'ocr_text']:
                 return self.submit_ocr(task)
