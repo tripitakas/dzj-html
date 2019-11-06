@@ -109,7 +109,7 @@
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
                       <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.get_status_name(t['status']) or ''}}</td>
                       <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
-                      <td>{{'/'.join([Th.step_names().get(s) for s in t.get('steps',{}).get('todo') or []])}}</td>
+                      <td>{{'/'.join([Th.step_names().get(s) for s in Th.prop(t, 'steps.todo') or []])}}</td>
                       <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
                       <td>{{to_date_str(t.get('publish_time'))}}</td>
                       <td>{{t.get('picked_by') or ''}}</td>

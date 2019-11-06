@@ -113,6 +113,3 @@ class PublishBaseHandler(TaskHandler):
                 tasks[task.get('doc_id')].add(task.get('task_type'))
         doc_ids = [k for k, v in tasks.items() if v == pre_tasks]
         return set(doc_ids)
-
-    def publish_import_image(self):
-        """发布导入图片任务"""
