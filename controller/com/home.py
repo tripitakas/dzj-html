@@ -20,10 +20,14 @@ class HomeHandler(BaseHandler):
         """ 首页 """
         try:
             user_id = self.current_user['_id']
-            visit_count = self.db.log.count_documents({'create_time': {'$gte': get_date_time('%Y-%m-%d 00:00:00')},
-                                                       'user_id': user_id, 'type': 'visit'})
-            r = list(self.db.log.find({'user_id': user_id, 'type': {'$in': ['login_ok', 'register']}},
-                                      {'create_time': 1}).sort('create_time', -1).limit(2))
+            visit_count = self.db.log.count_documents({
+                'create_time': {'$gte': get_date_time('%Y-%m-%d 00:00:00')},
+                'user_id': user_id, 'type': 'visit'
+            })
+            r = list(self.db.log.find(
+                {'user_id': user_id, 'type': {'$in': ['login_ok', 'register']}},
+                {'create_time': 1}
+            ).sort('create_time', -1).limit(2))
             last_login = r and r[0]['create_time'][:16] or ''
 
             time = get_date_time('%Y-%m-%d 00:00:00', diff_seconds=-86400 * 5)
@@ -63,7 +67,7 @@ class HomeHandler(BaseHandler):
                 except Exception:
                     traceback.print_exc()
                     context = 'err: %s, %s' % (t.get('context'), t['type'])
-                recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('nickname'), context=context[:20]))
+                recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('username'), context=context[:20]))
 
             self.render('home.html', visit_count=1 + visit_count, last_login=last_login, get_date_time=get_date_time,
                         recent_trends=recent_trends[:7], version=self.application.version)

@@ -60,13 +60,13 @@ class CutApi(TaskHandler):
                 update.update({'steps.submitted': submitted})
                 r = self.db.task.update_one({'_id': ObjectId(task_id)}, {'$set': update})
                 if r.modified_count:
-                    self.add_op_log('save_%s_%s' % (mode, task_type), context=task_id)
+                    self.add_op_log('save_%s' % task_type, target_id=task_id)
 
             # 提交任务
             if data.get('submit') and data['step'] == steps_todo[-1]:
                 if mode == 'do':
                     self.finish_task(task)
-                    self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
+                    self.add_op_log('submit_%s' % task_type, target_id=task_id)
                 else:
                     self.release_temp_lock(task['doc_id'], shared_field='box')
 
@@ -102,7 +102,7 @@ class CutEditApi(TaskHandler):
             step_data_field = CutApi.step_field_map.get(data['step'])
             r = self.db.page.update_one({'name': page_name}, {'$set': {step_data_field: json_decode(data['boxes'])}})
             if r.modified_count:
-                self.add_op_log('edit_%s' % step_data_field, context=page_name)
+                self.add_op_log('save_edit_%s' % step_data_field, context=page_name, target_id=page['_id'])
 
             # 释放数据锁
             if data.get('submit'):

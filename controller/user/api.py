@@ -86,7 +86,7 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user))
 
-        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], nickname=user['name'])
+        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                      (user['_id'], user['name'], phone_or_email, user['roles']))
 
@@ -141,7 +141,7 @@ class RegisterApi(BaseHandler):
             ))
             user['_id'] = r.inserted_id
             self.add_op_log('register', context='%s, %s, %s' % (user.get('email'), user.get('phone'), user['name']),
-                            nickname=user['name'])
+                            username=user['name'])
             user['login_md5'] = hlp.gen_id(user['roles'])
             self.current_user = user
             self.set_secure_cookie('user', json_util.dumps(user))
@@ -353,7 +353,7 @@ class ChangeMyPasswordApi(BaseHandler):
                 dict(_id=self.current_user['_id']),
                 {'$set': dict(password=hlp.gen_id(user['password']))}
             )
-            self.add_op_log('change_password')
+            self.add_op_log('change_my_password')
             logging.info('change password %s' % self.current_user['name'])
             self.send_data_response()
 
@@ -397,7 +397,7 @@ class ChangeMyProfileApi(BaseHandler):
                 return self.send_error_response(errors.not_changed)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user))
-            self.add_op_log('change_profile')
+            self.add_op_log('change_my_profile')
             logging.info('change profile %s' % (user.get('name')))
             self.send_data_response()
 

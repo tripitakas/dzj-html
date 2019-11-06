@@ -75,10 +75,10 @@ class DataDeleteApi(BaseHandler):
 
             if data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(data['_id'])})
-                self.add_op_log('delete_%s' % collection, target_id=str(data['_id']))
+                self.add_op_log('delete_%s' % collection, target_id=data['_id'])
             else:
                 r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}})
-                self.add_op_log('delete_%s' % collection, target_id=str(data['_ids']))
+                self.add_op_log('delete_%s' % collection, target_id=data['_ids'])
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:

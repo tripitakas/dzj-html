@@ -120,9 +120,11 @@ class PublishTasksApi(PublishBaseHandler):
             task['input'] = dict(pan_name=data.get('pan_name'), import_dir=data['import_dir'],
                                  redo=data['redo'] == '1', remark=data.get('remark'))
 
-            self.db.task.insert_one(task)
-            self.send_data_response()
-            self.add_op_log('publish_import_image', context='%s,%s' % (data['import_dir'], data['redo']))
+            r = self.db.task.insert_one(task)
+            if r.inserted_id:
+                self.send_data_response()
+                self.add_op_log('publish_import_image', context='%s,%s' % (data['import_dir'], data['redo']),
+                                target_id=r.inserted_id)
 
         except DbError as err:
             return self.send_db_error(err)
@@ -216,7 +218,7 @@ class PickTaskApi(TaskHandler):
                 update['text_stage'] = task['task_type']
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
-        self.add_op_log('pick_' + task['task_type'], context=task['doc_id'])
+        self.add_op_log('pick_' + task['task_type'], context=task['doc_id'], target_id=task['_id'])
         return self.send_data_response({'url': '/task/do/%s/%s' % (task['task_type'], task['_id']),
                                         'task': task, 'doc_id': task['doc_id'], 'task_id': task['_id']})
 
@@ -235,7 +237,7 @@ class ReturnTaskApi(TaskHandler):
                       'returned_reason': self.get_request_data().get('reason')}
             r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             if r.matched_count:
-                self.add_op_log('return_' + task_type, context=task_id)
+                self.add_op_log('return_' + task_type, context=task_id, target_id=task['_id'])
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             shared_field = self.get_shared_field(task_type)

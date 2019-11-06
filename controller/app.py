@@ -68,11 +68,11 @@ class Application(web.Application):
         summary = handler._request_summary()
         s = handler.get_status()
         if not (s in [304, 200] and re.search(r'GET /(static|api/(pull|message|discuss))', summary) or s == 404):
-            nick = hasattr(handler, 'current_user') and handler.current_user
-            nickname = nick and (hasattr(nick, 'name') and nick.name or nick.get('name')) or ''
+            user = hasattr(handler, 'current_user') and handler.current_user
+            username = user and (hasattr(user, 'name') and user.name or user.get('name')) or ''
             request_time = 1000.0 * handler.request.request_time()
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
-            log_method("%d %s %.2fms%s", s, summary, request_time, nickname and ' [%s]' % nickname or '')
+            log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
 
     @staticmethod
     def load_config():

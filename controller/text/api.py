@@ -116,7 +116,7 @@ class TextProofApi(TaskHandler):
             update.update({'steps.submitted': submitted})
         r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         if r.modified_count:
-            self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
+            self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
 
         self.send_data_response({'updated': True})
 
@@ -127,7 +127,7 @@ class TextProofApi(TaskHandler):
         update = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
         r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         if r.modified_count:
-            self.add_op_log('save_%s_%s' % (mode, task['task_type']), context=task['doc_id'])
+            self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
 
         # 提交任务
         if data.get('submit'):
@@ -152,8 +152,8 @@ class TextReviewApi(TaskHandler):
                          create_time=now, updated_time=now, publish_time=now,
                          publish_user_id=self.current_user['_id'],
                          publish_by=self.current_user['name'])
-        self.db.task.insert_one(hard_task)
-        self.add_op_log('publish_text_hard', context=str(review_task['_id']))
+        r = self.db.task.insert_one(hard_task)
+        self.add_op_log('publish_text_hard', context=str(review_task['_id']), target_id=r.inserted_id)
 
     def post(self, task_id):
         """ 文字审定提交 """
@@ -233,7 +233,7 @@ class TextHardApi(TaskHandler):
                 if mode == 'do':
                     # do提交后，完成任务且释放数据锁
                     self.finish_task(task)
-                    self.add_op_log('submit_%s_%s' % (mode, task_type), context=task_id)
+                    self.add_op_log('submit_%s' % task_type, target_id=task_id)
                 else:
                     # update提交后，释放数据锁
                     self.release_temp_lock(task['doc_id'], shared_field='text')
@@ -269,7 +269,7 @@ class TextEditApi(TaskHandler):
             text = TextPack.html2txt(txt_html)
             r = self.db.page.update_one({'name': page_name}, {'$set': {'text': text, 'txt_html': txt_html}})
             if r.modified_count:
-                self.add_op_log('edit_text', context=page_name)
+                self.add_op_log('save_edit_text', context=page_name, target_id=page['_id'])
 
             # 提交时，释放数据锁
             if data.get('submit'):

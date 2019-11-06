@@ -99,7 +99,7 @@ class PublishBaseHandler(TaskHandler):
 
         if tasks:
             self.db.task.insert_many(tasks, ordered=False)
-            self.add_op_log('publish_' + task_type, context='%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
+            self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
     @staticmethod
     def _select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks):

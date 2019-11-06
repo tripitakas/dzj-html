@@ -11,6 +11,7 @@ import logging
 import traceback
 
 from os import path
+from datetime import datetime
 
 from bson import json_util
 from bson.errors import BSONError
@@ -22,6 +23,7 @@ from tornado.httpclient import HTTPError
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
+
 
 from controller import errors as e
 from controller.auth import get_route_roles, can_access
@@ -244,17 +246,16 @@ class BaseHandler(CorsMixin, RequestHandler):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, op_type, target_id=None, context=None, nickname=None):
+    def add_op_log(self, op_type, target_id=None, context=None, username=None):
         op_name = get_op_name(op_type)
-        op_name = op_name or op_type  # 暂时取消对op_type的检查
         assert op_name, op_type + ' need add into op_type.py'
-        logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
+        username = username or self.current_user and self.current_user.get('name')
+        user_id = self.current_user and self.current_user.get('_id')
+        logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
         try:
-            self.db.log.insert_one(dict(
-                type=op_type, target_id=target_id and str(target_id) or None,
-                context=context and context[:80], ip=self.get_ip(),
-                nickname=nickname or self.current_user and self.current_user.get('name'),
-                user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
+            self.db.oplog.insert_one(dict(
+                op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,
+                context=str(context), ip=self.get_ip(), create_time=datetime.now(),
             ))
         except MongoError:
             pass
