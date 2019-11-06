@@ -468,7 +468,7 @@ class InitTasksForTestApi(TaskHandler):
             for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
                 for page_name in ['MM_1_1_1', 'NN_1_1']:
                     task = meta.copy()
-                    task.update(dict(task_type=task_type, status='todo', doc_id=page_name))
+                    task.update(dict(task_type=task_type, status='opened', doc_id=page_name))
                     tasks.append(task)
             self.db.task.insert_many(tasks)
 
