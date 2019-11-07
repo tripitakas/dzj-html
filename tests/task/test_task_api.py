@@ -359,3 +359,24 @@ class TestTaskApi(APITestCase):
         self._app.db.task.update_one({'_id': task['_id']}, {'$set': {'status': 'finished'}})
         r = self.fetch('/api/task/delete/import_image', body={'data': {'task_ids': [str(task['_id'])]}})
         self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)
+
+    def test_init_tasks_for_test(self):
+        """ 测试初始化任务，以便OP平台的测试"""
+        self.login_as_admin()
+        data = dict(import_dirs=['/home/file/base_dir@abc', '/home/file/base_dir@xyz'],
+                    page_names=['GL_1056_5_6', 'YB_22_346'])
+        r = self.fetch('/api/task/init_for_test', body={'data': data})
+        self.assert_code(200, r)
+
+        # 测试已有图片导入任务
+        tasks = list(self._app.db.task.find(
+            {'task_type': 'import_image', 'input.import_dir': {'$in': data['import_dirs']}}
+        ))
+        self.assertTrue(len(tasks) >= 2)
+
+        # 测试已有其它类型任务
+        for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
+            tasks = list(self._app.db.task.find(
+                {'task_type': task_type, 'doc_id': {'$in': data['page_names']}}
+            ))
+            self.assertTrue(len(tasks) >= 2)

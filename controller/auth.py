@@ -168,7 +168,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/api/task/init_tasks_for_test': ['POST'],
+            '/api/task/init_for_test': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],
             '/api/task/submit/@data_task': ['POST'],
             '/api/data/@collection/upload': ['POST'],

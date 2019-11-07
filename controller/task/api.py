@@ -9,6 +9,7 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors
 import controller.errors as e
+import controller.helper as hlp
 import controller.validate as v
 from controller.base import DbError
 from controller.task.base import TaskHandler
@@ -431,47 +432,44 @@ class UnlockTaskDataApi(TaskHandler):
 
 
 class InitTasksForTestApi(TaskHandler):
-    URL = '/api/task/init_tasks_for_test'
+    URL = '/api/task/init_for_test'
 
     def post(self):
-        """ 初始化数据处理任务，以便进行测试。
+        """ 初始化数据处理任务，以便OP平台进行测试。
         注意：该API仅仅是配合OP平台测试使用"""
         data = self.get_request_data()
-        rules = [(v.not_empty, 'base_dir')]
+        rules = [(v.not_empty, 'page_names', 'import_dirs')]
         err = v.validate(data, rules)
         if err:
             return self.send_error_response(err)
 
         try:
-            self.db.task.delete_many({'task_type': {'$in': ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']}})
-
             tasks, now = [], datetime.now()
-            meta = dict(task_type='import_image', collection=None, id_name=None, doc_id=None, status='opend',
+            meta = dict(task_type='import_image', collection=None, id_name=None, doc_id=None, status='opened',
                         priority=2, steps=None, pre_tasks=None, input=None, result={},
                         create_time=now, updated_time=now, publish_time=now,
                         publish_user_id=self.current_user['_id'],
                         publish_by=self.current_user['name'])
 
-            # 创建导入图片任务. 'root/user_dir@MM-藏A' 表示根目录为 'root/user_dir'、待导入其下的 'MM-藏A' 文件夹
-            task = meta.copy()
-            import_dir1 = data['base_dir'] + '/meta/import_sample/user_dir@YY-错误例子'
-            task.update(dict(task_type='import_image', status='opened', input=dict(
-                import_dir=import_dir1, redo=False)))
-            tasks.append(task)
-            task = meta.copy()
-            import_dir2 = data['base_dir'] + '/meta/import_sample/user_dir@MM-藏A'
-            task.update(dict(task_type='import_image', status='opened', input=dict(
-                import_dir=import_dir2, redo=True)))
-            tasks.append(task)
+            # 创建导入图片任务
+            for import_dir in data['import_dirs']:
+                task = meta.copy()
+                task.update(dict(task_type='import_image', status='opened', input=dict(
+                    import_dir=import_dir, redo=True)))
+                tasks.append(task)
 
             # 创建其它类型的任务
             for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
-                for page_name in ['GL_1056_5_6', 'YB_22_346']:
+                for page_name in data['page_names']:
                     task = meta.copy()
                     task.update(dict(task_type=task_type, status='opened', doc_id=page_name))
+                    if task_type == 'ocr_text':
+                        page = self.db.page.find_one({'name': page_name})
+                        if page:
+                            task['input'] = {k: page[k] for k in ['blocks', 'columns', 'chars']}
                     tasks.append(task)
-            self.db.task.insert_many(tasks)
 
+            self.db.task.insert_many(tasks)
             self.send_data_response()
 
         except DbError as err:
