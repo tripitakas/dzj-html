@@ -7,69 +7,91 @@
 
 import re
 import traceback
-from controller.base import BaseHandler
-from controller.helper import get_date_time
+from datetime import datetime
+from operator import itemgetter
 from controller.task.base import TaskHandler
-from controller.op_type import get_op_def, op_in_recent_trends, page_kinds
+from controller.task.view import MyTaskHandler
 
 
-class HomeHandler(BaseHandler):
+class HomeHandler(TaskHandler):
     URL = ['/', '/home']
 
     def get(self):
         """ 首页 """
+
+        def get_month_star():
+            """ 每种任务类型，选出前三名，作为本月校勘之星 """
+            statistic = {k: {} for k in ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']}
+            for task in month_tasks:
+                tsk_type = 'text_proof' if 'text_proof' in task['task_type'] else task['task_type']
+                if str(task['picked_user_id']) not in statistic[tsk_type]:
+                    statistic[tsk_type][str(task['picked_user_id'])] = [task['picked_by'], 1]
+                else:
+                    statistic[tsk_type][str(task['picked_user_id'])][1] += 1
+            for task_type, v in statistic.items():
+                if v:
+                    user2count = list(v.values())
+                    user2count.sort(key=itemgetter(1))
+                    statistic[task_type] = user2count[0]
+            return {self.get_task_name(k): v for k, v in statistic.items() if v}
+
+        def get_time_slot():
+            """ 当前时段 """
+            hour = datetime.now().strftime('%H')
+            time_map = [[0, '凌晨'], [5, '早上'], [8, '上午'], [11, '中午'], [13, '下午'], [19, '晚上']]
+            for i, t in enumerate(time_map):
+                if t[0] < int(hour):
+                    continue
+                else:
+                    return time_map[i - 1][1]
+            return time_map[-1][1]
+
+        def get_task_info(task):
+            return '%s %s %s %s' % (task['picked_by'], '领取了' if task['status'] == 'picked' else '完成了',
+                                    self.get_task_name(task['task_type']), task['doc_id'])
+
         try:
+            # 今日访问次数
             user_id = self.current_user['_id']
+            today_begin = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
             visit_count = self.db.log.count_documents({
-                'create_time': {'$gte': get_date_time('%Y-%m-%d 00:00:00')},
-                'user_id': user_id, 'type': 'visit'
+                'create_time': {'$gte': today_begin},
+                'user_id': user_id, 'op_type': 'visit'
             })
+
+            # 最后登录时间
             r = list(self.db.log.find(
-                {'user_id': user_id, 'type': {'$in': ['login_ok', 'register']}},
+                {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
                 {'create_time': 1}
             ).sort('create_time', -1).limit(2))
-            last_login = r and r[0]['create_time'][:16] or ''
+            last_login = r and r[0]['create_time'].strftime('%Y-%m-%d %H:%M:%S')
 
-            time = get_date_time('%Y-%m-%d 00:00:00', diff_seconds=-86400 * 5)
-            rs = list(self.db.log.find({'create_time': {'$gte': time}})
-                      .sort('create_time', -1).limit(100))
-            recent_trends, user_trends = [], {}
-            for t in rs:
-                if not op_in_recent_trends(t['type']):
-                    continue
-                # 每个人的操作记录中，忽略一分钟内的连续记录
-                time = t['create_time'][:15]  # 15:到分钟
-                if user_trends.get(t['user_id']) == time:
-                    continue
-                user_trends[t['user_id']] = time
+            # 已完成任务
+            my_latest_tasks, my_task_count = MyTaskHandler.get_my_tasks_by_type(
+                self, order='-picked_time', page_size=10)
+            unfinished_count = len([t for t in my_latest_tasks if t['status'] == self.STATUS_PICKED])
 
-                context, params = '', {}
-                if not isinstance(t['context'], str):
-                    t['context'] = ''
-                try:
-                    d = get_op_def(t['type'], params)
-                    if d:
-                        task_type = params.get('task_type')
-                        msg = d.get('msg', d['name'])
-                        if 'page_kind' in msg:
-                            kind = t['context'][:2]
-                            msg = msg.replace('{page_kind}', page_kinds.get(kind, kind))
-                        if 'page_name' in msg:
-                            r = re.findall(r'^([A-Za-z0-9_]+)', t['context'])
-                            msg = msg.replace('{page_name}', r and r[0] or '')
-                        if 'task_type' in msg:
-                            msg = msg.replace('{task_type}', TaskHandler.task_names().get(task_type, task_type))
-                        if 'count' in msg:
-                            msg = msg.replace('{count}', re.findall(r'^(\d+)', t['context'])[0])
-                        if 'context' in msg:
-                            msg = msg.replace('{context}', t['context'])
-                        context = msg
-                except Exception:
-                    traceback.print_exc()
-                    context = 'err: %s, %s' % (t.get('context'), t['type'])
-                recent_trends.append(dict(time=t['create_time'][5:16], user=t.get('username'), context=context[:20]))
+            # 最新动态
+            fields = ['task_type', 'doc_id', 'status', 'picked_time', 'finished_time', 'picked_by', 'picked_user_id']
+            fields = {k: 1 for k in fields}
+            task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
+                          'text_review', 'text_hard']
+            statuses = [self.STATUS_PICKED, self.STATUS_FINISHED]
+            condition = {'task_type': {'$in': task_types}, 'status': {'$in': statuses}}
+            latest_tasks = list(self.db.task.find(condition, fields).sort('picked_time', -1).limit(10))
 
-            self.render('home.html', visit_count=1 + visit_count, last_login=last_login, get_date_time=get_date_time,
-                        recent_trends=recent_trends[:7], version=self.application.version)
+            # 本月校勘之星
+            month_begin = datetime.strptime(datetime.now().strftime('%Y-%m'), '%Y-%m')
+            condition = {'task_type': {'$in': task_types}, 'status': self.STATUS_FINISHED,
+                         'create_time': {'$gte': month_begin}}
+            month_tasks = list(self.db.task.find(condition, fields))
+            month_star = get_month_star()
+
+            self.render('home.html', version=self.application.version, get_task_info=get_task_info,
+                        time_slot=get_time_slot(), visit_count=visit_count, last_login=last_login,
+                        my_latest_tasks=my_latest_tasks[:4], my_task_count=my_task_count,
+                        unfinished_count=unfinished_count, latest_tasks=latest_tasks,
+                        month_star=month_star)
+
         except Exception as e:
             self.send_db_error(e, render=True)

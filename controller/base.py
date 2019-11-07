@@ -80,7 +80,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return
         # 检查当前用户是否可以访问本请求
         self.current_user['roles'] = user_in_db.get('roles', '')  # 检查权限前更新roles
-        self.set_secure_cookie('user', json_util.dumps(self.current_user))
+        self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
         if can_access(self.current_user['roles'], p, m):
             return
         # 报错，无权访问
@@ -253,7 +253,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         user_id = self.current_user and self.current_user.get('_id')
         logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
         try:
-            self.db.oplog.insert_one(dict(
+            self.db.log.insert_one(dict(
                 op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,
                 context=str(context), ip=self.get_ip(), create_time=datetime.now(),
             ))

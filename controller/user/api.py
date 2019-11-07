@@ -25,9 +25,6 @@ from tornado.options import options
 class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
-    # def check_xsrf_cookie(self):
-    #     pass  # 登录不检查 xsrf
-
     def post(self):
         """ 登录 """
         user = self.get_request_data()
@@ -84,7 +81,7 @@ class LoginApi(BaseHandler):
         user['roles'] = user.get('roles', '')
         user['login_md5'] = hlp.gen_id(user['roles'])
         self.current_user = user
-        self.set_secure_cookie('user', json_util.dumps(user))
+        self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
         self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
@@ -144,7 +141,7 @@ class RegisterApi(BaseHandler):
                             username=user['name'])
             user['login_md5'] = hlp.gen_id(user['roles'])
             self.current_user = user
-            self.set_secure_cookie('user', json_util.dumps(user))
+            self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
             logging.info('register id=%s, name=%s, email=%s' % (user['_id'], user['name'], user.get('email')))
             self.send_data_response(user)
 
@@ -396,7 +393,7 @@ class ChangeMyProfileApi(BaseHandler):
             if not r.modified_count:
                 return self.send_error_response(errors.not_changed)
 
-            self.set_secure_cookie('user', json_util.dumps(self.current_user))
+            self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
             self.add_op_log('change_my_profile')
             logging.info('change profile %s' % (user.get('name')))
             self.send_data_response()
@@ -419,7 +416,6 @@ class UploadUserAvatarApi(BaseHandler):
                 f.write(upload_img[0]['body'])
             self.db.user.update_one(dict(_id=self.current_user['_id']), {'$set': dict(img=img)})
             self.current_user['img'] = img
-            self.set_secure_cookie('user', json_util.dumps(self.current_user))
             self.send_data_response()
 
         except DbError as e:

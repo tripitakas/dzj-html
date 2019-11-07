@@ -116,17 +116,17 @@ class TaskLobbyHandler(TaskHandler):
 class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
-    def get_my_tasks_by_type(self, task_type, q=None, order=None, page_size=0, page_no=1):
+    @staticmethod
+    def get_my_tasks_by_type(self, task_type=None, q=None, order=None, page_size=0, page_no=1):
         """获取我的任务/任务列表"""
-        if task_type not in self.all_task_types():
+        if task_type and task_type not in self.all_task_types():
             return [], 0
 
-        task_meta = self.all_task_types()[task_type]
-        condition = {
-            'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type,
-            'picked_user_id': self.current_user['_id'],
-            'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]}
-        }
+        condition = {'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]},
+                     'picked_user_id': self.current_user['_id']}
+        if task_type:
+            task_meta = self.all_task_types()[task_type]
+            condition.update({'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type})
         if q:
             condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
         total_count = self.db.task.count_documents(condition)
@@ -147,7 +147,7 @@ class MyTaskHandler(TaskHandler):
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             tasks, total_count = self.get_my_tasks_by_type(
-                task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
+                self, task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
             )
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
