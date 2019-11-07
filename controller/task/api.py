@@ -451,6 +451,9 @@ class InitTasksForTestApi(TaskHandler):
                         publish_user_id=self.current_user['_id'],
                         publish_by=self.current_user['name'])
 
+            # 清空数据处理任务
+            self.db.task.delete_many({'task_type': {'$in': ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']}})
+
             # 创建导入图片任务
             for import_dir in data['import_dirs']:
                 task = meta.copy()

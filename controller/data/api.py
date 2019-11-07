@@ -86,7 +86,7 @@ class DataDeleteApi(BaseHandler):
             self.send_db_error(error)
 
 
-class PickDataTasksApi(TaskHandler):
+class FetchDataTasksApi(TaskHandler):
     URL = '/api/task/fetch_many/@data_task'
 
     def post(self, data_task):
@@ -104,7 +104,7 @@ class PickDataTasksApi(TaskHandler):
                         logging.warning('page %s not found' % t['doc_id'])
 
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
-                         input=t.get('input')) for t in tasks if t.get('input')]
+                         input=t.get('input')) for t in tasks]
 
         try:
             data = self.get_request_data()
@@ -120,14 +120,15 @@ class PickDataTasksApi(TaskHandler):
                           picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': update})
-            if r.modified_count:
-                self.send_data_response(dict(tasks=get_tasks()))
+            if r.matched_count:
+                _tasks = get_tasks()
+                self.send_data_response(dict(tasks=_tasks))
 
         except DbError as err:
             return self.send_db_error(err)
 
 
-class ConfirmPickDataTasksApi(TaskHandler):
+class ConfirmFetchDataTasksApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@data_task'
 
     def post(self, data_task):
