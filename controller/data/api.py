@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from datetime import datetime
+import logging
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
 import controller.validate as v
@@ -98,10 +99,12 @@ class PickDataTasksApi(TaskHandler):
                 pages = {p['name']: dict(blocks=p.get('blocks'), columns=p.get('columns'), chars=p.get('chars'))
                          for p in pages}
                 for t in tasks:
-                    t['input'] = pages[t['doc_id']]
+                    t['input'] = pages.get(t['doc_id'])
+                    if not t['input']:
+                        logging.warning('page %s not found' % t['doc_id'])
 
             return [dict(task_id=str(t['_id']), priority=t.get('priority'), page_name=t.get('doc_id'),
-                         input=t.get('input')) for t in tasks]
+                         input=t.get('input')) for t in tasks if t.get('input')]
 
         try:
             data = self.get_request_data()

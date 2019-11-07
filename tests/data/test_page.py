@@ -17,7 +17,7 @@ class TestPageApi(APITestCase):
     def tearDown(self):
         super(TestPageApi, self).tearDown()
 
-    def test_api_page__upload(self):
+    def test_api_page_upload(self):
         # 测试上传页面json文件
         filename = path.join(self._app.BASE_DIR, 'meta', 'meta', 'pages.json')
         if not path.exists(filename):

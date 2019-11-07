@@ -18,8 +18,8 @@ class TestReelApi(APITestCase):
 
     def test_api_reel__upload(self):
         # 测试上传卷csv文件
-        META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
-        files = glob(path.join(META_DIR, 'Reel-*.csv'))
+        meta_dir = path.join(self._app.BASE_DIR, 'meta', 'meta')
+        files = glob(path.join(meta_dir, 'Reel-*.csv'))
         if files:
             file = files[0]
             for f in files:
