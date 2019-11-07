@@ -143,10 +143,10 @@ class ConfirmFetchDataTasksApi(TaskHandler):
 
             task_ids = [ObjectId(t['task_id']) for t in data['tasks']]
             if task_ids:
-                self.db.task.update_many({'_id': {'$in': task_ids}},
-                                         {'$set': {'status': self.STATUS_PICKED}})
+                self.db.task.update_many({'_id': {'$in': task_ids}}, {'$set': {'status': self.STATUS_PICKED}})
                 self.send_data_response()
-            self.send_error_response(errors.no_object)
+            else:
+                self.send_error_response(errors.no_object)
 
         except DbError as err:
             return self.send_db_error(err)
