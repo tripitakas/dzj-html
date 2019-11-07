@@ -69,7 +69,7 @@ def export_reel(tripitaka):
         sys.stdout.write('%s records exported\n' % len(rows))
 
 
-def main(db_name='tripitaka_test', uri='localhost'):
+def main(db_name='tripitaka', uri='localhost'):
     global db
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]

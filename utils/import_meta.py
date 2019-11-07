@@ -19,7 +19,7 @@ def import_meta(db, collection, csv_file):
         collection_class.save_many(db, collection, file_stream=fn)
 
 
-def main(db_name='tripitaka_test', uri='localhost', collections='tripitaka,sutra,reel,volume',
+def main(db_name='tripitaka', uri='localhost', collections='tripitaka,sutra,reel,volume',
          which='', reset=False):
     """ 导入基础数据
     :param collections, 导入哪些数据集合，多个时用逗号分隔，如'tripitaka,sutra,reel,volume'

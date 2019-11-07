@@ -133,7 +133,7 @@ def copy_img_files(src_path, pages):
                 shutil.copy(filename, dst_file)
 
 
-def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka_test', uri='localhost',
+def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
          reset=False, use_local_img=False):
     """
     页面导入的主函数
