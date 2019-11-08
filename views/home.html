@@ -86,12 +86,15 @@
                 </div>
               </div>
               <div class="bottom clearfix">
-                <div class="item">
+                <div class="item star">
                   <p style="padding-top: 12px"><img src="{{ static_url('imgs/star.png') }}"></p>
                   <p class="tit" style="margin-top: 6px"><img src="{{ static_url('imgs/star-title.png') }}" alt=""></p>
                   <ul>
                     {% for k, v in month_star.items() %}
-                    <li><span>{{v[0]}}</span> 本月完成了 {{k}} {{v[1]}}页</li>
+                    <li>
+                      <span class="name">{{v[0]}}</span>
+                      <span class="task-info">本月 完成了 {{k}} {{v[1]}}页</span>
+                    </li>
                     {% end %}
                   </ul>
                 </div>
@@ -102,7 +105,7 @@
                     {% for t in latest_tasks %}
                     <li>
                       <span class="time">{{to_date_str(t['picked_time'])}}</span>
-                      <span>{{get_task_info(t)}}</span>
+                      <span class="task-info">{{get_task_info(t)}}</span>
                     </li>
                     {% end %}
                   </ul>

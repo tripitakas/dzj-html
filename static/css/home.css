@@ -200,14 +200,14 @@
     text-align: center;
 }
 
-.home .bottom .item:first-child ul li span:before {
+.home .item.star .name:before {
     position: absolute;
     content: '';
     width: 16px;
     height: 18px;
     background: url(../imgs/medal.png) no-repeat;
     left: -20px;
-    top: 3px;
+    top: 1px;
 }
 
 .home .bottom .item:first-child ul li span {
@@ -241,6 +241,16 @@
     line-height: 30px;
 }
 
-.home .time {
+.home .time, .home .name {
     font-size: 1em;
+}
+
+.home .task-info {
+    text-align: right;
+    display: inline-block;
+    min-width: 225px;
+}
+
+.home .star .task-info {
+    min-width: 150px;
 }
