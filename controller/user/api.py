@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import objectid, json_util
 from controller import errors
 from controller.base import BaseHandler, DbError
@@ -38,14 +38,14 @@ class LoginApi(BaseHandler):
             # 检查是否多次登录失败
             login_fail = {
                 'type': 'login-fail',
-                'create_time': {'$gt': hlp.get_date_time(diff_seconds=-1800)},
+                'create_time': {'$gt': datetime.now() + timedelta(seconds=-1800)},
                 'context': user.get('phone_or_email')
             }
             times = self.db.log.count_documents(login_fail)
             if times >= 20:
                 return self.send_error_response(errors.unauthorized, message='登录失败，请半小时后重试，或者申请重置密码')
 
-            login_fail['create_time']['$gt'] = hlp.get_date_time(diff_seconds=-60)
+            login_fail['create_time']['$gt'] = datetime.now() + timedelta(seconds=-60)
             times = self.db.log.count_documents(login_fail)
             if times >= 5:
                 return self.send_error_response(errors.unauthorized, message='登录失败，请一分钟后重试')
@@ -134,7 +134,7 @@ class RegisterApi(BaseHandler):
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
                 gender=user.get('gender'), roles=user['roles'], img=user.get('img'),
                 password=hlp.gen_id(user['password']),
-                create_time=hlp.get_date_time()
+                create_time=datetime.now()
             ))
             user['_id'] = r.inserted_id
             self.add_op_log('register', context='%s, %s, %s' % (user.get('email'), user.get('phone'), user['name']),
@@ -295,7 +295,7 @@ class ResetUserPasswordApi(BaseHandler):
     def remove_login_fails(self, context):
         self.db.log.delete_many({
             'type': 'login_fail',
-            'create_time': {'$gt': hlp.get_date_time(diff_seconds=-3600)},
+            'create_time': {'$gt': datetime.now() + timedelta(seconds=-3600)},
             'context': context
         })
 
