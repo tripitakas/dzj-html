@@ -40,7 +40,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
-        self.db = self.application.db
+        self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
         self.config = self.application.config
         self.more = {}  # 给子类记录使用
 
