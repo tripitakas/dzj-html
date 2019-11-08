@@ -24,7 +24,6 @@ from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
 
-
 from controller import errors as e
 from controller.auth import get_route_roles, can_access
 from controller.helper import get_date_time
@@ -115,7 +114,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
-        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
+        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t)
         if self._finished:  # check_auth 等处报错返回后就不再渲染
             return
 

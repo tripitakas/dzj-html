@@ -10,14 +10,16 @@ import random
 import logging
 import inspect
 from hashids import Hashids
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
-def get_date_time(fmt=None, diff_seconds=None):
-    time = datetime.now()
+def get_date_time(fmt=None, date_time=None, diff_seconds=None):
+    time = date_time if date_time else datetime.now()
     if diff_seconds:
         time += timedelta(seconds=diff_seconds)
-    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
+
+    time_zone = timezone(timedelta(hours=8))
+    return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
 def gen_id(value, salt='', rand=False, length=16):

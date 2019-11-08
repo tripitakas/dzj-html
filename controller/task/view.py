@@ -9,6 +9,7 @@ import random
 from datetime import datetime
 from controller import errors
 from controller.task.base import TaskHandler
+from controller.helper import get_date_time
 
 
 class TaskAdminHandler(TaskHandler):
@@ -165,7 +166,7 @@ class PageTaskInfoHandler(TaskHandler):
         def format_info(key, value):
             """ 格式化任务信息"""
             if isinstance(value, datetime):
-                value = value.strftime('%Y-%m-%d %H:%M')
+                value = get_date_time('%Y-%m-%d %H:%M', value)
             elif key == 'task_type':
                 value = self.get_task_name(value)
             elif key == 'status':

@@ -7,10 +7,11 @@
 
 import re
 import traceback
+from datetime import datetime
 from operator import itemgetter
 from controller.task.base import TaskHandler
 from controller.task.view import MyTaskHandler
-from datetime import datetime, timedelta, timezone
+from controller.helper import get_date_time
 
 
 class HomeHandler(TaskHandler):
@@ -37,7 +38,7 @@ class HomeHandler(TaskHandler):
 
         def get_time_slot():
             """ 当前时段 """
-            hour = datetime.now().strftime('%H')
+            hour = get_date_time('%H')
             time_map = [[0, '凌晨'], [5, '早上'], [8, '上午'], [11, '中午'], [13, '下午'], [19, '晚上']]
             for i, t in enumerate(time_map):
                 if t[0] < int(hour):
@@ -53,7 +54,7 @@ class HomeHandler(TaskHandler):
         try:
             # 今日访问次数
             user_id = self.current_user['_id']
-            today_begin = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
+            today_begin = datetime.strptime(get_date_time('%Y-%m-%d'), '%Y-%m-%d')
             visit_count = self.db.log.count_documents({
                 'create_time': {'$gte': today_begin},
                 'user_id': user_id, 'op_type': 'visit'
@@ -64,8 +65,7 @@ class HomeHandler(TaskHandler):
                 {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
                 {'create_time': 1}
             ).sort('create_time', -1).limit(2))
-            time_zone = timezone(timedelta(hours=8))
-            last_login = r and r[0]['create_time'].astimezone(time_zone).strftime('%Y-%m-%d %H:%M:%S')
+            last_login = r and get_date_time(date_time=r[0]['create_time'])
 
             # 已完成任务
             my_latest_tasks, my_task_count = MyTaskHandler.get_my_tasks_by_type(
@@ -82,7 +82,7 @@ class HomeHandler(TaskHandler):
             latest_tasks = list(self.db.task.find(condition, fields).sort('picked_time', -1).limit(10))
 
             # 本月校勘之星
-            month_begin = datetime.strptime(datetime.now().strftime('%Y-%m'), '%Y-%m')
+            month_begin = datetime.strptime(get_date_time('%Y-%m'), '%Y-%m')
             condition = {'task_type': {'$in': task_types}, 'status': self.STATUS_FINISHED,
                          'finished_time': {'$gte': month_begin}}
             month_tasks = list(self.db.task.find(condition, fields))
