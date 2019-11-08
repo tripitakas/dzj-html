@@ -245,12 +245,12 @@
     font-size: 1em;
 }
 
-.home .task-info {
+.home .item .doc-id {
     text-align: right;
     display: inline-block;
-    min-width: 250px;
+    min-width: 85px;
 }
 
-.home .star .task-info {
-    min-width: 150px;
+.home .item .task-info {
+    margin-left: 5px;
 }

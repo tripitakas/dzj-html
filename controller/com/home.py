@@ -48,8 +48,8 @@ class HomeHandler(TaskHandler):
             return time_map[-1][1]
 
         def get_task_info(t):
-            return '%s %s %s %s' % (t['picked_by'], '领取了' if t['status'] == 'picked' else '完成了',
-                                    self.get_task_name(t['task_type']), t['doc_id'])
+            return '%s %s %s' % (t['picked_by'], '领取了' if t['status'] == 'picked' else '完成了',
+                                 self.get_task_name(t['task_type']))
 
         try:
             # 今日访问次数
