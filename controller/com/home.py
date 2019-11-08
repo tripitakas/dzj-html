@@ -84,7 +84,7 @@ class HomeHandler(TaskHandler):
             # 本月校勘之星
             month_begin = datetime.strptime(datetime.now().strftime('%Y-%m'), '%Y-%m')
             condition = {'task_type': {'$in': task_types}, 'status': self.STATUS_FINISHED,
-                         'create_time': {'$gte': month_begin}}
+                         'finished_time': {'$gte': month_begin}}
             month_tasks = list(self.db.task.find(condition, fields))
             month_star = get_month_star()
 
