@@ -7,10 +7,10 @@
 
 import re
 import traceback
-from datetime import datetime
 from operator import itemgetter
 from controller.task.base import TaskHandler
 from controller.task.view import MyTaskHandler
+from datetime import datetime, timedelta, timezone
 
 
 class HomeHandler(TaskHandler):
@@ -64,7 +64,8 @@ class HomeHandler(TaskHandler):
                 {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
                 {'create_time': 1}
             ).sort('create_time', -1).limit(2))
-            last_login = r and r[0]['create_time'].strftime('%Y-%m-%d %H:%M:%S')
+            time_zone = timezone(timedelta(hours=8))
+            last_login = r and r[0]['create_time'].astimezone(time_zone).strftime('%Y-%m-%d %H:%M:%S')
 
             # 已完成任务
             my_latest_tasks, my_task_count = MyTaskHandler.get_my_tasks_by_type(
