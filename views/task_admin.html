@@ -96,8 +96,16 @@
                         </span>
                       </th>
                       <th><span>领取人</span></th>
-                      <th><span>领取时间</span></th>
-                      <th><span>完成时间</span></th>
+                      <th>
+                        <span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+                          领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+                        </span>
+                      </th>
+                      <th>
+                        <span id="finished_time" class="sort {{'active' if order in ['-finished_time', 'finished_time'] else ''}}">
+                          完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
+                        </span>
+                      </th>
                       <th><span>操作</span></th>
                     </tr>
                     </thead>
@@ -107,7 +115,7 @@
                       <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
                       <td><a class="doc-name" href="/task/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
-                      <td class="{{t['status']}}" title="{{t.get('message')}}">{{Th.get_status_name(t['status']) or ''}}</td>
+                      <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{Th.get_status_name(t['status']) or ''}}</td>
                       <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
                       <td>{{'/'.join([Th.step_names().get(s) for s in Th.prop(t, 'steps.todo') or []])}}</td>
                       <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
@@ -116,8 +124,12 @@
                       <td>{{to_date_str(t.get('picked_time'))}}</td>
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
+                        {% if t['task_type'] in ['upload_cloud', 'ocr_box', 'ocr_text'] %}
+                        <a class="info" href="/task/info/{{t['_id']}}">详情</a>
+                        {% else %}
                         <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        <a class="republish{{'' if t['status'] == 'picked' else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
+                        {% end %}
+                        <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
                       </td>
                     </tr>
                     {% end %}
@@ -299,7 +311,7 @@
   // 重新发布任务
   function republish(taskId, docId) {
     var info = {
-      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被重新发布！",
+      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被撤回并重新发布！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
       confirmButtonText: "确定", cancelButtonText: "取消"
     };

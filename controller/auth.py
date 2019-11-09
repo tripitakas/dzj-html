@@ -158,6 +158,7 @@ role_route_maps = {
         'routes': {
             '/api/task/publish': ['POST'],
             '/task/page/@page_name': ['GET'],
+            '/task/info/@task_id': ['GET'],
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/user/@task_type': ['POST'],

@@ -114,7 +114,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
-        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t)
+        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         if self._finished:  # check_auth 等处报错返回后就不再渲染
             return
 
