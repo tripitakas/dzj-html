@@ -65,7 +65,7 @@
             <div class="tasks"></div>
             <div class="task">
               {% for k in display_fields %}
-              {% if task.get(k) %}
+              {% if task.get(k) not in [None, '', {}, []] %}
               <div class="info {{k}}">
                 <label class="info-label">{{Th.get_field_name(k)}}</label>
                 <span class="info-value">{% raw format_info(k, task[k]) %}</span>

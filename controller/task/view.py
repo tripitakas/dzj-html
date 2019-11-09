@@ -4,7 +4,6 @@
 @desc: 任务管理
 @time: 2018/12/26
 """
-import math
 import random
 from controller import errors
 from bson.objectid import ObjectId
