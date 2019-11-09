@@ -262,15 +262,16 @@ class RepublishTaskApi(TaskHandler):
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
                 self.send_error_response(e.no_object, message='没有找到该任务')
-            if task.get('status') != self.STATUS_PICKED:
-                self.send_error_response(e.task_not_picked, message='只能重新发布进行中的任务')
+            if task.get('status') not in [self.STATUS_PICKED, self.STATUS_FAILED]:
+                self.send_error_response(e.republish_only_picked_or_failed, message='只能重新发布进行中或失败的任务')
 
             # 重新发布
             pre_tasks = task.get('pre_tasks') or {}
             for t in pre_tasks:
                 pre_tasks[t] = ''
-            update = {'status': self.STATUS_OPENED, 'steps.submitted': None, 'pre_tasks': pre_tasks,
-                      'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}}
+            update = {'status': self.STATUS_OPENED, 'pre_tasks': pre_tasks, 'steps.submitted': None,
+                      'picked_user_id': None, 'picked_by': None, 'picked_time': None,
+                      'input.redo': True, 'result': {}}
             r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             if r.matched_count:
                 self.add_op_log('republish', target_id=task['_id'], context=task['task_type'])
