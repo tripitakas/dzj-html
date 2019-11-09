@@ -13,7 +13,7 @@
 | save_update_{task_type} | 页名         |            |
 | save_edit_{task_type} | 页名           |            |
 | sel_cmp_{task_type} | 页名             |            |
-| retrieve_{task_type}| 页名             |            |
+| republish_{task_type}| 页名             |            |
 | reset_{task_type}   | 页名             |            |
 | auto_unlock         | 页名,时间,姓名,task_type |     |
 | login_no_user       | phone_or_email  |            |

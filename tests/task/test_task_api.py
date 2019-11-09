@@ -241,8 +241,8 @@ class TestTaskApi(APITestCase):
                 cur_task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': docs_ready[0]})
                 self.assertEqual('opened', cur_task['status'])
 
-    def test_retrieve_tasks(self):
-        """ 测试管理员撤回进行中的任务 """
+    def test_republish_tasks(self):
+        """ 测试管理员重新发布进行中的任务 """
         task_types = Th.get_page_tasks()
         # task_types = ['cut_proof']
         for task_type in task_types:
@@ -256,14 +256,14 @@ class TestTaskApi(APITestCase):
             self.login(u.expert1[0], u.expert1[1])
             d = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}}))
             self.assertIn('task_id', d, msg=task_type)
-            # 管理员撤回进行中任务
+            # 管理员重新发布进行中任务
             self.login_as_admin()
-            r = self.fetch('/api/task/retrieve/%s' % task_type, body={'data': {'task_ids': [task['_id']]}})
-            self.assertEqual(1, self.parse_response(r).get('count'), msg=task_type)
-            # 管理员不能撤回已发布的任务
+            r = self.fetch('/api/task/republish/%s' % task['_id'], body={'data': {}})
+            self.assert_code(200, r, msg=task_type)
+            # 管理员不能重新发布已发布的任务
             task2 = self._app.db.task.find_one({'task_type': task_type, 'doc_id': 'QL_25_313'})
-            r = self.fetch('/api/task/retrieve/%s' % task_type, body={'data': {'task_ids': [task2['_id']]}})
-            self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)
+            r = self.fetch('/api/task/republish/%s' % task2['_id'], body={'data': {}})
+            self.assert_code(errors.task_not_picked[0], r, msg=task_type)
 
     def test_delete_tasks(self):
         """ 测试管理员删除已发布或悬挂的任务 """

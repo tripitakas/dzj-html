@@ -5,6 +5,7 @@
 """
 import tests.users as u
 import controller.errors as e
+from controller.helper import prop
 from tests.testcase import APITestCase
 
 
@@ -17,7 +18,7 @@ class TestUserProductApi(APITestCase):
         super(TestUserProductApi, self).setUp()
 
     def test_api_send_email_code(self):
-        account = self._app.config.get('email', {}).get('account')
+        account = prop(self._app.config, 'email.account')
         if account and '待配置' not in account:
             email = 'lqs.xiandu@qq.com'
             d = self._app.db.user.delete_one(dict(email=email))
@@ -39,7 +40,7 @@ class TestUserProductApi(APITestCase):
                 self.assert_code(200, r)
 
     def test_api_send_phone_code(self):
-        account = self._app.config.get('phone', {}).get('accessKey')
+        account = prop(self._app.config, 'phone.accessKey')
         if account and '待配置' not in account:
             phone = '13810916830'
             d = self._app.db.user.delete_one(dict(phone=phone))

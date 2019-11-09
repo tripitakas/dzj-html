@@ -6,7 +6,6 @@
 import re
 from os import path
 from datetime import datetime
-from bson.objectid import ObjectId
 from controller import errors
 import controller.errors as e
 import controller.helper as hlp
@@ -16,6 +15,7 @@ from controller.task.base import TaskHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
 from .view import TaskLobbyHandler as Lobby
+from bson.objectid import ObjectId
 
 
 class GetReadyTasksApi(TaskHandler):
@@ -168,7 +168,7 @@ class PickTaskApi(TaskHandler):
             if not task:
                 return self.send_error_response(e.no_object)
             if task['status'] != self.STATUS_OPENED:
-                return self.send_error_response(e.task_un_published)
+                return self.send_error_response(e.task_not_published)
 
             # 如果任务有共享数据，则检查对应的数据是否被锁定
             shared_field = self.get_shared_field(task_type)
@@ -236,7 +236,7 @@ class ReturnTaskApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
             # 退回任务
             update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(),
-                      'returned_reason': self.get_request_data().get('reason')}
+                      'message': self.get_request_data().get('reason')}
             r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             if r.matched_count:
                 self.add_op_log('return_' + task_type, context=task_id, target_id=task['_id'])
@@ -252,35 +252,35 @@ class ReturnTaskApi(TaskHandler):
             return self.send_db_error(err)
 
 
-class RetrieveTaskApi(TaskHandler):
-    URL = '/api/task/retrieve/@task_type'
+class RepublishTaskApi(TaskHandler):
+    URL = '/api/task/republish/@task_id'
 
-    def post(self, task_type):
-        """ 管理员撤回进行中的任务 """
-        assert task_type in self.task_types
+    def post(self, task_id):
+        """ 管理员重新发布进行中的任务 """
         try:
-            data = self.get_request_data()
-            rules = [(v.not_empty, 'task_ids')]
-            err = v.validate(data, rules)
-            if err:
-                return self.send_error_response(err)
+            # 检查参数
+            task = self.db.task.find_one({'_id': ObjectId(task_id)})
+            if not task:
+                self.send_error_response(e.no_object, message='没有找到该任务')
+            if task.get('status') != self.STATUS_PICKED:
+                self.send_error_response(e.task_not_picked, message='只能重新发布进行中的任务')
 
-            # 撤回进行中的任务
-            ret = {'count': 0}
-            task_ids = [ObjectId(t) for t in data['task_ids']]
-            update = {'status': self.STATUS_RETRIEVED, 'updated_time': datetime.now()}
-            r = self.db.task.update_many({'_id': {'$in': task_ids}, 'status': self.STATUS_PICKED}, {'$set': update})
+            # 重新发布
+            pre_tasks = task.get('pre_tasks') or {}
+            for t in pre_tasks:
+                pre_tasks[t] = ''
+            update = {'status': self.STATUS_OPENED, 'steps.submitted': None, 'pre_tasks': pre_tasks,
+                      'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}}
+            r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             if r.matched_count:
-                ret['count'] = r.matched_count
-                self.add_op_log('retrieve_' + task_type, context=data['task_ids'])
+                self.add_op_log('republish', target_id=task['_id'], context=task['task_type'])
 
             # 释放数据锁（领取任务时分配的长时数据锁）
-            tasks = self.db.task.find({'_id': {'$in': task_ids}})
-            shared_field = self.get_shared_field(task_type)
+            shared_field = self.get_shared_field(task['task_type'])
             if shared_field:
-                self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
+                self.release_task_lock(self.db, [task['doc_id']], shared_field)
 
-            return self.send_data_response(ret)
+            return self.send_data_response()
 
         except DbError as err:
             return self.send_db_error(err)
@@ -290,7 +290,7 @@ class DeleteTasksApi(TaskHandler):
     URL = '/api/task/delete/@task_type'
 
     def post(self, task_type):
-        """ 删除已发布或悬挂的任务 """
+        """ 删除已发布未领取或等待前置任务的任务 """
         assert task_type in self.task_types
         try:
             data = self.get_request_data()
@@ -312,7 +312,7 @@ class DeleteTasksApi(TaskHandler):
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
             shared_field = self.get_shared_field(task_type)
             if shared_field:
-                self.release_task_lock([t['doc_id'] for t in tasks], shared_field)
+                self.release_task_lock(self.db, [t['doc_id'] for t in tasks], shared_field)
 
             return self.send_data_response(ret)
 
