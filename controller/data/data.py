@@ -241,7 +241,7 @@ class Page(Data):
 
     @classmethod
     def metadata(cls):
-        return dict(name='', width='', height='', img_path='', img_cloud_path='',
+        return dict(name='', width='', height='', img_type='', img_path='', img_cloud_path='',
                     uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
                     lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                     ocr='', text='', txt_html='')
@@ -259,11 +259,12 @@ class Page(Data):
         pages = []
         for page_name in new_names:
             page = cls.metadata()
-            page['name'] = page_name
+            s = page_name.split('.')
+            page['name'] = s[0]
+            page['img_type'] = s[1] if len(s) > 1 else ''
             pages.append(page)
         if pages:
             r = db.page.insert_many(pages)
-        message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (
-            len(page_names), len(pages), len(existed_pages))
+        message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (len(page_names), len(pages), len(existed_pages))
         print(message)
         return dict(status='success', message=message, inserted_ids=r.inserted_ids if pages else [])
