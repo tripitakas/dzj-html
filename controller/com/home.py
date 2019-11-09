@@ -89,7 +89,7 @@ class HomeHandler(TaskHandler):
             month_star = get_month_star()
 
             self.render('home.html', version=self.application.version, get_task_info=get_task_info,
-                        time_slot=get_time_slot(), visit_count=visit_count, last_login=last_login,
+                        time_slot=get_time_slot(), visit_count=visit_count + 1, last_login=last_login,
                         my_latest_tasks=my_latest_tasks[:4], my_task_count=my_task_count,
                         unfinished_count=unfinished_count, latest_tasks=latest_tasks,
                         month_star=month_star)
