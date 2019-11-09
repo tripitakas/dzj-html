@@ -161,7 +161,8 @@ role_route_maps = {
             '/task/admin/@task_type': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/user/@task_type': ['POST'],
-            '/api/task/(assign|retrieve|delete)/@task_type': ['POST'],
+            '/api/task/republish/@task_id': ['POST'],
+            '/api/task/(assign|delete)/@task_type': ['POST'],
         }
     },
     '数据处理员': {
@@ -169,6 +170,9 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/api/task/init_for_test': ['POST'],
+            '/task/(lobby|my)/@data_task': ['GET'],
+            '/api/task/pick/@data_task': ['POST'],
+            '/api/task/return/@data_task/@task_id': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],
             '/api/task/submit/@data_task': ['POST'],
             '/api/data/@collection/upload': ['POST'],

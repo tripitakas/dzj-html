@@ -115,8 +115,8 @@ class FetchDataTasksApi(TaskHandler):
             if not tasks:
                 self.send_error_response(errors.no_task_to_pick)
 
-            # 批量指派任务
-            update = dict(status=self.STATUS_ASSIGNED, picked_time=datetime.now(), updated_time=datetime.now(),
+            # 批量获取任务
+            update = dict(status=self.STATUS_FETCHED, picked_time=datetime.now(), updated_time=datetime.now(),
                           picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': update})

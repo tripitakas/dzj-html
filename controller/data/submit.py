@@ -36,7 +36,7 @@ class SubmitDataTaskApi(TaskHandler):
             _page = self.db.page.find_one({'name': page_name})
             if not _page:
                 return errors.no_object
-            # oct_text任务不允许修改切分信息
+            # ocr_text任务不允许修改切分信息
             if task['task_type'] == 'ocr_text' and is_box_changed(page, _page):
                 return errors.box_not_identical
 
@@ -48,7 +48,7 @@ class SubmitDataTaskApi(TaskHandler):
                                height=page.get('height') or _page.get('height'))
             self.db.page.update_one({'name': page.get('name')}, {'$set': page_update})
         else:
-            task_update = {'status': self.STATUS_RETURNED, 'updated_time': now, 'returned_reason': task.get('message')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
@@ -64,7 +64,7 @@ class SubmitDataTaskApi(TaskHandler):
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
         else:
-            task_update = {'status': self.STATUS_RETURNED, 'updated_time': now, 'returned_reason': task.get('message')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
@@ -75,6 +75,6 @@ class SubmitDataTaskApi(TaskHandler):
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         else:
-            task_update = {'status': self.STATUS_RETURNED, 'updated_time': now, 'result': task.get('result')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
