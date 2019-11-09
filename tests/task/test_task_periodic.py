@@ -20,7 +20,7 @@ class TestPeriodicTask(APITestCase):
     def get_data_lock(self, task_type, page_name):
         page = self._app.db.page.find_one({'name': page_name})
         shared_field = Th.get_shared_field(task_type)
-        return page and page.get('lock') and page.get('lock').get(shared_field)
+        return Th.prop(page, 'lock.%s' % shared_field)
 
     def test_do_task_release(self):
         self.login_as_admin()
@@ -38,7 +38,6 @@ class TestPeriodicTask(APITestCase):
         self.assertEqual(lock.get('locked_by'), u.expert1[2])
 
         # 自动回收任务
-        periodic_task(self._app, dict(at_once=True, minutes=1))
-        self.assertTrue(self.get_data_lock(task_type, page_name))
-        periodic_task(self._app, dict(at_once=True, minutes=0))
-        # self.assertFalse(self.get_data_lock(task_type, page_name))
+        periodic_task(self._app.db, timeout_days=0)
+        r = self.get_data_lock(task_type, page_name)
+        self.assertTrue(r == {})

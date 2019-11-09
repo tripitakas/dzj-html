@@ -60,7 +60,7 @@ class TestDataLock(APITestCase):
             r = self.fetch('/api/task/finish/%s/%s' % (task_type, task1['_id']), body={'data': {}})
             self.assert_code(200, r, msg=task_type)
             lock = self.get_data_lock(docs_ready[0], task_type=task_type)
-            self.assertEqual(lock, {})
+            self.assertTrue(lock == {})
 
             # 测试专家获得临时数据锁
             self.login(u.expert2[0], u.expert2[1])
@@ -93,6 +93,6 @@ class TestDataLock(APITestCase):
 
             # 测试退回任务后，释放长时数据锁
             r = self.fetch('/api/task/return/%s/%s' % (task_type, task2['_id']), body={'data': {}})
-            self.assert_code(200, r)
+            self.assert_code(200, r, msg=task_type)
             lock = self.get_data_lock(docs_ready[1], task_type=task_type)
-            self.assertEqual(lock, {})
+            self.assertTrue(lock == {})
