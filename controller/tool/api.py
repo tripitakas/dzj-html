@@ -5,19 +5,18 @@
 """
 import re
 import json
+import logging
 import subprocess
+from PIL import Image
 from .esearch import find
+from os import path, remove
+from controller import helper
+from urllib.parse import urlencode
+from controller.helper import prop
+from controller import errors as e
 from tornado.escape import to_basestring
 from controller.text.variant import normalize
 from controller.base import BaseHandler, DbError
-from controller import errors as e
-from urllib.parse import urlencode
-from controller import helper
-from os import path, remove
-from PIL import Image
-import logging
-
-
 
 try:
     import punctuation
@@ -143,7 +142,7 @@ class RecognitionApi(BaseHandler):
 
         # 将图片内容转发到OCR服务，OCR结果将以JSON内容返回
         logging.info('recognize %s...' % filename)
-        url = '%s?%s' % (self.config['ocr_api'], urlencode(data))
+        url = '%s?%s' % (prop(self.config, 'ocr.api'), urlencode(data))
         self.call_back_api(
             url, connect_timeout=5, request_timeout=20, body=img[0]['body'], method='POST',
             handle_error=lambda t: self.send_error_response(e.ocr_err, message=e.ocr_err[1] % (t or '无法访问')),

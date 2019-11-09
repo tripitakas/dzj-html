@@ -8,14 +8,13 @@
 import re
 import math
 from tornado.web import UIModule
+from controller.helper import prop
 
 
 class CommonLeft(UIModule):
     def render(self, title='', sub=''):
         def is_enabled(module):
-            if 'disable_modules' in self.handler.config and self.handler.config['disable_modules']:
-                return module not in self.handler.config['disable_modules']
-            return True
+            return module not in prop(self.handler.config, 'modules.disabled', '')
 
         can_access = self.handler.can_access
 

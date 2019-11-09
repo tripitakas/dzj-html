@@ -66,16 +66,16 @@ class UserRolesHandler(BaseHandler):
             cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             logging.info('%d users' % len(users))
-            init_roles = self.config.get('user', {}).get('init_roles', '')
-            disable_roles = self.config.get('user', {}).get('disable_roles') or ''
+            init_roles = self.config.get('role', {}).get('init', '')
+            disabled_roles = self.config.get('role', {}).get('disabled') or ''
 
-            roles = [r for r in auth.get_assignable_roles() if r not in disable_roles]
+            roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
         except Exception as e:
             return self.send_db_error(e, render=True)
 
         pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
         self.render('user_role.html', users=users, roles=roles, pager=pager, init_roles=init_roles,
-                    disable_roles=disable_roles)
+                    disable_roles=disabled_roles)
 
 
 class UserStatisticHandler(BaseHandler):

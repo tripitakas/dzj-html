@@ -4,26 +4,26 @@
 @desc: 藏经OCR接口
 @time: 2019/9/2
 """
-from urllib.parse import urlencode
-from controller.base import BaseHandler
-from controller import errors as e
+import re
+import csv
+import json
+import logging
+import hashlib
+from glob2 import glob
+from os import path, remove
+from datetime import datetime
 import controller.validate as va
 from utils.add_pages import add_page
-from os import path, remove
-from glob2 import glob
-import logging
-import re
-import json
+from urllib.parse import urlencode
+from controller.helper import prop
+from controller import errors as e
+from controller.base import BaseHandler
 from controller.tool.ocr import ocr2page
+from controller.data.data import Reel, Volume, Sutra
 
 from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
-import hashlib
-
-import csv
-from datetime import datetime
-from controller.data.data import Reel, Volume, Sutra
 
 
 class SubmitRecognitionApi(BaseHandler):
@@ -162,7 +162,7 @@ class ImportMetaApi(BaseHandler):
         if err:
             return self.send_error_response(err)
 
-        url = '%s?%s' % (self.config['ocr_api'][:-3] + 'build_meta', urlencode(data))
+        url = '%s?%s' % (prop(self.config, 'ocr.api')[:-3] + 'build_meta', urlencode(data))
         self.call_back_api(
             url, handle_response=handle_response,
             handle_error=lambda t: self.send_error_response(e.ocr_import, message=e.ocr_import[1] % (t or '无法访问'))
@@ -189,7 +189,7 @@ class FetchResultApi(BaseHandler):
                     if not json_file.endswith('.json'):
                         return loop()
                     logging.info('fetch %s' % json_file)
-                    self.call_back_api('%s/%s?remove=1' % (self.config['ocr_api'][:-3] + 'browse', json_file),
+                    self.call_back_api('%s/%s?remove=1' % (prop(self.config, 'ocr.api')[:-3] + 'browse', json_file),
                                        handle_response=handle_file, handle_error=handle_error,
                                        binary_response=True)
                 else:
@@ -209,5 +209,5 @@ class FetchResultApi(BaseHandler):
         def handle_error(t):
             self.send_error_response(e.ocr_import, message=e.ocr_import[1] % (t or '无法访问'))
 
-        self.call_back_api('%s//work_path/_result/%s' % (self.config['ocr_api'][:-3] + 'browse', user_code),
+        self.call_back_api('%s//work_path/_result/%s' % (prop(self.config, 'ocr.api')[:-3] + 'browse', user_code),
                            handle_response=handle_list_response, handle_error=handle_error)

@@ -128,7 +128,7 @@ class RegisterApi(BaseHandler):
             return self.send_error_response(err)
 
         try:
-            roles = self.config.get('user', {}).get('init_roles', '')
+            roles = self.config.get('role', {}).get('init', '')
             user['roles'] = '用户管理员' if not self.db.user.find_one() else roles  # 如果是第一个用户，则设置为用户管理员
             r = self.db.user.insert_one(dict(
                 name=user['name'], email=user.get('email'), phone=user.get('phone'),
