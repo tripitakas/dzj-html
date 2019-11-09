@@ -107,7 +107,7 @@
                       <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
                       <td><a class="doc-name" href="/task/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
-                      <td class="{{t['status']}}" title="{{t.get('returned_reason')}}">{{Th.get_status_name(t['status']) or ''}}</td>
+                      <td class="{{t['status']}}" title="{{t.get('message')}}">{{Th.get_status_name(t['status']) or ''}}</td>
                       <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
                       <td>{{'/'.join([Th.step_names().get(s) for s in Th.prop(t, 'steps.todo') or []])}}</td>
                       <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
@@ -117,7 +117,7 @@
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
                         <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        <a class="retrieve{{'' if t['status'] == 'picked' else ' hide'}}" onclick=retrieve('{{t["_id"]}}','{{t["doc_id"]}}')>撤回</a>
+                        <a class="republish{{'' if t['status'] == 'picked' else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
                       </td>
                     </tr>
                     {% end %}
@@ -287,22 +287,24 @@
   });
 
   // 显示退回理由
-  $('.sty-table td.returned').click(function () {
-    swal({
-      title: "退回理由", text: $(this).attr('title'),
-      showConfirmButton: false, allowOutsideClick: true
-    });
+  $('td.returned').click(function () {
+    swal({title: "退回理由", text: $(this).attr('title'), showConfirmButton: false, allowOutsideClick: true});
   });
 
-  // 撤回任务
-  function retrieve(taskId, docId) {
+  // 显示失败原因
+  $('td.failed').click(function () {
+    swal({title: "失败原因", text: $(this).attr('title'), showConfirmButton: false, allowOutsideClick: true});
+  });
+
+  // 重新发布任务
+  function republish(taskId, docId) {
     var info = {
-      type: "warning", title: "确定撤回吗？", text: "任务" + docId + "将被撤回！",
+      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被重新发布！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定撤回", cancelButtonText: "取消"
+      confirmButtonText: "确定", cancelButtonText: "取消"
     };
     swal(info, function () {
-      postApi('/task/retrieve/' + taskType, {'data': {'task_ids': [taskId]}}, function () {
+      postApi('/task/republish/' + taskId, {'data': {}}, function () {
         window.location.reload();
       });
     });

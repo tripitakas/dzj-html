@@ -6,10 +6,10 @@
 """
 import math
 import random
-from datetime import datetime
 from controller import errors
-from controller.task.base import TaskHandler
+from datetime import datetime, timedelta
 from controller.helper import get_date_time
+from controller.task.base import TaskHandler
 
 
 class TaskAdminHandler(TaskHandler):
@@ -150,8 +150,14 @@ class MyTaskHandler(TaskHandler):
             tasks, total_count = self.get_my_tasks_by_type(
                 self, task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
             )
+
+            withdraw_time = get_date_time('%Y-%m-%d 23:00:00')  # 当晚11点回收
+            timeout_days = self.prop(self.application.load_config(), 'task.task_timeout')
+            timeout = datetime.strptime(withdraw_time, '%Y-%m-%d %H:%M:%S') + timedelta(days=int(timeout_days))
+
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
-            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
+            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order, timeout=timeout)
+
         except Exception as e:
             return self.send_db_error(e, render=True)
 
@@ -190,7 +196,7 @@ class PageTaskInfoHandler(TaskHandler):
             tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
             display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
                               'updated_time', 'finished_time', 'publish_by', 'publish_time',
-                              'picked_by', 'picked_time', 'returned_reason']
+                              'picked_by', 'picked_time', 'message']
 
             self.render('task_info.html', page=page, tasks=tasks, format_info=format_info,
                         display_fields=display_fields)

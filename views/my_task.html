@@ -11,6 +11,12 @@
   <![endif]-->
 </head>
 
+<style>
+  .urgent {
+    background: red;
+  }
+</style>
+
 <body>
 <div class="app-main">
   <div class="main">
@@ -47,14 +53,16 @@
                     <tr>
                       <td>{{t['doc_id']}}</td>
                       <td>{{Th.get_status_name(t['status']) or ''}}</td>
-                      <td>{{to_date_str(t.get('picked_time'))}}</td>
+                      <td class="{{'urgent' if t.get('picked_time') > timeout else ''}}">
+                        {{to_date_str(t.get('picked_time'))}}
+                      </td>
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
                         <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
                         {% if t['status'] == Th.STATUS_PICKED %}
-                          <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
+                        <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
                         {% elif t['status'] == Th.STATUS_FINISHED %}
-                          <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
+                        <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
                         {% end %}
                       </td>
                     </tr>
