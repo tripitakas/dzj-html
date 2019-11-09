@@ -1,16 +1,7 @@
-# 用于 set_secure_cookie 的秘钥, 生成方法: https://www.v2ex.com/t/12646
+# 用于set_secure_cookie的秘钥, 生成方法: https://www.v2ex.com/t/12646
 cookie_secret: 'iS2rCQ1FSrG4UOTAboVhqkY5RtRLBkA6ketwS7fMVbo='
 
-# MongoDB
-database:
-  host: 127.0.0.1
-  port: 27017
-  name: tripitaka
-  user:
-  password:
-
-
-# 网页公共参数
+# 网站
 site:
   name: 如是我闻古籍数字化平台
   keywords: 大藏经,古籍数字化,tripitaka
@@ -20,20 +11,38 @@ site:
   #  certfile: tripitaka.crt
   #  keyfile: tripitaka.key
 
-user:
-  init_roles: 切字校对员,文字校对员
-  disable_roles: OCR校对员,OCR审定员
+# MongoDB
+database:
+  host: 127.0.0.1
+  port: 27017
+  name: tripitaka
+  user:
+  password:
 
-disable_modules: OCR校对,OCR审定
+# 模块
+module:
+  disabled: OCR校对,OCR审定
 
-# ElasticSearch全文检索库
+# 角色
+role:
+  init: 切字校对员,文字校对员
+  disabled: OCR校对员,OCR审定员
+
+# 任务
+task:
+  task_timeout: 3
+  temp_lock_timeout: 1
+
+# ElasticSearch
 esearch:
   host: 127.0.0.1
   port: 9200
 
-ocr_api: http://127.0.0.1:8010/ocr
+# OCR
+ocr:
+  api: http://127.0.0.1:8010/ocr
 
-# OSS图片
+# OSS
 img:
   host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
