@@ -19,6 +19,15 @@ database:
   user:
   password:
 
+# ElasticSearch
+esearch:
+  host: 127.0.0.1
+  port: 9200
+
+# OCR
+ocr:
+  api: http://127.0.0.1:8010/ocr
+
 # 模块
 module:
   disabled: OCR校对,OCR审定
@@ -32,15 +41,6 @@ role:
 task:
   task_timeout_days: 7
   temp_lock_timeout_days: 1
-
-# ElasticSearch
-esearch:
-  host: 127.0.0.1
-  port: 9200
-
-# OCR
-ocr:
-  api: http://127.0.0.1:8010/ocr
 
 # OSS
 img:
