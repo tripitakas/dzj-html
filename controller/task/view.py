@@ -152,9 +152,9 @@ class MyTaskHandler(TaskHandler):
                 self, task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
             )
 
-            withdraw_time = get_date_time('%Y-%m-%d 23:00:00')  # 当晚11点回收
-            timeout_days = self.prop(self.application.load_config(), 'task.task_timeout')
-            timeout = datetime.strptime(withdraw_time, '%Y-%m-%d %H:%M:%S') + timedelta(days=int(timeout_days))
+            withdraw_time = get_date_time('%Y-%m-%d 02:00:00')  # 凌晨2点回收
+            timeout_days = self.prop(self.application.load_config(), 'task.task_timeout_days')
+            timeout = datetime.strptime(withdraw_time, '%Y-%m-%d %H:%M:%S') - timedelta(days=int(timeout_days))
 
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order, timeout=timeout)

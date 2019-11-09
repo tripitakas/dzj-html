@@ -28,11 +28,11 @@ def connect_db():
 
 def republish_timeout_tasks(db=None, timeout_days=None):
     """ 系统重新发布超时任务
-        重新发布所有已领取未完成超过3天的任务
+        重新发布所有已领取未完成超过时间的任务
     """
     db = connect_db() if not db else db
-    timeout_days = prop(App.load_config(), 'task.task_timeout') if timeout_days is None else timeout_days
-    from_time = datetime.now() + timedelta(days=int(timeout_days))
+    timeout_days = prop(App.load_config(), 'task.task_timeout_days') if timeout_days is None else timeout_days
+    from_time = datetime.now() - timedelta(days=int(timeout_days))
     condition = {'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}
     tasks = list(db.task.find(condition))
     for task in tasks:
@@ -57,8 +57,8 @@ def release_timeout_lock(db=None, timeout_days=None):
         释放所有超过一天的临时数据锁
     """
     db = connect_db() if not db else db
-    timeout_days = prop(App.load_config(), 'task.temp_lock_timeout') if timeout_days is None else timeout_days
-    from_time = datetime.now() + timedelta(days=int(timeout_days))
+    timeout_days = prop(App.load_config(), 'task.temp_lock_timeout_days') if timeout_days is None else timeout_days
+    from_time = datetime.now() - timedelta(days=int(timeout_days))
     db.page.update_many({'lock.box.is_temp': True, 'lock.box.locked_time': {'$gt': from_time}},
                         {'$set': {'lock.box': dict()}})
     db.page.update_many({'lock.text.is_temp': True, 'lock.text.locked_time': {'$gt': from_time}},

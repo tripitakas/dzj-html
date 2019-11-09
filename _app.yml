@@ -30,8 +30,8 @@ role:
 
 # 任务
 task:
-  task_timeout: -7
-  temp_lock_timeout: -1
+  task_timeout_days: 7
+  temp_lock_timeout_days: 1
 
 # ElasticSearch
 esearch:
