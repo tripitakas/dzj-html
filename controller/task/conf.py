@@ -107,12 +107,6 @@ class TaskConfig(object):
     }
 
     @classmethod
-    def prop(cls, obj, key):
-        for s in key.split('.'):
-            obj = obj.get(s) if isinstance(obj, dict) else None
-        return obj
-
-    @classmethod
     def all_task_types(cls):
         task_types = cls.task_types.copy()
         task_types.update(cls.task_groups)

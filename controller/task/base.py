@@ -8,22 +8,24 @@ from .conf import TaskConfig
 from datetime import datetime
 import controller.auth as auth
 import controller.errors as errors
+from controller.helper import prop
 from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler, TaskConfig):
     # 任务状态表
+    # fetched指的是任务已获取但尚未确认，确认获取后状态为picked。failed指的是任务失败。
+    # fetched和failed是给机器用户处理的任务所使用。
     STATUS_OPENED = 'opened'
     STATUS_PENDING = 'pending'
-    STATUS_ASSIGNED = 'assigned'
+    STATUS_FETCHED = 'fetched'
     STATUS_PICKED = 'picked'
+    STATUS_FAILED = 'failed'
     STATUS_RETURNED = 'returned'
-    STATUS_RETRIEVED = 'retrieved'
     STATUS_FINISHED = 'finished'
     task_status_names = {
-        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_ASSIGNED: '已指派',
-        STATUS_PICKED: '进行中', STATUS_RETURNED: '已退回', STATUS_RETRIEVED: '已撤回',
-        STATUS_FINISHED: '已完成',
+        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
+        STATUS_PICKED: '进行中', STATUS_FAILED: '失败', STATUS_RETURNED: '已退回', STATUS_FINISHED: '已完成',
     }
 
     # 任务优先级
@@ -36,8 +38,12 @@ class TaskHandler(BaseHandler, TaskConfig):
         'updated_time': '更新时间', 'finished_time': '完成时间',
         'publish_by': '发布人', 'publish_time': '发布时间',
         'picked_by': '领取人', 'picked_time': '领取时间',
-        'returned_reason': '退回理由',
+        'message': '退回理由',
     }
+
+    @classmethod
+    def prop(cls, obj, key, default=None):
+        return prop(obj, key, default=default)
 
     @classmethod
     def get_status_name(cls, status):
@@ -201,7 +207,7 @@ class TaskHandler(BaseHandler, TaskConfig):
         return True if assign_lock(qualification) else errors.data_lock_failed
 
     def release_temp_lock(self, doc_id, shared_field=None):
-        """ 释放临时数据锁 """
+        """ 释放用户的临时数据锁 """
         assert isinstance(doc_id, str)
         assert shared_field in self.data_auth_maps
         id_name = self.data_auth_maps[shared_field]['id']
@@ -210,10 +216,11 @@ class TaskHandler(BaseHandler, TaskConfig):
         if self.has_data_lock(doc_id, shared_field):
             self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.%s' % shared_field: dict()}})
 
-    def release_task_lock(self, doc_ids, shared_field):
+    @classmethod
+    def release_task_lock(cls, db, doc_ids, shared_field):
         """ 释放任务的数据锁 """
         assert isinstance(doc_ids, list)
-        assert shared_field in self.data_auth_maps
-        id_name = self.data_auth_maps[shared_field]['id']
-        collection = self.data_auth_maps[shared_field]['collection']
-        self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$set': {'lock.%s' % shared_field: dict()}})
+        assert shared_field in cls.data_auth_maps
+        id_name = cls.data_auth_maps[shared_field]['id']
+        collection = cls.data_auth_maps[shared_field]['collection']
+        db[collection].update_many({id_name: {'$in': doc_ids}}, {'$set': {'lock.%s' % shared_field: dict()}})

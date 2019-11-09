@@ -84,5 +84,11 @@ def random_code():
     return code
 
 
+def prop(obj, key, default=None):
+    for s in key.split('.'):
+        obj = obj.get(s) if isinstance(obj, dict) else None
+    return default if obj is None else obj
+
+
 old_framer = logging.currentframe
 logging.currentframe = my_framer
