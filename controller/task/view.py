@@ -51,11 +51,12 @@ class TaskAdminHandler(TaskHandler):
                 task_type, status=status, q=q, order=order, page_size=page_size, page_no=cur_page
             )
             task_conf = self.all_task_types()[task_type]
+            pan_name = self.prop(self.config, 'pan.name')
             pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
             template = 'task_admin_import.html' if task_type == 'import_image' else 'task_admin.html'
             self.render(
                 template, task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
-                task_meta=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
+                task_meta=self.all_task_types(), is_mod_enabled=self.is_mod_enabled, pan_name=pan_name,
             )
         except Exception as e:
             return self.send_db_error(e, render=True)
