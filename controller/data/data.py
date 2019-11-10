@@ -242,8 +242,8 @@ class Page(Data):
     @classmethod
     def metadata(cls):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
-                    uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
-                    lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
+                    sutra_code='', uni_sutra_code='', reel_code='', reel_page_no='', lock={},
+                    box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                     ocr='', text='', txt_html='')
 
     @classmethod

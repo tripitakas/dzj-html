@@ -12,15 +12,12 @@ import shutil
 import pymongo
 from tornado.util import PY3
 from os import path, listdir, mkdir
+from controller.data.data import Page
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
 data = dict(count=0)
-page_meta = dict(name='', width='', height='', img_path='', img_cloud_path='', sutra_code='',
-                 uni_sutra_code='', reel_code='', reel_page_no='', lock={}, box_stage='',
-                 text_stage='', blocks=[], columns=[], chars=[],
-                 ocr='', text='', txt_html='')
 
 
 def create_dir(dirname):
@@ -63,12 +60,12 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False):
 def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
     exist = db.page.find_one(dict(name=name))
     if update or not exist:
-        meta = page_meta.copy()
+        meta = Page.metadata()
         width = int(info['imgsize']['width'] if 'imgsize' in info else info['width'])
         height = int(info['imgsize']['height'] if 'imgsize' in info else info['height'])
         meta.update(dict(
-            name=name, kind=name[:2], width=width, height=height, blocks=info.get('blocks', []),
-            columns=info.get('columns', []), chars=info.get('chars', []),
+            name=name, width=width, height=height, blocks=info.get('blocks') or [],
+            columns=info.get('columns') or [], chars=info.get('chars') or [],
         ))
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
@@ -134,7 +131,7 @@ def copy_img_files(src_path, pages):
 
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=False, use_local_img=False):
+         reset=True, use_local_img=False):
     """
     页面导入的主函数
     :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录
