@@ -8,7 +8,6 @@ from .conf import TaskConfig
 from datetime import datetime
 import controller.auth as auth
 import controller.errors as errors
-from controller.helper import prop
 from controller.base import BaseHandler
 
 
@@ -40,10 +39,6 @@ class TaskHandler(BaseHandler, TaskConfig):
         'publish_by': '发布人', 'publish_time': '发布时间',
         'picked_by': '领取人', 'picked_time': '领取时间',
     }
-
-    @classmethod
-    def prop(cls, obj, key, default=None):
-        return prop(obj, key, default=default)
 
     @classmethod
     def get_status_name(cls, status):

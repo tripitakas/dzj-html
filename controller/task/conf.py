@@ -5,6 +5,7 @@
 @time: 2019/10/16
 """
 from controller import errors
+from controller.helper import prop
 
 
 class TaskConfig(object):
@@ -14,13 +15,14 @@ class TaskConfig(object):
     # data.id：数据表的主键名称
     # data.input_field：该任务依赖的数据字段，该字段就绪，则可以发布任务
     # data.shared_field：该任务共享和保护的数据字段
+    # data.finished_field：该字段不为空，则表示任务已完成
     task_types = {
         'import_image': {
             'name': '导入图片',
         },
         'upload_cloud': {
             'name': '上传云端',
-            'data': {'collection': 'page', 'id': 'name'},
+            'data': {'collection': 'page', 'id': 'name', 'finished_field': 'img_cloud_path'},
         },
         'ocr_box': {
             'name': 'OCR字框',
@@ -105,6 +107,10 @@ class TaskConfig(object):
             'roles': ['文字专家']
         },
     }
+
+    @classmethod
+    def prop(cls, obj, key, default=None):
+        return prop(obj, key, default=default)
 
     @classmethod
     def all_task_types(cls):

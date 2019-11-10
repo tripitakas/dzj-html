@@ -159,6 +159,22 @@ class TestTaskApi(APITestCase):
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, r['data'])
 
+    def test_publish_tasks_with_finished_field(self):
+        """ 测试发布有finished_field字段的任务"""
+        self.login_as_admin()
+        task_type = 'upload_cloud'
+        finished_field = Th.prop(Th.task_types, '%s.data.finished_field' % task_type)
+        assert finished_field
+        # 写入finished_field
+        self._app.db.page.update_many({}, {'$set': {finished_field: None}})
+        path = 'http://cloud.tripitakas.net/QL_25_16.png'
+        self._app.db.page.update_one({'name': 'QL_25_16'}, {'$set': {finished_field: path}})
+        # 发布任务
+        docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
+        r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
+        data = self.parse_response(r)
+        self.assertEqual(['QL_25_16'], data.get('finished'))
+
     def test_pick_and_return_task(self):
         """ 测试领取和退回任务 """
         task_types = Th.get_page_tasks()

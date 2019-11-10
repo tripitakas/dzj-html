@@ -53,6 +53,9 @@ class PublishBaseHandler(TaskHandler):
         if not force and doc_ids:
             condition = dict(task_type=task_type, status=self.STATUS_FINISHED, doc_id={'$in': list(doc_ids)})
             log['finished'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
+            finished_field = self.prop(self.task_types, '%s.data.finished_field' % task_type)
+            if finished_field:
+                log['finished'].update([d[id_name] for d in docs if d.get(finished_field)])
             doc_ids = set(doc_ids) - log['finished']
 
         # 发布新任务

@@ -26,9 +26,10 @@ class GetReadyTasksApi(TaskHandler):
         已就绪有两种情况：1. 任务不依赖任何数据；2. 任务依赖的数据已就绪
         """
         assert task_type in self.task_types
+        collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
+        finished_field = self.prop(self.task_types, '%s.data.finished_field' % task_type)
         try:
             data = self.get_request_data()
-            collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
             doc_filter = dict()
             if data.get('prefix'):
                 doc_filter.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
@@ -37,6 +38,8 @@ class GetReadyTasksApi(TaskHandler):
             condition = {id_name: doc_filter} if doc_filter else {}
             if input_field:
                 condition.update({input_field: {'$nin': [None, '']}})  # 任务所依赖的数据字段存在且不为空
+            if finished_field:
+                condition.update({finished_field: {'$in': [None, '']}})  # 字段为空，则任务未完成
             page_no = int(data.get('page', 0)) if int(data.get('page', 0)) > 1 else 1
             page_size = int(self.config['pager']['page_size'])
             count = self.db[collection].count_documents(condition)
