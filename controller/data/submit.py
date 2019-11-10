@@ -46,7 +46,7 @@ class SubmitDataTaskApi(TaskHandler):
                                chars=page.get('chars'), ocr=page.get('ocr'),
                                width=page.get('width') or _page.get('width'),
                                height=page.get('height') or _page.get('height'))
-            self.db.page.update_one({'name': page.get('name')}, {'$set': page_update})
+            self.db.page.update_one({'name': page_name}, {'$set': page_update})
         else:
             task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
