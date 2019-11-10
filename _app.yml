@@ -47,6 +47,10 @@ img:
   host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
   salt: '待配置'
 
+# 网盘
+pan:
+  name: dev
+
 # 邮件服务器
 email:
   account: '待配置'

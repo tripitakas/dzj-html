@@ -21,7 +21,7 @@
     }
 
     #pan-name {
-      width: 140px;
+      width: 100px;
       display: inline-flex;
     }
 
@@ -133,9 +133,9 @@
             <div class="tab-content">
               <div class="tab-pane active" id="tab-pan">
                 <div style="display: flex">
-                  <input type="text" class="form-control" id="pan-name" placeholder="请输入网盘用户名"/>
+                  <input type="text" class="form-control" id="pan-name" value="{{pan_name}}" readonly="readonly"/>
                   <span style="margin-top: 5px">@</span>
-                  <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘相对路径"/>
+                  <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
                 </div>
               </div>
               <div class="tab-pane" id="tab-manual">
