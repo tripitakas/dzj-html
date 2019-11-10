@@ -241,7 +241,7 @@ class Page(Data):
 
     @classmethod
     def metadata(cls):
-        return dict(name='', width='', height='', img_type='', img_path='', img_cloud_path='',
+        return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
                     uni_sutra_code='', sutra_code='', reel_code='', reel_page_no='',
                     lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                     ocr='', text='', txt_html='')
@@ -253,7 +253,10 @@ class Page(Data):
         :param file_stream 已打开的文件流。
         :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
         """
-        page_names = json.load(file_stream)
+        result = json.load(file_stream)
+        page_names = [r.split('.')[0] for r in result]
+        name2suffix = {r.split('.')[0]: r.split('.')[1] if '.' in r else None for r in result}
+        # 检查重复时，仅仅检查页码，不检查后缀
         existed_pages = list(db.page.find({'name': {'$in': page_names}}, {'name': 1}))
         new_names = set(page_names) - set([p['name'] for p in existed_pages])
         pages = []
@@ -261,7 +264,7 @@ class Page(Data):
             page = cls.metadata()
             s = page_name.split('.')
             page['name'] = s[0]
-            page['img_type'] = s[1] if len(s) > 1 else ''
+            page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
         if pages:
             r = db.page.insert_many(pages)

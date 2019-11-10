@@ -33,7 +33,7 @@ class TaskHandler(BaseHandler, TaskConfig):
 
     # 任务字段定义
     task_fields = {
-        'task_type': '任务类型', 'collection': '数据集合', 'id_name': '文档ID名称', 'doc_id': '文档ID值',
+        'task_type': '任务类型', 'collection': '数据集合', 'id_name': '文档ID名称', 'doc_id': '编码',
         'status': '状态', 'pre_tasks': '前置任务', 'steps': '步骤', 'priority': '优先级',
         'input': '输入参数', 'result': '结果', 'message': '日志',
         'updated_time': '更新时间', 'finished_time': '完成时间',
