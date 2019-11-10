@@ -31,50 +31,53 @@ class SubmitDataTaskApi(TaskHandler):
 
     def submit_ocr(self, task):
         """ 提交OCR任务 """
-        page_name, page, now = task['page_name'], task['result'], datetime.now()
+        now = datetime.now()
+        page_name, result, message = task.get('page_name'), task['result'], task.get('message')
         if task['status'] == 'success':
-            _page = self.db.page.find_one({'name': page_name})
-            if not _page:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
                 return errors.no_object
             # ocr_text任务不允许修改切分信息
-            if task['task_type'] == 'ocr_text' and is_box_changed(page, _page):
+            if task['task_type'] == 'ocr_text' and is_box_changed(result, page):
                 return errors.box_not_identical
 
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-            page_update = dict(blocks=page.get('blocks'), columns=page.get('columns'),
-                               chars=page.get('chars'), ocr=page.get('ocr'),
-                               width=page.get('width') or _page.get('width'),
-                               height=page.get('height') or _page.get('height'))
+            page_update = dict(blocks=result.get('blocks'), columns=result.get('columns'),
+                               chars=result.get('chars'), ocr=result.get('ocr'),
+                               width=result.get('width') or page.get('width'),
+                               height=result.get('height') or page.get('height'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
         else:
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
     def submit_upload_cloud(self, task):
         """ 提交upload_cloud任务。page中包含有云端路径img_cloud_path """
-        page_name, now = task['page_name'], datetime.now()
+        now = datetime.now()
+        page_name, result, message = task.get('page_name'), task['result'], task.get('message')
         if task['status'] == 'success':
-            _page = self.db.page.find_one({'name': page_name})
-            if not _page:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
                 return errors.no_object
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
         else:
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
     def submit_import_image(self, task):
         """ 提交import_image任务 """
         now = datetime.now()
+        result, message = task['result'], task.get('message')
         if task['status'] == 'success':
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         else:
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'message': task.get('message')}
+            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
