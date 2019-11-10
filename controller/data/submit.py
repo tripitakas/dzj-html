@@ -73,7 +73,7 @@ class SubmitDataTaskApi(TaskHandler):
     def submit_import_image(self, task):
         """ 提交import_image任务 """
         now = datetime.now()
-        result, message = task['result'], task.get('message')
+        result, message = task.get('result'), task.get('message')
         if task['status'] == 'success':
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})

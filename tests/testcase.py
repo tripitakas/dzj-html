@@ -202,7 +202,7 @@ class APITestCase(AsyncHTTPTestCase):
     def delete_tasks_and_locks(self):
         """ 清空任务以及数据锁 """
         self._app.db.task.delete_many({})
-        self._app.db.page.update_many({}, {'$set': {'lock': {}}})
+        self._app.db.page.update_many({}, {'$set': {'lock': {}, 'img_cloud_path': None}})
 
     def get_one_task(self, task_type, doc_id):
         return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})

@@ -279,7 +279,7 @@ class TestTaskApi(APITestCase):
             # 管理员不能重新发布已发布的任务
             task2 = self._app.db.task.find_one({'task_type': task_type, 'doc_id': 'QL_25_313'})
             r = self.fetch('/api/task/republish/%s' % task2['_id'], body={'data': {}})
-            self.assert_code(errors.task_not_picked[0], r, msg=task_type)
+            self.assert_code(errors.republish_only_picked_or_failed[0], r, msg=task_type)
 
     def test_delete_tasks(self):
         """ 测试管理员删除已发布或悬挂的任务 """
