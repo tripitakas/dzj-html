@@ -65,7 +65,7 @@ class HomeHandler(TaskHandler):
                 {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
                 {'create_time': 1}
             ).sort('create_time', -1).limit(2))
-            last_login = r and get_date_time(date_time=r[0]['create_time'])
+            last_login = get_date_time(r[0]['create_time'] if r else datetime.now())
 
             # 已完成任务
             my_latest_tasks, my_task_count = MyTaskHandler.get_my_tasks_by_type(
