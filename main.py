@@ -5,20 +5,19 @@
 @time: 2018/10/23
 """
 
-import logging
 import os
-import socket
-from functools import partial
 import sys
+import socket
+import logging
+
 sys.path.append('/extra_modules')
 
-from tornado import ioloop, netutil, process
 from tornado.httpserver import HTTPServer
+from tornado import ioloop, netutil, process
 from tornado.options import define, options as opt
 
 import controller as c
 from controller.app import Application
-from controller.periodic import periodic_task
 
 define('num_processes', default=4, help='sub-processes count', type=int)
 
@@ -35,8 +34,6 @@ if __name__ == '__main__':
         server.add_sockets(sockets)
         protocol = 'https' if ssl_options else 'http'
         logging.info('Start the service #%d v%s on %s://localhost:%d' % (fork_id, app.version, protocol, opt.port))
-        if fork_id == 0:
-            ioloop.PeriodicCallback(partial(periodic_task, app), 1000 * 300).start()
         ioloop.IOLoop.current().start()
     except KeyboardInterrupt:
         app.stop()

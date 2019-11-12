@@ -4,21 +4,20 @@
 @time: 2018/12/22
 """
 from tornado.escape import to_basestring, native_str
-from tornado.options import options
 from tornado.testing import AsyncHTTPTestCase
 from tornado.httpclient import HTTPRequest
+from tornado.options import options
+from functools import partial
 from tornado.util import PY3
 from bson import json_util
-import re
-import controller as c
-import controller.role as role
-from controller.app import Application
-from controller.task.base import TaskHandler as TH
-from tests.users import admin
-
 import uuid
+import re
 import mimetypes
-from functools import partial
+import controller as c
+from tests.users import admin
+import controller.auth as auth
+from controller.app import Application
+from controller.task.base import TaskHandler as Th
 
 if PY3:
     import http.cookies as Cookie
@@ -119,13 +118,14 @@ class APITestCase(AsyncHTTPTestCase):
         headers = kwargs.get('headers', {})
         headers['Cookie'] = ''.join(['%s=%s;' % (x, morsel.value) for (x, morsel) in cookie.items()])
 
+        url = url if re.match('^http', url) else self.get_url(url)
         if files:
             boundary = uuid.uuid4().hex
             headers.update({'Content-Type': 'multipart/form-data; boundary=%s' % boundary})
             producer = partial(body_producer, boundary, files, kwargs.pop('body', {}))
-            request = HTTPRequest(self.get_url(url), headers=headers, body_producer=producer, **kwargs)
+            request = HTTPRequest(url, headers=headers, body_producer=producer, **kwargs)
         else:
-            request = HTTPRequest(self.get_url(url), headers=headers, **kwargs)
+            request = HTTPRequest(url, headers=headers, **kwargs)
 
         self.http_client.fetch(request, self.stop)
 
@@ -147,18 +147,16 @@ class APITestCase(AsyncHTTPTestCase):
 
         return response
 
-    def add_first_user_as_admin_then_login(self):
-        """
-        创建第一个用户，作为超级管理员，并且登录。
-        在创建其他用户前先创建管理员，避免测试用例乱序执行引发错误。
-        """
-        self._app.db.user.drop()
-        r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
-        self.assert_code(200, r)
-        u = self.parse_response(r)
-        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(role.assignable_roles))})
-        self.assert_code(200, r)
-        return r
+    def login(self, email, password):
+        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
+
+    def login_as_admin(self):
+        return self.login(admin[0], admin[1])
+
+    def register_and_login(self, info):
+        """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
+        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
+        return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
 
     def add_users_by_admin(self, users, roles=None):
         """ 以管理员身份新增users所代表的用户并授予权限，完成后当前用户为管理员 """
@@ -176,52 +174,35 @@ class APITestCase(AsyncHTTPTestCase):
                 self.assert_code(200, r)
         return users
 
-    def login_as_admin(self):
-        return self.login(admin[0], admin[1])
+    def add_first_user_as_admin_then_login(self):
+        """
+        创建第一个用户，作为超级管理员，并且登录。
+        在创建其他用户前先创建管理员，避免测试用例乱序执行引发错误。
+        """
+        self._app.db.user.drop()
+        r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
+        self.assert_code(200, r)
+        u = self.parse_response(r)
+        r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
+        self.assert_code(200, r)
+        return r
 
-    def login(self, email, password):
-        return self.fetch('/api/user/login', body={'data': dict(phone_or_email=email, password=password)})
-
-    def register_and_login(self, info):
-        """ 先用info信息登录，如果成功则返回，如果失败则用info注册。用户注册后，系统会按注册信息自动登录。 """
-        r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=info['email'], password=info['password'])})
-        return r if self.get_code(r) == 200 else self.fetch('/api/user/register', body={'data': info})
-
-    def revert(self, status=TH.STATUS_READY):
-        """ 还原所有任务的状态 """
-        task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
-                      'text_review', 'text_hard']
-        pages = self._app.db.page.find()
-        for page in pages:
-            update = dict(tasks={}, lock={})
-            for task_type in task_types:
-                update['tasks'][task_type] = dict(status=status)
-            self._app.db.page.update_one({'name': page['name']}, {'$set': update})
-
-    pre_tasks = {
-        'cut_review': 'cut_proof',
-        'text_proof_1': '',
-        'text_proof_2': '',
-        'text_proof_3': '',
-        'text_review': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
-        'text_hard': 'text_review',
-    }
-
-    def publish(self, data):
-        if 'task_type' in data and 'pre_tasks' not in data:
-            data['pre_tasks'] = self.pre_tasks.get(data['task_type'])
+    def publish_tasks(self, data):
+        """发布任务"""
+        assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
         data['force'] = data.get('force', '0')
+        data['priority'] = data.get('priority', 3)
+        data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % data['task_type']))
         if 'cut' in data.get('task_type', ''):
-            data['sub_steps'] = data.get('sub_steps', ['char_box', 'block_box', 'column_box', 'char_order'])
+            data['steps'] = data.get('steps', ['char_box', 'block_box', 'column_box', 'char_order'])
         if 'text_proof' in data.get('task_type', ''):
-            data['sub_steps'] = data.get('sub_steps', ['select_compare_text', 'proof'])
+            data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
         return self.fetch('/api/task/publish', body={'data': data})
 
-    def set_task_status(self, task_type_status_maps, page_names=None):
-        """ 设置task_type对应的状态 """
-        update = dict()
-        for task_type, status in task_type_status_maps.items():
-            update.update({'tasks.%s.status' % task_type: status})
-        # page_names为空时，更新所有状态
-        condition = {'name': {'$in': page_names}} if page_names else {}
-        self._app.db.page.update_many(condition, {'$set': update})
+    def delete_tasks_and_locks(self):
+        """ 清空任务以及数据锁 """
+        self._app.db.task.delete_many({})
+        self._app.db.page.update_many({}, {'$set': {'lock': {}, 'img_cloud_path': None}})
+
+    def get_one_task(self, task_type, doc_id):
+        return self._app.db.task.find_one({'task_type': task_type, 'doc_id': doc_id})

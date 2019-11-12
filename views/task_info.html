@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -21,15 +21,6 @@
       display: block;
       padding: 20px 20px 0;
       clear: both;
-
-    }
-
-    .task_type {
-      padding: 5px;
-      font-size: 20px;
-      display: block;
-      clear: both;
-      background: #fff;
     }
 
     .info {
@@ -43,7 +34,18 @@
       width: 20%;
     }
 
+    .input, .result {
+      width: 100%;
+      display: block;
+      clear: both;
+    }
+
+    .input .info-label, .result .info-label {
+      width: 10%;
+    }
+
     .info-value {
+      display: inline-block;
     }
 
   </style>
@@ -61,21 +63,16 @@
         <div class="layout">
           <div class="layout-content">
             <div class="tasks"></div>
-            {% for task_type, info in page.get('tasks').items() %}
             <div class="task">
-              <span class="task_type">
-                <a href="/task/{{task_type}}/{{page['name']}}">{{th.task_types.get(task_type)}}</a>
-              </span>
-              {% for k, v in info.items() %}
-              {% if k in field_names and v %}
-              <div class="info">
-                <label class="info-label">{{field_names.get(k)}}</label>
-                <span class="info-value">{{format_value(k, v)}}</span>
+              {% for k in display_fields %}
+              {% if task.get(k) not in [None, '', {}, []] %}
+              <div class="info {{k}}">
+                <label class="info-label">{{Th.get_field_name(k)}}</label>
+                <span class="info-value">{% raw format_info(k, task[k]) %}</span>
               </div>
               {% end %}
               {% end %}
             </div>
-            {% end %}
           </div>
         </div>
       </div>

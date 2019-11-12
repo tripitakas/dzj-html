@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <title>{{site['description']}}</title>
@@ -10,23 +11,6 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
 </head>
-
-<style>
-  .circle-bg {
-    display: inline-block;
-    background: var(--Color_Grey_Dark);
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    font-size: 18px;
-    font-family: '宋体';
-    color: var(--Color_White);
-    text-align: center;
-    vertical-align: middle;
-    line-height: 30px;
-  }
-
-</style>
 
 <body>
 <div class="app-main">
@@ -40,7 +24,6 @@
           <div class="layout-content">
             <!-- 中间内容 -->
             <div class="home">
-
               <p class="index">首页 v{{version}}</p>
               <div class="top clearfix">
                 <div class="left fl">
@@ -50,7 +33,7 @@
                     {% set ava_url = current_user.get('img') if current_user and current_user.get('img') else 'imgs/' + ava %}
                     <img class="ava fl" src="{{ static_url(ava_url) }}" alt="">
                     <dl class="fl">
-                      <dt>{{'上午' if get_date_time('%p') == 'AM' else '下午'}}好，{{current_user['name']}}</dt>
+                      <dt>{{time_slot}}好，{{current_user['name']}}</dt>
                       <dd>访问情况：今日访问 {{visit_count}} 次</dd>
                       <dd>上次登录：{{last_login}}</dd>
                     </dl>
@@ -58,15 +41,11 @@
                   <ul class="clearfix">
                     <li>
                       <p>已完成任务</p>
-                      <p>325</p>
+                      <p>{{my_task_count-unfinished_count}}</p>
                     </li>
                     <li>
                       <p>待处理任务</p>
-                      <p>325</p>
-                    </li>
-                    <li>
-                      <p>紧急任务</p>
-                      <p>325</p>
+                      <p>{{unfinished_count}}</p>
                     </li>
                   </ul>
                 </div>
@@ -77,122 +56,71 @@
                     <tr>
                       <th>工作类型</th>
                       <th>优先级</th>
-                      <th>藏</th>
-                      <th>经</th>
-                      <th>第几卷</th>
-                      <th>阶段</th>
+                      <th>页编码</th>
+                      <th>状态</th>
                       <th>领取时间</th>
-                      <th>剩余时间</th>
                       <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
+                    {% for t in my_latest_tasks %}
                     <tr>
-                      <td>切分校对</td>
+                      <td>{{Th.get_task_name(t['task_type'])}}</td>
                       <td>
-                        <div class="circle-bg">中</div>
+                        <div class="circle-bg">{{Th.get_priority_name(t['priority'])}}</div>
                       </td>
-                      <td>赵城金藏</td>
-                      <td>大方廣佛華嚴經</td>
-                      <td>2</td>
-                      <td>标二</td>
-                      <td>2018-06-23 09:23:55</td>
-                      <td><em>2</em><em>天</em></td>
-                      <td><span>查看</span></td>
-                    </tr>
-                    <tr>
-                      <td>切分校对</td>
+                      <td>{{t['doc_id']}}</td>
+                      <td>{{Th.get_status_name(t['status'])}}</td>
+                      <td>{{to_date_str(t['picked_time'])}}</td>
                       <td>
-                        <div class="circle-bg">中</div>
+                        {% if t['status'] == Th.STATUS_PICKED %}
+                        <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
+                        {% elif t['status'] == Th.STATUS_FINISHED %}
+                        <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
+                        {% end %}
                       </td>
-                      <td>赵城金藏</td>
-                      <td>大方廣佛華嚴經</td>
-                      <td>2</td>
-                      <td>标二</td>
-                      <td>2018-06-23 09:23:55</td>
-                      <td><em>2</em><em>天</em></td>
-                      <td><span>查看</span></td>
                     </tr>
-                    <tr>
-                      <td>文字校对</td>
-                      <td>
-                        <div class="circle-bg">中</div>
-                      </td>
-                      <td>赵城金藏</td>
-                      <td>大方廣佛華嚴經</td>
-                      <td>2</td>
-                      <td>标二</td>
-                      <td>2018-06-23 09:23:55</td>
-                      <td><em>2</em><em>天</em></td>
-                      <td><span>查看</span></td>
-                    </tr>
-                    <tr>
-                      <td>文字校对</td>
-                      <td>
-                        <div class="circle-bg">中</div>
-                      </td>
-                      <td>赵城金藏</td>
-                      <td>大方廣佛華嚴經</td>
-                      <td>2</td>
-                      <td>标二</td>
-                      <td>2018-06-23 09:23:55</td>
-                      <td><em>2</em><em>天</em></td>
-                      <td><span>查看</span></td>
-                    </tr>
+                    {% end %}
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="bottom clearfix">
-                <div class="item">
-                  <p><img src="{{ static_url('imgs/star.png') }}" alt=""></p>
-                  <p class="tit"><img src="{{ static_url('imgs/star-title.png') }}" alt=""></p>
+                <div class="item star">
+                  <p style="padding-top: 12px"><img src="{{ static_url('imgs/star.png') }}"></p>
+                  <p class="tit" style="margin-top: 6px"><img src="{{ static_url('imgs/star-title.png') }}" alt=""></p>
                   <ul>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
-                    <li><span>张明明</span>7月完成文字校对100卷</li>
+                    {% for k, v in month_star.items() %}
+                    <li>
+                      <span class="name">{{v[0]}}</span>
+                      <span class="task-info">本月 完成了 {{k}} {{v[1]}}页</span>
+                    </li>
+                    {% end %}
                   </ul>
-                  <p class="more"><a href="#">更多</a></p>
                 </div>
                 <div class="item">
                   <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
                   <p class="tit"><img src="{{ static_url('imgs/status.png') }}" alt=""></p>
                   <ul>
-                    {% for r in recent_trends %}
-                    <li><span>{{r['time']}}</span><span>{{r['user']}}{{r['context']}}</span></li>
+                    {% for t in latest_tasks %}
+                    <li>
+                      <span class="time">{{to_date_str(t['picked_time'])}}</span>
+                      <span class="task-info">{{get_task_info(t)}}</span>
+                      <span class="doc-id">{{t['doc_id']}}</span>
+                    </li>
                     {% end %}
                   </ul>
-                  <p class="more"><a href="#">更多</a></p>
-                </div>
-                <div class="item">
-                  <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
-                  <p class="tit"><img src="{{ static_url('imgs/news.png') }}" alt=""></p>
-                  <ul>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                  </ul>
-                  <p class="more"><a href="#">更多</a></p>
                 </div>
                 <div class="item">
                   <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
                   <p class="tit"><img src="{{ static_url('imgs/share.png') }}" alt=""></p>
                   <ul>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
-                    <li>小明完成了文字校对永乐北北藏校对</li>
+                    <li>切分校对工具使用的一点心得</li>
+                    <li>文字校对中的生僻字处理办法</li>
+                    <li>切分校对工具使用的一点心得</li>
+                    <li>文字校对中的生僻字处理办法</li>
+                    <li>切分校对工具使用的一点心得</li>
+                    <li>文字校对中的生僻字处理办法</li>
                   </ul>
                   <p class="more"><a href="#">更多</a></p>
                 </div>

@@ -1,13 +1,11 @@
-from . import data_view, data_api, ocr_view
-from . import api_algorithm as g
-from . import ocr_api
+from . import view, api
 
 views = [
-    data_view.DataTripitakaHandler, data_view.DataVolumeHandler, data_view.DataSutraHandler, data_view.DataReelHandler,
-    data_view.DataPageHandler, data_view.DataSearchCbetaHandler, data_view.DataPunctuationHandler,
-    ocr_view.RecognitionHandler, ocr_view.RecognitionViewHandler
+    view.DataPageHandler, view.TripitakaListHandler, view.TripitakaHandler,
+    view.DataTripitakaHandler, view.DataVolumeHandler, view.DataSutraHandler, view.DataReelHandler,
 ]
+
 handlers = [
-    g.GenerateCharIdApi, data_api.PunctuationApi, data_api.CbetaSearchApi,
-    ocr_api.RecognitionApi, ocr_api.SubmitRecognitionApi,
+    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi,
+    api.FetchDataTasksApi, api.SubmitDataTasksApi, api.ConfirmFetchDataTasksApi,
 ]

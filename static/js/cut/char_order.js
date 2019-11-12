@@ -797,7 +797,7 @@
           return char.id;
         });
       });
-      postApi('/data/gen_char_id', {data: {
+      postApi('/cut/gen_char_id', {data: {
         blocks: blocks, columns: columns, chars_col: chars_col,
         chars: $.cut.exportBoxes()
       }}, function (res) {

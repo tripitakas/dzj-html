@@ -1,4 +1,3 @@
-
 /*首页CSS*/
 
 .home {
@@ -159,7 +158,7 @@
     text-align: center;
 }
 
-.home table tbody tr td span {
+.home table tbody tr td a {
     display: inline-block;
     width: 60px;
     height: 32px;
@@ -172,18 +171,12 @@
     cursor: pointer;
 }
 
+.home .bottom {
+    display: flex;
+}
+
 .home .bottom .item {
-    float: left;
-}
-
-.home .bottom .item:first-child,
-.home .bottom .item:nth-child(3),
-.home .bottom .item:nth-child(4) {
-    width: 23%;
-}
-
-.home .bottom .item:nth-child(2) {
-    width: 31%;
+    flex: 1;
 }
 
 .home .bottom .item p {
@@ -204,47 +197,22 @@
     position: relative;
     color: #13171c;
     font-size: 14px;
+    text-align: center;
 }
 
-.home .bottom .item:first-child ul li {
-    padding-left: 25px;
-}
-
-.home .bottom .item:nth-child(2) ul li,
-.home .bottom .item:nth-child(3) ul li,
-.home .bottom .item:nth-child(4) ul li {
-    padding-left: 8px;
-}
-
-.home .bottom .item:first-child ul li span {
-    font-size: 16px;
-    margin-right: 5px;
-}
-
-.home .bottom .item:first-child ul li:before {
+.home .item.star .name:before {
     position: absolute;
     content: '';
     width: 16px;
     height: 18px;
     background: url(../imgs/medal.png) no-repeat;
-    left: 0;
-    top: 12px;
+    left: -20px;
+    top: 1px;
 }
 
-.home .bottom .item:nth-child(2) span:first-child {
-    margin-right: 5px;
-}
-
-.home .bottom .item:nth-child(2) ul li:before,
-.home .bottom .item:nth-child(3) ul li:before,
-.home .bottom .item:nth-child(4) ul li:before {
-    position: absolute;
-    content: '';
-    width: 4px;
-    height: 4px;
-    background: #ccc;
-    left: 0;
-    top: 17px;
+.home .bottom .item:first-child ul li span {
+    position: relative;
+    margin-left: 18px;
 }
 
 .home .bottom .item .more {
@@ -258,4 +226,31 @@
 
 .home .bottom .item .more a:hover {
     color: #333;
+}
+
+.home .circle-bg {
+    display: inline-block;
+    background: var(--Color_Grey_Dark);
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    font-size: 18px;
+    color: var(--Color_White);
+    text-align: center;
+    vertical-align: middle;
+    line-height: 30px;
+}
+
+.home .time, .home .name {
+    font-size: 1em;
+}
+
+.home .item .doc-id {
+    text-align: right;
+    display: inline-block;
+    min-width: 85px;
+}
+
+.home .item .task-info {
+    margin-left: 5px;
 }

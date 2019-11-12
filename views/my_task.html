@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <title>我的任务-{{th.all_types().get(task_type)}}</title>
+  <title>我的任务-{{Th.get_task_name(task_type)}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <!--[if lt IE 9]>
@@ -10,6 +10,12 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
 </head>
+
+<style>
+  .urgent {
+    background: red;
+  }
+</style>
 
 <body>
 <div class="app-main">
@@ -43,23 +49,23 @@
                     </thead>
 
                     <tbody>
-                    {% for task in tasks %}
+                    {% for t in tasks %}
                     <tr>
-                      {% set t = select_my_text_proof(task) if task_type == 'text_proof' else task_type %}
-                      <td>{{task['name']}}</td>
-                      <td>{{th.status_names.get(th.prop(task, 'tasks.%s.status' % t))}}</td>
-                      <td>{{to_date_str(th.prop(task, 'tasks.%s.picked_time' % t))}}</td>
-                      <td>{{to_date_str(th.prop(task, 'tasks.%s.finished_time' % t))}}</td>
+                      <td>{{t['doc_id']}}</td>
+                      <td>{{Th.get_status_name(t['status']) or ''}}</td>
+                      <td class="{{'urgent' if (t.get('picked_time') < timeout and t['status'] == 'picked') else ''}}">
+                        {{to_date_str(t.get('picked_time'))}}
+                      </td>
+                      <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
-                        {% if th.prop(task, 'tasks.%s.status' % t) == th.STATUS_PICKED %}
-                          <a class="do" href="/task/do/{{t}}/{{task['name']}}">继续</a>
-                        {% elif th.prop(task, 'tasks.%s.status' % t) == th.STATUS_FINISHED %}
-                          <a class="view" href="/task/{{t}}/{{task['name']}}">查看</a>
-                          <a class="update" href="/task/update/{{t}}/{{task['name']}}">修改</a>
+                        <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
+                        {% if t['status'] == Th.STATUS_PICKED %}
+                        <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
+                        {% elif t['status'] == Th.STATUS_FINISHED %}
+                        <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
                         {% end %}
                       </td>
                     </tr>
-
                     {% end %}
                     </tbody>
                   </table>

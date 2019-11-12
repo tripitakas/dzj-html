@@ -51,14 +51,12 @@
                   <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
                     <thead>
                     <tr>
-                      <th><input id="check-all" type="checkbox"/></th>
+                      <th><input id="check-all" type="checkbox"  value=""/></th>
                       <th>藏名</th>
                       <th>简称</th>
                       <th>编码</th>
                       <th>存储模式</th>
-                      <th>图片就绪</th>
-                      <th>图片前缀</th>
-                      <th>图片后缀</th>
+                      <th>图片是否就绪</th>
                       <th>备注</th>
                       <th>操作</th>
                     </tr>
@@ -66,14 +64,12 @@
                     <tbody>
                     {% for t in tripitakas %}
                     <tr id="{{t.get('_id')}}">
-                      <td><input type="checkbox"/></td>
+                      <th><span><input type="checkbox"  value=""/></span></th>
                       <td>{{t.get('name') or ''}}</td>
                       <td>{{t.get('short_name') or ''}}</td>
                       <td>{{t.get('tripitaka_code') or ''}}</td>
                       <td>{{t.get('store_pattern') or ''}}</td>
                       <td>{{t.get('img_available') or ''}}</td>
-                      <td>{{t.get('img_prefix') or ''}}</td>
-                      <td>{{t.get('img_suffix') or ''}}</td>
                       <td>{{t.get('remark') or ''}}</td>
                       <td>
                         <a class="btn-delete">删除</a>
@@ -140,18 +136,6 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="col-md-2 control-label">图片前缀</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="" id="img_prefix">
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">图片后缀</label>
-              <div class="col-md-10">
-                <input type="text" class="form-control" value="" id="img_suffix">
-              </div>
-            </div>
-            <div class="form-group">
               <label class="col-md-2 control-label">备注</label>
               <div class="col-md-10">
                 <textarea class="form-control" value="" id="remark"></textarea>
@@ -214,8 +198,6 @@
     $('#tripitaka_code').val('');
     $('#store_pattern').val('');
     $("#img_available").find("option[value = '否']").attr("selected", "selected");
-    $('#img_prefix').val('');
-    $('#img_suffix').val('');
   });
 
   // 修改-弹框
@@ -224,14 +206,12 @@
     $('#updateModal').modal();
     $("#updateModal .modal-title").html('修改藏数据');
     $('#_id').val($(this).parents('tr').attr('id'));
-    $('#name').val(children.eq(1).text());
-    $('#short_name').val(children.eq(2).text());
-    $('#tripitaka_code').val(children.eq(3).text());
-    $('#store_pattern').val(children.eq(4).text());
-    $("#img_available").find("option[value = '" + children.eq(5).text() + "']").attr("selected", "selected");
-    $('#img_prefix').val(children.eq(6).text());
-    $('#img_suffix').val(children.eq(7).text());
-    $('#remark').val(children.eq(8).text());
+    $('#name').val(children.eq(0).text());
+    $('#short_name').val(children.eq(1).text());
+    $('#tripitaka_code').val(children.eq(2).text());
+    $('#store_pattern').val(children.eq(3).text());
+    $("#img_available").find("option[value = '" + children.eq(4).text() + "']").attr("selected", "selected");
+    $('#remark').val(children.eq(7).text());
   });
 
   // 修改-提交
@@ -242,8 +222,6 @@
       tripitaka_code: $('#tripitaka_code').val(),
       store_pattern: $('#store_pattern').val(),
       img_available: $('#img_available').val(),
-      img_prefix: $('#img_prefix').val(),
-      img_suffix: $('#img_suffix').val(),
       remark: $('#remark').val()
     };
     if ($('#_id').val().trim().length !== 0) {
@@ -257,7 +235,6 @@
     }, function (error) {
       return showError('提交失败', error.message);
     });
-    $('#updateModal').modal('hide');
   });
 
 </script>

@@ -10,10 +10,9 @@ install:
     - pip install codecov
 
 before_script:
-    - sh meta/get_meta.sh tests/sample/meta.tgz
-    - python tests/add_pages.py --db_name=tripitaka_test
-    - python meta/import_meta.py --db_name=tripitaka_test
-    - find . -name "*.pyc" | xargs rm -rf
+    - sh meta/decompress.sh
+    - python utils/add_pages.py --db_name=tripitaka_test
+    - python utils/import_meta.py --db_name=tripitaka_test
 
 script:
     - ./run_tests.py --cov=controller --cov-report=term tests

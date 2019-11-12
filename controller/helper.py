@@ -6,18 +6,20 @@
 """
 
 import re
+import random
 import logging
 import inspect
-import random
-from datetime import datetime, timedelta
 from hashids import Hashids
+from datetime import datetime, timedelta, timezone
 
 
-def get_date_time(fmt=None, diff_seconds=None):
-    time = datetime.now()
+def get_date_time(fmt=None, date_time=None, diff_seconds=None):
+    time = date_time if date_time else datetime.now()
     if diff_seconds:
         time += timedelta(seconds=diff_seconds)
-    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
+
+    time_zone = timezone(timedelta(hours=8))
+    return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
 def gen_id(value, salt='', rand=False, length=16):
@@ -57,6 +59,19 @@ def cmp_page_code(a, b):
     return 0
 
 
+def is_box_changed(page_a, page_b):
+    """检查两个页面的切分信息是否发生了修改"""
+    for field in ['blocks', 'columns', 'chars']:
+        a, b = page_a.get(field), page_b.get(field)
+        if len(a) != len(b):
+            return True
+        for i in range(len(a)):
+            for j in ['x', 'y', 'w', 'h']:
+                if a[i][j] != b[i][j]:
+                    return True
+    return False
+
+
 def random_code():
     code = ''
     for i in range(4):
@@ -67,6 +82,12 @@ def random_code():
             temp = random.randint(0, 9)
         code += str(temp)
     return code
+
+
+def prop(obj, key, default=None):
+    for s in key.split('.'):
+        obj = obj.get(s) if isinstance(obj, dict) else None
+    return default if obj is None else obj
 
 
 old_framer = logging.currentframe

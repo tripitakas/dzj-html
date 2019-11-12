@@ -88,7 +88,7 @@
           </a>
         </div>
         <div class="title" title='{{page["name"]}}'>文字校对</div>
-        <div class="sub-title" title='{{page["name"]}}'>/ 选择比对文本</div>
+        <div class="sub-title">-选择比对文本</div>
         <div class="help">
           <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
         </div>
@@ -99,8 +99,8 @@
         </div>
         <div class="right">
           {% if readonly %}
-          <div class="tips">
-            {{'数据已被其他人锁定，暂时不能修改。' if mode in ['do', 'update', 'edit'] else '当前只能查看，不能修改。'}}
+          <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
+            数据已被其他人锁定，暂时不能修改。
           </div>
           {% end %}
           <div class="edit-btns">
@@ -110,7 +110,6 @@
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
             <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly and mode == 'do' else 'hide'}}" title="提交"/>
 
           </div>
         </div>
@@ -235,7 +234,7 @@
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_proof/get_compare/{{page["name"]}}', {data: {}}, function (data) {
+    postApi('/task/text_get_compare/{{page["name"]}}', {data: {}}, function (data) {
       $('#cmp').html(data.cmp);
       var count = data.hit_page_codes.length;
       var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
@@ -250,7 +249,7 @@
   // 第几个比对本
   $(document).on('click', '#pagination a', function () {
     var obj = $(this);
-    postApi('/task/text_proof/get_compare/{{page["name"]}}', {
+    postApi('/task/text_get_compare/{{page["name"]}}', {
       data: {num: obj.text()}
     }, function (data) {
       $('#cmp').html(data.cmp);
@@ -268,7 +267,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'prev'
     };
-    postApi('/task/text_proof/get_compare_neighbor', {
+    postApi('/task/text_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html(res.txt + $('#cmp').html());
@@ -282,7 +281,7 @@
       cmp_page_code: $('#pagination a.cur').eq(0).attr('title'),
       neighbor: 'next'
     };
-    postApi('/task/text_proof/get_compare_neighbor', {
+    postApi('/task/text_compare_neighbor', {
       data: data
     }, function (res) {
       $('#cmp').html($('#cmp').html() + res.txt);
@@ -307,10 +306,15 @@
     $('#ocrModal').modal();
   });
 
-  // 返回
+  // 离开页面
   window.leave = function () {
+    if ('False' === '{{readonly}}') {
+      postApi('/data/unlock/text/{{page["name"]}}', {});
+    }
     if ('{{mode}}' === 'do') {
       window.location = '/task/lobby/{{"text_proof" if "text_proof" in task_type else task_type}}';
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/{{"text_proof" if "text_proof" in task_type else task_type}}';
     } else {
       window.history.back();
     }
@@ -349,9 +353,11 @@
         return showError('请选择文本', '尚未选择文本');
       }
       postApi('{{current_path}}', {data: getData(true)}, function () {
+        window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
       });
+    } else {
+      window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
     }
-    window.location = '{{"%s?step=%s" % (current_path, steps["next"])}}';
   });
 
   // 退回任务（注意，这里是退回整个文字校对任务）
@@ -361,12 +367,12 @@
 
   $(document).on('click', '#modal-return-btn', function () {
     var reason = $('#return_reason').val();
-    postApi('/task/return/{{task_type}}/{{page["name"]}}', {
+    postApi('/task/return/{{task_type}}/{{task["_id"]}}', {
       data: {reason: reason}
     }, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
       setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'proof' in task_type else 'text_review'}}";
+        window.location = "/task/lobby/text_proof";
       }, 1000);
     });
   });

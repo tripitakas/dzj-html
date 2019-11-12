@@ -57,4 +57,3 @@ class TestUserAdminApi(APITestCase):
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         r = self.fetch('/api/user/delete', body={'data': dict(_id=users[0]['_id'])})
         self.assert_code(200, r)
-

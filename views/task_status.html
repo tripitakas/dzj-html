@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
+{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -73,7 +73,7 @@
                           <span class="sort" data-toggle="dropdown" aria-expanded="false">{{name}}</span>
                           <span class="ion-android-sort "></span>
                           <ul class="dropdown-menu" role="menu">
-                            {% for k, v in th.status_names.items() %}
+                            {% for k, v in Th.task_status_names.items() %}
                             <li><a href="{{current_path}}?type={{_task_type}}&status={{k}}">{{v}}</a></li>
                             {% end %}
                           </ul>
@@ -87,11 +87,11 @@
                     {% for t in tasks %}
                     <tr id="{{t['name']}}" class="task-tr">
                       <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td><a href="/task/info/{{t['name']}}">{{t['name']}}</a></td>
+                      <td><a href="/task/page/{{t['name']}}">{{t['name']}}</a></td>
                       {% for _task_type in display_task_types.keys() %}
-                      <td class="{{th.prop(t, 'tasks.%s.status' % _task_type)}}">
+                      <td class="{{Th.prop(t, 'tasks.%s.status' % _task_type)}}">
                         <a href="/task/{{_task_type}}/{{t['name']}}">
-                          {{th.status_names.get(th.prop(t, 'tasks.%s.status' % _task_type), '')}}
+                          {{Th.get_status_name(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
                         </a>
                       </td>
                       {% end %}

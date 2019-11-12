@@ -10,15 +10,14 @@ op_types = {
     'submit_ocr': dict(name='OCR提交', trends=True, msg='创建了{page_name}任务'),
     'submit_ocr_batch': dict(name='OCR批量导入', trends=True, msg='导入了{context}个页面'),
     'pick_{task_type}': dict(name='领取任务', trends=True, msg='领取了{page_kind}{task_type}任务'),
+    'assign_{task_type}': dict(name='指派任务', trends=True, msg='领取了{page_kind}{task_type}任务'),
     'return_{task_type}': dict(name='退回任务', trends=True, msg='退回了{page_kind}{task_type}任务'),
     'submit_{task_type}': dict(name='提交任务', trends=True, msg='完成了{page_kind}{task_type}任务'),
     'publish_{task_type}': dict(name='发布任务', trends=True, msg='发布了{count}个{task_type}任务'),
-    'save_do_{task_type}': dict(name='新任务保存'),
-    'save_update_{task_type}': dict(name='原任务保存'),
-    'save_edit_{task_type}': dict(name='任务修改保存'),
-    'sel_cmp_{task_type}': dict(name='比对文本保存'),
-    'withdraw_{task_type}': dict(name='撤回任务', trends=True, msg='撤回了{page_name}{task_type}任务'),
-    'reset_{task_type}': dict(name='重置任务', trends=True, msg='重置了{page_name}{task_type}任务'),
+    'save_{task_type}': dict(name='任务保存'),
+    'edit_{data_field}': dict(name='数据修改保存'),
+    'republish': dict(name='重新发布任务', trends=True, msg='重新发布了{page_name}{task_type}任务'),
+    'delete_{task_type}': dict(name='删除任务', trends=True, msg='删除了{page_name}{task_type}任务'),
     'auto_unlock': dict(name='自动回收任务'),
     'login_no_user': dict(name='账号不存在'),
     'login_fail': dict(name='账号密码不对'),
@@ -29,41 +28,39 @@ op_types = {
     'change_role': dict(name='修改用户角色'),
     'reset_password': dict(name='重置密码'),
     'delete_user': dict(name='删除用户'),
-    'change_password': dict(name='修改个人密码'),
-    'change_profile': dict(name='修改个人信息'),
-    'add_tripitaka': dict(name='新增藏数据'),
-    'update_tripitaka': dict(name='修改藏数据'),
-    'delete_tripitaka': dict(name='删除藏数据'),
-    'upload_tripitaka': dict(name='上传藏数据'),
-    'add_volume': dict(name='新增册数据'),
-    'update_volume': dict(name='修改册数据'),
-    'delete_volume': dict(name='删除册数据'),
-    'upload_volume': dict(name='上传册数据'),
-    'add_sutra': dict(name='新增经数据'),
-    'update_sutra': dict(name='修改经数据'),
-    'delete_sutra': dict(name='删除经数据'),
-    'upload_sutra': dict(name='上传经数据'),
-    'add_reel': dict(name='新增卷数据'),
-    'update_reel': dict(name='修改卷数据'),
-    'delete_reel': dict(name='删除卷数据'),
-    'upload_reel': dict(name='上传卷数据'),
+    'change_my_password': dict(name='修改个人密码'),
+    'change_my_profile': dict(name='修改个人信息'),
+    'add_{collection}': dict(name='新增{collection}数据'),
+    'update_{collection}': dict(name='修改{collection_kind}数据'),
+    'delete_{collection}': dict(name='删除{collection_kind}数据'),
+    'upload_{collection}': dict(name='上传{collection_kind}数据'),
+    'import_image': dict(name='导入藏经图'),
+    'import_meta': dict(name='导入藏册页数据'),
 }
-re_map = []
+
+placeholder = {
+    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_[0-9a-z_]+|upload_cloud|import_image',
+    'collection': r'tripitaka|sutra|volume|reel|page',
+}
 
 
 def get_op_def(op_type, params=None):
-    if not re_map:
-        for k in op_types:
-            re_map.append((re.compile(k.replace('{task_type}', '([a-z0-9_]+)')), k))
-    for r, k in re_map:
-        if op_type == 'reset_password':
-            return op_types[op_type]
-        if r.match(op_type):
+    re_map = []
+    for o in op_types:
+        o = o.replace('{task_type}', '([a-z0-9_]+)')
+
+        re_map.append((re.compile(o), o))
+
+    for k, v in op_types.items():
+        for _k, _v in placeholder.items():
+            k = k.replace('{%s}' % _k, '(%s)' % _v)
+        if re.match(k, op_type):
             if params is not None:
-                v = r.findall(op_type)
-                if v and 'task_type' in k:
-                    params['task_type'] = v[0]
-            return op_types[k]
+                f = re.findall(k, op_type)
+                if f and 'task_type' in k:
+                    params['task_type'] = f[0]
+            return v
+    return op_types.get(op_type)
 
 
 def get_op_name(op_type):

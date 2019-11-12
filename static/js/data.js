@@ -8,13 +8,14 @@
 // 数据类型
 var data_type = location.pathname.split('/')[2];
 
-// 全选/反选
+// 全选
 $('#check-all').click(function () {
-  if ($(this).attr("checked") === undefined) {
-    $("table input[type='checkbox']").attr("checked", true);
-  } else {
-    $("table input[type='checkbox']").removeAttr("checked");
-  }
+  var $items = $("tr [type='checkbox']");
+  console.log($items.length);
+  if (!this.checked)
+    $items.removeAttr('checked');
+  else
+    $items.prop('checked', 'true');
 });
 
 // 批量删除

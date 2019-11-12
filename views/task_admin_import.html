@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as Th %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>数据管理-导图片</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet" type="text/css"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .sty-table td {
+      word-break: break-all;
+    }
+
+    .sty-table td a {
+      font-size: 14px;
+    }
+
+    #pan-name {
+      width: 100px;
+      display: inline-flex;
+    }
+
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module CommonLeft(title="data-management", sub="" ) %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="operation">
+                    <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
+                    <div class="btn-group dropdown">
+                      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
+                        发布任务
+                      </button>
+                    </div>
+                  </div>
+                  <div class="search fr">
+                    <input id="search-input" type="text" placeholder="搜索">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                    <thead>
+                    <tr>
+                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                      <th><span>网盘名称</span></th>
+                      <th><span>导入哪个文件夹</span></th>
+                      <th><span class="sort">是否覆盖<br/>已有图片</span></th>
+                      <th>
+                        <span id="status" class="sort {{'active' if order in ['-status', 'status'] else ''}}">
+                          状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
+                        </span>
+                      </th>
+                      <th>
+                        <span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
+                          发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
+                        </span>
+                      </th>
+                      <th>
+                        <span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+                          领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+                        </span>
+                      </th>
+                      <th>
+                        <span id="finished_time" class="sort {{'active' if order in ['-finished_time', 'finished_time'] else ''}}">
+                          完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
+                        </span>
+                      </th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for t in tasks %}
+                    <tr class="task-tr">
+                      <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
+                      <td>{{Th.prop(t, 'input.pan_name') or ''}}</td>
+                      <td style="max-width: 240px;">{{Th.prop(t, 'input.import_dir') or ''}}</td>
+                      <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
+                      <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
+                      <td>{{to_date_str(t.get('publish_time'))}}</td>
+                      <td>{{to_date_str(t.get('picked_time'))}}</td>
+                      <td>{{to_date_str(t.get('finished_time'))}}</td>
+                      <td>
+                        <a class="info" href="/task/info/{{t['_id']}}">详情</a>
+                        <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
+                      </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="panel-body" style="padding-bottom: 2px;">
+  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="modal-title">发布任务-导入图片</h4>
+        </div>
+        <div class="modal-body">
+          <div class="id-values">
+            <h4 class="control-label">导入哪个文件夹</h4>
+            <ul class="nav nav-tabs" id="tabContent">
+              <li class="active"><a href="#tab-pan" data-toggle="tab">网盘目录</a></li>
+              <li><a href="#tab-manual" data-toggle="tab">手工输入</a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="tab-pan">
+                <div style="display: flex">
+                  <input type="text" class="form-control" id="pan-name" value="{{pan_name}}" readonly="readonly"/>
+                  <span style="margin-top: 5px">@</span>
+                  <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
+                </div>
+              </div>
+              <div class="tab-pane" id="tab-manual">
+                <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 class="control-label">图片重复时如何处理？</h4>
+            <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
+            <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
+          </div>
+          <div>
+            <h4 class="control-label">备注</h4>
+            <input type="text" class="form-control" id="remark" placeholder="备注"/>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<script>
+  // 全选
+  $('#checkbox-all').click(function () {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked)
+      $items.removeAttr('checked');
+    else
+      $items.prop('checked', 'true');
+  });
+
+  // 排序
+  $(".sort").click(function () {
+    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+    window.location = "{{current_path}}?order=" + direction + $(this).attr('id');
+  });
+
+  // 搜索
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var q = $(this).val().trim();
+      window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
+    }
+  });
+
+  // 发布任务
+  $("#modal_confirm").click(function () {
+    var active = $('.tab-content .tab-pane.active').attr('id');
+    var panName = active === 'tab-pan' ? $('#pan-name').val().trim() : '';
+    var import_dir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
+    var redo = $('#publishModal input:radio:checked').val();
+    var remark = $('#publishModal #remark').val();
+    var data = {task_type: 'import_image', import_dir: import_dir, pan_name: panName, redo: redo, remark: remark};
+    console.log(data);
+    postApi('/task/publish', {data: data}, function (res) {
+      showSuccess('成功', '数据已提交。');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+  // 重新发布任务
+  function republish(taskId, docId) {
+    var info = {
+      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被撤回并重新发布！",
+      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定", cancelButtonText: "取消"
+    };
+    swal(info, function () {
+      postApi('/task/republish/' + taskId, {'data': {}}, function () {
+        window.location.reload();
+      });
+    });
+  }
+
+  // 批量删除
+  $('#bat-delete').click(function () {
+    var taskIds = $.map($('.task-tr :checkbox'), function (item) {
+      if ($(item).is(':checked'))
+        return $(item).attr('id');
+    });
+    if (taskIds.length === 0) {
+      showError('请选择任务', '当前没有选中任务。');
+      return;
+    }
+    var info = {
+      type: "warning", title: "确定删除吗？", text: "只能删除已发布未领取的任务！",
+      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
+      confirmButtonText: "确定删除", cancelButtonText: "取消"
+    };
+    swal(info, function () {
+      postApi('/task/delete/import_image', {'data': {'task_ids': taskIds}}, function () {
+        window.location.reload();
+      });
+    });
+  });
+
+</script>
+
+</body>
+</html>

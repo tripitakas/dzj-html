@@ -103,7 +103,7 @@ class TestUserCommonApi(APITestCase):
         # 原始密码和新密码一致
         r = self.fetch('/api/user/my/pwd',
                        body={'data': dict(old_password=user1['password'], password=user1['password'])})
-        self.assert_code(e.not_allow_equal, r)
+        self.assert_code(e.both_times_equal, r)
 
         # 正常修改
         r = self.fetch('/api/user/my/pwd', body={'data': dict(old_password=user1['password'], password='user1!@#$%')})

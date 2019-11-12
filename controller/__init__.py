@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from controller import com, task, data, user, tripitaka
 from controller.com import invalid
+from controller import com, cut, data, task, text, tool, user
 
-views = com.views + task.views + data.views + user.views + tripitaka.views
-handlers = com.handlers + task.handlers + data.handlers + user.handlers + tripitaka.handlers + [
-    invalid.ApiTable, invalid.ApiSourceHandler]
-modules = dict(com.modules.items() | task.modules.items())
+views = com.views + cut.views + data.views + tool.views
+views += task.views + text.views + user.views
+
+handlers = com.handlers + cut.handlers + data.handlers + tool.handlers
+handlers += task.handlers + text.handlers + user.handlers
+handlers += [invalid.ApiTable, invalid.ApiSourceHandler]
+
+modules = dict(com.modules.items() | text.modules.items())
+
 InvalidPageHandler = invalid.InvalidPageHandler

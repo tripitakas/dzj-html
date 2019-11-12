@@ -8,26 +8,22 @@
 import re
 import math
 from tornado.web import UIModule
+from controller.helper import prop
 
 
 class CommonLeft(UIModule):
     def render(self, title='', sub=''):
         def is_enabled(module):
-            if 'disable_modules' in self.handler.config and self.handler.config['disable_modules']:
-                return module not in self.handler.config['disable_modules']
-            return True
+            return module not in prop(self.handler.config, 'modules.disabled', '')
 
         can_access = self.handler.can_access
 
         items = [
             dict(name='首页', icon='icon_home', link='/home'),
-            dict(name='CBETA', icon='icon_rs', link='/cbeta'),
             dict(name='大藏经', icon='icon_tripitaka', link='/tripitakas'),
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon_subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/lobby/cut_review'),
-                dict(name='OCR校对', icon='icon_subitem', link='/task/lobby/ocr_proof'),
-                dict(name='OCR审定', icon='icon_subitem', link='/task/lobby/ocr_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/lobby/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/lobby/text_review'),
                 dict(name='难字审定', icon='icon_subitem', link='/task/lobby/text_hard'),
@@ -35,26 +31,20 @@ class CommonLeft(UIModule):
             dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon_subitem', link='/task/my/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/my/cut_review'),
-                dict(name='OCR校对', icon='icon_subitem', link='/task/my/ocr_proof'),
-                dict(name='OCR审定', icon='icon_subitem', link='/task/my/ocr_review'),
                 dict(name='文字校对', icon='icon_subitem', link='/task/my/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/my/text_review'),
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
-                dict(name='任务状态', icon='icon_subitem', link='/task/admin/task_status'),
+                dict(name='导入图片', icon='icon_subitem', link='/task/admin/import_image'),
+                dict(name='上传云端', icon='icon_subitem', link='/task/admin/upload_cloud'),
+                dict(name='OCR字框', icon='icon_subitem', link='/task/admin/ocr_box'),
                 dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
-                dict(name='OCR校对', icon='icon_subitem', link='/task/admin/ocr_proof'),
-                dict(name='OCR审定', icon='icon_subitem', link='/task/admin/ocr_review'),
-                dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof_1'),
+                dict(name='OCR文字', icon='icon_subitem', link='/task/admin/ocr_text'),
+                dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof'),
                 dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
-                dict(name='难字审定', icon='icon_subitem', link='/task/admin/text_hard'),
-            ]),
-            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
-                dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
-                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
+                dict(name='难字校对', icon='icon_subitem', link='/task/admin/text_hard'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
@@ -63,10 +53,15 @@ class CommonLeft(UIModule):
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
             ]),
+            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
+                dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
+                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
+                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
+            ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='文字识别', icon='icon_subitem', link='/data/ocr'),
-                dict(name='自动标点', icon='icon_subitem', link='/data/punctuation'),
-                dict(name='CBETA检索', icon='icon_subitem', link='/data/cbeta_search'),
+                dict(name='文字识别', icon='icon_subitem', link='/tool/ocr'),
+                dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
+                dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),
             ]),
             dict(name='帮助文档', icon='icon_help', link='/help'),
         ]
