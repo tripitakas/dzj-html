@@ -119,7 +119,7 @@
     height: '{{page["height"]}}',
     holder: 'holder',
     scrollContainer: '.bd-container',
-    image: "{{get_img(page.get('img_name', page['name']), page.get('use_local_img'))}}",
+    image: "{{get_img(page)}}",
     chars: boxes
   });
   $.cut.bindKeys();
