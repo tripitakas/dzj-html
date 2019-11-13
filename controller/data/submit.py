@@ -61,7 +61,8 @@ class SubmitDataTaskApi(TaskHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return errors.no_object
-            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
+            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now,
+                           'message': message}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
