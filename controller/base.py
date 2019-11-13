@@ -270,16 +270,17 @@ class BaseHandler(CorsMixin, RequestHandler):
             url = page['img_cloud_path']
             return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
+        page_name = page['name']
         host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
         if not host or salt in [None, '', '待配置'] or force_local:
-            fn = self.static_url('img/{0}/{1}.jpg'.format(page['name'][:2], page['name']))
+            fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
             if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
 
-        hash_value = self.md5_encode(page['name'], salt)
-        inner_path = '/'.join(page['name'].split('_')[:-1])
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page['name'], hash_value)
+        hash_value = self.md5_encode(page_name, salt)
+        inner_path = '/'.join(page_name.split('_')[:-1])
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
     @gen.coroutine
