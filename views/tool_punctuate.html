@@ -55,7 +55,7 @@
 <!-- CUSTOM JS -->
 <script type="text/javascript">
   // 提交
-  $('#btn-finish_task').on("click", function () {
+  $('#btn-submit').on("click", function () {
     var q = $('#punc-input').val();
     if (q.trim().length === 0)
       return;
@@ -67,7 +67,7 @@
   $('#punc-input').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
     if (keyCode == "13") {
-      $('#btn-finish_task').click();
+      $('#btn-submit').click();
     }
   });
 

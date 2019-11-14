@@ -26,7 +26,7 @@ from tornado_cors import CorsMixin
 
 from controller import errors as e
 from controller.auth import get_route_roles, can_access
-from controller.helper import get_date_time
+from controller.helper import get_date_time, prop
 from controller.op_type import get_op_name
 
 MongoError = (PyMongoError, BSONError)
@@ -259,22 +259,29 @@ class BaseHandler(CorsMixin, RequestHandler):
         except MongoError:
             pass
 
-    def get_img(self, page_code, resize=False, force_local=False):
-        host = self.config.get('img', {}).get('host')
-        salt = self.config.get('img', {}).get('salt')
+    @staticmethod
+    def md5_encode(page_code, salt):
+        md5 = hashlib.md5()
+        md5.update((page_code + salt).encode('utf-8'))
+        return md5.hexdigest()
+
+    def get_img(self, page, resize=False, force_local=False):
+        if page.get('img_cloud_path'):
+            url = page['img_cloud_path']
+            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+        page_name = page['name']
+        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
         if not host or salt in [None, '', '待配置'] or force_local:
-            fn = self.static_url('img/{0}/{1}.jpg'.format(page_code[:2], page_code))
-            # fn = self.static_url('img/{0}/{1}.gif'.format('/'.join(page_code.split('_')[:-1]), page_code))
+            fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
             if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
-        md5 = hashlib.md5()
-        md5.update((page_code + salt).encode('utf-8'))
-        hash_value = md5.hexdigest()
-        inner_path = '/'.join(page_code.split('_')[:-1])
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
-        url = url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-        return url
+
+        hash_value = self.md5_encode(page_name, salt)
+        inner_path = '/'.join(page_name.split('_')[:-1])
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
+        return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):

@@ -55,16 +55,13 @@ class TripitakaHandler(BaseHandler):
                 next = content_pages[pos + 1 if pos < len(content_pages) - 1 else -1]
                 nav.update(dict(cur_page=cur_page, first=first, last=last, prev=prev, next=next))
 
-            # 获取图片路径
+            # 获取图片路径及文本数据
             page_code = nav.get('cur_page')
-            img_url = self.get_img(page_code)
-
-            # 检查文本数据
             page = self.db.page.find_one({'name': page_code})
-            page_text = page and (page.get('text') or page.get('ocr')) or ''
+            page_text = (page.get('text') or page.get('ocr')) if page else ''
 
             self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code,
-                        nav=nav, img_url=img_url, page_text=page_text, page=page)
+                        nav=nav, img_url=self.get_img(dict(name=page_code)), page_text=page_text, page=page)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

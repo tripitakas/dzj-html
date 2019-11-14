@@ -303,7 +303,7 @@
       width: '{{page["width"]}}',
       height: '{{page["height"]}}',
       holder: 'holder',
-      image: '{{get_img(page.get("img_name", page.get("name")), page.get("use_local_img"))}}',
+      image: '{{get_img(page)}}',
       chars: char_data
     });
     $.cut.bindMatchingKeys();

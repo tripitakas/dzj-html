@@ -43,8 +43,9 @@ class SubmitDataTaskApi(TaskHandler):
 
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+            ocr = '|'.join(result['ocr']) if isinstance(result.get('ocr'), list) else result.get('ocr', '')
             page_update = dict(blocks=result.get('blocks'), columns=result.get('columns'),
-                               chars=result.get('chars'), ocr=result.get('ocr'),
+                               chars=result.get('chars'), ocr=ocr,
                                width=result.get('width') or page.get('width'),
                                height=result.get('height') or page.get('height'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
@@ -57,16 +58,18 @@ class SubmitDataTaskApi(TaskHandler):
         """ 提交upload_cloud任务。page中包含有云端路径img_cloud_path """
         now = datetime.now()
         page_name, result, message = task.get('page_name'), task['result'], task.get('message')
+        task_update = {'updated_time': now, 'result': result, 'message': message}
         if task['status'] == 'success':
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return errors.no_object
-            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
+            task_update.update({'status': self.STATUS_FINISHED, 'finished_time': now})
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
         else:
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
+            task_update.update({'status': self.STATUS_FAILED, 'finished_time': now})
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
