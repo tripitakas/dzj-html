@@ -59,7 +59,7 @@ class CommonLeft(UIModule):
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='文字识别', icon='icon_subitem', link='/tool/ocr'),
+                # dict(name='文字识别', icon='icon_subitem', link='/tool/ocr'),
                 dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),
             ]),

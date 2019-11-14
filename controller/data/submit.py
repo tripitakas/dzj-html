@@ -43,8 +43,9 @@ class SubmitDataTaskApi(TaskHandler):
 
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+            ocr = '|'.join(result['ocr']) if isinstance(result.get('ocr'), list) else result.get('ocr', '')
             page_update = dict(blocks=result.get('blocks'), columns=result.get('columns'),
-                               chars=result.get('chars'), ocr=result.get('ocr'),
+                               chars=result.get('chars'), ocr=ocr,
                                width=result.get('width') or page.get('width'),
                                height=result.get('height') or page.get('height'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
