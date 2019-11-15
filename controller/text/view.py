@@ -44,10 +44,13 @@ class TextProofHandler(TaskHandler, TextPack):
             return self.send_db_error(e, render=True)
 
     def select_compare_text(self, task, page, mode, steps, readonly, num):
+        ocr = page.get('ocr')
+        if isinstance(ocr, list):
+            ocr = '|'.join(ocr)
         self.render(
             'task_text_select_compare.html',
             task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly, num=num,
-            steps=steps, ocr=page.get('ocr'), cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
+            steps=steps, ocr=ocr, cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )
 
     def proof(self, task, page, mode, steps, readonly):
