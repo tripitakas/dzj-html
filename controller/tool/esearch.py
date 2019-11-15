@@ -39,6 +39,8 @@ def find(q, index='cb4ocr-ik'):
 
 def find_one(ocr, num=1):
     """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
+    if isinstance(ocr, list):
+        ocr = '|'.join(ocr)
     ret = find(ocr)
     if not ret or num - 1 not in range(0, len(ret)):
         return '', []

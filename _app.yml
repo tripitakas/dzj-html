@@ -24,10 +24,6 @@ esearch:
   host: 127.0.0.1
   port: 9200
 
-# OCR
-ocr:
-  api: http://127.0.0.1:8010/ocr
-
 # 模块
 module:
   disabled: OCR校对,OCR审定
