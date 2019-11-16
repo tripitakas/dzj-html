@@ -72,7 +72,8 @@ class Application(web.Application):
             username = user and (hasattr(user, 'name') and user.name or user.get('name')) or ''
             request_time = 1000.0 * handler.request.request_time()
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
-            log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
+            if not (log_method == access_log.info and username == '小欧' and 'login' in summary):
+                log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
 
     @staticmethod
     def load_config():
