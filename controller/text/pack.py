@@ -6,6 +6,7 @@
 """
 import re
 from operator import itemgetter
+from tornado.escape import url_escape
 
 
 class TextPack(object):
@@ -46,9 +47,13 @@ class TextPack(object):
                 for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
                     c['txt'] = column_strip[i] if i < len(column_strip) else '?'
                     matched_boxes.append(c)
+
             seg['txt_line_no'] = seg.get('txt_line_no', seg['line_no'])
-            seg['line_no'] = boxes[0]['line_no']
-            seg['block_no'] = boxes[0]['block_no']
+            seg['block_no'], seg['line_no'] = column_ids[line_no - 1]
+
+            column_strip = re.sub(r'\s', '', seg.get('base', ''))
+            char_codes = [(c, url_escape(c)) for c in list(column_strip)]
+            seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
 
         for c in chars:
             if c not in matched_boxes:

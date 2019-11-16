@@ -32,8 +32,23 @@ function getLineText($line) {
     if ($(el).hasClass('variant')) {
       chars.push($(el).text());
     } else {
-      var text = $(el).text().replace(/\s/g, '');
-      chars = chars.concat(text.split(''));
+      var text = $(el).text();
+      var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
+      var mb4Map = {}, order = 'a', c;
+
+      mb4Chars.forEach(function(mb4Char) {
+        if (mb4Char && text.indexOf(mb4Char) !== -1) {
+          mb4Map[order] = mb4Char;
+          text = text.replace(new RegExp(mb4Char, 'g'), order);
+          order = String.fromCharCode(order.charCodeAt() + 1);
+        }
+      });
+
+      text = text.split('').map(function(c) {
+        return mb4Map[c] || c;
+      });
+      console.log(text);
+      chars = chars.concat(text);
     }
   });
   return chars;

@@ -4,7 +4,6 @@
 @time: 2019/5/13
 """
 import re
-from tornado.escape import url_escape
 from tornado.web import UIModule
 from bson.objectid import ObjectId
 import controller.errors as errors
@@ -193,11 +192,6 @@ class TextArea(UIModule):
         cur_line_no, items, lines = 0, [], []
         blocks = [dict(block_no=1, lines=lines)]
         for item in segments:
-            if isinstance(item.get('ocr'), list):
-                item['unicode'] = item['ocr']
-                item['ocr'] = ''.join(c if re.match('^[A-Za-z0-9?*]$', c) else url_escape(c) if len(c) > 2 else ' '
-                                      for c in item['ocr'])
-
             if 'block_no' in item and item['block_no'] != blocks[-1]['block_no']:
                 lines = []
                 blocks.append(dict(block_no=blocks[-1]['block_no'] + 1, lines=lines))

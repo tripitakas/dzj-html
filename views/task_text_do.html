@@ -78,6 +78,12 @@
             <button type="button" class="btn btn-default btn-sm ed-char-order" title="修改字序">字序</button>
           </span>
         </div>
+        <div class="slice-btns">
+          <div class="btn-group">
+            <button type="button" class="btn btn-default btn-sm fl btn-num-show" title="切换显示或隐藏字框浮动条的字序">字序</button>
+            <button type="button" class="btn btn-default btn-sm fl btn-txt-show" title="切换显示或隐藏字框浮动条的文字">文字</button>
+          </div>
+        </div>
         <div class="right">
           <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
             数据已被其他人锁定，暂时不能修改。
@@ -284,6 +290,7 @@
 
 {% include _base_js.html %}
 {% include _cut_base.html %}
+{% include _font.html %}
 <script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
 <script src="{{ static_url('js/proofread.js') }}"></script>
 <script src="{{ static_url('js/task.js') }}"></script>
@@ -315,6 +322,7 @@
   createPage();
   $('#canvas-bd').focus();
 
+  showText = true;  // 默认显示浮动条
 </script>
 
 <script>
