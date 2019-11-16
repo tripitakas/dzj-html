@@ -257,13 +257,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         user_id = self.current_user and self.current_user.get('_id')
         if not (username in ['小欧', 'ocr-processor'] and 'login' in op_type):
             logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
-        try:
-            self.db.log.insert_one(dict(
-                op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,
-                context=str(context), ip=self.get_ip(), create_time=datetime.now(),
-            ))
-        except MongoError:
-            pass
+            try:
+                self.db.log.insert_one(dict(
+                    op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,
+                    context=str(context), ip=self.get_ip(), create_time=datetime.now(),
+                ))
+            except MongoError:
+                pass
 
     @staticmethod
     def md5_encode(page_code, salt):

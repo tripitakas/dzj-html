@@ -85,8 +85,8 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
-        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
         if user['name'] not in ['小欧', 'ocr-processor']:
+            self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
             logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                          (user['_id'], user['name'], phone_or_email, user['roles']))
 
