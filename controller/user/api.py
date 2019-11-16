@@ -24,6 +24,9 @@ from tornado.options import options
 class LoginApi(BaseHandler):
     URL = '/api/user/login'
 
+    def check_xsrf_cookie(self):
+        pass  # 登录不检查 xsrf，方便自动登录
+
     def post(self):
         """ 登录 """
         user = self.get_request_data()
@@ -83,8 +86,9 @@ class LoginApi(BaseHandler):
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
         self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
-        logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
-                     (user['_id'], user['name'], phone_or_email, user['roles']))
+        if user['name'] not in ['小欧', 'ocr-processor']:
+            logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
+                         (user['_id'], user['name'], phone_or_email, user['roles']))
 
         if send_response:
             self.send_data_response(user)

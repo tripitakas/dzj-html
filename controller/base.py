@@ -255,7 +255,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         assert op_name, op_type + ' need add into op_type.py'
         username = username or self.current_user and self.current_user.get('name')
         user_id = self.current_user and self.current_user.get('_id')
-        logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
+        if not (username in ['小欧', 'ocr-processor'] and 'login' in op_type):
+            logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
         try:
             self.db.log.insert_one(dict(
                 op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,

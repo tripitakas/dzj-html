@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.auth import url_placeholder
 
-__version__ = '0.0.58.91116'
+__version__ = '0.0.59.91117'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -72,7 +72,7 @@ class Application(web.Application):
             username = user and (hasattr(user, 'name') and user.name or user.get('name')) or ''
             request_time = 1000.0 * handler.request.request_time()
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
-            if not (log_method == access_log.info and username == '小欧' and 'login' in summary):
+            if not (log_method == access_log.info and username in ['小欧', 'ocr-processor'] and 'login' in summary):
                 log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
 
     @staticmethod
