@@ -12,7 +12,6 @@ from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
-from aliyunsdkcore.acs_exception.exceptions import ServerException, ClientException
 from datetime import datetime, timedelta
 from bson import objectid, json_util
 from controller import errors
@@ -57,7 +56,7 @@ class LoginApi(BaseHandler):
             return self.send_db_error(e)
 
     @staticmethod
-    def login(self, phone_or_email, password, report_error=True):
+    def login(self, phone_or_email, password, report_error=True, send_response=True):
         user = self.db.user.find_one({
             '$or': [
                 {'email': phone_or_email},
@@ -67,12 +66,12 @@ class LoginApi(BaseHandler):
         if not user:
             if report_error:
                 self.add_op_log('login_no_user', context=phone_or_email)
-                return self.send_error_response(errors.no_user)
+                return send_response and self.send_error_response(errors.no_user)
             return
         if user['password'] != hlp.gen_id(password):
             if report_error:
                 self.add_op_log('login_fail', context=phone_or_email)
-                return self.send_error_response(errors.incorrect_password)
+                return send_response and self.send_error_response(errors.incorrect_password)
             return
 
         # 清除登录失败记录
@@ -87,7 +86,8 @@ class LoginApi(BaseHandler):
         logging.info('login id=%s, name=%s, phone_or_email=%s, roles=%s' %
                      (user['_id'], user['name'], phone_or_email, user['roles']))
 
-        self.send_data_response(user)
+        if send_response:
+            self.send_data_response(user)
         return user
 
 

@@ -31,6 +31,7 @@ from controller.op_type import get_op_name
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
+hook = {}
 
 
 class BaseHandler(CorsMixin, RequestHandler):
@@ -63,6 +64,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查用户是否已登录
         api = '/api/' in p
         login_url = self.get_login_url() + '?next=' + self.request.uri
+        if not self.current_user and '/api/user/' not in p and self.request.headers.get(
+                'phone_or_email') and self.request.headers.get('password'):
+            hook['login'](self, self.request.headers['phone_or_email'], self.request.headers['password'],
+                          report_error=False, send_response=False)
         if not self.current_user:
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
