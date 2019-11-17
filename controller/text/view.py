@@ -44,8 +44,7 @@ class TextProofHandler(TaskHandler, TextPack):
 
     def select_compare_text(self, task, page, mode, steps, readonly, num):
         ocr = page.get('ocr')
-        if isinstance(ocr, list):
-            ocr = '|'.join(ocr)
+        ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
         self.render(
             'task_text_select_compare.html',
             task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly, num=num,

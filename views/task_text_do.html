@@ -71,9 +71,11 @@
         <div class="title" title='{{page["name"]}}'>{{stage}}</div>
         <div class="help"><img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/></div>
         <div class="edit-btns">
-          <img src="{{ static_url('imgs/icon_aim.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
+          <img src="{{ static_url('imgs/btn-chars.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
+          <img src="{{ static_url('imgs/btn-text.png') }}" class="btn-img btn-txt-show" title="显示字框文字"/>
+          <img src="{{ static_url('imgs/btn-order.png') }}" class="btn-img btn-num-show" title="显示字框序号"/>
         </div>
         <div class="more">
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
@@ -83,12 +85,6 @@
             <button type="button" class="btn btn-default btn-sm ed-column-box" title="修改列框">列框</button>
             <button type="button" class="btn btn-default btn-sm ed-char-order" title="修改字序">字序</button>
           </span>
-        </div>
-        <div class="slice-btns">
-          <div class="btn-group">
-            <button type="button" class="btn btn-default btn-sm fl btn-num-show" title="切换显示或隐藏字框浮动条的字序">字序</button>
-            <button type="button" class="btn btn-default btn-sm fl btn-txt-show" title="切换显示或隐藏字框浮动条的文字">文字</button>
-          </div>
         </div>
         <div class="right">
           <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
@@ -107,6 +103,7 @@
             <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
             <img src="{{ static_url('imgs/icon_compare.png') }}" class="btn-img btn-compare" title="重新比对"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text {{'' if texts else 'hide'}}" title="原文"/>
+            <div class="btn-txt btn-gap"></div>
             <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
             <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
@@ -402,7 +399,7 @@
   // 重新比对
   $('.btn-compare').on("click", function () {
     swal({
-          type: "warning", title: "确定重新比对吗？", text: "重新比对将清空之前的校对结果！",
+          type: "warning", title: "确定重新比对吗？", text: "将使用第一步选择的文本重新比对，并清空当前的校对结果！",
           confirmButtonColor: "#b8906f", confirmButtonText: "确定", cancelButtonText: "取消",
           showCancelButton: true, closeOnConfirm: false
         },

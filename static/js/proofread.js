@@ -36,7 +36,7 @@ function getLineText($line) {
       var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
       var mb4Map = {}, order = 'a', c;
 
-      mb4Chars.forEach(function(mb4Char) {
+      mb4Chars.forEach(function (mb4Char) {
         if (mb4Char && text.indexOf(mb4Char) !== -1) {
           mb4Map[order] = mb4Char;
           text = text.replace(new RegExp(mb4Char, 'g'), order);
@@ -44,7 +44,7 @@ function getLineText($line) {
         }
       });
 
-      text = text.split('').map(function(c) {
+      text = text.split('').map(function (c) {
         return mb4Map[c] || c;
       });
       chars = chars.concat(text);
@@ -174,7 +174,7 @@ $.cut.onBoxChanged(function (char, box, reason) {
 /*-----------文本区域相关代码----------------*/
 
 // 单击异文，弹框提供选择
-$(document).on('click', '.not-same', function (e) {
+$(document).on('dblclick', '.not-same', function (e) {
   e.stopPropagation();
 
   // 设置当前span
@@ -350,7 +350,7 @@ function previousDiff() {
   if (idx < 1) {
     return;
   }
-  $notSame.eq(idx - 1).click();
+  $notSame.eq(idx - 1).dblclick();
   if ($('.dialog-abs').offset().top < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
   }
@@ -365,7 +365,7 @@ function nextDiff() {
   var current = $('.current-not-same');
   var $notSame = $('.pfread .right .not-same');
   var idx = $notSame.index(current);
-  $notSame.eq(idx + 1).click();
+  $notSame.eq(idx + 1).dblclick();
   if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
   }

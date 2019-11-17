@@ -791,12 +791,18 @@ a:hover {
     cursor: pointer;
 }
 
-.m-header .btn-empty-places {
-    margin: 8px 6px;
-}
-
 .m-header .btn-txt:hover {
     transform: scale(1.2);
+}
+
+.m-header .btn-gap {
+    width: 0;
+    cursor: none;
+    height: 40px;
+    padding: 1px 1px;
+    background-color: var(--Color_Grey_Line);
+    margin: 0px 1px;
+    float: initial;
 }
 
 .m-header .font {
@@ -878,7 +884,7 @@ a.download-template {
 }
 
 .modal .tick {
-    word-wrap:break-word;
+    word-wrap: break-word;
 }
 
 .sweet-alert .tips li {
@@ -887,7 +893,7 @@ a.download-template {
     justify-content: center;
 }
 
-.sweet-alert .tips li span{
+.sweet-alert .tips li span {
     flex: 1;
     display: inline-block;
     text-align: left;
