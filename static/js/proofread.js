@@ -32,7 +32,7 @@ function getLineText($line) {
     if ($(el).hasClass('variant')) {
       chars.push($(el).text());
     } else {
-      var text = $(el).text();
+      var text = $(el).text().replace(/\s/g, '');
       var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
       var mb4Map = {}, order = 'a', c;
 
@@ -47,7 +47,6 @@ function getLineText($line) {
       text = text.split('').map(function(c) {
         return mb4Map[c] || c;
       });
-      console.log(text);
       chars = chars.concat(text);
     }
   });
