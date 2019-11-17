@@ -135,30 +135,41 @@ function highlightBox($span, first) {
   $.cut.data.line_no = line_no;
   currentSpan = [$span, first];
 
-  // 按字序号浮动亮显当前行的字框
-  text = getLineText($line);
   all = $.cut.findCharsByLine(block_no, line_no);
-  $.cut.showFloatingPanel(
-      (showOrder || showText) ? all : [],
-      function (char, index) {
-        return (showOrder ? char.char_no : '') + (!text[index] ? '？' : showText ? text[index] : '');
-      },
-      highlightBox
-  );
-
-  // 显示当前栏框
-  if (showBlockBox) {
-    $.cut.showBox('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
-  }
-
-  // 显示当前列框
-  if (showColumnBox) {
-    $.cut.showBox('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
-  }
-
   $.cut.switchCurrentBox(((boxes.length ? boxes : all)[0] || {}).shape);
 }
 
+
+$.cut.onBoxChanged(function (char, box, reason) {
+  if (reason === 'navigate' && char) {
+    // 按字序号浮动亮显当前行的字框
+    var $line = $('#block-' + char.block_no).find('#line-' + char.line_no);
+    var text = getLineText($line);
+    var all = $.cut.findCharsByLine(char.block_no, char.line_no);
+
+    $('.line').removeClass('active');
+    $line.addClass('active');
+
+    $.cut.removeBandNumber(0, true);
+    $.cut.showFloatingPanel(
+        (showOrder || showText) ? all : [],
+        function (char, index) {
+          return (showOrder ? char.char_no : '') + (!text[index] ? '？' : showText ? text[index] : '');
+        },
+        highlightBox
+    );
+
+    // 显示当前栏框
+    if (showBlockBox) {
+      $.cut.showBox('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
+    }
+
+    // 显示当前列框
+    if (showColumnBox) {
+      $.cut.showBox('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
+    }
+  }
+});
 
 /*-----------文本区域相关代码----------------*/
 
