@@ -9,11 +9,6 @@ import controller.errors as e
 import controller.validate as v
 from controller.helper import cmp_page_code
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
 
 class Data(object):
     fields = []  # 字段定义，格式如[['volume_code', '册编码'], ...]

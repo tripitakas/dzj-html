@@ -30,8 +30,8 @@ url_placeholder = {
     将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
     角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
     routes：角色可以访问的权限集合；
-    roles：角色所继承的父角色； 
-    is_assignable：角色是否可被分配。 
+    roles：角色所继承的父角色；
+    is_assignable：角色是否可被分配。
 """
 role_route_maps = {
     '单元测试用户': {

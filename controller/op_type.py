@@ -16,6 +16,7 @@ op_types = {
     'publish_{task_type}': dict(name='发布任务', trends=True, msg='发布了{count}个{task_type}任务'),
     'save_{task_type}': dict(name='任务保存'),
     'edit_{data_field}': dict(name='数据修改保存'),
+    'save_edit_{data_field}': dict(name='数据修改保存'),
     'republish': dict(name='重新发布任务', trends=True, msg='重新发布了{page_name}{task_type}任务'),
     'delete_{task_type}': dict(name='删除任务', trends=True, msg='删除了{page_name}{task_type}任务'),
     'auto_unlock': dict(name='自动回收任务'),

@@ -4,7 +4,6 @@
 @desc: 藏经数据管理
 @time: 2019/3/13
 """
-from controller.base import BaseHandler
 import json
 from os import path
 from .ocr import ocr2page

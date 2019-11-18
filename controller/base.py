@@ -131,7 +131,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_data_response(**kwargs)
 
         logging.info(template_name + ' by ' + re.sub(r"^.+controller\.|'>", '', str(self.__class__)))
-        self.add_op_log('visit', context=self.request.path)
+        # self.add_op_log('visit', context=self.request.path)
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
