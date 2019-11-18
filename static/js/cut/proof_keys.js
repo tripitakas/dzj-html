@@ -165,7 +165,7 @@
               data.paper.rect(p.x + offset, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.3)'}),
               data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
-                .attr({'font-size': 13 * Math.min(s, 1.5), 'text-align': 'center', stroke: '#44f'}),
+                .attr({'font-size': 14 * Math.min(s, 1.5), 'text-align': 'center', stroke: '#333333'}),
               data.paper.rect(p.x, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.4)'})
             ]
