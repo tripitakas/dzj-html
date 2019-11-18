@@ -14,12 +14,10 @@ from tornado.util import PY3
 from os import path, listdir, mkdir
 from datetime import datetime
 
-sys.path.append(path.dirname(path.dirname(__file__)))
-
-from controller.data.data import Page
-
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
+
+from controller.data.data import Page
 
 data = dict(count=0)
 
@@ -73,9 +71,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False, s
         ))
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
-                meta['ocr'] = '|'.join(info['ocr']).replace(' ', '')
+                meta['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
             else:
                 meta['ocr'] = info['ocr'].replace('\n', '|')
+        if info.get('text'):
+            if isinstance(info['text'], list):
+                meta['text'] = '|'.join(info['text']).replace('\u3000', '|').replace(' ', '')
+            else:
+                meta['text'] = info['text'].replace('\n', '|')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
@@ -87,7 +90,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False, s
             meta['source'] = source
 
         data['count'] += 1
-        print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
+        print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
             name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
         ))
 
