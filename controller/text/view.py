@@ -124,15 +124,17 @@ class TextReviewHandler(TaskHandler, TextPack):
             CutHandler.char_render(page, layout, **params)
             review_doubt = self.prop(task, 'result.doubt')
             proof_doubt, texts = get_proof_meta()
+            labels = dict(base='校一', cmp1='校一', cmp2='校三')
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=not has_lock,
-                texts=texts, cmp_data=cmp_data, doubt=review_doubt, proof_doubt=proof_doubt,
-                get_img=self.get_img, steps=dict(is_first=True, is_last=True), **params
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
+                readonly=not has_lock, texts=texts, labels=labels, cmp_data=cmp_data,
+                doubt=review_doubt, proof_doubt=proof_doubt, get_img=self.get_img,
+                steps=dict(is_first=True, is_last=True), **params
             )
 
         except Exception as e:
