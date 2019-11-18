@@ -7,7 +7,7 @@ from tornado.escape import to_basestring
 import controller.validate as v
 from controller import errors
 from controller.base import BaseHandler, DbError
-from .data import Tripitaka, Volume, Reel, Sutra, Page
+from .data import Page
 from controller.task.base import TaskHandler
 from .submit import SubmitDataTaskApi
 

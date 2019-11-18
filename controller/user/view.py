@@ -7,8 +7,7 @@
 import math
 import logging
 from controller.base import BaseHandler
-from controller import  auth
-
+from controller import auth
 
 
 class UserLoginHandler(BaseHandler):

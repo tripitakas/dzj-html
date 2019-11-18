@@ -12,6 +12,10 @@ import shutil
 import pymongo
 from tornado.util import PY3
 from os import path, listdir, mkdir
+from datetime import datetime
+
+sys.path.append(path.dirname(path.dirname(__file__)))
+
 from controller.data.data import Page
 
 BASE_DIR = path.dirname(path.dirname(__file__))
@@ -35,7 +39,7 @@ def load_json(filename):
         sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
-def scan_dir(src_path, kind, db, ret, use_local_img=False):
+def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False, source=None):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
@@ -44,20 +48,20 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False):
         if path.isdir(filename):
             fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
             if not kind or kind == fn2:
-                scan_dir(filename, fn2, db, ret, use_local_img=use_local_img)
-        elif kind and fn[:2] == kind:
+                scan_dir(filename, fn2, db, ret, use_local_img=use_local_img, update=update, source=source)
+        elif not kind or fn[:2] == kind:
             if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
                 info = load_json(filename)
                 if info:
-                    name = info.get('imgname')
-                    if name != fn[:-5]:
-                        sys.stderr.write('invalid imgname %s, %s\n' % (filename, kind))
+                    name = info.get('imgname') or info.get('name')
+                    if name != fn[:-5] or not re.match(r'^[A-Z]{2}(_\d+)+$', name):
+                        sys.stderr.write('invalid imgname %s, %s\n' % (filename, name))
                         continue
-                    add_page(name, info, db, use_local_img=use_local_img)
-                    ret.add(name)
+                    if add_page(name, info, db, use_local_img=use_local_img, update=update, source=source):
+                        ret.add(name)
 
 
-def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
+def add_page(name, info, db, img_name=None, use_local_img=False, update=False, source=None):
     exist = db.page.find_one(dict(name=name))
     if update or not exist:
         meta = Page.metadata()
@@ -69,16 +73,18 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
         ))
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
-                meta['ocr'] = '|'.join(info['ocr'])
+                meta['ocr'] = '|'.join(info['ocr']).replace(' ', '')
             else:
                 meta['ocr'] = info['ocr'].replace('\n', '|')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
-        for field in ['source', 'h_num', 'v_num']:
+        for field in ['source', 'h_num', 'v_num', 'create_time']:
             if info.get(field):
                 meta[field] = info[field]
+        if source:
+            meta['source'] = source
 
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d colums=%d chars=%d' % (
@@ -91,6 +97,10 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
             r = update and db.page.update_one(dict(name=name), {'$set': meta})
             info['id'] = str(exist['_id'])
         else:
+            if not meta.get('create_time'):
+                meta['create_time'] = datetime.now()
+            elif isinstance(meta['create_time'], str):
+                meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
             r = db.page.insert_one(meta)
             info['id'] = str(r.inserted_id)
 
@@ -131,7 +141,7 @@ def copy_img_files(src_path, pages):
 
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=True, use_local_img=False):
+         reset=True, use_local_img=False, update=False, source=None):
     """
     页面导入的主函数
     :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录
@@ -142,6 +152,8 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     :param reset: 是否先清空page表
     :param use_local_img: 是否让页面强制使用本地的页面图，默认是使用OSS上的高清图（如果在app.yml配置了OSS）
+    :param update: 已存在的页面是否更新
+    :param source: 页面数据来源或批次标识
     :return: 新导入的页面的个数
     """
     if not json_path:
@@ -151,7 +163,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     if reset:
         db.page.drop()
     pages = set()
-    scan_dir(json_path, kind, db, pages, use_local_img=use_local_img)
+    scan_dir(json_path, kind, db, pages, use_local_img=use_local_img, update=update, source=source)
     copy_img_files(img_path, pages)
     add_texts(txt_path, pages, db)
     return data['count']

@@ -5,8 +5,6 @@
 @time: 2018/6/23
 """
 
-import re
-import traceback
 from datetime import datetime
 from operator import itemgetter
 from controller.task.base import TaskHandler
