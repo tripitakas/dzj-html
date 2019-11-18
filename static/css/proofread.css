@@ -5,15 +5,16 @@
 }
 
 .pfread-in {
-    padding: 50px 15px 0 15px;
+    padding: 48px 5px 0;
 }
 
 .pfread-in .bd {
     overflow: auto;
-    height: calc(100% - 70px);
+    height: calc(100% - 60px);
 }
 
 .pfread-in .left {
+    flex: 1;
     width: 50%;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -55,7 +56,7 @@
 }
 
 .pfread-in .right {
-    width: 49%;
+    flex: 1;
     margin-left: 1%;
     border: 1px solid #ccc;
     border-radius: 5px;

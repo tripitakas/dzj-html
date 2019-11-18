@@ -103,6 +103,7 @@
             <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img btn-check" title="图文匹配检查"/>
             <img src="{{ static_url('imgs/icon_compare.png') }}" class="btn-img btn-compare" title="重新比对"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img btn-text {{'' if texts else 'hide'}}" title="原文"/>
+            <img src="{{ static_url('imgs/icon_cancel.png') }}" class="btn-img btn-hide-text" title="隐藏文本"/>
             <div class="btn-txt btn-gap"></div>
             <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
             <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
@@ -114,13 +115,13 @@
       </header>
 
       <div class="flex-content pfread-in">
-        <div class="left fl">
+        <div class="left">
           <div class="bd" id="canvas-bd">
             <div id="holder"></div>
           </div>
         </div>
         <!--/.left-->
-        <div class="right fr">
+        <div class="right">
           <div class="bd">
             <div class="sutra-text" id="sutra-text">
               {% if isinstance(cmp_data, str) %}
@@ -332,8 +333,8 @@
   // 高度自适应
   function heightAdaptive() {
     var h = $(document.body).height();
-    $(".pfread .bd").height(h - 70);
-    $("#sutra-text").css('min-height', h - $('.char-list').height() - 70);
+    $(".pfread .bd").height(h - 60);
+    $("#sutra-text").css('min-height', h - $('.char-list').height() - 60);
   }
 
   $(document).ready(function () {
@@ -375,6 +376,11 @@
   // 修改字序
   $('.ed-char-order').click(function () {
     window.location = '{{"/data/edit/box/%s" % page["name"]}}?step=char_order';
+  });
+
+  // 隐藏文本区域
+  $('.btn-hide-text').click(function () {
+    $('.flex-content .right').toggleClass('hide');
   });
 
   // 帮助
@@ -436,6 +442,7 @@
       }, 1000);
     });
   });
+
   // 提交任务
   $('.btn-submit').on("click", function () {
     postApi('{{current_path}}', {data: getData(true)}, function () {
