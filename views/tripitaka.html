@@ -54,6 +54,22 @@
     padding: 0;
   }
 
+  .modal-body textarea {
+    display: inline-block;
+  }
+
+  #txtModal .modal-body {
+    display: flex;
+  }
+
+  #txtModal textarea {
+    flex: 1;
+    font-size: 1.2em;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 8px;
+  }
+
   .page-picture img {
     width: 100%;
   }
@@ -112,6 +128,7 @@
               <div class="zone-control" style="padding: 0 5px">
                 <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img zone-left" title="图片区域"/>
                 <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-right" title="文字区域"/>
+                <img src="{{ static_url('imgs/btn_text.png') }}" class="btn-img btn-text" title="原文"/>
               </div>
               <div class="img-control" style="padding: 0 5px">
                 <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
@@ -143,7 +160,7 @@
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
                 <span class="btn-group more-group hidden" role="group" aria-label="更多">
                   {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-                  <button type="button" class="btn btn-default btn-sm show-{{type}}-box">{{text}}</button>
+                  <button type="button" class="btn btn-default btn-sm show-{{type}}">{{text}}</button>
                   {% end %}
                 </span>
               </div>
@@ -217,6 +234,28 @@
   </div>
 </div>
 
+<div class="panel-body" style="padding: 0">
+  <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <div class="modal-header">
+          <div class="btn-group" role="group">
+            <button class="btn btn-txt btn-default{{'' if page.get('ocr') else ' hide'}}" id="show-ocr">OCR</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-text">校对文本</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-all">所有</button>
+          </div>
+        </div>
+        <div class="modal-body">
+          {% import re %}
+          <textarea id="ocr" class="{{'' if page.get('ocr') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('ocr') or ''))}}</textarea>
+          <textarea id="text" class="{{'' if page.get('text') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('text') or ''))}}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include _base_js.html %}
 {% include _cut_base.html %}
 <script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
@@ -226,17 +265,69 @@
 
 {% if page %}
 <script>
+  var chars = decodeJSON('{{page.get("chars", [])}}');
+  var columns = decodeJSON('{{page.get("columns", [])}}');
+  var blocks = decodeJSON('{{page.get("blocks", [])}}');
+
   $.cut.create({
     readonly: true,
-    name: 't_{{page["name"]}}',
+    scrollContainer: '.content-left',
+    name: '{{page["name"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    scrollContainer: '.content-left',
-    image: "{{img_url}}",
-    chars: '{{page["chars"]}}'
+    image: '{{img_url}}',
+    chars: []
   });
-  $.cut.bindKeys();
+
+  $.extend($.cut, {
+    refresh: function (boxes) {
+      $.cut.chars = boxes;
+      $.cut.create({
+        readonly: true,
+        scrollContainer: '.content-left',
+        name: '{{page["name"]}}',
+        width: '{{page["width"]}}',
+        height: '{{page["height"]}}',
+        holder: 'holder',
+        image: '{{img_url}}',
+        chars: boxes
+      });
+      $.cut.bindKeys();
+    }
+  });
+
+  // 显示栏框
+  $('.show-block').click(function () {
+    $.cut.refresh(blocks);
+  });
+
+  // 显示列框
+  $('.show-column').click(function () {
+    $.cut.refresh(columns);
+  });
+
+  // 显示字框
+  $('.show-char').click(function () {
+    $.cut.refresh(chars);
+  });
+
+  // 弹出原文
+  $(document).on('click', '.btn-text', function () {
+    $('#txtModal').modal();
+  });
+
+  $('#txtModal .btn-txt').click(function () {
+    $(this).removeClass('btn-default').addClass('btn-primary');
+    $(this).siblings().removeClass('btn-primary').addClass('btn-default');
+    var txtType = $(this).attr('id').replace('show-', '');
+    if (txtType === 'all')
+      $('#txtModal textarea').show();
+    else
+      $('#txtModal #' + txtType).show().siblings().hide();
+
+  });
+
 </script>
 {% end %}
 
