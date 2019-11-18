@@ -404,15 +404,9 @@ $(document).on('click', '.btn-delete-line', function () {
   }
   var $currentLine = $curSpan.parent(".line");
   $currentLine.fadeOut(500).fadeIn(500);
-  if ($currentLine.text().trim() === '') {
-    setTimeout(function () {
-      $currentLine.remove()
-    }, 1100);
-  } else {
-    setTimeout(function () {
-      $currentLine.addClass('delete')
-    }, 1100);
-  }
+  setTimeout(function () {
+    $currentLine.remove()
+  }, 500);
 });
 
 // 向上增行
@@ -468,7 +462,7 @@ $(document).on('click', '.btn-text', function () {
 // 检查图文匹配
 function checkMismatch(report) {
   var mismatch = [];
-  var total = '', ocrColumns = [];
+  var lineCountMisMatch = '', ocrColumns = [];
   var lineNos = $('#sutra-text .line').map(function () {
     var blockNo = parseInt($(this).parent().attr('id').replace(/[^0-9]/g, ''));
     var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
@@ -484,7 +478,11 @@ function checkMismatch(report) {
       }
     }
   });
-  total = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
+
+  if (lineNos.length !== ocrColumns.length) {
+    lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
+    mismatch.splice(0, 0, lineCountMisMatch);
+  }
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = $('#block-' + no.blockNo + ' #line-' + no.lineNo);
@@ -495,8 +493,7 @@ function checkMismatch(report) {
     }
   });
   if (report) {
-    if ((total || mismatch.length)) {
-      mismatch.splice(0, 0, total);
+    if (mismatch.length) {
       var text = mismatch.map(function (t) {
         var ts = t.split('#');
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
@@ -505,7 +502,7 @@ function checkMismatch(report) {
       // text = '<ul class="help tips"><li><span class="head">总行数:</span><span>' + total + '</span></li>' + text + '</ul>';
       swal({title: "图文不匹配", text: text, showConfirmButton: false, allowOutsideClick: true, html: true});
     } else {
-      swal({title: "图文匹配", showConfirmButton: false, allowOutsideClick: true, timer: 500});
+      swal({title: "图文匹配", showConfirmButton: false, allowOutsideClick: true, timer: 1000});
     }
   }
 }
