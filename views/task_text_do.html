@@ -217,9 +217,9 @@
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <div class="modal-header">
             <div class="btn-group" role="group">
-              <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">文本一</button>
-              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">文本二</button>
-              <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">文本三</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">文本一/{{labels.get('base') or ''}}</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">文本二/{{labels.get('cmp1') or ''}}</button>
+              <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">文本三/{{labels.get('cmp2') or ''}}</button>
               <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-all">所有</button>
             </div>
           </div>

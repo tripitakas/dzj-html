@@ -31,10 +31,15 @@ class Diff(object):
         if label:
             lbl.update(label)
         base = Diff.pre_ocr(base)
-        if not cmp1:
+
+        if not cmp1 and not cmp2 and not cmp3:
             return Diff._diff_one(base, {'base': lbl['base']}), []
-        ret = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
-        err = []
+
+        ret, err = [], []
+        if cmp1:
+            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
+            ret, _err = Diff._merge_by_combine(ret, ret1, base_key=lbl['base'])
+            err.extend(_err)
         if cmp2:
             ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
             ret, _err = Diff._merge_by_combine(ret, ret2, base_key=lbl['base'])
@@ -110,6 +115,9 @@ class Diff(object):
 
     @classmethod
     def _merge_by_combine(cls, d1, d2, base_key='base'):
+        if not d1 or not d2:
+            return d1 or d2, []
+
         line_nos = list({d['line_no'] for d in d1})
         line_nos.sort()
         ret, err = [], []

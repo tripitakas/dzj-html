@@ -52,20 +52,37 @@ class TextProofHandler(TaskHandler, TextPack):
         )
 
     def proof(self, task, page, mode, steps, readonly):
+        """ 文字校对
+        文本来源有多种情况，ocr可能会输出两份数据，比对本可能有一份数据。
+        """
         doubt = self.prop(task, 'result.doubt')
         params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-        ocr = re.sub(r'\|', '\n', page.get('ocr')) or ''
+
+        # 获取比对来源的文本
+        ocr = page.get('ocr') or ''
+        if isinstance(ocr, list):
+            ocr1 = ocr[0]
+            ocr2 = ocr[1] if len(ocr) > 1 else ''
+        else:
+            ocr1, ocr2 = ocr, ''
+        ocr1 = re.sub(r'\|', '\n', ocr1) or ''
+        ocr2 = re.sub(r'\|', '\n', ocr2) or ''
         cmp = self.prop(task, 'result.cmp')
-        texts = dict(base=ocr, cmp1=cmp, cmp2='')
+        texts = dict(base=ocr1, cmp1=ocr2 if ocr2 else cmp, cmp2=cmp if ocr2 else '')
+        labels = dict(base='OCR', cmp1='OCR' if ocr2 else '比对本', cmp2='比对本' if ocr2 else '')
+
+        # 检查是否已进行比对
         cmp_data = self.prop(task, 'result.txt_html')
         re_compare = self.get_query_argument('re_compare', 'false')
         if not cmp_data or re_compare == 'true':
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
+
         self.render(
-            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly,
-            texts=texts, cmp_data=cmp_data, doubt=doubt, steps=steps, get_img=self.get_img, **params
+            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode,
+            readonly=readonly, texts=texts, labels=labels, cmp_data=cmp_data, doubt=doubt,
+            steps=steps, get_img=self.get_img, **params
         )
 
 
