@@ -49,7 +49,7 @@ $('.m-header .zone-control .zone-right').click(function () {
 
 // 跳转某一页
 $('.m-pager .btn-page:not(.to)').click(function () {
-  window.location = '/t/' + $(this).attr("title");
+  window.location = '/page/' + $(this).attr("title");
 });
 
 // 跳转第n页
@@ -63,7 +63,7 @@ $('.m-pager .btn-page.to').on("keydown", function (event) {
 function jump(page) {
   var cur_volume = $('.m-header #cur-volume').text();
   if (cur_volume && page) {
-    window.location = '/t/' + cur_volume + '_' + page;
+    window.location = '/page/' + cur_volume + '_' + page;
   }
 }
 
@@ -158,7 +158,7 @@ $('.main-left').on('click', '.has-sub', function () {
 
 // 目录跳转
 $('.main-left').on('click', '.leaf', function () {
-  window.location = '/t/' + $(this).attr('id');
+  window.location = '/page/' + $(this).attr('id');
 });
 
 // 检索目录
@@ -313,5 +313,5 @@ $('#my-sutra-table').DataTable({
 
 $('#my-sutra-table').on("click", '.page-code', function (event) {
   $('#sutraNavModal').modal('hide');
-  window.location = '/t/' + $(this).attr('title');
+  window.location = '/page/' + $(this).attr('title');
 });

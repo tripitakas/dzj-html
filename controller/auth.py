@@ -65,7 +65,7 @@ role_route_maps = {
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitakas': ['GET'],
             '/tripitaka/rs': ['GET'],
-            '/t/@page_code': ['GET'],
+            '/page/@page_code': ['GET'],
             '/tool/ocr': ['GET'],
             '/api/tool/ocr': ['POST'],
             '/tool/ocr/@img_file': ['GET'],

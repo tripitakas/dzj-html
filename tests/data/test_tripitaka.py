@@ -61,7 +61,7 @@ class TestTripitakaApi(APITestCase):
             tripitakas.append(code[0])
 
         for tripitaka in tripitakas:
-            r = self.fetch('/t/%s?_raw=1&_no_auth=1' % tripitaka)
+            r = self.fetch('/page/%s?_raw=1&_no_auth=1' % tripitaka)
             self.assert_code([200, e.tptk_img_unavailable, e.tptk_not_existed], r, msg=tripitaka)
             if self.get_code(r) == 200:
                 d = self.parse_response(r)

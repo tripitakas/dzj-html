@@ -13,7 +13,7 @@ from controller.helper import cmp_page_code
 
 
 class TripitakaHandler(BaseHandler):
-    URL = '/t/@page_code'
+    URL = '/page/@page_code'
 
     def get(self, page_code='GL'):
         """ 藏经阅读 """
