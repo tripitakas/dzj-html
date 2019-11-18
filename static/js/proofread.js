@@ -173,7 +173,14 @@ $.cut.onBoxChanged(function (char, box, reason) {
 
 /*-----------文本区域相关代码----------------*/
 
-// 单击异文，弹框提供选择
+// 单击同文、异文，设置当前span
+$(document).on('click', '.same, .not-same', function () {
+  $(".current-span").removeClass("current-span");
+  $(this).addClass("current-span");
+  highlightBox($(this));
+});
+
+// 双击异文，弹框提供选择
 $(document).on('dblclick', '.not-same', function (e) {
   e.stopPropagation();
 
@@ -233,13 +240,6 @@ $(document).on('dblclick', '.not-same', function (e) {
   // 高亮字框
   highlightBox($(this));
 
-});
-
-// 单击同文，设置当前span
-$(document).on('click', '.same', function () {
-  $(".current-span").removeClass("current-span");
-  $(this).addClass("current-span");
-  highlightBox($(this));
 });
 
 // 双击同文，设置为可编辑
@@ -526,7 +526,6 @@ $(document).on('click', '.btn-doubt', function () {
   if (word.length <= 0 || !currentSpan[0]) {
     return showError('请先选择存疑文字', '');
   }
-
   $('#doubtModal').modal();
   $('#doubt_input').val(word);
 });
@@ -546,7 +545,7 @@ $(document).on('click', '.tab-view', function () {
   $('#doubt-table-view').removeClass('hide');
 });
 
-// 存疑提交
+// 存疑确认
 $(document).on('click', '#doubt_save_btn', function () {
   var txt = $('#doubt_input').val().trim();
   var reason = $('#doubt_reason').val().trim();

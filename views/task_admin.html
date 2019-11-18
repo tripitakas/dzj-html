@@ -113,7 +113,7 @@
                     {% for t in tasks %}
                     <tr id="{{t['doc_id']}}" class="task-tr">
                       <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
-                      <td><a class="doc-name" href="/task/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                      <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                       <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
                       <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{Th.get_status_name(t['status']) or ''}}</td>
                       <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
@@ -124,11 +124,9 @@
                       <td>{{to_date_str(t.get('picked_time'))}}</td>
                       <td>{{to_date_str(t.get('finished_time'))}}</td>
                       <td>
-                        {% if t['task_type'] in ['upload_cloud', 'ocr_box', 'ocr_text'] %}
                         <a class="info" href="/task/info/{{t['_id']}}">详情</a>
-                        {% else %}
+                        <a class="resume" href="/task/page/{{t['doc_id']}}">简历</a>
                         <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        {% end %}
                         <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
                       </td>
                     </tr>

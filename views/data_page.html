@@ -15,6 +15,12 @@
       font-size: 14px;
     }
 
+    .sty-table td .doc-name {
+      color: #333333;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+
   </style>
 </head>
 
@@ -44,10 +50,10 @@
                       <th><span class="sort">卷内页序号</span></th>
                       <th><span class="sort">字框阶段</span></th>
                       <th><span class="sort">文字阶段</span></th>
-                      <th><span class="sort">OCR文本</span></th>
-                      <th><span class="sort">OCR栏框</span></th>
-                      <th><span class="sort">OCR列框</span></th>
-                      <th><span class="sort">OCR字框</span></th>
+                      <th><span class="sort">文本</span></th>
+                      <th><span class="sort">栏框</span></th>
+                      <th><span class="sort">列框</span></th>
+                      <th><span class="sort">字框</span></th>
                     </tr>
                     </thead>
 
@@ -60,10 +66,10 @@
                       <td>{{p.get('reel_page_no') or ''}}</td>
                       <td>{{Th.get_task_name(p.get('box_stage')) or ''}}</td>
                       <td>{{Th.get_task_name(p.get('text_stage')) or ''}}</td>
-                      <td><a href="/data/edit/text/{{p.get('name')}}">{{'查看' if p.get('ocr') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'查看' if p.get('blocks') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'查看' if p.get('columns') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'查看' if p.get('chars') else ''}}</a></td>
+                      <td><a href="/data/edit/text/{{p.get('name')}}">{{'修改' if p.get('text') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'修改' if p.get('blocks') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'修改' if p.get('columns') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'修改' if p.get('chars') else ''}}</a></td>
                       </td>
                     </tr>
                     {% end %}
