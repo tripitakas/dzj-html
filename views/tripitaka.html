@@ -234,6 +234,7 @@
   </div>
 </div>
 
+{% if page %}
 <div class="panel-body" style="padding: 0">
   <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -255,6 +256,7 @@
     </div>
   </div>
 </div>
+{% end %}
 
 {% include _base_js.html %}
 {% include _cut_base.html %}
