@@ -471,7 +471,7 @@ class InitTasksForTestApi(TaskHandler):
             for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
                 for page_name in data['page_names']:
                     task = meta.copy()
-                    task.update(dict(task_type=task_type, status='opened', doc_id=page_name))
+                    task.update(dict(task_type=task_type, status='opened', collection='page', doc_id=page_name))
                     if task_type == 'ocr_text':
                         page = self.db.page.find_one({'name': page_name})
                         if page:
