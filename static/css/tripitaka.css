@@ -83,22 +83,6 @@
     cursor: pointer;
 }
 
-.main-line .btn-group .btn-sm {
-    background: var(--Color_Grey_Line);
-}
-
-.main-line .btn-group .btn-sm:hover {
-    background: var(--Color_Grey_Lighter);
-}
-
-.main-line .more .btn-sm.active {
-    background: var(--Color_Brown_Dark);
-}
-
-.main-line .more .btn-sm.active:hover {
-    background: var(--Color_Brown_Dark);
-}
-
 .main-line .search {
     display: flex;
     margin: 2px 25px 0 0;

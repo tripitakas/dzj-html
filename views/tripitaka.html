@@ -94,6 +94,9 @@
     margin-left: 10px;
   }
 
+  rect.box {
+    display: none;
+  }
 
 </style>
 
@@ -264,12 +267,22 @@
 <script src="{{static_url('js/meta/%s-sutra.js' % tripitaka_code)}}"></script>
 <script src="{{static_url('js/meta/%s-volume.js' % tripitaka_code)}}"></script>
 <script src="{{static_url('js/tripitaka.js')}}"></script>
+<script src="{{ static_url('js/cut/char_order.js') }}"></script>
 
 {% if page %}
 <script>
   var chars = decodeJSON('{{page.get("chars", [])}}');
+  for (var i = 0; i < chars.length; i++) {
+    chars[i]['class'] = 'char';
+  }
   var columns = decodeJSON('{{page.get("columns", [])}}');
+  for (var i = 0; i < columns.length; i++) {
+    columns[i]['class'] = 'column';
+  }
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
+  for (var i = 0; i < blocks.length; i++) {
+    blocks[i]['class'] = 'block';
+  }
 
   $.cut.create({
     readonly: true,
@@ -279,39 +292,34 @@
     height: '{{page["height"]}}',
     holder: 'holder',
     image: '{{img_url}}',
-    chars: []
+    chars: chars.concat(columns).concat(blocks)
   });
-
-  $.extend($.cut, {
-    refresh: function (boxes) {
-      $.cut.chars = boxes;
-      $.cut.create({
-        readonly: true,
-        scrollContainer: '.content-left',
-        name: '{{page["name"]}}',
-        width: '{{page["width"]}}',
-        height: '{{page["height"]}}',
-        holder: 'holder',
-        image: '{{img_url}}',
-        chars: boxes
-      });
-      $.cut.bindKeys();
-    }
-  });
+  $.cut.bindKeys();
+  $.cut.bindCharOrderKeys();
 
   // 显示栏框
   $('.show-block').click(function () {
-    $.cut.refresh(blocks);
+    $(this).toggleClass('active');
+    $('rect.block').css('display', $(this).hasClass('active') ? 'block' : 'none');
   });
 
   // 显示列框
   $('.show-column').click(function () {
-    $.cut.refresh(columns);
+    $(this).toggleClass('active');
+    $('rect.column').css('display', $(this).hasClass('active') ? 'block' : 'none');
   });
 
   // 显示字框
   $('.show-char').click(function () {
-    $.cut.refresh(chars);
+    $(this).toggleClass('active');
+    $('rect.char').css('display', $(this).hasClass('active') ? 'block' : 'none');
+  });
+
+  // 显示字序
+  $('.show-order').click(function () {
+    $(this).toggleClass('active');
+    cs.state.labelVisible = !cs.state.labelVisible;
+    cs.updateLabel();
   });
 
   // 弹出原文

@@ -653,6 +653,7 @@
             'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
             , fill: (data.blockMode || data.columnMode) && data.hoverFill
             , 'fill-opacity': 0.1
+            , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
           })
           .data('uid', b.id)
           .data('cid', b.char_id)
