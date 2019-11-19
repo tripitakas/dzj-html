@@ -139,16 +139,19 @@ function highlightBox($span, first) {
   $.cut.switchCurrentBox(((boxes.length ? boxes : all)[0] || {}).shape);
 }
 
-
+// 点击切分框
 $.cut.onBoxChanged(function (char, box, reason) {
   if (reason === 'navigate' && char) {
     // 按字序号浮动亮显当前行的字框
-    var $line = $('#block-' + char.block_no).find('#line-' + char.line_no);
+    var $block = $('#block-' + char.block_no);
+    var $line = $block.find('#line-' + char.line_no);
     var text = getLineText($line);
     var all = $.cut.findCharsByLine(char.block_no, char.line_no);
 
     $('.line').removeClass('active');
     $line.addClass('active');
+    $(".current-span").removeClass("current-span");
+    $block.find('#line-' + char.line_no + ' span:first-child').addClass("current-span");
 
     $.cut.removeBandNumber(0, true);
     $.cut.showFloatingPanel(
@@ -236,10 +239,6 @@ $(document).on('dblclick', '.not-same', function (e) {
     $mark.attr('last-left', ml);
     $mark.css('marginLeft', parseInt(ml) - offset);
   }
-
-  // 高亮字框
-  highlightBox($(this));
-
 });
 
 // 双击同文，设置为可编辑
@@ -468,7 +467,6 @@ function checkMismatch(report) {
     var lineNo = parseInt($(this).attr('id').replace(/[^0-9]/g, ''));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
-  console.log(lineNos.length);
 
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.line_no) {

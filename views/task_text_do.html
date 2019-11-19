@@ -80,10 +80,10 @@
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
           <img src="{{ static_url('imgs/btn_chars.png') }}" class="btn-img btn-cut-show" title="显示所有字框"/>
           <img src="{{ static_url('imgs/btn_text.png') }}" class="btn-img btn-txt-show" title="显示字框文字"/>
-          <img src="{{ static_url('imgs/btn-order.png') }}" class="btn-img btn-num-show" title="显示字框序号"/>
+          <img src="{{ static_url('imgs/btn_order.png') }}" class="btn-img btn-num-show" title="显示字框序号"/>
         </div>
         <div class="more">
-          <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
+          <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img btn-ed-box" title="更多"/>
           <span class="btn-group more-group hidden" role="group" aria-label="更多">
             <button type="button" class="btn btn-default btn-sm ed-char-box" title="修改字框">字框</button>
             <button type="button" class="btn btn-default btn-sm ed-block-box" title="修改栏框">栏框</button>
@@ -416,7 +416,6 @@
         },
         function () {
           window.location = '{{r"%s?step=%s" % (current_path, steps.get("current"))}}' + '&re_compare=true';
-
         }
     );
   });
