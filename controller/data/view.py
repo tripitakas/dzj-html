@@ -62,8 +62,8 @@ class TripitakaHandler(BaseHandler):
                 page['ocr'] = '|'.join(page['ocr'])
             page_text = (page.get('text') or page.get('ocr')) if page else ''
 
-            self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code,
-                        nav=nav, img_url=self.get_img(dict(name=page_code)), page_text=page_text, page=page)
+            self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
+                        img_url=self.get_img(dict(name=page_code)), page_text=page_text, page=page)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

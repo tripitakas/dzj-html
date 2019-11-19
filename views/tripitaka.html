@@ -98,6 +98,39 @@
     display: none;
   }
 
+  .content-left {
+    position: relative;
+  }
+
+  .content-left .pic-nav {
+    position: absolute;
+    width: 36px;
+    height: 60px;
+    background: #333;
+    opacity: 0.1;
+    z-index: 100;
+    cursor: pointer;
+    top: 50%;
+    border-radius: 2px;
+  }
+
+  .content-left .pic-nav:hover {
+    opacity: 0.5;
+  }
+
+  #pic-right {
+    right: 0;
+  }
+
+  #holder svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  text tspan {
+    fill: #f00;
+  }
+
 </style>
 
 
@@ -162,9 +195,11 @@
               <div class="more {{'' if page else 'hide'}}">
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box" title="更多"/>
                 <span class="btn-group more-group hidden" role="group" aria-label="更多">
-                  {% for type,text in [('block', '栏框'), ('column', '列框'), ('char', '字框'), ('order', '字序')] %}
-                  <button type="button" class="btn btn-default btn-sm show-{{type}}">{{text}}</button>
-                  {% end %}
+                  <button type="button" class="btn btn-default btn-sm show-image">图片</button>
+                  <button type="button" class="btn btn-default btn-sm show-block">栏框</button>
+                  <button type="button" class="btn btn-default btn-sm show-column">列框</button>
+                  <button type="button" class="btn btn-default btn-sm show-char">字框</button>
+                  <button type="button" class="btn btn-default btn-sm show-order" id="switch-char-no">字序</button>
                 </span>
               </div>
             </div>
@@ -180,6 +215,8 @@
         <div class="content">
           <!-- 左侧图片区域 -->
           <div class="content-left">
+            <img class="pic-nav" id="pic-left" src="{{ static_url('imgs/btn_left.png') }}"/>
+            <img class="pic-nav" id="pic-right" src="{{ static_url('imgs/btn_right.png') }}"/>
             <div id="page-picture" class="page-picture">
               {% if page %}
               <div id="holder"></div>
@@ -296,30 +333,38 @@
   });
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
+  $.cut.addCharOrderLinks(null);
 
-  // 显示栏框
+  // 显隐图片
+  $('.show-image').click(function () {
+    $(this).toggleClass('active');
+    var style = $.cut.data.image.node.style;
+    style.display = style.display === 'none' ? '' : 'none';
+  });
+
+  // 显隐栏框
   $('.show-block').click(function () {
     $(this).toggleClass('active');
     $('rect.block').css('display', $(this).hasClass('active') ? 'block' : 'none');
   });
 
-  // 显示列框
+  // 显隐列框
   $('.show-column').click(function () {
     $(this).toggleClass('active');
     $('rect.column').css('display', $(this).hasClass('active') ? 'block' : 'none');
   });
 
-  // 显示字框
+  // 显隐字框
   $('.show-char').click(function () {
     $(this).toggleClass('active');
     $('rect.char').css('display', $(this).hasClass('active') ? 'block' : 'none');
   });
 
-  // 显示字序
+  // 显隐字序
   $('.show-order').click(function () {
     $(this).toggleClass('active');
-    cs.state.labelVisible = !cs.state.labelVisible;
-    cs.updateLabel();
+    var style = $.cut.data.image.node.style;
+    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
   });
 
   // 弹出原文
@@ -327,6 +372,7 @@
     $('#txtModal').modal();
   });
 
+  // 切换文本
   $('#txtModal .btn-txt').click(function () {
     $(this).removeClass('btn-default').addClass('btn-primary');
     $(this).siblings().removeClass('btn-primary').addClass('btn-default');
@@ -335,7 +381,6 @@
       $('#txtModal textarea').show();
     else
       $('#txtModal #' + txtType).show().siblings().hide();
-
   });
 
 </script>

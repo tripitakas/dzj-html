@@ -20,32 +20,38 @@ $(window).resize(function () {
 
 // 收起左侧目录
 $('.m-header .toggle-btn').click(function () {
-  var $mainLeft = $('.main-left');
-  console.log($mainLeft.css('display'));
-  localStorage.setItem('toggleTripitaka', $mainLeft.css('display') === 'block' ? 'hide': 'show');
-  if ($mainLeft.css('display') == 'block') {
-    $mainLeft.hide();
+  if ($('#main-left').css('display') === 'block') {
+    $('#main-left').hide();
     $('#main-right .m-header').css('left', 0);
   } else {
-    $mainLeft.show();
-    $('#main-right .m-header').css('left', $mainLeft.width());
+    $('#main-left').show();
+    $('#main-right .m-header').css('left', $('#main-left').width());
   }
+  localStorage.setItem('toggleMenu', $('#main-left').css('display') === 'block' ? 'show' : 'hide');
 });
-if (localStorage.getItem('toggleTripitaka') === 'hide') {
+if (localStorage.getItem('toggleMenu') === 'hide') {
   $('.m-header .toggle-btn').click();
 }
 
 // 显示、隐藏左侧区域
 $('.m-header .zone-control .zone-left').click(function () {
-  $('.main-right .content .content-left').toggleClass('hide');
+  $('.main-right .content-left').toggleClass('hide');
   $('.m-header .m-pager .left').toggleClass('hide');
 });
 
 // 显示、隐藏右侧区域
 $('.m-header .zone-control .zone-right').click(function () {
-  $('.main-right .content .content-right').toggleClass('hide');
+  $('.main-right .content-right').toggleClass('hide');
   $('.m-header .m-pager .right').toggleClass('hide');
+  localStorage.setItem('toggleText', $('.main-right .content-right').hasClass('hide') ? 'hide' : 'show');
 });
+if (localStorage.getItem('toggleText') === 'hide') {
+  $('.main-right .content .content-right').addClass('hide');
+  $('.m-header .m-pager .right').addClass('hide');
+} else {
+  $('.main-right .content .content-right').removeClass('hide');
+  $('.m-header .m-pager .right').removeClass('hide');
+}
 
 // 跳转某一页
 $('.m-pager .btn-page:not(.to)').click(function () {
@@ -66,6 +72,16 @@ function jump(page) {
     window.location = '/page/' + cur_volume + '_' + page;
   }
 }
+
+// 图片向左翻页
+$('#pic-left').click(function () {
+  $('.btn-page.prev').click();
+});
+
+// 图片向右翻页
+$('#pic-right').click(function () {
+  $('.btn-page.next').click();
+});
 
 // 缩小图片
 $('.m-header').on('click', '.btn-reduce', function () {

@@ -46,16 +46,13 @@
   // 销毁所有图形，obj 可为图形对象的容器对象或数组，或有remove方法的对象
   function removeShapes(obj) {
     if (!obj) {
-    }
-    else if (obj instanceof Array) {
+    } else if (obj instanceof Array) {
       while (obj.length) {
         removeShapes(obj.pop());
       }
-    }
-    else if (obj.remove) {
+    } else if (obj.remove) {
       obj.remove();
-    }
-    else {
+    } else {
       Object.keys(obj).forEach(function (k) {
         if (obj[k] instanceof Array) {
           removeShapes(obj[k]);
@@ -237,8 +234,7 @@
           'stroke-dasharray': '.',
           'stroke-width': 1 / data.ratioInitial
         });
-      }
-      else if (up && !zoomed) {
+      } else if (up && !zoomed) {
         line.setAttr({
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
@@ -334,8 +330,9 @@
         this.nodes.forEach(function (node) {
           if (node.isValidId()) {
             var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
-            self.label.push(data.paper.text(cen.x, cen.y, nums[1] + 'c' + nums[2])
-                .attr({'font-size': '13px'}));
+
+            self.label.push(data.paper.text(cen.x, cen.y, nums[2])
+                .attr({'font-size': (14 * $.cut.data.ratio) + 'px'}));
           }
         });
       }
@@ -415,8 +412,7 @@
         if (links.length === 1) {
           hit.obj = links[0];
           hit.type = 'link';
-        }
-        else if (links.length > 1) {
+        } else if (links.length > 1) {
           hit = this.hitTest(pt, null, {only: {link: true}});
         }
       }
@@ -519,8 +515,7 @@
             this.drag.box = node && node.createBox(colors.sel);
             this.drag.dot = hit && hit.obj.createLet(hit.type === 'inlet');
             this.drag.line = this.state.dragLink.createLine(colors.sel);
-          }
-          else {
+          } else {
             this.drag.line = this.state.dragLink.createLineWith(
                 this.state.outletHit ? pt : this.state.dragLink.getStartPos(),
                 this.state.inletHit ? pt : this.state.dragLink.getEndPos(),
@@ -651,11 +646,9 @@
 
         if (!links1.length && !links2.length || links1.length > 1 || links2.length > 1) {
           errors.push(node);
-        }
-        else if (!links1.length && links2.length === 1) {
+        } else if (!links1.length && links2.length === 1) {
           heads.push(node);
-        }
-        else if (!links2.length && links1.length === 1) {
+        } else if (!links2.length && links1.length === 1) {
           tails.push(node.getId());
         }
       });
@@ -722,7 +715,8 @@
     addCharOrderLinks: function (chars_col) {
       if (!cs) {
         cs = new CharNodes(data.chars);
-        cs.buildColumns(chars_col);
+        if (chars_col !== null)
+          cs.buildColumns(chars_col);
       }
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;
@@ -752,7 +746,7 @@
       };
     },
 
-    // 切换显隐列框
+    // 切换显隐切分框
     toggleColumns: function (columns) {
       if (cs.state.columns) {
         cs.state.columns.forEach(function (r) {
@@ -797,20 +791,22 @@
           return char.id;
         });
       });
-      postApi('/cut/gen_char_id', {data: {
-        blocks: blocks, columns: columns, chars_col: chars_col,
-        chars: $.cut.exportBoxes()
-      }}, function (res) {
+      postApi('/cut/gen_char_id', {
+        data: {
+          blocks: blocks, columns: columns, chars_col: chars_col,
+          chars: $.cut.exportBoxes()
+        }
+      }, function (res) {
         var changed = data.chars.map(function (c) {
-              return c.char_id;
-            }).join(',') !== res.chars.map(function (c) {
-              return c.char_id;
-            }).join(',');
+          return c.char_id;
+        }).join(',') !== res.chars.map(function (c) {
+          return c.char_id;
+        }).join(',');
 
         heads = heads.map(function (node) {
           return node.char.id;
         });
-        data.chars.forEach(function(b) {
+        data.chars.forEach(function (b) {
           if (b.shape) {
             b.shape.remove();
             delete b.shape;
