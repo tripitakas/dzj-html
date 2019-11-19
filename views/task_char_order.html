@@ -33,6 +33,10 @@
     .sweet-overlay {
       background-color: transparent;
     }
+
+    text tspan {
+      fill: #f00;
+    }
   </style>
 
 </head>
@@ -61,9 +65,11 @@
         </div>
         <div class="slice-btns">
           <div class="btn-group">
-            <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">图片</button>
+            <button type="button" class="btn btn-default btn-sm active" id="switch-image" title="显示页面图">图片</button>
+            <button type="button" class="btn btn-default btn-sm active" id="blur-image" title="页面图透明">透明</button>
             <button type="button" class="btn btn-default btn-sm" id="toggle-columns" title="显示列框">列框</button>
             <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
+            <button type="button" class="btn btn-default btn-sm active" id="toggle-path" title="显示连线">连线</button>
             <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
             <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显示待修正的字框">查漏</button>
             <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后重新设置字框编号">应用</button>
@@ -125,6 +131,7 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+  $.cut.toggleBox('hide');
 
 </script>
 
@@ -138,24 +145,52 @@
     $.cut.showErrorBoxes();
   }, 100);
 
+  // 显隐连线
+  $('#toggle-path').click(function () {
+    $(this).toggleClass('active');
+    var active = $(this).hasClass('active');
+    $('#holder .path').each(function (i, path) {
+      var stroke = $(path).css('stroke');
+      if (active) {
+        stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
+      } else {
+        stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
+      }
+      $(path).css('stroke', stroke);
+      console.log(stroke);
+    });
+  });
+
+  // 图片透明
+  $.cut.data.image.node.style.opacity = 0.2;
+  $('#blur-image').click(function () {
+    $(this).toggleClass('active');
+    var style = $.cut.data.image.node.style;
+    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+  });
+
   // 显隐图片
   $('#switch-image').click(function () {
+    $(this).toggleClass('active');
     var style = $.cut.data.image.node.style;
     style.display = style.display === 'none' ? '' : 'none';
   });
 
   // 显隐列框
   $('#toggle-columns').click(function () {
+    $(this).toggleClass('active');
     $.cut.toggleColumns(columns);
   });
 
   // 显隐字框
   $('#toggle-chars').click(function () {
+    $(this).toggleClass('active');
     $.cut.toggleBox('hide');
   });
 
   // 调整字框连线后重新设置字框编号
   $('#apply').click(function () {
+    $(this).toggleClass('active');
     $.cut.applyLinks(blocks, columns);
   });
 
