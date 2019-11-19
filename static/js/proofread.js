@@ -550,7 +550,7 @@ $(document).on('click', '#doubt_save_btn', function () {
   }
 
   var $span = currentSpan[0];
-  var offset0 = parseInt($span.attr('offset'));
+  var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
