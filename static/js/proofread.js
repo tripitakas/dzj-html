@@ -204,8 +204,8 @@ $(document).on('dblclick', '.not-same', function (e) {
   var $dlg = $("#pfread-dialog");
   $dlg.offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4}).show();
 
-  //当弹框超出文字框时，向上弹出
-  var r_h = $(".right.fr").height();
+  // 当弹框超出文字框时，向上弹出
+  var r_h = $(".pfread-in .right").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   var shouldUp = false;
