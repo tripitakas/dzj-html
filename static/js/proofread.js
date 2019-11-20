@@ -620,7 +620,7 @@ $(document).on('click', '.char-list-tr', function () {
   var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
   var txt = $tr.find('td:nth-child(3)').text();
 
-  $('.right .bd').animate({scrollTop: $li.offset().top + 400}, 100);
+  $('.right .bd').animate({scrollTop: $li.offset().top + 200}, 100);
 
   // 闪烁，原字高亮
   if (pos[0]) {
