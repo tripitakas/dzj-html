@@ -842,6 +842,15 @@ a:hover {
     user-select: none;
 }
 
+.m-header .btn-empty-places {
+    font-size: 20px;
+    width: 0;
+    line-height: 24px;
+    padding: 0 4px;
+    background-color: #b68856;
+    margin: 10px 6px;
+}
+
 .flex-content {
     width: 100%;
     display: flex;

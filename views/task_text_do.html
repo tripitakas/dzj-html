@@ -184,32 +184,32 @@
               {% end %}
             </div>
             <!--/.char-list-->
-          </div>
-          <div class="pfread-dialog" id="pfread-dialog">
-            <div class="dialog-common dialog-abs">
-              <div class="dlg-before"></div>
-              <dl class="item{{'' if texts.get('base') else ' hide'}}">
-                <dt>文本一</dt>
-                <dd class="text option" id="pfread-dialog-base">&nbsp;</dd>
-              </dl>
-              <dl class="item{{'' if texts.get('cmp1') else ' hide'}}">
-                <dt>文本二</dt>
-                <dd class="text option" id="pfread-dialog-cmp1">&nbsp;</dd>
-              </dl>
-              <dl class="item{{'' if texts.get('cmp2') else ' hide'}}">
-                <dt>文本三</dt>
-                <dd class="text option" id="pfread-dialog-cmp2">&nbsp;</dd>
-              </dl>
-              <dl class="item">
-                <dt>选择结果</dt>
-                <dd class="text">
-                  <span id="pfread-dialog-slct" contenteditable="true" placeholder="请选择或输入……"></span>
-                </dd>
-              </dl>
-              <div class="dlg-after"></div>
+            <div class="pfread-dialog" id="pfread-dialog">
+              <div class="dialog-common dialog-abs">
+                <div class="dlg-before"></div>
+                <dl class="item{{'' if texts.get('base') else ' hide'}}">
+                  <dt>文本一</dt>
+                  <dd class="text option" id="pfread-dialog-base">&nbsp;</dd>
+                </dl>
+                <dl class="item{{'' if texts.get('cmp1') else ' hide'}}">
+                  <dt>文本二</dt>
+                  <dd class="text option" id="pfread-dialog-cmp1">&nbsp;</dd>
+                </dl>
+                <dl class="item{{'' if texts.get('cmp2') else ' hide'}}">
+                  <dt>文本三</dt>
+                  <dd class="text option" id="pfread-dialog-cmp2">&nbsp;</dd>
+                </dl>
+                <dl class="item">
+                  <dt>选择结果</dt>
+                  <dd class="text">
+                    <span id="pfread-dialog-slct" contenteditable="true" placeholder="请选择或输入……"></span>
+                  </dd>
+                </dl>
+                <div class="dlg-after"></div>
+              </div>
             </div>
+            <!--/.pfread-dialog-->
           </div>
-          <!--/.pfread-dialog-->
         </div>
         <!--/.right-->
       </div>
@@ -338,8 +338,8 @@
   // 高度自适应
   function heightAdaptive() {
     var h = $(document.body).height();
-    $(".pfread .bd").height(h - 60);
-    $("#sutra-text").css('min-height', h - $('.char-list').height() - 60);
+    $(".pfread .bd").height(h - 55);
+    $("#sutra-text").css('min-height', h - $('.char-list').height() - 55);
   }
 
   $(document).ready(function () {

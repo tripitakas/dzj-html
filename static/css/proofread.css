@@ -4,13 +4,13 @@
 }
 
 .pfread-in {
-    padding: 48px 5px 0;
-    position: relative;
+    padding: 45px 5px 0;
 }
 
 .pfread-in .bd {
     overflow: auto;
-    height: calc(100% - 60px);
+    position: relative;
+    height: calc(100% - 55px);
 }
 
 .pfread-in .left {
@@ -31,7 +31,6 @@
 .pfread-in .left .hd span i {
     top: 8px;
     display: block;
-    position: relative;
     background-position: center;
     background-size: cover;
     width: 25px;
@@ -52,7 +51,6 @@
     font-size: 16px;
     cursor: pointer;
     color: #2e363f;
-    position: relative;
 }
 
 .pfread-in .right {
@@ -62,7 +60,6 @@
     border-radius: 5px;
     box-sizing: border-box;
     background: var(--Color_Grey_Content);
-    position: relative;
 }
 
 .pfread-in .right .hd {
@@ -75,7 +72,6 @@
 .pfread-in .right .hd span i {
     top: 8px;
     display: block;
-    position: relative;
     background-position: center;
     background-size: cover;
     width: 25px;
@@ -96,17 +92,8 @@
     font-size: 16px;
     cursor: pointer;
     color: #2e363f;
-    position: relative;
 }
 
-.pfread .btn-empty-places {
-    font-size: 20px;
-    width: 0;
-    line-height: 24px;
-    padding: 0 4px;
-    background-color: #b68856;
-    margin: 10px 6px;
-}
 
 /* 选择弹框 */
 #pfread-dialog {
@@ -115,11 +102,8 @@
 
 .pfread .pfread-dialog {
     position: absolute;
-    width: 350px;
-}
-
-.pfread .pfread-dialog > .dlg-before {
-    left: 31%;
+    max-width: 600px;
+    min-width: 200px;
 }
 
 .pfread .pfread-dialog .item {
@@ -142,8 +126,6 @@
 
 .pfread .pfread-dialog .item input[type="text"] {
     display: inline-block;
-    border: 0;
-    width: 250px;
     padding: 0 5px;
     height: 36px;
     border: 1px solid #ccc;
@@ -152,7 +134,7 @@
 
 .pfread .pfread-dialog .item .text {
     display: inline-block;
-    width: 250px;
+    width: calc(100% - 80px);
     padding: 0 5px;
     min-height: 36px;
     line-height: 36px;
@@ -161,10 +143,10 @@
     font-weight: 100;
     white-space: normal;
     font-size: 20px;
+    word-break: break-all;
 }
 
 .dialog-common {
-    position: absolute;
     top: 0;
     left: 0;
     background-color: #fff;
@@ -193,7 +175,6 @@
 }
 
 .dialog-common-t {
-    position: absolute;
     top: 0;
     left: 0;
     background-color: #fff;
@@ -242,6 +223,7 @@
     letter-spacing: 1px;
     line-height: 40px;
     display: inline-block;
+    word-break: break-all;
 }
 
 .right .line span:last-child {

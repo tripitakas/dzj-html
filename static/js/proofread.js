@@ -196,24 +196,37 @@ $(document).on('dblclick', '.not-same', function (e) {
   $(".current-not-same").removeClass('current-not-same');
   $(this).addClass('current-not-same');
 
+  // 设置弹框文本
   $("#pfread-dialog-base").text($(this).attr("base"));
   $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
   $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
   $("#pfread-dialog-slct").text($(this).text());
 
+  // 设置弹框位置
   var $dlg = $("#pfread-dialog");
-  $dlg.offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4}).show();
+  $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
 
   // 当弹框超出文字框时，向上弹出
   var r_h = $(".pfread-in .right").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
-  var shouldUp = false;
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
     $dlg.offset({top: $(this).offset().top - 180});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
-    shouldUp = true;
+  }
+
+  // 设置弹框小箭头
+  if (o_t + d_h > r_h) {
+    var $mark = $dlg.find('.dlg-after');
+    var ml = $mark.attr('last-left') || $mark.css('marginLeft');
+    $mark.attr('last-left', ml);
+    $mark.css('marginLeft', parseInt(ml) - offset);
+  } else {
+    $mark = $dlg.find('.dlg-before');
+    ml = $mark.attr('last-left') || $mark.css('marginLeft');
+    $mark.attr('last-left', ml);
+    $mark.css('marginLeft', parseInt(ml) - offset);
   }
 
   // 当弹框右边出界时，向左移动
@@ -226,19 +239,6 @@ $(document).on('dblclick', '.not-same', function (e) {
     $dlg.offset({left: o_l + offset});
   }
 
-  var $mark = $dlg.find('.dlg-after');
-  var ml = $mark.attr('last-left') || $mark.css('marginLeft');
-  if (shouldUp) {
-    $mark.attr('last-left', ml);
-    $mark.css('marginLeft', parseInt(ml) - offset);
-  }
-
-  $mark = $dlg.find('.dlg-before');
-  ml = $mark.attr('last-left') || $mark.css('marginLeft');
-  if (!shouldUp) {
-    $mark.attr('last-left', ml);
-    $mark.css('marginLeft', parseInt(ml) - offset);
-  }
 });
 
 // 双击同文，设置为可编辑
