@@ -16,21 +16,13 @@
   <style>
     .modal-content .modal-header {
       height: 40px;
-      padding-bottom: 0px;
+      padding-bottom: 0;
     }
 
     .modal-content .close {
       color: var(--Color_Brown_Darker);
       margin-top: -25px;
       margin-right: -20px;
-    }
-
-    .sutra-text .blink {
-      -webkit-box-shadow: 0 0 2px 0 #eab977, 0 0 0 1px #cb9b66 !important;
-      box-shadow: 0 0 2px 0 #eab977, 0 0 0 1px #cb9b66 !important;
-      transition: box-shadow 1s !important;
-      background: #cb9b66;
-      color: #fff;
     }
 
     .match-tips .head {
@@ -49,7 +41,7 @@
       padding: 8px;
     }
 
-    .line.active {
+    .line.current-line {
       border-left: 6px solid rgba(255, 0, 0, .4);
       margin-left: -10px;
       padding-left: 4px;
@@ -183,7 +175,7 @@
               </table>
               {% end %}
             </div>
-            <!--/.char-list-->
+            <!--/.doubt-list-->
             <div class="pfread-dialog" id="pfread-dialog">
               <div class="dialog-common dialog-abs">
                 <div class="dlg-before"></div>
@@ -305,7 +297,6 @@
 <script src="{{ static_url('js/task.js') }}"></script>
 
 <script>
-  // console.log('{{locals()}}');
   var char_data = decodeJSON('{{page.get("chars", [])}}');
   var columns = decodeJSON('{{page.get("columns", [])}}');
   var blocks = decodeJSON('{{page.get("blocks", [])}}');
@@ -339,7 +330,6 @@
   function heightAdaptive() {
     var h = $(document.body).height();
     $(".pfread .bd").height(h - 55);
-    $("#sutra-text").css('min-height', h - $('.char-list').height() - 55);
   }
 
   $(document).ready(function () {

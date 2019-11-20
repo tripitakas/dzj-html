@@ -8,7 +8,6 @@
 }
 
 .pfread-in .bd {
-    overflow: auto;
     position: relative;
     height: calc(100% - 55px);
 }
@@ -92,6 +91,188 @@
     font-size: 16px;
     cursor: pointer;
     color: #2e363f;
+}
+
+.pfread-in .right .bd {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* 文本区域 */
+.right .sutra-text {
+    font-size: 0;
+    margin-top: 5px;
+    margin-left: 10px;
+    height: 100%;
+    overflow: auto;
+    flex: 1 1 auto;
+}
+
+.sutra-text .block {
+    margin-bottom: 20px;
+}
+
+.sutra-text .block:last-child {
+    margin-bottom: 0;
+}
+
+.sutra-text .line span {
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    line-height: 40px;
+    display: inline-block;
+    word-break: break-all;
+}
+
+.sutra-text .line span:last-child {
+    padding-right: 10px;
+}
+
+.sutra-text .not-same {
+    color: red;
+}
+
+.sutra-text .same {
+    color: black;
+}
+
+.sutra-text .selected {
+    color: green;
+}
+
+.sutra-text .variant {
+    color: black;
+}
+
+.sutra-text span.empty-place {
+    width: 4px;
+    height: 24px;
+    padding: 0 4px;
+    background-color: var(--Color_Brown_Darker);
+}
+
+.sutra-text span.empty-place.selected {
+    background-color: green;
+}
+
+.sutra-text .current-span {
+    border: 1px solid #C1C1C1;
+}
+
+.sutra-text .variant-highlight {
+    color: blue;
+}
+
+.sutra-text .hidden {
+    display: none;
+}
+
+.sutra-text .delete {
+    display: none !important;
+}
+
+.mismatch span:last-child {
+    border-right: 1px solid red;
+}
+
+.btn-normal {
+    color: #fff;
+    background-color: #b8906f;
+    border-color: #bf9f7f;
+}
+
+.navbar-normal {
+    background-color: #333;
+    border-color: #555555;
+}
+
+/* 存疑列表 */
+.char-list {
+    overflow-y: auto;
+    flex: 0 1 auto;
+}
+
+.char-list-table {
+    width: 100%;
+}
+
+.char-list-tab {
+    width: 100%;
+    height: 32px;
+    background: #ececec;
+    line-height: 32px;
+    vertical-align: middle;
+}
+
+.char-list-tab-item {
+    width: 110px;
+    text-align: center;
+    float: left;
+    border-right: 1px solid var(--Color_Grey_Middle);
+    cursor: pointer;
+}
+
+.char-list-tab-item.active {
+    background: var(--Color_Grey_Light);
+}
+
+.char-list-tab-arrow {
+    float: right;
+    margin-right: 5px;
+    margin-top: 5px;
+    width: 20px;
+    height: 20px;
+    transform: rotate(180deg);
+    transition: all ease 0.3s 0s;
+}
+
+.char-list-tab-arrow img {
+    width: 20px;
+    height: 20px;
+}
+
+.char-list-tab-arrow.active {
+    transform: rotate(0deg);
+    transition: all ease 0.3s 0s;
+}
+
+.char-list-table td {
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+}
+
+.char-list-table td img {
+    width: 16px;
+    height: 16px;
+    margin-top: 5px;
+}
+
+.char-list-table tbody tr:nth-child(odd) {
+    background: var(--Color_White);
+}
+
+.char-list-table.hidden {
+    height: 0;
+}
+
+.char-list-table .del-doubt {
+    cursor: pointer;
+}
+
+/* 存疑弹框 */
+#doubtModal table {
+    border-collapse: separate;
+    border-spacing: 0px 20px;
+}
+
+#doubt_tip {
+    float: left;
+    color: red;
+    display: none;
 }
 
 
@@ -200,172 +381,4 @@
     border-top: none;
     border-left: none;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
-}
-
-/* 文本区域 */
-.right .sutra-text {
-    font-size: 0;
-    margin-top: 5px;
-    margin-left: 10px;
-}
-
-.right .block {
-    margin-bottom: 20px;
-}
-
-.right .block:last-child {
-    margin-bottom: 0;
-}
-
-.right .line span {
-    font-size: 20px;
-    font-weight: 300;
-    letter-spacing: 1px;
-    line-height: 40px;
-    display: inline-block;
-    word-break: break-all;
-}
-
-.right .line span:last-child {
-    padding-right: 10px;
-}
-
-.right .not-same {
-    color: red;
-}
-
-.right .same {
-    color: black;
-}
-
-.right .selected {
-    color: green;
-}
-
-.right .variant {
-    color: black;
-}
-
-.right span.empty-place {
-    width: 4px;
-    height: 24px;
-    padding: 0 4px;
-    background-color: var(--Color_Brown_Darker);
-}
-
-.right span.empty-place.selected {
-    background-color: green;
-}
-
-.right .current-span {
-    border: 1px solid #C1C1C1;
-}
-
-.right .variant-highlight {
-    color: blue;
-}
-
-.right .hidden {
-    display: none;
-}
-
-.right .delete {
-    display: none !important;
-}
-
-.mismatch span:last-child {
-    border-right: 1px solid red;
-}
-
-.btn-normal {
-    color: #fff;
-    background-color: #b8906f;
-    border-color: #bf9f7f;
-}
-
-.navbar-normal {
-    background-color: #333;
-    border-color: #555555;
-}
-
-/* 存疑列表 */
-.char-list-table {
-    width: 100%;
-}
-
-.char-list-tab {
-    width: 100%;
-    height: 32px;
-    background: #ececec;
-    line-height: 32px;
-    vertical-align: middle;
-}
-
-.char-list-tab-item {
-    width: 110px;
-    text-align: center;
-    float: left;
-    border-right: 1px solid var(--Color_Grey_Middle);
-    cursor: pointer;
-}
-
-.char-list-tab-item.active {
-    background: var(--Color_Grey_Light);
-}
-
-.char-list-tab-arrow {
-    float: right;
-    margin-right: 5px;
-    margin-top: 5px;
-    width: 20px;
-    height: 20px;
-    transform: rotate(180deg);
-    transition: all ease 0.3s 0s;
-}
-
-.char-list-tab-arrow img {
-    width: 20px;
-    height: 20px;
-}
-
-.char-list-tab-arrow.active {
-    transform: rotate(0deg);
-    transition: all ease 0.3s 0s;
-}
-
-.char-list-table td {
-    text-align: center;
-    height: 30px;
-    line-height: 30px;
-    vertical-align: middle;
-}
-
-.char-list-table td img {
-    width: 16px;
-    height: 16px;
-    margin-top: 5px;
-}
-
-.char-list-table tbody tr:nth-child(odd) {
-    background: var(--Color_White);
-}
-
-.char-list-table.hidden {
-    height: 0;
-}
-
-.char-list-table .del-doubt {
-    cursor: pointer;
-}
-
-/* 存疑弹框 */
-#doubtModal table {
-    border-collapse: separate;
-    border-spacing: 0px 20px;
-}
-
-#doubt_tip {
-    float: left;
-    color: red;
-    display: none;
 }

@@ -104,12 +104,14 @@ function highlightBox($span, first) {
   var boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
     return ch === ocrCursor || ch === cmp1Cursor;
   });
+
   // 行内多字能匹配时就取char_no位置最接近的，不亮显整列
   if (boxes.length > 1) {
     boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, function (ch) {
       return ch === ocrCursor || ch === cmp1Cursor;
     }) || boxes[0];
   }
+
   // 或者用span任意字精确匹配
   else if (!boxes.length) {
     cmp_ch = function (what, ch) {
@@ -148,10 +150,12 @@ $.cut.onBoxChanged(function (char, box, reason) {
     var text = getLineText($line);
     var all = $.cut.findCharsByLine(char.block_no, char.line_no);
 
-    $('.line').removeClass('active');
-    $line.addClass('active');
-    $(".current-span").removeClass("current-span");
-    $block.find('#line-' + char.line_no + ' span:first-child').addClass("current-span");
+    // 更新文本区域设置
+    if ($('.current-span').parent().attr('id') !== 'line-' + char.line_no) {
+      var $currentSpan = $block.find('#line-' + char.line_no + ' span:first-child');
+      setCurrent($currentSpan);
+      currentSpan = [$currentSpan, true];
+    }
 
     $.cut.removeBandNumber(0, true);
     $.cut.showFloatingPanel(
@@ -174,12 +178,21 @@ $.cut.onBoxChanged(function (char, box, reason) {
   }
 });
 
+
 /*-----------文本区域相关代码----------------*/
+
+// 设置当前span和line
+function setCurrent(span) {
+  $('.current-span').attr("contentEditable", "false");
+  $(".current-span").removeClass("current-span");
+  $(span).addClass("current-span");
+  $('.current-line').removeClass('current-line');
+  span.parent().addClass('current-line');
+}
 
 // 单击同文、异文，设置当前span
 $(document).on('click', '.same, .not-same', function () {
-  $(".current-span").removeClass("current-span");
-  $(this).addClass("current-span");
+  setCurrent($(this));
   highlightBox($(this));
 });
 
@@ -187,10 +200,7 @@ $(document).on('click', '.same, .not-same', function () {
 $(document).on('dblclick', '.not-same', function (e) {
   e.stopPropagation();
 
-  // 设置当前span
-  $('.current-span').attr("contentEditable", "false");
-  $('.current-span').removeClass("current-span");
-  $(this).addClass('current-span');
+  setCurrent($(this));
 
   // 设置当前异文
   $(".current-not-same").removeClass('current-not-same');
@@ -238,7 +248,6 @@ $(document).on('dblclick', '.not-same', function (e) {
     offset = parseInt(r_w - d_r - 20);
     $dlg.offset({left: o_l + offset});
   }
-
 });
 
 // 双击同文，设置为可编辑
@@ -275,6 +284,7 @@ $(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function () {
   }
 });
 
+
 /*-----------导航条----------------*/
 
 // 缩小画布
@@ -293,7 +303,7 @@ $(document).on('click', '.btn-enlarge', function () {
   }
 });
 
-// 显隐所有字框
+// 显隐字框
 window.showAllBoxes = function () {
   var $this = $('.btn-cut-show');
   $this.removeClass("btn-cut-show");
@@ -311,7 +321,7 @@ $(document).on('click', '.btn-cut-hidden', function () {
   $.cut.bindMatchingKeys();
 });
 
-// 显隐字框对应序号
+// 显隐序号
 $(document).on('click', '.btn-num-show', function () {
   $(this).removeClass("btn-num-show");
   $(this).addClass("btn-num-hidden");
@@ -327,7 +337,7 @@ $(document).on('click', '.btn-num-hidden', function () {
   $('#order').toggle(showOrder);
 });
 
-// 显隐字框对应文本
+// 显隐文本
 $(document).on('click', '.btn-txt-show', function () {
   $(this).removeClass("btn-txt-show");
   $(this).addClass("btn-txt-hidden");
@@ -379,7 +389,6 @@ $(document).on('click', '.btn-font-reduce', function () {
   var size = parseInt($div.css('font-size'));
   if (size > 8) {
     size--;
-    // $('.font-current').text(size);
     $div.css('font-size', size + 'px');
   }
 });
@@ -395,7 +404,7 @@ $(document).on('click', '.btn-font-enlarge', function () {
   }
 });
 
-// 删除该行
+// 删除当前行
 $(document).on('click', '.btn-delete-line', function () {
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
@@ -513,6 +522,7 @@ $(document).on('click', '.btn-check', function () {
   checkMismatch(true);
 });
 
+
 /*-----------存疑相关代码----------------*/
 
 // 存疑对话框
@@ -548,8 +558,7 @@ $(document).on('click', '#doubt_save_btn', function () {
     $('#doubt_tip').show();
     return;
   }
-
-  var $span = currentSpan[0];
+  var $span = $('.current-span');
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
@@ -557,14 +566,11 @@ $(document).on('click', '#doubt_save_btn', function () {
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
-  $('#doubt-table-editable').append(line);
-  $('#doubtModal').modal('hide');
 
   //提交之后底部以列表自动展开
+  $('#doubt-table-editable').append(line).removeClass('hidden');
   $('#table_toggle_btn').removeClass('active');
-  $('#table_toggle_btn').addClass('');
-  $('#doubt-table-editable').addClass('');
-  $('#doubt-table-editable').removeClass('hidden');
+  $('#doubtModal').modal('hide');
 });
 
 $(document).on('click', '#table_toggle_btn', function () {
@@ -596,9 +602,11 @@ $(document).on('mouseup', '.line > span', function () {
 
 function findSpanByOffset($li, offset) {
   var ret = [null, 0];
-  $li.find('span').each(function () {
-    var off = parseInt($(this).attr('offset'));
-    if (off <= offset) {
+  $li.find('span').each(function (i, item) {
+    var off = parseInt($(item).attr('offset'));
+    if (i === 0) {
+      ret = [$(this), offset]
+    } else if (off <= offset) {
       ret = [$(this), offset - off];
     }
   });
@@ -615,19 +623,17 @@ function highlightInSpan(startNode, startOffset, endOffset) {
 }
 
 // 点击存疑行表格，对应行blink效果
-$(document).on('click', '.char-list-tr', function () {
+$(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   var $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
   var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
   var txt = $tr.find('td:nth-child(3)').text();
 
-  $('.right .bd').animate({scrollTop: $li.offset().top + 200}, 100);
+  // 滚动到文本行
+  $('.right .bd .sutra-text').animate({scrollTop: $li.offset().top}, 100);
 
-  // 闪烁，原字高亮
+  // 高亮存疑文本
   if (pos[0]) {
     highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
+    setCurrent(pos[0]);
   }
-  (pos[0] || $li).addClass('blink');
-  setTimeout(function () {
-    (pos[0] || $li).removeClass("blink");
-  }, 500);
 });
