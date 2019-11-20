@@ -509,7 +509,7 @@ $('.btn-compare').on("click", function () {
   });
 });
 
-// 弹出的文本框可以拖拽
+// 弹出的文本可以拖拽
 $('.modal-header').on('mousedown', function (downEvt) {
   var $txtModel = $('#txtModal');
   var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
@@ -540,49 +540,68 @@ $('#txtModal .btn-txt').click(function () {
     $('#txtModal textarea').show();
   else
     $('#txtModal #' + txtType).show().siblings().hide();
-
 });
 
 
 /*-----------导航条----------------*/
 
-// 缩小画布
-$(document).on('click', '.btn-reduce', function () {
+// 显隐左侧图片区域
+$('.m-header').on('click', '.btn-pic', function () {
+  $('.pfread-in > .left').toggleClass('hide');
+});
+
+// 隐藏文本区域
+$('.m-header').on('click', '.btn-text', function () {
+  $('.pfread-in > .right').toggleClass('hide');
+});
+
+// 缩小图片
+$('.m-header').on('click', '.btn-reduce', function () {
   if ($.cut.data.ratio > 0.5) {
     $.cut.setRatio($.cut.data.ratio * 0.9);
     highlightBox();
   }
 });
 
-// 放大画布
-$(document).on('click', '.btn-enlarge', function () {
+// 放大图片
+$('.m-header').on('click', '.btn-enlarge', function () {
   if ($.cut.data.ratio < 5) {
     $.cut.setRatio($.cut.data.ratio * 1.5);
     highlightBox();
   }
 });
 
+// 图片原始大小
+$('.m-header').on('click', '.btn-origin', function () {
+  var width = $('.page-picture img').width();
+  if (width) {
+    $('.page-picture img').width('100%');
+  } else {
+    $.cut.setRatio(1);
+  }
+});
+
 // 显隐字框
 window.showAllBoxes = function () {
-  var $this = $('.btn-cut-show');
-  $this.removeClass("btn-cut-show");
+  var $this = $('.btn-boxes');
+  $this.removeClass("btn-boxes");
   $this.addClass("btn-cut-hidden");
   $.cut.toggleBox(true);
   $.fn.mapKey.bindings = {up: {}, down: {}};
   $.cut.bindKeys();
 };
-$(document).on('click', '.btn-cut-show', window.showAllBoxes);
+$(document).on('click', '.btn-boxes', window.showAllBoxes);
 $(document).on('click', '.btn-cut-hidden', function () {
   $(this).removeClass("btn-cut-hidden");
-  $(this).addClass("btn-cut-show");
+  $(this).addClass("btn-boxes");
   $.cut.toggleBox(false);
   $.fn.mapKey.bindings = {up: {}, down: {}};
   $.cut.bindMatchingKeys();
 });
 
 // 显隐序号
-$(document).on('click', '.btn-num-show', function () {
-  $(this).removeClass("btn-num-show");
+$(document).on('click', '.btn-col-num', function () {
+  $(this).removeClass("btn-col-num");
   $(this).addClass("btn-num-hidden");
   showOrder = !showOrder;
   highlightBox();
@@ -590,22 +609,22 @@ $(document).on('click', '.btn-num-show', function () {
 });
 $(document).on('click', '.btn-num-hidden', function () {
   $(this).removeClass("btn-num-hidden");
-  $(this).addClass("btn-num-show");
+  $(this).addClass("btn-col-num");
   showOrder = !showOrder;
   highlightBox();
   $('#order').toggle(showOrder);
 });
 
 // 显隐文本
-$(document).on('click', '.btn-txt-show', function () {
-  $(this).removeClass("btn-txt-show");
+$(document).on('click', '.btn-col-txt', function () {
+  $(this).removeClass("btn-col-txt");
   $(this).addClass("btn-txt-hidden");
   showText = !showText;
   highlightBox();
 });
 $(document).on('click', '.btn-txt-hidden', function () {
   $(this).removeClass("btn-txt-hidden");
-  $(this).addClass("btn-txt-show");
+  $(this).addClass("btn-col-txt");
   showText = !showText;
   highlightBox();
 });
@@ -721,7 +740,7 @@ $(document).on('click', '.btn-empty-places', function () {
 });
 
 // 弹出原文
-$(document).on('click', '.btn-text', function () {
+$(document).on('click', '.btn-txts', function () {
   $('#txtModal').modal();
 });
 
@@ -750,11 +769,6 @@ $('.ed-column-box').click(function () {
 // 修改字序
 $('.ed-char-order').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=char_order';
-});
-
-// 隐藏文本区域
-$('.btn-hide-text').click(function () {
-  $('.flex-content .right').toggleClass('hide');
 });
 
 // 帮助

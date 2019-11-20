@@ -797,11 +797,10 @@ a:hover {
 
 .m-header .btn-gap {
     width: 0;
-    cursor: none;
-    height: 40px;
-    padding: 1px 1px;
-    background-color: var(--Color_Grey_Line);
-    margin: 0px 1px;
+    height: 36px;
+    padding: 1px 1px 0 0;
+    background-color: var(--Color_Brown_Dark);
+    margin: 1px 1px;
     float: initial;
 }
 
