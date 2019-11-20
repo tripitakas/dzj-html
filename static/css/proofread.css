@@ -52,6 +52,10 @@
     color: #2e363f;
 }
 
+.pfread-in .left .bd {
+    overflow: auto;
+}
+
 .pfread-in .right {
     flex: 1;
     margin-left: 1%;
@@ -117,6 +121,12 @@
     margin-bottom: 0;
 }
 
+.sutra-text .line.current-line {
+    border-left: 6px solid rgba(255, 0, 0, .4);
+    margin-left: -10px;
+    padding-left: 4px;
+}
+
 .sutra-text .line span {
     font-size: 20px;
     font-weight: 300;
@@ -128,6 +138,8 @@
 
 .sutra-text .line span:last-child {
     padding-right: 10px;
+    min-width: 20px;
+    min-height: 40px;
 }
 
 .sutra-text .not-same {
@@ -190,6 +202,7 @@
 
 /* 存疑列表 */
 .char-list {
+    border-top: 1px solid var(--Color_Grey_Light);
     overflow-y: auto;
     flex: 0 1 auto;
 }
@@ -381,4 +394,39 @@
     border-top: none;
     border-left: none;
     box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, .3);
+}
+
+/* 模态框 */
+
+.modal-content .modal-header {
+    height: 40px;
+    padding-bottom: 0;
+}
+
+.modal-content .close {
+    color: var(--Color_Brown_Darker);
+    margin-top: -25px;
+    margin-right: -20px;
+}
+
+.match-tips .head {
+    max-width: 40%;
+}
+
+#txtModal .modal-body {
+    display: flex;
+}
+
+#txtModal textarea {
+    flex: 1;
+    font-size: 1.2em;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+/* svg 元素*/
+text tspan {
+    color: #333333;
+    font-weight: 200;
 }
