@@ -225,7 +225,8 @@ class Page(Data):
               ['reel_code', '卷编码'], ['reel_page_no', '卷内页序号'], ['lock', '数据锁'],
               ['box_stage', '框阶段'], ['text_stage', '文本阶段'],
               ['blocks', '栏框'], ['columns', '列框'], ['chars', '字框'],
-              ['ocr', 'OCR'], ['text', '文本'], ['txt_html', '文本HTML']]
+              ['ocr', 'OCR'], ['ocr_col', '列OCR'],
+              ['text', '文本'], ['txt_html', '文本HTML']]
     rules = [(v.not_empty, 'name'),
              (v.is_page, 'name'),
              (v.is_sutra, 'uni_sutra_code'),
@@ -239,7 +240,7 @@ class Page(Data):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
                     sutra_code='', uni_sutra_code='', reel_code='', reel_page_no='', lock={},
                     box_stage='', text_stage='', blocks=[], columns=[], chars=[],
-                    ocr='', text='', txt_html='')
+                    ocr='', ocr_col='', text='', txt_html='')
 
     @classmethod
     def insert_new(cls, db, file_stream=None):

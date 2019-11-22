@@ -61,16 +61,10 @@ class TextProofHandler(TaskHandler, TextPack):
 
         # 获取比对来源的文本
         ocr = page.get('ocr') or ''
-        if isinstance(ocr, list):
-            ocr1 = ocr[0]
-            ocr2 = ocr[1] if len(ocr) > 1 else ''
-        else:
-            ocr1, ocr2 = ocr, ''
-        ocr1 = re.sub(r'\|', '\n', ocr1) or ''
-        ocr2 = re.sub(r'\|', '\n', ocr2) or ''
+        ocr_col = page.get('ocr_col') or ''
         cmp = self.prop(task, 'result.cmp')
-        texts = dict(base=ocr1, cmp1=ocr2 if ocr2 else cmp, cmp2=cmp if ocr2 else '')
-        labels = dict(base='OCR', cmp1='OCR' if ocr2 else '比对本', cmp2='比对本' if ocr2 else '')
+        texts = dict(base=ocr.replace('|', '\n'), cmp1=ocr_col if ocr_col else cmp, cmp2=cmp if ocr_col else '')
+        labels = dict(base='OCR', cmp1='OCR' if ocr_col else '比对本', cmp2='比对本' if ocr_col else '')
 
         # 检查是否已进行比对
         cmp_data = self.prop(task, 'result.txt_html')

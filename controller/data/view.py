@@ -58,9 +58,7 @@ class TripitakaHandler(BaseHandler):
             # 获取图片路径及文本数据
             page_code = nav.get('cur_page')
             page = self.db.page.find_one({'name': page_code})
-            if page and isinstance(page.get('ocr'), list):
-                page['ocr'] = '|'.join(page['ocr'])
-            page_text = (page.get('text') or page.get('ocr')) if page else ''
+            page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
 
             self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=self.get_img(dict(name=page_code)), page_text=page_text, page=page)
