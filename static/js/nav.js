@@ -15,7 +15,7 @@ $(document).on('click', '#toggle-right', function () {
 // 缩小图片
 $(document).on('click', '#zoom-in', function () {
   var pageImg = $('#page-picture img');
-  if (pageImg.length !== 0) {
+  if (pageImg.length) {
     pageImg.width(pageImg.width() * 0.9);
   } else {
     $.cut.setRatio($.cut.data.ratio * 0.9);
@@ -25,7 +25,7 @@ $(document).on('click', '#zoom-in', function () {
 // 放大图片
 $(document).on('click', '#zoom-out', function () {
   var pageImg = $('#page-picture img');
-  if (pageImg.length !== 0) {
+  if (pageImg.length) {
     pageImg.width(pageImg.width() * 1.5);
   } else {
     $.cut.setRatio($.cut.data.ratio * 1.5);
@@ -35,7 +35,7 @@ $(document).on('click', '#zoom-out', function () {
 // 图片原始大小
 $(document).on('click', '#zoom-reset', function () {
   var pageImg = $('#page-picture img');
-  if (pageImg.length !== 0) {
+  if (pageImg.length) {
     pageImg.width('100%');
   } else {
     $.cut.setRatio(1);
