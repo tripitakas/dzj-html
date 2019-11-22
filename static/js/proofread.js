@@ -706,7 +706,7 @@ $('#zoom-reset').on('click', function () {
 });
 
 // 修改字框
-var pageName = $('#pageName').val();
+var pageName = $('#page-name').val();
 $('#ed-char-box').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=char_box';
 });

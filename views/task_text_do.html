@@ -16,13 +16,11 @@
 </head>
 
 <body class="widescreen">
-<input id="pageName" type="hidden" value="{{page['name']}}">
-<input id="taskType" type="hidden" value="{{task_type}}">
-
-<div class="">
+<input id="page-name" type="hidden" value="{{page['name']}}">
+<input id="task-type" type="hidden" value="{{task_type}}">
+<div class="app-main">
   <div class="main">
     <div class="pfread">
-
       <header class="m-header">
         <div class="back">
           {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}

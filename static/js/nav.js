@@ -56,7 +56,7 @@ $(document).on('click', '#toggle-more', function () {
 
 // 减少文本字号
 $(document).on('click', '#reduce-font', function () {
-  var $div = $('.right .sutra-text span');
+  var $div = $('.sutra-text span');
   var size = parseInt($div.css('font-size'));
   if (size > 8) {
     size--;
@@ -66,7 +66,7 @@ $(document).on('click', '#reduce-font', function () {
 
 // 增加文本字号
 $(document).on('click', '#enlarge-font', function () {
-  var $div = $('.right .sutra-text span');
+  var $div = $('.sutra-text span');
   var size = parseInt($div.css('font-size'));
   if (size < 36) {
     size++;

@@ -26,12 +26,12 @@ esearch:
 
 # 模块
 module:
-  disabled: OCR校对,OCR审定
+  disabled:
 
 # 角色
 role:
   init: 切字校对员,文字校对员
-  disabled: OCR校对员,OCR审定员
+  disabled:
 
 # 任务
 task:

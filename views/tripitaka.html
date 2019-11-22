@@ -16,46 +16,38 @@
 </head>
 
 <style>
-  .main-left.slim-scroll::-webkit-scrollbar {
-    width: 8px;
-    opacity: 0.5;
-  }
-
-  .main-left a {
-    cursor: pointer;
-  }
-
-  .main-left .menu {
-    padding-top: 15px;
-  }
-
-  .menu-item .menu-title {
-    padding-left: 10px;
-  }
-
-  .menu-item .sub-item {
-    padding-left: 18px;
-  }
-
-  .main-left .menu-title.has-sub:before {
-    content: "+";
-    padding-right: 4px;
-  }
-
-  .main-right .m-header {
-    left: 276px;
-  }
-
-  .main-right .content {
-    padding-top: 40px;
-  }
-
-  .content .content-left {
-    padding: 0;
-  }
-
   .modal-body textarea {
     display: inline-block;
+  }
+
+  .page-picture img {
+    width: 100%;
+  }
+
+  .page-text {
+    font-size: 18px;
+    line-height: 1.5em;
+  }
+
+  .page-text .num {
+    background: #ebebeb;
+    display: inline-block;
+    min-width: 32px;
+    text-align: right;
+    padding-right: 10px;
+    font-style: italic;
+  }
+
+  .page-text .txt {
+    margin-left: 10px;
+  }
+
+  rect.box {
+    display: none;
+  }
+
+  text tspan {
+    fill: #f00;
   }
 
   #txtModal .modal-body {
@@ -70,54 +62,6 @@
     padding: 8px;
   }
 
-  .page-picture img {
-    width: 100%;
-  }
-
-  .page-text {
-    font-size: 18px;
-    margin-bottom: 50px;
-  }
-
-  .page-text .num {
-    background: #ebebeb;
-    display: inline-block;
-    min-width: 32px;
-    text-align: right;
-    padding-right: 10px;
-    font-size: 14px;
-    font-style: italic;
-    line-height: 2em;
-  }
-
-  .page-text .txt {
-    margin-left: 10px;
-  }
-
-  rect.box {
-    display: none;
-  }
-
-  .content-left {
-    position: relative;
-  }
-
-  .content-left .pic-nav {
-    position: absolute;
-    width: 36px;
-    height: 60px;
-    background: #333;
-    opacity: 0.2;
-    z-index: 100;
-    cursor: pointer;
-    top: 50%;
-    border-radius: 2px;
-  }
-
-  .content-left .pic-nav:hover {
-    opacity: 0.5;
-  }
-
   #pic-right {
     right: 0;
   }
@@ -126,22 +70,16 @@
     display: block;
     margin: 0 auto;
   }
-
-  text tspan {
-    fill: #f00;
-  }
-
 </style>
-
 
 <body>
 <div class="app-main">
   <div class="main">
     <div class="main-content flex-content {{'sutra-mode' if '经' in tripitaka['store_pattern'] else ''}}">
-      <div class="main-left slim-scroll" id="main-left">
+      <div class="main-left slim-scroll" id="left-menu">
         <div class="main-left-menu">
           <div class="menu-search-wrapper">
-            <input class="menu-search-input" type="text" placeholder="回车或点击按钮检索"/>
+            <input class="menu-search-input" type="text" placeholder="回车或点击按钮进行检索"/>
             <img class="menu-search-btn" src="{{ static_url('imgs/icon13.png') }}"/>
           </div>
           <ul class="menu" id="side-menu">
@@ -153,68 +91,54 @@
         <div class="m-header">
           <div class="header-line main-line">
             <div class="left">
-              <div class="toggle-btn">
+              <div id="toggle-menu">
                 <img class="btn-img" src="{{ static_url('imgs/icon_toggle.png') }}"/>
               </div>
               <div class="title">{{tripitaka.get('name')}}</div>
-              <div class="panel-btn">
-                <img class="btn-img" src="{{ static_url('imgs/icon_hme.png') }}" title="首页" onclick="javascript:location='/tripitakas';"/>
-                <img class="btn-img" src="{{ static_url('imgs/icon_panel.png') }}" title="经目查询" data-toggle="modal" data-target="#sutraNavModal"/>
-              </div>
-              <div class="zone-control" style="padding: 0 5px">
-                <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img zone-left" title="图片区域"/>
-                <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img zone-right" title="文字区域"/>
-                <img src="{{ static_url('imgs/icon_text.png') }}" class="btn-img btn-text" title="原文"/>
-              </div>
-              <div class="img-control" style="padding: 0 5px">
+              <div class="btn-group">
+                <img src="{{ static_url('imgs/icon_hme.png') }}" class="btn-img" title="首页" onclick="javascript:location='/tripitakas';"/>
+                <img src="{{ static_url('imgs/char_icon7.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+                <img src="{{ static_url('imgs/icon_panel.png') }}" class="btn-img" data-toggle="modal" data-target="#sutraNavModal" title="经目查询"/>
+                <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-left" title="显隐图片"/>
+                <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img active" id="toggle-text" title="显隐文字"/>
+                <img src="{{ static_url('imgs/icon_txts.png') }}" class="btn-img" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
                 <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
-                <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img btn-origin" title="原始"/>
+                <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
                 <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+                <div class="btn-txt btn-gap"></div>
               </div>
-              <div class="m-pager" style="padding: 0 5px">
-                <div class="btn-page hide" id="cur-volume">{{nav.get('cur_volume')}}</div>
-                {% if nav.get('first') %}
-                <div class="btn-page first" title="{{nav.get('first')}}">首页</div>
-                {% end %}
-                {% if nav.get('prev') %}
-                <div class="btn-page prev" title="{{nav.get('prev')}}"><</div>
-                {% end %}
+              <div class="btn-group m-pager" style="padding: 0 5px">
+                <input id="cur-volume" type="hidden" value="{{nav.get('cur_volume')}}">
+                <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" title="{{nav.get('first')}}">首页</div>
+                <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" title="{{nav.get('prev')}}"><</div>
                 <div class="btn-page to">
                   <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
-                  {% if nav.get('last') %}
-                  / <span type="tips">{{nav.get('last').split('_')[-1]}}</span>
-                  {% end %}
+                  <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last').split('_')[-1]}}</span>
                 </div>
-                {% if nav.get('next') %}
-                <div class="btn-page next" title="{{nav.get('next')}}">></div>
-                {% end %}
-                {% if nav.get('last') %}
-                <div class="btn-page last" title="{{nav.get('last')}}">末页</div>
-                {% end %}
+                <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" title="{{nav.get('next')}}">></div>
+                <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" title="{{nav.get('last')}}">末页</div>
               </div>
-              <div class="more {{'' if page else 'hide'}}">
+              <div class="btn-group{{'' if page else ' hide'}}">
                 <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img" id="toggle-more" title="更多"/>
-                <span class="btn-group more-group hidden" role="group" aria-label="更多">
-                  <button type="button" class="btn btn-default btn-sm show-image">图片</button>
-                  <button type="button" class="btn btn-default btn-sm show-block">栏框</button>
-                  <button type="button" class="btn btn-default btn-sm show-column">列框</button>
-                  <button type="button" class="btn btn-default btn-sm show-char">字框</button>
-                  <button type="button" class="btn btn-default btn-sm show-order" id="toggle-char-no">字序</button>
+                <span class="btn-group right hidden" id="more-group">
+                  <button type="button" class="btn btn-default btn-sm" id="toggle-image">图片</button>
+                  <button type="button" class="btn btn-default btn-sm" id="toggle-block">栏框</button>
+                  <button type="button" class="btn btn-default btn-sm" id="toggle-column">列框</button>
+                  <button type="button" class="btn btn-default btn-sm" id="toggle-char">字框</button>
+                  <button type="button" class="btn btn-default btn-sm" id="toggle-char-no">字序</button>
                 </span>
               </div>
             </div>
-            <div class="right {{'' if page_text else 'hide'}}">
-              <div class="txt-btns">
-                <div class="btn-txt btn-font-enlarge" title="增加字号">A+</div>
-                <div class="btn-txt btn-font-reduce" title="减少字号">A-</div>
-              </div>
+            <div class="btn-group right{{'' if page_text else ' hide'}}">
+              <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
+              <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>
             </div>
           </div>
         </div>
 
         <div class="content">
           <!-- 左侧图片区域 -->
-          <div class="content-left">
+          <div class="content-left" id="left-region">
             <img class="pic-nav" id="pic-left" src="{{ static_url('imgs/icon_left.png') }}"/>
             <img class="pic-nav" id="pic-right" src="{{ static_url('imgs/icon_right.png') }}"/>
             <div id="page-picture" class="page-picture">
@@ -226,11 +150,13 @@
             </div>
           </div>
           <!-- 右侧文字区域 -->
-          <div class="content-right {{'' if page_text else 'hide'}}">
-            <div class="page-text">
+          <div class="content-right {{'' if page_text else 'hide'}}" id="right-region">
+            <div class="page-text sutra-text">
               {% import re %}
               {% for n, txt in enumerate(re.split(r'[\n|]', page_text)) %}
-              <div><span class="num">{{n+1}}</span><span class="txt">{{txt}}</span></div>
+              <div>
+                <span class="num">{{n+1}}</span>
+                <span class="txt">{{txt}}</span></div>
               {% end %}
             </div>
           </div>
@@ -241,8 +167,7 @@
 </div>
 </div>
 
-<!-- 根据字段检索经名 -->
-<div class="panel-body">
+<div class="modals">
   <div id="sutraNavModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-pages" aria-hidden="true">
     <div class="modal-dialog" style="width: 80%">
       <div class="modal-content">
@@ -273,53 +198,69 @@
       </div>
     </div>
   </div>
-</div>
 
-{% if page %}
-<div class="panel-body" style="padding: 0">
   <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        {% if page %}
         <div class="modal-header">
           <div class="btn-group" role="group">
-            <button class="btn btn-txt btn-default{{'' if page.get('ocr') else ' hide'}}" id="show-ocr">OCR</button>
-            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-text">校对文本</button>
-            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-all">所有</button>
+            <button class="btn btn-txt btn-default{{'' if page and page.get('ocr') else ' hide'}}" id="show-ocr">OCR</button>
+            <button class="btn btn-txt btn-default{{'' if page and page.get('text') else ' hide'}}" id="show-text">校对文本</button>
+            <button class="btn btn-txt btn-default{{'' if page and page.get('text') else ' hide'}}" id="show-all">所有</button>
           </div>
         </div>
         <div class="modal-body">
           <textarea id="ocr" class="{{'' if page.get('ocr') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('ocr') or ''))}}</textarea>
           <textarea id="text" class="{{'' if page.get('text') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('text') or ''))}}</textarea>
         </div>
+        {% else %}
+        <div style="margin-top: 10px; text-align: center">暂无文本</div>
+        {% end %}
       </div>
     </div>
   </div>
+
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          帮助内容
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
-{% end %}
 
 {% include _base_js.html %}
 {% include _base_cut.html %}
 <script src="https://cdn.datatables.net/v/bs/dt-1.10.18/datatables.min.js"></script>
 <script src="{{static_url('js/meta/%s-sutra.js' % tripitaka_code)}}"></script>
 <script src="{{static_url('js/meta/%s-volume.js' % tripitaka_code)}}"></script>
+<script src="{{static_url('js/cut/char_order.js') }}"></script>
 <script src="{{static_url('js/tripitaka.js')}}"></script>
-<script src="{{ static_url('js/cut/char_order.js') }}"></script>
+<script src="{{static_url('js/nav.js') }}"></script>
 
 {% if page %}
 <script>
-  var chars = decodeJSON('{{page.get("chars", [])}}');
-  for (var i = 0; i < chars.length; i++) {
-    chars[i]['class'] = 'char';
+  function initBoxes(boxesStr, className) {
+    var boxes = decodeJSON(boxesStr);
+    for (var i = 0; i < boxes.length; i++) {
+      boxes[i]['class'] = className;
+    }
+    return boxes;
   }
-  var columns = decodeJSON('{{page.get("columns", [])}}');
-  for (var i = 0; i < columns.length; i++) {
-    columns[i]['class'] = 'column';
-  }
-  var blocks = decodeJSON('{{page.get("blocks", [])}}');
-  for (var i = 0; i < blocks.length; i++) {
-    blocks[i]['class'] = 'block';
-  }
+
+  var chars = initBoxes('{{page.get("chars", [])}}', 'char');
+  var columns = initBoxes('{{page.get("columns", [])}}', 'column');
+  var blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
 
   $.cut.create({
     readonly: true,
@@ -334,55 +275,6 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(null);
-
-  // 显隐图片
-  $('.show-image').click(function () {
-    $(this).toggleClass('active');
-    var style = $.cut.data.image.node.style;
-    style.display = style.display === 'none' ? '' : 'none';
-  });
-
-  // 显隐栏框
-  $('.show-block').click(function () {
-    $(this).toggleClass('active');
-    $('rect.block').css('display', $(this).hasClass('active') ? 'block' : 'none');
-  });
-
-  // 显隐列框
-  $('.show-column').click(function () {
-    $(this).toggleClass('active');
-    $('rect.column').css('display', $(this).hasClass('active') ? 'block' : 'none');
-  });
-
-  // 显隐字框
-  $('.show-char').click(function () {
-    $(this).toggleClass('active');
-    $('rect.char').css('display', $(this).hasClass('active') ? 'block' : 'none');
-  });
-
-  // 显隐字序
-  $('.show-order').click(function () {
-    $(this).toggleClass('active');
-    var style = $.cut.data.image.node.style;
-    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
-  });
-
-  // 弹出原文
-  $(document).on('click', '.btn-text', function () {
-    $('#txtModal').modal();
-  });
-
-  // 切换文本
-  $('#txtModal .btn-txt').click(function () {
-    $(this).removeClass('btn-default').addClass('btn-primary');
-    $(this).siblings().removeClass('btn-primary').addClass('btn-default');
-    var txtType = $(this).attr('id').replace('show-', '');
-    if (txtType === 'all')
-      $('#txtModal textarea').show();
-    else
-      $('#txtModal #' + txtType).show().siblings().hide();
-  });
-
 </script>
 {% end %}
 
