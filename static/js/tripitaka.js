@@ -39,7 +39,7 @@ $('#toggle-text').click(function () {
   localStorage.setItem('toggleText', $('#right-region').hasClass('hide') ? 'hide' : 'show');
 });
 if (localStorage.getItem('toggleText') === 'hide') {
-  $('#toggle-text').click();
+  $('#right-region').addClass('hide');
 }
 
 // 跳转某一页
