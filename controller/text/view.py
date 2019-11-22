@@ -46,7 +46,7 @@ class TextProofHandler(TaskHandler, TextPack):
         ocr = page.get('ocr')
         ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
         self.render(
-            'task_text_select_compare.html',
+            'task_text_compare.html',
             task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly, num=num,
             steps=steps, ocr=ocr, cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )

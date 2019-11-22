@@ -42,6 +42,7 @@ op_types = {
 placeholder = {
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_[0-9a-z_]+|upload_cloud|import_image',
     'collection': r'tripitaka|sutra|volume|reel|page',
+    'data_field': r'chars|columns|blocks|text',
 }
 
 

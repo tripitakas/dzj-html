@@ -878,7 +878,7 @@
   });
 
   // 显隐字框编号
-  $('#switch-char-no').click(function () {
+  $('#toggle-char-no').click(function () {
     cs.state.labelVisible = !cs.state.labelVisible;
     cs.updateLabel();
   });

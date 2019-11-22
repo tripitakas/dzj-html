@@ -15,8 +15,8 @@ except ImportError:  # Windows上跳过安装cdifflib
 
 
 class Diff(object):
-    junk_ocr_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（），、：；。？！“”‘’—#Ω￥%&*◎…]'
-    junk_cmp_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（），、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
+    junk_ocr_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》，、：；。？！“”‘’—#Ω￥%&*◎…]'
+    junk_cmp_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
 
     @classmethod
     def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):

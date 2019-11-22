@@ -1,10 +1,8 @@
 /*
  * task.js
- *
- * Date: 2019-09-29
  */
 
-// 领取新任务
+// 领新任务
 function pick(url, page_name) {
   var data = {data: page_name === undefined ? {} : {page_name: page_name}};
   postApi(url, data, function (res) {

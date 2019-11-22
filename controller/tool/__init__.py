@@ -1,7 +1,7 @@
 from . import api, view
 
 views = [
-    view.SearchCbetaHandler, view.PunctuationHandler, view.OcrHandler, view.OcrViewHandler,
+    view.SearchCbetaHandler, view.PunctuationHandler
 ]
 
 handlers = [

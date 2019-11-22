@@ -3,7 +3,7 @@
   {% for ln in blk['lines'] %}
   <li class="line{{'' if ln['items'] else ' empty-line'}}" id="line-{{ln['line_no']}}">
     {% for s in ln['items'] %}
-    {% set is_same = 'same is_variant' if s.get('is_variant') else 'same' if s.get('is_same') else 'not-same' %}
+    {% set is_same = 'same is_variant' if s.get('is_variant') else 'same' if s.get('is_same') else 'diff' %}
     {% set fields = [field for field in ['base', 'cmp1', 'cmp2', 'cmp3', 'offset', 'utf8mb4'] if s.get(field)] %}
     <span contentEditable="false" class="{{is_same}}{{'' if s.get('base') else ' empty-place'}}"
           {% for field in fields %}

@@ -3,7 +3,7 @@
  *
  * Date: 2019-09-18
  */
-(function() {
+(function () {
   'use strict';
 
   function getDistance(a, b) {
@@ -74,8 +74,7 @@
       var x2 = Math.max(pts[0].x, pts[1].x, pts[2].x, pts[3].x);
       var y2 = Math.max(pts[0].y, pts[1].y, pts[2].y, pts[3].y);
       return createRect({x: x1, y: y1}, {x: x2, y: y2});
-    }
-    else if (index >= 4 && index < 8) {
+    } else if (index >= 4 && index < 8) {
       return createRect({x: pts[3].x, y: pts[2].y}, {x: pts[1].x, y: pts[0].y});
     }
   }
@@ -86,25 +85,25 @@
     if (width >= 5 && height >= 5 && width * height >= 100 || force) {
       var x = Math.min(pt1.x, pt2.x), y = Math.min(pt1.y, pt2.y);
       return data.paper.rect(x, y, width, height)
-        .initZoom().setAttr({
-          stroke: data.changedColor,
-          'stroke-opacity': data.boxOpacity,
-          'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-          , fill: (data.blockMode || data.columnMode) && data.hoverFill
-          , 'fill-opacity': 0.1
-        });
+          .initZoom().setAttr({
+            stroke: data.changedColor,
+            'stroke-opacity': data.boxOpacity,
+            'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+            , fill: (data.blockMode || data.columnMode) && data.hoverFill
+            , 'fill-opacity': 0.1
+          });
     }
   }
 
   function findCharById(id) {
-    return id && data.chars.filter(function(box) {
+    return id && data.chars.filter(function (box) {
       return box.char_id === id || box.id === id;
     })[0];
   }
 
   function notifyChanged(el, reason) {
     var c = el && findCharById(el.data('cid'));
-    data.boxObservers.forEach(function(func) {
+    data.boxObservers.forEach(function (func) {
       func(c || {}, el && el.getBBox(), reason);
     });
   }
@@ -116,6 +115,7 @@
     '&nbsp;': ' ',
     '&quot;': '"'
   };
+
   function decodeHtml(s) {
     s = s.replace(/&\w+;|&#(\d+);/g, function ($0, $1) {
       var c = HTML_DECODE[$0];
@@ -243,7 +243,7 @@
       return JSON.parse(decodeHtml(text));
     },
 
-    showHandles: function(el, handle) {
+    showHandles: function (el, handle) {
       var i, pt, r;
       var size = data.handleSize;
 
@@ -256,18 +256,18 @@
         for (i = 0; i < 8; i++) {
           pt = getHandle(el, i);
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
-            .attr({
-              stroke: i === handle.index ? data.activeHandleColor : data.hoverColor,
-              fill: i === handle.index ? data.activeHandleFill : data.handleFill,
-              'fill-opacity': i === handle.index ? 0.8 : data.activeFillOpacity,
-              'stroke-width': 1.2   // 控制点显示不需要放缩自适应，所以不需要调用 initZoom()
-            });
+              .attr({
+                stroke: i === handle.index ? data.activeHandleColor : data.hoverColor,
+                fill: i === handle.index ? data.activeHandleFill : data.handleFill,
+                'fill-opacity': i === handle.index ? 0.8 : data.activeFillOpacity,
+                'stroke-width': 1.2   // 控制点显示不需要放缩自适应，所以不需要调用 initZoom()
+              });
           handle.handles.push(r);
         }
       }
     },
 
-    activateHandle: function(el, handle, pt) {
+    activateHandle: function (el, handle, pt) {
       var dist = handle.fill ? 200 : 8;
       var d, i;
 
@@ -282,7 +282,7 @@
       this.showHandles(el, handle);
     },
 
-    hoverIn: function(box) {
+    hoverIn: function (box) {
       if (box && box !== state.edit) {
         state.hover = box;
         state.hoverHandle.index = -1;
@@ -296,16 +296,15 @@
       }
     },
 
-    hoverOut: function(box) {
+    hoverOut: function (box) {
       if (box && state.hover === box && state.hoverHandle.fill) {
-        box.attr({ stroke: state.hoverStroke, fill: state.hoverHandle.fill });
+        box.attr({stroke: state.hoverStroke, fill: state.hoverHandle.fill});
         state.hoverHandle.fill = 0;   // 设置此标志，暂不清除 box 变量，以便在框外也可点控制点
         if (state.hoverHandle.hidden) {
           box.hide();
         }
-      }
-      else if (box && state.edit === box && state.editHandle.fill) {
-        box.attr({ stroke: state.editStroke, fill: state.editHandle.fill });
+      } else if (box && state.edit === box && state.editHandle.fill) {
+        box.attr({stroke: state.editStroke, fill: state.editHandle.fill});
         if (state.editHandle.hidden) {
           box.hide();
         }
@@ -313,7 +312,7 @@
       }
     },
 
-    scrollToVisible: function(el, ms) {
+    scrollToVisible: function (el, ms) {
       var self = this;
       var bound = data.holder.getBoundingClientRect();  // 画布相对于视口的坐标范围，减去滚动原点
       var box = el.getBBox();                           // 字框相对于画布的坐标范围
@@ -359,20 +358,20 @@
         state.scrolling.push(el);
         if (state.scrolling.length === 1 || ms) {
           (data.scrollContainer || $('html,body')).animate(
-            {scrollTop: st, scrollLeft: sl}, ms || 500,
-            function() {
-              var n = state.scrolling.length;
-              el = n > 1 && state.scrolling[n - 1];
-              state.scrolling.length = 0;
-              if (el) {
-                self.scrollToVisible(el, 300);
-              }
-            });
+              {scrollTop: st, scrollLeft: sl}, ms || 500,
+              function () {
+                var n = state.scrolling.length;
+                el = n > 1 && state.scrolling[n - 1];
+                state.scrolling.length = 0;
+                if (el) {
+                  self.scrollToVisible(el, 300);
+                }
+              });
         }
       }
     },
-    
-    switchCurrentBox: function(el) {
+
+    switchCurrentBox: function (el) {
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
       state.hover = null;
@@ -398,16 +397,16 @@
     },
 
     // 创建校对画布和各个框
-    create: function(p) {
+    create: function (p) {
       var self = this;
 
-      var getPoint = function(e) {
+      var getPoint = function (e) {
         var svg = data.holder.getElementsByTagName('svg');
         var box = svg[0].getBoundingClientRect();
-        return { x: e.clientX - box.x, y: e.clientY - box.y };
+        return {x: e.clientX - box.x, y: e.clientY - box.y};
       };
 
-      var mouseHover = function(e) {
+      var mouseHover = function (e) {
         var pt = getPoint(e);
         var box = e.shiftKey ? null : self.findBoxByPoint(pt, e.altKey);
 
@@ -435,7 +434,7 @@
         e.preventDefault();
       };
 
-      var mouseDown = function(e) {
+      var mouseDown = function (e) {
         e.preventDefault();
         if (e.button === 2) { // right button
           return;
@@ -450,16 +449,14 @@
         var lockBox = e.altKey;
         if (e.shiftKey) {
           self.switchCurrentBox(null);
-        }
-        else if ((!state.edit || state.editHandle.index < 0) && !lockBox) {
+        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox) {
           self.switchCurrentBox(state.hover);
         }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        }
-        else if (!lockBox) {
+        } else if (!lockBox) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -475,7 +472,7 @@
         }
       };
 
-      var mouseDrag = function(e) {
+      var mouseDrag = function (e) {
         var pt = getPoint(e);
 
         e.preventDefault();
@@ -498,15 +495,14 @@
         self.showHandles(state.edit, state.editHandle);
       };
 
-      var mouseUp = function(e) {
+      var mouseUp = function (e) {
         e.preventDefault();
         if (state.down) {
           var pt = getPoint(e);
           state.mouseUp(pt, e);
           if (state.originBox && getDistance(pt, state.down) > 1) {
             self._changeBox(state.originBox, state.edit);
-          }
-          else {
+          } else {
             self.cancelDrag();
             self.switchCurrentBox(state.edit);
           }
@@ -517,11 +513,12 @@
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
       state.focus = true;
-      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function(){};
+      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {
+      };
 
       data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
-        .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
+          .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
       if (p.blockMode || p.columnMode) {
@@ -540,19 +537,19 @@
 
       data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       $(data.holder)
-        .mousedown(mouseDown)
-        .mouseup(mouseUp)
-        .mousemove(function(e) {
-          (state.down ? mouseDrag : mouseHover)(e);
-        });
+          .mousedown(mouseDown)
+          .mouseup(mouseUp)
+          .mousemove(function (e) {
+            (state.down ? mouseDrag : mouseHover)(e);
+          });
 
-      var xMin = 1e5, yMin= 1e5, leftTop = null;
+      var xMin = 1e5, yMin = 1e5, leftTop = null;
 
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
 
-      p.chars.forEach(function(b, idx) {
+      p.chars.forEach(function (b, idx) {
         if (p.columnMode) {
           b.char_id = b.column_id;
         }
@@ -578,7 +575,7 @@
       data.removeSmall = p.removeSmallBoxes && [40, 40];
       self._apply(p.chars, 1);
 
-      p.chars.forEach(function(b) {
+      p.chars.forEach(function (b) {
         if (yMin > b.y - data.unit && xMin > b.x - data.unit) {
           yMin = b.y;
           xMin = b.x;
@@ -595,7 +592,7 @@
     },
 
     // 销毁所有图形
-    destroy: function() {
+    destroy: function () {
       if (data.image) {
         data.image.remove();
         delete data.image;
@@ -604,7 +601,7 @@
         data.board.remove();
         delete data.board;
       }
-      data.chars.forEach(function(b) {
+      data.chars.forEach(function (b) {
         if (b.shape) {
           b.shape.remove();
           delete b.shape;
@@ -629,13 +626,13 @@
       var s = ratio || data.ratio * data.ratioInitial;
       var cid = this.getCurrentCharID();
 
-      data.chars.forEach(function(b) {
+      data.chars.forEach(function (b) {
         if (b.shape) {
           b.shape.remove();
           delete b.shape;
         }
       });
-      chars.forEach(function(b) {
+      chars.forEach(function (b) {
         if (data.removeSmall && b.ch !== '一' && (
             b.w < data.removeSmall[0] / 2 && b.h < data.removeSmall[1] / 2
             || b.w < data.removeSmall[0] / 3 || b.h < data.removeSmall[1] / 3)) {
@@ -647,17 +644,17 @@
           data.chars.push(c);
         }
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
-          .setAttr({
-            stroke: data.normalColor,
-            'stroke-opacity': data.boxOpacity,
-            'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-            , fill: (data.blockMode || data.columnMode) && data.hoverFill
-            , 'fill-opacity': 0.1
-            , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
-          })
-          .data('uid', b.id)
-          .data('cid', b.char_id)
-          .data('char', b.ch);
+            .setAttr({
+              stroke: data.normalColor,
+              'stroke-opacity': data.boxOpacity,
+              'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+              , fill: (data.blockMode || data.columnMode) && data.hoverFill
+              , 'fill-opacity': 0.1
+              , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
+            })
+            .data('uid', b.id)
+            .data('cid', b.char_id)
+            .data('char', b.ch);
 
         if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
           setTimeout(function () {
@@ -677,7 +674,7 @@
     canUndo: undoData.canUndo.bind(undoData),
     canRedo: undoData.canRedo.bind(undoData),
 
-    _changeBox: function(src, dst) {
+    _changeBox: function (src, dst) {
       if (!dst) {
         return;
       }
@@ -715,36 +712,48 @@
       return info.char_id;
     },
 
-    getCurrentCharID: function(withId) {
+    getCurrentCharID: function (withId) {
       var uid = withId && state.edit && state.edit.data('uid');
       return state.edit && state.edit.data('cid') + (uid ? '#' + uid : '');
     },
 
-    getCurrentChar: function() {
+    getCurrentChar: function () {
       return state.edit && state.edit.data('char');
     },
 
     findCharById: findCharById,
 
-    findCharsByLine: function(block_no, line_no, cmp) {
+    findCharsByOffset: function (block_no, line_no, offset) {
+      for (var i = 0, index = 0; i < data.chars.length; i++) {
+        var box = data.chars[i];
+        if (box.block_no === block_no && box.line_no === line_no) {
+          index++;
+        }
+        if (index === offset)
+          return [box];
+      }
+      return [];
+    },
+
+    findCharsByLine: function (block_no, line_no, cmp) {
       var i = 0;
-      return data.chars.filter(function(box) {
+      return data.chars.filter(function (box) {
         if (box.block_no === block_no && box.line_no === line_no) {
           return !cmp || cmp(box.ch, box, i++);
         }
-      }).sort(function(a, b) {
+      }).sort(function (a, b) {
         return a.char_no - b.char_no;
       });
     },
 
-    findBoxByPoint: function(pt, lockBox) {
+    findBoxByPoint: function (pt, lockBox) {
       var ret = null, dist = 1e5, d, i, j, el;
-      var isInRect = function(el, tol) {
+      var isInRect = function (el, tol) {
         var box = el && el.getBBox();
         return box && pt.x > box.x - tol &&
-          pt.y > box.y - tol &&
-          pt.x < box.x + box.width + tol &&
-          pt.y < box.y + box.height + tol;
+            pt.y > box.y - tol &&
+            pt.x < box.x + box.width + tol &&
+            pt.y < box.y + box.height + tol;
       };
 
       if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)) {
@@ -765,12 +774,14 @@
       return ret;
     },
 
-    exportBoxes: function(pageData) {
-      var r = function(v) {
+    exportBoxes: function (pageData) {
+      var r = function (v) {
         return Math.round(v * 10 / pageData.ratio / pageData.ratioInitial) / 10;
       };
       pageData = pageData || data;
-      return pageData.chars.filter(function(c) { return c.shape && c.shape.getBBox(); }).map(function(c) {
+      return pageData.chars.filter(function (c) {
+        return c.shape && c.shape.getBBox();
+      }).map(function (c) {
         var box = c.shape.getBBox();
         c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
         delete c.shape;
@@ -784,11 +795,11 @@
     },
 
     // callback: function(info, box, reason)
-    onBoxChanged: function(callback) {
+    onBoxChanged: function (callback) {
       data.boxObservers.push(callback);
     },
 
-    cancelDrag: function() {
+    cancelDrag: function () {
       if (state.originBox) {
         state.edit.remove();
         state.edit = state.originBox;
@@ -798,8 +809,7 @@
       if (state.edit && state.edit.getBBox().width < 1) {
         state.edit.remove();
         state.edit = null;
-      }
-      else if (state.edit && state.editHandle.fill) {
+      } else if (state.edit && state.editHandle.fill) {
         state.edit.attr({
           stroke: state.editStroke,
           fill: state.editHandle.fill
@@ -812,7 +822,7 @@
       state.down = null;
     },
 
-    removeBox: function() {
+    removeBox: function () {
       if (state.beforeRemove && state.beforeRemove(state.edit)) {
         return;
       }
@@ -838,28 +848,30 @@
       }
     },
 
-    addBox: function() {
+    addBox: function () {
       this.cancelDrag();
       var box = state.edit && state.edit.getBBox();
       if (box) {
         var dx = box.width / 2, dy = box.height / 2;
         var newBox = createRect({x: box.x + dx, y: box.y + dy},
-          {x: box.x + box.width + dx, y: box.y + box.height + dy});
+            {x: box.x + box.width + dx, y: box.y + box.height + dy});
         return this._changeBox(null, newBox);
       }
     },
 
-    findCharByData: function(key, value) {
+    findCharByData: function (key, value) {
       return value && data.chars.filter(function (box) {
         return box.shape && box.shape.data(key) === value;
       })[0];
     },
 
-    navigate: function(direction) {
+    navigate: function (direction) {
       var i, cur, chars, calc, invalid = 1e5;
       var minDist = invalid, d, ret;
 
-      chars = data.chars.filter(function(c) { return c.shape; });
+      chars = data.chars.filter(function (c) {
+        return c.shape;
+      });
       ret = cur = state.edit || state.hover || (chars[chars.length - 1] || {}).shape;
       cur = cur && cur.getBBox();
 
@@ -867,7 +879,7 @@
         return;
       }
       if (direction === 'left' || direction === 'right') {
-        calc = function(box) {
+        calc = function (box) {
           // 排除水平反方向的框：如果方向为left，则用当前框右边的x来过滤；如果方向为right，则用当前框左边的x来过滤
           var dx = direction === 'left' ? (box.x + box.width - cur.x - cur.width) : (box.x - cur.x);
           if (direction === 'left' ? dx > -2 : dx < 2) {
@@ -880,9 +892,8 @@
           }
           return dy * 2 + Math.abs(dx);
         };
-      }
-      else {
-        calc = function(box) {
+      } else {
+        calc = function (box) {
           // 排除垂直反方向的框：如果方向为up，则用当前框下边的y来过滤；如果方向为down，则用当前框上边的y来过滤；不在同一列的则加大过滤差距
           var dy = direction === 'up' ? (box.y + box.height - cur.y - cur.height) : (box.y - cur.y);
           var gap = box.x < cur.x ? cur.x - box.x - box.width : box.x - cur.x - cur.width;
@@ -915,20 +926,17 @@
       }
     },
 
-    moveBox: function(direction) {
+    moveBox: function (direction) {
       this.cancelDrag();
       var box = state.edit && state.edit.getBBox();
       if (box) {
         if (direction === 'left') {
           box.x -= data.unit;
-        }
-        else if (direction === 'right') {
+        } else if (direction === 'right') {
           box.x += data.unit;
-        }
-        else if (direction === 'up') {
+        } else if (direction === 'up') {
           box.y -= data.unit;
-        }
-        else {
+        } else {
           box.y += data.unit;
         }
 
@@ -937,22 +945,19 @@
       }
     },
 
-    resizeBox: function(direction, shrink) {
+    resizeBox: function (direction, shrink) {
       this.cancelDrag();
       var box = state.edit && state.edit.getBBox();
       if (box) {
         if (direction === 'left') {
           box.x += shrink ? data.unit : -data.unit;
           box.width += shrink ? -data.unit : data.unit;
-        }
-        else if (direction === 'right') {
+        } else if (direction === 'right') {
           box.width += shrink ? -data.unit : data.unit;
-        }
-        else if (direction === 'up') {
+        } else if (direction === 'up') {
           box.y += shrink ? data.unit : -data.unit;
           box.height += shrink ? -data.unit : data.unit;
-        }
-        else {
+        } else {
           box.height += shrink ? -data.unit : data.unit;
         }
 
@@ -961,15 +966,15 @@
       }
     },
 
-    toggleBox: function(visible) {
-      data.chars.forEach(function(box) {
+    toggleBox: function (visible) {
+      data.chars.forEach(function (box) {
         if (box.shape) {
           $(box.shape.node).toggle(visible);
         }
       });
     },
 
-    setRatio: function(ratio) {
+    setRatio: function (ratio) {
       var el = state.edit || state.hover;
       var box = el && el.getBBox();
       var body = document.documentElement || document.body;
@@ -992,7 +997,7 @@
       var box2 = el && el.getBBox();
       if (box && box2) {
         window.scrollTo(box2.x + box2.width / 2 - box.x - box.width / 2 + pos[0],
-          box2.y + box2.width / 2 - box.y - box.width / 2 + pos[1]);
+            box2.y + box2.width / 2 - box.y - box.width / 2 + pos[1]);
       }
       if (state['onZoomed']) {
         state['onZoomed']();

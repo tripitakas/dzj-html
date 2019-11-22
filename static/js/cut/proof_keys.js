@@ -1,35 +1,36 @@
 /* global $ */
-(function() {
+(function () {
   'use strict';
 
   var highlightBox;
 
   $.extend($.cut, {
-    bindMatchingKeys: function() {
+
+    bindMatchingKeys: function () {
       var self = this;
       var data = self.data;
-      var on = function(key, func) {
+      var on = function (key, func) {
         $.mapKey(key, func, {direction: 'down'});
       };
 
       // 方向键：在字框间导航
-      on('left', function() {
+      on('left', function () {
         self.navigate('left');
       });
-      on('right', function() {
+      on('right', function () {
         self.navigate('right');
       });
-      on('up', function() {
+      on('up', function () {
         self.navigate('up');
       });
-      on('down', function() {
+      on('down', function () {
         self.navigate('down');
       });
 
       var oldChar = [0, '', 0];
 
       // 响应字框的变化，记下当前字框的关联信息
-      self.onBoxChanged(function(info, box, reason) {
+      self.onBoxChanged(function (info, box, reason) {
         oldChar[0] = box && info.shape && info.shape.data('order');
         oldChar[1] = box && info.shape && (info.shape.data('text') || info.shape.data('char')) || '';
         oldChar[2] = info;
@@ -52,7 +53,7 @@
       });
 
       // 改变字框的行内字序号
-      $('#order').change(function(event) {
+      $('#order').change(function (event) {
         var order = parseInt($('#order').val());
         var info = oldChar[2];
 
@@ -98,7 +99,7 @@
         }
       });
     },
-    
+
     showBox: function (field, boxs, id) {
       var self = this, data = this.data;
       if (self[field]) {
@@ -111,12 +112,12 @@
       if (box) {
         var s = data.ratio * data.ratioInitial;
         self[field] = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
-          .attr({fill: id.indexOf('c') < 0 ? 'none' : 'rgba(0,128,0,.01)', stroke: 'rgba(0,0,255,.3)'});
+            .attr({fill: id.indexOf('c') < 0 ? 'none' : 'rgba(0,128,0,.01)', stroke: 'rgba(0,0,255,.3)'});
       }
     },
 
     // 显示当前列字框的浮动文字面板
-    showFloatingPanel: function(chars, content, refresh) {
+    showFloatingPanel: function (chars, content, refresh) {
       var box, offset;
       var self = this;
       var data = self.data;
@@ -124,7 +125,7 @@
       highlightBox = refresh;
 
       // 计算字框的并集框、平移距离
-      chars.forEach(function(c) {
+      chars.forEach(function (c) {
         var p = c.shape && c.shape.getBBox();
         if (p) {
           if (!box) {
@@ -150,25 +151,28 @@
       // 显示浮动面板
       if (chars.length) {
         data.bandNumberBox = data.paper.rect(box.x - 5, box.y - 5, box.width + 10, box.y2 - box.y + 10)
-          .attr({fill: 'rgba(255,255,255,1)', stroke: 'rgba(0,0,0,.2)'});
+            .attr({fill: 'rgba(255,255,255,1)', stroke: 'rgba(0,0,0,.2)'});
       }
+
       // 显示每个字框的浮动序号框
-      chars.forEach(function(c, i) {
+      chars.forEach(function (c, i) {
         var el = c.shape;
         var p = el && el.getBBox();
         var text = content(c, i);
+        var fontSize = typeof panelFontSize === 'undefined' ? 14 : panelFontSize;
+        console.log(fontSize);
         if (p) {
           el.data('order', c.char_no);
           el.data('text', text);
           data.texts = data.texts || {};
           data.texts[el.data('cid')] = data.texts[el.data('cid')] || [
-              data.paper.rect(p.x + offset, p.y, p.width, p.height)
+            data.paper.rect(p.x + offset, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.3)'}),
-              data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
-                .attr({'font-size': 14 * Math.min(s, 1.5), 'text-align': 'center', stroke: '#333333'}),
-              data.paper.rect(p.x, p.y, p.width, p.height)
+            data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
+                .attr({'font-size': fontSize * Math.min(s, 1.5), 'text-align': 'center', stroke: '#333333'}),
+            data.paper.rect(p.x, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.4)'})
-            ]
+          ]
         }
       });
     },
@@ -181,10 +185,10 @@
           delete data.bandNumberBox;
         }
         return all && data.chars.forEach(function (c) {
-            if (c.shape) {
-              $.cut.removeBandNumber(c);
-            }
-          });
+          if (c.shape) {
+            $.cut.removeBandNumber(c);
+          }
+        });
       }
       var el = char.shape;
       var arr = el && (data.texts || {})[el.data('cid')];

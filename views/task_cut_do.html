@@ -12,11 +12,6 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <style>
-    .bd-container {
-      max-width: 100%;
-    }
-  </style>
 </head>
 
 <body class="widescreen">
@@ -33,84 +28,95 @@
         <div class="title" title="{{page['name']}}">切分校对</div>
         <div class="sub-title">- {{Th.get_step_name(steps["current"])}}</div>
         <div class="help">
-          <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
+          <img src="{{ static_url('imgs/help.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
         </div>
-        <div class="edit-btns">
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
-          <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
-          <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
+        <div class="btn-group">
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img" id="undo" title="撤销"/>
+          <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img" id="redo" title="重做"/>
         </div>
-        <div class="slice-btns">
-          <button type="button" class="btn btn-default btn-sm fl" id="hl-pic" title="切换显示或隐藏页面图">图片</button>
-          <div class="btn-group hl-btn">
-            <button type="button" class="btn btn-default btn-sm" id="hl-all" title="切换所有字框的高亮状态">所有<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-overlap" title="切换高亮显示重叠的字框">重叠<sup class="s-h-count"></sup></button>
-            {% if box_type == 'char' %}
-            <button type="button" class="btn btn-default btn-sm" id="hl-large" title="切换高亮显示较大的字框">大框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-small" title="切换高亮显示较小的字框">小框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-narrow" title="切换高亮显示较窄的字框">窄框<sup class="s-h-count"></sup></button>
-            <button type="button" class="btn btn-default btn-sm" id="hl-flat" title="切换高亮显示较扁的字框">扁框<sup class="s-h-count"></sup></button>
-            {% end %}
-          </div>
+        <div class="btn-group hl-box" style="margin-left: 10px">
+          <button type="button" class="btn btn-default btn-sm" id="toggle-image" title="显隐图片">图片</button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-char" title="显隐字框">所有<sup class="s-count"></sup></button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-overlap" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
+          {% if box_type == 'char' %}
+          <button type="button" class="btn btn-default btn-sm" id="toggle-large" title="显隐大字框">大框<sup class="s-count"></sup></button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-small" title="显隐小字框">小框<sup class="s-count"></sup></button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-narrow" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-flat" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
+          {% end %}
         </div>
       </div><!--left-->
-      <div class="right">
-        <div class="tips {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
-          数据已被其他人锁定，暂时不能修改。
-        </div>
-        <div class="edit-btns">
-          <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img btn-prev {{'hide' if steps.get('is_first') else ''}}" title="上一步"/>
-          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img btn-return {{'' if not readonly and mode == 'do' else 'hide'}}" title="退回"/>
-          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save {{'hide' if readonly else ''}}" title="保存"/>
-          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img btn-next {{'hide' if steps.get('is_last') else ''}}" title="下一步"/>
-          <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit {{'' if steps.get('is_last') and not readonly else 'hide'}}" title="提交"/>
-        </div>
+      <div class="btn-group right">
+        <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
+        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly and mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
+        <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
+        <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
       </div><!--right-->
+      <div class="tips right {{'' if mode in ['do', 'update', 'edit'] and readonly else 'hide'}}">
+        数据已被其他人锁定，暂时不能修改。
+      </div>
     </div>
+
     <div class="full-bd bd-container">
       <!-- holder为显示切分框和页面图的画布容器 -->
       <div id="holder"></div>
     </div>
   </div>
+</div>
 
-  <div class="panel-body" style="padding-bottom: 2px;">
-    <!-- modal content -->
-    <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
-         aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h4 class="modal-title">退回任务</h4>
+<div class="modals">
+  <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">退回任务</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <table style="width: 100%">
+              <tr>
+                <td>退回理由：</td>
+                <td><textarea id="return_reason" class="form-control search-input" rows="4" cols="40"></textarea></td>
+              </tr>
+            </table>
           </div>
-          <div class="modal-body">
-            <div class="form-group">
-              <table style="width: 100%">
-                <tr>
-                  <td>退回理由：</td>
-                  <td><textarea id="return_reason" class="form-control search-input" rows="4" cols="40"></textarea></td>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-            <button type="button" class="btn btn-primary waves-effect waves-light" id="modal-return-btn">
-              确定
-            </button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="return-modal-confirm">
+            确定
+          </button>
         </div>
       </div>
     </div>
   </div>
-
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          帮助内容
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% include _base_js.html %}
-{% include _cut_base.html %}
+{% include _base_cut.html %}
+{% include _base_task.html %}
+<script src="{{ static_url('js/nav.js') }}"></script>
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 <script>
+  // 页面图和切分框
   var boxes = '{{boxes}}';
   $.cut.create({
     '{{box_type}}Mode': true,
@@ -124,24 +130,70 @@
   });
   $.cut.bindKeys();
 
-  // 帮助
-  $('.btn-help').click(function () {
-    swal({
-      title: '快捷键', showConfirmButton: false, allowOutsideClick: true, html: true,
-      text: '<ul class="tips">' + [
-        '1~5：页面放大', 'shift+5~9：页面缩小', '+/-：逐级缩放',
-        '方向键：在字框间导航', 'w a s d：移动当前字框',
-        'alt+方向键：缩小字框', 'shift+方向键：放大字框',
-        'insert或n：增加字框', 'DEL：删除当前字框',
-        'z：撤销', 'r：重做', 'ESC：放弃拖拽改动'
-      ].map(function (t) {
-        var ts = t.split('：');
-        return '<li>' + '<span class="head">' + ts[0] + ':</span>' + '<span>' + ts[1] + '</span>' + '</li>';
-      }).join('') + '</ul>'
-    });
+  // 获取任务数据
+  function getSubmitData(submit) {
+    return {
+      submit: submit, step: '{{steps.get("current")}}',
+      box_type: '{{box_type}}', boxes: JSON.stringify($.cut.exportBoxes())
+    };
+  }
+
+  // 更新Undo
+  function updateUndo() {
+    var root = '{{static_url("imgs")}}';
+    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
+    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
+  }
+
+  updateUndo();
+
+  $('#undo').click(function () {
+    $.cut.undo();
+    updateUndo();
   });
+
+  $('#redo').click(function () {
+    $.cut.redo();
+    updateUndo();
+  });
+
+  // 显示各种类型字框数量
+  function showHighLightCount() {
+    $('.hl-box > button').each(function (i, btn) {
+      if (i > 0 || '{{box_type}}' !== "char") {
+        var type = btn.getAttribute('id').replace(/^.*-/, '');
+        var boxes = $.cut.highlightBoxes(type, true);
+        $(btn).find('.s-count').text(boxes.length);
+      }
+    });
+  }
+
+  showHighLightCount();
+
+  // 切换切分框状态
+  $('.hl-box > button').click(function () {
+    var type = this.getAttribute('id').replace(/^.*-/, '');
+    $.cut.switchHighlightBoxes(type);
+  });
+
+  // 操作切分框
+  function onBoxChanged(char, box, reason) {
+    if (reason === 'removed' || reason === 'added' || reason === 'changed') {
+      var type = $.cut.data.hlType;
+      if (type) {
+        $.cut.clearHighlight();
+        $.cut.highlightBoxes(type, false, true);
+      }
+      showHighLightCount();
+    } else if (reason === 'navigate') {
+      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
+    }
+    updateUndo();
+  }
+
+  $.cut.onBoxChanged(onBoxChanged);
+
 </script>
-{% include task_cut_js.html %}
 
 </body>
 </html>

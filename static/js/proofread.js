@@ -116,10 +116,14 @@ function highlightBox($span, first) {
   var text = $span.text().replace(/\s/g, '');
   var i, chTmp, all, cmp_ch;
 
+  // 根据文字序号寻找序号对应的字框
+  var boxes = $.cut.findCharsByOffset(block_no, line_no, offsetInLine);
+
   // 根据文字的栏列号匹配到字框的列，然后根据文字精确匹配列中的字框
-  var boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
-    return ch === ocrCursor || ch === cmp1Cursor;
-  });
+  if (boxes.length === 0)
+    boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
+      return ch === ocrCursor || ch === cmp1Cursor;
+    });
 
   // 行内多字能匹配时就取char_no位置最接近的，不亮显整列
   if (boxes.length > 1) {
@@ -129,7 +133,7 @@ function highlightBox($span, first) {
   }
 
   // 或者用span任意字精确匹配
-  else if (!boxes.length) {
+  if (!boxes.length) {
     cmp_ch = function (what, ch) {
       return !what || ch === what;
     };
@@ -208,26 +212,26 @@ function setCurrent(span) {
 }
 
 // 单击同文、异文，设置当前span
-$(document).on('click', '.same, .not-same', function () {
+$('.same, .diff').on('click', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
 
 // 双击同文，设置为可编辑
-$(document).on('dblclick', '.same', function () {
+$('.same').on('dblclick', function () {
   $(".same").attr("contentEditable", "false");
   $(this).attr("contentEditable", "true");
 });
 
 // 双击异文，弹框提供选择
-$(document).on('dblclick', '.not-same', function (e) {
+$('.diff').on('dblclick', function (e) {
   e.stopPropagation();
 
   setCurrent($(this));
 
   // 设置当前异文
-  $(".current-not-same").removeClass('current-not-same');
-  $(this).addClass('current-not-same');
+  $(".current-diff").removeClass('current-diff');
+  $(this).addClass('current-diff');
 
   // 设置弹框文本
   $("#pfread-dialog-base").text($(this).attr("base"));
@@ -274,7 +278,7 @@ $(document).on('dblclick', '.not-same', function (e) {
 });
 
 // 单击文本区的空白区域
-$(document).on('click', '.pfread-in .right', function (e) {
+$('.pfread-in .right').on('click', function (e) {
   // 隐藏对话框
   var dlg = $('#pfread-dialog');
   if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
@@ -288,16 +292,16 @@ $('.pfread .right').scroll(function () {
 });
 
 // 点击异文选择框的各个选项
-$(document).on('click', '#pfread-dialog .option', function () {
+$('#pfread-dialog .option').on('click', function () {
   $('#pfread-dialog-slct').text($(this).text());
 });
 
-$(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function () {
-  $('.current-not-same').text($(this).text()).addClass('selected');
+$("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
+  $('.current-diff').text($(this).text()).addClass('selected');
   if ($(this).text() === '') {
-    $('.current-not-same').addClass('empty-place');
+    $('.current-diff').addClass('empty-place');
   } else {
-    $('.current-not-same').removeClass('empty-place');
+    $('.current-diff').removeClass('empty-place');
   }
 });
 
@@ -305,24 +309,24 @@ $(document).on('DOMSubtreeModified', "#pfread-dialog-slct", function () {
 /*-----------存疑相关代码----------------*/
 
 // 存疑对话框
-$(document).on('click', '.btn-doubt', function () {
+$('#save-doubt').on('click', function () {
   var word = window.getSelection ? window.getSelection().toString() : null;
   if (word.length <= 0 || !currentSpan[0]) {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubt_input').val(word);
+  $('#doubt-input').val(word);
 });
 
 // 切换存疑列表
-$(document).on('click', '.tab-editable', function () {
+$('.doubt-list .tab-editable').on('click', function () {
   $(this).siblings().removeClass('active');
   $(this).addClass('active');
   $('#doubt-table-view').addClass('hide');
   $('#doubt-table-editable').removeClass('hide');
 });
 
-$(document).on('click', '.tab-view', function () {
+$('.doubt-list .tab-view').on('click', function () {
   $(this).siblings().removeClass('active');
   $(this).addClass('active');
   $('#doubt-table-editable').addClass('hide');
@@ -330,8 +334,8 @@ $(document).on('click', '.tab-view', function () {
 });
 
 // 存疑确认
-$(document).on('click', '#doubt_save_btn', function () {
-  var txt = $('#doubt_input').val().trim();
+$('#doubt-modal-confirm').on('click', function () {
+  var txt = $('#doubt-input').val().trim();
   var reason = $('#doubt_reason').val().trim();
   if (reason.length <= 0) {
     $('#doubt_tip').show();
@@ -348,18 +352,18 @@ $(document).on('click', '#doubt_save_btn', function () {
 
   //提交之后底部以列表自动展开
   $('#doubt-table-editable').append(line).removeClass('hidden');
-  $('#table_toggle_btn').removeClass('active');
+  $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
 });
 
-$(document).on('click', '#table_toggle_btn', function () {
+$('#toggle-arrow').on('click', function () {
   $(this).toggleClass('active');
   $('#doubt-table-editable').toggleClass('hidden');
 });
 
 // 关闭对话框时，清空输入框内容
 $('#doubtModal').on('hide.bs.modal', function () {
-  $('#doubt_input').val('');
+  $('#doubt-input').val('');
   $('#doubt_reason').val('');
   $('#doubt_tip').hide();
 });
@@ -370,12 +374,12 @@ $(document).on('click', '.del-doubt', function () {
 });
 
 // 记下当前span
-$(document).on('mousedown', '.line > span', function () {
+$('.line > span').on('mousedown', function () {
   currentSpan[0] = $(this);
 });
 
 // 记下选中位置
-$(document).on('mouseup', '.line > span', function () {
+$('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
@@ -481,7 +485,6 @@ function checkMismatch(report) {
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
       text = '<ul class="tips">' + text + '</ul>';
-      // text = '<ul class="help tips"><li><span class="head">总行数:</span><span>' + total + '</span></li>' + text + '</ul>';
       swal({title: "图文不匹配", text: text, showConfirmButton: false, allowOutsideClick: true, html: true});
     } else {
       swal({title: "图文匹配", showConfirmButton: false, allowOutsideClick: true, timer: 1000});
@@ -493,12 +496,12 @@ $(document).ready(function () {
   checkMismatch(false);
 });
 
-$(document).on('click', '.btn-check', function () {
+$('#check-match').on('click', function () {
   checkMismatch(true);
 });
 
 // 重新比对选择本和OCR
-$('.btn-compare').on("click", function () {
+$('#re-compare').on("click", function () {
   var info = {
     type: "warning", title: "确定重新比对吗？", text: "将使用第一步选择的文本重新比对，并清空当前的校对结果！",
     confirmButtonColor: "#b8906f", confirmButtonText: "确定", cancelButtonText: "取消",
@@ -544,145 +547,87 @@ $('#txtModal .btn-txt').click(function () {
 
 
 /*-----------导航条----------------*/
-
-// 显隐左侧图片区域
-$('.m-header').on('click', '.btn-pic', function () {
-  $('.pfread-in > .left').toggleClass('hide');
-});
-
-// 隐藏文本区域
-$('.m-header').on('click', '.btn-text', function () {
-  $('.pfread-in > .right').toggleClass('hide');
-});
-
-// 缩小图片
-$('.m-header').on('click', '.btn-reduce', function () {
-  if ($.cut.data.ratio > 0.5) {
-    $.cut.setRatio($.cut.data.ratio * 0.9);
-    highlightBox();
-  }
-});
-
-// 放大图片
-$('.m-header').on('click', '.btn-enlarge', function () {
-  if ($.cut.data.ratio < 5) {
-    $.cut.setRatio($.cut.data.ratio * 1.5);
-    highlightBox();
-  }
-});
-
-// 图片原始大小
-$('.m-header').on('click', '.btn-origin', function () {
-  var width = $('.page-picture img').width();
-  if (width) {
-    $('.page-picture img').width('100%');
-  } else {
-    $.cut.setRatio(1);
-  }
-});
-
 // 显隐字框
-window.showAllBoxes = function () {
-  var $this = $('.btn-boxes');
-  $this.removeClass("btn-boxes");
-  $this.addClass("btn-cut-hidden");
-  $.cut.toggleBox(true);
+$('#toggle-char').on('click', function () {
+  $(this).toggleClass('active');
   $.fn.mapKey.bindings = {up: {}, down: {}};
-  $.cut.bindKeys();
-};
-$(document).on('click', '.btn-boxes', window.showAllBoxes);
-$(document).on('click', '.btn-cut-hidden', function () {
-  $(this).removeClass("btn-cut-hidden");
-  $(this).addClass("btn-boxes");
-  $.cut.toggleBox(false);
-  $.fn.mapKey.bindings = {up: {}, down: {}};
-  $.cut.bindMatchingKeys();
+  if ($(this).hasClass('active')) {
+    $.cut.toggleBox(true);
+    $.cut.bindKeys();
+  } else {
+    $.cut.toggleBox(false);
+    $.cut.bindMatchingKeys();
+  }
 });
 
-// 显隐序号
-$(document).on('click', '.btn-col-num', function () {
-  $(this).removeClass("btn-col-num");
-  $(this).addClass("btn-num-hidden");
-  showOrder = !showOrder;
+// 显隐浮动列框序号
+$('#toggle-panel-no').on('click', function () {
+  $(this).toggleClass('active');
+  showOrder = $(this).hasClass('active');
   highlightBox();
-  $('#order').toggle(showOrder);
-});
-$(document).on('click', '.btn-num-hidden', function () {
-  $(this).removeClass("btn-num-hidden");
-  $(this).addClass("btn-col-num");
-  showOrder = !showOrder;
-  highlightBox();
-  $('#order').toggle(showOrder);
 });
 
-// 显隐文本
-$(document).on('click', '.btn-col-txt', function () {
-  $(this).removeClass("btn-col-txt");
-  $(this).addClass("btn-txt-hidden");
-  showText = !showText;
+// 显隐浮动面板的文本
+$('#toggle-panel-txt').on('click', function () {
+  $(this).toggleClass('active');
+  showText = $(this).hasClass('active');
   highlightBox();
 });
-$(document).on('click', '.btn-txt-hidden', function () {
-  $(this).removeClass("btn-txt-hidden");
-  $(this).addClass("btn-col-txt");
-  showText = !showText;
-  highlightBox();
+
+// 增加浮动面板的字体
+$('#enlarge-panel-font').on('click', function () {
+  var $tspan = $('#holder tspan');
+  var size = parseInt($tspan.css('font-size'));
+  if (size < 36) {
+    $tspan.css('font-size', ++size + 'px');
+  }
+  panelFontSize = size;
+});
+
+// 减少浮动面板的字体
+$('#reduce-panel-font').on('click', function () {
+  var $tspan = $('#holder tspan');
+  var size = parseInt($tspan.css('font-size'));
+  if (size > 8) {
+    $tspan.css('font-size', --size + 'px');
+  }
+  panelFontSize = size;
 });
 
 // 上一条异文
 function previousDiff() {
-  var current = $('.current-not-same');
-  var $notSame = $('.pfread .right .not-same');
-  var idx = $notSame.index(current);
+  var current = $('.current-diff');
+  var $diff = $('.pfread .right .diff');
+  var idx = $diff.index(current);
   if (idx < 1) {
     return;
   }
-  $notSame.eq(idx - 1).dblclick();
+  $diff.eq(idx - 1).dblclick();
   if ($('.dialog-abs').offset().top < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
   }
 }
 
-$(document).on('click', '.btn-previous', previousDiff);
+$('#previous-diff').on('click', previousDiff);
 $.mapKey('tab', previousDiff);
-
 
 // 下一条异文
 function nextDiff() {
-  var current = $('.current-not-same');
-  var $notSame = $('.pfread .right .not-same');
-  var idx = $notSame.index(current);
-  $notSame.eq(idx + 1).dblclick();
+  var current = $('.current-diff');
+  var $diff = $('.pfread .right .diff');
+  var idx = $diff.index(current);
+  $diff.eq(idx + 1).dblclick();
   if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
   }
 }
 
-$(document).on('click', '.btn-next', nextDiff);
+$('#next-diff').on('click', nextDiff);
 $.mapKey('shift+tab', nextDiff);
 
-// 减少文本字号
-$(document).on('click', '.btn-font-reduce', function () {
-  var $div = $('.right .sutra-text span');
-  var size = parseInt($div.css('font-size'));
-  if (size > 8) {
-    size--;
-    $div.css('font-size', size + 'px');
-  }
-});
-
-// 增加文本字号
-$(document).on('click', '.btn-font-enlarge', function () {
-  var $div = $('.right .sutra-text span');
-  var size = parseInt($div.css('font-size'));
-  if (size < 36) {
-    size++;
-    $div.css('font-size', size + 'px');
-  }
-});
 
 // 删除当前行
-$(document).on('click', '.btn-delete-line', function () {
+$('#delete-line').on('click', function () {
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
     return showError('提示', '请先在右边文本区点击一行文本，然后重试。');
@@ -695,7 +640,7 @@ $(document).on('click', '.btn-delete-line', function () {
 });
 
 // 向上增行
-$(document).on('click', '.btn-add-up-line', function (e) {
+$('#add-up-line').on('click', function (e) {
   e.stopPropagation();
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
@@ -708,7 +653,7 @@ $(document).on('click', '.btn-add-up-line', function (e) {
 });
 
 // 向下增行
-$(document).on('click', '.btn-add-down-line', function (e) {
+$('#add-down-line').on('click', function (e) {
   e.stopPropagation();
   var $curSpan = $('.current-span');
   if ($curSpan.length === 0) {
@@ -721,68 +666,62 @@ $(document).on('click', '.btn-add-down-line', function (e) {
 });
 
 // 隐藏异体字
-$(document).on('click', '.btn-variants-highlight', function () {
+$('.btn-variants-highlight').on('click', function () {
   $('.variant').removeClass("variant-highlight");
   $(this).removeClass("btn-variants-highlight");
   $(this).addClass("btn-variants-normal");
 });
 
 // 显示异体字
-$(document).on('click', '.btn-variants-normal', function () {
+$('.btn-variants-normal').on('click', function () {
   $('.variant').addClass("variant-highlight");
   $(this).removeClass("btn-variants-normal");
   $(this).addClass("btn-variants-highlight");
 });
 
 // 显示空位符
-$(document).on('click', '.btn-empty-places', function () {
+$('#toggle-empty-place').on('click', function () {
   $('.empty-place').toggleClass("hidden");
 });
 
 // 弹出原文
-$(document).on('click', '.btn-txts', function () {
+$('#toggle-txts').on('click', function () {
   $('#txtModal').modal();
 });
 
 
-// 更多操作
-$('.btn-ed-box').click(function () {
-  $('.more-group').toggleClass('hidden');
+// 缩小图片
+$('#zoom-in').on('click', function () {
+  highlightBox();
+});
+
+// 放大图片
+$('#zoom-out').on('click', function () {
+  highlightBox();
+});
+
+// 图片原始大小
+$('#zoom-reset').on('click', function () {
+  highlightBox();
 });
 
 // 修改字框
 var pageName = $('#pageName').val();
-$('.ed-char-box').click(function () {
+$('#ed-char-box').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=char_box';
 });
 
 // 修改栏框
-$('.ed-block-box').click(function () {
+$('#ed-block-box').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=block_box';
 });
 
 // 修改列框
-$('.ed-column-box').click(function () {
+$('#ed-column-box').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=column_box';
 });
 
 // 修改字序
-$('.ed-char-order').click(function () {
+$('#ed-char-order').click(function () {
   window.location = '/data/edit/box/' + pageName + '?step=char_order';
-});
-
-// 帮助
-$('.btn-help').click(function () {
-  swal({
-    title: '帮助', showConfirmButton: false, allowOutsideClick: true, html: true,
-    text: '<ul class="tips">' + [
-      '1. 图片区域，操作快捷键同切分校对　',
-      '2. 文本区域，单击红色异文弹出提示框',
-      '　　可选择文本，也可直接编辑结果　　　',
-      '3. 文本区域，双击黑色同文可进行修改',
-      '4. 其余操作，自行点击按钮可知　　　'
-    ].map(function (t) {
-      return '<li>' + t + '</li>';
-    }).join('') + '</ul>'
-  });
 });

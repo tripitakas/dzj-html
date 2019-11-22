@@ -84,7 +84,7 @@ $('#pic-right').click(function () {
 });
 
 // 缩小图片
-$('.m-header').on('click', '.btn-reduce', function () {
+$('.m-header').on('click', '#zoom-in', function () {
   var width = $('.page-picture img').width();
   if (width) {
     $('.page-picture img').width(width * 0.9);
@@ -94,7 +94,7 @@ $('.m-header').on('click', '.btn-reduce', function () {
 });
 
 // 放大图片
-$('.m-header').on('click', '.btn-enlarge', function () {
+$('.m-header').on('click', '#zoom-out', function () {
   var width = $('.page-picture img').width();
   if (width) {
     $('.page-picture img').width(width * 1.1);
@@ -114,7 +114,7 @@ $('.m-header').on('click', '.btn-origin', function () {
 });
 
 // 更多操作
-$('.m-header .btn-ed-box').click(function () {
+$('#toggle-more').click(function () {
   $('.more-group').toggleClass('hidden');
 });
 
