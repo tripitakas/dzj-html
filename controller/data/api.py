@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import logging
+from datetime import datetime
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
-import controller.validate as v
 from controller import errors
+from controller import validate as v
 from controller.base import BaseHandler, DbError
-from .data import Page
 from controller.task.base import TaskHandler
-from .submit import SubmitDataTaskApi
+from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
+from controller.data.submit import SubmitDataTaskApi
 
 try:
     from StringIO import StringIO
