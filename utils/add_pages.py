@@ -11,8 +11,8 @@ import json
 import shutil
 import pymongo
 from tornado.util import PY3
-from os import path, listdir, mkdir
 from datetime import datetime
+from os import path, listdir, mkdir
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)

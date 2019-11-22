@@ -206,14 +206,16 @@
         {% if page %}
         <div class="modal-header">
           <div class="btn-group" role="group">
-            <button class="btn btn-txt btn-default{{'' if page and page.get('ocr') else ' hide'}}" id="show-ocr">OCR</button>
-            <button class="btn btn-txt btn-default{{'' if page and page.get('text') else ' hide'}}" id="show-text">校对文本</button>
-            <button class="btn btn-txt btn-default{{'' if page and page.get('text') else ' hide'}}" id="show-all">所有</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('ocr') else ' hide'}}" id="show-ocr">OCR</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('ocr_col') else ' hide'}}" id="show-ocr-col">列OCR</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-text">校对文本</button>
+            <button class="btn btn-txt btn-default{{'' if page.get('text') else ' hide'}}" id="show-all">所有</button>
           </div>
         </div>
         <div class="modal-body">
-          <textarea id="ocr" class="{{'' if page.get('ocr') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('ocr') or ''))}}</textarea>
-          <textarea id="text" class="{{'' if page.get('text') else ' hide'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', page.get('text') or ''))}}</textarea>
+          <textarea id="ocr" class="{{'' if page.get('ocr') else ' hide'}}" rows="26" readonly>{{(page.get('ocr') or '').replace('|', '\n')}}</textarea>
+          <textarea id="ocr-col" class="{{'' if page.get('ocr_col') else ' hide'}}" rows="26" readonly>{{(page.get('ocr_col') or '').replace('|', '\n')}}</textarea>
+          <textarea id="text" class="{{'' if page.get('text') else ' hide'}}" rows="26" readonly>{{(page.get('text') or '').replace('|', '\n')}}</textarea>
         </div>
         {% else %}
         <div style="margin-top: 10px; text-align: center">暂无文本</div>
