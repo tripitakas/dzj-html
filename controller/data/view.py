@@ -50,7 +50,7 @@ class TripitakaHandler(BaseHandler):
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 first, last = content_pages[0], content_pages[-1]
                 cur_page = first if gap else page_code
-                pos = content_pages.index(cur_page)
+                pos = cur_page in content_pages and content_pages.index(cur_page) or 1
                 prev = content_pages[pos - 1 if pos > 1 else 0]
                 next = content_pages[pos + 1 if pos < len(content_pages) - 1 else -1]
                 nav.update(dict(cur_page=cur_page, first=first, last=last, prev=prev, next=next))
