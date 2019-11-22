@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.auth import url_placeholder
 
-__version__ = '0.0.59.91118'
+__version__ = '0.0.59.91119'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -32,7 +32,7 @@ class Application(web.Application):
         self.init_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
-        self.version = __version__ + '-alpha'
+        self.version = __version__ + '-dev'
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
         handlers = [(r'/upload/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler,
