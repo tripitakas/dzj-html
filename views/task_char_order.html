@@ -295,7 +295,7 @@
   $('#toggle-path').click(function () {
     $(this).toggleClass('active');
     var active = $(this).hasClass('active');
-    $('#holder .path').each(function (i, path) {
+    $('#holder svg path').each(function (i, path) {
       var stroke = $(path).css('stroke');
       if (active) {
         stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
@@ -303,7 +303,7 @@
         stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
       }
       $(path).css('stroke', stroke);
-      console.log(stroke);
+      // console.log(stroke);
     });
   });
 
