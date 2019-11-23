@@ -22,6 +22,10 @@
       border-bottom: 1px solid #ccc;
     }
 
+    .right .bd .selectable .more {
+      display: block;
+    }
+
     .right .bd .selected {
       height: 40%;
       max-height: 40%;
@@ -115,6 +119,7 @@
 </div>
 
 <div class="modals">
+
   <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -126,6 +131,7 @@
       </div>
     </div>
   </div>
+
   <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
        aria-hidden="true">
     <div class="modal-dialog">
@@ -200,7 +206,18 @@
               <td>提交任务。提交后，系统将自动领取下一个任务</td>
             </tr>
           </table>
-          <div class="title">三、相关说明</div>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+          </table>
+          <div class="title">四、相关说明</div>
           <div class="intro">
             右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。<br/>
             为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。<br/>
@@ -274,11 +291,10 @@
   $(document).on('click', '#pagination a', function () {
     var $this = $(this);
     postApi('/task/text_get_compare/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
-      $('#cmp').html(res.cmp);
       $('#pagination a').removeClass('cur');
-      $this.addClass('cur');
-      $this.attr('title', res.cmp_page_code);
-      // 显示更多
+      $this.addClass('cur').attr('title', res.cmp_page_code);
+      $('#cmp').html(res.cmp);
+      $('.selectable .more').remove();
       $('.selectable .cmp-more').removeClass('hide');
     });
   });
@@ -288,8 +304,8 @@
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'prev'};
     postApi('/task/text_compare_neighbor', {data: data}, function (res) {
-      $('#cmp').html(res.txt + $('#cmp').html());
-      $('#prev').addClass('hide');
+      $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
+      $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
     });
   });
 
@@ -298,8 +314,8 @@
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'next'};
     postApi('/task/text_compare_neighbor', {data: data}, function (res) {
-      $('#cmp').html($('#cmp').html() + res.txt);
-      $('#next').addClass('hide');
+      $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
+      $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
     });
   });
 
