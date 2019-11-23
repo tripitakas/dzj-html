@@ -539,15 +539,16 @@
       }
     },
 
-    mouseUp: function (pt) {
+    mouseUp: function (pt, e) {
       var link = this.state.dragLink, srcLink = link && link.source;
       var changed;
+      var enableSelfLink = e.shiftKey;
 
       // 恢复原连接的透明度
       if (srcLink && srcLink.shapes.line) {
         srcLink.shapes.line.attr({'opacity': 1});
       }
-      if (link && link.c1 !== link.c2 && (!srcLink || srcLink.shapes.line)) {
+      if (link && (link.c1 !== link.c2 || enableSelfLink) && (!srcLink || srcLink.shapes.line)) {
         // 改变原连接的端点
         if (srcLink && (link.c1 !== srcLink.c1 || link.c2 !== srcLink.c2)) {
           if (link.c1 && link.c2) {
@@ -623,7 +624,7 @@
     // 移动连接
     moveLink: function (c1Old, c2Old, c1New, c2New) {
       var link = this.findLinkBetween(c1Old, c2Old);
-      if (link && c1New && c2New && c1New !== c2New) {
+      if (link && c1New && c2New) {
         link.remove();
         link.c1 = c1New;
         link.c2 = c2New;
@@ -718,8 +719,8 @@
     cs.mouseDrag(pt);
   }
 
-  function mouseUp(pt) {
-    cs.mouseUp(pt);
+  function mouseUp(pt, e) {
+    cs.mouseUp(pt, e);
   }
 
   $.extend($.cut, {
