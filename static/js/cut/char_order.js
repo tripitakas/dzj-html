@@ -46,16 +46,13 @@
   // 销毁所有图形，obj 可为图形对象的容器对象或数组，或有remove方法的对象
   function removeShapes(obj) {
     if (!obj) {
-    }
-    else if (obj instanceof Array) {
+    } else if (obj instanceof Array) {
       while (obj.length) {
         removeShapes(obj.pop());
       }
-    }
-    else if (obj.remove) {
+    } else if (obj.remove) {
       obj.remove();
-    }
-    else {
+    } else {
       Object.keys(obj).forEach(function (k) {
         if (obj[k] instanceof Array) {
           removeShapes(obj[k]);
@@ -213,7 +210,7 @@
     },
 
     // 是独占一列的回环连接
-    isSelfLink: function() {
+    isSelfLink: function () {
       return this.c1 === this.c2;
     },
 
@@ -242,8 +239,7 @@
           'stroke-dasharray': '.',
           'stroke-width': 1 / data.ratioInitial
         });
-      }
-      else if (up && !zoomed) {
+      } else if (up && !zoomed) {
         line.setAttr({
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
@@ -421,8 +417,7 @@
         if (links.length === 1) {
           hit.obj = links[0];
           hit.type = 'link';
-        }
-        else if (links.length > 1) {
+        } else if (links.length > 1) {
           hit = this.hitTest(pt, null, {only: {link: true}});
         }
       }
@@ -525,8 +520,7 @@
             this.drag.box = node && node.createBox(colors.sel);
             this.drag.dot = hit && hit.obj.createLet(hit.type === 'inlet');
             this.drag.line = this.state.dragLink.createLine(colors.sel);
-          }
-          else {
+          } else {
             this.drag.line = this.state.dragLink.createLineWith(
                 this.state.outletHit ? pt : this.state.dragLink.getStartPos(),
                 this.state.inletHit ? pt : this.state.dragLink.getEndPos(),
@@ -644,6 +638,9 @@
     },
 
     checkLinks: function (routes, heads) {
+      if (!this.chars_col || !this.chars_col.length)
+        return;
+
       var self = this;
       var errors = [];
       var tails = [];
@@ -658,14 +655,11 @@
 
         if (!linksIn.length && !linksOut.length || linksIn.length > 1 || linksOut.length > 1) {
           errors.push(node);
-        }
-        else if (!linksIn.length && linksOut.length === 1) {
+        } else if (!linksIn.length && linksOut.length === 1) {
           heads.push(node);
-        }
-        else if (!linksOut.length && linksIn.length === 1) {
+        } else if (!linksOut.length && linksIn.length === 1) {
           tails.push(node.getId());
-        }
-        else if (linksOut.length === 1 && linksOut[0].isSelfLink()) {
+        } else if (linksOut.length === 1 && linksOut[0].isSelfLink()) {
           heads.push(node);
           tails.push(node.getId());
         }
@@ -809,20 +803,22 @@
           return char.id;
         });
       });
-      postApi('/cut/gen_char_id', {data: {
-        blocks: blocks, columns: columns, chars_col: chars_col,
-        chars: $.cut.exportBoxes()
-      }}, function (res) {
+      postApi('/cut/gen_char_id', {
+        data: {
+          blocks: blocks, columns: columns, chars_col: chars_col,
+          chars: $.cut.exportBoxes()
+        }
+      }, function (res) {
         var changed = data.chars.map(function (c) {
-              return c.char_id;
-            }).join(',') !== res.chars.map(function (c) {
-              return c.char_id;
-            }).join(',');
+          return c.char_id;
+        }).join(',') !== res.chars.map(function (c) {
+          return c.char_id;
+        }).join(',');
 
         heads = heads.map(function (node) {
           return node.char.id;
         });
-        data.chars.forEach(function(b) {
+        data.chars.forEach(function (b) {
           if (b.shape) {
             b.shape.remove();
             delete b.shape;
@@ -849,6 +845,9 @@
 
     // 检查不合理的列头字框：每列第一个字框上方不存在同栏、X范围重叠的字框
     checkInvalidHead: function (headIds) {
+      if (!this.chars_col || !this.chars_col.length)
+        return;
+
       var errors = [];
 
       headIds.forEach(function (id) {
