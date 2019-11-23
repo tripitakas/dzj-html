@@ -185,8 +185,8 @@
         </div>
         <div class="modal-body">
           {% import re %}
-          {% set _texts = {k:v for k, v in texts.items() if v} %}
-          {% for k, txt in _texts.items() %}
+          {% set txts = {k:v for k, v in texts.items() if v} %}
+          {% for k, txt in txts.items() %}
           <textarea id="{{k}}" style="{{'display: inline-block' if k == 'base' else 'display: none'}}" rows="26" readonly>{{'\n'.join(re.split(r'[\n|]', txt or ''))}}</textarea>
           {% end %}
         </div>

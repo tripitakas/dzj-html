@@ -56,7 +56,6 @@ class TextProofHandler(TaskHandler, TextPack):
         文本来源有多种情况，ocr可能会输出两份数据，比对本可能有一份数据。
         """
         doubt = self.prop(task, 'result.doubt')
-        params = dict(mismatch_lines=[])
         CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
 
         # 获取比对来源的文本
@@ -67,6 +66,7 @@ class TextProofHandler(TaskHandler, TextPack):
         labels = dict(base='OCR', cmp1='OCR' if ocr_col else '比对本', cmp2='比对本' if ocr_col else '')
 
         # 检查是否已进行比对
+        params = dict(mismatch_lines=[])
         cmp_data = self.prop(task, 'result.txt_html')
         re_compare = self.get_query_argument('re_compare', 'false')
         if not cmp_data or re_compare == 'true':
@@ -160,10 +160,11 @@ class TextHardHandler(TaskHandler, TextPack):
             cmp_data = self.prop(page, 'txt_html')
 
             # 缺省参数
-            args = dict(texts={}, steps=dict(is_first=True, is_last=True))
+            kwargs = dict(texts={}, labels={}, steps=dict(is_first=True, is_last=True))
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode, readonly=not has_lock,
-                cmp_data=cmp_data, doubt=hard, get_img=self.get_img, **args
+                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
+                readonly=not has_lock, cmp_data=cmp_data, doubt=hard, get_img=self.get_img,
+                **kwargs
             )
 
         except Exception as e:
@@ -182,14 +183,18 @@ class TextEditHandler(TaskHandler, TextPack):
                 return self.send_error_response(errors.no_object, render=True)
 
             # 获取数据锁
+            params = dict(mismatch_lines=[])
             has_lock = self.get_data_lock(page_name, 'text') is True
             cmp_data = self.prop(page, 'txt_html') or ''
+            if not cmp_data and self.prop(page, 'text'):
+                segments = Diff.diff(self.prop(page, 'text').replace('|', '\n'))[0]
+                cmp_data = self.check_segments(segments, page['chars'], params)
 
             # 缺省参数
-            args = dict(task_type='', task=dict(), texts={}, doubt='', steps=dict(is_first=True, is_last=True))
+            kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,
-                get_img=self.get_img, **args
+                get_img=self.get_img, **kwargs
 
             )
 
