@@ -65,9 +65,10 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False, s
         meta = Page.metadata()
         width = int(info['imgsize']['width'] if 'imgsize' in info else info['width'])
         height = int(info['imgsize']['height'] if 'imgsize' in info else info['height'])
+        page_code = Page.pagename2code(name)
         meta.update(dict(
-            name=name, width=width, height=height, blocks=info.get('blocks') or [],
-            columns=info.get('columns') or [], chars=info.get('chars') or [],
+            name=name, width=width, height=height, page_code=page_code,
+            blocks=info.get('blocks') or [], columns=info.get('columns') or [], chars=info.get('chars') or [],
         ))
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
@@ -164,7 +165,7 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     if reset:
-        db.page.drop()
+        db.page.delete_many({})
     pages = set()
     scan_dir(json_path, kind, db, pages, use_local_img=use_local_img, update=update, source=source)
     copy_img_files(img_path, pages)

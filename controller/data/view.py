@@ -190,21 +190,25 @@ class DataPageHandler(BaseHandler):
         """ 数据管理-页数据 """
         try:
             q = self.get_query_argument('q', '').upper()
-            condition = {"$or": [
-                {"name": {'$regex': '.*%s.*' % q}},
-                {"batch": {'$regex': '.*%s.*' % q}},
-                {"sutra_id": {'$regex': '.*%s.*' % q}},
-                {"reel_id": {'$regex': '.*%s.*' % q}},
+            order = self.get_query_argument('order', '-_id')
+            condition = {'$or': [
+                {'name': {'$regex': '.*%s.*' % q}},
+                {'uni_sutra_code': {'$regex': '.*%s.*' % q}},
+                {'sutra_code': {'$regex': '.*%s.*' % q}},
+                {'reel_code': {'$regex': '.*%s.*' % q}},
             ]}
+            query = self.db.page.find(condition)
+            if order:
+                o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+                query.sort(o, asc)
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             item_count = self.db.page.count_documents(condition)
             max_page = math.ceil(item_count / page_size)
             cur_page = max_page if max_page and max_page < cur_page else cur_page
-            query = self.db.page.find(condition)
-            pages = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            pages = list(query.skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_page.html', q=q, pages=pages, pager=pager)
+            self.render('data_page.html', q=q, pages=pages, pager=pager, order=order)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

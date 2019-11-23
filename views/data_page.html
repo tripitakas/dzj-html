@@ -44,16 +44,22 @@
                   <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
                     <thead>
                     <tr>
-                      <th><span>页编码</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">统一经编码</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">卷编码</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">卷内页序号</span></th>
-                      <th><span class="sort">字框阶段</span></th>
-                      <th><span class="sort">文字阶段</span></th>
-                      <th><span class="sort">文本</span></th>
-                      <th><span class="sort">栏框</span></th>
-                      <th><span class="sort">列框</span></th>
-                      <th><span class="sort">字框</span></th>
+                      <th><span id="page_code" class="sort {{'active' if order in ['-page_code', 'page_code'] else ''}}">
+                          页编码<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
+                      </span></th>
+                      <th><span id="uni_sutra_code" class="sort {{'active' if order in ['-uni_sutra_code', 'uni_sutra_code'] else ''}}">
+                          统一经编码<span class="ion-arrow-down-b {{'toggle' if order == 'uni_sutra_code' else ''}}"></span>
+                      </span></th>
+                      <th><span id="reel_code" class="sort {{'active' if order in ['-reel_code', 'reel_code'] else ''}}">
+                          卷编码<span class="ion-arrow-down-b {{'toggle' if order == 'reel_code' else ''}}"></span>
+                      </span></th>
+                      <th><span>卷内页序号</span></th>
+                      <th><span>字框阶段</span></th>
+                      <th><span>文字阶段</span></th>
+                      <th><span>文本</span></th>
+                      <th><span>栏框</span></th>
+                      <th><span>列框</span></th>
+                      <th><span>字框</span></th>
                     </tr>
                     </thead>
 
@@ -91,9 +97,9 @@
 
 <script>
   // 排序
-  $(".sort").on("click", function () {
-    $(this).toggleClass('toggle');
-    $(this).next().toggleClass('toggle');
+  $(".sort").click(function () {
+    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+    window.location = location.pathname + "?order=" + direction + $(this).attr('id');
   });
 
   // 搜索
