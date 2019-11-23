@@ -67,16 +67,11 @@
       <header class="m-header">
         <div class="back">
           {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
-          <a onclick="leave()" title="{{title}}">
-            <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
-          </a>
+          <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
-        <div class="title" title='{{page["name"]}}'>文字校对</div>
-        <div class="sub-title">-选择比对文本</div>
-        <div class="help">
-          <img src="{{ static_url('imgs/help.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-        </div>
-        <div class="btn-group">
+        <div class="title" title='{{page["name"]}}'>文字校对<span class="sub-title">-选择比对文本</span></div>
+        <div class="btn-group" style="margin-left: 10px">
+          <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
           <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-left" title="显隐图片"/>
           <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img active" id="toggle-right" title="显隐文字"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
@@ -158,19 +153,64 @@
       </div>
     </div>
   </div>
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+       aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档</h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
         </div>
         <div class="modal-body">
-          帮助内容
+          <div class="title">一、工作目标</div>
+          <div class="intro">从右侧文本区域，选择与左侧图片最相似的文本</div>
+          <div class="title">二、功能按钮</div>
+          <table class="table" id="button-desc">
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
+              <td>返回任务大厅</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_select.png')}}"/></td>
+              <td>将当前选中的文本拷贝至文字输入框中</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
+              <td>显示OCR文本面板，该面板展示了当前OCR的文本内容</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
+              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>
+              <td>退回任务。如果任务数据有问题，比如图片缺失、数据异常等，可以选择退回任务，退回时请注明退回理由</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_save.png')}}"/></td>
+              <td>保存任务数据</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_next.png')}}"/></td>
+              <td>保存当前步骤并跳转至下一步</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_submit.png')}}"/></td>
+              <td>提交任务。提交后，系统将自动领取下一个任务</td>
+            </tr>
+          </table>
+          <div class="title">三、相关说明</div>
+          <div class="intro">
+            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。<br/>
+            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。<br/>
+            该步骤所选中的文本，将作为下一步文字校对的比对本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。<br/>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 {% include _font.html %}
