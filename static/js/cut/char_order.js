@@ -212,6 +212,11 @@
       return this.c2.getLets()[0];
     },
 
+    // 是独占一列的回环连接
+    isSelfLink: function() {
+      return this.c1 === this.c2;
+    },
+
     // 创建亮显连线
     createLine: function (color, zoomed) {
       return this.createLineWith(this.getStartPos(), this.getEndPos(), color, zoomed);
@@ -307,7 +312,7 @@
       this.remove();
       this.chars_col = chars_col || this.chars_col;
       this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
-        return ids.slice(1).map(function (id, i) {
+        return (ids.length === 1 ? ids : ids.slice(1)).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
           if (!c1 || !c2 || !c1.isValidId() || !c2.isValidId()) {
             return;
@@ -647,21 +652,25 @@
 
       // 每个字框的出入点至少有一个有连接，一个点最多一个连接
       this.nodes.forEach(function (node) {
-        var links1 = self.findInLinks(node);
-        var links2 = self.findOutLinks(node);
+        var linksIn = self.findInLinks(node);
+        var linksOut = self.findOutLinks(node);
 
-        if (!links1.length && !links2.length || links1.length > 1 || links2.length > 1) {
+        if (!linksIn.length && !linksOut.length || linksIn.length > 1 || linksOut.length > 1) {
           errors.push(node);
         }
-        else if (!links1.length && links2.length === 1) {
+        else if (!linksIn.length && linksOut.length === 1) {
           heads.push(node);
         }
-        else if (!links2.length && links1.length === 1) {
+        else if (!linksOut.length && linksIn.length === 1) {
+          tails.push(node.getId());
+        }
+        else if (linksOut.length === 1 && linksOut[0].isSelfLink()) {
+          heads.push(node);
           tails.push(node.getId());
         }
       });
 
-      // 从开始字框到结束字框应只有一条通路
+      // 从开始字框到结束字框应有且仅有一条通路
       function pass(node, route) {
         if (used.indexOf(node) >= 0) {
           errors.push(node);
@@ -671,7 +680,7 @@
         route.push(node.char);
 
         var links = self.findOutLinks(node);
-        if (links.length === 1 && errors.indexOf(links[0]) < 0) {
+        if (links.length === 1 && errors.indexOf(links[0]) < 0 && links[0].c2 !== node) {
           pass(links[0].c2, route);
         }
       }
@@ -792,7 +801,7 @@
       var self = this, routes = [], heads = [];
 
       if (!cs.checkLinks(routes, heads)) {
-        return showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+        showError('字框连接待修正', '请修正高亮绿框的字框连线。');
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
@@ -881,5 +890,12 @@
       cs.buildColumns();
     }
   });
+
+  // 显隐字框编号
+  $('#toggle-char-no').click(function () {
+    cs.state.labelVisible = !cs.state.labelVisible;
+    cs.updateLabel();
+  });
+
 
 }());
