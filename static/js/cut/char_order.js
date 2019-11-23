@@ -46,13 +46,16 @@
   // 销毁所有图形，obj 可为图形对象的容器对象或数组，或有remove方法的对象
   function removeShapes(obj) {
     if (!obj) {
-    } else if (obj instanceof Array) {
+    }
+    else if (obj instanceof Array) {
       while (obj.length) {
         removeShapes(obj.pop());
       }
-    } else if (obj.remove) {
+    }
+    else if (obj.remove) {
       obj.remove();
-    } else {
+    }
+    else {
       Object.keys(obj).forEach(function (k) {
         if (obj[k] instanceof Array) {
           removeShapes(obj[k]);
@@ -190,7 +193,7 @@
     getId: function () {
       if (this.c1 && this.c2) {
         var a = this.c1.getId().split('c'), b = this.c2.getId().split('c');
-        return this.c1.getId() + '-' + (a.length === 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
+        return this.c1.getId() + '-' + (a.length == 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
       }
     },
 
@@ -221,7 +224,6 @@
       var line = data.paper.path('M' + a.x + ',' + a.y + 'L' + b.x + ',' + b.y)
           .initZoom()
           .setAttr({
-            class: 'path',
             stroke: color,
             'stroke-opacity': zoomed ? 0.4 : 0.6,
             'stroke-width': 3 / data.ratioInitial,
@@ -235,7 +237,8 @@
           'stroke-dasharray': '.',
           'stroke-width': 1 / data.ratioInitial
         });
-      } else if (up && !zoomed) {
+      }
+      else if (up && !zoomed) {
         line.setAttr({
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
@@ -302,7 +305,7 @@
       var self = this;
       self.state.avgLen = 0;
       this.remove();
-      this.chars_col = chars_col || this.chars_col || [];
+      this.chars_col = chars_col || this.chars_col;
       this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
         return ids.slice(1).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
@@ -413,7 +416,8 @@
         if (links.length === 1) {
           hit.obj = links[0];
           hit.type = 'link';
-        } else if (links.length > 1) {
+        }
+        else if (links.length > 1) {
           hit = this.hitTest(pt, null, {only: {link: true}});
         }
       }
@@ -516,7 +520,8 @@
             this.drag.box = node && node.createBox(colors.sel);
             this.drag.dot = hit && hit.obj.createLet(hit.type === 'inlet');
             this.drag.line = this.state.dragLink.createLine(colors.sel);
-          } else {
+          }
+          else {
             this.drag.line = this.state.dragLink.createLineWith(
                 this.state.outletHit ? pt : this.state.dragLink.getStartPos(),
                 this.state.inletHit ? pt : this.state.dragLink.getEndPos(),
@@ -647,9 +652,11 @@
 
         if (!links1.length && !links2.length || links1.length > 1 || links2.length > 1) {
           errors.push(node);
-        } else if (!links1.length && links2.length === 1) {
+        }
+        else if (!links1.length && links2.length === 1) {
           heads.push(node);
-        } else if (!links2.length && links1.length === 1) {
+        }
+        else if (!links2.length && links1.length === 1) {
           tails.push(node.getId());
         }
       });
@@ -716,13 +723,13 @@
     addCharOrderLinks: function (chars_col) {
       if (!cs) {
         cs = new CharNodes(data.chars);
-        if (chars_col !== null)
-          cs.buildColumns(chars_col);
+        cs.buildColumns(chars_col);
       }
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;
       state.mouseDrag = mouseDrag;
       state.mouseUp = mouseUp;
+      return cs;
     },
 
     bindCharOrderKeys: function () {
@@ -747,7 +754,7 @@
       };
     },
 
-    // 切换显隐切分框
+    // 切换显隐列框
     toggleColumns: function (columns) {
       if (cs.state.columns) {
         cs.state.columns.forEach(function (r) {
@@ -792,22 +799,20 @@
           return char.id;
         });
       });
-      postApi('/cut/gen_char_id', {
-        data: {
-          blocks: blocks, columns: columns, chars_col: chars_col,
-          chars: $.cut.exportBoxes()
-        }
-      }, function (res) {
+      postApi('/cut/gen_char_id', {data: {
+        blocks: blocks, columns: columns, chars_col: chars_col,
+        chars: $.cut.exportBoxes()
+      }}, function (res) {
         var changed = data.chars.map(function (c) {
-          return c.char_id;
-        }).join(',') !== res.chars.map(function (c) {
-          return c.char_id;
-        }).join(',');
+              return c.char_id;
+            }).join(',') !== res.chars.map(function (c) {
+              return c.char_id;
+            }).join(',');
 
         heads = heads.map(function (node) {
           return node.char.id;
         });
-        data.chars.forEach(function (b) {
+        data.chars.forEach(function(b) {
           if (b.shape) {
             b.shape.remove();
             delete b.shape;
@@ -875,12 +880,6 @@
     if (cs && reason === 'undo') {
       cs.buildColumns();
     }
-  });
-
-  // 显隐字框编号
-  $('#toggle-char-no').click(function () {
-    cs.state.labelVisible = !cs.state.labelVisible;
-    cs.updateLabel();
   });
 
 }());
