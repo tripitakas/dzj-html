@@ -221,8 +221,8 @@ class Volume(Data):
 
 class Page(Data):
     fields = [['name', '页编码'], ['width', '宽度'], ['height', '高度'], ['img_path', '图片路径'],
-              ['img_cloud_path', '云图路径'], ['uni_sutra_code', '统一经编码'], ['sutra_code', '经编码'],
-              ['reel_code', '卷编码'], ['reel_page_no', '卷内页序号'], ['lock', '数据锁'],
+              ['img_cloud_path', '云图路径'], ['page_code', '页编码'], ['uni_sutra_code', '统一经编码'],
+              ['sutra_code', '经编码'], ['reel_code', '卷编码'], ['reel_page_no', '卷内页序号'], ['lock', '数据锁'],
               ['box_stage', '框阶段'], ['text_stage', '文本阶段'],
               ['blocks', '栏框'], ['columns', '列框'], ['chars', '字框'],
               ['ocr', 'OCR'], ['ocr_col', '列OCR'],
@@ -238,9 +238,14 @@ class Page(Data):
     @classmethod
     def metadata(cls):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
-                    sutra_code='', uni_sutra_code='', reel_code='', reel_page_no='', lock={},
-                    box_stage='', text_stage='', blocks=[], columns=[], chars=[],
+                    page_code='', sutra_code='', uni_sutra_code='', reel_code='', reel_page_no='',
+                    lock={}, box_stage='', text_stage='', blocks=[], columns=[], chars=[],
                     ocr='', ocr_col='', text='', txt_html='')
+
+    @classmethod
+    def pagename2code(cls, page_name):
+        """把page的name转换为page_code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
+        return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
 
     @classmethod
     def insert_new(cls, db, file_stream=None):
@@ -260,6 +265,7 @@ class Page(Data):
             page = cls.metadata()
             s = page_name.split('.')
             page['name'] = s[0]
+            page['page_code'] = cls.pagename2code(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
         if pages:

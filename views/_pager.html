@@ -22,7 +22,7 @@
   <!--搜索-->
   $('#page-no').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
+    if (keyCode === 13) {
       var page = $(this).val().trim();
       page = page > 1 ? page : 1;
       var url = "{{pager['path'] + pager['link']}}" + "page=" + page;

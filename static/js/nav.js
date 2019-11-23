@@ -12,6 +12,44 @@ $(document).on('click', '#toggle-right', function () {
   $('#right-region').toggleClass('hide');
 });
 
+// 图片缩放快捷键
+function zoomRatio(ratio) {
+  var pageImg = $('#page-picture img');
+  if (pageImg.length) {
+    pageImg.width((100 * ratio) + '%');
+  } else {
+    $.cut.setRatio(ratio);
+  }
+}
+
+$.mapKey('1', function () {
+  zoomRatio(1);
+});
+$.mapKey('2', function () {
+  zoomRatio(2);
+});
+$.mapKey('3', function () {
+  zoomRatio(3);
+});
+$.mapKey('4', function () {
+  zoomRatio(4);
+});
+$.mapKey('5', function () {
+  zoomRatio(5);
+});
+$.mapKey('6', function () {
+  zoomRatio(0.6);
+});
+$.mapKey('7', function () {
+  zoomRatio(0.8);
+});
+$.mapKey('8', function () {
+  zoomRatio(0.8);
+});
+$.mapKey('9', function () {
+  zoomRatio(0.9);
+});
+
 // 缩小图片
 $(document).on('click', '#zoom-in', function () {
   var pageImg = $('#page-picture img');

@@ -9948,7 +9948,7 @@ Enjoy!
       on('subtract', sub);
       on('-', sub);
 
-      // shift + 5~9 页面缩放
+      // keyCode ===  135~9 页面缩放
       on('shift+5', function() {
         self.setRatio(0.5);
       });
