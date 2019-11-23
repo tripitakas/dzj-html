@@ -109,11 +109,11 @@ $('#pic-right').click(function () {
 });
 
 // 快捷键左右翻页
-$.mapKey('left', function () {
+$.mapKey('shift+left', function () {
   $('.m-pager .prev').click();
 });
 
-$.mapKey('right', function () {
+$.mapKey('shift+right', function () {
   $('.m-pager .next').click();
 });
 
