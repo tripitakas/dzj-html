@@ -134,7 +134,6 @@
             </div>
           </div>
         </div>
-
         <div class="content">
           <!-- 左侧图片区域 -->
           <div class="content-left" id="left-region">
@@ -327,7 +326,7 @@
 
   $.cut.create({
     readonly: true,
-    scrollContainer: '.content-left',
+    scrollContainer: '#page-picture',
     name: '{{page["name"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
@@ -335,9 +334,15 @@
     image: '{{img_url}}',
     chars: chars.concat(columns).concat(blocks)
   });
+  $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(null);
+
+  $('rect.block').css('display', 'none');
+  $('rect.column').css('display', 'none');
+  $('rect.char').css('display', 'none');
+
 </script>
 {% end %}
 

@@ -56,7 +56,7 @@ class TextProofHandler(TaskHandler, TextPack):
         文本来源有多种情况，ocr可能会输出两份数据，比对本可能有一份数据。
         """
         doubt = self.prop(task, 'result.doubt')
-        CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **params)
+        CutHandler.char_render(page, int(self.get_query_argument('layout', 0)))
 
         # 获取比对来源的文本
         ocr = page.get('ocr') or ''
