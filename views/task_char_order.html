@@ -239,7 +239,7 @@
   // 页面图和切分框
   var blocks = decodeJSON('{{page["blocks"]}}');
   var columns = decodeJSON('{{page["columns"]}}');
-  var chars = '{{page["chars"]}}';
+  var chars = decodeJSON('{{page["chars"]}}');
   $.cut.create({
     orderMode: true,
     readonly: true,
