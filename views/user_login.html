@@ -92,7 +92,7 @@
   // 回车
   $(document).on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
+    if (keyCode ===  13) {
       $('.log-btn > a').click();
     }
   });

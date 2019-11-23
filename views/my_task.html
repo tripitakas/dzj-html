@@ -102,7 +102,7 @@
   // 搜索
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
+    if (keyCode ===  13) {
       var q = $(this).val().trim();
       var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;

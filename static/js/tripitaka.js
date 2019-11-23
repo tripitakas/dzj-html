@@ -108,6 +108,16 @@ $('#pic-right').click(function () {
   $('.btn-page.next').click();
 });
 
+// 快捷键左右翻页
+$.mapKey('left', function () {
+  $('.m-pager .prev').click();
+});
+
+$.mapKey('right', function () {
+  $('.m-pager .next').click();
+});
+
+
 // 增加文本字号
 $(document).on('click', '#enlarge-font', function () {
   var $div = $('.content-right .page-text');

@@ -131,7 +131,7 @@ $('#uploadModal #confirm').click(function () {
 // 搜索
 $('#search-input').on("keydown", function (event) {
   var keyCode = event.keyCode || event.which;
-  if (keyCode == "13") {
+  if (keyCode ===  13) {
     var q = $(this).val().trim();
     window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
   }
