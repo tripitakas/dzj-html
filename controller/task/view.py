@@ -194,7 +194,7 @@ class TaskPageInfoHandler(TaskHandler):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object, message='页面不存在')
+                return self.send_error_response(errors.no_object, message='页面%s不存在' % page_name, render=True)
 
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
             order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
