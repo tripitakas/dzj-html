@@ -73,9 +73,9 @@
                       <td>{{Th.get_task_name(p.get('box_stage')) or ''}}</td>
                       <td>{{Th.get_task_name(p.get('text_stage')) or ''}}</td>
                       <td><a href="/data/edit/text/{{p.get('name')}}">{{'修改' if p.get('text') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'修改' if p.get('blocks') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'修改' if p.get('columns') else ''}}</a></td>
-                      <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'修改' if p.get('chars') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=block_box">{{'修改 %d栏' % len(p['blocks']) if p.get('blocks') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=column_box">{{'修改 %d列' % len(p['columns']) if p.get('columns') else ''}}</a></td>
+                      <td><a href="/data/edit/box/{{p.get('name')}}?step=char_box">{{'修改 %d字' % len(p['chars']) if p.get('chars') else ''}}</a></td>
                       </td>
                     </tr>
                     {% end %}
