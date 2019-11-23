@@ -907,6 +907,10 @@ a.download-template {
   padding-right: 20px;
 }
 
+#helpModal .modal-dialog {
+  width: 680px;
+}
+
 #helpModal .modal-title {
   font-size: 1.1em;
 }
