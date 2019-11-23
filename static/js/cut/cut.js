@@ -732,6 +732,18 @@
 
     findCharById: findCharById,
 
+    findCharsByOffset: function (block_no, line_no, offset) {
+      for (var i = 0, index = 0; i < data.chars.length; i++) {
+        var box = data.chars[i];
+        if (box.block_no === block_no && box.line_no === line_no) {
+          index++;
+        }
+        if (index === offset)
+          return [box];
+      }
+      return [];
+    },
+
     findCharsByLine: function(block_no, line_no, cmp) {
       var i = 0;
       return data.chars.filter(function(box) {

@@ -32,7 +32,7 @@ class Application(web.Application):
         self.init_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
-        self.version = __version__ + '-alpha'
+        self.version = __version__ + '-dev'
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
         handlers = [(r'/upload/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler,

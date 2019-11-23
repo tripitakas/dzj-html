@@ -193,7 +193,7 @@
     getId: function () {
       if (this.c1 && this.c2) {
         var a = this.c1.getId().split('c'), b = this.c2.getId().split('c');
-        return this.c1.getId() + '-' + (a.length == 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
+        return this.c1.getId() + '-' + (a.length === 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
       }
     },
 
@@ -310,7 +310,7 @@
       var self = this;
       self.state.avgLen = 0;
       this.remove();
-      this.chars_col = chars_col || this.chars_col;
+      this.chars_col = chars_col || this.chars_col || [];
       this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
         return (ids.length === 1 ? ids : ids.slice(1)).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
