@@ -5,7 +5,6 @@
   var highlightBox;
 
   $.extend($.cut, {
-
     bindMatchingKeys: function () {
       var self = this;
       var data = self.data;
@@ -122,6 +121,7 @@
       var self = this;
       var data = self.data;
       var s = data.ratio;
+      var fontSize = data.fontSize;
       highlightBox = refresh;
 
       // 计算字框的并集框、平移距离
@@ -159,8 +159,6 @@
         var el = c.shape;
         var p = el && el.getBBox();
         var text = content(c, i);
-        var fontSize = typeof panelFontSize === 'undefined' ? 14 : panelFontSize;
-        console.log(fontSize);
         if (p) {
           el.data('order', c.char_no);
           el.data('text', text);
@@ -169,7 +167,7 @@
             data.paper.rect(p.x + offset, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.3)'}),
             data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
-                .attr({'font-size': fontSize * Math.min(s, 1.5), 'text-align': 'center', stroke: '#333333'}),
+                .attr({'font-size': fontSize, 'text-align': 'center', stroke: '#333333'}),
             data.paper.rect(p.x, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.4)'})
           ]

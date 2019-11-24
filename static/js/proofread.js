@@ -581,7 +581,7 @@ $('#enlarge-panel-font').on('click', function () {
   if (size < 36) {
     $tspan.css('font-size', ++size + 'px');
   }
-  panelFontSize = size;
+  $.cut.data.fontSize = size;
 });
 
 // 减少浮动面板的字体
@@ -591,7 +591,7 @@ $('#reduce-panel-font').on('click', function () {
   if (size > 8) {
     $tspan.css('font-size', --size + 'px');
   }
-  panelFontSize = size;
+  $.cut.data.fontSize = size;
 });
 
 // 上一条异文
