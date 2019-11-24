@@ -7,6 +7,7 @@
 
 import re
 import inspect
+import logging
 from os import path
 from operator import itemgetter
 from tornado.web import RequestHandler
@@ -24,6 +25,7 @@ class InvalidPageHandler(TaskHandler):
             return self.finish()
         if path.exists(path.join(self.get_template_path(), self.request.path.replace('/', ''))):
             return RequestHandler.render(self, self.request.path.replace('/', ''))
+        logging.error('%s not found' % self.request.path)
         self.set_status(404, reason='Not found')
         self.render('_404.html')
 

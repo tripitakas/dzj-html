@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>文章编辑</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<style>
+
+  .content {
+    margin: 60px 20px 10px;
+  }
+
+</style>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <header class="m-header">
+      <div class="back">
+        <a href="/">
+          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
+        </a>
+      </div>
+      <div class="title">文章编辑</div>
+      <input type="text" id="title" class="form-control" placeholder="文章标题"
+             style="display: inline-block; width: calc(100% - 220px); margin: 3px 0 0 15px;">
+      <div class="right" style="margin: 2px 8px">
+      </div>
+    </header>
+    <div class="content">
+      <div>
+        <script class="editor" id="editor1" type="text/plain" style="width: 100%;max-width: 800px;min-height: 100px;"></script>
+      </div>
+      <div style="margin-top: 10px">
+        <div class="input-group">
+          <span class="input-group-addon" id="basic-addon1">文章分类</span>
+          <input type="text" id="category" class="form-control" placeholder="文章分类" aria-describedby="basic-addon1">
+        </div>
+        <div class="text-right" style="margin-top: 10px">
+          <button type="button" class="btn btn-primary" id="btn-submit">保存</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<!-- UM Editor -->
+<link href="{{ static_url('editor/themes/default/_css/umeditor.css') }}" rel="stylesheet" type="text/css" />
+<script src="{{ static_url('editor/third-party/template.min.js') }}"></script>
+<script src="{{ static_url('editor/editor.config.js') }}"></script>
+<script src="{{ static_url('editor/editor.api.js') }}"></script>
+<script src="{{ static_url('editor/lang/zh-cn/zh-cn.js') }}"></script>
+
+<!-- CUSTOM JS -->
+<script>
+  var UMEDITOR_HOME_URL = '/static/editor/';
+
+  function initEditor(id, html) {
+    UM.getEditor(id, {
+      toolbarTopOffset: 10000,
+      initialFrameWidth: '100%',
+      onready: function () {
+        if (html) {
+          this.setContent(html);
+        }
+        else if (id !== 'editor1') {
+          this.focus();
+        }
+        $(this.container).css('z-index', 0);
+        this.addInputRule(function (root) {
+          $.each(root.getNodesByTagName('a'), function (i, a) {
+            var href = a.getAttr('href');
+            if (/^http/.test(href) && window.location.href.indexOf(href.replace(/\..+$/, '')) < 0) {
+              a.setAttr('target', '_blank');
+            }
+          });
+        });
+      }, filterRules: function () {
+        return {
+          span: function (node) {
+            if (/Wingdings|Symbol/.test(node.getStyle('font-family'))) {
+              return true;
+            } else {
+              node.parentNode.removeChild(node, true);
+            }
+          },
+          p: function (node) {
+            var listTag;
+            if (node.getAttr('class') == 'MsoListParagraph') {
+              listTag = 'MsoListParagraph';
+            }
+            node.setAttr();
+            if (listTag) {
+              node.setAttr('class', 'MsoListParagraph');
+            }
+            if (!node.firstChild()) {
+              node.innerHTML(UM.browser.ie ? '&nbsp;' : '<br>');
+            }
+          },
+          div: function (node) {
+            var tmpNode, p = UM.uNode.createElement('p');
+            while (tmpNode = node.firstChild()) {
+              if (tmpNode.type == 'text' || !UM.dom.dtd.$block[tmpNode.tagName]) {
+                p.appendChild(tmpNode);
+              } else {
+                if (p.firstChild()) {
+                  node.parentNode.insertBefore(p, node);
+                  p = UM.uNode.createElement('p');
+                } else {
+                  node.parentNode.insertBefore(tmpNode, node);
+                }
+              }
+            }
+            if (p.firstChild()) {
+              node.parentNode.insertBefore(p, node);
+            }
+            node.parentNode.removeChild(node);
+          },
+          //$:{}表示不保留任何属性
+          br: {$: {}},
+          ol: {$: {}},
+          ul: {$: {}},
+
+          dl: function (node) {
+            node.tagName = 'ul';
+            node.setAttr();
+          },
+          dt: function (node) {
+            node.tagName = 'li';
+            node.setAttr();
+          },
+          dd: function (node) {
+            node.tagName = 'li';
+            node.setAttr();
+          },
+          li: function (node) {
+            var className = node.getAttr('class');
+            if (!className || !/list\-/.test(className)) {
+              node.setAttr();
+            }
+            var tmpNodes = node.getNodesByTagName('ol ul');
+            UM.utils.each(tmpNodes, function (n) {
+              node.parentNode.insertAfter(n, node);
+            });
+          },
+          table: function (node) {
+            UM.utils.each(node.getNodesByTagName('table'), function (t) {
+              UM.utils.each(t.getNodesByTagName('tr'), function (tr) {
+                var p = UM.uNode.createElement('p'), child, html = [];
+                while (child = tr.firstChild()) {
+                  html.push(child.innerHTML());
+                  tr.removeChild(child);
+                }
+                p.innerHTML(html.join('&nbsp;&nbsp;'));
+                t.parentNode.insertBefore(p, t);
+              });
+              t.parentNode.removeChild(t);
+            });
+            var val = node.getAttr('width');
+            node.setAttr();
+            if (val) {
+              node.setAttr('width', val);
+            }
+          },
+          tbody: {$: {}},
+          caption: {$: {}},
+          th: {$: {}},
+          td: {$: {valign: 1, align: 1, rowspan: 1, colspan: 1, width: 1, height: 1}},
+          tr: {$: {}},
+          h3: {$: {}},
+          h2: {$: {}},
+          //黑名单，以下标签及其子节点都会被过滤掉
+          '-': 'script style meta iframe embed object'
+        }
+      }()
+    });
+  }
+
+  initEditor('editor1');
+
+  $('#btn-submit').on("click", function () {
+    var q = $('#punc-input').val();
+    if (q.trim().length === 0)
+      return;
+    postApi('/tool/punctuate', {data: {q: q}}, function (data) {
+      $('#punc-input').val(data.res);
+    });
+  });
+
+</script>
+
+</body>
+</html>

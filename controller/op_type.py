@@ -37,6 +37,7 @@ op_types = {
     'upload_{collection}': dict(name='上传{collection_kind}数据'),
     'import_image': dict(name='导入藏经图'),
     'import_meta': dict(name='导入藏册页数据'),
+    'upload_image': dict(name='上传图片'),
 }
 
 placeholder = {

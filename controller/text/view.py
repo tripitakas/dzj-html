@@ -187,9 +187,10 @@ class TextEditHandler(TaskHandler, TextPack):
 
             # 缺省参数
             args = dict(task_type='', task=dict(), texts={}, doubt='', steps=dict(is_first=True, is_last=True))
+            labels = dict(base='OCR', cmp1='OCR', cmp2='')
             self.render(
                 'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,
-                get_img=self.get_img, **args
+                get_img=self.get_img, labels=labels, **args
 
             )
 
