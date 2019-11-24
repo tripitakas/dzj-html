@@ -92,8 +92,7 @@
                   <ul>
                     {% for k, v in month_star.items() %}
                     <li>
-                      <span class="name">{{v[0]}}</span>
-                      <span class="task-info">本月 完成了 {{k}} {{v[1]}}页</span>
+                      <span><span class="name">{{v[0]}}</span>本月 完成了 {{k}} {{v[1]}}页</span>
                     </li>
                     {% end %}
                   </ul>
@@ -106,7 +105,6 @@
                     <li>
                       <span class="time">{{to_date_str(t['picked_time'])}}</span>
                       <span class="task-info">{{get_task_info(t)}}</span>
-                      <span class="doc-id">{{t['doc_id']}}</span>
                     </li>
                     {% end %}
                   </ul>
@@ -115,12 +113,12 @@
                   <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
                   <p class="tit"><img src="{{ static_url('imgs/share.png') }}" alt=""></p>
                   <ul>
-                    <li>切分校对工具使用的一点心得</li>
-                    <li>文字校对中的生僻字处理办法</li>
-                    <li>切分校对工具使用的一点心得</li>
-                    <li>文字校对中的生僻字处理办法</li>
-                    <li>切分校对工具使用的一点心得</li>
-                    <li>文字校对中的生僻字处理办法</li>
+                    <li><span>切分校对工具使用的一点心得</span></li>
+                    <li><span>文字校对中的生僻字处理办法</span></li>
+                    <li><span>切分校对工具使用的一点心得</span></li>
+                    <li><span>文字校对中的生僻字处理办法</span></li>
+                    <li><span>切分校对工具使用的一点心得</span></li>
+                    <li><span>文字校对中的生僻字处理办法</span></li>
                   </ul>
                   <p class="more"><a href="#">更多</a></p>
                 </div>
