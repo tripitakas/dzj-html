@@ -1,4 +1,4 @@
-UM.registerUI('link image video formula',function(name){
+UM.registerUI('link image video',function(name){
 
     var me = this, currentRange, $dialog,
         opt = {

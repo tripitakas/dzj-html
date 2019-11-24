@@ -76,6 +76,7 @@ role_route_maps = {
             '/task/@task_type/@task_id': ['GET'],
             '/article/edit/@article_id': ['GET'],
             '/api/article/save/@article_id': ['POST'],
+            '/php/imageUp.php': ['POST'],
         }
     },
     '切分校对员': {

@@ -60,7 +60,7 @@
             'adapter/button.js',
             'adapter/fullscreen.js',
             'adapter/dialog.js',
-            'adapter/popup.js',
+            // 'adapter/popup.js',
             'adapter/imagescale.js',
             'adapter/autofloat.js',
             'adapter/source.js',

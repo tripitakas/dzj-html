@@ -49,7 +49,8 @@ class UploadImageHandler(BaseHandler):
         m = hashlib.md5()
         m.update(file['body'])
         fid = m.hexdigest()[:16] + file['content_type'].replace('image/', '.')
-        img_path = os.path.join(self.application.IMAGE_PATH, folder)
+        upload_path = os.path.join(self.application.BASE_DIR, 'static', 'upload')
+        img_path = os.path.join(upload_path, folder)
         filename = os.path.join(img_path, fid)
         if not re.search(r'\.(png|jpg|jpeg|gif|bmp)$', fid):
             return self.send_error_response(errors.upload_fail, message='不允许的文件类型')
@@ -59,10 +60,10 @@ class UploadImageHandler(BaseHandler):
         with open(filename, 'wb') as f:
             f.write(file['body'])
         filename, w, h = self.resize_image(filename)
-        filename = filename.replace(self.application.IMAGE_PATH, '').strip('/\\')
+        filename = filename.replace(upload_path, '').strip('/\\')
 
-        self.add_op_log('upload_image', context=file['filename'] + ':' + filename)
-        self.send_data_response(dict(url=filename, w=w, h=h))
+        self.add_op_log('upload_image', context='%s,%dx%d' % (filename, w, h))
+        self.write(dict(state='SUCCESS', url=filename, w=w, h=h))
 
     @staticmethod
     def resize_image(filename, width=0, height=0):

@@ -12,14 +12,9 @@ UM.commands['preview'] = {
     execCommand : function(){
         var w = window.open('', '_blank', ''),
             d = w.document,
-            c = this.getContent(null,null,true),
-            path = this.getOpt('UMEDITOR_HOME_URL'),
-            formula = c.indexOf('mathquill-embedded-latex')!=-1 ?
-                '<link rel="stylesheet" href="' + path + 'third-party/mathquill/mathquill.css"/>' +
-                '<script src="' + path + 'third-party/jquery.min.js"></script>' +
-                '<script src="' + path + 'third-party/mathquill/mathquill.min.js"></script>':'';
+            c = this.getContent(null,null,true);
         d.open();
-        d.write('<html><head>' + formula + '</head><body><div>'+c+'</div></body></html>');
+        d.write('<html><head></head><body><div>'+c+'</div></body></html>');
         d.close();
     },
     notNeedUndo : 1
