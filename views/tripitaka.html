@@ -339,9 +339,23 @@
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(null);
 
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+      return true;
+    }
+    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+      return true;
+    }
+    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+      return true;
+    }
+  };
+
   $('rect.block').css('display', 'none');
   $('rect.column').css('display', 'none');
   $('rect.char').css('display', 'none');
+
 
 </script>
 {% end %}
