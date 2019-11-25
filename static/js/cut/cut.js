@@ -136,7 +136,7 @@
 
   var data = {
     normalColor: '#158815',                   // 正常字框的线色
-    normalColor2: '#5e5c88',                  // 另一列字框的的线色
+    normalColor2: '#434188',                  // 另一列字框的的线色
     columnColor: '#158815',                   // 列框的颜色
     changedColor: '#C53433',                  // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
