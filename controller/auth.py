@@ -61,8 +61,7 @@ role_route_maps = {
         'remark': '登录用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
-            '/home': ['GET'],
-            '/help': ['GET'],
+            '/(home|help)': ['GET'],
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitakas': ['GET'],

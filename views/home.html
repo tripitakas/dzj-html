@@ -97,9 +97,9 @@
                     {% end %}
                   </ul>
                 </div>
-                <div class="item">
-                  <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
-                  <p class="tit"><img src="{{ static_url('imgs/status.png') }}" alt=""></p>
+                <div class="item" id="trend">
+                  <p class="other"><img src="{{ static_url('imgs/lotus.png') }}" alt=""></p>
+                  <p class="tit"><img src="{{ static_url('imgs/trend.png') }}" alt=""></p>
                   <ul>
                     {% for t in latest_tasks %}
                     <li>
@@ -109,8 +109,18 @@
                     {% end %}
                   </ul>
                 </div>
+                <div class="item" id="practice">
+                  <p class="other"><img src="{{ static_url('imgs/lotus.png') }}" alt=""></p>
+                  <p class="tit">练习广场</p>
+                  <ul>
+                    <li><a href="">切分校对</a></li>
+                    <li><a href="">切分审定</a></li>
+                    <li><a href="">文字校对</a></li>
+                    <li><a href="">文字审定</a></li>
+                  </ul>
+                </div>
                 <div class="item">
-                  <p class="other"><img src="{{ static_url('imgs/other.png') }}" alt=""></p>
+                  <p class="other"><img src="{{ static_url('imgs/lotus.png') }}" alt=""></p>
                   <p class="tit"><img src="{{ static_url('imgs/share.png') }}" alt=""></p>
                   <ul>
                     <li><span>切分校对工具使用的一点心得</span></li>

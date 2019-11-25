@@ -62,7 +62,7 @@ class CommonLeft(UIModule):
                 dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),
             ]),
-            dict(name='帮助文档', icon='icon_help', link='/help'),
+            dict(name='帮助中心', icon='icon_help', link='/help'),
         ]
 
         # 计算当前用户有权访问的item

@@ -199,6 +199,7 @@
 
 .bottom .item .tit {
   margin: 18px 0;
+  font-size: 20px;
 }
 
 .bottom .item .other {
@@ -258,4 +259,12 @@
 
 .bottom .item .more a:hover {
   color: #333;
+}
+
+.bottom .item#trend {
+  min-width: 350px;
+}
+
+.bottom .item#practice {
+  max-width: 180px;
 }

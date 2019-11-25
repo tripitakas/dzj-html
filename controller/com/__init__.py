@@ -5,7 +5,7 @@
 from . import modules, home
 
 views = [
-    home.HomeHandler,
+    home.HomeHandler, home.HelpHandler,
 ]
 handlers = [
 ]
