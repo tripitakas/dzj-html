@@ -235,6 +235,9 @@
 
   // 切换切分框状态
   $('.hl-box > button').click(function () {
+    if ($(this).attr('id') === 'toggle-image') {
+      return;
+    }
     var type = this.getAttribute('id').replace(/^.*-/, '');
     $.cut.switchHighlightBoxes(type);
   });
