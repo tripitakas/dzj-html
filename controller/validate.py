@@ -60,6 +60,9 @@ def i18n_trans(key):
         'tasks': '任务列表',
         'task_ids': '任务',
         'user_id': '用户',
+        'title': '标题',
+        'category': '分类',
+        'content': '内容',
     }
     return maps[key] if key in maps else key
 

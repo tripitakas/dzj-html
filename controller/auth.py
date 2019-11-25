@@ -10,7 +10,7 @@ import re
 # url占位符
 url_placeholder = {
     'num': r'\d+',
-    'article_id': r'[A-Za-z0-9_-]+',
+    'article_id': r'new|[A-Za-z0-9]{24}',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',

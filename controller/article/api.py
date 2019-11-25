@@ -7,9 +7,12 @@ import hashlib
 import os
 import re
 from PIL import Image
+from datetime import datetime
+from bson.objectid import ObjectId
 from controller.base import BaseHandler, DbError
 from controller import errors
 from controller.helper import get_date_time
+import controller.validate as v
 
 
 class SaveArticleApi(BaseHandler):
@@ -18,16 +21,38 @@ class SaveArticleApi(BaseHandler):
     def post(self, article_id):
         """保存文章"""
         try:
-            article = self.db.article.find_one({'article_id': article_id})
-            if article:
-                num = self.get_request_data().get('num') or 1
-                cmp, hit_article_codes = find_one(article.get('ocr'), int(num))
-                if cmp:
-                    self.send_data_response(dict(cmp=cmp, hit_article_codes=hit_article_codes))
-                else:
-                    self.send_error_response(errors.no_object, message='未找到比对文本')
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'title', 'category', 'content')]
+            err = v.validate(data, rules)
+            if err:
+                return self.send_error_response(err)
+
+            upload_path = os.path.join(self.application.BASE_DIR, 'static', 'upload', '')
+            info = dict(title=data['title'].strip(), category=data['category'].strip(),
+                        content=data['content'].strip(),
+                        images=re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content']))
+            if len(article_id) > 5:
+                article = self.db.article.find_one({'_id': ObjectId(article_id)})
+                if article is None:
+                    return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
+
+                r = self.db.article.update_one({'_id': article['_id']}, {'$set': info})
+                info['id'] = article_id
+                info['modified'] = r.modified_count
+                if r.modified_count:
+                    self.db.article.update_one({'_id': article['_id']}, {'$set': dict(
+                        updated_time=datetime.now(), updated_by=self.current_user['name'])})
+                    self.add_op_log('save_article', target_id=article['_id'], context=info['title'])
             else:
-                self.send_error_response(errors.no_object, message='页面%s不存在' % article_name)
+                info.update(dict(create_time=datetime.now(),
+                                 author_id=self.current_user['_id'],
+                                 author_name=self.current_user['name']))
+                r = self.db.article.insert_one(info)
+                info['id'] = str(r.inserted_id)
+                self.add_op_log('add_article', target_id=r.inserted_id, context=info['title'])
+
+            info.pop('content')
+            self.send_data_response(info)
 
         except DbError as e:
             self.send_db_error(e)
