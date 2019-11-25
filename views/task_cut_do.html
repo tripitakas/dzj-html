@@ -26,6 +26,8 @@
         <div class="title" title="{{page['name']}}">切分校对<span class="sub-title">-{{Th.get_step_name(steps["current"])}}</span></div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+          <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+          <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img active" id="toggle-box" title="显隐字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
@@ -33,8 +35,7 @@
           <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img" id="redo" title="重做"/>
         </div>
         <div class="btn-group hl-box" style="margin-left: 10px">
-          <button type="button" class="btn btn-default btn-sm" id="toggle-image" title="显隐图片">图片</button>
-          <button type="button" class="btn btn-default btn-sm" id="toggle-char" title="显隐字框">所有<sup class="s-count"></sup></button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐字框">所有<sup class="s-count"></sup></button>
           <button type="button" class="btn btn-default btn-sm" id="toggle-overlap" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
           {% if box_type == 'char' %}
           <button type="button" class="btn btn-default btn-sm" id="toggle-large" title="显隐大字框">大框<sup class="s-count"></sup></button>
@@ -223,11 +224,9 @@
   // 显示各种类型字框数量
   function showHighLightCount() {
     $('.hl-box > button').each(function (i, btn) {
-      if (i > 0 || '{{box_type}}' !== "char") {
-        var type = btn.getAttribute('id').replace(/^.*-/, '');
-        var boxes = $.cut.highlightBoxes(type, true);
-        $(btn).find('.s-count').text(boxes.length);
-      }
+      var type = btn.getAttribute('id').replace(/^.*-/, '');
+      var boxes = $.cut.highlightBoxes(type, true);
+      $(btn).find('.s-count').text(boxes.length);
     });
   }
 
@@ -235,9 +234,6 @@
 
   // 切换切分框状态
   $('.hl-box > button').click(function () {
-    if ($(this).attr('id') === 'toggle-image') {
-      return;
-    }
     var type = this.getAttribute('id').replace(/^.*-/, '');
     $.cut.switchHighlightBoxes(type);
   });
@@ -258,6 +254,12 @@
   }
 
   $.cut.onBoxChanged(onBoxChanged);
+
+  // 显隐切分框
+  $('#toggle-box').click(function () {
+    $(this).toggleClass('active');
+    $('svg rect').css('display', $(this).hasClass('active') ? 'block' : 'none');
+  });
 
 </script>
 

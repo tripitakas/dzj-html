@@ -36,7 +36,7 @@ class TaskConfig(object):
         'cut_review': {
             'name': '切分审定', 'pre_tasks': ['cut_proof'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['char_box', '字框'], ['block_box', '栏框'], ['column_box', '列框'], ['char_order', '字序']],
+            'steps': [['block_box', '栏框'], ['char_box', '字框'], ['column_box', '列框'], ['char_order', '字序']],
         },
         'ocr_text': {
             'name': 'OCR文字', 'pre_tasks': ['cut_review'],
