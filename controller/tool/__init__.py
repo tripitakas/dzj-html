@@ -5,5 +5,5 @@ views = [
 ]
 
 handlers = [
-    api.CbetaSearchApi, api.PunctuationApi, api.RecognitionApi,
+    api.CbetaSearchApi, api.PunctuationApi,
 ]
