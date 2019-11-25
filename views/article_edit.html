@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <title>文章编辑</title>
+  <title>{{'新建文章' if len(article_id) < 9 else '文章编辑'}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <!--[if lt IE 9]>
@@ -25,7 +25,7 @@
           <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
         </a>
       </div>
-      <div class="title">文章编辑</div>
+      <div class="title">{{'新建文章' if len(article_id) < 9 else '文章编辑'}}</div>
       <input type="text" id="title" class="form-control" placeholder="文章标题"
              style="display: inline-block; width: calc(100% - 220px); margin: 3px 0 0 15px;" value="{{article.get('title') or ''}}">
       <div class="right" style="margin: 2px 8px">

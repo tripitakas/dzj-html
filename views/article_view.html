@@ -31,8 +31,14 @@
         <a href="/article/edit/{{article_id}}">编辑</a>
       </div>
     </header>
-    <div class="content">{% raw article['content'] %}</div>
-
+    <div class="content">
+      {% raw article['content'] %}
+      <p>{{article['author_name']}}于 {{to_date_str(article['create_time'])}} 创建
+        {% if 'updated_by' in article %}
+        ，{{article['updated_by']}}于 {{to_date_str(article['updated_time'])}} 更新
+        {% end %}
+      </p>
+    </div>
   </div>
 </div>
 
