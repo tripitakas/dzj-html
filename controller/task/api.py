@@ -4,11 +4,12 @@
 @time: 2018/12/27
 """
 import re
+import json
 from datetime import datetime
 from controller import errors
-import controller.errors as e
-import controller.validate as v
 from controller.base import DbError
+from controller import errors as e
+from controller import validate as v
 from controller.task.base import TaskHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
@@ -58,8 +59,11 @@ class PublishTasksApi(PublishBaseHandler):
             ids_file = self.request.files.get('ids_file')
             if ids_file:
                 ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
-                ids_str = re.sub(r'\n+', '|', ids_str)
-                doc_ids = ids_str.split(r'|')
+                try:
+                    doc_ids = json.loads(ids_str)
+                except json.decoder.JSONDecodeError as e:
+                    ids_str = re.sub(r'\n+', '|', ids_str)
+                    doc_ids = ids_str.split(r'|')
             elif data.get('prefix'):
                 collection, id_name, input_field, shared_field = self.get_task_meta(data['task_type'])
                 condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'}}

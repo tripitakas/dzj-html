@@ -43,19 +43,19 @@ class TestUserProductApi(APITestCase):
         account = prop(self._app.config, 'phone.accessKey')
         if account and '待配置' not in account:
             phone = '13810916830'
-            d = self._app.db.user.delete_one(dict(phone=phone))
-            if d:
-                r = self.fetch('/api/user/phone_code', body={'data': dict(phone=phone)})
-                self.assert_code(200, r)
-                # 测试验证码错误时的结果
-                r = self.fetch('/api/user/register', body={
-                    'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code='3564')
-                })
-                self.assert_code(e.code_wrong_or_timeout, r)
+            r = self.fetch('/api/user/phone_code', body={'data': dict(phone=phone)})
+            self.assert_code(200, r)
+            # 测试验证码错误时的结果
+            r = self.fetch('/api/user/register', body={
+                'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code='3564')
+            })
+            self.assert_code(e.code_wrong_or_timeout, r)
+
             # 测试验证码正确时的结果
             verify = self._app.db.verify.find_one(dict(type='phone', data=phone))
             if verify:
                 code = verify.get('code')
+                self._app.db.user.delete_one(dict(phone=phone))
                 r = self.fetch('/api/user/register', body={
                     'data': dict(phone=phone, password=u.user1[1], name=u.user1[2], phone_code=code)
                 })
