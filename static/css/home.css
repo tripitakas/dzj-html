@@ -1,256 +1,261 @@
 /*首页CSS*/
 
 .home {
-    padding: 0 12px 50px 12px;;
+  padding: 0 12px 50px 12px;;
 }
 
 .home .index {
-    color: #61646d;
-    margin-top: 15px;
+  color: #61646d;
+  margin-top: 15px;
 }
 
 .home .top {
-    margin: 50px 0;
+  margin: 50px 0;
 }
 
 .home .left {
-    width: 40%;
-    margin-right: 3%;
+  width: 40%;
+  margin-right: 3%;
 }
 
 .home .left .title img {
-    margin: 0 0 50px 0;
+  margin: 0 0 50px 0;
 }
 
 .home .left .person {
-    margin-bottom: 38px;
+  margin-bottom: 38px;
 }
 
 .home .left .person .ava {
-    width: 84px;
-    height: 84px;
-    margin-right: 36px;
+  width: 84px;
+  height: 84px;
+  margin-right: 36px;
 }
 
 .home .left .person dt {
-    font-size: 24px;
-    margin-bottom: 12px;
+  font-size: 24px;
+  margin-bottom: 12px;
 }
 
 .home .left .person dd {
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.7);
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .home .left .person dd:nth-of-type(1) {
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 }
 
 .home .left ul {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .home .left ul li {
-    flex: 1;
-    height: 94px;
-    background: #f2e4da;
-    margin-right: 18px;
-    border-radius: 5px;
-    position: relative;
+  flex: 1;
+  height: 94px;
+  background: #f2e4da;
+  margin-right: 18px;
+  border-radius: 5px;
+  position: relative;
 }
 
 .home .left ul li:before {
-    position: absolute;
-    content: '';
-    width: 77px;
-    height: 94px;
-    right: 0;
+  position: absolute;
+  content: '';
+  width: 77px;
+  height: 94px;
+  right: 0;
 }
 
 .home .left ul li:first-child:before {
-    background: url(../imgs/01.png) no-repeat;
+  background: url(../imgs/01.png) no-repeat;
 }
 
 .home .left ul li:nth-child(2):before {
-    background: url(../imgs/02.png) no-repeat;
+  background: url(../imgs/02.png) no-repeat;
 }
 
 .home .left ul li:last-child {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 .home .left ul li:last-child:before {
-    background: url(../imgs/03.png) no-repeat;
+  background: url(../imgs/03.png) no-repeat;
 }
 
 .home .left ul li p {
-    position: relative;
-    text-align: center;
+  position: relative;
+  text-align: center;
 }
 
 .home .left ul li p:first-child {
-    font-size: 14px;
-    color: #333;
-    margin: 17px 0 5px 0;
+  font-size: 14px;
+  color: #333;
+  margin: 17px 0 5px 0;
 }
 
 .home .left ul li p:last-child {
-    font-size: 36px;
-    font-family: Arial;
-    color: var(--Color_Brown_Dark);
-    font-weight: bold;
+  font-size: 36px;
+  font-family: Arial;
+  color: var(--Color_Brown_Dark);
+  font-weight: bold;
 }
 
 .home .right {
-    width: 57%;
+  width: 57%;
 }
 
 .home table {
-    margin-top: 18px;
-    width: 100%;
-    text-align: left;
+  margin-top: 18px;
+  width: 100%;
+  text-align: left;
 }
 
 .home table th {
-    font-weight: normal;
-    font-size: 12px;
-    padding-bottom: 6px;
+  font-weight: normal;
+  font-size: 12px;
+  padding-bottom: 6px;
 }
 
 .home table th:first-child {
-    text-align: center;
+  text-align: center;
 }
 
 .home table th:last-child {
-    text-align: center;
+  text-align: center;
 }
 
 .home table tbody tr {
-    background: rgba(255, 255, 255, 0.85);
-    height: 44px;
-    border: 1px solid #ebebeb;
+  background: rgba(255, 255, 255, 0.85);
+  height: 44px;
+  border: 1px solid #ebebeb;
 }
 
 .home table tbody tr td {
-    font-size: 14px;
-    color: #13171c;
+  font-size: 14px;
+  color: #13171c;
 }
 
 .home table tbody tr td em:first-child {
-    font-size: 16px;
-    font-family: Arial;
-    color: var(--Color_Brown_Dark);
-    font-weight: bold;
-    margin-right: 2px;
+  font-size: 16px;
+  font-family: Arial;
+  color: var(--Color_Brown_Dark);
+  font-weight: bold;
+  margin-right: 2px;
 }
 
 .home table tbody tr td em:nth-child(2) {
-    color: #c2c2c2;
+  color: #c2c2c2;
 }
 
 .home table tbody tr td:first-child {
-    text-align: center;
+  text-align: center;
 }
 
 .home table tbody tr td:last-child {
-    text-align: center;
+  text-align: center;
 }
 
 .home table tbody tr td a {
-    display: inline-block;
-    width: 60px;
-    height: 32px;
-    background: var(--Color_Grey_Dark);
-    border-radius: 3px;
-    text-align: center;
-    line-height: 32px;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.home .bottom {
-    display: flex;
-}
-
-.home .bottom .item {
-    flex: 1;
-}
-
-.home .bottom .item p {
-    text-align: center;
-}
-
-.home .bottom .item .tit {
-    margin: 18px 0;
-}
-
-.home .bottom .item .other {
-    padding-top: 18px;
-}
-
-.home .bottom .item ul li {
-    height: 40px;
-    line-height: 40px;
-    position: relative;
-    color: #13171c;
-    font-size: 14px;
-    text-align: center;
-}
-
-.home .item.star .name:before {
-    position: absolute;
-    content: '';
-    width: 16px;
-    height: 18px;
-    background: url(../imgs/medal.png) no-repeat;
-    left: -20px;
-    top: 1px;
-}
-
-.home .bottom .item:first-child ul li span {
-    position: relative;
-    margin-left: 18px;
-}
-
-.home .bottom .item .more {
-    padding: 10px 0;
-}
-
-.home .bottom .item .more a {
-    color: #808080;
-    font-size: 14px;
-}
-
-.home .bottom .item .more a:hover {
-    color: #333;
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+  background: var(--Color_Grey_Dark);
+  border-radius: 3px;
+  text-align: center;
+  line-height: 32px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 .home .circle-bg {
-    display: inline-block;
-    background: var(--Color_Grey_Dark);
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    font-size: 18px;
-    color: var(--Color_White);
-    text-align: center;
-    vertical-align: middle;
-    line-height: 30px;
+  display: inline-block;
+  background: var(--Color_Grey_Dark);
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 18px;
+  color: var(--Color_White);
+  text-align: center;
+  vertical-align: middle;
+  line-height: 30px;
 }
 
-.home .time, .home .name {
-    font-size: 1em;
+.home .bottom {
+  display: flex;
 }
 
-.home .item .doc-id {
-    text-align: right;
-    display: inline-block;
-    min-width: 85px;
+.bottom .item {
+  flex: 1;
+  margin: 5px 0;
 }
 
-.home .item .task-info {
-    margin-left: 5px;
+.bottom .item p {
+  text-align: center;
+}
+
+.bottom .item .tit {
+  margin: 18px 0;
+}
+
+.bottom .item .other {
+  padding-top: 18px;
+}
+
+.bottom .item li {
+  line-height: 40px;
+  position: relative;
+  color: #13171c;
+  font-size: 14px;
+  display: flex;
+}
+
+.bottom .item li span {
+  flex: 1;
+  text-align: center;
+}
+
+.bottom .item .task-info {
+  margin-left: 5px;
+  text-align: left;
+  word-break: break-all;
+}
+
+.bottom .item .name {
+  margin-right: 5px;
+  position: relative;
+}
+
+.bottom .item.star .name:before {
+  position: absolute;
+  content: '';
+  width: 16px;
+  height: 18px;
+  background: url(../imgs/medal.png) no-repeat;
+  left: -20px;
+  top: 1px;
+}
+
+
+.bottom .item .time {
+  font-size: 0.9em;
+  max-width: 110px;
+  text-align: right;
+  color: var(--Color_Grey_Dark);
+}
+
+.bottom .item .more {
+  padding: 10px 0;
+}
+
+.bottom .item .more a {
+  color: #808080;
+  font-size: 14px;
+}
+
+.bottom .item .more a:hover {
+  color: #333;
 }

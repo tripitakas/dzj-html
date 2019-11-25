@@ -10,11 +10,12 @@ import re
 # url占位符
 url_placeholder = {
     'num': r'\d+',
+    'article_id': r'new|[A-Za-z0-9]{24}',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'data_task': r'ocr_box|ocr_text|upload_cloud|import_image',
-    'task_id': r'\w{24}',
+    'task_id': r'[A-Za-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'collection': r'tripitaka|sutra|volume|reel|page',
     'shared_field': r'box|text',
@@ -52,6 +53,7 @@ role_route_maps = {
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             '/api/user/forget_pwd': ['POST'],
+            '/article/@article_id': ['GET'],
         }
     },
     '普通用户': {
@@ -72,6 +74,9 @@ role_route_maps = {
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
+            '/article/edit/@article_id': ['GET'],
+            '/api/article/save/@article_id': ['POST'],
+            '/php/imageUp.php': ['POST'],
         }
     },
     '切分校对员': {

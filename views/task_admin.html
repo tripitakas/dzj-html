@@ -249,7 +249,7 @@
                 <input type="text" class="form-control" id="id_prefix" placeholder="请输入编码前缀，如GL_2"/>
               </div>
               <div class="tab-pane" id="source-file">
-                <i>请选择CSV或TXT格式文件，大小不超过10M</i>
+                <i>请选择CSV、TXT或JSON格式的文件，大小不超过10M</i>
                 <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
               </div>
             </div>
@@ -434,7 +434,7 @@
         var idsFile = $('#upload')[0].files[0];
         if (typeof idsFile === "undefined")
           return showError('请选择文件');
-        if (!/\.(csv|txt)$/.test(idsFile.name))
+        if (!/\.(csv|txt|json)$/.test(idsFile.name))
           return showError('文件不是CSV或TXT类型');
         if (idsFile.size > (10 * 1024 * 1024))
           return showError('文件大小不能超过10M');
