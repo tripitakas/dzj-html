@@ -652,7 +652,7 @@
         var color = (b.line_no || 0) % 2 ? data.normalColor2 : data.normalColor;
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
             .setAttr({
-              stroke: b.class === color,
+              stroke: color,
               'stroke-opacity': data.boxOpacity,
               'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
               , fill: (data.blockMode || data.columnMode) && data.hoverFill
