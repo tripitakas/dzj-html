@@ -27,7 +27,6 @@ class SaveArticleApi(BaseHandler):
             if err:
                 return self.send_error_response(err)
 
-            upload_path = os.path.join(self.application.BASE_DIR, 'static', 'upload', '')
             info = dict(title=data['title'].strip(), category=data['category'].strip(),
                         content=data['content'].strip(),
                         images=re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content']))

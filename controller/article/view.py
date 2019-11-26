@@ -24,7 +24,7 @@ class EditArticleHandler(BaseHandler):
         article = self.db.article.find_one(cond) if len(article_id) > 3 else {}
         if article is None:
             if '-' in article_id:
-                article = {}
+                article = dict(category='帮助', title=article_id)
             else:
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id, render=True)
         self.render('article_edit.html', article=article, article_id=article_id)
