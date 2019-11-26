@@ -116,6 +116,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
+        if hasattr(self.__class__, 'URL'):
+            cls_url = self.__class__.URL[0] if isinstance(self.__class__.URL, list) else self.__class__.URL
+            kwargs['help_id'] = 'help' + re.sub(r'[/_]@\w+', '', cls_url).replace('/', '-')
+            kwargs['help_url'] = '/article/' + kwargs['help_id']
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps

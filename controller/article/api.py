@@ -31,13 +31,17 @@ class SaveArticleApi(BaseHandler):
             info = dict(title=data['title'].strip(), category=data['category'].strip(),
                         content=data['content'].strip(),
                         images=re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content']))
-            if len(article_id) > 5:
-                article = self.db.article.find_one({'_id': ObjectId(article_id)})
-                if article is None:
+
+            article = len(article_id) > 3
+            if article:
+                cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
+                article = self.db.article.find_one(cond)
+                if article is None and '_id' in cond:
                     return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
 
+            if article:
                 r = self.db.article.update_one({'_id': article['_id']}, {'$set': info})
-                info['id'] = article_id
+                info['id'] = str(article['_id'])
                 info['modified'] = r.modified_count
                 if r.modified_count:
                     self.db.article.update_one({'_id': article['_id']}, {'$set': dict(
@@ -47,6 +51,8 @@ class SaveArticleApi(BaseHandler):
                 info.update(dict(create_time=datetime.now(),
                                  author_id=self.current_user['_id'],
                                  author_name=self.current_user['name']))
+                if '-' in article_id:
+                    info['article_id'] = article_id
                 r = self.db.article.insert_one(info)
                 info['id'] = str(r.inserted_id)
                 self.add_op_log('add_article', target_id=r.inserted_id, context=info['title'])
