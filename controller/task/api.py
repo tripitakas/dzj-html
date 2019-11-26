@@ -394,7 +394,7 @@ class AssignTasksApi(TaskHandler):
 
 
 class FinishTaskApi(TaskHandler):
-    URL = ['/api/task/finish/@task_type/@task_id']
+    URL = '/api/task/finish/@task_type/@task_id'
 
     def post(self, task_type, task_id):
         """ 提交任务，释放数据锁，并且更新后置任务状态。"""
