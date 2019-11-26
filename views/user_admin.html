@@ -61,8 +61,8 @@
                       <td>{{p['name']}}</td>
                       <td>{{p.get('phone') or ''}}</td>
                       <td>{{p['email']}}</td>
-                      <td>{{p.get('gender', '')}}</td>
-                      <td>{{p['create_time']}}</td>
+                      <td>{{p.get('gender') or ''}}</td>
+                      <td>{{to_date_str(p['create_time'])}}</td>
                       <td>
                         <span onclick="delete_user('{{dumps(p)}}')">删除</span>
                         <span onclick="update('{{dumps(p)}}')">修改</span>
