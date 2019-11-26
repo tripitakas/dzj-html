@@ -23,14 +23,17 @@ class EditArticleHandler(BaseHandler):
         cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
         article = self.db.article.find_one(cond) if len(article_id) > 3 else {}
         if article is None:
-            return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id, render=True)
+            if '-' in article_id:
+                article = {}
+            else:
+                return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id, render=True)
         self.render('article_edit.html', article=article, article_id=article_id)
 
 
 class ViewArticleHandler(BaseHandler):
     URL = '/article/@article_id'
 
-    def get(self, article_id):
+    def get(self, article_id, x=1):
         """查看文章的页面"""
         try:
             cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
