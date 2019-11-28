@@ -95,11 +95,3 @@ class HomeHandler(TaskHandler):
 
         except Exception as e:
             self.send_db_error(e, render=True)
-
-
-class HelpHandler(BaseHandler):
-    URL = '/help'
-
-    def get(self):
-        """ 帮助中心"""
-        self.render('help.html')
