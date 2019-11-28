@@ -4,6 +4,7 @@
 @desc: 任务Handler基类
 @time: 2019/3/11
 """
+import re
 from .conf import TaskConfig
 from datetime import datetime
 import controller.auth as auth
@@ -68,33 +69,30 @@ class TaskHandler(BaseHandler, TaskConfig):
         return list(tasks)
 
     def get_task_mode(self):
-        return 'update' if '/task/update' in self.request.path else \
-            'return' if '/task/return' in self.request.path else 'do'
+        return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
 
-    def check_task_auth(self, task, mode, send=True):
+    def check_task_auth(self, task, mode):
         """ 检查当前用户是否拥有相应的任务权限 """
-        assert task['task_type'] in self.task_types
-        # 检查任务权限
-        reason = '%s@%s' % (task['task_type'], task['doc_id'])
-        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
+        has_auth, error = None, None
         if mode in ['do', 'update']:
             if task.get('picked_user_id') != self.current_user.get('_id'):
-                return send and self.send_error_response(errors.task_unauthorized, render=render, reason=reason)
+                error = errors.task_unauthorized
             if mode == 'do' and task['status'] != self.STATUS_PICKED:
-                return send and self.send_error_response(errors.task_can_only_do_picked, render=render, reason=reason)
+                error = errors.task_can_only_do_picked
             if mode == 'update' and task['status'] != self.STATUS_FINISHED:
-                return send and self.send_error_response(errors.task_can_only_update_finished, render=render, reason=reason)
-            return True
+                error = errors.task_can_only_update_finished
+        has_auth = error is None
+        return has_auth, error
 
     def check_task_lock(self, task, mode):
         """ 检查当前用户是否拥有相应的数据锁，成功时返回True，失败时返回错误代码 """
+        has_lock, error = True, None
         if mode in ['do', 'update', 'edit']:
             shared_field = self.get_shared_field(task['task_type'])
-            # 没有共享字段时，通过检查
-            if not shared_field or shared_field not in self.data_auth_maps:
-                return True
-            # 有共享字段时，能获取数据锁，也通过检查
-            return self.get_data_lock(task['doc_id'], shared_field)
+            if shared_field and shared_field in self.data_auth_maps:
+                lock = self.get_data_lock(task['doc_id'], shared_field)
+                has_lock, error = lock is True, lock
+        return has_lock, error
 
     def finish_task(self, task):
         """ 任务提交 """

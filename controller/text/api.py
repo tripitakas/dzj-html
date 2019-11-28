@@ -96,8 +96,7 @@ class TextProofApi(TaskHandler):
 
             # 检查权限
             mode = self.get_task_mode()
-            if not self.check_task_auth(task, mode):
-                return
+            self.check_task_auth(task, mode)
 
             if data['step'] == 'select_compare_text':
                 return self.save_compare_text(task, mode, data)
@@ -169,11 +168,8 @@ class TextReviewApi(TaskHandler):
             if not task:
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
-            # 检查权限
-            mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
             # 检查任务权限及数据锁
-            mode = 'do' if '/do' in self.request.path else 'update'
+            mode = self.get_task_mode()
             self.check_task_auth(task, mode)
             r = self.check_task_lock(task, mode)
             if r is not True:

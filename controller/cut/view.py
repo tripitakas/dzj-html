@@ -15,10 +15,10 @@
 
 import re
 from bson.objectid import ObjectId
-import controller.errors as errors
+from controller import errors as errors
+from controller.cut.api import CutApi
+from controller.cut.cuttool import CutTool
 from controller.task.base import TaskHandler
-from .cuttool import CutTool
-from .api import CutApi
 
 
 class CutHandler(TaskHandler):
@@ -37,12 +37,13 @@ class CutHandler(TaskHandler):
                 return self.send_error_response(errors.no_object, render=True)
 
             # 检查任务权限及数据锁
-            mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            has_lock = self.check_task_auth(task, mode, send=False) and self.check_task_lock(task, mode) is True
+            mode = self.get_task_mode()
+            has_auth, error = self.check_task_auth(task, mode)
+            if not has_auth:
+                return self.send_error_response(error, render=True)
+            has_lock, error = self.check_task_lock(task, mode)
 
-            # 设置步骤
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
-
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             boxes = page.get(box_type + 's')
             template = 'task_cut_do.html'
