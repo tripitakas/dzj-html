@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-from bson import objectid
+from bson.objectid import ObjectId
 from tests import users as u
 from tests.testcase import APITestCase
 from tests.task.conf import ready_ids, unready_ids, task_types
@@ -173,6 +173,7 @@ class TestTaskApi(APITestCase):
         """ 测试领取和退回任务 """
         # task_types = ['cut_proof']
         for task_type in task_types:
+            self.delete_tasks_and_locks()
             # 发布任务
             self.login_as_admin()
             r = self.publish_tasks(dict(doc_ids=ready_ids, task_type=task_type, pre_tasks=[]))
@@ -184,7 +185,7 @@ class TestTaskApi(APITestCase):
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
             data = self.parse_response(r)
             self.assertIn('task_id', data, msg=task_type)
-            task = self._app.db.task.find_one({'_id': objectid.ObjectId(data['task_id'])})
+            task = self._app.db.task.find_one({'_id': ObjectId(data['task_id'])})
             self.assertEqual(task['status'], 'picked')
             self.assertEqual(task['picked_by'], u.expert1[2])
 
@@ -200,9 +201,10 @@ class TestTaskApi(APITestCase):
             self.login(u.expert1[0], u.expert1[1])
             data = self.parse_response(self.fetch('/api/task/pick/' + task_type, body={'data': {}}))
             self.assertIn('task_id', data, msg=task_type)
-            task = self._app.db.task.find_one({'_id': objectid.ObjectId(data['task_id'])})
+            task = self._app.db.task.find_one({'_id': ObjectId(data['task_id'])})
             self.assertEqual(task['status'], 'picked')
             self.assertEqual(task['picked_by'], u.expert1[2])
+
 
     def test_pick_task_of_group(self):
         """ 测试领取组任务 """
@@ -222,7 +224,7 @@ class TestTaskApi(APITestCase):
                     self.assert_code(errors.group_task_duplicated[0], r, msg=task_type)
 
                 # 完成任务
-                self._app.db.task.update_one({'_id': objectid.ObjectId(task['_id'])}, {'$set': {'status': 'finished'}})
+                self._app.db.task.update_one({'_id': ObjectId(task['_id'])}, {'$set': {'status': 'finished'}})
                 num += 1
 
     def test_submit_pre_task(self):
@@ -295,6 +297,9 @@ class TestTaskApi(APITestCase):
             self.login_as_admin()
             r = self.fetch('/api/task/delete/%s' % task_type, body={'data': {'task_ids': [task['_id']]}})
             self.assertEqual(0, self.parse_response(r).get('count'), msg=task_type)
+
+            # 删除任务，以免对后续测试干扰
+            self._app.db.task.delete_one({'_id': ObjectId(task['_id'])})
 
     def test_assign_tasks(self):
         """ 测试管理员指派任务给某个用户 """

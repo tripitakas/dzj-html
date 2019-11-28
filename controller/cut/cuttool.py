@@ -10,7 +10,7 @@ from .v1 import calc as calc_old
 from .v2 import calc as calc_new
 
 
-class Sort(object):
+class CutTool(object):
     @classmethod
     def sort(cls, chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
@@ -92,8 +92,9 @@ class Sort(object):
 
     @staticmethod
     def get_invalid_char_ids(chars):
-        return [c.get('char_id') for c in chars if not (re.match(r'^b\dc\d+c\d{1,2}$', c.get('char_id', ''))
-                                                        and c.get('block_no') and c.get('line_no') and c.get('no'))]
+        return [c.get('char_id') for c in chars if not (
+                re.match(r'^b\dc\d+c\d{1,2}$', c.get('char_id', ''))
+                and c.get('block_no') and c.get('line_no') and c.get('no'))]
 
     @classmethod
     def sort_chars(cls, chars, columns, blocks, layout_type=None):
@@ -122,3 +123,13 @@ class Sort(object):
             zero_char_id = cls.get_invalid_char_ids(chars)
 
         return zero_char_id, layout_type
+
+    @classmethod
+    def char_render(cls, page, layout, **kwargs):
+        """ 生成字序编号 """
+        need_ren = CutTool.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
+        if need_ren:
+            page['chars'][0]['char_id'] = ''  # 强制重新生成编号
+        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = CutTool.sort(
+            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
+        return kwargs

@@ -41,7 +41,7 @@ class TestTaskView(APITestCase):
 
         # 领取并完成任务
         self.login(u.expert1[0], u.expert1[1])
-        # task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
+        task_types = ['cut_proof', 'cut_review', 'text_proof', 'text_review', 'text_hard']
         for task_type in task_types:
             task = self._app.db.task.find_one({'task_type': {'$regex': task_type + '.*'}, 'doc_id': docs_ready[0]})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})

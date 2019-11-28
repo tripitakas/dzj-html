@@ -6,14 +6,14 @@
 import re
 from tornado.web import UIModule
 from bson.objectid import ObjectId
-import controller.errors as errors
+from controller import errors as errors
 from controller.text.diff import Diff
-from controller.cut.view import CutHandler
+from controller.cut.cuttool import CutTool
 from controller.task.base import TaskHandler
-from .pack import TextPack
+from controller.text.texttool import TextTool
 
 
-class TextProofHandler(TaskHandler, TextPack):
+class TextProofHandler(TaskHandler, TextTool):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
@@ -29,10 +29,8 @@ class TextProofHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            # 检查任务权限
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
             self.check_task_auth(task, mode)
-
             readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
@@ -43,12 +41,10 @@ class TextProofHandler(TaskHandler, TextPack):
             return self.send_db_error(e, render=True)
 
     def select_compare_text(self, task, page, mode, steps, readonly, num):
-        ocr = page.get('ocr')
-        ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
         self.render(
-            'task_text_compare.html',
-            task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly, num=num,
-            steps=steps, ocr=ocr, cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
+            'task_text_compare.html', task_type=task['task_type'], task=task, page=page,
+            mode=mode, readonly=readonly, num=num, steps=steps, ocr=page.get('ocr'),
+            cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )
 
     def proof(self, task, page, mode, steps, readonly):
@@ -56,7 +52,7 @@ class TextProofHandler(TaskHandler, TextPack):
         文本来源有多种情况，ocr可能会输出两份数据，比对本可能有一份数据。
         """
         doubt = self.prop(task, 'result.doubt')
-        CutHandler.char_render(page, int(self.get_query_argument('layout', 0)))
+        CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
         # 获取比对来源的文本
         ocr = page.get('ocr') or ''
@@ -80,25 +76,24 @@ class TextProofHandler(TaskHandler, TextPack):
         )
 
 
-class TextReviewHandler(TaskHandler, TextPack):
+class TextReviewHandler(TaskHandler, TextTool):
     URL = ['/task/text_review/@task_id',
            '/task/do/text_review/@task_id',
            '/task/update/text_review/@task_id']
 
+    @staticmethod
+    def get_proof_data(self, doc_id):
+        doubt, texts = '', ['', '', '']
+        for i in [1, 2, 3]:
+            condition = {'task_type': 'text_proof_%s' % i, 'doc_id': doc_id, 'status': self.STATUS_FINISHED}
+            proof_task = self.db.task.find_one(condition)
+            if proof_task:
+                doubt += self.prop(proof_task, 'result.doubt') or ''
+                texts[i - 1] = self.html2txt(self.prop(proof_task, 'result.txt_html'))
+        return doubt, dict(base=texts[0], cmp1=texts[1], cmp2=texts[2])
+
     def get(self, task_id):
         """ 文字审定页面 """
-
-        def get_proof_meta():
-            _doubt, _texts = '', ['', '', '']
-            for i in [1, 2, 3]:
-                condition = {'task_type': 'text_proof_%s' % i, 'doc_id': task['doc_id'],
-                             'status': self.STATUS_FINISHED}
-                proof_task = self.db.task.find_one(condition)
-                if proof_task:
-                    _doubt += self.prop(proof_task, 'result.doubt') or ''
-                    _texts[i - 1] = self.html2txt(TaskHandler.prop(proof_task, 'result.txt_html'))
-            return _doubt, dict(base=_texts[0], cmp1=_texts[1], cmp2=_texts[2])
-
         try:
             task_type = 'text_review'
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
@@ -115,9 +110,9 @@ class TextReviewHandler(TaskHandler, TextPack):
 
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
-            CutHandler.char_render(page, layout, **params)
+            CutTool.char_render(page, layout, **params)
             review_doubt = self.prop(task, 'result.doubt')
-            proof_doubt, texts = get_proof_meta()
+            proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
             labels = dict(base='校一', cmp1='校一', cmp2='校三')
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
@@ -127,7 +122,7 @@ class TextReviewHandler(TaskHandler, TextPack):
             self.render(
                 'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
                 readonly=not has_lock, texts=texts, labels=labels, cmp_data=cmp_data,
-                doubt=review_doubt, proof_doubt=proof_doubt, get_img=self.get_img,
+                doubt=review_doubt, pre_doubt=proof_doubt, get_img=self.get_img,
                 steps=dict(is_first=True, is_last=True), **params
             )
 
@@ -135,7 +130,7 @@ class TextReviewHandler(TaskHandler, TextPack):
             return self.send_db_error(e, render=True)
 
 
-class TextHardHandler(TaskHandler, TextPack):
+class TextHardHandler(TextReviewHandler):
     URL = ['/task/text_hard/@task_id',
            '/task/do/text_hard/@task_id',
            '/task/update/text_hard/@task_id']
@@ -151,27 +146,28 @@ class TextHardHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
             self.check_task_auth(task, mode)
             has_lock = self.check_task_lock(task, mode) is True
 
-            hard = self.prop(task, 'result.hard')
+            proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
+            review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
+            review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
+            hard_doubt = self.prop(task, 'result.doubt')
             cmp_data = self.prop(page, 'txt_html')
-
-            # 缺省参数
-            kwargs = dict(texts={}, labels={}, steps=dict(is_first=True, is_last=True))
+            labels = dict(base='校一', cmp1='校一', cmp2='校三')
+            kwargs = dict(texts=texts, labels=labels, steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
-                readonly=not has_lock, cmp_data=cmp_data, doubt=hard, get_img=self.get_img,
-                **kwargs
+                readonly=not has_lock, cmp_data=cmp_data, doubt=hard_doubt, pre_doubt=review_doubt,
+                get_img=self.get_img, **kwargs
             )
 
         except Exception as e:
             return self.send_db_error(e, render=True)
 
 
-class TextEditHandler(TaskHandler, TextPack):
+class TextEditHandler(TaskHandler, TextTool):
     URL = '/data/edit/text/@page_name'
 
     def get(self, page_name):
@@ -182,15 +178,12 @@ class TextEditHandler(TaskHandler, TextPack):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            # 获取数据锁
-            params = dict(mismatch_lines=[])
             has_lock = self.get_data_lock(page_name, 'text') is True
             cmp_data = self.prop(page, 'txt_html') or ''
             if not cmp_data and self.prop(page, 'text'):
                 segments = Diff.diff(self.prop(page, 'text').replace('|', '\n'))[0]
-                cmp_data = self.check_segments(segments, page['chars'], params)
+                cmp_data = self.check_segments(segments, page['chars'], dict(mismatch_lines=[]))
 
-            # 缺省参数
             kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,

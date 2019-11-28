@@ -56,7 +56,7 @@
           <img src="{{ static_url('imgs/icon_delete.png') }}" class="btn-img" id="delete-line" title="删除该行"/>
           <img src="{{ static_url('imgs/icon_add_up.png') }}" class="btn-img" id="add-up-line" title="向上增行"/>
           <img src="{{ static_url('imgs/icon_add_down.png') }}" class="btn-img" id="add-down-line" title="向下增行"/>
-          <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img {{'hide' if 'hard' in task_type else ''}}" id="save-doubt" title="存疑"/>
+          <img src="{{ static_url('imgs/icon_doubt.png') }}" class="btn-img" id="save-doubt" title="存疑"/>
           <img src="{{ static_url('imgs/icon_match.png') }}" class="btn-img" id="check-match" title="检查图文匹配"/>
           <img src="{{ static_url('imgs/icon_compare.png') }}" class="btn-img" id="re-compare" title="重新比对"/>
           <img src="{{ static_url('imgs/icon_txts.png') }}" class="btn-img {{'' if texts else 'hide'}}" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
@@ -89,17 +89,10 @@
               {% end %}
             </div>
             <!--/.sutra-text-->
-            <div class="char-list doubt-list">
+            <div class="char-list doubt-list {{'hide' if mode == 'edit' else ''}}">
               <div class="char-list-tab">
-                {% if 'proof' in task_type %}
-                <div class="char-list-tab-item tab-editable active">校对存疑</div>
-                {% elif 'review' in task_type %}
-                <div class="char-list-tab-item tab-editable active">审定存疑</div>
-                <div class="char-list-tab-item tab-view">校对存疑</div>
-                {% else %}
-                <div class="char-list-tab-item tab-editable active">难字列表</div>
-                {% end %}
-
+                <div class="char-list-tab-item tab-editable active">我的存疑</div>
+                <div class="char-list-tab-item tab-view {{'' if pre_doubt else 'hide'}}">之前存疑</div>
                 <div class="char-list-tab-arrow" id="toggle-arrow">
                   <img src="{{ static_url('imgs/up_arrow.png') }}">
                   <img src="{{ static_url('imgs/down_arrow.png') }}" style="display: none">
@@ -119,7 +112,7 @@
                 {% raw doubt or '' %}
                 </tbody>
               </table>
-              {% if 'text_review' in task_type %}
+              {% if pre_doubt %}
               <table class="char-list-table hide" id="doubt-table-view">
                 <thead>
                 <tr>
@@ -131,7 +124,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% raw proof_doubt or '' %}
+                {% raw pre_doubt or '' %}
                 </tbody>
               </table>
               {% end %}
@@ -369,14 +362,10 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
-    var data = {
-      submit: submit, step: 'proof', name: '{{page["name"]}}',
-      txt_html: JSON.stringify($('#sutra-text').html())
+    return {
+      submit: submit, name: '{{page["name"]}}', step: '{{"proof" if "proof" in task_type else ""}}',
+      txt_html: $('#sutra-text').html(), doubt: $('#doubt-table-editable tbody').html()
     };
-    if ('text_hard' !== '{{task_type}}') {
-      data.doubt = $('#doubt-table-editable tbody').html();
-    }
-    return data;
   }
 </script>
 

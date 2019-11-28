@@ -17,7 +17,7 @@ import re
 from bson.objectid import ObjectId
 import controller.errors as errors
 from controller.task.base import TaskHandler
-from .sort import Sort
+from .cuttool import CutTool
 from .api import CutApi
 
 
@@ -49,7 +49,7 @@ class CutHandler(TaskHandler):
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'char_order':
-                kwargs = self.char_render(page, int(self.get_query_argument('layout', 0)), **kwargs)
+                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
                 template = 'task_char_order.html'
 
             self.render(
@@ -60,16 +60,6 @@ class CutHandler(TaskHandler):
 
         except Exception as e:
             self.send_db_error(e, render=True)
-
-    @classmethod
-    def char_render(cls, page, layout, **kwargs):
-        """ 生成字序编号 """
-        need_ren = Sort.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
-        if need_ren:
-            page['chars'][0]['char_id'] = ''  # 强制重新生成编号
-        kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = Sort.sort(
-            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
-        return kwargs
 
 
 class CutEditHandler(TaskHandler):
@@ -99,7 +89,7 @@ class CutEditHandler(TaskHandler):
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'char_order':
-                kwargs = CutHandler.char_render(page, int(self.get_query_argument('layout', 0)), **kwargs)
+                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **kwargs)
                 template = 'task_char_order.html'
 
             self.render(

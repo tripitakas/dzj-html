@@ -146,6 +146,7 @@ class PickTaskApi(TaskHandler):
         """
         try:
             # 检查是否有未完成的任务
+            task_type = 'text_proof' if 'text_proof' in task_type else task_type
             task_meta = self.all_task_types()[task_type]
             task_type_filter = {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type
             condition = {
@@ -338,8 +339,6 @@ class AssignTasksApi(TaskHandler):
 
     def post(self, task_type):
         """ 指派已发布的任务 """
-
-        assert task_type in self.task_types
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'task_ids', 'user_id')]

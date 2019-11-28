@@ -204,7 +204,7 @@
 .char-list {
   border-top: 1px solid var(--Color_Grey_Light);
   overflow-y: auto;
-  max-height: 100px;
+  max-height: 200px;
   flex: 0 0 auto;
 }
 

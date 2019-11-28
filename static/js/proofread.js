@@ -421,6 +421,11 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   }
 });
 
+// 存疑列表的操作按钮
+$(document).ready(function () {
+  $('table#doubt-table-view tr').find('td:eq(4)').hide();
+});
+
 /*------------其它功能---------------*/
 
 // 高度自适应
@@ -434,16 +439,6 @@ $(document).ready(function () {
 });
 $(window).resize(function () {
   heightAdaptive();
-});
-
-// 存疑列表的操作按钮
-$(document).ready(function () {
-  if ('text_review' === '{{task_type}}') {
-    $('table#doubt-table-view tr').find('td:eq(4)').hide();
-  }
-  if ('text_hard' === '{{task_type}}') {
-    $('table tr').find('td:eq(4)').hide();
-  }
 });
 
 // 图文匹配
@@ -599,9 +594,10 @@ function previousDiff() {
   var current = $('.current-diff');
   var $diff = $('.pfread .right .diff');
   var idx = $diff.index(current);
-  if (idx < 1) {
+  if (idx < 1)
     return;
-  }
+
+  $diff.eq(idx - 1).click();
   $diff.eq(idx - 1).dblclick();
   if ($('.dialog-abs').offset().top < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
@@ -616,6 +612,7 @@ function nextDiff() {
   var current = $('.current-diff');
   var $diff = $('.pfread .right .diff');
   var idx = $diff.index(current);
+  $diff.eq(idx + 1).click();
   $diff.eq(idx + 1).dblclick();
   if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);

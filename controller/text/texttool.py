@@ -9,7 +9,7 @@ from operator import itemgetter
 from tornado.escape import url_escape
 
 
-class TextPack(object):
+class TextTool(object):
     @classmethod
     def html2txt(cls, html):
         lines = []

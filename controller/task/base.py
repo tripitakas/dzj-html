@@ -90,8 +90,6 @@ class TaskHandler(BaseHandler, TaskConfig):
                 return True
             # 有共享字段时，能获取数据锁，也通过检查
             return self.get_data_lock(task['doc_id'], shared_field)
-        else:
-            return True
 
     def finish_task(self, task):
         """ 任务提交 """

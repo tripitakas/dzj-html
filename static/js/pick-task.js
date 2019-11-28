@@ -3,8 +3,8 @@
  */
 
 // 领新任务
-function pick(url, page_name) {
-  var data = {data: page_name === undefined ? {} : {page_name: page_name}};
+function pick(url, task_id) {
+  var data = {data: task_id === undefined ? {} : {task_id: task_id}};
   postApi(url, data, function (res) {
     if (res && res.url) {
       window.location = res.url;

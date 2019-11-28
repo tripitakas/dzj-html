@@ -144,7 +144,7 @@
   </div>
 </div>
 
-<div class="panel-body" style="padding-bottom: 2px;">
+<div class="modals">
   <div id="assignModal" class="modal fade" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="width: 400px; margin: auto">
@@ -166,18 +166,15 @@
       </div>
     </div>
   </div>
-</div>
 
-<div class="panel-body" style="padding-bottom: 2px;">
   <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-docs">发布任务-{{Th.get_task_name(task_type)}}</h4>
+          <h4 class="modal-title">发布任务-<span id="task-name">{{Th.get_task_name(task_type)}}</span></h4>
         </div>
         <div class="modal-body">
-
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
@@ -191,7 +188,6 @@
               {% end %}
             </div>
           </div>
-
           {% set steps = Th.all_task_types()[task_type].get('steps', [])%}
           <div class="steps{{ '' if steps else ' hide' }}">
             <h4 class="control-label">选择子步骤</h4>
@@ -201,20 +197,17 @@
               {% end %}
             </div>
           </div>
-
           <div class="priority-list">
             <h4 class="control-label">选择优先级</h4>
             <input type="radio" name="priority" value="3" style="margin-right: 10px" checked>高
             <input type="radio" name="priority" value="2" style="margin: 0 10px">中
             <input type="radio" name="priority" value="1" style="margin: 0 10px">低
           </div>
-
           <div class="force">
             <h4 class="control-label">任务已完成时，如何处理？</h4>
             <input type="radio" name="force" value="0" style="margin: 0 10px 0 0" checked>跳过
             <input type="radio" name="force" value="1" style="margin: 0 10px">重新发布<br>
           </div>
-
           <div class="id-values">
             <h4 class="control-label">选择待发布的任务</h4>
             <ul class="nav nav-tabs" id="tabContent">
@@ -254,7 +247,6 @@
               </div>
             </div>
           </div>
-
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -263,6 +255,7 @@
       </div>
     </div>
   </div>
+
 </div>
 
 {% include _base_js.html %}
@@ -394,6 +387,7 @@
   // 点击发布任务，弹出对话框
   $(".bat-publish .task-type").on("click", function () {
     taskType = $(this).attr('id');
+    $('#task-name').html($(this).text());
     $publishModal.modal();
   });
 

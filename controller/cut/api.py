@@ -4,13 +4,13 @@
 @time: 2019/6/23
 """
 from datetime import datetime
-from tornado.escape import json_decode
 from bson.objectid import ObjectId
-from .sort import Sort
-import controller.validate as v
-import controller.errors as errors
+from tornado.escape import json_decode
+from controller import validate as v
+from controller import errors as errors
 from controller.base import BaseHandler, DbError
 from controller.task.base import TaskHandler
+from controller.cut.cuttool import CutTool
 
 
 class CutApi(TaskHandler):
@@ -133,13 +133,13 @@ class GenerateCharIdApi(BaseHandler):
             assert isinstance(chars_col, list) and isinstance(chars_col[0], list) and isinstance(chars_col[0][0], int)
 
         if reorder.get('blocks'):
-            blocks = Sort.sort_blocks(blocks)
+            blocks = CutTool.sort_blocks(blocks)
         if reorder.get('columns') and blocks:
-            columns = Sort.sort_columns(columns, blocks)
+            columns = CutTool.sort_columns(columns, blocks)
 
         zero_char_id, layout_type = [], data.get('layout_type')
         if reorder.get('chars') and chars:
-            zero_char_id, layout_type, chars_col = Sort.sort(chars, columns, blocks, layout_type, chars_col)
+            zero_char_id, layout_type, chars_col = CutTool.sort(chars, columns, blocks, layout_type, chars_col)
 
         return self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
                                             zero_char_id=zero_char_id, layout_type=layout_type))
