@@ -70,8 +70,7 @@ class GetCompareNeighborApi(TaskHandler):
 
 
 class TextProofApi(TaskHandler):
-    URL = ['/api/task/text_proof_@num/@task_id',
-           '/api/task/do/text_proof_@num/@task_id',
+    URL = ['/api/task/do/text_proof_@num/@task_id',
            '/api/task/update/text_proof_@num/@task_id']
 
     def post(self, num, task_id):
