@@ -70,7 +70,8 @@ class GetCompareNeighborApi(TaskHandler):
 
 
 class TextProofApi(TaskHandler):
-    URL = ['/api/task/do/text_proof_@num/@task_id',
+    URL = ['/api/task/text_proof_@num/@task_id',
+           '/api/task/do/text_proof_@num/@task_id',
            '/api/task/update/text_proof_@num/@task_id']
 
     def post(self, num, task_id):
@@ -94,8 +95,9 @@ class TextProofApi(TaskHandler):
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = 'do' if '/task/do' in self.request.path else 'update'
-            self.check_task_auth(task, mode)
+            mode = self.get_task_mode()
+            if not self.check_task_auth(task, mode):
+                return
 
             if data['step'] == 'select_compare_text':
                 return self.save_compare_text(task, mode, data)
@@ -166,6 +168,10 @@ class TextReviewApi(TaskHandler):
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
             if not task:
                 return self.send_error_response(errors.no_object, message='任务不存在')
+
+            # 检查权限
+            mode = self.get_task_mode()
+            self.check_task_auth(task, mode)
             # 检查任务权限及数据锁
             mode = 'do' if '/do' in self.request.path else 'update'
             self.check_task_auth(task, mode)
@@ -211,7 +217,7 @@ class TextHardApi(TaskHandler):
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = 'do' if '/do' in self.request.path else 'update'
+            mode = self.get_task_mode()
             self.check_task_auth(task, mode)
             r = self.check_task_lock(task, mode)
             if r is not True:

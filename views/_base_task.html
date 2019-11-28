@@ -8,7 +8,15 @@
   // 下一步
   $(document).on("click", '#next-step', function () {
     if ('{{not readonly and mode != "view"}}' === 'True') {
-      postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
+      var data = getSubmitData(true);
+      if (!data) {
+        return setTimeout(function() {
+          postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
+            window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
+          });
+        }, 1000);
+      }
+      postApi('{{current_path}}', {data: data}, function () {
         window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
       });
     } else {
@@ -18,20 +26,27 @@
 
   // 保存任务
   $(document).on("click", '#save-task', function () {
-    var data = getSubmitData(false);
-    if (data)
+    function save(data) {
       postApi('{{current_path}}', {data: data}, function () {
         showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
         setTimeout(function () {
           window.location.reload();
         }, 1000);
       });
+    }
+    var data = getSubmitData(false);
+    if (!data) {
+      return setTimeout(function() {
+        save(getSubmitData(false));
+      }, 1000);
+    } else {
+      save(data);
+    }
   });
 
   // 提交任务
   $(document).on("click", '#submit-task', function () {
-    var data = getSubmitData(true);
-    if (data)
+    function save(data) {
       postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
         showSuccess('成功', '已提交。');
         setTimeout(function () {
@@ -42,6 +57,15 @@
           }
         }, 1000);
       });
+    }
+    var data = getSubmitData(true);
+    if (data) {
+      save(data);
+    } else {
+      setTimeout(function() {
+        save(getSubmitData(true));
+      }, 1000);
+    }
   });
 
   // 退回任务

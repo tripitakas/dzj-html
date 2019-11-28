@@ -14,7 +14,8 @@ from controller.cut.cuttool import CutTool
 
 
 class CutApi(TaskHandler):
-    URL = ['/api/task/do/@cut_task/@task_id',
+    URL = ['/api/task/@cut_task/@task_id',
+           '/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
     step_field_map = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
@@ -40,8 +41,9 @@ class CutApi(TaskHandler):
                 return self.send_error_response(errors.task_step_error)
 
             # 检查任务权限及数据锁
-            mode = 'do' if 'do/' in self.request.path else 'update'
-            self.check_task_auth(task, mode)
+            mode = self.get_task_mode()
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)
