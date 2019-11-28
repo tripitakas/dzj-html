@@ -45,3 +45,15 @@ class ViewArticleHandler(BaseHandler):
             self.render('article_view.html', article=article, article_id=article_id)
         except Exception as e:
             return self.send_db_error(e, render=True)
+
+
+class HelpHandler(BaseHandler):
+    URL = '/help'
+
+    def get(self):
+        """ 帮助中心"""
+        try:
+            articles = self.db.article.find().sort('_id', 1)
+            self.render('help.html', articles=articles)
+        except Exception as e:
+            return self.send_db_error(e, render=True)
