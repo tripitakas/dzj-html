@@ -14,7 +14,8 @@ from controller.task.base import TaskHandler
 
 
 class CutApi(TaskHandler):
-    URL = ['/api/task/do/@cut_task/@task_id',
+    URL = ['/api/task/@cut_task/@task_id',
+           '/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
     step_field_map = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
