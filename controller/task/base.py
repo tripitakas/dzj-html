@@ -67,6 +67,10 @@ class TaskHandler(BaseHandler, TaskConfig):
             tasks.limit(size)
         return list(tasks)
 
+    def get_task_mode(self):
+        return 'update' if '/task/update' in self.request.path else \
+            'return' if '/task/return' in self.request.path else 'do'
+
     def check_task_auth(self, task, mode):
         """ 检查当前用户是否拥有相应的任务权限 """
         assert task['task_type'] in self.task_types
@@ -74,7 +78,7 @@ class TaskHandler(BaseHandler, TaskConfig):
         reason = '%s@%s' % (task['task_type'], task['doc_id'])
         render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
         if mode in ['do', 'update']:
-            if task['picked_user_id'] != self.current_user.get('_id'):
+            if task.get('picked_user_id') != self.current_user.get('_id'):
                 return self.send_error_response(errors.task_unauthorized, render=render, reason=reason)
             if mode == 'do' and task['status'] != self.STATUS_PICKED:
                 return self.send_error_response(errors.task_can_only_do_picked, render=render, reason=reason)
