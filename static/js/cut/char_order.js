@@ -277,6 +277,7 @@
     this.label = [];        // 字框编号文字
     this.links = [];        // linksOfCol中的连线，及新增连线
     this.state = {tol: 1};
+    this.changed = false;
 
     // 创建字框节点
     console.assert(src instanceof Array);
@@ -562,6 +563,7 @@
       delete this.state.dragLink;
 
       if (changed) {
+      this.changed = true;
         this.checkLinks();
         this._updateCurrentLink(changed, pt);
         this.linkSwitched(changed instanceof Link && changed);
@@ -598,6 +600,7 @@
     delLink: function (c1, c2) {
       var link = this.findLinkBetween(c1, c2);
       if (link) {
+        this.changed = true;
         link.remove();
         this.links.splice(this.links.indexOf(link), 1);
         return true;
@@ -608,6 +611,7 @@
     addLink: function (c1, c2) {
       var link = this.findLinkBetween(c1, c2);
       if (!link && c1 && c2 && c1 !== c2) {
+        this.changed = true;
         link = new Link(c1, c2);
         link.shapes.line = link.createLine(colors.link[2]);
         this.links.push(link);
@@ -619,6 +623,7 @@
     moveLink: function (c1Old, c2Old, c1New, c2New) {
       var link = this.findLinkBetween(c1Old, c2Old);
       if (link && c1New && c2New) {
+        this.changed = true;
         link.remove();
         link.c1 = c1New;
         link.c2 = c2New;
@@ -631,6 +636,7 @@
     reverseLink: function () {
       var link = (this.state.hit || {}).obj;
       if (link instanceof Link && !this.drag.line) {
+        this.changed = true;
         this.moveLink(link.c1, link.c2, link.c2, link.c1);
         this._updateCurrentLink(link);
         this.linkSwitched(link);
@@ -638,8 +644,9 @@
     },
 
     checkLinks: function (routes, heads) {
-      if (!this.chars_col || !this.chars_col.length)
+      if (!this.chars_col || !this.chars_col.length) {
         return;
+      }
 
       var self = this;
       var errors = [];
@@ -789,6 +796,10 @@
           showError('字框连接待修正', '请修正高亮绿框的字框连线。');
         }
       }
+    },
+
+    isLinkChanged: function() {
+      return cs && cs.changed;
     },
 
     // 调整字框连线后重新设置字框编号

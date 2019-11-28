@@ -94,8 +94,9 @@ class TextProofApi(TaskHandler):
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = 'do' if '/task/do' in self.request.path else 'update'
-            self.check_task_auth(task, mode)
+            mode = self.get_task_mode()
+            if not self.check_task_auth(task, mode):
+                return
 
             if data['step'] == 'select_compare_text':
                 return self.save_compare_text(task, mode, data)
@@ -165,8 +166,9 @@ class TextReviewApi(TaskHandler):
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = 'do' if '/task/do' in self.request.path else 'update'
-            self.check_task_auth(task, mode)
+            mode = self.get_task_mode()
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)
@@ -212,8 +214,9 @@ class TextHardApi(TaskHandler):
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
             # 检查权限
-            mode = 'do' if '/task/do' in self.request.path else 'update'
-            self.check_task_auth(task, mode)
+            mode = self.get_task_mode()
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)

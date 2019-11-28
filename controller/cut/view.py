@@ -38,8 +38,7 @@ class CutHandler(TaskHandler):
 
             # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-            has_lock = self.check_task_lock(task, mode) is True
+            has_lock = self.check_task_auth(task, mode, send=False) and self.check_task_lock(task, mode) is True
 
             # 设置步骤
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
