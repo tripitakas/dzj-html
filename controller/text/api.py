@@ -96,7 +96,8 @@ class TextProofApi(TaskHandler):
 
             # 检查权限
             mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
+            if not self.check_task_auth(task, mode):
+                return
 
             if data['step'] == 'select_compare_text':
                 return self.save_compare_text(task, mode, data)
@@ -167,7 +168,8 @@ class TextReviewApi(TaskHandler):
 
             # 检查权限
             mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)
@@ -214,7 +216,8 @@ class TextHardApi(TaskHandler):
 
             # 检查权限
             mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)

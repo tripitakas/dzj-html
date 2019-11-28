@@ -31,9 +31,7 @@ class TextProofHandler(TaskHandler, TextPack):
 
             # 检查任务权限
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-
-            readonly = 'view' == mode
+            readonly = 'view' == mode or not self.check_task_auth(task, mode, send=False)
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
@@ -110,8 +108,7 @@ class TextReviewHandler(TaskHandler, TextPack):
 
             # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-            has_lock = self.check_task_lock(task, mode) is True
+            has_lock = self.check_task_auth(task, mode, send=False) and self.check_task_lock(task, mode) is True
 
             params = dict(mismatch_lines=[])
             layout = int(self.get_query_argument('layout', 0))
@@ -153,8 +150,7 @@ class TextHardHandler(TaskHandler, TextPack):
 
             # 检查任务权限及数据锁
             mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-            has_lock = self.check_task_lock(task, mode) is True
+            has_lock = self.check_task_auth(task, mode, send=False) and self.check_task_lock(task, mode) is True
 
             hard = self.prop(task, 'result.hard')
             cmp_data = self.prop(page, 'txt_html')

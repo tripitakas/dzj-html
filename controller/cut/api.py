@@ -42,7 +42,8 @@ class CutApi(TaskHandler):
 
             # 检查任务权限及数据锁
             mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
+            if not self.check_task_auth(task, mode):
+                return
             r = self.check_task_lock(task, mode)
             if r is not True:
                 return self.send_error_response(r)

@@ -71,7 +71,7 @@ class TaskHandler(BaseHandler, TaskConfig):
         return 'update' if '/task/update' in self.request.path else \
             'return' if '/task/return' in self.request.path else 'do'
 
-    def check_task_auth(self, task, mode):
+    def check_task_auth(self, task, mode, send=True):
         """ 检查当前用户是否拥有相应的任务权限 """
         assert task['task_type'] in self.task_types
         # 检查任务权限
@@ -79,11 +79,12 @@ class TaskHandler(BaseHandler, TaskConfig):
         render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
         if mode in ['do', 'update']:
             if task.get('picked_user_id') != self.current_user.get('_id'):
-                return self.send_error_response(errors.task_unauthorized, render=render, reason=reason)
+                return send and self.send_error_response(errors.task_unauthorized, render=render, reason=reason)
             if mode == 'do' and task['status'] != self.STATUS_PICKED:
-                return self.send_error_response(errors.task_can_only_do_picked, render=render, reason=reason)
+                return send and self.send_error_response(errors.task_can_only_do_picked, render=render, reason=reason)
             if mode == 'update' and task['status'] != self.STATUS_FINISHED:
-                return self.send_error_response(errors.task_can_only_update_finished, render=render, reason=reason)
+                return send and self.send_error_response(errors.task_can_only_update_finished, render=render, reason=reason)
+            return True
 
     def check_task_lock(self, task, mode):
         """ 检查当前用户是否拥有相应的数据锁，成功时返回True，失败时返回错误代码 """
