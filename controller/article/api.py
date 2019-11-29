@@ -15,6 +15,26 @@ from controller.helper import get_date_time
 import controller.validate as v
 
 
+class DeleteArticleApi(BaseHandler):
+    URL = ['/api/article/delete/@article_id',
+           '/api/article/del_my/@article_id']
+
+    def get(self, article_id):
+        """删除文章"""
+        try:
+            cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
+            article = self.db.article.find_one(cond)
+
+            if not article:
+                return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
+            self.db.article.update_one({'_id': article['_id']}, {'$set': dict(deleted=True)})
+            self.add_op_log('delete_article', target_id=article['_id'], context=article['title'])
+            self.send_data_response()
+
+        except DbError as e:
+            self.send_db_error(e)
+
+
 class SaveArticleApi(BaseHandler):
     URL = '/api/article/save/@article_id'
 

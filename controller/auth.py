@@ -75,6 +75,7 @@ role_route_maps = {
             '/task/@task_type/@task_id': ['GET'],
             '/article/edit/@article_id': ['GET'],
             '/api/article/save/@article_id': ['POST'],
+            '/api/article/del_my/@article_id': ['GET'],
             '/php/imageUp.php': ['POST'],
         }
     },
@@ -187,6 +188,7 @@ role_route_maps = {
             '/data/@collection': ['GET'],
             '/api/data/@collection': ['POST'],
             '/api/data/@collection/delete': ['POST'],
+            '/api/article/delete/@article_id': ['GET'],
         }
     },
     '用户管理员': {
