@@ -212,6 +212,7 @@
   color: #13171c;
   font-size: 14px;
   display: flex;
+  justify-content: center;
 }
 
 .bottom .item li span {
@@ -262,7 +263,7 @@
 }
 
 .bottom .item#trend {
-  min-width: 350px;
+  min-width: 380px;
 }
 
 .bottom .item#practice {
