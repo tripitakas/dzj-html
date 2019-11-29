@@ -113,16 +113,16 @@ class FetchDataTasksApi(TaskHandler):
             condition = {'task_type': data_task, 'status': self.STATUS_OPENED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
-                self.send_error_response(errors.no_task_to_pick)
+                self.send_data_response(dict(tasks=None))
 
             # 批量获取任务
-            update = dict(status=self.STATUS_FETCHED, picked_time=datetime.now(), updated_time=datetime.now(),
-                          picked_user_id=self.current_user['_id'], picked_by=self.current_user['name'])
-            condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
+            task_ids = [t['_id'] for t in tasks]
+            update = dict(_id={'$in': task_ids}, status=self.STATUS_FETCHED, picked_user_id=self.current_user['_id'],
+                          picked_by=self.current_user['name'], picked_time=datetime.now(),
+                          updated_time=datetime.now())
             r = self.db.task.update_many(condition, {'$set': update})
             if r.matched_count:
-                _tasks = get_tasks()
-                self.send_data_response(dict(tasks=_tasks))
+                self.send_data_response(dict(tasks=get_tasks()))
 
         except DbError as err:
             return self.send_db_error(err)
