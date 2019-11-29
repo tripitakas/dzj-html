@@ -4,6 +4,7 @@
 @time: 2019/11/17
 """
 import re
+import math
 from bson.objectid import ObjectId
 from controller import errors
 from controller.base import BaseHandler
@@ -55,7 +56,24 @@ class HelpHandler(BaseHandler):
     def get(self):
         """ 帮助中心"""
         try:
-            articles = self.db.article.find().sort('_id', 1)
-            self.render('help.html', articles=articles)
+            q = self.get_query_argument('q', '')
+            order = self.get_query_argument('order', '-_id')
+            condition = {}
+            if q:
+                condition['$or'] = [{f: {'$regex': '.*%s.*' % q}} for f in ['title', 'content']]
+            query = self.db.article.find(condition)
+            if order:
+                o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+                query.sort(o, asc)
+
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.article.count_documents(condition)
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            articles = list(query.skip((cur_page - 1) * page_size).limit(page_size))
+
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('help.html', q=q, articles=articles, pager=pager, order=order)
         except Exception as e:
             return self.send_db_error(e, render=True)

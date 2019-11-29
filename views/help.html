@@ -2,7 +2,7 @@
 {% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
-  <title>{{site['description']}}</title>
+  <title>帮助中心</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('css/home.css') }}" rel="stylesheet"/>
@@ -21,8 +21,44 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="home">
-              <p class="index">帮助中心</p>
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="search fr">
+                    <input id="search-input" type="text" placeholder="搜索标题或内容">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                    <thead>
+                    <tr>
+                      <th><span id="title" class="sort {{'active' if order in ['-title', 'title'] else ''}}">
+                          标题<span class="ion-arrow-down-b {{'toggle' if order == 'title' else ''}}"></span>
+                      </span></th>
+                      <th><span id="category" class="sort {{'active' if order in ['-category', 'category'] else ''}}">
+                          分类<span class="ion-arrow-down-b {{'toggle' if order == 'category' else ''}}"></span>
+                      </span></th>
+                      <th><span id="author_name" class="sort {{'active' if order in ['-author_name', 'author_name'] else ''}}">
+                          作者<span class="ion-arrow-down-b {{'toggle' if order == 'author_name' else ''}}"></span>
+                      </span></th>
+                      <th><span>创建时间</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for p in articles %}
+                    <tr>
+                      <td>{{p.get('title') or ''}}</td>
+                      <td>{{p.get('category') or ''}}</td>
+                      <td>{{p.get('author_name') or ''}}</td>
+                      <td>{{to_date_str(p.get('create_time'))}}</td>
+                      </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
             </div>
           </div>
         </div>
@@ -32,5 +68,20 @@
 </div>
 {% include _base_js.html %}
 
+<script>
+  $(".sort").click(function () {
+    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+    window.location = location.pathname + "?order=" + direction + $(this).attr('id');
+  });
+
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var q = $(this).val().trim();
+      location = location.pathname + (q === '' ? '' : "?q=" + q);
+    }
+  });
+
+</script>
 </body>
 </html>
