@@ -17,7 +17,7 @@ class CutTaskApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
-    step2field = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
+    step2field = dict(block_box='blocks', char_box='chars', column_box='columns', char_order='chars')
 
     def post(self, task_type, task_id):
         """ 提交任务。有两种模式：
