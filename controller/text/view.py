@@ -73,8 +73,8 @@ class TextProofHandler(TaskHandler, TextTool):
             cmp_data = self.check_segments(segments, page['chars'], params)
 
         self.render(
-            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode,
-            readonly=readonly, texts=texts, labels=labels, cmp_data=cmp_data, doubt=doubt,
+            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly,
+            texts=texts, labels=labels, cmp_data=cmp_data, doubt=doubt, pre_doubt='',
             steps=steps, get_img=self.get_img, **params
         )
 

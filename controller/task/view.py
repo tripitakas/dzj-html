@@ -93,7 +93,9 @@ class TaskLobbyHandler(TaskHandler):
         task_meta = self.all_task_types().get(task_type)
         page_size = page_size or self.config['pager']['page_size']
         if task_meta.get('groups'):
-            condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED}
+            my_tasks, count = MyTaskHandler.get_my_tasks_by_type(self, task_type, un_limit=True)
+            condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED,
+                         'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}}
             total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
@@ -119,7 +121,7 @@ class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
     @staticmethod
-    def get_my_tasks_by_type(self, task_type=None, q=None, order=None, page_size=0, page_no=1):
+    def get_my_tasks_by_type(self, task_type=None, q=None, order=None, page_size=0, page_no=1, un_limit=None):
         """获取我的任务/任务列表"""
         if task_type and task_type not in self.all_task_types():
             return [], 0
@@ -136,10 +138,11 @@ class MyTaskHandler(TaskHandler):
         if order:
             order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(order, asc)
-        page_size = page_size or self.config['pager']['page_size']
-        page_no = page_no if page_no >= 1 else 1
-        tasks = query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(tasks), total_count
+        if not un_limit:
+            page_size = page_size or self.config['pager']['page_size']
+            page_no = page_no if page_no >= 1 else 1
+            query.skip(page_size * (page_no - 1)).limit(page_size)
+        return list(query), total_count
 
     def get(self, task_type):
         """ 我的任务 """

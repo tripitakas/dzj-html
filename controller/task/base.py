@@ -111,9 +111,9 @@ class TaskHandler(BaseHandler, TaskConfig):
         if mode in ['do', 'update']:
             if task.get('picked_user_id') != self.current_user.get('_id'):
                 error = errors.task_unauthorized
-            if mode == 'do' and task['status'] != self.STATUS_PICKED:
+            elif mode == 'do' and task['status'] != self.STATUS_PICKED:
                 error = errors.task_can_only_do_picked
-            if mode == 'update' and task['status'] != self.STATUS_FINISHED:
+            elif mode == 'update' and task['status'] != self.STATUS_FINISHED:
                 error = errors.task_can_only_update_finished
         has_auth = error is None
         return has_auth, error
