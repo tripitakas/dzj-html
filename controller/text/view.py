@@ -191,7 +191,8 @@ class TextEditHandler(TaskHandler, TextTool):
                 segments = Diff.diff(self.prop(page, 'text').replace('|', '\n'))[0]
                 cmp_data = self.check_segments(segments, page['chars'], dict(mismatch_lines=[]))
 
-            kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', steps=dict(is_first=True, is_last=True))
+            kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', pre_doubt='',
+                          steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,
                 get_img=self.get_img, **kwargs
