@@ -58,7 +58,7 @@ class HelpHandler(BaseHandler):
         try:
             q = self.get_query_argument('q', '')
             order = self.get_query_argument('order', '-_id')
-            condition = {}
+            condition = {'deleted': self.get_query_argument('deleted', None) and True}
             if q:
                 condition['$or'] = [{f: {'$regex': '.*%s.*' % q}} for f in ['title', 'content']]
             query = self.db.article.find(condition)

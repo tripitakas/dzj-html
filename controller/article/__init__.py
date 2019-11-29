@@ -5,5 +5,5 @@ views = [
 ]
 
 handlers = [
-    api.SaveArticleApi, api.UploadImageHandler,
+    api.SaveArticleApi, api.UploadImageHandler, api.DeleteArticleApi,
 ]

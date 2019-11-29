@@ -44,7 +44,7 @@ etpl.config({
             'source | undo redo | bold italic underline strikethrough | superscript subscript | forecolor backcolor | removeformat |',
             'insertorderedlist insertunorderedlist | selectall paragraph | fontfamily fontsize' ,
             '| justifyleft justifycenter justifyright justifyjustify |',
-            'link unlink | image video',
+            'link unlink | image',
             '| horizontal fullscreen'
         ]
 

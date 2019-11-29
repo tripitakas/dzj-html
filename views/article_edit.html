@@ -21,7 +21,7 @@
   <div class="main">
     <header class="m-header">
       <div class="back">
-        <a href="/">
+        <a href="/help">
           <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
         </a>
       </div>
@@ -36,11 +36,24 @@
         <script class="editor" id="editor1" type="text/plain" style="width: 100%;max-width: 800px;min-height: 100px;"></script>
       </div>
       <div style="margin-top: 10px">
-        <div class="input-group">
-          <span class="input-group-addon" id="basic-addon1">文章分类</span>
-          <input type="text" id="category" class="form-control" value="{{article.get('category') or ''}}"
-              placeholder="文章分类" aria-describedby="basic-addon1">
-        </div>
+        <div class="row">
+          <div class="col-sm-4">
+            <div class="input-group">
+              <span class="input-group-addon" id="basic-addon1">文章分类</span>
+              <input type="text" id="category" class="form-control" value="{{article.get('category') or ''}}"
+                  placeholder="文章分类" aria-describedby="basic-addon1">
+            </div>
+          </div>
+
+          <div class="col-sm-8">
+            <div class="input-group">
+              <span class="input-group-addon" id="basic-addon2">文章标识</span>
+              <input type="text" id="article-id" class="form-control" value="{{article.get('article-id') or ''}}"
+                  placeholder="可选标识，必须有减号，由小写字母、数字或-组成，字母开头" aria-describedby="basic-addon2">
+            </div>
+          </div>
+        </div><!-- /.row -->
+
         <div class="text-right" style="margin-top: 10px">
           <button type="button" class="btn btn-default" id="btn-preview">预览</button>
           <button type="button" class="btn btn-primary" id="btn-submit">保存</button>
