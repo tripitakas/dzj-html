@@ -787,13 +787,15 @@
       };
       pageData = pageData || data;
       return pageData.chars.filter(function (c) {
-        return c.shape && c.shape.getBBox();
+        return c.shape && c.shape.getBBox() || c.w && c.h;
       }).map(function (c) {
-        var box = c.shape.getBBox();
-        c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
-        delete c.shape;
+        if (c.shape) {
+          var box = c.shape.getBBox();
+          c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
+          delete c.shape;
+        }
         Object.keys(c).forEach(function (k) {
-          if (c[k] === null) {
+          if (c[k] === null || c[k] === undefined) {
             delete c[k];
           }
         });
