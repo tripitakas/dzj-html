@@ -4,7 +4,7 @@ import re
 import tests.users as u
 from tests.testcase import APITestCase
 from tornado.escape import json_encode
-from controller.cut.api import CutApi
+from controller.cut.api import CutTaskApi
 from controller import errors
 
 
@@ -41,7 +41,7 @@ class TestCutTask(APITestCase):
             page = self._app.db.page.find_one({'name': 'QL_25_16'})
             steps = ['char_box', 'block_box', 'column_box', 'char_order']
             for step in steps:
-                data_field = CutApi.step_field_map.get(step)
+                data_field = CutTaskApi.step2field.get(step)
                 data = {'step': step, 'submit': True, 'boxes': json_encode(page[data_field])}
                 r = self.fetch('/api/task/do/%s/%s' % (task_type, task['_id']), body={'data': data})
                 self.assert_code(200, r, msg=task_type + ':' + step)
@@ -57,7 +57,7 @@ class TestCutTask(APITestCase):
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
         steps = ['char_box', 'block_box', 'column_box', 'char_order']
         for step in steps:
-            data_field = CutApi.step_field_map.get(step)
+            data_field = CutTaskApi.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
             r = self.fetch('/api/data/edit/box/QL_25_16', body={'data': data})
             self.assert_code(errors.data_unauthorized, r, msg=step)
@@ -68,7 +68,7 @@ class TestCutTask(APITestCase):
 
         # 测试编辑提交数据
         for step in steps:
-            data_field = CutApi.step_field_map.get(step)
+            data_field = CutTaskApi.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
             r = self.fetch('/api/data/edit/box/QL_25_16', body={'data': data})
             self.assert_code(200, r, msg=step)

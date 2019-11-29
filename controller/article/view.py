@@ -3,9 +3,10 @@
 """
 @time: 2019/11/17
 """
+import re
 from bson.objectid import ObjectId
-from controller.base import BaseHandler
 from controller import errors
+from controller.base import BaseHandler
 
 
 class EditArticleHandler(BaseHandler):
@@ -20,7 +21,8 @@ class EditArticleHandler(BaseHandler):
 
     @staticmethod
     def edit(self, article_id):
-        cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
+
+        cond = {'_id': ObjectId(article_id)} if re.match('[0-9a-zA-Z]{24}', article_id) else {'article_id': article_id}
         article = self.db.article.find_one(cond) if len(article_id) > 3 else {}
         if article is None:
             if '-' in article_id:

@@ -29,14 +29,17 @@ class TextProofHandler(TaskHandler, TextTool):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            mode = self.get_task_mode()
             readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
             else:
                 return self.proof(task, page, mode, steps, readonly)
+
         except Exception as e:
             return self.send_db_error(e, render=True)
 
@@ -104,13 +107,14 @@ class TextReviewHandler(TaskHandler, TextTool):
                 return self.send_error_response(errors.no_object, render=True)
 
             # 检查任务权限及数据锁
-            mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-            has_lock = self.check_task_lock(task, mode) is True
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            has_lock, error = self.check_task_lock(task)
 
             params = dict(mismatch_lines=[])
-            layout = int(self.get_query_argument('layout', 0))
-            CutTool.char_render(page, layout, **params)
+            CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
+            mode = self.get_task_mode()
             review_doubt = self.prop(task, 'result.doubt')
             proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
             labels = dict(base='校一', cmp1='校一', cmp2='校三')
@@ -146,10 +150,13 @@ class TextHardHandler(TextReviewHandler):
             if not page:
                 return self.send_error_response(errors.no_object, render=True)
 
-            mode = (re.findall('(do|update)/', self.request.path) or ['view'])[0]
-            self.check_task_auth(task, mode)
-            has_lock = self.check_task_lock(task, mode) is True
+            # 检查任务权限及数据锁
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            has_lock, error = self.check_task_lock(task)
 
+            mode = self.get_task_mode()
             proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None

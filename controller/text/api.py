@@ -93,51 +93,43 @@ class TextProofApi(TaskHandler):
             if not task:
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
-            # 检查权限
-            mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
+            # 检查任务权限
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
 
             if data['step'] == 'select_compare_text':
-                return self.save_compare_text(task, mode, data)
+                return self.save_compare_text(task, data)
             else:
-                return self.save_proof(task, mode, data)
+                return self.save_proof(task, data)
 
         except DbError as e:
             self.send_db_error(e)
 
-    def save_compare_text(self, task, mode, data):
-        result = task.get('result') or {}
+    def save_compare_text(self, task, data):
+        result = self.prop(task, 'result', {})
         result.update({'cmp': data['cmp'].strip('\n')})
         update = {'result': result, 'updated_time': datetime.now()}
         if data.get('submit'):
-            submitted = self.prop(task, 'steps.submitted') or []
+            submitted = self.prop(task, 'steps.submitted', [])
             if data['step'] not in submitted:
                 submitted.append(data['step'])
             update.update({'steps.submitted': submitted})
-        r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
-        if r.modified_count:
-            self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
+        self.db.task.update_one({'_id': task['_id']}, {'$set': update})
+        self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
 
-        self.send_data_response()
-
-    def save_proof(self, task, mode, data):
-        # 保存数据
+    def save_proof(self, task, data):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
-        r = self.db.task.update_one({'_id': task['_id']}, {'$set': {
+        self.db.task.update_one({'_id': task['_id']}, {'$set': {
             'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()
         }})
-        if r.modified_count:
-            self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
-
-        # 提交任务
+        self.add_op_log('save_%s' % task['task_type'], context=task['doc_id'], target_id=task['_id'])
         if data.get('submit'):
-            if mode == 'do':
+            if self.get_task_mode() == 'do':
                 self.finish_task(task)
-                self.add_op_log('submit_%s' % task['task_type'], target_id=task['_id'])
             else:
                 self.release_temp_lock(task['doc_id'], shared_field='box')
-
         self.send_data_response()
 
 
@@ -166,32 +158,31 @@ class TextReviewApi(TaskHandler):
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
             if not task:
                 return self.send_error_response(errors.no_object, message='任务不存在')
-
             # 检查任务权限及数据锁
-            mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
-            r = self.check_task_lock(task, mode)
-            if r is not True:
-                return self.send_error_response(r)
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            has_lock, error = self.check_task_lock(task)
+            if not has_lock:
+                return self.send_error_response(error)
             # 保存当前任务
             data = self.get_request_data()
             doubt = data.get('doubt', '').strip('\n')
             update = {'result.doubt': doubt, 'updated_time': datetime.now()}
-            # 生成难字任务（注意，难字任务只能生成一次）
+            # 生成难字任务。注意，难字任务只能生成一次
             if data.get('submit') and doubt and not self.prop(task, 'result.hard_task'):
                 update['result.hard_task'] = self.publish_hard_task(task, doubt)
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             # 将数据结果同步到page中
             txt_html = data.get('txt_html', '').strip('\n')
-            text = TextTool.html2txt(txt_html)
-            self.db.page.update_one({'name': task['doc_id']}, {'$set': {'text': text, 'txt_html': txt_html}})
-
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': {
+                'text': TextTool.html2txt(txt_html), 'txt_html': txt_html
+            }})
             if data.get('submit'):
-                if mode == 'do':
-                    self.finish_task(task)  # do提交后，完成任务且释放数据锁
-                    self.add_op_log('submit_%s' % task_type, target_id=task_id)
+                if self.get_task_mode() == 'do':
+                    self.finish_task(task)
                 else:
-                    self.release_temp_lock(task['doc_id'], shared_field='text')  # update/edit提交后，释放数据锁
+                    self.release_temp_lock(task['doc_id'], shared_field='text')
 
             self.send_data_response()
 
@@ -211,12 +202,13 @@ class TextHardApi(TaskHandler):
             if not task:
                 return self.send_error_response(errors.no_object, message='任务不存在')
 
-            # 检查权限
-            mode = self.get_task_mode()
-            self.check_task_auth(task, mode)
-            r = self.check_task_lock(task, mode)
-            if r is not True:
-                return self.send_error_response(r)
+            # 检查任务权限及数据锁
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            has_lock, error = self.check_task_lock(task)
+            if not has_lock:
+                return self.send_error_response(error)
 
             # 保存任务
             data = self.get_request_data()
@@ -226,13 +218,13 @@ class TextHardApi(TaskHandler):
 
             # 将数据结果同步到page中
             txt_html = data.get('txt_html', '').strip('\n')
-            text = TextTool.html2txt(txt_html)
-            self.db.page.update_one({'name': task['doc_id']}, {'$set': {'text': text, 'txt_html': txt_html}})
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': {
+                'text': TextTool.html2txt(txt_html), 'txt_html': txt_html
+            }})
 
             if data.get('submit'):
-                if mode == 'do':
+                if self.get_task_mode() == 'do':
                     self.finish_task(task)
-                    self.add_op_log('submit_%s' % task_type, target_id=task_id)
                 else:
                     self.release_temp_lock(task['doc_id'], shared_field='text')
 
@@ -257,18 +249,15 @@ class TextEditApi(TaskHandler):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object)
-
             # 检查数据锁
             if not self.has_data_lock(page_name, 'text'):
                 return self.send_error_response(errors.data_unauthorized)
-
             # 保存数据
-            txt_html = data.get('txt_html') and json_decode(data['txt_html']).strip('\n')
-            text = TextTool.html2txt(txt_html)
-            r = self.db.page.update_one({'name': page_name}, {'$set': {'text': text, 'txt_html': txt_html}})
-            if r.modified_count:
-                self.add_op_log('save_edit_text', context=page_name, target_id=page['_id'])
-
+            txt_html = data.get('txt_html', '').strip('\n')
+            self.db.page.update_one({'name': page_name}, {'$set': {
+                'text': TextTool.html2txt(txt_html), 'txt_html': txt_html
+            }})
+            self.add_op_log('save_edit_text', context=page_name, target_id=page['_id'])
             # 提交时，释放数据锁
             if data.get('submit'):
                 self.release_temp_lock(page_name, shared_field='text')

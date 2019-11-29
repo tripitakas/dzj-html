@@ -189,7 +189,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        if response.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
+        if response.pop('render', render):  # 如果是页面渲染请求，则返回错误页面
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']

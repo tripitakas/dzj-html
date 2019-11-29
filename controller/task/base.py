@@ -68,32 +68,6 @@ class TaskHandler(BaseHandler, TaskConfig):
             tasks.limit(size)
         return list(tasks)
 
-    def get_task_mode(self):
-        return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
-
-    def check_task_auth(self, task, mode):
-        """ 检查当前用户是否拥有相应的任务权限 """
-        has_auth, error = None, None
-        if mode in ['do', 'update']:
-            if task.get('picked_user_id') != self.current_user.get('_id'):
-                error = errors.task_unauthorized
-            if mode == 'do' and task['status'] != self.STATUS_PICKED:
-                error = errors.task_can_only_do_picked
-            if mode == 'update' and task['status'] != self.STATUS_FINISHED:
-                error = errors.task_can_only_update_finished
-        has_auth = error is None
-        return has_auth, error
-
-    def check_task_lock(self, task, mode):
-        """ 检查当前用户是否拥有相应的数据锁，成功时返回True，失败时返回错误代码 """
-        has_lock, error = True, None
-        if mode in ['do', 'update', 'edit']:
-            shared_field = self.get_shared_field(task['task_type'])
-            if shared_field and shared_field in self.data_auth_maps:
-                lock = self.get_data_lock(task['doc_id'], shared_field)
-                has_lock, error = lock is True, lock
-        return has_lock, error
-
     def finish_task(self, task):
         """ 任务提交 """
         # 更新当前任务
@@ -106,6 +80,7 @@ class TaskHandler(BaseHandler, TaskConfig):
             self.db[task['collection']].update_one({task['id_name']: task['doc_id']}, {'$set': update})
         # 更新后置任务
         self.update_post_tasks(task)
+        self.add_op_log('submit_%s' % task['task_type'], target_id=task['_id'])
 
     def update_post_tasks(self, task):
         """ 更新后置任务的状态 """
@@ -125,6 +100,34 @@ class TaskHandler(BaseHandler, TaskConfig):
             if t['status'] == self.STATUS_PENDING and not unfinished:
                 update.update({'status': self.STATUS_OPENED})
             self.db.task.update_one({'_id': t['_id']}, {'$set': update})
+
+    def get_task_mode(self):
+        return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
+
+    def check_task_auth(self, task, mode=None):
+        """ 检查当前用户是否拥有相应的任务权限 """
+        mode = self.get_task_mode() if not mode else mode
+        has_auth, error = False, None
+        if mode in ['do', 'update']:
+            if task.get('picked_user_id') != self.current_user.get('_id'):
+                error = errors.task_unauthorized
+            if mode == 'do' and task['status'] != self.STATUS_PICKED:
+                error = errors.task_can_only_do_picked
+            if mode == 'update' and task['status'] != self.STATUS_FINISHED:
+                error = errors.task_can_only_update_finished
+        has_auth = error is None
+        return has_auth, error
+
+    def check_task_lock(self, task, mode=None):
+        """ 检查当前用户是否拥有相应的数据锁 """
+        mode = self.get_task_mode() if not mode else mode
+        has_lock, error = False, None
+        if mode in ['do', 'update', 'edit']:
+            shared_field = self.get_shared_field(task['task_type'])
+            if shared_field and shared_field in self.data_auth_maps:
+                lock = self.get_data_lock(task['doc_id'], shared_field)
+                has_lock, error = lock is True, lock
+        return has_lock, error
 
     def has_data_lock(self, doc_id, shared_field, is_temp=None):
         """ 检查当前用户是否拥有某数据锁 """

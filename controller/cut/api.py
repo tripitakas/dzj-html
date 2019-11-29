@@ -8,22 +8,21 @@ from bson.objectid import ObjectId
 from tornado.escape import json_decode
 from controller import validate as v
 from controller import errors as errors
-from controller.base import BaseHandler, DbError
-from controller.task.base import TaskHandler
 from controller.cut.cuttool import CutTool
+from controller.task.base import TaskHandler
+from controller.base import BaseHandler, DbError
 
 
-class CutApi(TaskHandler):
+class CutTaskApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
-    step_field_map = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
+    step2field = dict(char_box='chars', block_box='blocks', column_box='columns', char_order='chars')
 
     def post(self, task_type, task_id):
-        """ 保存数据。
+        """ 提交任务。有两种模式：
             1. do。做任务时，保存或提交任务。
             2. update。任务完成后，本任务用户修改数据。
-            根据情况，do和update需要检查任务归属和数据锁。
         """
         try:
             # 检查参数
@@ -40,36 +39,31 @@ class CutApi(TaskHandler):
                 return self.send_error_response(errors.task_step_error)
 
             # 检查任务权限及数据锁
-            mode = self.get_task_mode()
-            if not self.check_task_auth(task, mode):
-                return
-            r = self.check_task_lock(task, mode)
-            if r is not True:
-                return self.send_error_response(r)
+            has_auth, error = self.check_task_auth(task)
+            if not has_auth:
+                return self.send_error_response(error)
+            has_lock, error = self.check_task_lock(task)
+            if not has_lock:
+                return self.send_error_response(error)
 
             # 保存数据
-            collection, id_name = self.get_task_meta(task_type)[:2]
-            update = {self.step_field_map.get(data['step']): json_decode(data['boxes'])}
-            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
-
-            # 提交步骤
-            if data.get('submit'):
-                update = {'updated_time': datetime.now()}
-                submitted = self.prop(task, 'steps.submitted') or []
-                if data['step'] not in submitted:
-                    submitted.append(data['step'])
-                update.update({'steps.submitted': submitted})
-                r = self.db.task.update_one({'_id': ObjectId(task_id)}, {'$set': update})
-                if r.modified_count:
-                    self.add_op_log('save_%s' % task_type, target_id=task_id)
+            update = {self.step2field.get(data['step']): json_decode(data['boxes'])}
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
 
             # 提交任务
-            if data.get('submit') and data['step'] == steps_todo[-1]:
-                if mode == 'do':
-                    self.finish_task(task)
-                    self.add_op_log('submit_%s' % task_type, target_id=task_id)
-                else:
-                    self.release_temp_lock(task['doc_id'], shared_field='box')
+            if data.get('submit'):
+                submitted = self.prop(task, 'steps.submitted', [])
+                if data['step'] not in submitted:
+                    submitted.append(data['step'])
+                self.db.task.update_one({'_id': ObjectId(task_id)}, {'$set': {
+                    'updated_time': datetime.now(), 'steps.submitted': submitted
+                }})
+                self.add_op_log('save_%s' % task_type, target_id=task_id)
+                if data['step'] == steps_todo[-1]:
+                    if self.get_task_mode() == 'do':
+                        self.finish_task(task)
+                    else:
+                        self.release_temp_lock(task['doc_id'], shared_field='box')
 
             return self.send_data_response()
 
@@ -85,26 +79,20 @@ class CutEditApi(TaskHandler):
         try:
             # 检查参数
             data = self.get_request_data()
-            rules = [(v.not_empty, 'step', 'boxes')]
+            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(CutTaskApi.step2field.keys()))]
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object)
-            if not data['step'] in CutApi.step_field_map:
-                return self.send_error_response(errors.task_step_error)
-
             # 检查数据锁
             if not self.has_data_lock(page_name, 'box'):
                 return self.send_error_response(errors.data_unauthorized)
-
             # 保存数据
-            step_data_field = CutApi.step_field_map.get(data['step'])
-            r = self.db.page.update_one({'name': page_name}, {'$set': {step_data_field: json_decode(data['boxes'])}})
-            if r.modified_count:
-                self.add_op_log('save_edit_%s' % step_data_field, context=page_name, target_id=page['_id'])
-
+            data_field = CutTaskApi.step2field.get(data['step'])
+            self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
+            self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])
             # 释放数据锁
             if data.get('submit'):
                 self.release_temp_lock(page_name, shared_field='box')
