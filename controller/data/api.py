@@ -116,11 +116,11 @@ class FetchDataTasksApi(TaskHandler):
                 self.send_data_response(dict(tasks=None))
 
             # 批量获取任务
-            task_ids = [t['_id'] for t in tasks]
-            update = dict(_id={'$in': task_ids}, status=self.STATUS_FETCHED, picked_user_id=self.current_user['_id'],
-                          picked_by=self.current_user['name'], picked_time=datetime.now(),
-                          updated_time=datetime.now())
-            r = self.db.task.update_many(condition, {'$set': update})
+            condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
+            r = self.db.task.update_many(condition, {'$set': dict(
+                status=self.STATUS_FETCHED, picked_time=datetime.now(), updated_time=datetime.now(),
+                picked_user_id=self.current_user['_id'], picked_by=self.current_user['name']
+            )})
             if r.matched_count:
                 self.send_data_response(dict(tasks=get_tasks()))
 
