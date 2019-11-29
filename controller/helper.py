@@ -15,6 +15,11 @@ from datetime import datetime, timedelta, timezone
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
     time = date_time if date_time else datetime.now()
+    if isinstance(time, str):
+        try:
+            time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return time
     if diff_seconds:
         time += timedelta(seconds=diff_seconds)
 
