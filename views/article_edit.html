@@ -48,7 +48,7 @@
           <div class="col-sm-8">
             <div class="input-group">
               <span class="input-group-addon" id="basic-addon2">文章标识</span>
-              <input type="text" id="article-id" class="form-control" value="{{article.get('article-id') or ''}}"
+              <input type="text" id="article_id" class="form-control" value="{{article.get('article_id') or ''}}"
                   placeholder="可选标识，必须有减号，由小写字母、数字或-组成，字母开头" aria-describedby="basic-addon2">
             </div>
           </div>
@@ -82,7 +82,8 @@
   $('#btn-submit').on('click', function () {
     var content = UM.getEditor('editor1').getContent();
     postApi('/article/save/' + id,
-        {data: {title: $('#title').val(), category: $('#category').val(), content: content}},
+        {data: {title: $('#title').val(), category: $('#category').val(),
+                article_id: $('#article_id').val(), content: content}},
         function (data) {
           id = data.id;
           $preview.show();

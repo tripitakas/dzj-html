@@ -45,6 +45,9 @@
                       <th><span id="category" class="sort {{'active' if order in ['-category', 'category'] else ''}}">
                           分类<span class="ion-arrow-down-b {{'toggle' if order == 'category' else ''}}"></span>
                       </span></th>
+                      <th><span id="article_id" class="sort {{'active' if order in ['-article_id', 'article_id'] else ''}}">
+                          标识<span class="ion-arrow-down-b {{'toggle' if order == 'article_id' else ''}}"></span>
+                      </span></th>
                       <th><span id="author_name" class="sort {{'active' if order in ['-author_name', 'author_name'] else ''}}">
                           作者<span class="ion-arrow-down-b {{'toggle' if order == 'author_name' else ''}}"></span>
                       </span></th>
@@ -60,6 +63,7 @@
                     <tr id="{{p.get('article_id') or str(p['_id'])}}" class="{{'my' if p['author_id'] == currentUserId else ''}}">
                       <td><a href="/article/{{p.get('article_id') or str(p['_id'])}}">{{p.get('title') or ''}}</a></td>
                       <td>{{p.get('category') or ''}}</td>
+                      <td>{{p.get('article_id') or ''}}</td>
                       <td>{{p.get('author_name') or ''}}</td>
                       <td>{{to_date_str(p.get('create_time'))}}</td>
                       <td>
