@@ -39,7 +39,7 @@ class CutHandler(TaskHandler):
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
-                return self.send_error_response(error)
+                return self.send_error_response(error, message='%s(%s)' % (error[0], page['name']))
             has_lock, error = self.check_task_lock(task)
 
             mode = self.get_task_mode()

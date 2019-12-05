@@ -14,7 +14,7 @@ class SubmitDataTaskApi(TaskHandler):
         if not tsk:
             return errors.task_un_existed
         elif tsk['picked_user_id'] != self.current_user['_id']:
-            return errors.task_unauthorized
+            return errors.task_unauthorized_locked
         page_name = self.prop(task, 'page_name')
         if page_name and page_name != tsk.get('doc_id'):
             return errors.doc_id_not_equal
