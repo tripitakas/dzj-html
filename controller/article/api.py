@@ -58,6 +58,14 @@ class SaveArticleApi(BaseHandler):
                 if article is None and '_id' in cond:
                     return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
 
+            if data.get('article_id'):
+                if article and article.get('article_id') != data['article_id']:
+                    if not re.match(r'^[a-z]+-[-\w]+$', data['article_id']):
+                        return self.send_error_response(errors.invalid_digit, message='文章标识格式错误')
+                    if self.db.article.find_one({'article_id': data['article_id']}):
+                        return self.send_error_response(errors.record_existed, message='文章标识已被占用')
+                info['article_id'] = data['article_id']
+
             if article:
                 r = self.db.article.update_one({'_id': article['_id']}, {'$set': info})
                 info['id'] = str(article['_id'])
