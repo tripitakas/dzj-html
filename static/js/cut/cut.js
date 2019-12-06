@@ -515,6 +515,19 @@
         }
       };
 
+      var check_char_ids = function () {
+        var ids = [], newId = 0;
+        p.chars.forEach(function (b) {
+          if (!b.char_id || b.char_id.indexOf('b0c0') === 0 || ids.indexOf(b.char_id) >= 0) {
+            b.char_id = 'new' + (++newId);
+          }
+          ids.push(b.char_id);
+        });
+        if (newId && window.swal) {
+          window.swal('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。', 'warning');
+        }
+      };
+
       self.destroy();
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
@@ -579,6 +592,7 @@
       data.height = p.height;
       data.chars = p.chars;
       data.removeSmall = p.removeSmallBoxes && [40, 40];
+      check_char_ids();
       self._apply(p.chars, 1);
 
       p.chars.forEach(function (b) {
@@ -662,6 +676,7 @@
             .data('uid', b.id)
             .data('cid', b.char_id)
             .data('char', b.ch);
+        c.shape.node.id = b.char_id;
 
         if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
           setTimeout(function () {
