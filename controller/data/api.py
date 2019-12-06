@@ -10,6 +10,7 @@ from controller.base import BaseHandler, DbError
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
 from controller.data.submit import SubmitDataTaskApi
+from utils.build_js import build_volume_js
 
 try:
     from StringIO import StringIO
@@ -81,6 +82,32 @@ class DataDeleteApi(BaseHandler):
                 r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}})
                 self.add_op_log('delete_%s' % collection, target_id=data['_ids'])
             self.send_data_response(dict(deleted_count=r.deleted_count))
+
+        except DbError as error:
+            self.send_db_error(error)
+
+
+class DataVolumeGenJsApi(BaseHandler):
+    URL = '/api/data/volume/gen_js'
+
+    def post(self):
+        """ 生成册信息 """
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'tripitaka_code')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            tripitaka = self.db.tripitaka.find_one({'tripitaka_code': data['tripitaka_code']})
+            if not tripitaka:
+                self.send_error_response(errors.no_object, message='藏经不存在')
+            elif not tripitaka.get('store_pattern'):
+                self.send_error_response(errors.not_allowed_empty, message='存储模式不允许为空')
+
+            build_volume_js(self.db, tripitaka)
+
+            self.send_data_response()
 
         except DbError as error:
             self.send_db_error(error)

@@ -189,6 +189,7 @@ role_route_maps = {
             '/api/data/@collection': ['POST'],
             '/api/data/@collection/delete': ['POST'],
             '/api/article/delete/@article_id': ['GET'],
+            '/api/data/volume/gen_js': ['POST'],
         }
     },
     '用户管理员': {
