@@ -662,16 +662,9 @@
             .data('uid', b.id)
             .data('cid', b.char_id)
             .data('char', b.ch);
-
-        if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
-          setTimeout(function () {
-            if (c.shape) {
-              // c.shape.attr({fill: data.hoverFill, 'fill-opacity': 0.8});
-              // c.shape.show();
-            }
-          }, 100);
-        }
+        c.shape.node.id = b.char_id;
       });
+
       var c = this.findCharById(cid);
       this.switchCurrentBox(c && c.shape);
     },
