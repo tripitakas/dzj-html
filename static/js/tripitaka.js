@@ -138,9 +138,23 @@ $(document).on('click', '#reduce-font', function () {
   }
 });
 
+// 展开子节点
+$('.main-left').on('click', '.has-sub', function () {
+  $(this).next('.sub-ul').toggleClass('sub-ul-hidden');
+});
+
 // 目录跳转
 $('.main-left').on('click', '.leaf', function () {
   window.location = '/page/' + $(this).attr('id');
+});
+
+// 回车检索
+$('.menu-search-wrapper').on("keydown", ".menu-search-input", function (event) {
+  var keyCode = event.keyCode || event.which;
+  if (keyCode === 13) {
+    $(".menu-search-wrapper .menu-search-btn").click();
+    event.preventDefault();
+  }
 });
 
 // 检索目录
@@ -219,7 +233,6 @@ $(document).ready(function () {
   var curMenuId = $('#cur-volume').text().trim();
   $('#' + curMenuId).addClass('active').parents('.sub-ul').removeClass('sub-ul-hidden');
 });
-
 
 // Datatable本地化
 var language = {

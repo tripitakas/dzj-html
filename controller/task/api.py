@@ -353,12 +353,12 @@ class AssignTasksApi(TaskHandler):
             if not self.can_user_access(task_type, user):
                 return self.send_error_response(e.task_unauthorized)
 
-            # 批量分配已发布的任务
+            # 批量指派已发布的任务
             ret = {'count': 0}
-            opened_tasks = self.db.task.find({
+            opened_tasks = list(self.db.task.find({
                 '_id': {'$in': [ObjectId(t) for t in data['task_ids']]},
                 'status': self.STATUS_OPENED
-            })
+            }))
             update = {
                 'picked_user_id': user['_id'],
                 'picked_by': user['name'],

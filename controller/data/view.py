@@ -59,9 +59,10 @@ class TripitakaHandler(BaseHandler):
             page_code = nav.get('cur_page')
             page = self.db.page.find_one({'name': page_code})
             page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
+            img_url = self.get_img(page or dict(name=page_code))
 
             self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
-                        img_url=self.get_img(dict(name=page_code)), page_text=page_text, page=page)
+                        img_url=img_url, page_text=page_text, page=page)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -120,12 +121,13 @@ class DataVolumeHandler(BaseHandler):
             cur_page = max_page if max_page and max_page < cur_page else cur_page
             query = self.db.volume.find(condition)
             volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
+            tripitakas = self.db.volume.find().distinct('tripitaka_code')
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
             for v in volumes:
                 for f in v:
                     if v[f] is None:
                         v[f] = ''
-            self.render('data_volume.html', q=q, volumes=volumes, pager=pager)
+            self.render('data_volume.html', q=q, volumes=volumes, pager=pager, tripitakas=tripitakas)
 
         except Exception as e:
             return self.send_db_error(e, render=True)

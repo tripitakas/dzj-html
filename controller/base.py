@@ -64,10 +64,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查用户是否已登录
         api = '/api/' in p
         login_url = self.get_login_url() + '?next=' + self.request.uri
-        if not self.current_user and '/api/user/' not in p and self.request.headers.get(
-                'phone_or_email') and self.request.headers.get('password'):
-            hook['login'](self, self.request.headers['phone_or_email'], self.request.headers['password'],
-                          report_error=False, send_response=False)
         if not self.current_user:
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
@@ -78,7 +74,6 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return self.send_error_response(e.no_user) if api else self.redirect(login_url)
         except MongoError as err:
             return self.send_db_error(err, render=not self.get_query_argument('_raw', 0) and not api)
-
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -116,10 +111,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
-        if hasattr(self.__class__, 'URL'):
-            cls_url = self.__class__.URL[0] if isinstance(self.__class__.URL, list) else self.__class__.URL
-            kwargs['help_id'] = 'help' + re.sub(r'[/_]@\w+', '', cls_url).replace('/', '-')
-            kwargs['help_url'] = '/article/' + kwargs['help_id']
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps

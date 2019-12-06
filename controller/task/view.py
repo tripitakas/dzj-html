@@ -66,7 +66,7 @@ class TaskLobbyHandler(TaskHandler):
     URL = '/task/lobby/@task_type'
 
     @staticmethod
-    def get_lobby_tasks_by_type(self, task_type, page_size=None):
+    def get_lobby_tasks_by_type(self, task_type, page_size=None, q=None):
         """按优先级排序后随机获取任务大厅/任务列表"""
 
         def get_skip_no():
@@ -91,17 +91,21 @@ class TaskLobbyHandler(TaskHandler):
             return [], 0
 
         task_meta = self.all_task_types().get(task_type)
-        page_size = page_size or self.config['pager']['page_size']
+        page_size = page_size or int(self.config['pager']['page_size'])
+        condition = {}
+        if q:
+            condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
         if task_meta.get('groups'):
+            condition.update({'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED})
             my_tasks, count = MyTaskHandler.get_my_tasks_by_type(self, task_type, un_limit=True)
-            condition = {'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED,
-                         'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}}
+            if count:
+                condition.update({'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}})
             total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
             tasks = de_duplicate()
         else:
-            condition = {'task_type': task_type, 'status': self.STATUS_OPENED}
+            condition.update({'task_type': task_type, 'status': self.STATUS_OPENED})
             total_count = self.db.task.count_documents(condition)
             skip_no = get_skip_no()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
@@ -111,7 +115,8 @@ class TaskLobbyHandler(TaskHandler):
     def get(self, task_type):
         """ 任务大厅 """
         try:
-            tasks, total_count = self.get_lobby_tasks_by_type(self, task_type)
+            q = self.get_query_argument('q', '').upper()
+            tasks, total_count = self.get_lobby_tasks_by_type(self, task_type, q=q)
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count)
         except Exception as e:
             self.send_db_error(e, render=True)

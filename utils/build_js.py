@@ -28,13 +28,16 @@ def get_volume_tree(volumes, store_pattern):
     return volume_tree
 
 
-def build_volume_js(db):
+def build_volume_js(db, tripitaka):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = db.tripitaka.find({'img_available': '是'})
+    tripitakas = [tripitaka] if tripitaka else db.tripitaka.find({'img_available': '是'})
     for t in tripitakas:
         print('generating %s-volume.js ...' % t.get('tripitaka_code'))
-        volumes = db.volume.find({'tripitaka_code': t['tripitaka_code']}).sort([('envelop_no', 1), ('volume_no', 1)])
+        volumes = list(db.volume.find({'tripitaka_code': t['tripitaka_code']})
+                       .sort([('envelop_no', 1), ('volume_no', 1)]))
+        if not volumes:
+            continue
         volume_tree = get_volume_tree(volumes, t['store_pattern'])
         js_file = path.join(js_dir, '%s-volume.js' % t['tripitaka_code'])
         with open(js_file, 'w', encoding='utf-8') as fp:
@@ -52,7 +55,7 @@ def build_volume_js(db):
             fp.write(";")
 
 
-def build_sutra_js(db):
+def build_sutra_js(db, tripitaka):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
     tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH', 'JS', 'LQ']
