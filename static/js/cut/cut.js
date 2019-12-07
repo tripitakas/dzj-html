@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-09-18
+ * Date: 2019-12-07
  */
 (function () {
   'use strict';
@@ -801,8 +801,8 @@
         return Math.round(v * 10 / pageData.ratio / pageData.ratioInitial) / 10;
       };
       pageData = pageData || data;
-      return pageData.chars.filter(function (c) {
-        return c.shape && c.shape.getBBox() || c.w && c.h;
+      var chars = pageData.chars.filter(function (c) {
+        return c.w && c.h;
       }).map(function (c) {
         if (c.shape) {
           var box = c.shape.getBBox();
@@ -816,6 +816,7 @@
         });
         return c;
       });
+      return chars;
     },
 
     // callback: function(info, box, reason)
@@ -864,6 +865,7 @@
           }
         }
         info.shape = null;
+        info.w = info.h = 0;
         el.remove();
         undoData.change();
         notifyChanged(el, 'removed');
