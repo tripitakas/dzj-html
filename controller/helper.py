@@ -71,12 +71,12 @@ def is_box_changed(page_a, page_b, ignore_none=True):
         if ignore_none and (not a or not b):
             continue
         if len(a) != len(b):
-            return True
+            return field + '.len'
         for i in range(len(a)):
             for j in ['x', 'y', 'w', 'h']:
                 if a[i][j] != b[i][j]:
-                    return True
-    return False
+                    return '%s[%d]' % (field, i)
+    return None
 
 
 def random_code():
