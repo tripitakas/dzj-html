@@ -40,11 +40,7 @@ class SubmitDataTaskApi(TaskHandler):
             # ocr_text任务不允许修改切分信息
             box_changed = task['task_type'] == 'ocr_text' and is_box_changed(result, page)
             if box_changed:
-                if box_changed.startswith('chars'):
-                    return errors.box_not_identical3
-                if box_changed.startswith('columns'):
-                    return errors.box_not_identical2
-                return errors.box_not_identical1
+                return errors.box_not_identical[0], '(%s)切分信息不一致' % box_changed
             # 更新task
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
