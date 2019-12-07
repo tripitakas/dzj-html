@@ -120,9 +120,19 @@ class FetchDataTasksApi(TaskHandler):
         """ 批量领取数据任务 """
 
         def get_tasks():
+            # 锁定box，以免修改
+            condition = {'name': {'$in': [t['doc_id'] for t in tasks]}}
+            if data_task in['ocr_box', 'ocr_text']:
+                self.db.page.update_many(condition, {'lock.box': {
+                    'is_temp': False,
+                    'lock_type': dict(tasks=data_task),
+                    'locked_by': self.current_user['name'],
+                    'locked_user_id': self.current_user['_id'],
+                    'locked_time': datetime.now()
+                }})
             # ocr_text任务时，需要把blocks/columns/chars等参数传过去
             if data_task == 'ocr_text':
-                pages = self.db.page.find({'name': {'$in': [t['doc_id'] for t in tasks]}})
+                pages = self.db.page.find(condition)
                 pages = {p['name']: dict(blocks=p.get('blocks'), columns=p.get('columns'), chars=p.get('chars'))
                          for p in pages}
                 for t in tasks:
@@ -148,6 +158,7 @@ class FetchDataTasksApi(TaskHandler):
                 status=self.STATUS_FETCHED, picked_time=datetime.now(), updated_time=datetime.now(),
                 picked_user_id=self.current_user['_id'], picked_by=self.current_user['name']
             )})
+
             if r.matched_count:
                 self.send_data_response(dict(tasks=get_tasks()))
 

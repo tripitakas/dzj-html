@@ -40,18 +40,27 @@ class SubmitDataTaskApi(TaskHandler):
             # ocr_text任务不允许修改切分信息
             if task['task_type'] == 'ocr_text' and is_box_changed(result, page):
                 return errors.box_not_identical
-
-            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-            ocr = '|'.join(result['ocr']) if isinstance(result.get('ocr'), list) else result.get('ocr', '')
-            page_update = dict(blocks=result.get('blocks'), columns=result.get('columns'),
-                               chars=result.get('chars'), ocr=ocr,
-                               width=result.get('width') or page.get('width'),
-                               height=result.get('height') or page.get('height'))
-            self.db.page.update_one({'name': page_name}, {'$set': page_update})
+            # 更新task
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
+            })
+            # 更新page，并释放数据锁
+            ocr, ocr_col = result.get('ocr', ''), result.get('ocr_col', '')
+            ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
+            ocr_col = '|'.join(ocr_col) if isinstance(ocr_col, list) else ocr_col
+            width = result.get('width') or page.get('width')
+            height = result.get('height') or page.get('height')
+            blocks = result.get('blocks') or page.get('blocks')
+            columns = result.get('columns') or page.get('columns')
+            chars = result.get('chars') or page.get('chars')
+            self.db.page.update_one({'name': page_name}, {'$set': {
+                'width': width, 'height': height, 'ocr': ocr, 'ocr_col': ocr_col,
+                'chars': chars, 'blocks': blocks, 'columns': columns, 'lock.box': {}}
+            })
         else:
-            task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
+            })
         return True
 
     def submit_upload_cloud(self, task):
