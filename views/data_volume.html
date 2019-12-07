@@ -297,8 +297,8 @@
 
   // 生成JS
   $("#js-modal-confirm").click(function () {
-    var data = {tripitaka_code: $('#select-tripitaka option:selected').attr('title')};
-    postApi('/data/volume/gen_js', {data: data}, function (res) {
+    var data = {collection: 'volume', tripitaka_code: $('#select-tripitaka option:selected').attr('title')};
+    postApi('/data/gen_js', {data: data}, function (res) {
       showSuccess('成功', '数据已提交。');
       setTimeout(function () {
         window.location.reload();

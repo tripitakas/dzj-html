@@ -28,7 +28,14 @@ def get_volume_tree(volumes, store_pattern):
     return volume_tree
 
 
-def build_volume_js(db, tripitaka):
+def build_js(db, collection, tripitaka=None):
+    if collection == 'volume':
+        return build_volume_js(db, tripitaka)
+    if collection == 'sutra':
+        return build_sutra_js(db, tripitaka)
+
+
+def build_volume_js(db, tripitaka=None):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
     tripitakas = [tripitaka] if tripitaka else db.tripitaka.find({'img_available': '是'})
@@ -55,10 +62,10 @@ def build_volume_js(db, tripitaka):
             fp.write(";")
 
 
-def build_sutra_js(db, tripitaka):
+def build_sutra_js(db, tripitaka=None):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = ['GL', 'LC', 'HW', 'KB', 'QD', 'QL', 'QS', 'SZ', 'YB', 'ZC', 'ZH', 'JS', 'LQ']
+    tripitakas = set(r[:2] for r in db.sutra.find().distinct('sutra_code')) if not tripitaka else [tripitaka]
     for t in tripitakas:
         print('generating %s-sutra.js ...' % t)
         fields = dict(sutra_code=1, sutra_name=1, due_reel_count=1, existed_reel_count=1, start_volume=1, start_page=1,
