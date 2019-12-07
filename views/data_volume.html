@@ -78,11 +78,11 @@
                     {% for v in volumes %}
                     <tr id="{{v.get('_id')}}">
                       <td><input type="checkbox"/></td>
-                      <td>{{v.get('tripitaka_code')}}</td>
-                      <td>{{v.get('volume_code')}}</td>
+                      <td>{{v.get('tripitaka_code') or ''}}</td>
+                      <td>{{v.get('volume_code') or ''}}</td>
                       <td>{{v.get('envelop_no') or ''}}</td>
                       <td>{{v.get('volume_no') or ''}}</td>
-                      <td>{{v.get('content_page_count')}}</td>
+                      <td>{{v.get('content_page_count') or ''}}</td>
                       <td>{{len(v.get('front_cover_pages') or [])}}</td>
                       <td>{{len(v.get('back_cover_pages') or [])}}</td>
                       <td>{{v['remark']}}</td>

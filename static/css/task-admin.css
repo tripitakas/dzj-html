@@ -55,6 +55,10 @@
     color: #BB5500;
 }
 
+.sty-table a.disabled{
+    color: #9e9e9e;
+}
+
 .sty-table td.returned {
     color: #FF0000;
     cursor: pointer;

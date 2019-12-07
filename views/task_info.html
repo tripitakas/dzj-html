@@ -12,40 +12,41 @@
   <![endif]-->
 
   <style>
-    .tasks {
-      width: 100%;
-      font-size: 1.2em;
-    }
-
-    .task {
+    .task-info {
       display: block;
       padding: 20px 20px 0;
       clear: both;
     }
 
-    .info {
+    .info-item {
       width: 50%;
       float: left;
       padding: 4px 5px;
+      display: flex;
+    }
+
+    .input .info-item, .result .info-item {
+      width: 100%;
+    }
+
+    .info-title {
+      padding: 5px;
+      font-size: 20px;
+      display: block;
+      clear: both;
+      background: #fff;
     }
 
     .info-label {
       font-weight: bold;
-      width: 20%;
-    }
-
-    .input, .result {
-      width: 100%;
-      display: block;
-      clear: both;
-    }
-
-    .input .info-label, .result .info-label {
-      width: 10%;
+      max-width: 120px;
+      flex: 1;
     }
 
     .info-value {
       display: inline-block;
+      word-break: break-all;
+      flex: 1;
     }
 
   </style>
@@ -62,17 +63,41 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="tasks"></div>
-            <div class="task">
+            <div class="task-info">
+              <div class="info-title">基本信息</div>
               {% for k in display_fields %}
               {% if task.get(k) not in [None, '', {}, []] %}
-              <div class="info {{k}}">
-                <label class="info-label">{{Th.get_field_name(k)}}</label>
+              <div class="info-item">
+                <label class="info-label">{{Th.get_field_name(k) or k}}</label>
                 <span class="info-value">{% raw format_info(k, task[k]) %}</span>
               </div>
               {% end %}
               {% end %}
             </div>
+
+            {% if task.get('input') %}
+            <div class="task-info input">
+              <div class="info-title">输入参数</div>
+              {% for k, v in task.get('input').items() %}
+              <div class="info-item">
+                <label class="info-label">{{k}}</label>
+                <span class="info-value">{% raw format_info(k, v) %}</span>
+              </div>
+              {% end %}
+            </div>
+            {% end %}
+
+            {% if task.get('result') %}
+            <div class="task-info result">
+              <div class="info-title">输出结果</div>
+              {% for k, v in task.get('result').items() %}
+              <div class="info-item">
+                <label class="info-label">{{k}}</label>
+                <span class="info-value">{% raw format_info(k, v) %}</span>
+              </div>
+              {% end %}
+            </div>
+            {% end %}
           </div>
         </div>
       </div>

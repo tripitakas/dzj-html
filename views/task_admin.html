@@ -16,7 +16,6 @@
 
 </head>
 
-
 <body>
 <div class="app-main">
   <div class="main">
@@ -127,7 +126,7 @@
                         <a class="info" href="/task/info/{{t['_id']}}">详情</a>
                         <a class="resume" href="/task/page/{{t['doc_id']}}">简历</a>
                         <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
+                        <a class="{{'republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}','{{t["status"]}}')>重新发布</a>
                       </td>
                     </tr>
                     {% end %}
@@ -300,7 +299,11 @@
   });
 
   // 重新发布任务
-  function republish(taskId, docId) {
+  function republish(taskId, docId, status) {
+    if (status !== 'picked' && status !== 'failed') {
+      swal({title: '状态有误', text: '只能重新发布已领取或已失败的任务！', showConfirmButton: false, allowOutsideClick: true, html: true});
+      return;
+    }
     var info = {
       type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被撤回并重新发布！",
       showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",

@@ -20,46 +20,45 @@ class TripitakaHandler(BaseHandler):
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
             if not m:
-                return self.send_error_response(errors.tptk_page_code_error, render=True)
+                return self.send_error_response(errors.tptk_page_code_error)
             tripitaka_code = m.group(1)
-            tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code}) or {}
+            tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
-                return self.send_error_response(errors.tptk_not_existed, render=True)
+                return self.send_error_response(errors.tptk_not_existed)
             elif tripitaka.get('img_available') == '否':
-                return self.send_error_response(errors.tptk_img_unavailable, render=True)
+                return self.send_error_response(errors.tptk_img_unavailable)
 
             # 根据存储模式补齐page_code
-            store_pattern = tripitaka.get('store_pattern')
             name_slice = page_code.split('_')
+            store_pattern = tripitaka.get('store_pattern')
             gap = len(store_pattern.split('_')) - len(name_slice)
             for i in range(gap):
                 name_slice.append('1')
+            page_code = '_'.join(name_slice)
 
             # 获取当前册信息
             cur_volume = self.db.volume.find_one({'volume_code': '_'.join(name_slice[:-1])})
             if not cur_volume:
-                cur_volume_regex = '_'.join(name_slice[:-2]) + '_'
-                r = self.db.volume.find({'volume_code': {'$regex': cur_volume_regex}}).sort('volume_no', 1).limit(1)
-                r = list(r)
+                query = self.db.volume.find({'volume_code': {'$regex': '_'.join(name_slice[:-2]) + '_'}})
+                r = list(query.sort('volume_no', 1).limit(1))
                 cur_volume = r and r[0] or {}
 
             # 生成册导航信息
             nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_code)
-            content_pages = cur_volume.get('content_pages') or []
+            content_pages = cur_volume.get('content_pages')
             if content_pages:
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 first, last = content_pages[0], content_pages[-1]
                 cur_page = first if gap else page_code
-                pos = cur_page in content_pages and content_pages.index(cur_page) or 1
-                prev = content_pages[pos - 1 if pos > 1 else 0]
-                next = content_pages[pos + 1 if pos < len(content_pages) - 1 else -1]
+                name_slice = cur_page.split('_')
+                next = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) + 1)
+                prev = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) - 1)
                 nav.update(dict(cur_page=cur_page, first=first, last=last, prev=prev, next=next))
 
             # 获取图片路径及文本数据
-            page_code = nav.get('cur_page')
-            page = self.db.page.find_one({'name': page_code})
+            page = self.db.page.find_one({'name': nav.get('cur_page')})
             page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
-            img_url = self.get_img(page or dict(name=page_code))
+            img_url = self.get_img(page or dict(name=nav.get('cur_page')))
 
             self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=img_url, page_text=page_text, page=page)
@@ -123,10 +122,6 @@ class DataVolumeHandler(BaseHandler):
             volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             tripitakas = self.db.volume.find().distinct('tripitaka_code')
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            for v in volumes:
-                for f in v:
-                    if v[f] is None:
-                        v[f] = ''
             self.render('data_volume.html', q=q, volumes=volumes, pager=pager, tripitakas=tripitakas)
 
         except Exception as e:

@@ -231,9 +231,8 @@ class TaskInfoHandler(TaskHandler):
                 self.send_error_response(errors.no_object, message='没有找到该任务')
 
             display_fields = ['doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps',
-                              'publish_time', 'publish_by', 'picked_time',
-                              'picked_by', 'updated_time', 'finished_time',
-                              'input', 'result', 'message', ]
+                              'publish_time', 'publish_by', 'picked_time', 'picked_by',
+                              'updated_time', 'finished_time', 'message', ]
 
             self.render('task_info.html', task=task, display_fields=display_fields,
                         format_info=TaskPageInfoHandler.format_info)
