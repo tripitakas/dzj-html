@@ -122,14 +122,14 @@ class FetchDataTasksApi(TaskHandler):
         def get_tasks():
             # 锁定box，以免修改
             condition = {'name': {'$in': [t['doc_id'] for t in tasks]}}
-            if data_task in['ocr_box', 'ocr_text']:
-                self.db.page.update_many(condition, {'lock.box': {
+            if data_task in ['ocr_box', 'ocr_text']:
+                self.db.page.update_many(condition, {'$set': {'lock.box': {
                     'is_temp': False,
                     'lock_type': dict(tasks=data_task),
                     'locked_by': self.current_user['name'],
                     'locked_user_id': self.current_user['_id'],
                     'locked_time': datetime.now()
-                }})
+                }}})
             # ocr_text任务时，需要把blocks/columns/chars等参数传过去
             if data_task == 'ocr_text':
                 pages = self.db.page.find(condition)
