@@ -6,6 +6,7 @@ from controller import errors
 from controller.base import DbError
 from controller.task.base import TaskHandler
 from controller.helper import is_box_changed
+import logging
 
 
 class SubmitDataTaskApi(TaskHandler):
@@ -40,6 +41,7 @@ class SubmitDataTaskApi(TaskHandler):
             # ocr_text任务不允许修改切分信息
             box_changed = task['task_type'] == 'ocr_text' and is_box_changed(result, page)
             if box_changed:
+                logging.warning('%s box_changed: %s' % (page_name, box_changed))
                 if box_changed.startswith('chars'):
                     return errors.box_not_identical3
                 if box_changed.startswith('columns'):

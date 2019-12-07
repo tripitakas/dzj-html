@@ -74,7 +74,7 @@ def is_box_changed(page_a, page_b, ignore_none=True):
             return field + '.len'
         for i in range(len(a)):
             for j in ['x', 'y', 'w', 'h']:
-                if a[i][j] != b[i][j]:
+                if abs(a[i][j] - b[i][j]) > 0.1:
                     return '%s[%d]' % (field, i)
     return None
 
