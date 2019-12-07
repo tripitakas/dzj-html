@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.auth import url_placeholder
 
-__version__ = '0.0.66.91208'
+__version__ = '0.0.67.91207'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
