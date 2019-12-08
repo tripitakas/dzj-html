@@ -28,5 +28,5 @@ class TestPageApi(APITestCase):
             page_names = json.load(fn)
             self._app.db.page.delete_many({'name': {'$in': page_names}})
 
-        r = self.fetch('/api/data/page/upload', files={'json': filename}, body={})
+        r = self.fetch('/api/data/page/upload', files={'json': filename}, body={'data': {'layout': '上下一栏'}})
         self.assert_code(200, r)
