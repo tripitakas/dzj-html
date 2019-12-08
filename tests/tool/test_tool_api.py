@@ -51,9 +51,9 @@ class TestToolApi(APITestCase):
         self.assertIn('names', r)
 
     def _test_import_meta(self):
-        """生成藏册页数据并导入，启动OCR为可选(h_num,v_num)"""
+        """生成藏册页数据并导入，启动OCR为可选(layout)"""
         self.login(u.data1[0], u.data1[1])
-        data = dict(user_code='upload', tripitaka_code='LQ', h_num='1', v_num='1')
+        data = dict(user_code='upload', tripitaka_code='LQ', layout='上下一栏')
         r = self.fetch('/api/data/import_meta', body={'data': data})
         self.assert_code(200, r)
         r = self.parse_response(r)
@@ -64,6 +64,6 @@ class TestToolApi(APITestCase):
     def _test_page_ocr(self):
         """对已有页面启动OCR"""
         self.login(u.data1[0], u.data1[1])
-        data = dict(user_code='upload', name='LQ_5_1_1', h_num='1', v_num='1')
+        data = dict(user_code='upload', name='LQ_5_1_1', layout='上下一栏')
         r = self.fetch('http://127.0.0.1:8010/add_ocr?' + urlencode(data))
         self.assert_code(200, r)

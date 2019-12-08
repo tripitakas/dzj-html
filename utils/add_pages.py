@@ -84,7 +84,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False, s
             meta['img_name'] = img_name
         if use_local_img:
             meta['use_local_img'] = True
-        for field in ['source', 'h_num', 'v_num', 'create_time']:
+        for field in ['source', 'layout', 'create_time']:
             if info.get(field):
                 meta[field] = info[field]
         if source:
