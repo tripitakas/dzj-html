@@ -300,7 +300,7 @@ class DeleteTasksApi(TaskHandler):
 
     def post(self, task_type):
         """ 删除已发布未领取或等待前置任务的任务 """
-        assert task_type in self.task_types
+        assert task_type in self.all_task_types()
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'task_ids')]

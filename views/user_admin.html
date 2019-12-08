@@ -22,57 +22,57 @@
         <div class="layout">
           <div class="layout-content">
             <div class="wrapper">
-                <div class="collate-list">
-                  <div class="search fr">
-                    <input type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="" id="" value=""/></th>
-                      <th>头像</th>
-                      <th>姓名</th>
-                      <th>手机</th>
-                      <th>邮箱</th>
-                      <th>
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">性别</span><span class="ion-android-sort "></span>
-                          <ul class="dropdown-menu" role="menu">
-                            <li><a href="#">全部</a></li>
-                            <li><a href="#">男</a></li>
-                            <li><a href="#">女</a></li>
-                          </ul>
-                        </div>
-                      </th>
-                      <th>注册时间</th>
-                      <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for p in users %}
-                    {% set _id = p['_id'] %}
-                    {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
-                    <tr id="{{_id}}">
-                      <td><input type="checkbox" name="" value=""/></td>
-                      <td><img src="{{static_url(p.get('img') or 'imgs/' + ava) }}" alt="" class="thumb-md img-circle"></td>
-                      <td>{{p['name']}}</td>
-                      <td>{{p.get('phone') or ''}}</td>
-                      <td>{{p.get('email') or ''}}</td>
-                      <td>{{p.get('gender') or ''}}</td>
-                      <td>{{to_date_str(p['create_time'])}}</td>
-                      <td>
-                        <span onclick="delete_user('{{dumps(p)}}')">删除</span>
-                        <span onclick="update('{{dumps(p)}}')">修改</span>
-                        <span onclick="reset_pwd('{{_id}}')">重置密码</span>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+              <div class="collate-list">
+                <div class="search fr">
+                  <input type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
                 </div>
-                {% module Pager(pager) %}
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="" id="" value=""/></th>
+                    <th>头像</th>
+                    <th>姓名</th>
+                    <th>手机</th>
+                    <th>邮箱</th>
+                    <th>
+                      <div class="btn-group">
+                        <span class="sort" data-toggle="dropdown" aria-expanded="false">性别</span><span class="ion-android-sort "></span>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="#">全部</a></li>
+                          <li><a href="#">男</a></li>
+                          <li><a href="#">女</a></li>
+                        </ul>
+                      </div>
+                    </th>
+                    <th>注册时间</th>
+                    <th>操作</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for p in users %}
+                  {% set _id = p['_id'] %}
+                  {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
+                  <tr id="{{_id}}">
+                    <td><input type="checkbox" name="" value=""/></td>
+                    <td><img src="{{static_url(p.get('img') or 'imgs/' + ava) }}" alt="" class="thumb-md img-circle"></td>
+                    <td>{{p['name']}}</td>
+                    <td>{{p.get('phone') or ''}}</td>
+                    <td>{{p.get('email') or ''}}</td>
+                    <td>{{p.get('gender') or ''}}</td>
+                    <td>{{to_date_str(p['create_time'])}}</td>
+                    <td>
+                      <a onclick="delete_user('{{dumps(p)}}')">删除</a>
+                      <a onclick="update('{{dumps(p)}}')">修改</a>
+                      <a onclick="reset_pwd('{{_id}}')">重置密码</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
+            </div>
           </div>
         </div>
       </div>
@@ -159,13 +159,13 @@
         gender: $dlg.find('#gender').val().trim()
       };
 
-      if (info.name == user.name && info.phone == user.phone &&
-          info.email == user.email && info.gender == user.gender) {
+      if (info.name === user.name && info.phone === user.phone &&
+          info.email === user.email && info.gender === user.gender) {
         showError('请重新输入', '用户信息没有发生改变。');
         return;
       }
 
-      if (info.phone == '' && info.email == '') {
+      if (info.phone === '' && info.email === '') {
         showError('请重新输入', '手机和邮箱不能同时为空。');
         return;
       }
@@ -190,29 +190,14 @@
    * @param user_id 用户id
    */
   function reset_pwd(_id) {
-    swal({
-          title: "确定重置" + name + "吗？",
-          text: "重置后无法恢复！",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#b8906f",
-          confirmButtonText: "确定重置",
-          cancelButtonText: "取消",
-          closeOnConfirm: false
-        },
-        function () {
-          postApi('/user/reset_pwd', {data: {_id: _id}}, function (data) {
-            if (data.password) {
-              swal({
-                title: '密码重置成功', text: '新密码是 <b>' + data.password + '</b><br>请转告用此密码登录，然后修改密码。',
-                type: 'success', html: true, showConfirmButton: false, allowOutsideClick: true
-              });
-            }
-          }, function (err) {
-            showError('修改失败', err.message);
-          });
-        }
-    );
+    showConfirm("确定重置" + name + "吗？", "重置后无法恢复！", function () {
+      postApi('/user/reset_pwd', {data: {_id: _id}}, function (data) {
+        console.log(data);
+        showTip('密码重置成功', '新密码是 <b>' + data.password + '</b><br>请转告用此密码登录，然后修改密码。');
+      }, function (err) {
+        showError('修改失败', err.message);
+      });
+    });
   }
 
   /**
@@ -221,25 +206,14 @@
    */
   function delete_user(user) {
     user = decodeJSON(user);
-    swal({
-          title: "确定删除" + user.name + "用户吗？",
-          text: "删除后无法恢复！",
-          type: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#b8906f",
-          confirmButtonText: "确定删除",
-          cancelButtonText: "取消",
-          closeOnConfirm: false
-        },
-        function () {
-          postApi('/user/delete', {data: {_id: user._id}}, function (data) {
-            showSuccess('删除用户' + user.name + '成功');
-            window.location.reload();
-          }, function (err) {
-            showError('删除失败', err.message);
-          });
-        }
-    );
+    showConfirm("确定删除" + user.name + "用户吗？", "删除后无法恢复！", function () {
+      postApi('/user/delete', {data: {_id: user._id}}, function () {
+        showSuccess('删除用户' + user.name + '成功');
+        window.location.reload();
+      }, function (err) {
+        showError('删除失败', err.message);
+      });
+    });
   }
 
 </script>

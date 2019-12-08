@@ -17,30 +17,17 @@ function pick(url, task_id) {
 function error_callback(res) {
   var taskType = window.location.pathname.split('/')[3];
   taskType = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
-  var meta = {
-    type: "warning", title: "是否继续未完成的任务？",
-    text: "您还有未完成的任务" + res.doc_id + "，不能领取新任务！",
-    showCancelButton: true, closeOnConfirm: false, confirmButtonColor: "#b8906f",
-    confirmButtonText: "确定继续", cancelButtonText: "取消"
-  };
   if (res.code === 3002) {  // error.task_uncompleted
-    if (location.pathname.indexOf('/task/do') !== -1) {
+    if (location.pathname.indexOf('/task/do') !== -1)
       window.location = res.url;
-    } else {
-      swal(meta, function () {
+    else
+      showConfirm("是否继续未完成的任务？", "您还有未完成的任务" + res.doc_id + "，不能领取新任务！", function () {
         window.location = res.url;
       });
-    }
   } else if (res.code === 3003) { // error.no_task_to_pick
-    showError('暂无新任务', res.message);
-    setTimeout(function () {
-      window.location = "/task/lobby/" + taskType;
-    }, 1000);
+    showWarning('暂无新任务', res.message);
   } else if (res.code !== 500) {
-    meta.title = '是否领取其它任务？';
-    meta.text = res.message;
-    meta.confirmButtonText = '确定领取';
-    swal(meta, function () {
+    showConfirm("是否领取其它任务？", res.message, function () {
       pick("/task/pick/" + taskType);
     });
   } else {

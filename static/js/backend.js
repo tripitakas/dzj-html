@@ -2,26 +2,45 @@
  * Added by Zhang Yungui on 2018/12/18.
  */
 
-function showError(title, text) {
+function showError(title, text, type) {
+  // 在页面提示
   var $err = $('.ajax-error');
   if ($err.length) {
     $err.text(text.replace(/[。！]$/, '')).show(200);
     return setTimeout(function () {
       $err.hide();
-    }, 5000);
+    }, 6000);
   }
-  if (text === '没有发生改变') {
+  // 弹框提示
+  type = typeof type !== 'undefined' ? type : /失败|错误/.test(title) ? 'error' : 'warning';
+  if (text === '没有发生改变')
     return showSuccess(title.replace(/失败|错误/, '跳过'), text);
-  }
-  swal({
-    title: title, text: text, type: /失败|错误/.test(title) ? 'error' : 'warning',
-    timer: 2000, showConfirmButton: false
-  });
+  else
+    swal({
+      title: title, text: text, type: type, showConfirmButton: false,
+      allowOutsideClick: true, timer: 6000
+    });
+}
+
+function showWarning(title, text) {
+  showError(title, text, 'warning');
 }
 
 function showSuccess(title, text, timer) {
   timer = typeof timer !== 'undefined' ? timer : 1000;
   swal({title: title, text: text, type: 'success', timer: timer, showConfirmButton: false});
+}
+
+function showConfirm(title, text, func) {
+  var info = {
+    type: 'warning', title: title, text: text, confirmButtonText: "确定", cancelButtonText: "取消",
+    showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f"
+  };
+  swal(info, func);
+}
+
+function showTip(title, text) {
+  swal({title: title, text: text, showConfirmButton: false, allowOutsideClick: true});
 }
 
 /**

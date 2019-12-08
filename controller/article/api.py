@@ -28,7 +28,7 @@ class DeleteArticleApi(BaseHandler):
                 return self.send_error_response(errs)
 
             r = self.db.article.delete_one({'article_id': data['article_id']})
-            if not r.matched_count:
+            if not r.deleted_count:
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % data['article_id'])
 
             self.add_op_log('delete_article', target_id=data['article_id'], context=data['article_id'])

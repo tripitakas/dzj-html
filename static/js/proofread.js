@@ -480,9 +480,9 @@ function checkMismatch(report) {
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
       text = '<ul class="tips">' + text + '</ul>';
-      swal({title: "图文不匹配", text: text, showConfirmButton: false, allowOutsideClick: true, html: true});
+      showWarning("图文不匹配", text);
     } else {
-      swal({title: "图文匹配", showConfirmButton: false, allowOutsideClick: true, timer: 1000});
+      showTip("图文匹配", "");
     }
   }
 }
@@ -497,12 +497,7 @@ $('#check-match').on('click', function () {
 
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
-  var info = {
-    type: "warning", title: "确定重新比对吗？", text: "将使用第一步选择的文本重新比对，并清空当前的校对结果！",
-    confirmButtonColor: "#b8906f", confirmButtonText: "确定", cancelButtonText: "取消",
-    showCancelButton: true, closeOnConfirm: false
-  };
-  swal(info, function () {
+  showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
     window.location = window.location.href.replace(/&re_compare=true/g, '') + '&re_compare=true';
   });
 });

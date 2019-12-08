@@ -43,7 +43,7 @@ class EditArticleHandler(BaseHandler):
     def get(self, article_id=None):
         """ 新建或修改文章的页面"""
         try:
-            article = article_id and self.db.article.find_one({'article_id': article_id})
+            article = article_id and self.db.article.find_one({'article_id': article_id}) or {}
             if article_id and not article:
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
             self.render('article_edit.html', article=article, article_id=article_id or '')

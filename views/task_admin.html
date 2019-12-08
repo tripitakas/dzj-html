@@ -288,26 +288,21 @@
 
   // 显示退回理由
   $('td.returned').click(function () {
-    swal({title: "退回理由", text: $(this).attr('title'), showConfirmButton: false, allowOutsideClick: true});
+    showTip("退回理由", $(this).attr('title'));
   });
 
   // 显示失败原因
   $('td.failed').click(function () {
-    swal({title: "失败原因", text: $(this).attr('title'), showConfirmButton: false, allowOutsideClick: true});
+    showTip("失败原因", $(this).attr('title'));
   });
 
   // 重新发布任务
   function republish(taskId, docId, status) {
     if (status !== 'picked' && status !== 'failed') {
-      swal({title: '状态有误', text: '只能重新发布已领取或已失败的任务！', showConfirmButton: false, allowOutsideClick: true, html: true});
+      showTip("状态有误", '只能重新发布已领取或已失败的任务！');
       return;
     }
-    var info = {
-      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被撤回并重新发布！",
-      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定", cancelButtonText: "取消"
-    };
-    swal(info, function () {
+    showConfirm("确定重新发布吗？", "任务" + docId + "将被撤回并重新发布！", function () {
       postApi('/task/republish/' + taskId, {'data': {}}, function () {
         window.location.reload();
       });
@@ -316,20 +311,13 @@
 
   // 批量删除
   $('#bat-delete').click(function () {
-    var taskIds = $.map($('.task-tr :checkbox'), function (item) {
-      if ($(item).is(':checked'))
-        return $(item).attr('id');
+    var taskIds = $.map($('.task-tr :checked'), function (item) {
+      return $(item).attr('id');
     });
-    if (taskIds.length === 0) {
-      showError('请选择任务', '当前没有选中任务。');
-      return;
-    }
-    var info = {
-      type: "warning", title: "确定删除吗？", text: "只能删除已发布未领取、等待前置任务两种状态的任务！",
-      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定删除", cancelButtonText: "取消"
-    };
-    swal(info, function () {
+    if (!taskIds.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+
+    showConfirm("确定删除吗？", "只能删除已发布未领取、等待前置任务的任务！", function () {
       postApi('/task/delete/' + taskType, {'data': {'task_ids': taskIds}}, function () {
         window.location.reload();
       });
@@ -338,7 +326,7 @@
 
   // 批量指派任务
   $('#bat-assign').click(function () {
-    if ($('.task-tr :checked').length === 0) {
+    if (!$('.task-tr :checked').length) {
       showError('请选择任务', '当前没有选中任务。');
       return;
     }

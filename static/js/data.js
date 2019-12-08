@@ -20,28 +20,20 @@ $('#check-all').click(function () {
 
 // 批量删除
 $('#btn-batch-delete').click(function () {
-  var args = {
-    title: "确定批量删除吗？",
-    text: "删除后无法恢复！",
-    type: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#b8906f",
-    confirmButtonText: "确定删除",
-    cancelButtonText: "取消",
-    closeOnConfirm: false
-  };
-  var _ids = [];
-  $("table tbody input:checkbox:checked").each(function () {
-    _ids.push($(this).parents('tr').attr('id'));
+  var _ids = $.map($('table tbody :checked'), function (item) {
+    return $(item).parents('tr').attr('id');
   });
-  swal(args, function () {
+  if (!_ids.length)
+    return showWarning('请选择', '当前没有选中任何记录。');
+
+  showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi('/data/' + data_type + '/delete', {data: {_ids: _ids}}, function () {
       showSuccess('删除成功', '数据已删除。');
       setTimeout(function () {
         window.location.reload();
       }, 1500);
     }, function (err) {
-      showError('修改失败', err.message);
+      showError('删除失败', err.message);
     });
   });
 });
@@ -49,24 +41,14 @@ $('#btn-batch-delete').click(function () {
 // 删除数据
 $('.btn-delete').click(function () {
   var _id = $(this).parents('tr').attr('id');
-  var args = {
-    title: "确定删除吗？",
-    text: "删除后无法恢复！",
-    type: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#b8906f",
-    confirmButtonText: "确定删除",
-    cancelButtonText: "取消",
-    closeOnConfirm: false
-  };
-  swal(args, function () {
+  showConfirm("确定删除吗？", "删除后无法恢复！", function () {
     postApi('/data/' + data_type + '/delete', {data: {_id: _id}}, function () {
       showSuccess('删除成功', '数据已删除。');
       setTimeout(function () {
         window.location.reload();
       }, 1500);
     }, function (err) {
-      showError('修改失败', err.message);
+      showError('删除失败', err.message);
     });
   });
 });
@@ -131,7 +113,7 @@ $('#uploadModal #confirm').click(function () {
 // 搜索
 $('#search-input').on("keydown", function (event) {
   var keyCode = event.keyCode || event.which;
-  if (keyCode ===  13) {
+  if (keyCode === 13) {
     var q = $(this).val().trim();
     window.location = window.location.pathname + (q === '' ? '' : "?q=" + q);
   }

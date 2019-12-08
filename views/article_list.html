@@ -63,7 +63,7 @@
 
                   <tbody>
                   {% for p in articles %}
-                  <tr id="{{p.get('article_id') or str(p['_id'])}}" class="{{'my' if p['author_id'] == currentUserId else ''}}">
+                  <tr id="{{p.get('article_id')}}">
                     <td class="title"><a href="/article/{{p.get('article_id') or str(p['_id'])}}">{{p.get('title') or ''}}</a></td>
                     <td class="category">{{p.get('category') or ''}}</td>
                     <td class="article_id">{{p.get('article_id') or ''}}</td>
@@ -114,8 +114,10 @@
 
   $('.btn-delete').click(function () {
     var id = $(this).parent().parent().attr('id');
-    getApi('/article/delete' + id, function () {
-      window.location.reload();
+    showConfirm("确定删除吗？", "文章" + id + "将被删除！", function () {
+      postApi('/article/delete', {data: {article_id: id}}, function () {
+        window.location.reload();
+      });
     });
   });
 

@@ -94,7 +94,7 @@
                     <td>{{to_date_str(t.get('finished_time'))}}</td>
                     <td>
                       <a class="info" href="/task/info/{{t['_id']}}">详情</a>
-                      <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
+                      <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}')>重新发布</a>
                     </td>
                   </tr>
                   {% end %}
@@ -214,13 +214,8 @@
   });
 
   // 重新发布任务
-  function republish(taskId, docId) {
-    var info = {
-      type: "warning", title: "确定重新发布吗？", text: "任务" + docId + "将被撤回并重新发布！",
-      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定", cancelButtonText: "取消"
-    };
-    swal(info, function () {
+  function republish(taskId) {
+    showConfirm("确定重新发布吗？", "任务将被撤回并重新发布！", function () {
       postApi('/task/republish/' + taskId, {'data': {}}, function () {
         window.location.reload();
       });
@@ -233,16 +228,10 @@
       if ($(item).is(':checked'))
         return $(item).attr('id');
     });
-    if (taskIds.length === 0) {
-      showError('请选择任务', '当前没有选中任务。');
-      return;
-    }
-    var info = {
-      type: "warning", title: "确定删除吗？", text: "只能删除已发布未领取的任务！",
-      showCancelButton: true, closeOnConfirm: true, confirmButtonColor: "#b8906f",
-      confirmButtonText: "确定删除", cancelButtonText: "取消"
-    };
-    swal(info, function () {
+    if (!taskIds.length)
+      return showWarning('请选择任务', '当前没有选中任务。');
+
+    showConfirm("确定删除吗？", "只能删除已发布未领取的任务！", function () {
       postApi('/task/delete/import_image', {'data': {'task_ids': taskIds}}, function () {
         window.location.reload();
       });

@@ -377,6 +377,7 @@
       function xf(v) {
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       }
+
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
       state.hover = null;
@@ -402,7 +403,7 @@
         this.scrollToVisible(el);
         var box = el.getBBox();
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
-           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
+            + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
@@ -530,7 +531,7 @@
           ids.push(b.char_id);
         });
         if (newId && window.swal) {
-          window.swal('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。', 'warning');
+          showTip('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。');
         }
       };
 
@@ -757,7 +758,7 @@
     findCharsByOffset: function (block_no, line_no, offset) {
       for (var i = 0, index = 0; i < data.chars.length; i++) {
         var box = data.chars[i];
-        if (index === offset)
+        if (index + 1 === offset)
           return [box];
         if (box.block_no === block_no && box.line_no === line_no) {
           index++;

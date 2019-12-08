@@ -954,9 +954,17 @@ a.download-template {
   line-height: 24px;
 }
 
-
 #helpModal .intro a {
   color: var(--Color_Brown_Dark);
   text-decoration: underline;
 }
 
+.sweet-alert h2 {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.sweet-alert p {
+  font-size: 16px;
+  font-weight: 400;
+}
