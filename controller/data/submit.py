@@ -33,7 +33,11 @@ class SubmitDataTaskApi(TaskHandler):
         """ 提交OCR任务 """
         now = datetime.now()
         page_name, result, message = task.get('page_name'), task['result'], task.get('message')
-        if task['status'] == 'success':
+        if task['status'] == 'failed' or result.get('status') == 'failed':
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
+                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
+            })
+        else:
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return errors.no_object
@@ -58,10 +62,6 @@ class SubmitDataTaskApi(TaskHandler):
                 'width': width, 'height': height, 'ocr': ocr, 'ocr_col': ocr_col,
                 'chars': chars, 'blocks': blocks, 'columns': columns, 'lock.box': {}}
             })
-        else:
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
-                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
-            })
         return True
 
     def submit_upload_cloud(self, task):
@@ -69,7 +69,10 @@ class SubmitDataTaskApi(TaskHandler):
         now = datetime.now()
         page_name, result, message = task.get('page_name'), task['result'], task.get('message')
         task_update = {'updated_time': now, 'result': result, 'message': message}
-        if task['status'] == 'success':
+        if task['status'] == 'failed' or result.get('status') == 'failed':
+            task_update.update({'status': self.STATUS_FAILED, 'finished_time': now})
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+        else:
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return errors.no_object
@@ -78,19 +81,17 @@ class SubmitDataTaskApi(TaskHandler):
 
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
-        else:
-            task_update.update({'status': self.STATUS_FAILED, 'finished_time': now})
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
         return True
 
     def submit_import_image(self, task):
         """ 提交import_image任务 """
         now = datetime.now()
         result, message = task.get('result'), task.get('message')
-        if task['status'] == 'success':
-            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
-            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-        else:
+        if task['status'] == 'failed' or result.get('status') == 'failed':
             task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+        else:
+            task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
+            self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
+
         return True
