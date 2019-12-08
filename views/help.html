@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <title>帮助中心</title>
@@ -10,23 +9,33 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .help {
+      margin: 25px;
+    }
+    .help ul{
+      list-style-type: disc
+    }
+  </style>
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
-    {% module CommonLeft(title="index") %}
+    {% module CommonLeft(title="help") %}
     <div class="main-content">
       {% module CommonHead() %}
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
             <div class="wrapper">
-              <div class="collate-list">
-
-
+              <div class="collate-list help">
+                {% for a in articles %}
+                <ul>
+                  <li><a href="/article/{{a['article_id']}}">{{a['title']}}</a></li>
+                </ul>
+                {% end %}
               </div>
-              {% module Pager(pager) %}
             </div>
           </div>
         </div>
@@ -35,38 +44,6 @@
   </div>
 </div>
 {% include _base_js.html %}
-
-<script>
-  $(".sort").click(function () {
-    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
-    window.location = location.pathname + "?order=" + direction + $(this).attr('id');
-  });
-
-  $('#search-input').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      var q = $(this).val().trim();
-      location = location.pathname + (q === '' ? '' : "?q=" + q);
-    }
-  });
-
-  $('#btn-add-article').click(function () {
-    window.location = '/article/edit/new';
-  });
-
-  $('.btn-update').click(function () {
-    var id = $(this).parent().parent().attr('id');
-    window.location = '/article/edit/' + id;
-  });
-
-  $('.btn-delete').click(function () {
-    var $tr = $(this).parent().parent();
-    var id = $tr.attr('id');
-    getApi('/article/' + ($tr.hasClass('my') ? 'del_my/' : 'delete/') + id, function () {
-      window.location.reload();
-    });
-  });
-
-</script>
 </body>
+
 </html>

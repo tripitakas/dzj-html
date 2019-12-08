@@ -31,7 +31,7 @@ class ListArticleHandler(BaseHandler):
             cur_page = max_page if max_page and max_page < cur_page else cur_page
             articles = list(query.skip((cur_page - 1) * page_size).limit(page_size))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('article.html', q=q, articles=articles, pager=pager, order=order)
+            self.render('article_list.html', q=q, articles=articles, pager=pager, order=order)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
