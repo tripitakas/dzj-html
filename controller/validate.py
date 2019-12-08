@@ -221,6 +221,16 @@ def is_page(**kw):
         return {k: e.invalid_reel_code}
 
 
+def is_article(**kw):
+    """ 检查是否为文章编码。"""
+    assert len(kw) == 1
+    k, v = list(kw.items())[0]
+    regex = r'^[^/]{6,}$'
+    # 值为空或空串时跳过而不检查
+    if v and not re.match(regex, str(v)):
+        return {k: e.invalid_article_id}
+
+
 def is_digit(**kw):
     """ 检查是否为数字。"""
     code, message = e.invalid_digit

@@ -46,7 +46,7 @@ class SaveArticleApi(BaseHandler):
         try:
             data = self.get_request_data()
             fields = ['title', 'article_id', 'category', 'active', 'content'] + (['_id'] if mode == 'update' else [])
-            rules = [(v.not_empty, *fields)]
+            rules = [(v.not_empty, *fields), (v.is_article, 'article_id')]
             errs = v.validate(data, rules)
             if errs:
                 return self.send_error_response(errs)

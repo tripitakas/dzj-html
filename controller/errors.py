@@ -32,6 +32,7 @@ invalid_tripitaka_code = 1019, '藏编码格式有误'
 invalid_volume_code = 1020, '册编码格式有误'
 invalid_sutra_code = 1021, '经编码格式有误'
 invalid_reel_code = 1022, '卷编码格式有误'
+invalid_article_id = 1023, '文章id格式有误'
 
 no_object = 2000, '对象不存在'
 no_user = 2001, '用户不存在'
