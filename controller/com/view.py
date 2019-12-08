@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 首页
 @time: 2018/6/23
 """
-
+import math
 from datetime import datetime
 from operator import itemgetter
 from controller.base import BaseHandler
+from controller.helper import get_date_time
 from controller.task.base import TaskHandler
 from controller.task.view import MyTaskHandler
-from controller.helper import get_date_time
 
 
 class HomeHandler(TaskHandler):
@@ -95,3 +94,32 @@ class HomeHandler(TaskHandler):
 
         except Exception as e:
             self.send_db_error(e, render=True)
+
+
+class HelpHandler(BaseHandler):
+    URL = '/help'
+
+    def get(self):
+        """ 帮助中心"""
+        try:
+            q = self.get_query_argument('q', '')
+            order = self.get_query_argument('order', '-_id')
+            condition = {'deleted': self.get_query_argument('deleted', None) and True}
+            if q:
+                condition['$or'] = [{f: {'$regex': '.*%s.*' % q}} for f in ['title', 'content']]
+            query = self.db.article.find(condition)
+            if order:
+                o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+                query.sort(o, asc)
+
+            page_size = int(self.config['pager']['page_size'])
+            cur_page = int(self.get_query_argument('page', 1))
+            item_count = self.db.article.count_documents(condition)
+            max_page = math.ceil(item_count / page_size)
+            cur_page = max_page if max_page and max_page < cur_page else cur_page
+            articles = list(query.skip((cur_page - 1) * page_size).limit(page_size))
+
+            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+            self.render('help.html', q=q, articles=articles, pager=pager, order=order)
+        except Exception as e:
+            return self.send_db_error(e, render=True)

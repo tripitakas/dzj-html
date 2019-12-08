@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as Th %}
+<html lang="zh-CN">
+<head>
+  <title>文章管理</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('css/home.css') }}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+  <style>
+    td.title a {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module CommonLeft(title="index") %}
+    <div class="main-content">
+      {% module CommonHead() %}
+      <div class="single-page-con">
+        <div class="layout">
+          <div class="layout-content">
+            <div class="collate-history">
+              <div class="wrapper">
+                <div class="collate-list">
+                  <div class="operation">
+                    <button class="btn btn-default waves-effect" id="btn-add">新建文章</button>
+                  </div>
+                  <div class="search fr">
+                    <input id="search-input" type="text" placeholder="搜索标题或内容">
+                    <i class="ser-btn"></i>
+                  </div>
+                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                    <thead>
+                    <tr>
+                      <th><span class="sort {{'active' if order in ['-title', 'title'] else ''}}">
+                          标题<span class="ion-arrow-down-b {{'toggle' if order == 'title' else ''}}"></span>
+                      </span></th>
+                      <th><span class="sort {{'active' if order in ['-category', 'category'] else ''}}">
+                          分类<span class="ion-arrow-down-b {{'toggle' if order == 'category' else ''}}"></span>
+                      </span></th>
+                      <th><span class="sort {{'active' if order in ['-article_id', 'article_id'] else ''}}">
+                          标识<span class="ion-arrow-down-b {{'toggle' if order == 'article_id' else ''}}"></span>
+                      </span></th>
+                      <th><span class="sort {{'active' if order in ['-author_name', 'author_name'] else ''}}">
+                          作者<span class="ion-arrow-down-b {{'toggle' if order == 'author_name' else ''}}"></span>
+                      </span></th>
+                      <th><span class="sort {{'active' if order in ['-create_time', 'create_time'] else ''}}">
+                          创建时间<span class="ion-arrow-down-b {{'toggle' if order == 'create_time' else ''}}"></span>
+                      </span></th>
+                      <th><span>操作</span></th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    {% for p in articles %}
+                    <tr id="{{p.get('article_id') or str(p['_id'])}}" class="{{'my' if p['author_id'] == currentUserId else ''}}">
+                      <td class="title"><a href="/article/{{p.get('article_id') or str(p['_id'])}}">{{p.get('title') or ''}}</a></td>
+                      <td class="category">{{p.get('category') or ''}}</td>
+                      <td class="article_id">{{p.get('article_id') or ''}}</td>
+                      <td class="author_name">{{p.get('author_name') or ''}}</td>
+                      <td class="create_time">{{to_date_str(p.get('create_time'))}}</td>
+                      <td>
+                        <a class="btn-update">修改</a>
+                        <a class="btn-delete">删除</a>
+                      </td>
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
+                {% module Pager(pager) %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% include _base_js.html %}
+
+<script>
+  $(".sort").click(function () {
+    var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+    window.location = location.pathname + "?order=" + direction + $(this).attr('id');
+  });
+
+  $('#search-input').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var q = $(this).val().trim();
+      location = location.pathname + (q === '' ? '' : "?q=" + q);
+    }
+  });
+
+  $('#btn-add').click(function () {
+    window.location = '/article/add';
+  });
+
+  $('.btn-update').click(function () {
+    var id = $(this).parent().parent().attr('id');
+    window.location = '/article/update/' + id;
+  });
+
+  $('.btn-delete').click(function () {
+    var id = $(this).parent().parent().attr('id');
+    getApi('/article/delete' + id, function () {
+      window.location.reload();
+    });
+  });
+
+</script>
+</body>
+</html>

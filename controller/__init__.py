@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from controller import com, cut, data, task, text, tool, user, article, admin
 from controller.com import invalid
-from controller import com, cut, data, task, text, tool, user, article
 
-views = com.views + cut.views + data.views + tool.views + article.views
-views += task.views + text.views + user.views
+views = com.views + cut.views + data.views + tool.views + task.views
+views += text.views + user.views + article.views + admin.views
 
-handlers = com.handlers + cut.handlers + data.handlers + tool.handlers
-handlers += task.handlers + text.handlers + user.handlers + article.handlers
-handlers += [invalid.ApiTable, invalid.ApiSourceHandler]
+handlers = com.handlers + cut.handlers + data.handlers + tool.handlers + task.handlers
+handlers += text.handlers + user.handlers + article.handlers + admin.handlers
 
 modules = dict(com.modules.items() | text.modules.items())
 

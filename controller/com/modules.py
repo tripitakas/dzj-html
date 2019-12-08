@@ -20,7 +20,7 @@ class CommonLeft(UIModule):
 
         items = [
             dict(name='首页', icon='icon_home', link='/home'),
-            dict(name='大藏经', icon='icon_tripitaka', link='/tripitakas'),
+            dict(name='大藏经', icon='icon_tripitaka', link='/tripitaka/list'),
             dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
                 dict(name='切分校对', icon='icon_subitem', link='/task/lobby/cut_proof'),
                 dict(name='切分审定', icon='icon_subitem', link='/task/lobby/cut_review'),
@@ -58,6 +58,8 @@ class CommonLeft(UIModule):
                 dict(name='授权管理', icon='icon_subitem', link='/user/role'),
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
+            dict(name='文章管理', icon='icon_article', link='/article/list'),
+            dict(name='系统管理', icon='icon_admin', link='/admin'),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),

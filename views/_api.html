@@ -16,11 +16,12 @@
 
     a {
       text-decoration: none;
-      color: #335;
+      cursor: pointer;
+      color: #B8906F;
     }
 
     a:hover {
-      color: #00f;
+      color: #b33c2b;
     }
   </style>
 </head>
@@ -29,7 +30,7 @@
 
 <h3>{{site['description']}}接口</h3>
 <p>版本：{{version}}</p>
-<table align="center">
+<table style="text-align: left">
   <tr>
     <th>序号</th>
     <th>接口地址</th>
@@ -39,7 +40,7 @@
   </tr>
   {% for i, (url, func, repeat, file, comment, auth) in enumerate(handlers) %}
   <tr>
-    <td>{{1 + i}}</td>
+    <td style="width: 50px">{{1 + i}}</td>
     <td>{{url}}</td>
     <td><a href="/api/code/{{func}}" title="{{file}}">{{func}}{{' (%d)' % repeat if repeat else ''}}</a></td>
     <td>{{comment}}</td>

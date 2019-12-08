@@ -9,7 +9,7 @@ function initEditor(id, html) {
       if (html) {
         this.setContent(html);
       }
-      else if (id !== 'editor1') {
+      else if (id !== 'content-editor') {
         this.focus();
       }
       $(this.container).css('z-index', 0);

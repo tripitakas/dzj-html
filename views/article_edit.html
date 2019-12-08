@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <title>{{'新建文章' if len(article_id) < 9 else '文章编辑'}}</title>
+  {% set title = '更新文章' if article_id else '新建文章' %}
+  <title>{{title}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <!--[if lt IE 9]>
@@ -12,7 +13,58 @@
 
 <style>
   .content {
-    margin: 60px 20px 10px;
+    max-width: 1024px;
+    margin: 45px auto 0;
+  }
+
+  .item {
+    margin: 10px 0;
+    display: flex;
+  }
+
+  .item label {
+    flex: 1;
+    max-width: 70px;
+    font-size: 1em;
+    font-weight: 400;
+    line-height: 30px;
+  }
+
+  .item .control {
+    flex: 1;
+    margin-right: 40px;
+  }
+
+  .m-header {
+    z-index: 1001;
+  }
+
+  #content-editor {
+    max-width: 100%;
+    min-width: 100%;
+    height: 600px;
+    overflow: auto;
+    padding-bottom: 20px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  h2 {
+    font-size: 1.4em;
+  }
+
+  h3 {
+    font-size: 1.3em;
+  }
+
+  h4 {
+    font-size: 1.2em;
+  }
+
+  h5 {
+    font-size: 1.1em;
   }
 </style>
 
@@ -21,53 +73,53 @@
   <div class="main">
     <header class="m-header">
       <div class="back">
-        <a href="/help">
-          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
-        </a>
+        <a href="/article/list"><img src="{{ static_url('imgs/home.png') }}" class="btn-img"/></a>
       </div>
-      <div class="title">{{'新建文章' if len(article_id) < 9 else '文章编辑'}}</div>
-      <input type="text" id="title" class="form-control" placeholder="文章标题"
-             style="display: inline-block; width: calc(100% - 220px); margin: 3px 0 0 15px;" value="{{article.get('title') or ''}}">
-      <div class="right" style="margin: 2px 8px">
-      </div>
+      <div class="title">{{title}}</div>
+      <div class="btn-group right">
+        <img src="{{ static_url('imgs/icon_preview.png') }}" class="btn-img" id="btn-preview" title="预览"/>
+        <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img" id="btn-submit" title="保存"/>
+      </div><!--right-->
     </header>
     <div class="content">
-      <div>
-        <script class="editor" id="editor1" type="text/plain" style="width: 100%;max-width: 800px;min-height: 100px;"></script>
+      <div class="item">
+        <input type="text" id="article-title" class="form-control" placeholder="文章标题" value="{{article.get('title') or ''}}">
       </div>
-      <div style="margin-top: 10px">
-        <div class="row">
-          <div class="col-sm-4">
-            <div class="input-group">
-              <span class="input-group-addon" id="basic-addon1">文章分类</span>
-              <input type="text" id="category" class="form-control" value="{{article.get('category') or ''}}"
-                  placeholder="文章分类" aria-describedby="basic-addon1">
-            </div>
-          </div>
-
-          <div class="col-sm-8">
-            <div class="input-group">
-              <span class="input-group-addon" id="basic-addon2">文章标识</span>
-              <input type="text" id="article_id" class="form-control" value="{{article.get('article_id') or ''}}"
-                  placeholder="可选标识，必须有减号，由小写字母、数字或-组成，字母开头" aria-describedby="basic-addon2">
-            </div>
-          </div>
-        </div><!-- /.row -->
-
-        <div class="text-right" style="margin-top: 10px">
-          <button type="button" class="btn btn-default" id="btn-preview">预览</button>
-          <button type="button" class="btn btn-primary" id="btn-submit">保存</button>
+      <div class="item">
+        <script class="editor" id="content-editor" type="text/plain" style="width: 100%;max-width: 800px;min-height: 100px;"></script>
+      </div>
+      <div class="item">
+        <label>文章标识</label>
+        <div class="control">
+          <input type="text" class="form-control" id="article-id" value="{{article.get('article_id') or ''}}">
+        </div>
+        <label>文章分类</label>
+        <div class="control" style="max-width: 100px">
+          <select class="form-control" id="article-category">
+            <option value="帮助" {{
+            'selected' if article.get('category') == '帮助' else ''}}>帮助</option>
+            <option value="通知" {{
+            'selected' if article.get('category') == '通知' else ''}}>通知</option>
+          </select>
+        </div>
+        <label>是否发布</label>
+        <div class="control" style="max-width: 65px; margin-right: 0">
+          <select class="form-control" id="article-active">
+            <option value="是" {{
+            'selected' if article.get('active') == '是' else ''}}>是</option>
+            <option value="否" {{
+            'selected' if article.get('active') == '否' else ''}}>否</option>
+          </select>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 {% include _base_js.html %}
 
 <!-- UM Editor -->
-<link href="{{ static_url('editor/themes/default/_css/umeditor.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ static_url('editor/themes/default/_css/umeditor.css') }}" rel="stylesheet" type="text/css"/>
 <script src="{{ static_url('editor/third-party/template.min.js') }}"></script>
 <script src="{{ static_url('editor/editor.config.js') }}"></script>
 <script src="{{ static_url('editor/editor.api.js') }}"></script>
@@ -76,26 +128,36 @@
 
 <!-- CUSTOM JS -->
 <script>
-  var id = '{{article_id}}';
+  var article_id = '{{article_id}}';
+  var _id = '{{article.get("_id") or ""}}';
   var $preview = $('#btn-preview');
-  initEditor('editor1', decodeJSON('{{article.get("content") or ""}}', true));
+  initEditor('content-editor', decodeJSON('{{article.get("content") or ""}}', true));
   $('#btn-submit').on('click', function () {
-    var content = UM.getEditor('editor1').getContent();
-    postApi('/article/save/' + id,
-        {data: {title: $('#title').val(), category: $('#category').val(),
-                article_id: $('#article_id').val(), content: content}},
-        function (data) {
-          id = data.id;
-          $preview.show();
-          showSuccess(data.modified === 0 ? '没有改变' : '保存成功')
-        });
+    var url = article_id ? '/article/update/' + article_id : '/article/add';
+    var data = {
+      _id: _id, article_id: $('#article-id').val(), title: $('#article-title').val(),
+      category: $('#article-category').val(), active: $('#article-active').val(),
+      content: UM.getEditor('content-editor').getContent()
+    };
+    postApi(url, {data: data}, function (res) {
+      article_id = res.article_id;
+      $preview.show();
+      showSuccess('保存成功')
+    });
   });
-  $preview.toggle(id.length > 10);
+
   $preview.click(function () {
-    if (id.length > 10) {
-      window.location = '/article/' + id;
-    }
+    window.location = '/article/' + article_id;
   });
+
+  // 设置编辑器高度
+  $(document).ready(function () {
+    $("#content-editor").height($(document.body).height() - 200);
+  });
+  $(window).resize(function () {
+    $("#content-editor").height($(document.body).height() - 200);
+  });
+
 </script>
 
 </body>

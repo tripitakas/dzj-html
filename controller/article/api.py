@@ -3,31 +3,28 @@
 """
 @time: 2019/11/17
 """
-import hashlib
 import os
 import re
+import hashlib
 from PIL import Image
 from datetime import datetime
 from bson.objectid import ObjectId
-from controller.base import BaseHandler, DbError
 from controller import errors
-from controller.helper import get_date_time
 import controller.validate as v
+from controller.helper import get_date_time
+from controller.base import BaseHandler, DbError
 
 
 class DeleteArticleApi(BaseHandler):
-    URL = ['/api/article/delete/@article_id',
-           '/api/article/del_my/@article_id']
+    URL = '/api/article/delete/@article_id'
 
     def get(self, article_id):
-        """删除文章"""
+        """ 删除文章"""
         try:
-            cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
-            article = self.db.article.find_one(cond)
-
+            article = self.db.article.find_one({'article_id': article_id})
             if not article:
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
-            self.db.article.update_one({'_id': article['_id']}, {'$set': dict(deleted=True)})
+            self.db.article.delete_one({'_id': article['_id']})
             self.add_op_log('delete_article', target_id=article['_id'], context=article['title'])
             self.send_data_response()
 
@@ -36,70 +33,55 @@ class DeleteArticleApi(BaseHandler):
 
 
 class SaveArticleApi(BaseHandler):
-    URL = '/api/article/save/@article_id'
+    URL = ['/api/article/add', '/api/article/update/@article_id']
 
-    def post(self, article_id):
-        """保存文章"""
+    def post(self, article_id=None):
+        """ 保存文章"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'title', 'category', 'content')]
-            err = v.validate(data, rules)
-            if err:
-                return self.send_error_response(err)
+            rules = [(v.not_empty, 'title', 'category', 'active', 'content')]
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
 
-            info = dict(title=data['title'].strip(), category=data['category'].strip(),
-                        content=data['content'].strip(),
-                        images=re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content']))
+            images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content'])
+            info = dict(title=data['title'].strip(), category=data['category'].strip(), active=data['active'].strip(),
+                        content=data['content'].strip(), article_id=article_id, images=images,
+                        updated_time=datetime.now(), updated_by=self.current_user['name'])
 
-            article = len(article_id) > 3
-            if article:
-                cond = {'article_id': article_id} if '-' in article_id else {'_id': ObjectId(article_id)}
-                article = self.db.article.find_one(cond)
-                if article is None and '_id' in cond:
+            if article_id:
+                article = self.db.article.find_one({'article_id': article_id})
+                if not article:
                     return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
-
-            if data.get('article_id'):
-                if article and article.get('article_id') != data['article_id']:
-                    if not re.match(r'^[a-z]+-[-\w]+$', data['article_id']):
-                        return self.send_error_response(errors.invalid_digit, message='文章标识格式错误')
-                    if self.db.article.find_one({'article_id': data['article_id']}):
-                        return self.send_error_response(errors.record_existed, message='文章标识已被占用')
-                info['article_id'] = data['article_id']
-
-            if article:
-                r = self.db.article.update_one({'_id': article['_id']}, {'$set': info})
-                info['id'] = str(article['_id'])
-                info['modified'] = r.modified_count
-                if r.modified_count:
-                    self.db.article.update_one({'_id': article['_id']}, {'$set': dict(
-                        updated_time=datetime.now(), updated_by=self.current_user['name'])})
-                    self.add_op_log('save_article', target_id=article['_id'], context=info['title'])
+                if str(article['_id']) != data['_id']:
+                    return self.send_error_response(errors.record_existed, message='文章标识已被占用')
+                self.db.article.update_one({'article_id': article_id}, {'$set': info})
+                self.add_op_log('update_article', target_id=article['_id'], context=info['title'])
             else:
-                info.update(dict(create_time=datetime.now(),
-                                 author_id=self.current_user['_id'],
+                info.update(dict(create_time=datetime.now(), author_id=self.current_user['_id'],
                                  author_name=self.current_user['name']))
-                if '-' in article_id:
-                    info['article_id'] = article_id
                 r = self.db.article.insert_one(info)
-                info['id'] = str(r.inserted_id)
                 self.add_op_log('add_article', target_id=r.inserted_id, context=info['title'])
+                info['_id'] = str(r.inserted_id)
 
-            info.pop('content')
+            info.pop('content', 0)
             self.send_data_response(info)
 
         except DbError as e:
             self.send_db_error(e)
 
 
-class UploadImageHandler(BaseHandler):
+class UploadImageApi(BaseHandler):
     URL = '/php/imageUp.php'
 
     def post(self):
-        """ 编辑器中的图片上传 """
+        """ 编辑器中的图片上传
+        url参数和返回值要适配editor
+        """
         assert self.request.files and self.request.files['upfile']
         file = self.request.files['upfile'][0]
         if len(file['body']) > 1024 * 1024:
-            return self.send_error(errors.upload_fail, reason='文件大小超出 1MB 限制')
+            return self.send_error(errors.upload_fail, reason='文件不允许超过1MB')
 
         date = get_date_time()
         folder = date[:7].replace('-', 'p')

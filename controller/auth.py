@@ -48,8 +48,6 @@ role_route_maps = {
         'is_assignable': False,
         'remark': '任何人都可访问，无需登录',
         'routes': {
-            '/api': ['GET'],
-            '/api/code/(.+)': ['GET'],
             '/user/(login|register)': ['GET'],
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             '/api/user/forget_pwd': ['POST'],
@@ -64,8 +62,7 @@ role_route_maps = {
             '/(home|help)': ['GET'],
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
-            '/tripitakas': ['GET'],
-            '/tripitaka/rs': ['GET'],
+            '/tripitaka/list': ['GET'],
             '/page/@page_code': ['GET'],
             '/tool/punctuate': ['GET'],
             '/api/tool/punctuate': ['POST'],
@@ -73,10 +70,6 @@ role_route_maps = {
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-            '/article/edit/@article_id': ['GET'],
-            '/api/article/save/@article_id': ['POST'],
-            '/api/article/del_my/@article_id': ['GET'],
-            '/php/imageUp.php': ['POST'],
         }
     },
     '切分校对员': {
@@ -186,10 +179,24 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@collection': ['GET'],
+            '/api/data/gen_js': ['POST'],
             '/api/data/@collection': ['POST'],
             '/api/data/@collection/delete': ['POST'],
+        }
+    },
+    '系统管理员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api': ['GET'],
+            '/api/code/(.+)': ['GET'],
+            '/article/list': ['GET'],
+            '/article/add': ['GET'],
+            '/api/article/add': ['POST'],
+            '/article/update/@article_id': ['GET'],
+            '/api/article/update/@article_id': ['POST'],
             '/api/article/delete/@article_id': ['GET'],
-            '/api/data/gen_js': ['POST'],
+            '/php/imageUp.php': ['POST'],
         }
     },
     '用户管理员': {
