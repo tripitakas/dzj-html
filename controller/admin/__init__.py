@@ -4,7 +4,7 @@
 from . import view, api
 
 views = [
-    view.ApiTable, view.ApiSourceHandler
+    view.ApiTableHandler, view.ApiSourceHandler, view.AdminScriptHandler
 ]
 
 handlers = [

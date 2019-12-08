@@ -20,8 +20,8 @@
 
 <style>
   .content-pages {
-    text-overflow: ellipsis
     width: 100px;
+    text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
   }
@@ -41,7 +41,6 @@
               <div class="collate-list">
                 <div class="operation">
                   <span id="btn-batch-delete">批量删除</span>
-                  <span data-toggle="modal" data-target="#jsModal">生成JS</span>
                   <span><a class="download-template" href="/static/template/volume-sample.csv">下载模板</a></span>
                   <div class="btn-group dropdown">
                     <button type="button" class="btn btn-default waves-effect">新增册</button>
@@ -292,21 +291,6 @@
     });
     $('#updateModal').modal('hide');
   });
-
-  // 生成JS
-  $("#js-modal-confirm").click(function () {
-    var data = {collection: 'volume', tripitaka_code: $('#select-tripitaka option:selected').attr('title')};
-    postApi('/data/gen_js', {data: data}, function (res) {
-      showSuccess('成功', '数据已提交。');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1500);
-    }, function (error) {
-      return showError('提交失败', error.message);
-    });
-    $('#updateModal').modal('hide');
-  });
-
 
 </script>
 

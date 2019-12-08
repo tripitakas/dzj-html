@@ -5,15 +5,22 @@
 """
 import re
 import inspect
-import logging
-from os import path
 from operator import itemgetter
-from tornado.web import RequestHandler
-from controller.task.base import TaskHandler
+from controller.base import BaseHandler
 from controller.auth import get_route_roles
+from controller.task.base import TaskHandler
 
 
-class ApiTable(TaskHandler):
+class AdminScriptHandler(BaseHandler):
+    URL = '/admin/script'
+
+    def get(self):
+        """ 系统脚本管理"""
+        tripitakas = ['所有'] + self.db.tripitaka.find().distinct('tripitaka_code')
+        self.render('admin_script.html', tripitakas=tripitakas)
+
+
+class ApiTableHandler(TaskHandler):
     URL = '/api'
 
     def get(self):

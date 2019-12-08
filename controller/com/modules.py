@@ -58,8 +58,10 @@ class CommonLeft(UIModule):
                 dict(name='授权管理', icon='icon_subitem', link='/user/role'),
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
-            dict(name='文章管理', icon='icon_article', link='/article/list'),
-            dict(name='系统管理', icon='icon_admin', link='/admin'),
+            dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
+                dict(name='文章管理', icon='icon_subitem', link='/article/list'),
+                dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
+            ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),

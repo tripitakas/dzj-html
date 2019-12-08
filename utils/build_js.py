@@ -9,13 +9,21 @@ from functools import cmp_to_key
 from operator import itemgetter
 
 
+def build_js(db, collection, tripitaka=None):
+    if collection == 'volume':
+        return build_volume_js(db, tripitaka)
+    if collection == 'sutra':
+        return build_sutra_js(db, tripitaka)
+
+
 def get_volume_tree(volumes, store_pattern):
+    if not volumes:
+        return []
     if len(store_pattern.split('_')) == 4:
         volume_dict = dict()
         for item in volumes:
             envelop_no = int(item['envelop_no'])
-            volume_no = '{0} {1}'.format(item['volume_no'], item['remark'].split(' ')[-1]) if item.get(
-                'remark') else int(item['volume_no'])
+            volume_no = int(item['volume_no'])
             if envelop_no in volume_dict:
                 volume_dict[envelop_no].append(volume_no)
                 volume_dict[envelop_no].sort()
@@ -28,23 +36,16 @@ def get_volume_tree(volumes, store_pattern):
     return volume_tree
 
 
-def build_js(db, collection, tripitaka=None):
-    if collection == 'volume':
-        return build_volume_js(db, tripitaka)
-    if collection == 'sutra':
-        return build_sutra_js(db, tripitaka)
-
-
 def build_volume_js(db, tripitaka=None):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = [tripitaka] if tripitaka else db.tripitaka.find({'img_available': '是'})
+    if tripitaka:
+        tripitaka = db.tripitaka.find_one({'tripitaka_code': tripitaka})
+    tripitakas = [tripitaka] if tripitaka else db.tripitaka.find({})
     for t in tripitakas:
         print('generating %s-volume.js ...' % t.get('tripitaka_code'))
         volumes = list(db.volume.find({'tripitaka_code': t['tripitaka_code']})
                        .sort([('envelop_no', 1), ('volume_no', 1)]))
-        if not volumes:
-            continue
         volume_tree = get_volume_tree(volumes, t['store_pattern'])
         js_file = path.join(js_dir, '%s-volume.js' % t['tripitaka_code'])
         with open(js_file, 'w', encoding='utf-8') as fp:
@@ -65,7 +66,7 @@ def build_volume_js(db, tripitaka=None):
 def build_sutra_js(db, tripitaka=None):
     base_dir = path.dirname(path.dirname(path.realpath(__file__)))
     js_dir = path.join(base_dir, 'static', 'js', 'meta')
-    tripitakas = set(r[:2] for r in db.sutra.find().distinct('sutra_code')) if not tripitaka else [tripitaka]
+    tripitakas = db.tripitaka.find().distinct('tripitaka_code') if not tripitaka else [tripitaka]
     for t in tripitakas:
         print('generating %s-sutra.js ...' % t)
         fields = dict(sutra_code=1, sutra_name=1, due_reel_count=1, existed_reel_count=1, start_volume=1, start_page=1,

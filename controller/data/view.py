@@ -120,9 +120,8 @@ class DataVolumeHandler(BaseHandler):
             cur_page = max_page if max_page and max_page < cur_page else cur_page
             query = self.db.volume.find(condition)
             volumes = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            tripitakas = ['所有'] + self.db.volume.find().distinct('tripitaka_code')
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_volume.html', q=q, volumes=volumes, tripitakas=tripitakas, pager=pager)
+            self.render('data_volume.html', q=q, volumes=volumes, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
@@ -147,9 +146,8 @@ class DataSutraHandler(BaseHandler):
             cur_page = max_page if max_page and max_page < cur_page else cur_page
             query = self.db.sutra.find(condition)
             sutras = list(query.sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            tripitakas = ['所有'] + list(set(r[:2] for r in self.db.sutra.find().distinct('sutra_code')))
             pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('data_sutra.html', q=q, sutras=sutras, tripitakas=tripitakas, pager=pager)
+            self.render('data_sutra.html', q=q, sutras=sutras, pager=pager)
 
         except Exception as e:
             return self.send_db_error(e, render=True)
