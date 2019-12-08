@@ -54,15 +54,11 @@ class HomeHandler(TaskHandler):
             user_id = self.current_user['_id']
             today_begin = datetime.strptime(get_date_time('%Y-%m-%d'), '%Y-%m-%d')
             visit_count = self.db.log.count_documents({
-                'create_time': {'$gte': today_begin},
-                'user_id': user_id, 'op_type': 'visit'
-            })
+                'create_time': {'$gte': today_begin}, 'user_id': user_id, 'op_type': 'visit'})
 
             # 最后登录时间
-            r = list(self.db.log.find(
-                {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
-                {'create_time': 1}
-            ).sort('create_time', -1).limit(2))
+            r = list(self.db.log.find({'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}},
+                                      {'create_time': 1}).sort('create_time', -1).limit(2))
             last_login = get_date_time(date_time=r[0]['create_time'] if r else None)
 
             # 已完成任务
@@ -71,8 +67,8 @@ class HomeHandler(TaskHandler):
             unfinished_count = len([t for t in my_latest_tasks if t['status'] == self.STATUS_PICKED])
 
             # 最新动态
-            fields = ['task_type', 'doc_id', 'status', 'picked_time', 'finished_time', 'picked_by', 'picked_user_id']
-            fields = {k: 1 for k in fields}
+            fields = {k: 1 for k in ['task_type', 'doc_id', 'status', 'picked_time', 'finished_time',
+                                     'picked_by', 'picked_user_id']}
             task_types = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_2', 'text_proof_3',
                           'text_review', 'text_hard']
             statuses = [self.STATUS_PICKED, self.STATUS_FINISHED]
@@ -86,11 +82,14 @@ class HomeHandler(TaskHandler):
             month_tasks = list(self.db.task.find(condition, fields))
             month_star = get_month_star()
 
+            # 通知公告
+            articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
+
             self.render('home.html', version=self.application.version, get_task_info=get_task_info,
                         time_slot=get_time_slot(), visit_count=visit_count + 1, last_login=last_login,
                         my_latest_tasks=my_latest_tasks[:4], my_task_count=my_task_count,
                         unfinished_count=unfinished_count, latest_tasks=latest_tasks,
-                        month_star=month_star)
+                        month_star=month_star, articles=articles)
 
         except Exception as e:
             self.send_db_error(e, render=True)
@@ -104,5 +103,17 @@ class HelpHandler(BaseHandler):
         try:
             articles = list(self.db.article.find({'category': '帮助', 'active': '是'}, {'content': 0}))
             self.render('help.html', articles=articles)
+        except Exception as e:
+            return self.send_db_error(e, render=True)
+
+
+class AnnounceHandler(BaseHandler):
+    URL = '/announce'
+
+    def get(self):
+        """ 通知中心"""
+        try:
+            articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
+            self.render('announce.html', articles=articles)
         except Exception as e:
             return self.send_db_error(e, render=True)

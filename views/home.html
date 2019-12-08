@@ -121,16 +121,13 @@
                 </div>
                 <div class="item">
                   <p class="other"><img src="{{ static_url('imgs/lotus.png') }}" alt=""></p>
-                  <p class="tit"><img src="{{ static_url('imgs/share.png') }}" alt=""></p>
+                  <p class="tit"><img src="{{ static_url('imgs/announce.png') }}" alt=""></p>
+                  {% for a in articles %}
                   <ul>
-                    <li><span>切分校对工具使用的一点心得</span></li>
-                    <li><span>文字校对中的生僻字处理办法</span></li>
-                    <li><span>切分校对工具使用的一点心得</span></li>
-                    <li><span>文字校对中的生僻字处理办法</span></li>
-                    <li><span>切分校对工具使用的一点心得</span></li>
-                    <li><span>文字校对中的生僻字处理办法</span></li>
+                    <li><a href="/article/{{a['article_id']}}">{{a['title']}}</a></li>
                   </ul>
-                  <p class="more"><a href="/help">更多</a></p>
+                  {% end %}
+                  <p class="more"><a href="/announce">更多</a></p>
                 </div>
               </div>
             </div>
