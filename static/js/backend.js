@@ -40,7 +40,7 @@ function showConfirm(title, text, func) {
 }
 
 function showTip(title, text) {
-  swal({title: title, text: text, showConfirmButton: false, allowOutsideClick: true});
+  swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
 }
 
 /**
