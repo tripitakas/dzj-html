@@ -697,7 +697,8 @@
     canRedo: undoData.canRedo.bind(undoData),
 
     _changeBox: function (src, dst) {
-      if (!dst) {
+      var box = dst && dst.getBBox();
+      if (!box) {
         return;
       }
 
@@ -709,6 +710,8 @@
           info.char_id = 'new' + i;
           if (!this.findCharById(info.char_id)) {
             data.chars.push(info);
+            info.w = box.width;
+            info.h = box.height;  // for exportBoxes
             break;
           }
         }
@@ -865,7 +868,7 @@
           }
         }
         info.shape = null;
-        info.w = info.h = 0;
+        info.w = info.h = 0;  // for exportBoxes
         el.remove();
         undoData.change();
         notifyChanged(el, 'removed');
