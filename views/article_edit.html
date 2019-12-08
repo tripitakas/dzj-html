@@ -133,21 +133,22 @@
   var $preview = $('#btn-preview');
   initEditor('content-editor', decodeJSON('{{article.get("content") or ""}}', true));
   $('#btn-submit').on('click', function () {
-    var url = article_id ? '/article/update/' + article_id : '/article/add';
+    var url = article_id ? '/article/update' : '/article/add';
     var data = {
       _id: _id, article_id: $('#article-id').val(), title: $('#article-title').val(),
       category: $('#article-category').val(), active: $('#article-active').val(),
       content: UM.getEditor('content-editor').getContent()
     };
-    postApi(url, {data: data}, function (res) {
-      article_id = res.article_id;
-      $preview.show();
-      showSuccess('保存成功')
+    postApi(url, {data: data}, function () {
+      window.location = '/article/update/' + $('#article-id').val();
     });
   });
 
   $preview.click(function () {
-    window.location = '/article/' + article_id;
+    if (!article_id)
+      return showError('提示', '请先保存文章');
+    else
+      window.location = '/article/' + article_id;
   });
 
   // 设置编辑器高度

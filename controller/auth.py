@@ -10,7 +10,7 @@ import re
 # url占位符
 url_placeholder = {
     'num': r'\d+',
-    'article_id': r'new|[A-Za-z0-9]{24}|[a-z]+-[-\w]+',
+    'article_id': r'[^/]{4,}',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
@@ -192,10 +192,9 @@ role_route_maps = {
             '/api/code/(.+)': ['GET'],
             '/article/list': ['GET'],
             '/article/add': ['GET'],
-            '/api/article/add': ['POST'],
+            '/article/@article_id': ['GET'],
             '/article/update/@article_id': ['GET'],
-            '/api/article/update/@article_id': ['POST'],
-            '/api/article/delete/@article_id': ['GET'],
+            '/api/article/(add|update|delete)': ['POST'],
             '/php/imageUp.php': ['POST'],
         }
     },

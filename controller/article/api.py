@@ -16,16 +16,22 @@ from controller.base import BaseHandler, DbError
 
 
 class DeleteArticleApi(BaseHandler):
-    URL = '/api/article/delete/@article_id'
+    URL = '/api/article/delete'
 
-    def get(self, article_id):
+    def post(self):
         """ 删除文章"""
         try:
-            article = self.db.article.find_one({'article_id': article_id})
-            if not article:
-                return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
-            self.db.article.delete_one({'_id': article['_id']})
-            self.add_op_log('delete_article', target_id=article['_id'], context=article['title'])
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'article_id')]
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
+
+            r = self.db.article.delete_one({'article_id': data['article_id']})
+            if not r.matched_count:
+                return self.send_error_response(errors.no_object, message='文章%s不存在' % data['article_id'])
+
+            self.add_op_log('delete_article', target_id=data['article_id'], context=data['article_id'])
             self.send_data_response()
 
         except DbError as e:
@@ -33,30 +39,32 @@ class DeleteArticleApi(BaseHandler):
 
 
 class SaveArticleApi(BaseHandler):
-    URL = ['/api/article/add', '/api/article/update/@article_id']
+    URL = '/api/article/(add|update)'
 
-    def post(self, article_id=None):
+    def post(self, mode):
         """ 保存文章"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'title', 'category', 'active', 'content')]
+            fields = ['title', 'article_id', 'category', 'active', 'content'] + (['_id'] if mode == 'update' else [])
+            rules = [(v.not_empty, *fields)]
             errs = v.validate(data, rules)
             if errs:
                 return self.send_error_response(errs)
 
+            article_id = data['article_id'].strip()
             images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content'])
-            info = dict(title=data['title'].strip(), category=data['category'].strip(), active=data['active'].strip(),
-                        content=data['content'].strip(), article_id=article_id, images=images,
+            info = dict(title=data['title'].strip(), article_id=article_id, category=data['category'].strip(),
+                        active=data['active'].strip(), content=data['content'].strip(), images=images,
                         updated_time=datetime.now(), updated_by=self.current_user['name'])
 
-            if article_id:
-                article = self.db.article.find_one({'article_id': article_id})
-                if not article:
-                    return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
-                if str(article['_id']) != data['_id']:
+            if mode == 'update':
+                article = self.db.article.find_one({'article_id': article_id, '_id': {'$ne': ObjectId(data['_id'])}})
+                if article:
                     return self.send_error_response(errors.record_existed, message='文章标识已被占用')
-                self.db.article.update_one({'article_id': article_id}, {'$set': info})
-                self.add_op_log('update_article', target_id=article['_id'], context=info['title'])
+                r = self.db.article.update_one({'_id': ObjectId(data['_id'])}, {'$set': info})
+                if not r.matched_count:
+                    return self.send_error_response(errors.no_object, message='文章不存在')
+                self.add_op_log('update_article', target_id=data['_id'], context=info['title'])
             else:
                 info.update(dict(create_time=datetime.now(), author_id=self.current_user['_id'],
                                  author_name=self.current_user['name']))

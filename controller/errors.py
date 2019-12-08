@@ -63,7 +63,6 @@ doc_id_not_equal = 3015, '数据ID不一致'
 republish_only_picked_or_failed = 3017, '仅可重新发布已领取或失败的任务'
 box_not_identical = 3018, '切分信息不一致'
 
-
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'
 data_unauthorized = 4003, '您没有数据改动权限'
