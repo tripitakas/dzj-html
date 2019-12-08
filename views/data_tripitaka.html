@@ -28,60 +28,58 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span id="btn-batch-delete">批量删除</span>
-                    <span><a class="download-template" href="/static/template/tripitaka-sample.csv">下载模板</a></span>
-                    <div class="btn-group dropdown">
-                      <button type="button" class="btn btn-default waves-effect">新增藏</button>
-                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
-                      <ul class="dropdown-menu" role="menu">
-                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
-                        <li class="divider"></li>
-                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
-                      </ul>
-                    </div>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span id="btn-batch-delete">批量删除</span>
+                  <span><a class="download-template" href="/static/template/tripitaka-sample.csv">下载模板</a></span>
+                  <div class="btn-group dropdown">
+                    <button type="button" class="btn btn-default waves-effect">新增藏</button>
+                    <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><a class="btn-add" id="btn-add">新增数据</a></li>
+                      <li class="divider"></li>
+                      <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
+                    </ul>
                   </div>
-                  <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索藏名和编码" value="{{q}}">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><input id="check-all" type="checkbox"  value=""/></th>
-                      <th>藏名</th>
-                      <th>简称</th>
-                      <th>编码</th>
-                      <th>存储模式</th>
-                      <th>图片是否就绪</th>
-                      <th>备注</th>
-                      <th>操作</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tripitakas %}
-                    <tr id="{{t.get('_id')}}">
-                      <th><span><input type="checkbox"  value=""/></span></th>
-                      <td>{{t.get('name') or ''}}</td>
-                      <td>{{t.get('short_name') or ''}}</td>
-                      <td>{{t.get('tripitaka_code') or ''}}</td>
-                      <td>{{t.get('store_pattern') or ''}}</td>
-                      <td>{{t.get('img_available') or ''}}</td>
-                      <td>{{t.get('remark') or ''}}</td>
-                      <td>
-                        <a class="btn-delete">删除</a>
-                        <a class="btn-update">修改</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
                 </div>
-                {% module Pager(pager) %}
+                <div class="search fr">
+                  <input id="search-input" type="text" placeholder="请搜索藏名和编码" value="{{q}}">
+                  <i class="ser-btn"></i>
+                </div>
+                <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
+                  <thead>
+                  <tr>
+                    <th><input id="check-all" type="checkbox" value=""/></th>
+                    <th>藏名</th>
+                    <th>简称</th>
+                    <th>编码</th>
+                    <th>存储模式</th>
+                    <th>图片是否就绪</th>
+                    <th>备注</th>
+                    <th>操作</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for t in tripitakas %}
+                  <tr id="{{t.get('_id')}}">
+                    <th><span><input type="checkbox" value=""/></span></th>
+                    <td>{{t.get('name') or ''}}</td>
+                    <td>{{t.get('short_name') or ''}}</td>
+                    <td>{{t.get('tripitaka_code') or ''}}</td>
+                    <td>{{t.get('store_pattern') or ''}}</td>
+                    <td>{{t.get('img_available') or ''}}</td>
+                    <td>{{t.get('remark') or ''}}</td>
+                    <td>
+                      <a class="btn-delete">删除</a>
+                      <a class="btn-update">修改</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

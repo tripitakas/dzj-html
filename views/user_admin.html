@@ -21,8 +21,7 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
+            <div class="wrapper">
                 <div class="collate-list">
                   <div class="search fr">
                     <input type="text" placeholder="搜索">
@@ -52,21 +51,20 @@
                     </thead>
                     <tbody>
                     {% for p in users %}
-                    <tr>
+                    {% set _id = p['_id'] %}
+                    {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
+                    <tr id="{{_id}}">
                       <td><input type="checkbox" name="" value=""/></td>
-                      <td>
-                        {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
-                        <img src="{{ static_url(p.get('img') or 'imgs/' + ava) }}" alt="" class="thumb-md img-circle">
-                      </td>
+                      <td><img src="{{static_url(p.get('img') or 'imgs/' + ava) }}" alt="" class="thumb-md img-circle"></td>
                       <td>{{p['name']}}</td>
                       <td>{{p.get('phone') or ''}}</td>
-                      <td>{{p['email']}}</td>
+                      <td>{{p.get('email') or ''}}</td>
                       <td>{{p.get('gender') or ''}}</td>
                       <td>{{to_date_str(p['create_time'])}}</td>
                       <td>
                         <span onclick="delete_user('{{dumps(p)}}')">删除</span>
                         <span onclick="update('{{dumps(p)}}')">修改</span>
-                        <span onclick="reset_pwd('{{p['_id']}}')">重置密码</span>
+                        <span onclick="reset_pwd('{{_id}}')">重置密码</span>
                       </td>
                     </tr>
                     {% end %}
@@ -75,7 +73,6 @@
                 </div>
                 {% module Pager(pager) %}
               </div>
-            </div>
           </div>
         </div>
       </div>

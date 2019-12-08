@@ -30,42 +30,40 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="lobby-tips fl">总共有 {{total_count}} 条任务</div>
-                  <div class="search fr">
-                    <input id="search-name" type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><span>编码</span></th>
-                      <th>
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
-                          <ul class="dropdown-menu" role="menu">
-                            <li><a href="#" val="3">高</a></li>
-                            <li><a href="#" val="2">中</a></li>
-                            <li><a href="#" val="1">低</a></li>
-                          </ul>
-                        </div>
-                      </th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr>
-                      <td>{{t['doc_id']}}</td>
-                      <td>{{Th.get_priority_name(t['priority']) or ''}}</td>
-                      <td><a class="pick-task" id="{{t['_id']}}" href="/task/pick/{{t['task_type']}}" style="cursor:pointer">领取</a></td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="lobby-tips fl">总共有 {{total_count}} 条任务</div>
+                <div class="search fr">
+                  <input id="search-name" type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
                 </div>
+                <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
+                  <thead>
+                  <tr>
+                    <th><span>编码</span></th>
+                    <th>
+                      <div class="btn-group">
+                        <span class="sort" data-toggle="dropdown" aria-expanded="false">优先级</span><span class="ion-funnel"></span>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="#" val="3">高</a></li>
+                          <li><a href="#" val="2">中</a></li>
+                          <li><a href="#" val="1">低</a></li>
+                        </ul>
+                      </div>
+                    </th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr>
+                    <td>{{t['doc_id']}}</td>
+                    <td>{{Th.get_priority_name(t['priority']) or ''}}</td>
+                    <td><a class="pick-task" id="{{t['_id']}}" href="/task/pick/{{t['task_type']}}" style="cursor:pointer">领取</a></td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

@@ -24,7 +24,7 @@
     }
 
     .sty-table td.pending a {
-       color: #D2691E;
+      color: #D2691E;
     }
 
     .sty-table td.opened a {
@@ -34,6 +34,7 @@
     .sty-table td.picked a {
       color: #BB5500;
     }
+
     .sty-table td.returned a {
       color: #FF0000;
     }
@@ -42,7 +43,7 @@
       color: #228B22;
     }
   </style>
-  
+
 </head>
 
 <body>
@@ -55,53 +56,51 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="search fr">
-                    <input type="text" id="search-name" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
-                      <th><span>页编码</span></th>
-                      {% for _task_type, name in display_task_types.items() %}
-                      <th>
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">{{name}}</span>
-                          <span class="ion-android-sort "></span>
-                          <ul class="dropdown-menu" role="menu">
-                            {% for k, v in Th.task_status_names.items() %}
-                            <li><a href="{{current_path}}?type={{_task_type}}&status={{k}}">{{v}}</a></li>
-                            {% end %}
-                          </ul>
-                        </div>
-                      </th>
-                      {% end %}
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr id="{{t['name']}}" class="task-tr">
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td><a href="/task/page/{{t['name']}}">{{t['name']}}</a></td>
-                      {% for _task_type in display_task_types.keys() %}
-                      <td class="{{Th.prop(t, 'tasks.%s.status' % _task_type)}}">
-                        <a href="/task/{{_task_type}}/{{t['name']}}">
-                          {{Th.get_status_name(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
-                        </a>
-                      </td>
-                      {% end %}
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="search fr">
+                  <input type="text" id="search-name" placeholder="搜索">
+                  <i class="ser-btn"></i>
                 </div>
-                {% module Pager(pager) %}
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                    <th><span>页编码</span></th>
+                    {% for _task_type, name in display_task_types.items() %}
+                    <th>
+                      <div class="btn-group">
+                        <span class="sort" data-toggle="dropdown" aria-expanded="false">{{name}}</span>
+                        <span class="ion-android-sort "></span>
+                        <ul class="dropdown-menu" role="menu">
+                          {% for k, v in Th.task_status_names.items() %}
+                          <li><a href="{{current_path}}?type={{_task_type}}&status={{k}}">{{v}}</a></li>
+                          {% end %}
+                        </ul>
+                      </div>
+                    </th>
+                    {% end %}
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr id="{{t['name']}}" class="task-tr">
+                    <td><input type="checkbox" name="" id="" value=""/></td>
+                    <td><a href="/task/page/{{t['name']}}">{{t['name']}}</a></td>
+                    {% for _task_type in display_task_types.keys() %}
+                    <td class="{{Th.prop(t, 'tasks.%s.status' % _task_type)}}">
+                      <a href="/task/{{_task_type}}/{{t['name']}}">
+                        {{Th.get_status_name(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
+                      </a>
+                    </td>
+                    {% end %}
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>
@@ -113,7 +112,7 @@
 {% include _base_js.html %}
 
 <script type="text/javascript">
-  $('#checkbox-all').click(function() {
+  $('#checkbox-all').click(function () {
     var $items = $(".task-tr [type='checkbox']");
     if (!this.checked) {
       $items.removeAttr('checked');
@@ -124,7 +123,7 @@
 
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode ===  13) {
+    if (keyCode === 13) {
       var q = $(this).val().trim();
       var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;

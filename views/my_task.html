@@ -28,50 +28,48 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="search fr">
-                    <input id="search-name" type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><span>页编码</span></th>
-                      <th><span>任务状态</span></th>
-                      <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="search fr">
+                  <input id="search-name" type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><span>页编码</span></th>
+                    <th><span>任务状态</span></th>
+                    <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
                         领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
                       </span></th>
-                      <th><span>完成时间</span></th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
+                    <th><span>完成时间</span></th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
 
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr>
-                      <td>{{t['doc_id']}}</td>
-                      <td>{{Th.get_status_name(t['status']) or ''}}</td>
-                      <td class="{{'urgent' if (t.get('picked_time') < timeout and t['status'] == 'picked') else ''}}">
-                        {{to_date_str(t.get('picked_time'))}}
-                      </td>
-                      <td>{{to_date_str(t.get('finished_time'))}}</td>
-                      <td>
-                        <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        {% if t['status'] == Th.STATUS_PICKED %}
-                        <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
-                        {% elif t['status'] == Th.STATUS_FINISHED %}
-                        <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
-                        {% end %}
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-                {% module Pager(pager) %}
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr>
+                    <td>{{t['doc_id']}}</td>
+                    <td>{{Th.get_status_name(t['status']) or ''}}</td>
+                    <td class="{{'urgent' if (t.get('picked_time') < timeout and t['status'] == 'picked') else ''}}">
+                      {{to_date_str(t.get('picked_time'))}}
+                    </td>
+                    <td>{{to_date_str(t.get('finished_time'))}}</td>
+                    <td>
+                      <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
+                      {% if t['status'] == Th.STATUS_PICKED %}
+                      <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
+                      {% elif t['status'] == Th.STATUS_FINISHED %}
+                      <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
+                      {% end %}
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>
@@ -102,7 +100,7 @@
   // 搜索
   $('#search-name').on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode ===  13) {
+    if (keyCode === 13) {
       var q = $(this).val().trim();
       var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
       window.location = url;

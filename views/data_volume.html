@@ -37,69 +37,67 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span id="btn-batch-delete">批量删除</span>
-                    <span data-toggle="modal" data-target="#jsModal">生成JS</span>
-                    <span><a class="download-template" href="/static/template/volume-sample.csv">下载模板</a></span>
-                    <div class="btn-group dropdown">
-                      <button type="button" class="btn btn-default waves-effect">新增册</button>
-                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
-                      <ul class="dropdown-menu" role="menu">
-                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
-                        <li class="divider"></li>
-                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
-                      </ul>
-                    </div>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span id="btn-batch-delete">批量删除</span>
+                  <span data-toggle="modal" data-target="#jsModal">生成JS</span>
+                  <span><a class="download-template" href="/static/template/volume-sample.csv">下载模板</a></span>
+                  <div class="btn-group dropdown">
+                    <button type="button" class="btn btn-default waves-effect">新增册</button>
+                    <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><a class="btn-add" id="btn-add">新增数据</a></li>
+                      <li class="divider"></li>
+                      <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
+                    </ul>
                   </div>
-                  <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索册编码" value="{{q}}">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><input id="check-all" type="checkbox"/></th>
-                      <th><span>藏编码</span></th>
-                      <th><span>册编码</span></th>
-                      <th><span>函序号</span></th>
-                      <th><span>册序号</span></th>
-                      <th><span>正文页数</span></th>
-                      <th><span>封面页数</span></th>
-                      <th><span>封底页数</span></th>
-                      <th><span>备注</span></th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {% for v in volumes %}
-                    <tr id="{{v.get('_id')}}">
-                      <td><input type="checkbox"/></td>
-                      <td>{{v.get('tripitaka_code') or ''}}</td>
-                      <td>{{v.get('volume_code') or ''}}</td>
-                      <td>{{v.get('envelop_no') or ''}}</td>
-                      <td>{{v.get('volume_no') or ''}}</td>
-                      <td>{{v.get('content_page_count') or ''}}</td>
-                      <td>{{len(v.get('front_cover_pages') or [])}}</td>
-                      <td>{{len(v.get('back_cover_pages') or [])}}</td>
-                      <td>{{v['remark']}}</td>
-                      <td class="content_pages hide">{{v.get('content_pages')}}</td>
-                      <td class="front_cover_pages hide">{{v.get('front_cover_pages')}}</td>
-                      <td class="back_cover_pages hide">{{v.get('back_cover_pages')}}</td>
-                      <td>
-                        <a class="btn-delete">删除</a>
-                        <a class="btn-update">修改</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
                 </div>
-                {% module Pager(pager) %}
+                <div class="search fr">
+                  <input id="search-input" type="text" placeholder="请搜索册编码" value="{{q}}">
+                  <i class="ser-btn"></i>
+                </div>
+                <table class="sty-table" style="border-collapse:separate; border-spacing:0px 10px;">
+                  <thead>
+                  <tr>
+                    <th><input id="check-all" type="checkbox"/></th>
+                    <th><span>藏编码</span></th>
+                    <th><span>册编码</span></th>
+                    <th><span>函序号</span></th>
+                    <th><span>册序号</span></th>
+                    <th><span>正文页数</span></th>
+                    <th><span>封面页数</span></th>
+                    <th><span>封底页数</span></th>
+                    <th><span>备注</span></th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for v in volumes %}
+                  <tr id="{{v.get('_id')}}">
+                    <td><input type="checkbox"/></td>
+                    <td>{{v.get('tripitaka_code') or ''}}</td>
+                    <td>{{v.get('volume_code') or ''}}</td>
+                    <td>{{v.get('envelop_no') or ''}}</td>
+                    <td>{{v.get('volume_no') or ''}}</td>
+                    <td>{{v.get('content_page_count') or ''}}</td>
+                    <td>{{len(v.get('front_cover_pages') or [])}}</td>
+                    <td>{{len(v.get('back_cover_pages') or [])}}</td>
+                    <td>{{v['remark']}}</td>
+                    <td class="content_pages hide">{{v.get('content_pages')}}</td>
+                    <td class="front_cover_pages hide">{{v.get('front_cover_pages')}}</td>
+                    <td class="back_cover_pages hide">{{v.get('back_cover_pages')}}</td>
+                    <td>
+                      <a class="btn-delete">删除</a>
+                      <a class="btn-update">修改</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

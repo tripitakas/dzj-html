@@ -34,74 +34,72 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
-                    <div class="btn-group dropdown">
-                      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
-                        发布任务
-                      </button>
-                    </div>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
+                  <div class="btn-group dropdown">
+                    <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
+                      发布任务
+                    </button>
                   </div>
-                  <div class="search fr">
-                    <input id="search-input" type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
-                      <th><span>网盘名称</span></th>
-                      <th><span>导入哪个文件夹</span></th>
-                      <th><span class="sort">是否覆盖<br/>已有图片</span></th>
-                      <th>
+                </div>
+                <div class="search fr">
+                  <input id="search-input" type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                    <th><span>网盘名称</span></th>
+                    <th><span>导入哪个文件夹</span></th>
+                    <th><span class="sort">是否覆盖<br/>已有图片</span></th>
+                    <th>
                         <span id="status" class="sort {{'active' if order in ['-status', 'status'] else ''}}">
                           状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
                         </span>
-                      </th>
-                      <th>
+                    </th>
+                    <th>
                         <span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
                           发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th>
+                    </th>
+                    <th>
                         <span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
                           领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th>
+                    </th>
+                    <th>
                         <span id="finished_time" class="sort {{'active' if order in ['-finished_time', 'finished_time'] else ''}}">
                           完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
+                    </th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
 
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr class="task-tr">
-                      <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
-                      <td>{{Th.prop(t, 'input.pan_name') or ''}}</td>
-                      <td style="max-width: 240px;">{{Th.prop(t, 'input.import_dir') or ''}}</td>
-                      <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
-                      <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
-                      <td>{{to_date_str(t.get('publish_time'))}}</td>
-                      <td>{{to_date_str(t.get('picked_time'))}}</td>
-                      <td>{{to_date_str(t.get('finished_time'))}}</td>
-                      <td>
-                        <a class="info" href="/task/info/{{t['_id']}}">详情</a>
-                        <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-                {% module Pager(pager) %}
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr class="task-tr">
+                    <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
+                    <td>{{Th.prop(t, 'input.pan_name') or ''}}</td>
+                    <td style="max-width: 240px;">{{Th.prop(t, 'input.import_dir') or ''}}</td>
+                    <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
+                    <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
+                    <td>{{to_date_str(t.get('publish_time'))}}</td>
+                    <td>{{to_date_str(t.get('picked_time'))}}</td>
+                    <td>{{to_date_str(t.get('finished_time'))}}</td>
+                    <td>
+                      <a class="info" href="/task/info/{{t['_id']}}">详情</a>
+                      <a class="republish{{'' if t['status'] in ['picked', 'failed'] else ' hide'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}')>重新发布</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

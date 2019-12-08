@@ -10,11 +10,6 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <style>
-  .sty-table td a {
-    font-size: 14px;
-  }
-</style>
 </head>
 
 <body>
@@ -26,57 +21,12 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span id="btn-add-article">新写文章</span>
-                  </div>
-                  <div class="search fr">
-                    <input id="search-input" type="text" placeholder="搜索标题或内容">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><span id="title" class="sort {{'active' if order in ['-title', 'title'] else ''}}">
-                          标题<span class="ion-arrow-down-b {{'toggle' if order == 'title' else ''}}"></span>
-                      </span></th>
-                      <th><span id="category" class="sort {{'active' if order in ['-category', 'category'] else ''}}">
-                          分类<span class="ion-arrow-down-b {{'toggle' if order == 'category' else ''}}"></span>
-                      </span></th>
-                      <th><span id="article_id" class="sort {{'active' if order in ['-article_id', 'article_id'] else ''}}">
-                          标识<span class="ion-arrow-down-b {{'toggle' if order == 'article_id' else ''}}"></span>
-                      </span></th>
-                      <th><span id="author_name" class="sort {{'active' if order in ['-author_name', 'author_name'] else ''}}">
-                          作者<span class="ion-arrow-down-b {{'toggle' if order == 'author_name' else ''}}"></span>
-                      </span></th>
-                      <th><span id="create_time" class="sort {{'active' if order in ['-create_time', 'create_time'] else ''}}">
-                          创建时间<span class="ion-arrow-down-b {{'toggle' if order == 'create_time' else ''}}"></span>
-                      </span></th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
+            <div class="wrapper">
+              <div class="collate-list">
 
-                    <tbody>
-                    {% for p in articles %}
-                    <tr id="{{p.get('article_id') or str(p['_id'])}}" class="{{'my' if p['author_id'] == currentUserId else ''}}">
-                      <td><a href="/article/{{p.get('article_id') or str(p['_id'])}}">{{p.get('title') or ''}}</a></td>
-                      <td>{{p.get('category') or ''}}</td>
-                      <td>{{p.get('article_id') or ''}}</td>
-                      <td>{{p.get('author_name') or ''}}</td>
-                      <td>{{to_date_str(p.get('create_time'))}}</td>
-                      <td>
-                        <a class="btn-update">修改</a>
-                        <a class="btn-delete">删除</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-                {% module Pager(pager) %}
+
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>
@@ -112,7 +62,7 @@
   $('.btn-delete').click(function () {
     var $tr = $(this).parent().parent();
     var id = $tr.attr('id');
-    getApi('/article/' + ($tr.hasClass('my') ? 'del_my/' : 'delete/') + id, function() {
+    getApi('/article/' + ($tr.hasClass('my') ? 'del_my/' : 'delete/') + id, function () {
       window.location.reload();
     });
   });

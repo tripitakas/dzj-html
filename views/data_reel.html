@@ -28,69 +28,67 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span id="btn-batch-delete">批量删除</span>
-                    <span><a class="download-template" href="/static/template/reel-sample.csv">下载模板</a></span>
-                    <div class="btn-group dropdown">
-                      <button type="button" class="btn btn-default waves-effect">新增卷</button>
-                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
-                      <ul class="dropdown-menu" role="menu">
-                        <li><a class="btn-add" id="btn-add">新增数据</a></li>
-                        <li class="divider"></li>
-                        <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
-                      </ul>
-                    </div>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span id="btn-batch-delete">批量删除</span>
+                  <span><a class="download-template" href="/static/template/reel-sample.csv">下载模板</a></span>
+                  <div class="btn-group dropdown">
+                    <button type="button" class="btn btn-default waves-effect">新增卷</button>
+                    <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false"><i class="caret"></i></button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><a class="btn-add" id="btn-add">新增数据</a></li>
+                      <li class="divider"></li>
+                      <li><a class="btn-upload" id="btn-upload">批量上传</a></li>
+                    </ul>
                   </div>
-                  <div class="search fr">
-                    <input id="search-input" type="text" placeholder="请搜索经名、经编码和统一编码" value="{{q}}">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><input id="check-all" type="checkbox"/></th>
-                      <th><span>统一编码</span></th>
-                      <th><span>经编码</span></th>
-                      <th><span>经名</span></th>
-                      <th><span>卷编码</span></th>
-                      <th><span>卷序号</span></th>
-                      <th><span>起始册</span></th>
-                      <th><span>起始页码</span></th>
-                      <th><span>终止册</span></th>
-                      <th><span>结束页码</span></th>
-                      <th><span>备注</span></th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    {% for r in reels %}
-                    <tr id="{{r.get('_id')}}">
-                      <td><input type="checkbox"/></td>
-                      <td>{{r.get('uni_sutra_code') or ''}}</td>
-                      <td>{{r.get('sutra_code') or ''}}</td>
-                      <td>{{r.get('sutra_name') or ''}}</td>
-                      <td>{{r.get('reel_code') or ''}}</td>
-                      <td>{{r.get('reel_no') or ''}}</td>
-                      <td>{{r.get('start_volume') or ''}}</td>
-                      <td>{{r.get('start_page') or ''}}</td>
-                      <td>{{r.get('end_volume') or ''}}</td>
-                      <td>{{r.get('end_page') or ''}}</td>
-                      <td>{{r.get('remark') or ''}}</td>
-                      <td>
-                        <a class="btn-delete">删除</a>
-                        <a class="btn-update">修改</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
                 </div>
-                {% module Pager(pager) %}
+                <div class="search fr">
+                  <input id="search-input" type="text" placeholder="请搜索经名、经编码和统一编码" value="{{q}}">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input id="check-all" type="checkbox"/></th>
+                    <th><span>统一编码</span></th>
+                    <th><span>经编码</span></th>
+                    <th><span>经名</span></th>
+                    <th><span>卷编码</span></th>
+                    <th><span>卷序号</span></th>
+                    <th><span>起始册</span></th>
+                    <th><span>起始页码</span></th>
+                    <th><span>终止册</span></th>
+                    <th><span>结束页码</span></th>
+                    <th><span>备注</span></th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for r in reels %}
+                  <tr id="{{r.get('_id')}}">
+                    <td><input type="checkbox"/></td>
+                    <td>{{r.get('uni_sutra_code') or ''}}</td>
+                    <td>{{r.get('sutra_code') or ''}}</td>
+                    <td>{{r.get('sutra_name') or ''}}</td>
+                    <td>{{r.get('reel_code') or ''}}</td>
+                    <td>{{r.get('reel_no') or ''}}</td>
+                    <td>{{r.get('start_volume') or ''}}</td>
+                    <td>{{r.get('start_page') or ''}}</td>
+                    <td>{{r.get('end_volume') or ''}}</td>
+                    <td>{{r.get('end_page') or ''}}</td>
+                    <td>{{r.get('remark') or ''}}</td>
+                    <td>
+                      <a class="btn-delete">删除</a>
+                      <a class="btn-update">修改</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

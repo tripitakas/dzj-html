@@ -20,53 +20,51 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span>下载数据</span>
-                  </div>
-                  <div class="search fr">
-                    <input type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="" value=""/></th>
-                      <th>姓名</th>
-                      <th>手机</th>
-                      <th><span class="sort">切分校对</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">切分审定</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">文字校对</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">文字审定</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">文字难字</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">文字反馈</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">格式标注</span><span class="ion-arrow-down-b"></span></th>
-                      <th><span class="sort">格式审定</span><span class="ion-arrow-down-b"></span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for r in users %}
-                    <tr>
-                      <td><input type="checkbox" name="" id="" value=""/></td>
-                      <td>{{r['name']}}</td>
-                      <td>{{r.get('phone', '')}}</td>
-                      <td>{{r['cut_proof_count']}}</td>
-                      <td>{{r['cut_review_count']}}</td>
-                      <td>{{r['text_proof_count']}}</td>
-                      <td>{{r['text_review_count']}}</td>
-                      <td>{{r['text_difficult_count']}}</td>
-                      <td>{{r['text_feedback_count']}}</td>
-                      <td>{{r['fmt_proof_count']}}</td>
-                      <td>{{r['fmt_review_count']}}</td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span>下载数据</span>
                 </div>
-                {% module Pager(pager) %}
+                <div class="search fr">
+                  <input type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="" value=""/></th>
+                    <th>姓名</th>
+                    <th>手机</th>
+                    <th><span class="sort">切分校对</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">切分审定</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">文字校对</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">文字审定</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">文字难字</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">文字反馈</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">格式标注</span><span class="ion-arrow-down-b"></span></th>
+                    <th><span class="sort">格式审定</span><span class="ion-arrow-down-b"></span></th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for r in users %}
+                  <tr>
+                    <td><input type="checkbox" name="" id="" value=""/></td>
+                    <td>{{r['name']}}</td>
+                    <td>{{r.get('phone', '')}}</td>
+                    <td>{{r['cut_proof_count']}}</td>
+                    <td>{{r['cut_review_count']}}</td>
+                    <td>{{r['text_proof_count']}}</td>
+                    <td>{{r['text_review_count']}}</td>
+                    <td>{{r['text_difficult_count']}}</td>
+                    <td>{{r['text_feedback_count']}}</td>
+                    <td>{{r['fmt_proof_count']}}</td>
+                    <td>{{r['fmt_review_count']}}</td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

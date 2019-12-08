@@ -25,40 +25,39 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="operation">
-                    <span class="btn btn-default waves-effect" id="bat-assign">批量指派</span>
-                    <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
-                    <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
-                      {% if not task_conf.get('groups') %}
-                      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
-                        发布任务
-                      </button>
-                      {% else %}
-                      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
-                        发布任务 <i class="caret"></i>
-                      </button>
-                      <ul class="dropdown-menu" role="menu">
-                        {% for t in task_conf.get('groups') %}
-                        <li><a class="task-type" id="{{t}}" href="javascript:void(0);">{{Th.get_task_name(t)}}</a></li>
-                        <li class="divider"></li>
-                        {% end %}
-                      </ul>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="operation">
+                  <span class="btn btn-default waves-effect" id="bat-assign">批量指派</span>
+                  <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
+                  <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
+                    {% if not task_conf.get('groups') %}
+                    <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
+                      发布任务
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
+                      发布任务 <i class="caret"></i>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                      {% for t in task_conf.get('groups') %}
+                      <li><a class="task-type" id="{{t}}" href="javascript:void(0);">{{Th.get_task_name(t)}}</a></li>
+                      <li class="divider"></li>
                       {% end %}
-                    </div>
+                    </ul>
+                    {% end %}
                   </div>
-                  <div class="search fr">
-                    <input id="search-name" type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
-                    <thead>
-                    <tr>
-                      <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
-                      <th><span>页编码</span></th>
-                      <th><span>
+                </div>
+                <div class="search fr">
+                  <input id="search-name" type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                    <th><span>页编码</span></th>
+                    <th><span>
                         <div class="btn-group">
                           <span class="filter" id="task-types" data-toggle="dropdown" aria-expanded="false">
                             任务类型<span class="ion-android-sort "></span>
@@ -70,7 +69,7 @@
 													</ul>
 												</div>
                       </span></th>
-                      <th><span>
+                    <th><span>
                         <div class="btn-group">
                           <span class="filter" id="statuses" data-toggle="dropdown" aria-expanded="false">
                             状态<span class="ion-android-sort "></span>
@@ -82,59 +81,58 @@
 													</ul>
 												</div>
                       </span></th>
-                      <th>
+                    <th>
                         <span id="priority" class="sort {{'active' if order in ['-priority', 'priority'] else ''}}">
                           优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>步骤</span></th>
-                      <th><span>前置任务</span></th>
-                      <th>
+                    </th>
+                    <th><span>步骤</span></th>
+                    <th><span>前置任务</span></th>
+                    <th>
                         <span id="publish_time" class="sort {{'active' if order in ['-publish_time', 'publish_time'] else ''}}">
                           发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>领取人</span></th>
-                      <th>
+                    </th>
+                    <th><span>领取人</span></th>
+                    <th>
                         <span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
                           领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th>
+                    </th>
+                    <th>
                         <span id="finished_time" class="sort {{'active' if order in ['-finished_time', 'finished_time'] else ''}}">
                           完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
                         </span>
-                      </th>
-                      <th><span>操作</span></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for t in tasks %}
-                    <tr id="{{t['doc_id']}}" class="task-tr">
-                      <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
-                      <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
-                      <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
-                      <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{Th.get_status_name(t['status']) or ''}}</td>
-                      <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
-                      <td>{{'/'.join([Th.step_names().get(s) for s in Th.prop(t, 'steps.todo') or []])}}</td>
-                      <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
-                      <td>{{to_date_str(t.get('publish_time'))}}</td>
-                      <td>{{t.get('picked_by') or ''}}</td>
-                      <td>{{to_date_str(t.get('picked_time'))}}</td>
-                      <td>{{to_date_str(t.get('finished_time'))}}</td>
-                      <td>
-                        <a class="info" href="/task/info/{{t['_id']}}">详情</a>
-                        <a class="resume" href="/task/page/{{t['doc_id']}}">简历</a>
-                        <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                        <a class="{{'republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}','{{t["status"]}}')>重新发布</a>
-                      </td>
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-                {% module Pager(pager) %}
+                    </th>
+                    <th><span>操作</span></th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr id="{{t['doc_id']}}" class="task-tr">
+                    <th><span><input type="checkbox" id="{{t['_id']}}" value=""/></span></th>
+                    <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                    <td>{{Th.get_task_name(t['task_type']) or ''}}</td>
+                    <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{Th.get_status_name(t['status']) or ''}}</td>
+                    <td>{{Th.get_priority_name(t.get('priority')) or ''}}</td>
+                    <td>{{'/'.join([Th.step_names().get(s) for s in Th.prop(t, 'steps.todo') or []])}}</td>
+                    <td>{{'/'.join([Th.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
+                    <td>{{to_date_str(t.get('publish_time'))}}</td>
+                    <td>{{t.get('picked_by') or ''}}</td>
+                    <td>{{to_date_str(t.get('picked_time'))}}</td>
+                    <td>{{to_date_str(t.get('finished_time'))}}</td>
+                    <td>
+                      <a class="info" href="/task/info/{{t['_id']}}">详情</a>
+                      <a class="resume" href="/task/page/{{t['doc_id']}}">简历</a>
+                      <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
+                      <a class="{{'republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}" onclick=republish('{{t["_id"]}}','{{t["doc_id"]}}','{{t["status"]}}')>重新发布</a>
+                    </td>
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
               </div>
+              {% module Pager(pager) %}
             </div>
           </div>
         </div>

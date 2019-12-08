@@ -13,7 +13,7 @@
 </head>
 
 <style>
-  table th a{
+  table th a {
     cursor: pointer;
   }
 </style>
@@ -28,52 +28,50 @@
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
-            <div class="collate-history">
-              <div class="wrapper">
-                <div class="collate-list">
-                  <div class="search fr">
-                    <input type="text" placeholder="搜索">
-                    <i class="ser-btn"></i>
-                  </div>
-                  <div class="table-responsive" data-pattern="priority-columns">
-                    <table class="table table-small-font">
-                      <thead>
-                      <tr>
-                        <th data-priority="1">操作</th>
-                        <th data-priority="1">姓名</th>
-                        <th data-priority="0">手机</th>
-                        <th data-priority="0">邮箱</th>
-                        {% for r in roles %}
-                        <th data-priority="1">
-                          <div class="btn-group">
-                            <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
-                          </div>
-                        </th>
-                        {% end %}
-                      </tr>
-                      </thead>
-                      <tbody>
-                      {% for p in users %}
-                      <tr>
-                        <th>
-                          <a onclick="modify('{{dumps(p)}}')">修改</a>
-                        </th>
-                        <td>{{p['name']}}</td>
-                        <td>{{p.get('phone') or ''}}</td>
-                        <td>{{p.get('email', '') }}</td>
-                        {% for r in roles %}
-                        <td>{{r if r in (p.get('roles') or '') else '否'}}</td>
-                        {% end %}
-                      </tr>
-                      {% end %}
-                      </tbody>
-                    </table>
-                  </div>
+            <div class="wrapper">
+              <div class="collate-list">
+                <div class="search fr">
+                  <input type="text" placeholder="搜索">
+                  <i class="ser-btn"></i>
                 </div>
-                {% module Pager(pager=pager) %}
+                <div class="table-responsive" data-pattern="priority-columns">
+                  <table class="table table-small-font">
+                    <thead>
+                    <tr>
+                      <th data-priority="1">操作</th>
+                      <th data-priority="1">姓名</th>
+                      <th data-priority="0">手机</th>
+                      <th data-priority="0">邮箱</th>
+                      {% for r in roles %}
+                      <th data-priority="1">
+                        <div class="btn-group">
+                          <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
+                        </div>
+                      </th>
+                      {% end %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in users %}
+                    <tr>
+                      <th>
+                        <a onclick="modify('{{dumps(p)}}')">修改</a>
+                      </th>
+                      <td>{{p['name']}}</td>
+                      <td>{{p.get('phone') or ''}}</td>
+                      <td>{{p.get('email', '') }}</td>
+                      {% for r in roles %}
+                      <td>{{r if r in (p.get('roles') or '') else '否'}}</td>
+                      {% end %}
+                    </tr>
+                    {% end %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+              {% module Pager(pager=pager) %}
             </div>
-          <!--<p>新用户的默认角色：{{init_roles}}</p>-->
+            <!--<p>新用户的默认角色：{{init_roles}}</p>-->
           </div>
         </div>
       </div>
