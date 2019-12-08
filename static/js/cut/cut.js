@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-09-18
+ * Date: 2019-12-07
  */
 (function () {
   'use strict';
@@ -697,7 +697,8 @@
     canRedo: undoData.canRedo.bind(undoData),
 
     _changeBox: function (src, dst) {
-      if (!dst) {
+      var box = dst && dst.getBBox();
+      if (!box) {
         return;
       }
 
@@ -709,6 +710,8 @@
           info.char_id = 'new' + i;
           if (!this.findCharById(info.char_id)) {
             data.chars.push(info);
+            info.w = box.width;
+            info.h = box.height;  // for exportBoxes
             break;
           }
         }
@@ -801,8 +804,8 @@
         return Math.round(v * 10 / pageData.ratio / pageData.ratioInitial) / 10;
       };
       pageData = pageData || data;
-      return pageData.chars.filter(function (c) {
-        return c.shape && c.shape.getBBox() || c.w && c.h;
+      var chars = pageData.chars.filter(function (c) {
+        return c.w && c.h;
       }).map(function (c) {
         if (c.shape) {
           var box = c.shape.getBBox();
@@ -816,6 +819,7 @@
         });
         return c;
       });
+      return chars;
     },
 
     // callback: function(info, box, reason)
@@ -864,6 +868,7 @@
           }
         }
         info.shape = null;
+        info.w = info.h = 0;  // for exportBoxes
         el.remove();
         undoData.change();
         notifyChanged(el, 'removed');
