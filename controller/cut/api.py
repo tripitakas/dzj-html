@@ -9,6 +9,7 @@ from tornado.escape import json_decode
 from controller import validate as v
 from controller import errors as errors
 from controller.cut.cuttool import CutTool
+from controller.cut.reorder import char_reorder
 from controller.task.base import TaskHandler
 from controller.base import BaseHandler, DbError
 
@@ -47,6 +48,8 @@ class CutTaskApi(TaskHandler):
                 return self.send_error_response(error)
 
             # 保存数据
+            page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            self.reorder_chars(data, page)
             update = {self.step2field.get(data['step']): json_decode(data['boxes'])}
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
 
@@ -70,6 +73,14 @@ class CutTaskApi(TaskHandler):
         except DbError as e:
             return self.send_db_error(e)
 
+    @staticmethod
+    def reorder_chars(data, page):
+        if data['step'] == 'char_box':
+            columns = char_reorder(data['boxes'], page['blocks'])
+            if columns and len(columns) != len(page['columns']):
+                print(columns)
+            return columns
+
 
 class CutEditApi(TaskHandler):
     URL = '/api/data/edit/box/@page_name'
@@ -90,6 +101,7 @@ class CutEditApi(TaskHandler):
             if not self.has_data_lock(page_name, 'box'):
                 return self.send_error_response(errors.data_unauthorized)
             # 保存数据
+            CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
             self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
             self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])

@@ -51,3 +51,5 @@ meta/sample/
 meta/import_sample/
 app.yml
 _ocr*.*
+controller/cut/reorder_.py
+controller/cut/tool.py

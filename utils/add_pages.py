@@ -51,9 +51,9 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False, source=
             if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
                 info = load_json(filename)
                 if info:
-                    name = info.get('imgname') or info.get('name')
+                    name = info.get('img_name') or info.get('name')
                     if name != fn[:-5] or not re.match(r'^[A-Z]{2}(_\d+)+$', name):
-                        sys.stderr.write('invalid imgname %s, %s\n' % (filename, name))
+                        sys.stderr.write('invalid img_name %s, %s\n' % (filename, name))
                         continue
                     if add_page(name, info, db, use_local_img=use_local_img, update=update, source=source):
                         ret.add(name)
