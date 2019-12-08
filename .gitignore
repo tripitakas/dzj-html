@@ -46,6 +46,7 @@ target/
 log/
 static/img/
 static/upload/
+static/js/meta/
 meta/meta/
 meta/sample/
 meta/import_sample/

@@ -24,12 +24,14 @@ class DataUploadApi(BaseHandler):
     def post(self, collection):
         """ 批量上传 """
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
+        data = self.get_request_data()
         collection_class = eval(collection.capitalize())
         upload_file = self.request.files.get('csv') or self.request.files.get('json')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
             if collection == 'page':
-                r = Page.insert_new(self.db, file_stream=fn)
+                assert data.get('layout')
+                r = Page.insert_new(self.db, file_stream=fn, layout=data['layout'])
             else:
                 update = False if collection == 'tripitaka' else True
                 r = collection_class.save_many(self.db, collection, file_stream=fn, update=update)
@@ -124,7 +126,7 @@ class FetchDataTasksApi(TaskHandler):
         """ 批量领取数据任务 """
 
         def get_tasks():
-            # 锁定box，以免修改
+            # ocr_box、ocr_text时，锁定box，以免修改
             condition = {'name': {'$in': [t['doc_id'] for t in tasks]}}
             if data_task in ['ocr_box', 'ocr_text']:
                 self.db.page.update_many(condition, {'$set': {'lock.box': {
@@ -134,13 +136,13 @@ class FetchDataTasksApi(TaskHandler):
                     'locked_user_id': self.current_user['_id'],
                     'locked_time': datetime.now()
                 }}})
-            # ocr_text任务时，需要把blocks/columns/chars等参数传过去
-            if data_task == 'ocr_text':
-                pages = self.db.page.find(condition)
-                pages = {p['name']: dict(blocks=p.get('blocks'), columns=p.get('columns'), chars=p.get('chars'))
-                         for p in pages}
+            # ocr_box、ocr_text时，把layout/blocks/columns/chars等参数传过去
+            if data_task in ['ocr_box', 'ocr_text']:
+                params = self.db.page.find(condition)
+                fields = ['layout'] if data_task == 'ocr_box' else ['layout', 'blocks', 'columns', 'chars']
+                params = {p['name']: {k: p.get(k) for k in fields} for p in params}
                 for t in tasks:
-                    t['input'] = pages.get(t['doc_id'])
+                    t['input'] = params.get(t['doc_id'])
                     if not t['input']:
                         logging.warning('page %s not found' % t['doc_id'])
 

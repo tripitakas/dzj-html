@@ -53,8 +53,9 @@
                   <tr>
                     <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
                     <th><span>网盘名称</span></th>
-                    <th><span>导入哪个文件夹</span></th>
-                    <th><span class="sort">是否覆盖<br/>已有图片</span></th>
+                    <th><span>导入文件夹</span></th>
+                    <th><span>是否覆盖<br/>已有图片</span></th>
+                    <th><span>图片<br/>版面结构</span></th>
                     <th>
                         <span id="status" class="sort {{'active' if order in ['-status', 'status'] else ''}}">
                           状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
@@ -86,6 +87,7 @@
                     <td>{{Th.prop(t, 'input.pan_name') or ''}}</td>
                     <td style="max-width: 240px;">{{Th.prop(t, 'input.import_dir') or ''}}</td>
                     <td>{{'是' if Th.prop(t, 'input.redo') else '否'}}</td>
+                    <td>{{Th.prop(t, 'input.layout', '')}}</td>
                     <td>{{Th.get_status_name(t.get('status')) or ''}}</td>
                     <td>{{to_date_str(t.get('publish_time'))}}</td>
                     <td>{{to_date_str(t.get('picked_time'))}}</td>
@@ -143,6 +145,15 @@
             <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
           </div>
           <div>
+            <h4 class="control-label">图片版面结构</h4>
+            <select class="form-control" id="img-layout">
+              <option>上下一栏</option>
+              <option>上下两栏</option>
+              <option>上下三栏</option>
+              <option>左右两栏</option>
+            </select>
+          </div>
+          <div>
             <h4 class="control-label">备注</h4>
             <input type="text" class="form-control" id="remark" placeholder="备注"/>
           </div>
@@ -187,12 +198,12 @@
   $("#modal_confirm").click(function () {
     var active = $('.tab-content .tab-pane.active').attr('id');
     var panName = active === 'tab-pan' ? $('#pan-name').val().trim() : '';
-    var import_dir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
+    var importDir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
+    var layout = $('#img-layout option:selected').text();
     var redo = $('#publishModal input:radio:checked').val();
     var remark = $('#publishModal #remark').val();
-    var data = {task_type: 'import_image', import_dir: import_dir, pan_name: panName, redo: redo, remark: remark};
-    console.log(data);
-    postApi('/task/publish', {data: data}, function (res) {
+    var data = {task_type: 'import_image', import_dir: importDir, layout: layout, pan_name: panName, redo: redo, remark: remark};
+    postApi('/task/publish', {data: data}, function () {
       showSuccess('成功', '数据已提交。');
       setTimeout(function () {
         window.location.reload();

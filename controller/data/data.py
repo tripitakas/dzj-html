@@ -248,10 +248,11 @@ class Page(Data):
         return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
 
     @classmethod
-    def insert_new(cls, db, file_stream=None):
+    def insert_new(cls, db, file_stream=None, layout=None):
         """ 插入新页面
         :param db 数据库连接
         :param file_stream 已打开的文件流。
+        :param layout 页面的版面结构。
         :return {status: 'success'/'failed', code: '',  message: '...', errors:[]}
         """
         result = json.load(file_stream)
@@ -265,6 +266,7 @@ class Page(Data):
             page = cls.metadata()
             s = page_name.split('.')
             page['name'] = s[0]
+            page['layout'] = layout
             page['page_code'] = cls.pagename2code(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
