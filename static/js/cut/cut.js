@@ -374,6 +374,9 @@
     },
 
     switchCurrentBox: function (el) {
+      function xf(v) {
+        return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
+      }
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
       state.hover = null;
@@ -397,6 +400,9 @@
           el.show();
         }
         this.scrollToVisible(el);
+        var box = el.getBBox();
+        console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
+           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
