@@ -64,7 +64,7 @@
                     <td>
                       <a onclick="delete_user('{{dumps(p)}}')">删除</a>
                       <a onclick="update('{{dumps(p)}}')">修改</a>
-                      <a onclick="reset_pwd('{{_id}}')">重置密码</a>
+                      <a onclick="reset_pwd('{{dumps(p)}}')">重置密码</a>
                     </td>
                   </tr>
                   {% end %}
@@ -91,6 +91,7 @@
         <div class="modal-body">
           <form class="form-horizontal">
             <div class="form-group">
+              <input type="hidden" id="_id">
               <label class="col-sm-2 control-label">姓名</label>
               <div class="col-md-10">
                 <input type="text" class="form-control" value="" id="name">
@@ -122,7 +123,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal-confirm">确定</button>
         </div>
       </div>
     </div>
@@ -132,71 +133,64 @@
 {% include _base_js.html %}
 
 <script type="text/javascript">
+
   /**
    * 修改用户
    * @param {Object} user 用户名
    */
+  var curUser = '', $modal = $('#modifyModal');
   function update(user) {
     user = decodeJSON(user);
-
-    var $dlg = $('#modifyModal');
-    $dlg.find('#name').val(user.name);
-    $dlg.find('#phone').val(user.phone);
-    $dlg.find('#email').val(user.email);
-    $dlg.find('#gender').val(user.gender);
-
-    $dlg.modal();
-    $dlg.find("#modal_confirm").unbind('click').click(function () {
-      var info = {
-        _id: user._id, name: $dlg.find('#name').val().trim(),
-        phone: $dlg.find('#phone').val().trim(), email: $dlg.find('#email').val().trim(),
-        gender: $dlg.find('#gender').val().trim()
-      };
-
-      if (info.name === user.name && info.phone === user.phone &&
-          info.email === user.email && info.gender === user.gender) {
-        showError('请重新输入', '用户信息没有发生改变。');
-        return;
-      }
-
-      if (info.phone === '' && info.email === '') {
-        showError('请重新输入', '手机和邮箱不能同时为空。');
-        return;
-      }
-
-      postApi('/user/profile', {data: info}, function () {
-        showSuccess('修改成功', user.name + ' 的信息已修改。');
-        setTimeout(function () {
-          window.location.reload();
-        }, 1500);
-      }, function (err) {
-        if (err.code === 1009) {
-          showSuccess('修改成功', '用户信息没有发生改变。');
-          return $dlg.modal('hide');
-        }
-        showError('修改失败', err.message);
-      });
-    });
+    user['_id'] = user['_id']['$oid'];
+    curUser = user;
+    setModal($modal, user, ['_id', 'name', 'phone', 'email', 'gender']);
+    $modal.modal();
   }
+
+  $('#modal-confirm').click(function () {
+    var user = getModal($modal, ['_id', 'name', 'phone', 'email', 'gender']);
+    if (user.name === curUser.name && user.phone === curUser.phone &&
+        user.email === curUser.email && user.gender === curUser.gender) {
+      showError('请重新输入', '用户信息没有发生改变。');
+      return;
+    }
+    if (user.phone === '' && user.email === '') {
+      showError('请重新输入', '手机和邮箱不能同时为空。');
+      return;
+    }
+    postApi('/user/profile', {data: user}, function () {
+      showSuccess('修改成功', user.name + ' 的信息已修改。');
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    }, function (err) {
+      if (err.code === 1009) {
+        showSuccess('修改成功', '用户信息没有发生改变。');
+        return $modal.modal('hide');
+      }
+      showError('修改失败', err.message);
+    });
+  });
 
   /**
    * 重置密码
-   * @param user_id 用户id
+   * @param user 用户
    */
-  function reset_pwd(_id) {
-    showConfirm("确定重置" + name + "吗？", "重置后无法恢复！", function () {
-      postApi('/user/reset_pwd', {data: {_id: _id}}, function (data) {
-        console.log(data);
-        showTip('密码重置成功', '新密码是 <b>' + data.password + '</b><br>请转告用此密码登录，然后修改密码。');
+  function reset_pwd(user) {
+    user = decodeJSON(user);
+    showConfirm("确定重置" + user.name + "吗？", "重置后无法恢复！", function () {
+      postApi('/user/reset_pwd', {data: {_id: user._id}}, function (res) {
+        console.log(res.password);
+        showTip('重置成功', '新密码是 <b>' + res.password + '</b><br>请转告用此密码登录，然后修改密码。');
       }, function (err) {
-        showError('修改失败', err.message);
+        showError('重置失败', err.message);
       });
     });
   }
 
   /**
    * 删除用户
-   * @param user_id 用户id
+   * @param user 用户
    */
   function delete_user(user) {
     user = decodeJSON(user);

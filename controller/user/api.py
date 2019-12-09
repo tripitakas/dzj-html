@@ -4,20 +4,21 @@
 @time: 2018/10/23
 """
 
-import logging
 import random
 import smtplib
+import logging
 from os import path
 from email.header import Header
 from email.mime.text import MIMEText
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 from datetime import datetime, timedelta
-from bson import objectid, json_util
+from bson import json_util
+from bson.objectid import ObjectId
 from controller import errors
-from controller.base import BaseHandler, DbError
 import controller.helper as hlp
 import controller.validate as v
+from controller.base import BaseHandler, DbError
 from tornado.options import options
 
 
@@ -162,28 +163,19 @@ class ChangeUserProfileApi(BaseHandler):
             (v.is_name, 'name'),
             (v.is_email, 'email'),
             (v.is_phone, 'phone'),
-            (v.not_existed, self.db.user, user['_id'], 'phone', 'email')
+            (v.not_existed, self.db.user, ObjectId(user['_id']), 'phone', 'email')
         ]
         err = v.validate(user, rules)
         if err:
             return self.send_error_response(err)
 
         try:
-            old_user = self.db.user.find_one(dict(_id=user['_id']))
-            if not old_user:
+            info = {f: user.get(f) for f in ['name', 'phone', 'email', 'gender']}
+            r = self.db.user.update_one(dict(_id=ObjectId(user['_id'])), {'$set': info})
+            if not r.matched_count:
                 return self.send_error_response(errors.no_user, id=user['_id'])
-
-            sets = {f: user[f] for f in ['name', 'phone', 'email', 'gender']
-                    if f in user and user[f] != old_user.get(f)}
-            if not sets:
-                return self.send_error_response(errors.not_changed)
-
-            r = self.db.user.update_one(dict(_id=user['_id']), {'$set': sets})
-            if r.modified_count:
-                self.add_op_log('change_user_profile', target_id=user['_id'],
-                                context='%s: %s' % (old_user['name'], ','.join(sets.keys())))
-
-            self.send_data_response(dict(info=sets))
+            self.add_op_log('change_user_profile', target_id=user['_id'], context=str(info))
+            self.send_data_response(dict(info=info))
 
         except DbError as e:
             return self.send_db_error(e)
@@ -281,7 +273,7 @@ class ResetUserPasswordApi(BaseHandler):
     @staticmethod
     def reset_pwd(self, user):
         pwd = '%s%d' % (chr(random.randint(97, 122)), random.randint(10000, 99999))
-        oid = objectid.ObjectId(user['_id'])
+        oid = ObjectId(user['_id'])
         r = self.db.user.update_one(dict(_id=oid), {'$set': dict(password=hlp.gen_id(pwd))})
         if not r.matched_count:
             return self.send_error_response(errors.no_user)

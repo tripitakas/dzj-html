@@ -43,6 +43,20 @@ function showTip(title, text) {
   swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
 }
 
+function setModal(modal, info, fields) {
+  fields.forEach(function (item) {
+    modal.find('#' + item).val(info[item]);
+  })
+}
+
+function getModal(modal, fields) {
+  var info = {};
+  fields.forEach(function (item) {
+    info[item] = modal.find('#' + item).val();
+  });
+  return info;
+}
+
 /**
  * 调用后端接口
  * @param url 以“/”开头的地址
