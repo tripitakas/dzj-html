@@ -43,7 +43,7 @@ class TestApi(APITestCase):
 
             # 测试ocr_text任务不可以修改坐标信息
             if task_type == 'ocr_text':
-                tasks[0]['result']['blocks'][0]['h'] = 0
+                tasks[0]['result']['blocks'][0]['h'] += 1
                 r = self.fetch('/api/task/submit/' + task_type, body={'data': {'tasks': tasks}})
                 self.assert_code(200, r, msg=task_type)
                 d = self.parse_response(r)['data']['tasks']
