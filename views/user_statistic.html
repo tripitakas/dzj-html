@@ -13,14 +13,11 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module ComLeft(title="user-management", sub="user-management-data" ) %}
+    {% module ComLeft(title="user-management") %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="wrapper">
+      <div class="layout">
+          <div class="wrapper">
               <div class="sty-list">
                 <div class="operation">
                   <span>下载数据</span>
@@ -29,7 +26,7 @@
                   <input type="text" placeholder="搜索">
                   <i class="ser-btn"></i>
                 </div>
-                <table style="border-collapse:separate; border-spacing:0px 10px;">
+                <table class="sty-table">
                   <thead>
                   <tr>
                     <th><input type="checkbox" name="" value=""/></th>
@@ -66,9 +63,7 @@
               </div>
               {% module Pager(pager) %}
             </div>
-          </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
@@ -80,6 +75,5 @@
     $(this).next().toggleClass('toggle');
   });
 </script>
-
 </body>
 </html>

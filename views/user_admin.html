@@ -14,14 +14,11 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module ComLeft(title="user-management", sub="") %}
+    {% module ComLeft(title="user-management") %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="wrapper">
+      <div class="layout">
+          <div class="wrapper">
               <div class="sty-list">
                 <div class="search fr">
                   <input type="text" placeholder="搜索">
@@ -60,10 +57,10 @@
                     <td>{{p.get('email') or ''}}</td>
                     <td>{{p.get('gender') or ''}}</td>
                     <td>{{to_date_str(p['create_time'])}}</td>
-                    <td>
+                    <td class="action">
                       <a onclick="remove('{{dumps(p)}}')">删除</a>
                       <a onclick="update('{{dumps(p)}}')">修改</a>
-                      <a onclick="reset_pwd('{{dumps(p)}}')">重置密码</a>
+                      <a onclick="resetPwd('{{dumps(p)}}')">重置密码</a>
                     </td>
                   </tr>
                   {% end %}
@@ -72,15 +69,13 @@
               </div>
               {% module Pager(pager) %}
             </div>
-          </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
 
 <div class="panel-body">
-  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -122,7 +117,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal-confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
     </div>
@@ -136,7 +131,7 @@
    * 修改用户
    * @param {Object} user 用户名
    */
-  var $modal = $('#modifyModal');
+  var $modal = $('#updateModal');
   var fields =  ['_id', 'name', 'phone', 'email', 'gender'];
 
   function update(user) {
@@ -146,7 +141,7 @@
     $modal.modal();
   }
 
-  $('#modal-confirm').click(function () {
+  $('#updateModal .modal-confirm').click(function () {
     var user = getModal($modal, fields);
     if (user.phone === '' && user.email === '') {
       showError('请重新输入', '手机和邮箱不能同时为空。');
@@ -186,7 +181,7 @@
    * 重置密码
    * @param user 用户
    */
-  function reset_pwd(user) {
+  function resetPwd(user) {
     user = decodeJSON(user);
     showConfirm("确定重置" + user.name + "吗？", "重置后无法恢复！", function () {
       postApi('/user/reset_pwd', {data: {_id: user._id}}, function (res) {

@@ -15,76 +15,68 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
     {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="wrapper">
-              <div class="panel panel-default" style="height: unset;padding-bottom: 10px">
-                <div class="panel-heading">
-                  <h3 class="panel-title">个人中心</h3>
+      <div class="layout">
+        <div class="wrapper">
+          <div class="panel panel-default" style="height: unset;padding-bottom: 10px">
+            <div class="panel-heading">
+              <h3 class="panel-title">个人中心</h3>
+            </div>
+            <div class="panel-body">
+              <form class="form-horizontal" role="form">
+                <br/>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label"></label>
+                  <div class="profile-info-name">
+                    {% set gender = current_user and current_user.get('gender') %}
+                    {% set ava = 'ava1.png' if gender == '男' else 'ava2.png' if gender == '女' else 'ava3.png' %}
+                    <img src="{{ static_url(current_user.get('img') or 'imgs/' + ava)}}" class="thumb-lg img-circle img-thumbnail" onclick="uploadImg()">
+                    <a href="javascript:uploadImg();" style="vertical-align:bottom;">上传头像</a>
+                  </div>
                 </div>
-                <div class="panel-body">
-                  <form class="form-horizontal" role="form">
-                    <br/>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label"></label>
-                      <div class="profile-info-name">
-                        {% set ava = 'ava1.png' if current_user and current_user.get('gender') == '男' else 'ava2.png' if current_user and current_user.get('gender') == '女' else 'ava3.png' %}
-                        <img src="{{ static_url(current_user.get('img') or 'imgs/' + ava)}}"
-                             class="thumb-lg img-circle img-thumbnail" alt="profile-image" onclick="upload_img()">
-                        <a href="javascript:upload_img();" style="vertical-align:bottom;">上传头像</a>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">姓名</label>
-                      <div class="col-sm-5">
-                        <input type="text" id="name" class="form-control" value="{{current_user['name']}}">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">手机</label>
-                      <div class="col-sm-5">
-                        <input type="text" id="phone" class="form-control" value="{{current_user.get('phone') or ''}}">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">邮箱</label>
-                      <div class="col-sm-5">
-                        <input type="text" id="email" class="form-control" value="{{current_user.get('email')}}">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label">性别</label>
-                      <div class="col-sm-5">
-                        <select id="gender" class="form-control">
-                          <option {{"selected" if not current_user.get('gender') else '' }}></option>
-                          <option {{"selected" if current_user.get('gender')=='男' else '' }}>男</option>
-                          <option {{"selected" if current_user.get('gender')=='女' else '' }}>女</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label"></label>
-                      <div class="col-sm-5">
-                        <a class="btn btn-primary btn-block" onclick="save_profile()">保存</a>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label class="col-sm-2 control-label"></label>
-                      <div class="col-sm-5">
-                        <a class="btn btn-block btn-warning" onclick="change_pwd()">修改密码</a>
-                      </div>
-                    </div>
-
-                  </form>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">姓名</label>
+                  <div class="col-sm-5">
+                    <input type="text" id="name" class="form-control" value="{{current_user['name']}}">
+                  </div>
                 </div>
-                <!-- panel-body -->
-              </div>
-
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">手机</label>
+                  <div class="col-sm-5">
+                    <input type="text" id="phone" class="form-control" value="{{current_user.get('phone') or ''}}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">邮箱</label>
+                  <div class="col-sm-5">
+                    <input type="text" id="email" class="form-control" value="{{current_user.get('email')}}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">性别</label>
+                  <div class="col-sm-5">
+                    <select id="gender" class="form-control">
+                      <option {{"selected" if not current_user.get('gender') else '' }}></option>
+                      <option {{"selected" if current_user.get('gender')=='男' else '' }}>男</option>
+                      <option {{"selected" if current_user.get('gender')=='女' else '' }}>女</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label"></label>
+                  <div class="col-sm-5">
+                    <a class="btn btn-primary btn-block" onclick="saveProfile()">保存</a>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label"></label>
+                  <div class="col-sm-5">
+                    <a class="btn btn-block btn-warning" onclick="changePwd()">修改密码</a>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -93,10 +85,8 @@
   </div>
 </div>
 
-<!-- Modify Modals -->
 <div class="panel-body">
-  <!-- modal content -->
-  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -127,20 +117,13 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
-      <!-- /.modal-content -->
     </div>
-    <!-- /.modal-dialog -->
   </div>
-  <!-- /.modal -->
-</div>
-<!-- End BootStrap Modal -->
 
-<div class="panel-body">
-  <!-- modal content -->
-  <div id="upload-img" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uploadimg" aria-hidden="true" data-backdrop="static">
+  <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uploadImg" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -156,21 +139,18 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="img-confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
-      <!-- /.modal-content -->
     </div>
-    <!-- /.modal-dialog -->
   </div>
-  <!-- /.modal -->
 </div>
 
 {% include _base_js.html %}
 
 <script type="text/javascript">
   // 修改个人信息
-  function save_profile() {
+  function saveProfile() {
     var info = {gender: $('#gender').val(), name: $('#name').val(), phone: $('#phone').val(), email: $('#email').val()};
     postApi('/user/my/profile', {data: info}, function () {
       showSuccess('修改成功', $('#name').val() + ' 的个人信息已修改。');
@@ -184,12 +164,12 @@
   }
 
   // 弹框提示密码修改
-  function change_pwd(name) {
-    $('#modifyModal').modal('show');
+  function changePwd(name) {
+    $('#updateModal').modal('show');
   }
 
   // 提交密码修改
-  $("#modal_confirm").click(function () {
+  $("#updateModal .modal-confirm").click(function () {
     if ($('#password').val().trim() != $('#confirm_password').val().trim()) {
       showError('请重新输入', '两次密码不一致。');
       return;
@@ -204,16 +184,16 @@
         showError('修改失败', err.message);
       }
     });
-    $('#modifyModal').modal('hide');
+    $('#updateModal').modal('hide');
   });
 
   // 弹出上传用户头像提示框
-  function upload_img() {
-    $('#upload-img').modal('show');
+  function uploadImg() {
+    $('#uploadModal').modal('show');
   }
 
   // 上传用户头像
-  $("#img-confirm").click(function () {
+  $("#uploadModal .modal-confirm").click(function () {
     if (typeof $('#upload')[0].files[0] == "undefined") {
       return showError('请选择图片');
     }
@@ -227,17 +207,10 @@
     }
     var formData = new FormData();
     formData.append('img', imgFile);
-    $.ajax({
-      url: '/api/user/my/avatar',
-      type: 'POST',
-      data: formData,
-      processData: false,
-      contentType: false,
-      success: function (res) {
-        window.location.reload();
-      }
+    postFile('/user/my/avatar', formData, function () {
+      window.location.reload();
     });
-    $('#upload-img').modal('hide');
+    $('#uploadModal').modal('hide');
   });
 
 </script>

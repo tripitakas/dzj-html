@@ -22,15 +22,11 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--公共左侧导航栏 -->
-    {% module ComLeft(title="task-lobby", sub="task-lobby-cut") %}
+    {% module ComLeft(title="task-lobby") %}
     <div class="main-content">
-      <!--公共头部 -->
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="wrapper">
+      <div class="layout">
+          <div class="wrapper">
               <div class="sty-list">
                 <div class="lobby-tips fl">总共有 {{total_count}} 条任务</div>
                 <div class="search fr">
@@ -66,9 +62,7 @@
                 </table>
               </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
   </div>
 </div>

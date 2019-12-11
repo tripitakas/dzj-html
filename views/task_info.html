@@ -60,9 +60,8 @@
     {% module ComLeft(title="task-manage", sub="task-manage-cut-status" ) %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
+      <div class="layout">
+          <div class="wrapper">
             <div class="task-info">
               <div class="info-title">基本信息</div>
               {% for k in display_fields %}
@@ -100,7 +99,6 @@
             {% end %}
           </div>
         </div>
-      </div>
     </div>
   </div>
 </div>

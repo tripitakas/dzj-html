@@ -62,16 +62,11 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
     {% module ComLeft(title="index") %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <!-- 中间内容 -->
-            <div class="">
-
+      <div class="layout">
+          <div class="wrapper">
               <div class="flex-content">
                 <div class="main-right no-bg no-pm">
                   <div class="tripitaka-list">
@@ -92,14 +87,11 @@
                 </div>
               </div>
             </div>
-            <!-- ./中间内容 -->
-          </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
+
 {% include _base_js.html %}
 </body>
-
 </html>

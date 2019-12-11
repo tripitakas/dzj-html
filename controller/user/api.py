@@ -194,12 +194,12 @@ class ChangeUserRoleApi(BaseHandler):
             return self.send_error_response(err)
 
         try:
-            old_user = self.db.user.find_one(dict(_id=user['_id']))
+            old_user = self.db.user.find_one(dict(_id=ObjectId(user['_id'])))
             if not old_user:
                 return self.send_error_response(errors.no_user, id=user['_id'])
 
             user['roles'] = user.get('roles') or ''
-            r = self.db.user.update_one(dict(_id=user['_id']), {'$set': dict(roles=user['roles'])})
+            r = self.db.user.update_one(dict(_id=ObjectId(user['_id'])), {'$set': dict(roles=user['roles'])})
             if not r.matched_count:
                 return self.send_error_response(errors.no_user)
             self.add_op_log('change_role', target_id=user['_id'],
@@ -305,12 +305,12 @@ class DeleteUserApi(BaseHandler):
             return self.send_error_response(err)
 
         try:
-            old_user = self.db.user.find_one(dict(_id=user['_id']))
+            old_user = self.db.user.find_one(dict(_id=ObjectId(user['_id'])))
             if not old_user:
                 return self.send_error_response(errors.no_user, id=user['_id'])
             if user['_id'] == self.current_user['_id']:  # 判断删除的用户是否为自己
                 return self.send_error_response(errors.cannot_delete_self)
-            r = self.db.user.delete_one(dict(_id=user['_id']))
+            r = self.db.user.delete_one(dict(_id=ObjectId(user['_id'])))
             if r.deleted_count < 1:
                 return self.send_error_response(errors.no_user)
             self.add_op_log('delete_user', target_id=user['_id'], context=old_user['name'])

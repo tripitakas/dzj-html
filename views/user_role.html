@@ -16,72 +16,78 @@
   table th a {
     cursor: pointer;
   }
+
+  .sty-list .sty-table {
+    border-spacing: 0 0;
+    border-collapse: initial;
+    margin-top: 0;
+  }
+
+  .sty-list .btn-toolbar {
+    margin-top: 20px;
+    margin-bottom: 0;
+    float: left;
+  }
+
 </style>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
     {% module ComLeft(title="user-management", sub="user-management-role") %}
     <div class="main-content">
       {% module ComHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="wrapper">
-              <div class="sty-list">
-                <div class="search fr">
-                  <input type="text" placeholder="搜索">
-                  <i class="ser-btn"></i>
-                </div>
-                <div class="table-responsive" data-pattern="priority-columns">
-                  <table class="table table-small-font">
-                    <thead>
-                    <tr>
-                      <th data-priority="1">操作</th>
-                      <th data-priority="1">姓名</th>
-                      <th data-priority="0">手机</th>
-                      <th data-priority="0">邮箱</th>
-                      {% for r in roles %}
-                      <th data-priority="1">
-                        <div class="btn-group">
-                          <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
-                        </div>
-                      </th>
-                      {% end %}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for p in users %}
-                    <tr>
-                      <th>
-                        <a onclick="modify('{{dumps(p)}}')">修改</a>
-                      </th>
-                      <td>{{p['name']}}</td>
-                      <td>{{p.get('phone') or ''}}</td>
-                      <td>{{p.get('email', '') }}</td>
-                      {% for r in roles %}
-                      <td>{{r if r in (p.get('roles') or '') else '否'}}</td>
-                      {% end %}
-                    </tr>
-                    {% end %}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              {% module Pager(pager=pager) %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="sty-list">
+            <div class="search fr">
+              <input type="text" placeholder="搜索">
+              <i class="ser-btn"></i>
             </div>
-            <!--<p>新用户的默认角色：{{init_roles}}</p>-->
+            <div class="table-responsive" data-pattern="priority-columns">
+              <table class="table table-small-font sty-table">
+                <thead>
+                <tr>
+                  <th data-priority="1">操作</th>
+                  <th data-priority="1">姓名</th>
+                  <th data-priority="0">手机</th>
+                  <th data-priority="0">邮箱</th>
+                  {% for r in roles %}
+                  <th data-priority="1">
+                    <div class="btn-group">
+                      <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
+                    </div>
+                  </th>
+                  {% end %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for p in users %}
+                <tr>
+                  <th>
+                    <a onclick="modify('{{dumps(p)}}')">修改</a>
+                  </th>
+                  <td>{{p['name']}}</td>
+                  <td>{{p.get('phone') or ''}}</td>
+                  <td>{{p.get('email', '') }}</td>
+                  {% for r in roles %}
+                  <td>{{r if r in (p.get('roles') or '') else '否'}}</td>
+                  {% end %}
+                </tr>
+                {% end %}
+                </tbody>
+              </table>
+            </div>
           </div>
+          {% module Pager(pager=pager) %}
         </div>
       </div>
     </div>
   </div>
 </div>
-<!-- Modify Modals -->
+
 <div class="panel-body">
-  <!-- modal content -->
-  <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -116,16 +122,12 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
-      <!-- /.modal-content -->
     </div>
-    <!-- /.modal-dialog -->
   </div>
-  <!-- /.panel-body -->
 </div>
-<!-- /.modal -->
 
 {% include _base_js.html %}
 <!-- responsive-table-->
@@ -135,14 +137,12 @@
   $('.table-responsive').responsiveTable({
     addFocusBtn: false,
     addDisplayAllBtn: true
-
   });
 
   function modify(user) {
     user = decodeJSON(user);
     user.roles = user.roles || '';
-
-    var $dlg = $('#modifyModal');
+    var $dlg = $('#updateModal');
     var $name = $dlg.find('#name');
     var $account = $dlg.find('#account');
     var $list = $dlg.find('.roles-list');
@@ -154,8 +154,7 @@
     });
 
     $dlg.modal();
-
-    $dlg.find("#modal_confirm").unbind('click').click(function () {
+    $dlg.find(".modal-confirm").unbind('click').click(function () {
       var info = {_id: user._id};
       var roles = [];
       $list.find('label').each(function (i, el) {
@@ -165,14 +164,12 @@
         }
       });
       info.roles = roles.sort().join(',');
-
       // 判断角色是否发生改变
       var old_roles = user.roles.replace(/\s/g, '').split(',').sort().join(',');
-      if (old_roles == info.roles) {
+      if (old_roles === info.roles) {
         showError('修改失败', '所选角色与原有角色相同。');
         return;
       }
-
       postApi('/user/role', {data: info}, function () {
         showSuccess('修改成功', user.name + ' 的信息已修改。');
         setTimeout(function () {

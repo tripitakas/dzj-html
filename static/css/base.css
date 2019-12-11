@@ -457,7 +457,7 @@ a:hover, a:visited, a:focus {
 
 .sty-table td.action a {
   font-size: 12px;
-  margin-right: 10px;
+  margin-left: 2px;
 }
 
 .sty-table td a:hover {
@@ -555,17 +555,6 @@ a:hover, a:visited, a:focus {
   -o-transform: rotate(180deg);
   /* Opera */
   color: #317EEB;
-}
-
-.btn-toolbar {
-  margin-bottom: 0;
-  float: right;
-}
-
-.btn-toolbar .dropdown-toggle.btn-primary {
-  padding-left: 0;
-  padding-right: 0;
-  letter-spacing: 0;
 }
 
 .table-wrapper {
