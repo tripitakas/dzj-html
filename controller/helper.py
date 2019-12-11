@@ -7,10 +7,18 @@
 
 import re
 import random
+import hashlib
 import logging
 import inspect
 from hashids import Hashids
 from datetime import datetime, timedelta, timezone
+
+
+
+def md5_encode(page_code, salt):
+    md5 = hashlib.md5()
+    md5.update((page_code + salt).encode('utf-8'))
+    return md5.hexdigest()
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):

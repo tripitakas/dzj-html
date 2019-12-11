@@ -1,0 +1,63 @@
+<div class="sty-list">
+  <div class="operation">
+    <div class="btn-group dropdown">
+      {% for o in operations %}
+      {% if 'data-target' in o %}
+      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#{{o['data-target']}}">
+        {{o.get('label')}}
+      </button>
+      {% else %}
+      <button type="button" class="btn btn-default waves-effect" id="{{o.get('operation') or ''}}">
+        <a href="{{o['url'] if o.get('url') else '#'}}">{{o.get('label')}}</a>
+      </button>
+      {% end %}
+      {% end %}
+    </div>
+  </div>
+  <div class="search fr">
+    <input id="search-input" type="text" placeholder="{{search_tip}}" value="{{q}}">
+    <i class="ser-btn"></i>
+  </div>
+  <table class="sty-table">
+    <thead>
+    <tr>
+      <th><input id="check-all" type="checkbox"/></th>
+      {% for f in fields %}
+      {% set id, name, show_type = f.get('id'), f.get('name'), f.get('show_type') or '' %}
+      {% if show_type != 'none' %}
+      <th class="{{show_type}}"><span class="sort {{'active' if id in order else ''}}" title="{{id}}">
+          {{name}}<span class="ion-arrow-down-b {{'toggle' if order == id else ''}}"></span>
+      </span></th>
+      {% end %}
+      {% end %}
+      <th><span>操作</span></th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for d in docs %}
+    <tr id="{{d['_id']}}">
+      <td><input type="checkbox"/></td>
+      {% for f in fields %}
+      {% if f.get('show_type') != 'none' %}
+      <td class="{{(f.get('id') + ' ' + f.get('show_type', '')).strip(' ')}}">{{d.get(f.get('id')) or ''}}</td>
+      {% end %}
+      {% end %}
+      <td class="action">
+        {% for a in actions %}
+        {% if a.get('action') %}
+        <a onclick="{{a.get('action')}}('{{dumps(d)}}')">{{a.get('label')}}</a>
+        {% else %}
+        <a class="{{a.get('id') or ''}}">{{a.get('label')}}</a>
+        {% end %}
+        {% end %}
+      </td>
+    </tr>
+    {% end %}
+    </tbody>
+  </table>
+  {% module Pager(pager) %}
+</div>
+
+<div class="panel-body">
+  {% module ComModal(fields) %}
+</div>

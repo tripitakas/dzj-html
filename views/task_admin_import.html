@@ -6,7 +6,7 @@
   <title>数据管理-导图片</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -28,14 +28,14 @@
 <div class="app-main">
   <div class="main">
     <!--模拟出左边菜单，方便写样式-->
-    {% module CommonLeft(title="data-management", sub="" ) %}
+    {% module ComLeft(title="data-management", sub="" ) %}
     <div class="main-content">
-      {% module CommonHead() %}
+      {% module ComHead() %}
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
             <div class="wrapper">
-              <div class="collate-list">
+              <div class="sty-list">
                 <div class="operation">
                   <span class="btn btn-default waves-effect" id="bat-delete">批量刪除</span>
                   <div class="btn-group dropdown">

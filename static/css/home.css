@@ -99,7 +99,7 @@
 .home .left ul li p:last-child {
   font-size: 36px;
   font-family: Arial;
-  color: var(--Color_Brown_Dark);
+  color: var(--Brown_Dark);
   font-weight: bold;
 }
 
@@ -141,7 +141,7 @@
 .home table tbody tr td em:first-child {
   font-size: 16px;
   font-family: Arial;
-  color: var(--Color_Brown_Dark);
+  color: var(--Brown_Dark);
   font-weight: bold;
   margin-right: 2px;
 }
@@ -162,7 +162,7 @@
   display: inline-block;
   width: 60px;
   height: 32px;
-  background: var(--Color_Grey_Dark);
+  background: var(--Grey_Dark);
   border-radius: 3px;
   text-align: center;
   line-height: 32px;
@@ -173,12 +173,12 @@
 
 .home .circle-bg {
   display: inline-block;
-  background: var(--Color_Grey_Dark);
+  background: var(--Grey_Dark);
   width: 30px;
   height: 30px;
   border-radius: 15px;
   font-size: 18px;
-  color: var(--Color_White);
+  color: var(--White);
   text-align: center;
   vertical-align: middle;
   line-height: 30px;
@@ -246,7 +246,7 @@
   font-size: 0.9em;
   max-width: 110px;
   text-align: right;
-  color: var(--Color_Grey_Dark);
+  color: var(--Grey_Dark);
 }
 
 .bottom .item .more {

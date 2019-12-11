@@ -4,7 +4,7 @@
   <title>人员管理-用户管理</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -15,14 +15,14 @@
 <div class="app-main">
   <div class="main">
     <!--模拟出左边菜单，方便写样式-->
-    {% module CommonLeft(title="user-management", sub="") %}
+    {% module ComLeft(title="user-management", sub="") %}
     <div class="main-content">
-      {% module CommonHead() %}
+      {% module ComHead() %}
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
             <div class="wrapper">
-              <div class="collate-list">
+              <div class="sty-list">
                 <div class="search fr">
                   <input type="text" placeholder="搜索">
                   <i class="ser-btn"></i>
@@ -51,9 +51,8 @@
                   </thead>
                   <tbody>
                   {% for p in users %}
-                  {% set _id = p['_id'] %}
                   {% set ava = 'ava1.png' if p.get('gender') == '男' else 'ava2.png' if p.get('gender') == '女' else 'ava3.png' %}
-                  <tr id="{{_id}}">
+                  <tr id="{{p['_id']}}">
                     <td><input type="checkbox" name="" value=""/></td>
                     <td><img src="{{static_url(p.get('img') or 'imgs/' + ava) }}" alt="" class="thumb-md img-circle"></td>
                     <td>{{p['name']}}</td>
@@ -62,7 +61,7 @@
                     <td>{{p.get('gender') or ''}}</td>
                     <td>{{to_date_str(p['create_time'])}}</td>
                     <td>
-                      <a onclick="delete_user('{{dumps(p)}}')">删除</a>
+                      <a onclick="remove('{{dumps(p)}}')">删除</a>
                       <a onclick="update('{{dumps(p)}}')">修改</a>
                       <a onclick="reset_pwd('{{dumps(p)}}')">重置密码</a>
                     </td>
@@ -80,7 +79,7 @@
   </div>
 </div>
 
-<div class="panel-body" style="padding: 0;">
+<div class="panel-body">
   <div id="modifyModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -133,27 +132,22 @@
 {% include _base_js.html %}
 
 <script type="text/javascript">
-
   /**
    * 修改用户
    * @param {Object} user 用户名
    */
-  var curUser = '', $modal = $('#modifyModal');
+  var $modal = $('#modifyModal');
+  var fields =  ['_id', 'name', 'phone', 'email', 'gender'];
+
   function update(user) {
     user = decodeJSON(user);
     user['_id'] = user['_id']['$oid'];
-    curUser = user;
-    setModal($modal, user, ['_id', 'name', 'phone', 'email', 'gender']);
+    setModal($modal, user, fields);
     $modal.modal();
   }
 
   $('#modal-confirm').click(function () {
-    var user = getModal($modal, ['_id', 'name', 'phone', 'email', 'gender']);
-    if (user.name === curUser.name && user.phone === curUser.phone &&
-        user.email === curUser.email && user.gender === curUser.gender) {
-      showError('请重新输入', '用户信息没有发生改变。');
-      return;
-    }
+    var user = getModal($modal, fields);
     if (user.phone === '' && user.email === '') {
       showError('请重新输入', '手机和邮箱不能同时为空。');
       return;
@@ -173,6 +167,22 @@
   });
 
   /**
+   * 删除用户
+   * @param user 用户
+   */
+  function remove(user) {
+    user = decodeJSON(user);
+    showConfirm("确定删除" + user.name + "用户吗？", "删除后无法恢复！", function () {
+      postApi('/user/delete', {data: {_id: user._id}}, function () {
+        showSuccess('删除用户' + user.name + '成功');
+        window.location.reload();
+      }, function (err) {
+        showError('删除失败', err.message);
+      });
+    });
+  }
+
+  /**
    * 重置密码
    * @param user 用户
    */
@@ -188,24 +198,7 @@
     });
   }
 
-  /**
-   * 删除用户
-   * @param user 用户
-   */
-  function delete_user(user) {
-    user = decodeJSON(user);
-    showConfirm("确定删除" + user.name + "用户吗？", "删除后无法恢复！", function () {
-      postApi('/user/delete', {data: {_id: user._id}}, function () {
-        showSuccess('删除用户' + user.name + '成功');
-        window.location.reload();
-      }, function (err) {
-        showError('删除失败', err.message);
-      });
-    });
-  }
-
 </script>
 
 </body>
-
 </html>

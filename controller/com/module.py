@@ -7,11 +7,12 @@
 """
 import re
 import math
+from bson.json_util import dumps
 from tornado.web import UIModule
 from controller.helper import prop
 
 
-class CommonLeft(UIModule):
+class ComLeft(UIModule):
     def render(self, title='', sub=''):
         def is_enabled(module):
             return module not in prop(self.handler.config, 'modules.disabled', '')
@@ -86,22 +87,22 @@ class CommonLeft(UIModule):
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
-        return self.render_string('common_left.html', title=title, sub=sub, display_items=display_items)
+        return self.render_string('com_left.html', title=title, sub=sub, display_items=display_items)
 
 
-class CommonHead(UIModule):
+class ComHead(UIModule):
     def render(self):
-        return self.render_string('common_head.html')
+        return self.render_string('com_head.html')
 
 
 class Pager(UIModule):
     def render(self, pager):
         if not isinstance(pager, dict):
-            pager = dict(cur_page=0, item_count=0)
-        if isinstance(pager, dict) and 'cur_page' in pager and 'item_count' in pager:
+            pager = dict(cur_page=0, doc_count=0)
+        if isinstance(pager, dict) and 'cur_page' in pager and 'doc_count' in pager:
             conf = self.handler.application.config['pager']
             pager['page_size'] = pager.get('page_size', conf['page_size'])  # 每页显示多少条记录
-            pager['page_count'] = math.ceil(pager['item_count'] / pager['page_size'])  # 一共有多少页
+            pager['page_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
             pager['display_count'] = conf['display_count']  # pager导航条中显示多少个页码
             pager['path'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
             pager['link'] = '&' if '?' in pager['path'] else '?'  # 当前path
@@ -113,4 +114,28 @@ class Pager(UIModule):
             end = pager['page_count'] if end > pager['page_count'] else end
             pager['display_range'] = range(start, end + 1)
 
-        return self.render_string('_pager.html', pager=pager)
+        return self.render_string('com_pager.html', pager=pager)
+
+
+class ComTable(UIModule):
+    operations = [
+        {'operation': 'add', 'label': '新增记录'},
+        {'operation': 'bat-delete', 'label': '批量删除'},
+    ]
+    actions = [
+        {'action': 'view', 'label': '查看'},
+        {'action': 'update', 'label': '修改'},
+        {'action': 'remove', 'label': '删除'},
+    ]
+
+    def render(self, docs, fields, actions=None, operations=None, pager=None, q='', order='', search_tip=''):
+        operations = operations or self.operations
+        actions = actions or self.actions
+        return self.render_string('com_table.html', dumps=dumps, docs=docs, fields=fields,
+                                  actions=actions, operations=operations, pager=pager,
+                                  q=q, order=order, search_tip=search_tip)
+
+
+class ComModal(UIModule):
+    def render(self, fields, id='', title=''):
+        return self.render_string('com_modal.html', fields=fields, id=id, title=title)

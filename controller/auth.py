@@ -17,7 +17,7 @@ url_placeholder = {
     'data_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_id': r'[A-Za-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
-    'collection': r'tripitaka|sutra|volume|reel|page',
+    'base_data': r'tripitaka|sutra|volume|reel|page',
     'shared_field': r'box|text',
     'box_type': 'block|column|char',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
@@ -171,17 +171,17 @@ role_route_maps = {
             '/api/task/return/@data_task/@task_id': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],
             '/api/task/submit/@data_task': ['POST'],
-            '/api/data/@collection/upload': ['POST'],
+            '/api/data/@base_data/upload': ['POST'],
         }
     },
     '数据管理员': {
         'is_assignable': True,
         'roles': ['普通用户', '数据处理员'],
         'routes': {
-            '/data/@collection': ['GET'],
+            '/data/@base_data': ['GET'],
             '/api/data/gen_js': ['POST'],
-            '/api/data/@collection': ['POST'],
-            '/api/data/@collection/delete': ['POST'],
+            '/api/data/@base_data': ['POST'],
+            '/api/data/@base_data/delete': ['POST'],
         }
     },
     '系统管理员': {

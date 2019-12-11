@@ -1,10 +1,10 @@
-<div class="sidebar-menu-con" style="">
+<div class="sidebar-menu" style="">
   <div class="ivu-shrinkable-menu sidebar-collapse">
     <div class="logo-con">
       <img class="large" src="{{ static_url('imgs/logo_rushi.png') }}">
       <img class="mini" src="{{ static_url('imgs/logo-small.png') }}">
     </div>
-    <ul class="menu" id="side-menu">
+    <ul class="main-menu" id="side-menu">
       {% for item in display_items %}
       <li class="menu-item {{'has-sub' if item.get('sub_items') else ''}}" id="{{item['id']}}">
         <div class="menu-title">
@@ -31,27 +31,25 @@
 <script>
   $(function () {
     $('.sidebar-collapse').slimScroll({
-      height: '100%',
-      railOpacity: 0.9,
-      alwaysVisible: false
+      height: '100%', railOpacity: 0.9, alwaysVisible: false
     });
   });
 
   $('#side-menu').on('click', '.has-sub .menu-title', function () {
-    if ($(this).parent().find('.sub-ul').hasClass('sub-ul-hidden')) {
+    var $sub = $(this).parent().find('.sub-ul');
+    if ($sub.hasClass('sub-ul-hidden')) {
       $('#side-menu .sub-ul').addClass('sub-ul-hidden');
-      $(this).parent().find('.sub-ul').removeClass('sub-ul-hidden');
+      $sub.removeClass('sub-ul-hidden');
     } else {
-      $(this).parent().find('.sub-ul').addClass('sub-ul-hidden');
+      $sub.addClass('sub-ul-hidden');
     }
   });
 
   $(document).ready(function () {
     var id = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
     id = id.replace('-2', '-1').replace('-3', '-1');
-    var cur_menu = $(id);
-    cur_menu.addClass('sub-active');
-    cur_menu.parent().removeClass('sub-ul-hidden');
+    $(id).addClass('sub-active');
+    $(id).parent().removeClass('sub-ul-hidden');
   });
 
 </script>

@@ -5,7 +5,6 @@
 @time: 2019/10/16
 """
 from controller import errors
-from controller.helper import prop
 
 
 class TaskConfig(object):
@@ -107,10 +106,6 @@ class TaskConfig(object):
             'roles': ['文字专家']
         },
     }
-
-    @classmethod
-    def prop(cls, obj, key, default=None):
-        return prop(obj, key, default=default)
 
     @classmethod
     def all_task_types(cls):

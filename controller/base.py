@@ -6,13 +6,10 @@
 """
 
 import re
-import hashlib
 import logging
 import traceback
-
 from os import path
 from datetime import datetime
-
 from bson import json_util
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
@@ -23,11 +20,10 @@ from tornado.httpclient import HTTPError
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-
 from controller import errors as e
-from controller.auth import get_route_roles, can_access
-from controller.helper import get_date_time, prop
 from controller.op_type import get_op_name
+from controller.auth import get_route_roles, can_access
+from controller.helper import get_date_time, prop, md5_encode
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
@@ -114,6 +110,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
+        kwargs['prop'] = self.prop
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
         if self._finished:  # check_auth 等处报错返回后就不再渲染
@@ -250,22 +247,17 @@ class BaseHandler(CorsMixin, RequestHandler):
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
         op_name = get_op_name(op_type)
         assert op_name, op_type + ' need add into op_type.py'
-        username = username or self.current_user and self.current_user.get('name')
+        target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')
+        username = username or self.current_user and self.current_user.get('name')
         logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
         try:
             self.db.log.insert_one(dict(
-                op_type=op_type, username=username, user_id=user_id, target_id=target_id and str(target_id) or None,
+                op_type=op_type, username=username, user_id=user_id, target_id=target_id,
                 context=str(context), ip=self.get_ip(), create_time=datetime.now(),
             ))
         except MongoError:
             pass
-
-    @staticmethod
-    def md5_encode(page_code, salt):
-        md5 = hashlib.md5()
-        md5.update((page_code + salt).encode('utf-8'))
-        return md5.hexdigest()
 
     def get_img(self, page, resize=False, force_local=False):
         if page.get('img_cloud_path'):
@@ -280,10 +272,14 @@ class BaseHandler(CorsMixin, RequestHandler):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
 
-        hash_value = self.md5_encode(page_name, salt)
+        hash_value = md5_encode(page_name, salt)
         inner_path = '/'.join(page_name.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+    @classmethod
+    def prop(cls, obj, key, default=None):
+        return prop(obj, key, default=default)
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):

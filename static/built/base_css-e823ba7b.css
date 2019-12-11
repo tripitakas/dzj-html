@@ -18941,22 +18941,22 @@ div.dataTables_info {
 	display: none;
 }
 :root {
-    --Color_333: #333333;
-    --Color_White: #fff;
-    --Color_Black: #000;
-    --Color_Brown: #eab977;
-    --Color_Brown_Dark: #cb9b66;
-    --Color_Brown_Darker: #b68856;
-    --Color_Brown_Line: #9b744b;
-    --Color_Grey: #9e9e9e;
-    --Color_Grey_Light: #cfcfcf;
-    --Color_Grey_Lighter: #fafafa;
-    --Color_Grey_Middle: #b7b7b6;
-    --Color_Grey_Dark: #6a6a77;
-    --Color_Grey_Line: #ebebeb;
-    --Color_Grey_Content: #f2f5fa;
-    --Color_Grey_Content1: #f1f3f4;
-    --Color_Grey_Content2: #fafafa;
+    --Black_Light: #333333;
+    --White: #fff;
+    --Black: #000;
+    --Brown: #eab977;
+    --Brown_Dark: #cb9b66;
+    --Brown_Darker: #b68856;
+    --Brown_Line: #9b744b;
+    --Grey: #9e9e9e;
+    --Grey_Light: #cfcfcf;
+    --Grey_Lighter: #fafafa;
+    --Grey_Middle: #b7b7b6;
+    --Grey_Dark: #6a6a77;
+    --Grey_Line: #ebebeb;
+    --Grey_Content: #f2f5fa;
+    --Grey_Content1: #f1f3f4;
+    --Grey_Content2: #fafafa;
 
 }
 
@@ -19086,11 +19086,11 @@ body {
 }
 
 a {
-    color: var(--Color_333);
+    color: var(--Black_Light);
 }
 
 a:hover {
-    color: var(--Color_333);
+    color: var(--Black_Light);
 }
 
 /*左边菜单*/
@@ -19098,9 +19098,9 @@ a:hover {
 .sidebar-menu-con {
     width: 200px;
     height: 100%;
-    background: var(--Color_Brown_Dark);
+    background: var(--Brown_Dark);
     position: fixed;
-    color: var(--Color_333);
+    color: var(--Black_Light);
     z-index: 2;
 }
 
@@ -19117,7 +19117,7 @@ a:hover {
 }
 
 .menu-item a, .menu-item a:hover {
-    color: var(--Color_333);
+    color: var(--Black_Light);
 }
 
 .main {
@@ -19129,7 +19129,7 @@ a:hover {
 .main .logo-con {
     height: 56px;
     text-align: center;
-    background-color: var(--Color_Grey_Light);
+    background-color: var(--Grey_Light);
 }
 
 .logo-con img {
@@ -19152,7 +19152,7 @@ a:hover {
 
 .main .menu > li {
     line-height: 36px;
-    color: var(--Color_333);
+    color: var(--Black_Light);
     margin-right: 12px;
     width: 100%;
 }
@@ -19168,21 +19168,21 @@ a:hover {
 }
 
 .main .menu .menu-title:hover {
-    background: var(--Color_Brown);
+    background: var(--Brown);
 }
 
 .main .menu .active {
-    background-color: var(--Color_Brown);
+    background-color: var(--Brown);
 }
 
-.main .menu .submenu-title {
+.main .menu .sub-title {
     border-bottom: 1px dashed rgba(228, 195, 168, 0.26);
     padding-left: 5px;
 }
 
-.main .menu .submenu-title:hover {
+.main .menu .sub-title:hover {
     cursor: pointer;
-    background: var(--Color_Brown);
+    background: var(--Brown);
 }
 
 .main .menu .sub-ul li {
@@ -19190,7 +19190,7 @@ a:hover {
 }
 
 .main .menu .sub-ul li:hover {
-    background-color: var(--Color_Brown);
+    background-color: var(--Brown);
 }
 
 .main .menu .sub-ul li .sub-img {
@@ -19198,7 +19198,7 @@ a:hover {
 }
 
 .main .menu .sub-ul .sub-active {
-    background: var(--Color_Brown);
+    background: var(--Brown);
 }
 
 .main .main-content {
@@ -19208,7 +19208,7 @@ a:hover {
     height: 100%;
 }
 
-.main-header-con {
+.main-header {
     height: 56px;
     line-height: 56px;
     background: transparent;
@@ -19359,11 +19359,11 @@ a:hover {
     display: none;
 }
 
-.collate-list {
+.sty-list {
     margin-top: 20px;
 }
 
-.collate-list .count span {
+.sty-list .count span {
     position: relative;
     font-size: 24px;
     display: inline-block;
@@ -19371,28 +19371,28 @@ a:hover {
     margin-right: 80px;
 }
 
-.collate-list .count span em {
+.sty-list .count span em {
     margin: 0 15px;
 }
 
-.collate-list .count span:first-child em {
+.sty-list .count span:first-child em {
     color: #000;
 }
 
-.collate-list .count span:last-child em {
+.sty-list .count span:last-child em {
     color: #6b6b6b;
 }
 
-.collate-list .count span img {
+.sty-list .count span img {
     vertical-align: bottom;
 }
 
-.collate-list .search {
+.sty-list .search {
     position: relative;
     top: -20px;
 }
 
-.collate-list .search input {
+.sty-list .search input {
     display: inline-block;
     border: 0 none;
     border-bottom: 1px solid #cca78a;
@@ -19402,7 +19402,7 @@ a:hover {
     padding-left: 20px;
 }
 
-.collate-list .search i {
+.sty-list .search i {
     position: absolute;
     top: 5px;
     left: 0;
@@ -19411,47 +19411,47 @@ a:hover {
     height: 17px;
 }
 
-.collate-list table {
+.sty-list table {
     margin-top: 30px;
     width: 99.99%;
     text-align: left;
 }
 
-.collate-list table th {
+.sty-list table th {
     font-weight: normal;
     font-size: 14px;
     /*padding-bottom: 17px;*/
     font-weight: 600;
 }
 
-.collate-list table th:first-child {
+.sty-list table th:first-child {
     text-align: center;
 }
 
-.collate-list table th:last-child {
+.sty-list table th:last-child {
     text-align: center;
 }
 
-.collate-list table tbody tr {
+.sty-list table tbody tr {
     background: rgba(255, 255, 255, 0.85);
     height: 44px;
     border: 1px solid #ebebeb;
 }
 
-.collate-list table tbody tr td {
+.sty-list table tbody tr td {
     font-size: 14px;
     color: #13171c;
 }
 
-.collate-list table tbody tr td:first-child {
+.sty-list table tbody tr td:first-child {
     text-align: center;
 }
 
-.collate-list table tbody tr td:last-child {
+.sty-list table tbody tr td:last-child {
     text-align: center;
 }
 
-.collate-list table tbody tr td span {
+.sty-list table tbody tr td span {
     display: inline-block;
     width: 70px;
     height: 32px;
@@ -19465,23 +19465,23 @@ a:hover {
     margin-right: 10px;
 }
 
-.collate-list table tr td.status_none {
+.sty-list table tr td.status_none {
     color: #999;
 }
 
-.collate-list table tr td.status_pending {
+.sty-list table tr td.status_pending {
     color: #666;
 }
 
-.collate-list table tr td.status_ended {
+.sty-list table tr td.status_ended {
     color: #0f0;
 }
 
-.collate-list table tr td.status_opened {
+.sty-list table tr td.status_opened {
     color: #007;
 }
 
-.collate-list .operation span {
+.sty-list .operation span {
     display: block;
     float: left;
     /*width: 70px;*/
@@ -19497,27 +19497,27 @@ a:hover {
     margin-right: 10px;
 }
 
-.collate-list .sty-table td.datetime {
+.sty-list .sty-table td.datetime {
     font-size: 12px;
     width: 100px;
 }
 
-.collate-list .bat-upload span {
+.sty-list .bat-upload span {
     width: 150px;
 }
 
-.collate-list .btn-toolbar {
+.sty-list .btn-toolbar {
     position: absolute;
     left: 0;
     margin-top: -20px;
 }
 
-.collate-list .table-responsive {
+.sty-list .table-responsive {
     margin-top: 0;
     top: 10px;
 }
 
-.collate-list table.table {
+.sty-list table.table {
     margin-top: 0;
 }
 
@@ -19611,7 +19611,7 @@ a:hover {
     margin-left: 0;
 }
 
-.main-header-con.enlarge {
+.main-header.enlarge {
     padding-left: 0;
 }
 
@@ -19634,7 +19634,7 @@ a:hover {
 }
 
 .m-header {
-    background: var(--Color_Grey_Light);
+    background: var(--Grey_Light);
     height: 40px;
     position: fixed;
     z-index: 1000;
@@ -19652,7 +19652,7 @@ a:hover {
 }
 
 .m-header .tips {
-    color: var(--Color_Brown_Darker);
+    color: var(--Brown_Darker);
     font-size: 14px;
     margin: 9px 6px;
 }
@@ -19693,14 +19693,14 @@ a:hover {
     font-size: 20px;
     font-weight: 500;
     margin: 4px 0px 0px 10px;
-    color: var(--Color_333);
+    color: var(--Black_Light);
 }
 
 .m-header .sub-title {
     font-size: 14px;
     font-weight: 500;
     margin: 12px 0px 0px 6px;
-    color: var(--Color_333);
+    color: var(--Black_Light);
 }
 
 .m-header .m-pager {
@@ -19727,7 +19727,7 @@ a:hover {
     font-size: 20px;
     display: inline-block;
     vertical-align: middle;
-    color: var(--Color_Brown_Darker);
+    color: var(--Brown_Darker);
     transition: all 0.2s;
     cursor: pointer;
 }
@@ -19749,24 +19749,24 @@ a:hover {
 
 .m-header .font div {
     padding: 3px 5px;
-    color: var(--Color_Brown_Darker);
+    color: var(--Brown_Darker);
     font-weight: 500;
 }
 
 .m-header .font-reduce {
-    border: 0px solid var(--Color_Brown_Darker);
+    border: 0px solid var(--Brown_Darker);
     border-radius: 15px 0 0 15px;
     cursor: pointer;
 }
 
 .m-header .font-current {
-    border-top: 0px solid var(--Color_Brown_Darker);
-    border-bottom: 0px solid var(--Color_Brown_Darker);
+    border-top: 0px solid var(--Brown_Darker);
+    border-bottom: 0px solid var(--Brown_Darker);
     width: 24px;
 }
 
 .m-header .font-enlarge {
-    border: 0px solid var(--Color_Brown_Darker);
+    border: 0px solid var(--Brown_Darker);
     border-radius: 0 15px 15px 0;
     cursor: pointer;
 }

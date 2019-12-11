@@ -21,7 +21,7 @@
   flex: 0 0 auto;
   width: 276px;
   height: 100%;
-  background: var(--Color_Brown_Dark);
+  background: var(--Brown_Dark);
   overflow-y: auto;
 }
 
@@ -30,19 +30,19 @@
 }
 
 .main-left .menu-search-wrapper {
-  border: 1px solid var(--Color_Brown_Dark);
+  border: 1px solid var(--Brown_Dark);
   border-radius: 24px;
   margin-top: 8px;
   margin-left: 8px;
   margin-right: 8px;
   height: 26px;
-  background: var(--Color_Brown_Darker);
+  background: var(--Brown_Darker);
   padding-top: 3px;
   padding-bottom: 3px;
 }
 
 .main-left .menu-search-wrapper:hover {
-  border: 1px solid var(--Color_Brown);
+  border: 1px solid var(--Brown);
 }
 
 .main-left .menu-search-input {
@@ -85,7 +85,7 @@
   overflow: hidden;
   height: 100%;
   /*width: 100%;*/
-  background: var(--Color_White);
+  background: var(--White);
 }
 
 /* 右侧-顶部导航 */
@@ -100,7 +100,7 @@
   height: 40px;
   display: flex;
   justify-content: space-between;
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
 }
 
 /* 右侧-顶部导航-第一行 */
@@ -122,23 +122,23 @@
   border-bottom-left-radius: 24px;
   border-top-left-radius: 24px;
   border-right: 0;
-  color: var(--Color_Brown_Darker);
-  background: var(--Color_Grey_Line);
+  color: var(--Brown_Darker);
+  background: var(--Grey_Line);
 }
 
 .main-line .search .btn-scope:hover {
-  color: var(--Color_Brown_Darker);
-  background: var(--Color_Grey_Line);
+  color: var(--Brown_Darker);
+  background: var(--Grey_Line);
 }
 
 .main-line .search .scope-items {
   min-width: 80px;
   width: 80px;
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
 }
 
 .main-line .search .scope-items a {
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
 }
 
 .main-line .search .scope-items a.active:after {
@@ -151,11 +151,11 @@
   width: 300px;
   border: 1px solid #dfe1e5;
   border-radius: 24px;
-  background: var(--Color_Grey_Line);
+  background: var(--Grey_Line);
 }
 
 .main-line .search .search-input:hover {
-  background: var(--Color_Grey_Lighter);
+  background: var(--Grey_Lighter);
 }
 
 .main-line .search .search-img {
@@ -188,7 +188,7 @@
 /* 右侧-顶部导航-第二行 */
 .m-header .sub-line {
   height: 30px;
-  background-color: var(--Color_Grey_Line);
+  background-color: var(--Grey_Line);
 }
 
 .sub-line .left {
@@ -248,7 +248,7 @@
   margin: 0 3px;
   height: 20px;
   text-align: center;
-  /*border-right: 1px dotted var(--Color_Grey_Middle);*/
+  /*border-right: 1px dotted var(--Grey_Middle);*/
 }
 
 .m-pager .btn-page.to {
@@ -258,7 +258,7 @@
 .m-pager .btn-page.to input {
   width: 55px;
   height: 20px;
-  background: var(--Color_Grey_Line);
+  background: var(--Grey_Line);
   border: 0;
   text-align: center;
   margin: 0 2px;
@@ -266,7 +266,7 @@
 }
 
 .m-pager .btn-page.to input:hover {
-  background: var(--Color_White);
+  background: var(--White);
 }
 
 
@@ -297,7 +297,7 @@
   right: 45px;
   width: 132px;
   line-height: 25px;
-  background: var(--Color_Grey_Line);
+  background: var(--Grey_Line);
   text-align: right;
   padding: 2px 15px 8px 0;
 }
@@ -310,7 +310,7 @@
 }
 
 .order-wrap .search-order:hover {
-  background: var(--Color_Grey_Light);
+  background: var(--Grey_Light);
 }
 
 .order-wrap .search-order.active:before {
@@ -337,7 +337,7 @@
   height: 100%;
   overflow: auto;
   padding: 10px 20px 0;
-  background: var(--Color_Grey_Content);
+  background: var(--Grey_Content);
   font-size: 18px;
   line-height: 30px;
   letter-spacing: 0.1em;
@@ -364,11 +364,11 @@
 }
 
 .content .content-left .bd {
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
 }
 
 .content .content-left .kw {
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
   cursor: pointer;
 }
 
@@ -377,8 +377,8 @@
   padding-top: 10px;
   padding-bottom: 15px;
   font-size: 14px;
-  color: var(--Color_Grey_Dark);
-  border-top: 1px solid var(--Color_Grey);
+  color: var(--Grey_Dark);
+  border-top: 1px solid var(--Grey);
   line-height: 24px;
 }
 
@@ -392,7 +392,7 @@
 
 .content .content-left .note {
   font-family: consola;
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
   font-size: 60%;
   letter-spacing: 0;
   top: -.5em;
@@ -461,12 +461,12 @@
 }
 
 .article .inline-note {
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
   font-size: 0.9em;
 }
 
 .article .commentary .panel-collapse {
-  background: var(--Color_Grey_Light);
+  background: var(--Grey_Light);
 }
 
 /* 右侧-正文-中间区域 */
@@ -474,7 +474,7 @@
   flex: 1;
   height: 100%;
   overflow: auto;
-  background: var(--Color_Grey_Content1);
+  background: var(--Grey_Content1);
 }
 
 /* 右侧-正文-右侧检索区域 */
@@ -482,14 +482,14 @@
   flex: 1;
   height: 100%;
   overflow-y: auto;
-  background: var(--Color_Grey_Content2);
+  background: var(--Grey_Content2);
 }
 
 .result-items .result-item {
   padding: 5px 10px;
   font-size: 16px;
   letter-spacing: 1px;
-  border-bottom: 1px dotted var(--Color_Grey_Middle);
+  border-bottom: 1px dotted var(--Grey_Middle);
 }
 
 .result-item .result-text {
@@ -543,11 +543,11 @@
 }
 
 .result-item .result-text:hover {
-  background: var(--Color_Grey_Line);
+  background: var(--Grey_Line);
 }
 
 .result-item kw {
-  color: var(--Color_Brown_Darker);
+  color: var(--Brown_Darker);
 }
 
 .result-item .shrink {
@@ -560,12 +560,12 @@
   border-radius: 5px;
   max-width: 360px;
   min-width: 200px;
-  background: var(--Color_Grey_Line);
+  background: var(--Grey_Line);
   box-shadow: 10px 10px 5px #888888;
 }
 
 #note-click-dlg .title {
-  background: var(--Color_Grey_Light);
+  background: var(--Grey_Light);
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
   text-align: center;
@@ -587,17 +587,17 @@
 
 .m-btn {
   float: left;
-  background: var(--Color_Grey_Dark);
+  background: var(--Grey_Dark);
   margin-top: 10px;
   margin-right: 10px;
   border-radius: 3px;
-  color: var(--Color_White);
+  color: var(--White);
 }
 
 .m-btn a {
   display: block;
   text-decoration: none;
-  color: var(--Color_White);
+  color: var(--White);
   font-size: 12px;
   padding: 5px 10px;
 }
@@ -615,7 +615,7 @@
   position: absolute;
   padding: 12px 12px 0 15px;
   border-radius: 5px;
-  background: var(--Color_Grey_Light);
+  background: var(--Grey_Light);
   box-shadow: 10px 10px 5px #888888;
 }
 
@@ -639,7 +639,7 @@
 }
 
 .modal-content.black-bg {
-  background: var(--Color_Black);
+  background: var(--Black);
   border: 0;
 }
 
@@ -657,7 +657,7 @@
   float: left;
   display: inline;
   padding: 0 30px;
-  border-right: 1px dotted var(--Color_Brown_Dark);
+  border-right: 1px dotted var(--Brown_Dark);
 }
 
 .jk-list-ul > li:last-child {
@@ -670,19 +670,19 @@
 }
 
 .jk-list-ul h5 {
-  color: var(--Color_White);
+  color: var(--White);
 }
 
 .jk-list-char-ul {
-  border: 1px solid var(--Color_Brown_Dark);
-  color: var(--Color_Brown_Dark);
+  border: 1px solid var(--Brown_Dark);
+  color: var(--Brown_Dark);
   margin: 20px 0;
 }
 
 .jk-list-char-ul li span {
   display: inline-block;
   padding: 3px 30px;
-  border-bottom: 1px dotted var(--Color_Brown_Dark);
+  border-bottom: 1px dotted var(--Brown_Dark);
 }
 
 .jk-list-char-ul li:last-child span {
@@ -695,7 +695,7 @@
 }
 
 .modal .checkbox-inline.active {
-  color: var(--Color_Brown_Dark);
+  color: var(--Brown_Dark);
 }
 
 .modal .add-search-scope {
@@ -706,12 +706,12 @@
 }
 
 .modal .cur-search-scope {
-  color: var(--Color_Brown_Dark);
+  color: var(--Brown_Dark);
 }
 
 .modal .notes {
   font-style: italic;
-  color: var(--Color_Grey);
+  color: var(--Grey);
   margin-top: 10px;
 }
 

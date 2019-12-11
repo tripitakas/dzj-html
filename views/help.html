@@ -28,14 +28,14 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module CommonLeft(title="help") %}
+    {% module ComLeft(title="help") %}
     <div class="main-content">
-      {% module CommonHead() %}
+      {% module ComHead() %}
       <div class="single-page-con">
         <div class="layout">
           <div class="layout-content">
             <div class="wrapper">
-              <div class="collate-list article-list">
+              <div class="sty-list article-list">
                 {% for a in articles %}
                 <ul>
                   <li><a href="/article/{{a['article_id']}}">{{a['title']}}</a><span class="time">{{to_date_str(a['create_time'])}}</span></li>

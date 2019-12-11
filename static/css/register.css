@@ -1,254 +1,254 @@
 .app-main {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .main {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: url(../imgs/background.jpg) no-repeat top center;
-    background-size: cover;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: url(../imgs/background.jpg) no-repeat top center;
+  background-size: cover;
 }
 
 .register {
-    width: 880px;
-    background: #fff;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    -webkit-transform: translate(-50%, -50%);
-    -ms-transform: translate(-50%, -50%);
-    -moz-transform: translate(-50%, -50%);
+  width: 880px;
+  background: #fff;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
 }
 
 .register-in {
-    padding: 40px 40px 20px;
+  padding: 40px 40px 20px;
 }
 
 .register .hd {
-    margin-bottom: 50px;
+  margin-bottom: 50px;
 }
 
 .register .logo {
-    background: url(../imgs/logo.png) no-repeat;
-    width: 356px;
-    height: 56px;
-    margin-left: 280px;
+  background: url(../imgs/logo.png) no-repeat;
+  width: 356px;
+  height: 56px;
+  margin-left: 280px;
 }
 
 .register .desc {
-    color: #6b6b6b;
-    margin-top: 30px;
+  color: #6b6b6b;
+  margin-top: 30px;
 }
 
 .register .desc em {
-    color: #c53023;
-    cursor: pointer;
+  color: #c53023;
+  cursor: pointer;
 }
 
 .register .bd {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .register .bd .item {
-    width: 50%;
-    margin-bottom: 25px;
-    padding-right: 48px;
-    box-sizing: border-box;
-    position: relative;
+  width: 50%;
+  margin-bottom: 25px;
+  padding-right: 48px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .register .bd .item:nth-child(2n+2) {
-    padding-right: 0;
+  padding-right: 0;
 }
 
 .register .bd .item input, .register .bd .item .select-wrap {
-    line-height: 56px;
-    background: none;
-    outline: none;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 40px;
-    font-size: 14px;
-    border: 0 none;
-    border-bottom: 1px solid #d5d5d5;
+  line-height: 56px;
+  background: none;
+  outline: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 40px;
+  font-size: 14px;
+  border: 0 none;
+  border-bottom: 1px solid #d5d5d5;
 }
 
 .register .bd .item .select-wrap {
-    margin-left: -8px;
+  margin-left: -8px;
 }
 
 .register .bd .item select {
-    height: 56px;
-    color: #B3B3B3;
-    background: none;
-    outline: none;
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 40px;
-    font-size: 14px;
-    border: 0 none;
+  height: 56px;
+  color: #B3B3B3;
+  background: none;
+  outline: none;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 40px;
+  font-size: 14px;
+  border: 0 none;
 }
 
 .register .bd .item:last-child input {
-    width: 100%;
+  width: 100%;
 }
 
 .register .item input:-moz-placeholder {
-    color: #B3B3B3;
+  color: #B3B3B3;
 }
 
 .register .item input:-ms-input-placeholder {
-    color: #B3B3B3;
+  color: #B3B3B3;
 }
 
 .register .item input::-webkit-input-placeholder {
-    color: #B3B3B3;
+  color: #B3B3B3;
 }
 
 .register .item input:focus {
-    border-color: #c22d22;
+  border-color: #c22d22;
 }
 
 .register .item i {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #985F0D;
-    font-size: 2.5em;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #985F0D;
+  font-size: 2.5em;
 }
 
 .register .item i.user-icon {
-    background: url(../imgs/user.png) no-repeat;
-    background-position: 0 0;
-    width: 27px;
-    height: 29px;
+  background: url(../imgs/user.png) no-repeat;
+  background-position: 0 0;
+  width: 27px;
+  height: 29px;
 }
 
 .register .item input:focus + i.user-icon {
-    background-position: 0 -30px;
+  background-position: 0 -30px;
 }
 
 .register .item .pass-icon {
-    background: url(../imgs/pass.png) no-repeat;
-    background-position: 0 0;
-    width: 23px;
-    height: 28px;
+  background: url(../imgs/pass.png) no-repeat;
+  background-position: 0 0;
+  width: 23px;
+  height: 28px;
 }
 
 .register .item input:focus + i.pass-icon {
-    background-position: 0 -30px;
+  background-position: 0 -30px;
 }
 
 .register .item .hide {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    width: 19px;
-    height: 10px;
-    background: url(../imgs/hide.png) no-repeat;
-    transform: translateY(-50%);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 19px;
+  height: 10px;
+  background: url(../imgs/hide.png) no-repeat;
+  transform: translateY(-50%);
 }
 
 .register .item .email-icon {
-    background: url(../imgs/email.png) no-repeat;
-    background-position: 0 0;
-    width: 29px;
-    height: 22px;
+  background: url(../imgs/email.png) no-repeat;
+  background-position: 0 0;
+  width: 29px;
+  height: 22px;
 }
 
 .register .item input:focus + i.email-icon {
-    background-position: 0 -24px;
+  background-position: 0 -24px;
 }
 
 .register .item .password-icon {
-    background: url(../imgs/again.png) no-repeat;
-    background-position: 0 0;
-    width: 20px;
-    height: 12px;
+  background: url(../imgs/again.png) no-repeat;
+  background-position: 0 0;
+  width: 20px;
+  height: 12px;
 }
 
 .register .item input:focus + i.password-icon {
-    background-position: 0 -14px;
+  background-position: 0 -14px;
 }
 
 .register-btn {
-    margin: 20px auto 8px;
-    width: 364px;
-    height: 40px;
-    background: #b8906f;
-    border-radius: 4px;
-    text-align: center;
-    line-height: 40px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
+  margin: 20px auto 8px;
+  width: 364px;
+  height: 40px;
+  background: #b8906f;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 40px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .login_a {
-    color: #c53023;
+  color: #c53023;
 }
 
 .register-btn a {
-    display: inline-block;
-    width: 100%;
-    height: 100%;
-    color: white;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  color: white;
 }
 
 .register-agreement {
-    width: 100%;
-    text-align: center;
-    margin: 10px 0;
-    font-weight: normal;
+  width: 100%;
+  text-align: center;
+  margin: 10px 0;
+  font-weight: normal;
 }
 
 .register-agreement a {
-    color: #761C19;
+  color: #761C19;
 }
 
 .verify {
-    width: 100%;
-    display: block;
-    float: left;
+  width: 100%;
+  display: block;
+  float: left;
 }
 
 .verify-code {
-    position: absolute;
-    top: 10px;
-    right: 48px;
-    width: 100px;
-    height: 40px;
-    line-height: 40px;
-    background: #b8906f;
-    border-radius: 4px;
-    text-align: center;
-    color: #fff;
-    padding: auto auto;
-    cursor: pointer;
-    font-size: 14px;
+  position: absolute;
+  top: 10px;
+  right: 48px;
+  width: 100px;
+  height: 40px;
+  line-height: 40px;
+  background: #b8906f;
+  border-radius: 4px;
+  text-align: center;
+  color: #fff;
+  padding: auto auto;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .email-code-btn {
-    right: 0px;
+  right: 0px;
 }
 
 .error {
-    height: 38px;
-    margin-top: -15px;
+  height: 38px;
+  margin-top: -15px;
 }
 
 .tips {
-    margin-top: 5px;
-    font-style: italic;
-    color:#b8906f;
+  margin-top: 5px;
+  font-style: italic;
+  color: #b8906f;
 }

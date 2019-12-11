@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import csv
 import logging
+from os import path
 from datetime import datetime
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
+from utils.build_js import build_js
 from controller import errors
 from controller import validate as v
 from controller.base import BaseHandler, DbError
 from controller.task.base import TaskHandler
-from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
 from controller.data.submit import SubmitDataTaskApi
-from utils.build_js import build_js
+from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
 
 try:
     from StringIO import StringIO
@@ -19,45 +22,53 @@ except ImportError:
 
 
 class DataUploadApi(BaseHandler):
-    URL = '/api/data/@collection/upload'
+    URL = '/api/data/@base_data/upload'
+
+    def save_error(self, collection, errors):
+        data_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'data')
+        if not path.exists(data_path):
+            os.makedirs(data_path)
+        result = 'upload-%s-result-%s.csv' % (collection, datetime.now().strftime('%Y%m%d%H%M'))
+        with open(path.join(data_path, result), 'w', newline='') as fn:
+            writer = csv.writer(fn)
+            writer.writerows(errors)
+        return '/static/upload/data/' + result
 
     def post(self, collection):
         """ 批量上传 """
         assert collection in ['tripitaka', 'volume', 'sutra', 'reel', 'page']
         data = self.get_request_data()
-        collection_class = eval(collection.capitalize())
+        model = eval(collection.capitalize())
         upload_file = self.request.files.get('csv') or self.request.files.get('json')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
             if collection == 'page':
                 assert data.get('layout')
-                r = Page.insert_new(self.db, file_stream=fn, layout=data['layout'])
+                r = Page.insert_many(self.db, file_stream=fn, layout=data['layout'])
             else:
                 update = False if collection == 'tripitaka' else True
-                r = collection_class.save_many(self.db, collection, file_stream=fn, update=update)
+                r = model.save_many(self.db, collection, file_stream=fn, update=update)
 
             if r.get('status') == 'success':
-                if collection in ['volume', 'sutra']:
-                    build_js(self.db, collection)
+                if r.get('errors'):
+                    r['url'] = self.save_error(collection, r.get('errors'))
+                self.send_data_response(r)
                 self.add_op_log('upload_%s' % collection, context=r.get('message'))
-                self.send_data_response({'message': r.get('message'), 'errors': r.get('errors')})
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 
 
 class DataAddOrUpdateApi(BaseHandler):
-    URL = '/api/data/@collection'
+    URL = '/api/data/@base_data'
 
     def post(self, collection):
         """ 新增或修改 """
-        assert collection in ['tripitaka', 'volume', 'sutra', 'reel']
-        collection_class = eval(collection.capitalize())
+        model = eval(collection.capitalize())
         try:
             data = self.get_request_data()
-            r = collection_class.save_one(self.db, collection, data)
+            r = model.save_one(self.db, collection, data)
             if r.get('status') == 'success':
-                op_type = ('update_' if r.get('update') else 'add_') + collection
-                self.add_op_log(op_type, context=r.get('message'))
+                self.add_op_log(('update_' if r.get('update') else 'add_') + collection, context=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
@@ -67,11 +78,10 @@ class DataAddOrUpdateApi(BaseHandler):
 
 
 class DataDeleteApi(BaseHandler):
-    URL = '/api/data/@collection/delete'
+    URL = '/api/data/@base_data/delete'
 
     def post(self, collection):
         """ 批量删除 """
-        assert collection in ['tripitaka', 'volume', 'sutra', 'reel']
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_id', '_ids'), ]

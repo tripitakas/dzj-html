@@ -5,17 +5,17 @@
   <title>{{site['name']}} - 404</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet"/>
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
     <!--公共左侧导航栏 -->
-    {% module CommonLeft(title="task-lobby", sub="task-lobby-char") %}
+    {% module ComLeft(title="task-lobby", sub="task-lobby-char") %}
     <div class="main-content">
       <!--公共头部 -->
-      {% module CommonHead() %}
+      {% module ComHead() %}
       <div class="single-page-con" style="">
         <div class="layout">
           <div class="layout-content">
