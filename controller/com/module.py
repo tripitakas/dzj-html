@@ -60,7 +60,7 @@ class ComLeft(UIModule):
                 dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
             ]),
             dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
-                dict(name='文章管理', icon='icon_subitem', link='/article/list'),
+                dict(name='文章管理', icon='icon_subitem', link='/article'),
                 dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[

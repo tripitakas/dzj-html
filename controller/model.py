@@ -73,7 +73,7 @@ class Model(object):
         condition = condition or {}
         q = self.get_query_argument('q', '')
         if not condition and q:
-            condition['$or'] = [{k: {'$regex': q, '$options': '$i'} for k in cls.search_fields}]
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
         order = self.get_query_argument('order', '')
         query = self.db[cls.collection].find(condition)
         if order:

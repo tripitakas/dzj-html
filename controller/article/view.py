@@ -3,45 +3,31 @@
 """
 @time: 2019/11/17
 """
-import math
 from controller import errors
 from controller.base import BaseHandler
+from controller.article.article import Article
 
 
 class ListArticleHandler(BaseHandler):
-    URL = '/article/list'
+    URL = '/article'
 
     def get(self):
-        """ 文章列表"""
+        """ 文章管理"""
         try:
-            condition = {}
-            q = self.get_query_argument('q', '')
-            if q:
-                condition['$or'] = [{f: {'$regex': '.*%s.*' % q}} for f in ['title', 'content']]
-            query = self.db.article.find(condition)
-            order = self.get_query_argument('order', '-_id')
-            if order:
-                o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-                query.sort(o, asc)
-
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            item_count = self.db.article.count_documents(condition)
-            max_page = math.ceil(item_count / page_size)
-            cur_page = max_page if max_page and max_page < cur_page else cur_page
-            articles = list(query.skip((cur_page - 1) * page_size).limit(page_size))
-            pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
-            self.render('article_list.html', q=q, articles=articles, pager=pager, order=order)
+            docs, pager, q, order = Article.find_by_page(self)
+            self.render('article_list.html', docs=docs, pager=pager, order=order, fields=Article.fields, q=q,
+                        operations=Article.operations, actions=Article.actions, search_tip=Article.search_tip,
+                        title=Article.page_title)
 
         except Exception as e:
-            return self.send_db_error(e, render=True)
+            return self.send_db_error(e)
 
 
-class EditArticleHandler(BaseHandler):
+class ArticleAddOrUpdateHandler(BaseHandler):
     URL = ['/article/add', '/article/update/@article_id']
 
     def get(self, article_id=None):
-        """ 新建或修改文章的页面"""
+        """ 新建或修改文章"""
         try:
             article = article_id and self.db.article.find_one({'article_id': article_id}) or {}
             if article_id and not article:
@@ -51,11 +37,11 @@ class EditArticleHandler(BaseHandler):
             return self.send_db_error(e, render=True)
 
 
-class ViewArticleHandler(BaseHandler):
+class ArticleViewHandler(BaseHandler):
     URL = '/article/@article_id'
 
     def get(self, article_id):
-        """查看文章的页面"""
+        """ 查看文章"""
         try:
             article = self.db.article.find_one({'article_id': article_id})
             if not article:

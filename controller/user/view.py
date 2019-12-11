@@ -40,16 +40,16 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            item_count = self.db.user.count_documents({})
+            doc_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
+            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             logging.info('%d users' % len(users))
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_admin.html', users=users, pager=pager)
 
 
@@ -59,10 +59,10 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            item_count = self.db.user.count_documents({})
+            doc_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
+            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             logging.info('%d users' % len(users))
             init_roles = self.config.get('role', {}).get('init', '')
@@ -72,7 +72,7 @@ class UserRolesHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_role.html', users=users, roles=roles, pager=pager, init_roles=init_roles,
                     disable_roles=disabled_roles)
 
@@ -83,10 +83,10 @@ class UserStatisticHandler(BaseHandler):
     def get(self):
         """ 人员管理-数据管理页面 """
         try:
-            item_count = self.db.user.count_documents({})
+            doc_count = self.db.user.count_documents({})
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(item_count / page_size) if math.ceil(item_count / page_size) < cur_page else cur_page
+            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             logging.info('%d users' % len(users))
             for r in users:
@@ -97,5 +97,5 @@ class UserStatisticHandler(BaseHandler):
         except Exception as e:
             return self.send_db_error(e, render=True)
 
-        pager = dict(cur_page=cur_page, item_count=item_count, page_size=page_size)
+        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_statistic.html', users=users, pager=pager)

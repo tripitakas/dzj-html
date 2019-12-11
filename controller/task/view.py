@@ -52,7 +52,7 @@ class TaskAdminHandler(TaskHandler):
             )
             task_conf = self.all_task_types()[task_type]
             pan_name = self.prop(self.config, 'pan.name')
-            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
+            pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
             template = 'task_admin_import.html' if task_type == 'import_image' else 'task_admin.html'
             self.render(
                 template, task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
@@ -164,7 +164,7 @@ class MyTaskHandler(TaskHandler):
             timeout_days = self.prop(self.application.load_config(), 'task.task_timeout_days')
             timeout = datetime.strptime(withdraw_time, '%Y-%m-%d %H:%M:%S') - timedelta(days=int(timeout_days))
 
-            pager = dict(cur_page=cur_page, item_count=total_count, page_size=page_size)
+            pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
             self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order, timeout=timeout)
 
         except Exception as e:

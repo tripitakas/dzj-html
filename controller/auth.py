@@ -191,7 +191,7 @@ role_route_maps = {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/admin/script': ['GET'],
-            '/article/list': ['GET'],
+            '/article': ['GET'],
             '/article/add': ['GET'],
             '/article/@article_id': ['GET'],
             '/article/update/@article_id': ['GET'],
