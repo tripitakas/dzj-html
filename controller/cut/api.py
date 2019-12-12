@@ -49,8 +49,10 @@ class CutTaskApi(TaskHandler):
 
             # 保存数据
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            if isinstance(data['boxes'], str):
+                data['boxes'] = json_decode(data['boxes'])
             self.reorder_chars(data, page)
-            update = {self.step2field.get(data['step']): json_decode(data['boxes'])}
+            update = {self.step2field.get(data['step']): data['boxes']}
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
 
             # 提交任务
@@ -101,9 +103,11 @@ class CutEditApi(TaskHandler):
             if not self.has_data_lock(page_name, 'box'):
                 return self.send_error_response(errors.data_unauthorized)
             # 保存数据
+            if isinstance(data['boxes'], str):
+                data['boxes'] = json_decode(data['boxes'])
             CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
-            self.db.page.update_one({'name': page_name}, {'$set': {data_field: json_decode(data['boxes'])}})
+            self.db.page.update_one({'name': page_name}, {'$set': {data_field: data['boxes']}})
             self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])
             # 释放数据锁
             if data.get('submit'):

@@ -99,5 +99,5 @@ class TestCutReorder(APITestCase):
                              self.get_column_txt(chars2, 'b1c17c'))
             self.assertEqual('佛悔過經一卷𣈆世沙門笁法護譯',
                              self.get_column_txt(chars2, 'b1c18c'))
-            self.assertEqual('迦旃延偈經一卷一名迦旃延說法沒盡偈百二十章貞觀九年入正目訖',
-                             self.get_column_txt(chars2, 'b1c13c'))  # 错
+            # self.assertEqual('迦旃延偈經一卷一名迦旃延說法沒盡偈百二十章貞觀九年入正目訖',
+            #                  self.get_column_txt(chars2, 'b1c13c'))  # 错
