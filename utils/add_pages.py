@@ -52,7 +52,7 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False):
             if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
                 info = load_json(filename)
                 if info:
-                    name = info.get('img_name') or info.get('img_name') or info.get('name')
+                    name = info.get('img_name') or info.get('imgname') or info.get('name')
                     if name != fn[:-5] or not re.match(r'^[A-Z]{2}(_\d+)+$', name):
                         sys.stderr.write('invalid img_name %s, %s\n' % (filename, name))
                         continue
@@ -64,8 +64,8 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
     exist = db.page.find_one(dict(name=name))
     if update or not exist:
         meta = Page.metadata()
-        width = int(prop(info, 'img_size.width') or prop(info, 'width'))
-        height = int(prop(info, 'img_size.height') or prop(info, 'height'))
+        width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width'))
+        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height'))
         page_code = Page.name2pagecode(name)
         meta.update(dict(
             name=name, width=width, height=height, page_code=page_code, blocks=prop(info, 'blocks', []),
