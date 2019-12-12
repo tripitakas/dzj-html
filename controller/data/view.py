@@ -81,12 +81,12 @@ class TripitakaListHandler(BaseHandler):
 class DataListHandler(BaseHandler):
     URL = '/data/(tripitaka|sutra|reel|volume)'
 
-    def get(self, base_data):
+    def get(self, metadata):
         """ 数据管理"""
         try:
-            model = eval(base_data.capitalize())
+            model = eval(metadata.capitalize())
             docs, pager, q, order = model.find_by_page(self)
-            template_url = '/static/template/%s-sample.csv' % base_data
+            template_url = '/static/template/%s-sample.csv' % metadata
             operations = model.operations or [
                 {'operation': 'add', 'label': '新增记录'},
                 {'operation': 'bat-delete', 'label': '批量删除'},

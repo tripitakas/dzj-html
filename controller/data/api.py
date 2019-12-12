@@ -22,16 +22,16 @@ except ImportError:
 
 
 class DataUploadApi(BaseHandler):
-    URL = '/api/data/@base_data/upload'
+    URL = '/api/data/@metadata/upload'
 
-    def save_error(self, collection, errors):
+    def save_error(self, collection, errs):
         data_path = path.join(self.application.BASE_DIR, 'static', 'upload', 'data')
         if not path.exists(data_path):
             os.makedirs(data_path)
         result = 'upload-%s-result-%s.csv' % (collection, datetime.now().strftime('%Y%m%d%H%M'))
         with open(path.join(data_path, result), 'w', newline='') as fn:
             writer = csv.writer(fn)
-            writer.writerows(errors)
+            writer.writerows(errs)
         return '/static/upload/data/' + result
 
     def post(self, collection):
@@ -59,7 +59,7 @@ class DataUploadApi(BaseHandler):
 
 
 class DataAddOrUpdateApi(BaseHandler):
-    URL = '/api/data/@base_data'
+    URL = '/api/data/@metadata'
 
     def post(self, collection):
         """ 新增或修改 """
@@ -78,7 +78,7 @@ class DataAddOrUpdateApi(BaseHandler):
 
 
 class DataDeleteApi(BaseHandler):
-    URL = '/api/data/@base_data/delete'
+    URL = '/api/data/@metadata/delete'
 
     def post(self, collection):
         """ 批量删除 """
