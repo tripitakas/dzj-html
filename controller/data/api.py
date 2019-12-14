@@ -43,7 +43,7 @@ class DataUploadApi(BaseHandler):
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
             if collection == 'page':
-                assert data.get('layout')
+                assert data.get('layout'), 'need layout'
                 r = Page.insert_many(self.db, file_stream=fn, layout=data['layout'])
             else:
                 update = False if collection == 'tripitaka' else True
@@ -176,6 +176,7 @@ class FetchDataTasksApi(TaskHandler):
             )})
 
             if r.matched_count:
+                logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
                 self.send_data_response(dict(tasks=get_tasks()))
 
         except DbError as err:

@@ -445,7 +445,7 @@ class InitTasksForTestApi(TaskHandler):
         """ 初始化数据处理任务，以便OP平台进行测试。
         注意：该API仅仅是配合OP平台测试使用"""
         data = self.get_request_data()
-        rules = [(v.not_empty, 'page_names', 'import_dirs')]
+        rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
         err = v.validate(data, rules)
         if err:
             return self.send_error_response(err)
@@ -465,7 +465,7 @@ class InitTasksForTestApi(TaskHandler):
             for import_dir in data['import_dirs']:
                 task = meta.copy()
                 task.update(dict(task_type='import_image', status='opened', input=dict(
-                    import_dir=import_dir, redo=True)))
+                    import_dir=import_dir, redo=True, layout=data['layout'])))
                 tasks.append(task)
 
             # 创建其它类型的任务
