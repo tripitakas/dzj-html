@@ -34,7 +34,7 @@ class CutHandler(TaskHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object, render=True, message='%s 页面不存在' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)

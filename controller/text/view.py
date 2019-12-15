@@ -31,7 +31,7 @@ class TextProofHandler(TaskHandler, TextTool):
 
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
-                return self.send_error_response(error)
+                return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             mode = self.get_task_mode()
             readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
@@ -109,7 +109,7 @@ class TextReviewHandler(TaskHandler, TextTool):
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
-                return self.send_error_response(error)
+                return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_task_lock(task)
 
             params = dict(mismatch_lines=[])
@@ -153,7 +153,7 @@ class TextHardHandler(TextReviewHandler):
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
-                return self.send_error_response(error)
+                return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_task_lock(task)
 
             mode = self.get_task_mode()
