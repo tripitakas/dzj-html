@@ -10,6 +10,6 @@ views += text.views + user.views + article.views + admin.views
 handlers = com.handlers + cut.handlers + data.handlers + tool.handlers + task.handlers
 handlers += text.handlers + user.handlers + article.handlers + admin.handlers
 
-modules = com.modules
+modules = com.modules + text.modules
 
 InvalidPageHandler = invalid.InvalidPageHandler
