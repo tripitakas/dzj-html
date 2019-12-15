@@ -80,7 +80,7 @@ function getCursorPosition(element) {
     sel = win.getSelection();
     if (sel.rangeCount > 0) {                       // 选中的区域
       range = sel.getRangeAt(0);
-      caretOffset = range.startOffset;            // 获取选定区的开始点
+      caretOffset = range.startOffset;               // 获取选定区的开始点
       // preCaretRange = range.cloneRange();         // 克隆一个选中区域
       // preCaretRange.selectNodeContents(element);  // 设置选中区域的节点内容为当前节点
       // preCaretRange.setEnd(range.endContainer, range.endOffset);  // 重置选中区域的结束位置

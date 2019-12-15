@@ -112,7 +112,7 @@
                 <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" title="{{nav.get('prev')}}"><</div>
                 <div class="btn-page to">
                   <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
-                  <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last').split('_')[-1]}}</span>
+                  <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '').split('_')[-1]}}</span>
                 </div>
                 <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" title="{{nav.get('next')}}">></div>
                 <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" title="{{nav.get('last')}}">末页</div>
