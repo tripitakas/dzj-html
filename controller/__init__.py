@@ -10,6 +10,6 @@ views += text.views + user.views + article.views + admin.views
 handlers = com.handlers + cut.handlers + data.handlers + tool.handlers + task.handlers
 handlers += text.handlers + user.handlers + article.handlers + admin.handlers
 
-modules = dict(list(com.items()) + list(text.items()))
+modules = dict(list(com.modules.items()) + list(text.modules.items()))
 
 InvalidPageHandler = invalid.InvalidPageHandler
