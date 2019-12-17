@@ -204,7 +204,7 @@ $.cut.onBoxChanged(function (char, box, reason) {
 // 设置当前span和line
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
-    $('.current-span').attr("contentEditable", "false").removeClass("current-span");
+    $('.current-span').removeClass("current-span");
     $(span).addClass("current-span");
     $('.current-line').removeClass('current-line');
     span.parent().addClass('current-line');
@@ -217,11 +217,11 @@ $('.same, .diff').on('click', function () {
   highlightBox($(this));
 });
 
-// 双击同文，设置为可编辑
-$('.same').on('dblclick', function () {
-  $(".same").attr("contentEditable", "false");
-  $(this).attr("contentEditable", "true");
-});
+// 双击同文，设置为可编辑。
+// $('.same').on('dblclick', function () {
+//   $(".same").attr("contentEditable", "false");
+//   $(this).attr("contentEditable", "true");
+// });
 
 // 双击异文，弹框提供选择
 $('.diff').on('dblclick', function (e) {

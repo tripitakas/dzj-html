@@ -27,7 +27,7 @@ class TextProofHandler(TaskHandler, TextTool):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object, message='没有找到页面%s' % task['doc_id'])
 
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
@@ -41,7 +41,7 @@ class TextProofHandler(TaskHandler, TextTool):
                 return self.proof(task, page, mode, steps, readonly)
 
         except Exception as e:
-            return self.send_db_error(e, render=True)
+            return self.send_db_error(e)
 
     def select_compare_text(self, task, page, mode, steps, readonly, num):
         self.render(
@@ -61,7 +61,7 @@ class TextProofHandler(TaskHandler, TextTool):
         ocr = page.get('ocr') or ''
         ocr_col = page.get('ocr_col') or ''
         cmp = self.prop(task, 'result.cmp')
-        texts = dict(base=ocr.replace('|', '\n'), cmp1=ocr_col if ocr_col else cmp, cmp2=cmp if ocr_col else '')
+        texts = dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col if ocr_col else cmp, cmp2=cmp if ocr_col else '')
         labels = dict(base='OCR', cmp1='OCR' if ocr_col else '比对本', cmp2='比对本' if ocr_col else '')
 
         # 检查是否已进行比对
@@ -85,18 +85,27 @@ class TextReviewHandler(TaskHandler, TextTool):
            '/task/update/text_review/@task_id']
 
     @staticmethod
-    def get_proof_data(self, doc_id):
-        doubt, texts = '', ['', '', '']
+    def get_cmp_data(self, doc_id, page):
+        """ 如果有文字校对任务，则从文字校对中获取比对文本。如果没有，则依次从text/ocr中获取比对文本"""
+        has_proof, doubt, proofs = False, '', ['', '', '']
         for i in [1, 2, 3]:
             condition = {'task_type': 'text_proof_%s' % i, 'doc_id': doc_id, 'status': self.STATUS_FINISHED}
             proof_task = self.db.task.find_one(condition)
             if proof_task:
+                has_proof = True
                 doubt += self.prop(proof_task, 'result.doubt') or ''
-                texts[i - 1] = self.html2txt(self.prop(proof_task, 'result.txt_html'))
-        return doubt, dict(base=texts[0], cmp1=texts[1], cmp2=texts[2])
+                proofs[i - 1] = self.html2txt(self.prop(proof_task, 'result.txt_html'))
+        if has_proof:
+            texts = dict(base=proofs[0], cmp1=proofs[1], cmp2=proofs[2])
+            labels = dict(base='校一', cmp1='校一', cmp2='校三')
+        else:
+            txt = page.get('text') or page.get('ocr') or ''
+            texts = dict(base=re.sub(r'\|+', '\n', txt), cmp1='', cmp2='')
+            labels = dict(base='文本一', cmp1='', cmp2='')
+        return doubt, texts, labels
 
     def get(self, task_id):
-        """ 文字审定页面 """
+        """ 文字审定页面"""
         try:
             task_type = 'text_review'
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
@@ -104,20 +113,19 @@ class TextReviewHandler(TaskHandler, TextTool):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object, message='没有找到页面%s' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
-            has_lock, error = self.check_task_lock(task)
+            has_lock = self.check_task_lock(task)[0]
 
+            mode = self.get_task_mode()
             params = dict(mismatch_lines=[])
             CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
-            mode = self.get_task_mode()
             review_doubt = self.prop(task, 'result.doubt')
-            proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
-            labels = dict(base='校一', cmp1='校一', cmp2='校三')
+            proof_doubt, texts, labels = self.get_cmp_data(self, task['doc_id'], page)
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
@@ -157,7 +165,7 @@ class TextHardHandler(TextReviewHandler):
             has_lock, error = self.check_task_lock(task)
 
             mode = self.get_task_mode()
-            proof_doubt, texts = self.get_proof_data(self, task['doc_id'])
+            proof_doubt, texts = self.get_cmp_data(self, task['doc_id'])
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
             hard_doubt = self.prop(task, 'result.doubt')
