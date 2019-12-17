@@ -82,7 +82,8 @@ def build_sutra_js(db, tripitaka=None):
         with open(js_file, 'w', encoding='utf-8') as fp:
             head = "/*\n"
             head += "* 经目信息。字段顺序依次是：\n"
-            head += "* sutra_code/sutra_name/due_reel_count/existed_reel_count/start_volume/start_page/end_volume/end_page\n"
+            head += "* sutra_code/sutra_name/due_reel_count/existed_reel_count/" \
+                    "start_volume/start_page/end_volume/end_page\n"
             head += "* Date: %s\n" % datetime.now().strftime('%Y-%m-%d %H:%M')
             head += "*/\n\n"
             head += "var sutras ="

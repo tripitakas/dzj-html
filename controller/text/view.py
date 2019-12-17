@@ -3,7 +3,6 @@
 """
 @time: 2019/5/13
 """
-import re
 from tornado.web import UIModule
 from bson.objectid import ObjectId
 from controller import errors as errors
