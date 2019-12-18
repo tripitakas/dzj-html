@@ -13,22 +13,32 @@ from bson.objectid import ObjectId
 
 
 class Model(object):
-    collection = ''  # 数据表
-    fields = [{
+    collection = ''  # 数据库表名
+    fields = [{  # 字段定义
         'id': '',  # 字段id
         'name': '',  # 字段名称
         'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-        'show_type': 'show',  # 列表中的显示模式，默认为show，其它如hide/none等
         'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
         'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
     }]
     rules = []  # 校验规则
     primary = ''  # 主键
-    search_fields = []  # 表格查询哪些字段
-    search_tip = ''  # 查询提示
-    page_title = ''  # 页面title
-    operations = []  # 页面顶部操作
-    actions = []  # 列表操作
+
+    page_title = ''  # 前端页面title
+    search_tip = ''  # 列表的查询提示
+    search_fields = []  # 列表查询哪些字段
+    table_fields = [dict(id='', name='')]  # 列表显示哪些字段
+    operations = [  # 列表包含哪些批量操作
+        {'operation': 'btn-add', 'label': '新增记录'},
+        {'operation': 'bat-delete', 'label': '批量删除'},
+    ]
+    actions = [  # 列表单条记录包含哪些操作
+        {'action': 'btn-view', 'label': '查看'},
+        {'action': 'btn-update', 'label': '修改'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
+
+    modal_fields = [dict(id='', name='', input_type='', options=[])]  # 模态框包含哪些字段
 
     @classmethod
     def validate(cls, doc):

@@ -79,7 +79,7 @@ class TripitakaListHandler(BaseHandler):
 
 
 class DataListHandler(BaseHandler):
-    URL = '/data/(tripitaka|sutra|reel|volume)'
+    URL = '/data/(tripitaka|sutra|reel|volume|page)'
 
     def get(self, metadata):
         """ 数据管理"""
@@ -87,36 +87,14 @@ class DataListHandler(BaseHandler):
             model = eval(metadata.capitalize())
             docs, pager, q, order = model.find_by_page(self)
             template_url = '/static/template/%s-sample.csv' % metadata
-            operations = model.operations or [
+            model.operations = [
                 {'operation': 'add', 'label': '新增记录'},
                 {'operation': 'bat-delete', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
                 {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
             ]
-            self.render('data_list.html', docs=docs, pager=pager, order=order, fields=model.fields, q=q,
-                        operations=operations, actions=model.actions, search_tip=model.search_tip,
-                        title=model.page_title)
-
-        except Exception as e:
-            return self.send_db_error(e)
-
-
-class DataPageHandler(BaseHandler):
-    URL = '/data/page'
-
-    fields = [
-        {'id': 'name', 'name': '页编码'},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio',
-         'options': ['上下一栏', '上下两栏', '上下三栏', '左右两栏']},
-    ]
-
-    def get(self):
-        """ 数据管理-页数据 """
-        try:
-            docs, pager, q, order = Page.find_by_page(self)
-            self.render('data_page.html', docs=docs, pager=pager, order=order, fields=self.fields, q=q,
-                        operations=[], actions=Page.actions, search_tip=Page.search_tip,
-                        title=Page.page_title)
+            template = 'data_page.html' if metadata == 'page' else 'data_list.html'
+            self.render(template, docs=docs, pager=pager, q=q, order=order, model=model)
 
         except Exception as e:
             return self.send_db_error(e)

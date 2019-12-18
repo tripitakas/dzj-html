@@ -1,68 +1,61 @@
-{% extends "data_list.html" %}
+{% extends "com_list.html" %}
 
-{% block com-table %}
-<div class="sty-list">
-  <div class="search fr">
-    <input id="search-input" type="text" placeholder="{{search_tip}}" value="{{q}}">
-    <i class="ser-btn"></i>
-  </div>
-  <table class="sty-table">
-    <thead>
-    <tr>
-      <th><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
+{% block operation %}
+{% end %}
+
+{% block table %}
+<table class="sty-table">
+  <thead>
+  <tr>
+    <th><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
       页编码<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
       </span></th>
-      <th><span class="sort {{'active' if 'uni_sutra_code' in order else ''}}" title="uni_sutra_code">
+    <th><span class="sort {{'active' if 'uni_sutra_code' in order else ''}}" title="uni_sutra_code">
       统一经编码<span class="ion-arrow-down-b {{'toggle' if order == 'uni_sutra_code' else ''}}"></span>
       </span></th>
-      <th class="hide"><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
+    <th class="hide"><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
       经编码<span class="ion-arrow-down-b {{'toggle' if order == 'reel_code' else ''}}"></span>
       </span></th>
-      <th><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
+    <th><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
       卷编码<span class="ion-arrow-down-b {{'toggle' if order == 'reel_code' else ''}}"></span>
       </span></th>
-      <th><span>卷内页序号</span></th>
-      <th><span>页面结构</span></th>
-      <th><span>文本</span></th>
-      <th><span>栏框</span></th>
-      <th><span>列框</span></th>
-      <th><span>字框</span></th>
-      <th><span>操作</span></th>
-    </tr>
-    </thead>
+    <th><span>卷内页序号</span></th>
+    <th><span>页面结构</span></th>
+    <th><span>文本</span></th>
+    <th><span>栏框</span></th>
+    <th><span>列框</span></th>
+    <th><span>字框</span></th>
+    <th><span>操作</span></th>
+  </tr>
+  </thead>
 
-    <tbody>
-    {% for d in docs %}
-    <tr id="{{d['_id']}}">
-      <td class="name"><a href="/page/{{d.get('name')}}">{{d.get('name')}}</a></td>
-      <td class="uni_sutra_code">{{d.get('uni_sutra_code') or ''}}</td>
-      <td class="sutra_code hide">{{d.get('sutra_code') or ''}}</td>
-      <td class="reel_code">{{d.get('reel_code') or ''}}</td>
-      <td class="reel_page_no">{{d.get('reel_page_no') or ''}}</td>
-      <td class="layout">{{d.get('layout') or ''}}</td>
-      <td class="text"><a href="/data/edit/text/{{d.get('name')}}?from=/data/page">
-        {{'修改' if d.get('text') else ''}}</a></td>
-      <td class="blocks"><a href="/data/edit/box/{{d.get('name')}}?step=block_box&from=/data/page">
-        {{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}</a></td>
-      <td class="columns"><a href="/data/edit/box/{{d.get('name')}}?step=column_box&from=/data/page">
-        {{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}</a></td>
-      <td class="chars"><a href="/data/edit/box/{{d.get('name')}}?step=char_box&from=/data/page">
-        {{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}</a></td>
-      <td class="action">
-        {% for a in actions %}
-        <a class="{{a.get('id') or ''}}">{{a.get('label')}}</a>
-        {% end %}
-      </td>
-      </td>
-    </tr>
-    {% end %}
-    </tbody>
-  </table>
-</div>
-{% module Pager(pager) %}
-
-<div class="panel-body">
-  {% module ComModal(fields) %}
-</div>
-
+  <tbody>
+  {% for d in docs %}
+  <tr id="{{d['_id']}}">
+    <td class="name"><a href="/page/{{d.get('name')}}">{{d.get('name')}}</a></td>
+    <td class="uni_sutra_code">{{d.get('uni_sutra_code') or ''}}</td>
+    <td class="sutra_code hide">{{d.get('sutra_code') or ''}}</td>
+    <td class="reel_code">{{d.get('reel_code') or ''}}</td>
+    <td class="reel_page_no">{{d.get('reel_page_no') or ''}}</td>
+    <td class="layout">{{d.get('layout') or ''}}</td>
+    <td class="text"><a href="/data/edit/text/{{d.get('name')}}?from=/data/page">
+      {{'修改' if d.get('text') else ''}}</a></td>
+    <td class="blocks"><a href="/data/edit/box/{{d.get('name')}}?step=block_box&from=/data/page">
+      {{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}</a></td>
+    <td class="columns"><a href="/data/edit/box/{{d.get('name')}}?step=column_box&from=/data/page">
+      {{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}</a></td>
+    <td class="chars"><a href="/data/edit/box/{{d.get('name')}}?step=char_box&from=/data/page">
+      {{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}</a></td>
+    <td class="action">
+      {% set info = {f['id']:d.get(f['id']) for f in model.modal_fields} %}
+      <span class="hide info">{{dumps(info)}}</span>
+      {% for a in model.actions %}
+      <a class="{{a.get('action') or ''}}">{{a.get('label')}}</a>
+      {% end %}
+    </td>
+    </td>
+  </tr>
+  {% end %}
+  </tbody>
+</table>
 {% end %}

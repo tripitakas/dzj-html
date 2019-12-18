@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import re
 import json
 import controller.validate as v
 from functools import cmp_to_key
@@ -15,7 +15,7 @@ class Tripitaka(Model):
         {'id': 'name', 'name': '藏名'},
         {'id': 'short_name', 'name': '简称'},
         {'id': 'store_pattern', 'name': '存储模式'},
-        {'id': 'img_available', 'name': '图片是否就绪'},
+        {'id': 'img_available', 'name': '图片是否就绪', 'input_type': 'select', 'options': ['是', '否']},
         {'id': 'remark', 'name': '备注'}
     ]
     rules = [
@@ -23,9 +23,13 @@ class Tripitaka(Model):
         (v.is_tripitaka, 'tripitaka_code'),
     ]
     primary = 'tripitaka_code'
-    search_fields = ['name', 'tripitaka_code']
-    search_tip = '请搜索藏经名称和编码'
+
     page_title = '藏数据管理'
+    search_tip = '请搜索藏经名称和编码'
+    search_fields = ['name', 'tripitaka_code']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                         options=f.get('options', [])) for f in fields]
 
 
 class Sutra(Model):
@@ -50,9 +54,13 @@ class Sutra(Model):
         (v.is_sutra, 'sutra_code')
     ]
     primary = 'sutra_code'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
-    search_tip = '请搜索统一经编码、经编码、经名'
+
     page_title = '经数据管理'
+    search_tip = '请搜索统一经编码、经编码、经名'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                         options=f.get('options', [])) for f in fields]
 
 
 class Reel(Model):
@@ -76,9 +84,13 @@ class Reel(Model):
         (v.is_reel, 'reel_code'),
     ]
     primary = 'reel_code'
-    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
-    search_tip = '请搜索统一经编码、经编码、经名和卷编码'
+
     page_title = '卷数据管理'
+    search_tip = '请搜索统一经编码、经编码、经名和卷编码'
+    search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                         options=f.get('options', [])) for f in fields]
 
     @classmethod
     def ignore_existed_check(cls, doc):
@@ -94,9 +106,9 @@ class Volume(Model):
         {'id': 'envelop_no', 'name': '函序号'},
         {'id': 'volume_no', 'name': '册序号', 'type': 'int'},
         {'id': 'content_page_count', 'name': '正文页数'},
-        {'id': 'content_pages', 'name': '正文页', 'show_type': 'hide', 'input_type': 'textarea'},
-        {'id': 'front_cover_pages', 'name': '封面页', 'show_type': 'hide', 'input_type': 'textarea'},
-        {'id': 'back_cover_pages', 'name': '封底页', 'show_type': 'hide', 'input_type': 'textarea'},
+        {'id': 'content_pages', 'name': '正文页', 'input_type': 'textarea'},
+        {'id': 'front_cover_pages', 'name': '封面页', 'input_type': 'textarea'},
+        {'id': 'back_cover_pages', 'name': '封底页', 'input_type': 'textarea'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
@@ -106,35 +118,31 @@ class Volume(Model):
         (v.is_digit, 'volume_no'),
     ]
     primary = 'volume_code'
-    search_fields = ['volume_code']
-    search_tip = '请搜索册编码'
+
     page_title = '册数据管理'
-    actions = [  # 列表操作
-        {'id': 'btn-view', 'label': '查看'},
-        {'id': 'btn-update', 'label': '修改'},
-        {'id': 'btn-remove', 'label': '删除'},
-    ]
+    search_tip = '请搜索册编码'
+    search_fields = ['volume_code']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
+                    ['content_pages', 'front_cover_pages', 'back_cover_pages']]
+    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                         options=f.get('options', [])) for f in fields]
 
     @classmethod
     def pack_doc(cls, doc):
         doc = super().pack_doc(doc)
-
         if doc.get('content_pages') and isinstance(doc['content_pages'], str):
-            content_pages = json.loads(doc['content_pages'].replace("'", '"'))
+            content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
             content_pages.sort(key=cmp_to_key(cmp_page_code))
             doc['content_pages'] = content_pages
         doc['content_page_count'] = len(doc['content_pages'])
-
-        if doc.get('front_cover_pages') and isinstance(['front_cover_pages'], str):
-            front_cover_pages = json.loads(doc['front_cover_pages'].replace("'", '"'))
+        if doc.get('front_cover_pages') and isinstance(doc['front_cover_pages'], str):
+            front_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['front_cover_pages']).split(',')
             front_cover_pages.sort(key=cmp_to_key(cmp_page_code))
             doc['front_cover_pages'] = front_cover_pages
-
-        if doc.get('back_cover_pages') and isinstance(['back_cover_pages'], str):
-            back_cover_pages = json.loads(doc['back_cover_pages'].replace("'", '"'))
+        if doc.get('back_cover_pages') and isinstance(doc['back_cover_pages'], str):
+            back_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['back_cover_pages']).split(',')
             back_cover_pages.sort(key=cmp_to_key(cmp_page_code))
             doc['back_cover_pages'] = back_cover_pages
-
         return doc
 
 
@@ -171,13 +179,19 @@ class Page(Model):
         (v.is_digit, 'reel_page_no')
     ]
     primary = 'name'
-    search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
-    search_tip = '请搜索页编码、统一经编码、经编码、卷编码'
+
     page_title = '页数据管理'
-    actions = [  # 列表操作
-        {'id': 'btn-view', 'label': '查看'},
-        {'id': 'btn-update', 'label': '修改'},
-        {'id': 'btn-remove', 'label': '删除'},
+    search_tip = '请搜索页编码、统一经编码、经编码、卷编码'
+    search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
+    modal_fields = [
+        {'id': 'name', 'name': '页编码'},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio',
+         'options': ['上下一栏', '上下两栏', '上下三栏', '左右两栏']},
+    ]
+
+    actions = [  # 列表单条记录包含哪些操作
+        {'action': 'btn-update', 'label': '修改'},
+        {'action': 'btn-remove', 'label': '删除'},
     ]
 
     @classmethod

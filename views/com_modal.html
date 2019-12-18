@@ -7,10 +7,10 @@
         <h4 class="modal-title">{{title or '新增数据'}}</h4>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="fields" class="fields" value="{{fields}}"/>
+        <input type="hidden" id="fields" class="fields" value="{{modal_fields}}"/>
         <input type="hidden" id="_id" class="_id">
         <form class="form-horizontal">
-          {% for f in fields %}
+          {% for f in modal_fields %}
           <div class="form-group">
             <label class="col-sm-2 control-label">{{f.get('name')}}</label>
             <div class="col-md-10">

@@ -118,24 +118,11 @@ class Pager(UIModule):
 
 
 class ComTable(UIModule):
-    operations = [
-        {'operation': 'add', 'label': '新增记录'},
-        {'operation': 'bat-delete', 'label': '批量删除'},
-    ]
-    actions = [
-        {'action': 'view', 'label': '查看'},
-        {'action': 'update', 'label': '修改'},
-        {'action': 'remove', 'label': '删除'},
-    ]
-
-    def render(self, docs, fields, actions=None, operations=None, pager=None, q='', order='', search_tip=''):
-        operations = operations or self.operations
-        actions = actions or self.actions
-        return self.render_string('com_table.html', dumps=dumps, docs=docs, fields=fields,
-                                  actions=actions, operations=operations, pager=pager,
-                                  q=q, order=order, search_tip=search_tip)
+    def render(self, docs, table_fields, actions, order=''):
+        return self.render_string('com_table.html', dumps=dumps, docs=docs, table_fields=table_fields,
+                                  actions=actions, order=order)
 
 
 class ComModal(UIModule):
-    def render(self, fields, id='', title=''):
-        return self.render_string('com_modal.html', fields=fields, id=id, title=title)
+    def render(self, modal_fields, id='', title=''):
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id=id, title=title)

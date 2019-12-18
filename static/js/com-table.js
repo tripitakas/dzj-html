@@ -21,11 +21,11 @@ $('#search-input').on("keydown", function (event) {
 // modal相关代码
 var $modal = $('#dataModal');
 var fields = decodeJSON($('#fields').val()).concat({id: '_id'});
-console.log(fields);
+
+// console.log(fields);
 
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
-    console.log(item);
     if ('input_type' in item && item['input_type'] === 'radio')
       modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
     else
@@ -69,10 +69,7 @@ function toggleModal(modal, fields, readonly) {
 }
 
 function getData(id) {
-  var data = {}, row = $('#' + id);
-  fields.forEach(function (item) {
-    data[item.id] = row.find('.' + item.id).text();
-  });
+  var data = parseJSON($('#' + id).find('.info').text());
   data['_id'] = id;
   return data;
 }
@@ -86,33 +83,23 @@ $('.operation #add').click(function () {
 });
 
 // 查看-弹框
-function view(info) {
-  info = typeof info === 'string' ? decodeJSON(info) : info;
+$('.btn-view').click(function () {
+  var id = $(this).parent().parent().attr('id');
+  var data = getData(id);
   $modal.find('.modal-title').html('查看数据');
   toggleModal($modal, fields, true);
-  setModal($modal, info, fields);
+  setModal($modal, data, fields);
   $modal.modal();
-}
-$('.btn-view').click(function () {
-  var rowId = $(this).parent().parent().attr('id');
-  var data = getData(rowId);
-  console.log(rowId);
-  console.log(data);
-  view(data);
 });
 
 // 修改-弹框
-function update(info) {
-  info = typeof info === 'string' ? decodeJSON(info) : info;
+$('.btn-update').click(function () {
+  var id = $(this).parent().parent().attr('id');
+  var data = getData(id);
   $modal.find('.modal-title').html('修改数据');
   toggleModal($modal, fields, false);
-  setModal($modal, info, fields);
+  setModal($modal, data, fields);
   $modal.modal();
-}
-$('.btn-update').click(function () {
-  var rowId = $(this).parent().parent().attr('id');
-  var data = getData(rowId);
-  update(data);
 });
 
 // 新增/修改-提交
@@ -127,22 +114,18 @@ $("#dataModal .modal-confirm").click(function () {
 });
 
 // 删除
-function remove(info) {
-  info = typeof info === 'string' ? decodeJSON(info) : info;
-  var name = 'name' in info ? info.name : '';
+$('.btn-remove').click(function () {
+  var id = $(this).parent().parent().attr('id');
+  var data = getData(id);
+  var name = 'name' in data ? data.name : '';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
-    postApi(location.pathname + '/delete', {data: {_id: info._id}}, function () {
+    postApi(location.pathname + '/delete', {data: {_id: data._id}}, function () {
       showSuccess('成功', '数据' + name + '已删除');
       refresh(1000);
     }, function (err) {
       showError('删除失败', err.message);
     });
   });
-}
-$('.btn-remove').click(function () {
-  var rowId = $(this).parent().parent().attr('id');
-  var data = getData(rowId);
-  remove(data);
 });
 
 // 全选
@@ -169,34 +152,5 @@ $('#bat-delete').click(function () {
     }, function (err) {
       showError('删除失败', err.message);
     });
-  });
-});
-
-// 上传文件-提交
-$("#uploadModal .modal-confirm").click(function () {
-  var file = $('#upload')[0].files[0];
-  if (typeof file === 'undefined') {
-    return showError('请选择文件');
-  } else if (!/\.(csv|CSV)$/.test(file.name)) {
-    return showError('文件不是CSV类型');
-  } else if (file.size > (10 * 1024 * 1024)) {
-    return showError('文件大小不能超过10M');
-  }
-
-  $('#progress').removeClass('hide');
-  var formData = new FormData();
-  formData.append('csv', file);
-  postFile(location.pathname + '/upload', formData, function (res) {
-    $('#progress').addClass('hide');
-    var errors = res.data.errors;
-    if (errors.length > 0) {
-      var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
-      showTip('上传完成', text, true);
-    } else {
-      showTip('上传成功', res.message, true);
-    }
-  }, function (err) {
-    $('#progress').addClass('hide');
-    showError('上传失败', err.message);
   });
 });
