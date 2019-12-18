@@ -807,7 +807,7 @@
       var self = this, routes = [], heads = [];
 
       if (!cs.checkLinks(routes, heads)) {
-        showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+        showError('字框连接有误', '请修正高亮绿框的字框连线。');
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {

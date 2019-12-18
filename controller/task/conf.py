@@ -5,6 +5,7 @@
 @time: 2019/10/16
 """
 from controller import errors
+from controller.helper import prop
 
 
 class TaskConfig(object):
@@ -135,18 +136,18 @@ class TaskConfig(object):
 
     @classmethod
     def get_page_tasks(cls):
-        return [t for t, v in cls.task_types.items() if cls.prop(v, 'data.collection') == 'page']
+        return [t for t, v in cls.task_types.items() if prop(v, 'data.collection') == 'page']
 
     @classmethod
     def get_task_meta(cls, task_type):
-        d = cls.prop(cls.all_task_types(), '%s.data' % task_type) or dict()
+        d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
         return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
 
     @classmethod
     def init_steps(cls, task, mode, cur_step=''):
         """ 检查当前任务的步骤，缺省时进行设置，有误时报错 """
-        todo = cls.prop(task, 'steps.todo') or []
-        submitted = cls.prop(task, 'steps.submitted') or []
+        todo = prop(task, 'steps.todo') or []
+        submitted = prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
         if not todo:
             return errors.task_steps_is_empty
@@ -167,4 +168,4 @@ class TaskConfig(object):
     @classmethod
     def get_shared_field(cls, task_type):
         """ 获取任务保护的共享字段 """
-        return cls.prop(cls.task_types, '%s.data.shared_field' % task_type)
+        return prop(cls.task_types, '%s.data.shared_field' % task_type)

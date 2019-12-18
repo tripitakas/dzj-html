@@ -1,71 +1,54 @@
 <script src="{{ static_url('js/pick-task.js') }}"></script>
 <script>
+  var from = getQueryString('from');
+  var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
+
+  function saveTask(submit, url) {
+    postApi('{{current_path}}', {data: getSubmitData(submit)}, function () {
+      showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
+      goto(url, 1000);
+    });
+  }
+
   // 上一步
   $(document).on("click", '#prev-step', function () {
-    window.location = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
+    var prev = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
+    var url = from ? prev + '&from=' + from : prev;
+    if ('{{not readonly and mode != "view"}}' === 'True') {
+      saveTask(true, url);
+    } else {
+      goto(url, 1000);
+    }
   });
 
   // 下一步
   $(document).on("click", '#next-step', function () {
+    var next = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
+    var url = from ? next + '&from=' + from : next;
     if ('{{not readonly and mode != "view"}}' === 'True') {
-      var data = getSubmitData(true);
-      if (!data) {
-        return setTimeout(function() {
-          postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
-            window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
-          });
-        }, 1000);
-      }
-      postApi('{{current_path}}', {data: data}, function () {
-        window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
-      });
+      saveTask(true, url);
     } else {
-      window.location = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
+      goto(url, 1000);
     }
   });
 
   // 保存任务
   $(document).on("click", '#save-task', function () {
-    function save(data) {
-      postApi('{{current_path}}', {data: data}, function () {
-        showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
-        setTimeout(function () {
-          window.location.reload();
-        }, 1000);
-      });
-    }
-    var data = getSubmitData(false);
-    if (!data) {
-      return setTimeout(function() {
-        save(getSubmitData(false));
-      }, 1000);
-    } else {
-      save(data);
-    }
+    saveTask(false, location.href);
   });
 
   // 提交任务
   $(document).on("click", '#submit-task', function () {
-    function save(data) {
-      postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
-        showSuccess('成功', '已提交。');
-        setTimeout(function () {
-          if ('do' === '{{mode}}') {
-            pick('/task/pick/{{task_type}}');
-          } else {
-            window.leave();
-          }
-        }, 1000);
-      });
-    }
-    var data = getSubmitData(true);
-    if (data) {
-      save(data);
-    } else {
-      setTimeout(function() {
-        save(getSubmitData(true));
+    postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
+      showSuccess('成功', '已提交。');
+      setTimeout(function () {
+        if ('do' === '{{mode}}') {
+          pick('/task/pick/{{task_type}}');
+        } else {
+          window.leave();
+        }
       }, 1000);
-    }
+    });
   });
 
   // 退回任务
@@ -76,25 +59,23 @@
     }
     postApi('/task/return/{{task_type}}/{{task.get("_id")}}', {data: {reason: reason}}, function () {
       showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
-      setTimeout(function () {
-        var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
-        window.location = '/task/lobby/' + taskType;
-      }, 1000);
+      goto('/task/lobby/' + taskType, 1000);
     });
   });
 
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if ('{{not readonly and "cut" in task_type and mode in ["edit", "update"]}}' === 'True') {
+    if ('{{not readonly and mode in ["edit", "update"] and "cut" in task_type}}' === 'True') {
       postApi('/data/unlock/box/{{page["name"]}}', {});
     }
-    if ('{{not readonly and "text" in task_type and mode in ["edit", "update"]}}' === 'True') {
+    if ('{{not readonly and mode in ["edit", "update"] and "text" in task_type}}' === 'True') {
       postApi('/data/unlock/text/{{page["name"]}}', {});
     }
     // 返回
-    var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
-    if ('{{mode}}' === 'do') {
+    if (from) {
+      window.location = from;
+    } else if ('{{mode}}' === 'do') {
       window.location = '/task/lobby/' + taskType;
     } else if ('{{mode}}' === 'update') {
       window.location = '/task/my/' + taskType;

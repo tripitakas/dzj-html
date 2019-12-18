@@ -258,13 +258,17 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
+    var data = {
+      submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}',
+      boxes: JSON.stringify($.cut.exportBoxes())
+    };
     if ($.cut.isLinkChanged()) {
       $.cut.applyLinks(blocks, columns);
+      setTimeout(function () {
+        return data;
+      }, 1000);
     } else {
-      return {
-        submit: submit, step: '{{steps.get("current")}}',
-        box_type: '{{box_type}}', boxes: JSON.stringify($.cut.exportBoxes())
-      };
+      return data;
     }
   }
 

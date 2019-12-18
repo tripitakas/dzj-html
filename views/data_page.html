@@ -40,10 +40,14 @@
       <td class="reel_code">{{d.get('reel_code') or ''}}</td>
       <td class="reel_page_no">{{d.get('reel_page_no') or ''}}</td>
       <td class="layout">{{d.get('layout') or ''}}</td>
-      <td class="text"><a href="/data/edit/text/{{d.get('name')}}">{{'修改' if d.get('text') else ''}}</a></td>
-      <td class="blocks"><a href="/data/edit/box/{{d.get('name')}}?step=block_box">{{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}</a></td>
-      <td class="columns"><a href="/data/edit/box/{{d.get('name')}}?step=column_box">{{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}</a></td>
-      <td class="chars"><a href="/data/edit/box/{{d.get('name')}}?step=char_box">{{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}</a></td>
+      <td class="text"><a href="/data/edit/text/{{d.get('name')}}?from=/data/page">
+        {{'修改' if d.get('text') else ''}}</a></td>
+      <td class="blocks"><a href="/data/edit/box/{{d.get('name')}}?step=block_box&from=/data/page">
+        {{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}</a></td>
+      <td class="columns"><a href="/data/edit/box/{{d.get('name')}}?step=column_box&from=/data/page">
+        {{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}</a></td>
+      <td class="chars"><a href="/data/edit/box/{{d.get('name')}}?step=char_box&from=/data/page">
+        {{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}</a></td>
       <td class="action">
         {% for a in actions %}
         <a class="{{a.get('id') or ''}}">{{a.get('label')}}</a>
