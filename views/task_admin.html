@@ -534,6 +534,8 @@
 
   // 初始化选择列表
   $publishModal.on('shown.bs.modal', function () {
+    if (taskType === 'import_image')
+      return;
     postApi('/task/ready/' + taskType, {data: {}}, function (res) {
       docs = res.data.docs;
       showModal(1, res.data.page_size, res.data.total_count);
@@ -541,6 +543,7 @@
   });
 
 </script>
-
+{% block custom-js %}
+{% end %}
 </body>
 </html>

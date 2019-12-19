@@ -5,23 +5,9 @@
 <div class="operation">
   <div class="btn-group">
     <button class="btn btn-default waves-effect" id="bat-remove" url="/task/delete/{{task_type}}">批量刪除</button>
-    <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
-      {% if not task_meta.get('groups') %}
-      <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishModal">
-        发布任务
-      </button>
-      {% else %}
-      <button type="button" class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
-        发布任务 <i class="caret"></i>
-      </button>
-      <ul class="dropdown-menu" role="menu">
-        {% for t in task_meta.get('groups') %}
-        <li><a class="task-type" id="{{t}}" href="javascript:void(0);">{{handler.get_task_name(t)}}</a></li>
-        <li class="divider"></li>
-        {% end %}
-      </ul>
-      {% end %}
-    </div>
+    <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishImportModal">
+      发布任务
+    </button>
     <div style="margin: 5px; display: inline-block; cursor: pointer">
       <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
     </div>
@@ -83,7 +69,7 @@
 
 
 {% block modal %}
-<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+<div id="publishImportModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishImportModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -100,7 +86,7 @@
           <div class="tab-content">
             <div class="tab-pane active" id="tab-pan">
               <div style="display: flex">
-                <input type="text" class="form-control" id="pan-name" value="{{pan_name}}" readonly="readonly"/>
+                <input type="text" class="form-control" id="pan-name" value="{{pan_name}}"/>
                 <span style="margin-top: 5px">@</span>
                 <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
               </div>
@@ -112,8 +98,8 @@
         </div>
         <div>
           <h4 class="control-label">图片重复时如何处理？</h4>
-          <input type="radio" name="redo" value="0" style="margin: 0 10px 0 0" checked>跳过
-          <input type="radio" name="redo" value="1" style="margin: 0 10px">重新导入<br>
+          <input type="radio" name="redo" value="否" style="margin: 0 10px 0 0" checked>跳过
+          <input type="radio" name="redo" value="是" style="margin: 0 10px">重新导入<br>
         </div>
         <div>
           <h4 class="control-label">图片版面结构</h4>
@@ -130,7 +116,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="modal_confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
     </div>
@@ -173,5 +159,25 @@
     </div>
   </div>
 </div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  $("#publishImportModal .modal-confirm").click(function () {
+    var active = $('.tab-content .tab-pane.active').attr('id');
+    var panName = active === 'tab-pan' ? $('#pan-name').val().trim() : '';
+    var importDir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
+    var layout = $('#img-layout option:selected').text();
+    var redo = $('#publishImportModal input:radio:checked').val();
+    var remark = $('#publishImportModal #remark').val();
+    var data = {task_type: 'import_image', import_dir: importDir, layout: layout, pan_name: panName, redo: redo, remark: remark};
+    postApi('/task/publish', {data: data}, function () {
+      showSuccess('成功', '数据已提交。');
+      refresh(1000);
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+</script>
 {% end %}
 

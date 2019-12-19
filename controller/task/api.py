@@ -98,9 +98,8 @@ class PublishTasksApi(PublishBaseHandler):
         try:
             assert isinstance(data['doc_ids'], list)
             if len(data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
-                return self.send_error_response(e.task_count_exceed_max,
-                                                message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
-
+                return self.send_error_response(
+                    e.task_count_exceed_max, message='任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS)
             force = data['force'] == '1'
             log = self.publish_task(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
                                     data['priority'], force, doc_ids=data['doc_ids'])
@@ -125,7 +124,7 @@ class PublishTasksApi(PublishBaseHandler):
                         publish_user_id=self.current_user['_id'],
                         publish_by=self.current_user['name'])
             task['input'] = dict(pan_name=data.get('pan_name'), import_dir=data['import_dir'], layout=data['layout'],
-                                 redo=data['redo'] == '1', remark=data.get('remark'))
+                                 redo=data['redo'] == '是', remark=data.get('remark'))
 
             r = self.db.task.insert_one(task)
             if r.inserted_id:
