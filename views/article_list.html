@@ -1,7 +1,10 @@
-{% extends "data_list.html" %}
+{% extends "com_list.html" %}
 
 {% block custom-js %}
 <script>
+  $('#article-add').click(function () {
+    window.location = '/article/add';
+  });
   $('.article-view').click(function () {
     var articleId = $(this).parent().parent().find('.article_id').text();
     window.location = '/article/' + articleId;
@@ -9,14 +12,6 @@
   $('.article-update').click(function () {
     var articleId = $(this).parent().parent().find('.article_id').text();
     window.location = '/article/update/' + articleId;
-  });
-  $('.article-remove').click(function () {
-    var articleId = $(this).parent().parent().find('.article_id').text();
-    showConfirm("确定删除吗？", "文章" + articleId + "将被删除！", function () {
-      postApi('/article/delete', {data: {article_id: articleId}}, function () {
-        window.location.reload();
-      });
-    });
   });
 </script>
 {% end %}

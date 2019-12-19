@@ -15,30 +15,31 @@ from controller.helper import get_date_time
 from controller.base import BaseHandler, DbError
 
 
-class DeleteArticleApi(BaseHandler):
+class ArticleDeleteApi(BaseHandler):
     URL = '/api/article/delete'
 
     def post(self):
         """ 删除文章"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'article_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            rules = [(v.not_both_empty, '_id', '_ids')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
 
-            r = self.db.article.delete_one({'article_id': data['article_id']})
-            if not r.deleted_count:
-                return self.send_error_response(errors.no_object, message='文章%s不存在' % data['article_id'])
-
-            self.add_op_log('delete_article', target_id=data['article_id'], context=data['article_id'])
-            self.send_data_response()
+            if data.get('_id'):
+                r = self.db.article.delete_one({'_id': ObjectId(data['_id'])})
+                self.add_op_log('delete_article', target_id=data['_id'])
+            else:
+                r = self.db.article.delete_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}})
+                self.add_op_log('delete_article', target_id=data['_ids'])
+            self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:
             return self.send_db_error(error)
 
 
-class SaveArticleApi(BaseHandler):
+class ArticleAddOrUpdateApi(BaseHandler):
     URL = '/api/article/(add|update)'
 
     def post(self, mode):

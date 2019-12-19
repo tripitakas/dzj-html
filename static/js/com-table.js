@@ -82,7 +82,7 @@ function getData(id) {
 }
 
 // 新增-弹框
-$('.operation #add').click(function () {
+$('.operation #btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   toggleModal($modal, fields, false);
   resetModal($modal, fields);

@@ -19,14 +19,21 @@ class Article(Model):
         (v.is_article, 'article_id'),
     ]
     primary = 'article_id'
-    search_fields = ['title', 'content']
-    search_tip = '请搜索标题或内容'
+
     page_title = '文章管理'
-    operations = [
-        {'operation': 'add-article', 'label': '新增记录', 'url': '/article/add'},
+    search_tip = '请搜索标题或内容'
+    search_fields = ['title', 'content']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in ['content']]
+    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                         options=f.get('options', [])) for f in fields]
+
+    operations = [  # 列表包含哪些批量操作
+        {'operation': 'article-add', 'label': '新增文章'},
+        {'operation': 'bat-remove', 'label': '批量删除'},
     ]
-    actions = [  # 列表操作
-        {'id': 'article-view', 'label': '查看'},
-        {'id': 'article-update', 'label': '修改'},
-        {'id': 'article-remove', 'label': '删除'},
+
+    actions = [  # 列表单条记录包含哪些操作
+        {'action': 'article-view', 'label': '查看'},
+        {'action': 'article-update', 'label': '修改'},
+        {'action': 'btn-remove', 'label': '删除'},
     ]

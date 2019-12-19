@@ -84,7 +84,7 @@ class DataDeleteApi(BaseHandler):
         """ 批量删除 """
         try:
             data = self.get_request_data()
-            rules = [(v.not_both_empty, '_id', '_ids'), ]
+            rules = [(v.not_both_empty, '_id', '_ids')]
             err = v.validate(data, rules)
             if err:
                 self.send_error_response(err)

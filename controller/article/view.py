@@ -8,16 +8,14 @@ from controller.base import BaseHandler
 from controller.article.article import Article
 
 
-class ListArticleHandler(BaseHandler):
+class ArticleListHandler(BaseHandler):
     URL = '/article'
 
     def get(self):
         """ 文章管理"""
         try:
             docs, pager, q, order = Article.find_by_page(self)
-            self.render('article_list.html', docs=docs, pager=pager, order=order, fields=Article.fields, q=q,
-                        operations=Article.operations, actions=Article.actions, search_tip=Article.search_tip,
-                        title=Article.page_title)
+            self.render('article_list.html', docs=docs, pager=pager, order=order, q=q, model=Article)
 
         except Exception as error:
             return self.send_db_error(error)
