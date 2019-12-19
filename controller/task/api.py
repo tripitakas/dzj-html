@@ -61,7 +61,7 @@ class PublishTasksApi(PublishBaseHandler):
                 ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
                 try:
                     doc_ids = json.loads(ids_str)
-                except json.decoder.JSONDecodeError as e:
+                except json.decoder.JSONDecodeError:
                     ids_str = re.sub(r'\n+', '|', ids_str)
                     doc_ids = ids_str.split(r'|')
             elif data.get('prefix'):

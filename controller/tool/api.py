@@ -4,17 +4,7 @@
 @time: 2019/08/16
 """
 import re
-import json
-import logging
-import subprocess
-from PIL import Image
 from .esearch import find
-from os import path, remove
-from controller import helper
-from urllib.parse import urlencode
-from controller.helper import prop
-from controller import errors as e
-from tornado.escape import to_basestring
 from controller.text.variant import normalize
 from controller.base import BaseHandler, DbError
 

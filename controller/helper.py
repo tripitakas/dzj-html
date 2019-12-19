@@ -14,7 +14,6 @@ from hashids import Hashids
 from datetime import datetime, timedelta, timezone
 
 
-
 def md5_encode(page_code, salt):
     md5 = hashlib.md5()
     md5.update((page_code + salt).encode('utf-8'))
