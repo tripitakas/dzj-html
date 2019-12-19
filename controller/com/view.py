@@ -102,7 +102,7 @@ class HelpHandler(BaseHandler):
         """ 帮助中心"""
         try:
             articles = list(self.db.article.find({'category': '帮助', 'active': '是'}, {'content': 0}))
-            self.render('help.html', articles=articles)
+            self.render('article_list.html', articles=articles, title='帮助中心')
         except Exception as error:
             return self.send_db_error(error)
 
@@ -114,6 +114,6 @@ class AnnounceHandler(BaseHandler):
         """ 通知中心"""
         try:
             articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
-            self.render('announce.html', articles=articles)
+            self.render('article_list.html', articles=articles, title='通知公告')
         except Exception as error:
             return self.send_db_error(error)

@@ -15,7 +15,7 @@ class ArticleListHandler(BaseHandler):
         """ 文章管理"""
         try:
             docs, pager, q, order = Article.find_by_page(self)
-            self.render('article_list.html', docs=docs, pager=pager, order=order, q=q, model=Article)
+            self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, model=Article)
 
         except Exception as error:
             return self.send_db_error(error)
