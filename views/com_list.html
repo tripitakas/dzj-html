@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  {% block head %}
   <meta charset="UTF-8">
   <title>{{model.page_title}}</title>
   {% include _base_meta.html %}
-  <link href="{{static_url('assets/datatables/jquery.dataTables.min.css')}}" rel="stylesheet"/>
   {% include _base_css.html %}
+  <link href="{{static_url('assets/datatables/jquery.dataTables.min.css')}}" rel="stylesheet"/>
+  {% block custom-head %}
+  {% end %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <![endif]-->
-  {% end %}
 </head>
 
 <body>
@@ -25,7 +25,7 @@
           <div class="sty-list">
             {% block operation %}
             <div class="operation">
-              <div class="btn-group dropdown">
+              <div class="btn-group">
                 {% for o in model.operations %}
                 {% if 'data-target' in o %}
                 <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#{{o['data-target']}}">
@@ -56,9 +56,7 @@
             {% module ComTable(docs, model.table_fields, order=order, actions=model.actions) %}
             {% end %}
 
-            {% block pager %}
             {% module Pager(pager) %}
-            {% end %}
           </div>
         </div>
       </div>

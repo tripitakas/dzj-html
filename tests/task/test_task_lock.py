@@ -24,7 +24,7 @@ class TestDataLock(APITestCase):
 
     def get_data_lock(self, doc_id, collection=None, id_name=None, shared_field=None, task_type=None):
         if not collection:
-            collection, id_name, input_field, shared_field = Th.get_task_meta(task_type)
+            collection, id_name, input_field, shared_field = Th.get_task_data_conf(task_type)
         doc = self._app.db[collection].find_one({id_name: doc_id})
         return doc and Th.prop(doc, 'lock.%s' % shared_field)
 

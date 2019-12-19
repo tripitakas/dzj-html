@@ -18,11 +18,18 @@ $('#search-input').on("keydown", function (event) {
   }
 });
 
-// modal相关代码
-var $modal = $('#dataModal');
-var fields = decodeJSON($('#fields').val()).concat({id: '_id'});
+// 全选
+$('#check-all').click(function () {
+  var $items = $("tr [type='checkbox']");
+  if (!this.checked)
+    $items.removeAttr('checked');
+  else
+    $items.prop('checked', 'true');
+});
 
-// console.log(fields);
+/*---Modal相关代码---*/
+var $modal = $('#dataModal');
+var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
 
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
@@ -118,8 +125,9 @@ $('.btn-remove').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var name = 'name' in data ? data.name : '';
+  var url = $(this).attr('url') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
-    postApi(location.pathname + '/delete', {data: {_id: data._id}}, function () {
+    postApi(url, {data: {_id: data._id}}, function () {
       showSuccess('成功', '数据' + name + '已删除');
       refresh(1000);
     }, function (err) {
@@ -128,25 +136,16 @@ $('.btn-remove').click(function () {
   });
 });
 
-// 全选
-$('#check-all').click(function () {
-  var $items = $("tr [type='checkbox']");
-  if (!this.checked)
-    $items.removeAttr('checked');
-  else
-    $items.prop('checked', 'true');
-});
-
 // 批量删除
-$('#bat-delete').click(function () {
+$('#bat-remove').click(function () {
   var ids = $.map($('table tbody :checked'), function (item) {
-    return $(item).parents('tr').attr('id');
+    return $(item).parent().parent().attr('id');
   });
   if (!ids.length)
     return showWarning('请选择', '当前没有选中任何记录。');
-
+  var url = $(this).attr('url') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
-    postApi(location.pathname + '/delete', {data: {_ids: ids}}, function () {
+    postApi(url, {data: {_ids: ids}}, function () {
       showSuccess('删除成功', '数据已删除。');
       refresh(1000);
     }, function (err) {

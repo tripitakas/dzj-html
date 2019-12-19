@@ -25,7 +25,7 @@ class GetReadyTasksApi(TaskHandler):
         已就绪有两种情况：1. 任务不依赖任何数据；2. 任务依赖的数据已就绪
         """
         assert task_type in self.task_types
-        collection, id_name, input_field, shared_field = self.get_task_meta(task_type)
+        collection, id_name, input_field, shared_field = self.get_task_data_conf(task_type)
         finished_field = self.prop(self.task_types, '%s.data.finished_field' % task_type)
         try:
             data = self.get_request_data()
@@ -46,8 +46,8 @@ class GetReadyTasksApi(TaskHandler):
             response = {'docs': [d[id_name] for d in list(docs)], 'page_size': page_size,
                         'page_no': page_no, 'total_count': count}
             return self.send_data_response(response)
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class PublishTasksApi(PublishBaseHandler):
@@ -65,7 +65,7 @@ class PublishTasksApi(PublishBaseHandler):
                     ids_str = re.sub(r'\n+', '|', ids_str)
                     doc_ids = ids_str.split(r'|')
             elif data.get('prefix'):
-                collection, id_name, input_field, shared_field = self.get_task_meta(data['task_type'])
+                collection, id_name, input_field, shared_field = self.get_task_data_conf(data['task_type'])
                 condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'}}
                 if input_field:
                     condition[input_field] = {"$nin": [None, '']}
@@ -106,8 +106,8 @@ class PublishTasksApi(PublishBaseHandler):
                                     data['priority'], force, doc_ids=data['doc_ids'])
             return self.send_data_response({k: value for k, value in log.items() if value})
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
     def publish_import_image(self):
         """ 发布图片导入任务"""
@@ -133,8 +133,8 @@ class PublishTasksApi(PublishBaseHandler):
                 self.add_op_log('publish_import_image', context='%s,%s' % (data['import_dir'], data['redo']),
                                 target_id=r.inserted_id)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class PickTaskApi(TaskHandler):
@@ -191,8 +191,8 @@ class PickTaskApi(TaskHandler):
             # 分配任务及数据锁
             return self.assign_task(task)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
     def assign_task(self, task):
         """ 分配任务和数据锁（如果有）给当前用户。
@@ -211,7 +211,7 @@ class PickTaskApi(TaskHandler):
         # 分配数据锁
         shared_field = self.get_shared_field(task['task_type'])
         if shared_field:
-            collection, id_name = self.get_task_meta(task['task_type'])[:2]
+            collection, id_name = self.get_task_data_conf(task['task_type'])[:2]
             update = {
                 'lock.%s.is_temp' % shared_field: False,
                 'lock.%s.lock_type' % shared_field: dict(tasks=task['task_type']),
@@ -254,8 +254,8 @@ class ReturnTaskApi(TaskHandler):
 
             return self.send_data_response()
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class RepublishTaskApi(TaskHandler):
@@ -291,8 +291,8 @@ class RepublishTaskApi(TaskHandler):
 
             return self.send_data_response()
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class DeleteTasksApi(TaskHandler):
@@ -303,19 +303,20 @@ class DeleteTasksApi(TaskHandler):
         assert task_type in self.all_task_types()
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'task_ids')]
+            rules = [(v.not_both_empty, '_ids', '_id')]
             err = v.validate(data, rules)
             if err:
                 return self.send_error_response(err)
 
-            # 删除已发布或悬挂的任务
+            # 删除非进行中或已完成的任务
             ret = {'count': 0}
-            task_ids = [ObjectId(t) for t in data['task_ids']]
-            condition = {'_id': {'$in': task_ids}, 'status': {'$in': [self.STATUS_OPENED, self.STATUS_PENDING]}}
+            _ids = data['_ids'] if data.get('_ids') else [data['_id']]
+            task_ids = [ObjectId(t) for t in _ids]
+            condition = {'_id': {'$in': task_ids}, 'status': {'$nin': [self.STATUS_PICKED, self.STATUS_FINISHED]}}
             r = self.db.task.delete_many(condition)
             if r.deleted_count:
                 ret['count'] = r.deleted_count
-                self.add_op_log('delete_' + task_type, context=data['task_ids'])
+                self.add_op_log('delete_' + task_type, context=_ids)
 
             # 释放数据锁（领取任务时分配的长时数据锁）
             tasks = self.db.task.find({'_id': {'$in': task_ids}})
@@ -325,8 +326,8 @@ class DeleteTasksApi(TaskHandler):
 
             return self.send_data_response(ret)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class AssignTasksApi(TaskHandler):
@@ -382,14 +383,14 @@ class AssignTasksApi(TaskHandler):
                     'lock.%s.locked_user_id' % shared_field: user['_id'],
                     'lock.%s.locked_time' % shared_field: datetime.now()
                 }
-                collection, id_name = self.get_task_meta(task_type)[:2]
+                collection, id_name = self.get_task_data_conf(task_type)[:2]
                 doc_ids = [t['doc_id'] for t in opened_tasks]
                 self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$set': update})
 
             return self.send_data_response(ret)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class FinishTaskApi(TaskHandler):
@@ -403,8 +404,8 @@ class FinishTaskApi(TaskHandler):
                 return self.send_error_response(errors.no_object)
             ret = self.finish_task(task)
             return self.send_data_response(ret)
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class LockTaskDataApi(TaskHandler):
@@ -420,8 +421,8 @@ class LockTaskDataApi(TaskHandler):
             else:
                 return self.send_error_response(r)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class UnlockTaskDataApi(TaskHandler):
@@ -434,8 +435,8 @@ class UnlockTaskDataApi(TaskHandler):
             self.release_temp_lock(doc_id, shared_field)
             return self.send_data_response()
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class InitTasksForTestApi(TaskHandler):
@@ -482,5 +483,5 @@ class InitTasksForTestApi(TaskHandler):
             self.db.task.insert_many(tasks)
             self.send_data_response()
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)

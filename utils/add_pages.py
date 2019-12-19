@@ -34,7 +34,7 @@ def load_json(filename):
     try:
         with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
             return json.load(f)
-    except Exception as e:
+    except Exception as error:
         sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 

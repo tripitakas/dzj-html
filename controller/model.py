@@ -30,7 +30,7 @@ class Model(object):
     table_fields = [dict(id='', name='')]  # 列表显示哪些字段
     operations = [  # 列表包含哪些批量操作
         {'operation': 'btn-add', 'label': '新增记录'},
-        {'operation': 'bat-delete', 'label': '批量删除'},
+        {'operation': 'bat-remove', 'label': '批量删除'},
     ]
     actions = [  # 列表单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
@@ -79,11 +79,12 @@ class Model(object):
         return d
 
     @classmethod
-    def find_by_page(cls, self, condition=None):
+    def find_by_page(cls, self, condition=None, search_fields=None):
         condition = condition or {}
         q = self.get_query_argument('q', '')
-        if not condition and q:
-            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+        search_fields = search_fields or cls.search_fields
+        if q:
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in search_fields]
         order = self.get_query_argument('order', '')
         query = self.db[cls.collection].find(condition)
         if order:

@@ -29,6 +29,10 @@
   border-top: 1px solid #ccc;
 }
 
+.sty-table td {
+  word-break: break-all;
+}
+
 .sty-table td .doc-name {
   color: #333333;
   font-size: 14px;
@@ -55,7 +59,7 @@
   color: #BB5500;
 }
 
-.sty-table a.disabled {
+.sty-table a.disabled, .sty-table a.disabled:hover {
   color: #9e9e9e;
 }
 
@@ -114,6 +118,11 @@
 
 #publishModal .modal-body > div {
   padding: 5px 0;
+}
+
+#pan-name {
+  width: 100px;
+  display: inline-flex;
 }
 
 .select2-container {

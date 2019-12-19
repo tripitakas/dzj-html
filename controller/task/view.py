@@ -5,9 +5,9 @@
 @time: 2018/12/26
 """
 import random
-from controller import errors
 from bson.objectid import ObjectId
 from datetime import datetime, timedelta
+from controller import errors as e
 from controller.helper import get_date_time
 from controller.task.base import TaskHandler
 
@@ -19,47 +19,28 @@ class TaskAdminHandler(TaskHandler):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
-    def get_tasks_by_type(self, task_type, status=None, q=None, order=None, page_size=0, page_no=1):
-        """获取任务管理/任务列表"""
-
-        group_task = self.all_task_types()[task_type].get('groups')
-        condition = {'task_type': {'$regex': '.*%s.*' % task_type} if group_task else task_type}
-        if status:
-            condition.update({'status': status})
-        if q:
-            condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
-        total_count = self.db.task.count_documents(condition)
-        query = self.db.task.find(condition)
-        if order:
-            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(order, asc)
-        page_size = page_size or self.config['pager']['page_size']
-        page_no = page_no if page_no >= 1 else 1
-        pages = query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(pages), total_count
-
     def get(self, task_type):
         """ 任务管理/任务列表 """
 
         try:
-            q = self.get_query_argument('q', '').upper()
+            task_meta = self.get_task_meta(task_type)
+            is_group = self.prop(task_meta, 'groups')
+            condition = {'task_type': {'$regex': '.*%s.*' % task_type} if is_group else task_type}
             status = self.get_query_argument('status', '')
-            order = self.get_query_argument('order', '')
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            tasks, total_count = self.get_tasks_by_type(
-                task_type, status=status, q=q, order=order, page_size=page_size, page_no=cur_page
-            )
-            task_conf = self.all_task_types()[task_type]
+            if status:
+                condition.update({'status': status})
             pan_name = self.prop(self.config, 'pan.name')
-            pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
+            search_tip = '请搜索网盘名称或导入文件夹' if task_type == 'import_image' else '请搜索页编码'
             template = 'task_admin_import.html' if task_type == 'import_image' else 'task_admin.html'
+            search_fields = ['input.pan_name', 'input.import_dir'] if task_type == 'import_image' else ['doc_id']
+            tasks, pager, q, order = self.find_by_page(self, condition, search_fields)
             self.render(
-                template, task_type=task_type, tasks=tasks, pager=pager, order=order, task_conf=task_conf,
-                task_meta=self.all_task_types(), is_mod_enabled=self.is_mod_enabled, pan_name=pan_name,
+                template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, task_meta=task_meta,
+                pan_name=pan_name, search_tip=search_tip, task_types=self.all_task_types(),
+                is_mod_enabled=self.is_mod_enabled,
             )
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TaskLobbyHandler(TaskHandler):
@@ -118,8 +99,8 @@ class TaskLobbyHandler(TaskHandler):
             q = self.get_query_argument('q', '').upper()
             tasks, total_count = self.get_lobby_tasks_by_type(self, task_type, q=q)
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count)
-        except Exception as e:
-            self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class MyTaskHandler(TaskHandler):
@@ -167,8 +148,8 @@ class MyTaskHandler(TaskHandler):
             pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
             self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order, timeout=timeout)
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TaskPageInfoHandler(TaskHandler):
@@ -202,7 +183,7 @@ class TaskPageInfoHandler(TaskHandler):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object, message='页面%s不存在' % page_name, render=True)
+                return self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
             order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
@@ -215,8 +196,8 @@ class TaskPageInfoHandler(TaskHandler):
             self.render('task_page_info.html', page=page, tasks=tasks, format_info=self.format_info,
                         display_fields=display_fields)
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TaskInfoHandler(TaskHandler):
@@ -228,7 +209,7 @@ class TaskInfoHandler(TaskHandler):
             # 检查参数
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                self.send_error_response(errors.no_object, message='没有找到该任务')
+                self.send_error_response(e.no_object, message='没有找到该任务')
 
             display_fields = ['doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps',
                               'publish_time', 'publish_by', 'picked_time', 'picked_by',
@@ -237,5 +218,5 @@ class TaskInfoHandler(TaskHandler):
             self.render('task_info.html', task=task, display_fields=display_fields,
                         format_info=TaskPageInfoHandler.format_info)
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)

@@ -62,7 +62,7 @@ class TestTaskApi(APITestCase):
         # 2. 测试正常情况
         for task_type in task_types:
             # 获取任务的meta信息
-            collection, id_name, input_field, shared_field = Th.get_task_meta(task_type)
+            collection, id_name, input_field, shared_field = Th.get_task_data_conf(task_type)
             t = Th.task_types.get(task_type)
 
             # 测试数据不存在

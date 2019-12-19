@@ -4,7 +4,7 @@
     <th><input id="check-all" type="checkbox"/></th>
     {% for f in table_fields %}
     <th><span class="sort {{'active' if f['id'] in order else ''}}" title="{{f['id']}}">
-          {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == f['id'] else ''}}"></span>
+      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == f['id'] else ''}}"></span>
     </span></th>
     {% end %}
     <th><span>操作</span></th>

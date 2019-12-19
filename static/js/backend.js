@@ -53,7 +53,7 @@ function showTip(title, text, reload) {
           window.location.reload();
         });
   } else {
-    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
+    swal({title: title, text: text, type: 'info', html: true, showConfirmButton: false, allowOutsideClick: true});
   }
 }
 
