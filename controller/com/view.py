@@ -91,8 +91,8 @@ class HomeHandler(TaskHandler):
                         unfinished_count=unfinished_count, latest_tasks=latest_tasks,
                         month_star=month_star, articles=articles)
 
-        except Exception as e:
-            self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class HelpHandler(BaseHandler):
@@ -103,8 +103,8 @@ class HelpHandler(BaseHandler):
         try:
             articles = list(self.db.article.find({'category': '帮助', 'active': '是'}, {'content': 0}))
             self.render('help.html', articles=articles)
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class AnnounceHandler(BaseHandler):
@@ -115,5 +115,5 @@ class AnnounceHandler(BaseHandler):
         try:
             articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
             self.render('announce.html', articles=articles)
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)

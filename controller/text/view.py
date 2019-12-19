@@ -40,8 +40,8 @@ class TextProofHandler(TaskHandler, TextTool):
             else:
                 return self.proof(task, page, mode, steps, readonly)
 
-        except Exception as e:
-            return self.send_db_error(e)
+        except Exception as error:
+            return self.send_db_error(error)
 
     def select_compare_text(self, task, page, mode, steps, readonly, num):
         self.render(
@@ -138,8 +138,8 @@ class TextReviewHandler(TaskHandler, TextTool):
                 steps=dict(is_first=True, is_last=True), **params
             )
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TextHardHandler(TextReviewHandler):
@@ -156,7 +156,7 @@ class TextHardHandler(TextReviewHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object)
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
@@ -178,8 +178,8 @@ class TextHardHandler(TextReviewHandler):
                 get_img=self.get_img, **kwargs
             )
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TextEditHandler(TaskHandler, TextTool):
@@ -191,7 +191,7 @@ class TextEditHandler(TaskHandler, TextTool):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object)
 
             has_lock = self.get_data_lock(page_name, 'text') is True
             cmp_data = self.prop(page, 'txt_html') or ''
@@ -207,8 +207,8 @@ class TextEditHandler(TaskHandler, TextTool):
 
             )
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TextArea(UIModule):

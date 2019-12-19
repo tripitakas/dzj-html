@@ -19,8 +19,8 @@ class ListArticleHandler(BaseHandler):
                         operations=Article.operations, actions=Article.actions, search_tip=Article.search_tip,
                         title=Article.page_title)
 
-        except Exception as e:
-            return self.send_db_error(e)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class ArticleAddOrUpdateHandler(BaseHandler):
@@ -33,8 +33,8 @@ class ArticleAddOrUpdateHandler(BaseHandler):
             if article_id and not article:
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
             self.render('article_edit.html', article=article, article_id=article_id or '')
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class ArticleViewHandler(BaseHandler):
@@ -48,5 +48,5 @@ class ArticleViewHandler(BaseHandler):
                 return self.send_error_response(errors.no_object, message='文章%s不存在' % article_id)
             self.render('article_view.html', article=article, article_id=article_id)
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)

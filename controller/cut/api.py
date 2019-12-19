@@ -72,8 +72,8 @@ class CutTaskApi(TaskHandler):
 
             return self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     @staticmethod
     def reorder_chars(data, page):
@@ -115,8 +115,8 @@ class CutEditApi(TaskHandler):
 
             return self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class GenerateCharIdApi(BaseHandler):

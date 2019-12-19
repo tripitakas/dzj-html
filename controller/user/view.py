@@ -46,8 +46,8 @@ class UsersAdminHandler(BaseHandler):
             cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
             users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
             logging.info('%d users' % len(users))
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
         pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_admin.html', users=users, pager=pager)
@@ -69,8 +69,8 @@ class UserRolesHandler(BaseHandler):
             disabled_roles = self.config.get('role', {}).get('disabled') or ''
 
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
         pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_role.html', users=users, roles=roles, pager=pager, init_roles=init_roles,
@@ -94,8 +94,8 @@ class UserStatisticHandler(BaseHandler):
                 r.update(dict(cut_proof_count=0, cut_review_count=0, text_proof_count=0, text_review_count=0,
                               text_difficult_count=0, text_feedback_count=0, fmt_proof_count=0,
                               fmt_review_count=0))
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
         pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         self.render('user_statistic.html', users=users, pager=pager)

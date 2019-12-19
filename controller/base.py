@@ -68,8 +68,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
                 return self.send_error_response(e.no_user) if api else self.redirect(login_url)
-        except MongoError as err:
-            return self.send_db_error(err, render=not self.get_query_argument('_raw', 0) and not api)
+        except MongoError as error:
+            return self.send_db_error(error, render=not self.get_query_argument('_raw', 0) and not api)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -128,9 +128,9 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
-        except Exception as err:
+        except Exception as error:
             traceback.print_exc()
-            message = '网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)
+            message = '网页生成出错(%s): %s' % (template_name, str(error) or error.__class__.__name__)
             kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
@@ -301,8 +301,8 @@ class BaseHandler(CorsMixin, RequestHandler):
                         except TypeError:
                             body = to_basestring(r.body).strip()
                         self._handle_body(body, params_for_handler, handle_response, handle_error)
-                except Exception as err:
-                    err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                except Exception as error:
+                    err = '错误(%s): %s' % (error.__class__.__name__, str(error))
                     traceback.print_exc()
                     if handle_error:
                         handle_error(err)

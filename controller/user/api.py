@@ -53,8 +53,8 @@ class LoginApi(BaseHandler):
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
             self.login(self, user.get('phone_or_email'), user.get('password'))
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     @staticmethod
     def login(self, phone_or_email, password, report_error=True, send_response=True):
@@ -147,8 +147,8 @@ class RegisterApi(BaseHandler):
             logging.info('register id=%s, name=%s, email=%s' % (user['_id'], user['name'], user.get('email')))
             self.send_data_response(user)
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ChangeUserProfileApi(BaseHandler):
@@ -177,8 +177,8 @@ class ChangeUserProfileApi(BaseHandler):
             self.add_op_log('change_user_profile', target_id=user['_id'], context=str(info))
             self.send_data_response(dict(info=info))
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ChangeUserRoleApi(BaseHandler):
@@ -206,8 +206,8 @@ class ChangeUserRoleApi(BaseHandler):
                             context='%s: %s' % (old_user['name'], user.get('roles')))
             self.send_data_response({'roles': user['roles']})
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ForgetPasswordApi(BaseHandler):
@@ -267,8 +267,8 @@ class ResetUserPasswordApi(BaseHandler):
             if pwd:
                 self.send_data_response({'password': pwd})
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     @staticmethod
     def reset_pwd(self, user):
@@ -316,8 +316,8 @@ class DeleteUserApi(BaseHandler):
             self.add_op_log('delete_user', target_id=user['_id'], context=old_user['name'])
             self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ChangeMyPasswordApi(BaseHandler):
@@ -347,8 +347,8 @@ class ChangeMyPasswordApi(BaseHandler):
             logging.info('change password %s' % self.current_user['name'])
             self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ChangeMyProfileApi(BaseHandler):
@@ -391,8 +391,8 @@ class ChangeMyProfileApi(BaseHandler):
             logging.info('change profile %s' % (user.get('name')))
             self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class UploadUserAvatarApi(BaseHandler):
@@ -411,8 +411,8 @@ class UploadUserAvatarApi(BaseHandler):
             self.current_user['img'] = img
             self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class SendUserEmailCodeApi(BaseHandler):
@@ -437,8 +437,8 @@ class SendUserEmailCodeApi(BaseHandler):
             )
             self.send_data_response()
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     @staticmethod
     def send_email(self, receiver, code, subject="如是我闻古籍数字化平台"):
@@ -466,9 +466,9 @@ class SendUserEmailCodeApi(BaseHandler):
             server.quit()
             return True
 
-        except Exception as e:
+        except Exception as error:
             self.send_error_response(errors.verify_failed, message='发送邮件失败: [%s] %s' % (
-                e.__class__.__name__, str(e)))
+                error.__class__.__name__, str(error)))
 
 
 class SendUserPhoneCodeApi(BaseHandler):
@@ -492,8 +492,8 @@ class SendUserPhoneCodeApi(BaseHandler):
             )
             self.send_data_response()
 
-        except DbError as e:
-            return self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     @staticmethod
     def send_sms(self, phone, code):
@@ -517,9 +517,9 @@ class SendUserPhoneCodeApi(BaseHandler):
             response = response.decode()
             return response
 
-        except Exception as e:
+        except Exception as error:
             self.send_error_response(errors.verify_failed, message='发送邮件失败: [%s] %s' % (
-                e.__class__.__name__, str(e)))
+                error.__class__.__name__, str(error)))
 
 
 class UsersOfTaskTypeApi(BaseHandler):
@@ -541,5 +541,5 @@ class UsersOfTaskTypeApi(BaseHandler):
             users = [dict(id=str(u['_id']), text=u['name']) for u in list(users)]
             self.send_data_response(dict(results=list(users), pagination=dict(more=total_count > cur_page * size)))
 
-        except Exception as e:
-            self.send_db_error(e)
+        except Exception as error:
+            return self.send_db_error(error)

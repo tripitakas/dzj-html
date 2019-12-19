@@ -34,7 +34,7 @@ class CutHandler(TaskHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, render=True, message='%s 页面不存在' % task['doc_id'])
+                return self.send_error_response(errors.no_object, message='%s 页面不存在' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
@@ -58,8 +58,8 @@ class CutHandler(TaskHandler):
                 get_img=self.get_img, **kwargs
             )
 
-        except Exception as e:
-            self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class CutEditHandler(TaskHandler):
@@ -71,7 +71,7 @@ class CutEditHandler(TaskHandler):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object, render=True)
+                return self.send_error_response(errors.no_object)
 
             # 获取数据锁
             has_lock = self.get_data_lock(page_name, 'box') is True
@@ -97,5 +97,5 @@ class CutEditHandler(TaskHandler):
                 mode='edit', boxes=boxes, box_type=box_type, get_img=self.get_img, **kwargs
             )
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)

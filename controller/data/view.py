@@ -63,8 +63,8 @@ class TripitakaHandler(BaseHandler):
             self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=img_url, page_text=page_text, page=page)
 
-        except Exception as e:
-            return self.send_db_error(e, render=True)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class TripitakaListHandler(BaseHandler):
@@ -89,12 +89,12 @@ class DataListHandler(BaseHandler):
             template_url = '/static/template/%s-sample.csv' % metadata
             model.operations = [
                 {'operation': 'add', 'label': '新增记录'},
-                {'operation': 'bat-delete', 'label': '批量删除'},
+                {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
                 {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
             ]
             template = 'data_page.html' if metadata == 'page' else 'data_list.html'
             self.render(template, docs=docs, pager=pager, q=q, order=order, model=model)
 
-        except Exception as e:
-            return self.send_db_error(e)
+        except Exception as error:
+            return self.send_db_error(error)

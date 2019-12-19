@@ -74,7 +74,7 @@ class DataAddOrUpdateApi(BaseHandler):
                 self.send_error_response(r.get('errors'))
 
         except DbError as error:
-            self.send_db_error(error)
+            return self.send_db_error(error)
 
 
 class DataDeleteApi(BaseHandler):
@@ -98,7 +98,7 @@ class DataDeleteApi(BaseHandler):
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:
-            self.send_db_error(error)
+            return self.send_db_error(error)
 
 
 class DataGenJsApi(BaseHandler):
@@ -126,7 +126,7 @@ class DataGenJsApi(BaseHandler):
             self.send_data_response()
 
         except DbError as error:
-            self.send_db_error(error)
+            return self.send_db_error(error)
 
 
 class FetchDataTasksApi(TaskHandler):
@@ -179,8 +179,8 @@ class FetchDataTasksApi(TaskHandler):
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
                 self.send_data_response(dict(tasks=get_tasks()))
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class ConfirmFetchDataTasksApi(TaskHandler):
@@ -203,8 +203,8 @@ class ConfirmFetchDataTasksApi(TaskHandler):
             else:
                 self.send_error_response(errors.no_object)
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class SubmitDataTasksApi(SubmitDataTaskApi):
@@ -235,5 +235,5 @@ class SubmitDataTasksApi(SubmitDataTaskApi):
                                   message='' if r is True else r))
             self.send_data_response(dict(tasks=tasks))
 
-        except DbError as err:
-            return self.send_db_error(err)
+        except DbError as error:
+            return self.send_db_error(error)

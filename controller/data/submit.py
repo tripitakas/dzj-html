@@ -26,8 +26,8 @@ class SubmitDataTaskApi(TaskHandler):
                 return self.submit_upload_cloud(task)
             elif task['task_type'] == 'import_image':
                 return self.submit_import_image(task)
-        except DbError as err:
-            return err
+        except DbError as error:
+            return error
 
     def submit_ocr(self, task):
         """ 提交OCR任务 """

@@ -35,10 +35,10 @@ class GetCompareTextApi(TaskHandler):
             else:
                 self.send_error_response(errors.no_object, message='页面%s不存在' % page_name)
 
-        except DbError as e:
-            self.send_db_error(e)
-        except ConnectionTimeout as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
+        except ConnectionTimeout as error:
+            return self.send_db_error(error)
 
 
 class GetCompareNeighborApi(TaskHandler):
@@ -65,8 +65,8 @@ class GetCompareNeighborApi(TaskHandler):
             else:
                 self.send_error_response(errors.no_object, message='没有更多内容')
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class TextProofApi(TaskHandler):
@@ -103,8 +103,8 @@ class TextProofApi(TaskHandler):
             else:
                 return self.save_proof(task, data)
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
     def save_compare_text(self, task, data):
         result = self.prop(task, 'result', {})
@@ -186,8 +186,8 @@ class TextReviewApi(TaskHandler):
 
             self.send_data_response()
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class TextHardApi(TaskHandler):
@@ -230,8 +230,8 @@ class TextHardApi(TaskHandler):
 
             self.send_data_response()
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class TextEditApi(TaskHandler):
@@ -264,5 +264,5 @@ class TextEditApi(TaskHandler):
 
             self.send_data_response()
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)

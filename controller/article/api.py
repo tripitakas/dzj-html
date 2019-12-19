@@ -34,8 +34,8 @@ class DeleteArticleApi(BaseHandler):
             self.add_op_log('delete_article', target_id=data['article_id'], context=data['article_id'])
             self.send_data_response()
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class SaveArticleApi(BaseHandler):
@@ -75,8 +75,8 @@ class SaveArticleApi(BaseHandler):
             info.pop('content', 0)
             self.send_data_response(info)
 
-        except DbError as e:
-            self.send_db_error(e)
+        except DbError as error:
+            return self.send_db_error(error)
 
 
 class UploadImageApi(BaseHandler):
