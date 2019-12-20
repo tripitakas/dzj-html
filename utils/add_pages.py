@@ -19,6 +19,7 @@ sys.path.append(BASE_DIR)
 
 from controller.helper import prop
 from controller.data.data import Page
+from controller.cut.reorder import char_reorder
 
 data = dict(count=0)
 
@@ -38,7 +39,8 @@ def load_json(filename):
         sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
-def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False):
+def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
+             source=None, reorder=False, only_check=False):
     if not path.exists(src_path):
         sys.stderr.write('%s not exist\n' % (src_path,))
         return []
@@ -47,7 +49,8 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False):
         if path.isdir(filename):
             fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
             if not kind or kind == fn2:
-                scan_dir(filename, fn2, db, ret, use_local_img=use_local_img, update=update)
+                scan_dir(filename, fn2, db, ret, use_local_img=use_local_img, update=update,
+                         source=source, reorder=reorder, only_check=only_check)
         elif not kind or fn[:2] == kind:
             if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
                 info = load_json(filename)
@@ -56,12 +59,17 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False):
                     if name != fn[:-5] or not re.match(r'^[A-Z]{2}(_\d+)+$', name):
                         sys.stderr.write('invalid img_name %s, %s\n' % (filename, name))
                         continue
-                    if add_page(name, info, db, use_local_img=use_local_img, update=update):
+                    if add_page(name, info, db, use_local_img=use_local_img, update=update,
+                                source=source, reorder=reorder, only_check=only_check):
                         ret.add(name)
 
 
-def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
+def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
+             source=None, reorder=False, only_check=False):
     exist = db.page.find_one(dict(name=name))
+    if only_check and exist:
+        print('%s exist' % name)
+        return
     if update or not exist:
         meta = Page.metadata()
         width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width'))
@@ -88,7 +96,16 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
         for field in ['source', 'create_time']:
             if info.get(field):
                 meta[field] = info[field]
-        meta['layout'] = prop(info, 'layout', '上下一栏')
+        if source:
+            meta['source'] = source
+        meta['layout'] = prop(info, 'layout') or ['上下一栏', '上下一栏', '上下两栏', '上下三栏'][len(info['blocks'])]
+
+        if reorder:
+            try:
+                meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
+                                               sort=True, remove_outside=True, img_file=name)
+            except AssertionError as e:
+                sys.stderr.write('%s %s' % (name, str(e)))
 
         data['count'] += 1
         print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
@@ -96,7 +113,9 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False):
         ))
 
         info.pop('id', 0)
-        if exist:
+        if only_check:
+            r = meta
+        elif exist:
             meta.pop('create_time')
             r = update and db.page.update_one(dict(name=name), {'$set': meta})
             info['id'] = str(exist['_id'])
@@ -145,7 +164,7 @@ def copy_img_files(src_path, pages):
 
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=True, use_local_img=False, update=False):
+         reset=True, use_local_img=False, update=False, reorder=False, only_check=False, source=None):
     """
     页面导入的主函数
     :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录
@@ -157,6 +176,9 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     :param reset: 是否先清空page表
     :param use_local_img: 是否让页面强制使用本地的页面图，默认是使用OSS上的高清图（如果在app.yml配置了OSS）
     :param update: 已存在的页面是否更新
+    :param reorder: 是否重新对字框和列框排序
+    :param only_check: 是否仅校验数据而不插入数据
+    :param source: 导入批次名称
     :return: 新导入的页面的个数
     """
     conn = pymongo.MongoClient(uri)
@@ -167,7 +189,8 @@ def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripita
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
     pages = set()
-    scan_dir(json_path, kind, db, pages, use_local_img=use_local_img, update=update)
+    scan_dir(json_path, kind, db, pages, use_local_img=use_local_img, update=update,
+             reorder=reorder, only_check=only_check, source=source)
     copy_img_files(img_path, pages)
     add_texts(txt_path, pages, db)
     return data['count']
