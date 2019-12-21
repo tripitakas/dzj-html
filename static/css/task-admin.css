@@ -10,6 +10,11 @@
   background: none;
 }
 
+.modal a{
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .siblings {
   text-align: left;
   margin-bottom: 10px;

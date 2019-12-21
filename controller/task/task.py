@@ -186,7 +186,7 @@ class Task(Model):
     STATUS_FAILED = 'failed'  # 失败。小欧执行任务失败时的状态
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
-    task_status_names = {
+    task_statuses = {
         STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
         STATUS_PICKED: '进行中', STATUS_FAILED: '失败', STATUS_RETURNED: '已退回',
         STATUS_FINISHED: '已完成',
@@ -194,7 +194,7 @@ class Task(Model):
 
     @classmethod
     def get_status_name(cls, status):
-        return cls.task_status_names.get(status)
+        return cls.task_statuses.get(status)
 
     # 任务优先级
     priority_names = {3: '高', 2: '中', 1: '低'}

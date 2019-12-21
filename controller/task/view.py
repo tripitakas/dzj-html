@@ -22,6 +22,21 @@ class TaskAdminHandler(TaskHandler):
     def get(self, task_type):
         """ 任务管理/任务列表 """
 
+        def statistic():
+            doc_count = int(pager['doc_count'])
+            q = self.get_query_argument('q', '')
+            if q:
+                condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in search_fields]
+            if 'status' in condition:
+                return {condition['status']: dict(count=doc_count, ratio=1)}
+            result = dict()
+            for status, name in self.task_statuses.items():
+                condition.update({'status': status})
+                count = self.db.task.count_documents(condition)
+                if count:
+                    result[status] = dict(count=count, ratio='%4d' % (count / doc_count))
+            return result
+
         try:
             condition = {}
             task_meta = self.get_task_meta(task_type)
@@ -44,6 +59,7 @@ class TaskAdminHandler(TaskHandler):
                 template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, task_meta=task_meta,
                 search_tip=search_tip, task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
                 pan_name=self.prop(self.config, 'pan.name'), modal_fields=self.modal_fields,
+                statistic=statistic(),
             )
         except Exception as error:
             return self.send_db_error(error)

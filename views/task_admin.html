@@ -27,6 +27,7 @@
             {% block operation %}
             <div class="operation">
               <div class="btn-group">
+                <button class="btn btn-default waves-effect" data-toggle="modal" data-target="#statisticModal">任务统计</button>
                 <button class="btn btn-default waves-effect" id="bat-assign">批量指派</button>
                 <button class="btn btn-default waves-effect" id="bat-remove" url="/task/delete/{{task_type}}">批量刪除</button>
                 <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
@@ -85,7 +86,7 @@
                     状态<span class="ion-android-sort"></span>
                   </span>
                   <ul class="dropdown-menu" role="menu">
-                    {% for k, v in handler.task_status_names.items() %}
+                    {% for k, v in handler.task_statuses.items() %}
                     <li><a class="btn-a" title="status={{k}}">{{v}}</a></li>
                     {% end %}
                   </ul>
@@ -129,8 +130,8 @@
                   <a href="/task/info/{{t['_id']}}">详情</a>
                   <a href="/task/page/{{t['doc_id']}}">历程</a>
                   <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
-                  <a class="btn-update">修改</a>
                   <a class="{{'btn-remove' if t['status'] not in ['picked', 'finished'] else 'disabled'}}" url="/task/delete/{{task_type}}">删除</a>
+                  <a class="btn-update">修改批次</a>
                   <a class="{{'btn-republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}">重新发布</a>
                 </td>
               </tr>
@@ -340,6 +341,36 @@
       </div>
     </div>
   </div>
+  <div id="statisticModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="statisticModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="border: 0">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>任务状态</th>
+              <th>数量</th>
+              <th>比例</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for status, v in statistic.items() %}
+            <tr>
+              <td>{{handler.get_status_name(status)}}</td>
+              <td><a class="btn-a" title="status={{status}}">{{v.get('count')}}</a></td>
+              <td>{{v.get('ratio')}}</td>
+            </tr>
+            {% end %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
   {% end %}
 </div>
 
@@ -398,9 +429,8 @@
 
   $("#select-user").select2({
     ajax: {
-      type: 'POST', url: "/api/user/{{task_type}}", dataType: 'json',
-      delay: 1000, language: 'zh-CN', allowClear: true, width: "100%",
-      placeholder: "请选择", maximumSelectionLength: 2,
+      type: 'POST', url: "/api/user/{{task_type}}", dataType: 'json', delay: 1000, language: 'zh-CN',
+      allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
       data: function (params) {
         return {'q': params.term, 'page': params.page || 1};
       },

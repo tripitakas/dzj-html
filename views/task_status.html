@@ -71,7 +71,7 @@
                         <span class="sort" data-toggle="dropdown" aria-expanded="false">{{name}}</span>
                         <span class="ion-android-sort "></span>
                         <ul class="dropdown-menu" role="menu">
-                          {% for k, v in Th.task_status_names.items() %}
+                          {% for k, v in Th.task_statuses.items() %}
                           <li><a href="{{current_path}}?type={{_task_type}}&status={{k}}">{{v}}</a></li>
                           {% end %}
                         </ul>
