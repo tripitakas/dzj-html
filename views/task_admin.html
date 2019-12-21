@@ -48,6 +48,7 @@
                   {% end %}
                 </div>
                 <div style="margin: 5px; display: inline-block; cursor: pointer">
+                  <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img" data-toggle="modal" data-target="#configModal" title="帮助"/>
                   <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
                 </div>
               </div>
@@ -62,26 +63,25 @@
               <thead>
               <tr>
                 <th><input id="check-all" type="checkbox"/></th>
-                <th><span class="sort {{'active' if 'doc_id' in order else ''}}" title="doc_id">
+                <th class="doc_id sort {{'active' if 'doc_id' in order else ''}}" title="doc_id">
                   页编码<span class="ion-arrow-down-b {{'toggle' if order == 'doc_id' else ''}}"></span>
-                </span></th>
-                <th><span class="sort {{'active' if 'batch' in order else ''}}" title="batch">
+                </th>
+                <th class="batch sort {{'active' if 'batch' in order else ''}}" title="batch">
                   任务批次<span class="ion-arrow-down-b {{'toggle' if order == 'batch' else ''}}"></span>
-                </span></th>
-                <th><span class="btn-group">
+                </th>
+                {% if handler.is_group(task_type) %}
+                <th class="task_type"><span class="btn-group">
                   <span class="filter" title="task_type" data-toggle="dropdown" aria-expanded="false">
-                    任务类型
+                    任务类型<span class="ion-android-sort"></span>
                   </span>
-                  {% if task_meta.get('groups') %}
-                  <span class="ion-android-sort"></span>
                   <ul class="dropdown-menu" role="menu">
                     {% for t in task_meta.get('groups') %}
                     <li><a class="btn-a" title="task_type={{t}}">{{handler.get_task_name(t)}}</a></li>
                     {% end %}
                   </ul>
-                  {% end %}
                 </span></th>
-                <th><span class="btn-group">
+                {% end %}
+                <th class="status"><span class="btn-group">
                   <span class="filter" title="status" data-toggle="dropdown" aria-expanded="false">
                     状态<span class="ion-android-sort"></span>
                   </span>
@@ -91,22 +91,22 @@
                     {% end %}
                   </ul>
                 </span></th>
-                <th><span class="sort {{'active' if 'priority' in order else ''}}" title="priority">
+                <th class="priority sort {{'active' if 'priority' in order else ''}}" title="priority">
                   优先级<span class="ion-arrow-down-b {{'toggle' if order == 'priority' else ''}}"></span>
-                </span></th>
-                <th><span>步骤</span></th>
-                <th><span>前置任务</span></th>
-                <th><span class="sort {{'active' if 'publish_time' in order else ''}}" title="publish_time">
+                </th>
+                <th class="steps">步骤</th>
+                <th class="pre_tasks">前置任务</th>
+                <th class="publish_time sort {{'active' if 'publish_time' in order else ''}}" title="publish_time">
                   发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
-                </span></th>
-                <th><span>领取人</span></th>
-                <th><span class="sort {{'active' if 'picked_time' in order else ''}}" title="picked_time">
+                </th>
+                <th class="picked_by">领取人</th>
+                <th class="picked_time sort {{'active' if 'picked_time' in order else ''}}" title="picked_time">
                   领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
-                </span></th>
-                <th><span class="sort {{'active' if 'finished_time' in order else ''}}" title="finished_time">
+                </th>
+                <th class="finished_time sort {{'active' if 'finished_time' in order else ''}}" title="finished_time">
                   完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
-                </span></th>
-                <th><span>操作</span></th>
+                </th>
+                <th>操作</th>
               </tr>
               </thead>
               <tbody>
@@ -115,15 +115,17 @@
                 <td><input type="checkbox"/></td>
                 <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
                 <td class="batch">{{t.get('batch') or ''}}</td>
-                <td>{{handler.get_task_name(t['task_type']) or ''}}</td>
-                <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{handler.get_status_name(t['status']) or ''}}</td>
-                <td>{{handler.get_priority_name(t.get('priority')) or ''}}</td>
-                <td>{{'/'.join([handler.step_names().get(s) for s in handler.prop(t, 'steps.todo') or []])}}</td>
-                <td>{{'/'.join([handler.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
-                <td>{{to_date_str(t.get('publish_time'))}}</td>
-                <td>{{t.get('picked_by') or ''}}</td>
-                <td>{{to_date_str(t.get('picked_time'))}}</td>
-                <td>{{to_date_str(t.get('finished_time'))}}</td>
+                {% if handler.is_group(task_type) %}
+                <td class="task_type">{{handler.get_task_name(t['task_type']) or ''}}</td>
+                {% end %}
+                <td class="status {{t['status']}}" title="{{t.get('message') or ''}}">{{handler.get_status_name(t['status']) or ''}}</td>
+                <td class="priority">{{handler.get_priority_name(t.get('priority')) or ''}}</td>
+                <td class="steps">{{'/'.join([handler.step_names().get(s) for s in handler.prop(t, 'steps.todo') or []])}}</td>
+                <td class="pre_tasks">{{'/'.join([handler.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
+                <td class="publish_time">{{to_date_str(t.get('publish_time'))}}</td>
+                <td class="picked_by">{{t.get('picked_by') or ''}}</td>
+                <td class="picked_time">{{to_date_str(t.get('picked_time'))}}</td>
+                <td class="finished_time">{{to_date_str(t.get('finished_time'))}}</td>
                 <td class="action">
                   {% set info = {f:t.get(f, '') for f in ['_id', 'doc_id', 'status', 'batch']} %}
                   <span class="hide info">{{dumps(info)}}</span>
@@ -371,6 +373,28 @@
       </div>
     </div>
   </div>
+  <div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">配置列表</h4>
+        </div>
+        <div class="modal-body">
+          <div class="select-column">
+            {% for f in handler.table_fields %}
+            <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" checked>{{f['name']}}</label>
+            {% end %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
   {% end %}
 </div>
 
@@ -381,6 +405,36 @@
 <script src="{{static_url('assets/jquery-multi-select/jquery.multi-select.js')}}"></script>
 <script src="{{static_url('assets/jquery-multi-select/jquery.quicksearch.js')}}"></script>
 <script>
+  // 设置显示列
+  var allColumns = decodeJSON('{{[f["id"] for f in handler.table_fields]}}');
+
+  function toggleColumns() {
+    var hideColumns = JSON.parse(localStorage.getItem('hideColumns') || '{}');
+    allColumns.forEach(function (item) {
+      if (hideColumns.indexOf(item) !== -1) {
+        $('.select-column .'+item).removeAttr('checked');
+        $('.sty-table .' + item).addClass('hide');
+      } else {
+        $('.select-column .'+item).prop('checked', 'true');
+        $('.sty-table .' + item).removeClass('hide');
+      }
+    })
+  }
+
+  $(document).ready(function () {
+    toggleColumns()
+  });
+
+  // 列表配置
+  $('#configModal .modal-confirm').click(function () {
+    var hideColumns = $.map($('.select-column :not(:checked)'), function (item) {
+      return $(item).attr('title');
+    });
+    localStorage.setItem('hideColumns', JSON.stringify(hideColumns));
+    toggleColumns();
+  });
+
+
   // 任务类型或状态过滤
   $('.btn-a').click(function () {
     var title = $(this).attr('title').trim();

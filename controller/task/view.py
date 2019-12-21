@@ -5,10 +5,8 @@
 @time: 2018/12/26
 """
 import random
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
-from controller.helper import get_date_time
 from controller.task.base import TaskHandler
 
 
@@ -34,7 +32,7 @@ class TaskAdminHandler(TaskHandler):
                 condition.update({'status': status})
                 count = self.db.task.count_documents(condition)
                 if count:
-                    result[status] = dict(count=count, ratio='%4d' % (count / doc_count))
+                    result[status] = dict(count=count, ratio='%.2f' % (count / doc_count))
             return result
 
         try:
@@ -149,26 +147,6 @@ class MyTaskHandler(TaskHandler):
 class TaskPageInfoHandler(TaskHandler):
     URL = '/task/page/@page_name'
 
-    @classmethod
-    def format_info(cls, key, value):
-        """ 格式化任务信息"""
-        if isinstance(value, datetime):
-            value = get_date_time('%Y-%m-%d %H:%M', value)
-        elif key == 'task_type':
-            value = cls.get_task_name(value)
-        elif key == 'status':
-            value = cls.get_status_name(value)
-        elif key == 'pre_tasks':
-            value = '/'.join([cls.get_task_name(t) for t in value])
-        elif key == 'steps':
-            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
-        elif key == 'priority':
-            value = cls.get_priority_name(int(value))
-        elif isinstance(value, dict):
-            value = value.get('error') or value.get('message')
-            value = value or '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-        return value
-
     def get(self, page_name):
         """ Page的任务详情 """
         from functools import cmp_to_key
@@ -185,7 +163,7 @@ class TaskPageInfoHandler(TaskHandler):
             display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
                               'updated_time', 'finished_time', 'publish_by', 'publish_time',
                               'picked_by', 'picked_time', 'message']
-            self.render('task_page_info.html', page=page, tasks=tasks, format_info=self.format_info,
+            self.render('task_page_info.html', page=page, tasks=tasks, format_value=self.format_value,
                         display_fields=display_fields)
 
         except Exception as error:
@@ -207,7 +185,7 @@ class TaskInfoHandler(TaskHandler):
                               'publish_time', 'publish_by', 'picked_time', 'picked_by',
                               'updated_time', 'finished_time', 'message', ]
             self.render('task_info.html', task=task, display_fields=display_fields,
-                        format_info=TaskPageInfoHandler.format_info)
+                        format_value=TaskPageInfoHandler.format_value)
 
         except Exception as error:
             return self.send_db_error(error)

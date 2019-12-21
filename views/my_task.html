@@ -25,7 +25,7 @@
   <tbody>
   {% for t in tasks %}
   <tr id="{{t['_id']}}" class="task-tr">
-    <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+    <td><a class="doc_id" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
     <td>{{handler.get_status_name(t['status']) or ''}}</td>
     <td>{{to_date_str(t.get('picked_time'))}}</td>
     <td>{{to_date_str(t.get('finished_time'))}}</td>

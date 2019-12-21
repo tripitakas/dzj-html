@@ -68,7 +68,7 @@
               {% if task.get(k) not in [None, '', {}, []] %}
               <div class="info-item">
                 <label class="info-label">{{Th.get_field_name(k) or k}}</label>
-                <span class="info-value">{% raw format_info(k, task[k]) %}</span>
+                <span class="info-value">{% raw format_value(k, task[k]) %}</span>
               </div>
               {% end %}
               {% end %}
@@ -80,7 +80,7 @@
               {% for k, v in task.get('input').items() %}
               <div class="info-item">
                 <label class="info-label">{{k}}</label>
-                <span class="info-value">{% raw format_info(k, v) %}</span>
+                <span class="info-value">{% raw format_value(k, v) %}</span>
               </div>
               {% end %}
             </div>
@@ -92,7 +92,7 @@
               {% for k, v in task.get('result').items() %}
               <div class="info-item">
                 <label class="info-label">{{k}}</label>
-                <span class="info-value">{% raw format_info(k, v) %}</span>
+                <span class="info-value">{% raw format_value(k, v) %}</span>
               </div>
               {% end %}
             </div>

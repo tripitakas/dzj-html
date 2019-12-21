@@ -54,6 +54,19 @@ class Task(Model):
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
+    table_fields = [
+        {'id': 'doc_id', 'name': '页编码'},
+        {'id': 'batch', 'name': '任务批次'},
+        {'id': 'task_type', 'name': '任务类型', 'options': []},
+        {'id': 'status', 'name': '状态', 'options': []},
+        {'id': 'priority', 'name': '优先级'},
+        {'id': 'steps', 'name': '步骤'},
+        {'id': 'pre_tasks', 'name': '前置任务'},
+        {'id': 'publish_time', 'name': '发布时间'},
+        {'id': 'picked_by', 'name': '领取人'},
+        {'id': 'picked_time', 'name': '领取时间'},
+        {'id': 'finished_time', 'name': '完成时间'},
+    ]
     modal_fields = [
         {'id': 'batch', 'name': '任务批次'},
     ]

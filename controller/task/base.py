@@ -10,6 +10,7 @@ from controller import auth
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
+from controller.helper import get_date_time
 
 
 class TaskHandler(BaseHandler, Task):
@@ -62,6 +63,26 @@ class TaskHandler(BaseHandler, Task):
                 error = e.task_can_only_update_finished
         has_auth = error is None
         return has_auth, error
+
+    @classmethod
+    def format_value(cls, key, value):
+        """ 格式化任务信息"""
+        if isinstance(value, datetime):
+            value = get_date_time('%Y-%m-%d %H:%M', value)
+        elif key == 'task_type':
+            value = cls.get_task_name(value)
+        elif key == 'status':
+            value = cls.get_status_name(value)
+        elif key == 'pre_tasks':
+            value = '/'.join([cls.get_task_name(t) for t in value])
+        elif key == 'steps':
+            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
+        elif key == 'priority':
+            value = cls.get_priority_name(int(value))
+        elif isinstance(value, dict):
+            value = value.get('error') or value.get('message')
+            value = value or '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
+        return value or ''
 
     @classmethod
     def init_steps(cls, task, mode, cur_step=''):
