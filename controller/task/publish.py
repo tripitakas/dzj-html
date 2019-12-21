@@ -25,8 +25,8 @@ class PublishBaseHandler(TaskHandler):
     def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids):
         """ 发布某个任务类型的任务。
         :return 格式如下：
-        { 'un_existed':[...], 'un_ready':[...], 'published_before':[...], 'finished':[...],
-            'published':[...], 'pending':[...]}
+            {'un_existed':[], 'un_ready':[], 'published_before':[], 'finished_before':[],
+            'data_is_locked':[], 'lock_level_unqualified':[], 'published':[], 'pending':[]}
         """
         log = dict()
         assert task_type in self.task_types
@@ -53,11 +53,11 @@ class PublishBaseHandler(TaskHandler):
         if not force and doc_ids:
             status = [self.STATUS_FINISHED]
             condition = dict(task_type=task_type, status={'$in': status}, doc_id={'$in': list(doc_ids)})
-            log['finished'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
+            log['finished_before'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
             output_field = self.prop(self.task_types, '%s.data.output_field' % task_type)
             if output_field:  # output_field不为空表示任务已完成
-                log['finished'].update([d[id_name] for d in docs if d.get(output_field)])
-            doc_ids = set(doc_ids) - log['finished']
+                log['finished_before'].update([d[id_name] for d in docs if d.get(output_field)])
+            doc_ids = set(doc_ids) - log['finished_before']
 
         # 去掉数据锁已分配给其它任务或者数据等级不够的任务
         if doc_ids and shared_field:

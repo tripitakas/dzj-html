@@ -286,7 +286,9 @@ class AssignTasksApi(TaskHandler):
         return can_access(user_roles, '/api/task/pick/%s' % task_type, 'POST')
 
     def post(self, task_type):
-        """ 批量指派已发布的任务给某用户 """
+        """ 批量指派已发布的任务给某用户
+        :return dict, 如{'un_existed':[], 'un_published':[], 'lock_failed':[], 'assigned':[]}
+        """
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'task_ids', 'user_id')]
@@ -307,25 +309,26 @@ class AssignTasksApi(TaskHandler):
             shared_field = self.get_shared_field(task_type)
             now, user_id, user_name = datetime.now(), user['_id'], user['name']
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in data['task_ids']]}}))
-            log['not_existed'] = set(data['task_ids']) - set([str(t['_id']) for t in tasks])
-            log['not_published'] = [(str(t['_id']), t['doc_id']) for t in tasks if t['status'] != self.STATUS_OPENED]
+            log['un_existed'] = set(data['task_ids']) - set([str(t['_id']) for t in tasks])
+            log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_OPENED]
             opened_tasks = [t for t in tasks if t['status'] == self.STATUS_OPENED]
             for task in opened_tasks:
                 # 尝试分配数据锁
                 if shared_field and task.get('doc_id'):
                     r = self.assign_task_lock(task['doc_id'], shared_field, task_type)
                     if r is not True:
-                        lock_failed.append((str(task['_id']), task['doc_id'], r))
+                        lock_failed.append(task['doc_id'] + ':' + r[1])
                         continue
                 # 分配任务
                 self.db.task.update_one({'_id': task['_id']}, {'$set': {
                     'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': user_name,
                     'picked_time': now, 'updated_time': now,
                 }})
-                assigned.append((str(task['_id']), task['doc_id']))
+                assigned.append(task['doc_id'])
             log['lock_failed'] = lock_failed
             log['assigned'] = assigned
             self.add_op_log('assign_' + task_type, context='%s, %s' % (user_id, assigned))
+            log = {k: v for k, v in log.items() if v}
             return self.send_data_response(log)
 
         except DbError as error:

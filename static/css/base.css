@@ -816,6 +816,10 @@ a:hover, a:visited, a:focus {
   text-decoration: underline;
 }
 
+.modal td {
+  word-break: break-all;
+}
+
 .sweet-alert h2 {
   font-size: 22px;
   font-weight: 500;

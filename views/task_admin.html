@@ -140,23 +140,43 @@
 
 <div class="panel-body">
   {% block modal %}
-  <div id="assignModal" class="modal fade" role="dialog" aria-labelledby="assignModal" aria-hidden="true">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+       aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content" style="width: 400px; margin: auto">
+      <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-users">选择用户</h4>
+          <h4 class="modal-title">帮助文档</h4>
         </div>
         <div class="modal-body">
-          <div style="min-height: 150px; text-align: center">
-            <select id="select-user" class="form-control">
-              <option></option>
-            </select>
+          <div class="title">一、简介</div>
+          <div class="intro">
+            任务管理模块提供管理员对任务进行操作，包括发布、指派、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+          <div class="title">二、任务操作</div>
+          <table class="table">
+            <tr>
+              <td>批量指派</td>
+              <td>将「已发布」的任务指派给某个特定的用户</td>
+            </tr>
+            <tr>
+              <td>批量删除</td>
+              <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
+            </tr>
+            <tr>
+              <td>发布任务</td>
+              <td>
+                任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
+                任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
+                前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
+                用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
+              </td>
+            </tr>
+            <tr>
+              <td>重新发布</td>
+              <td>「进行中」的任务可以重新发布。</td>
+            </tr>
+          </table>
         </div>
       </div>
     </div>
@@ -244,47 +264,59 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+          <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">刷新</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
         </div>
       </div>
     </div>
   </div>
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+  <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
        aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
+        <div>
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档</h4>
+          <h4 class="modal-title">发布结果</h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、简介</div>
-          <div class="intro">
-            任务管理模块提供管理员对任务进行操作，包括发布、指派、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
+          <table class="table">
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="assignModal" class="modal fade" role="dialog" aria-labelledby="assignModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="width: 400px; margin: auto">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title" id="choose-users">选择用户</h4>
+        </div>
+        <div class="modal-body">
+          <div style="min-height: 150px; text-align: center">
+            <select id="select-user" class="form-control">
+              <option></option>
+            </select>
           </div>
-          <div class="title">二、任务操作</div>
-          <table class="table" id="button-desc">
-            <tr>
-              <td>批量指派</td>
-              <td>将「已发布」的任务指派给某个特定的用户</td>
-            </tr>
-            <tr>
-              <td>批量删除</td>
-              <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
-            </tr>
-            <tr>
-              <td>发布任务</td>
-              <td>
-                任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
-                任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
-                前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
-                用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
-              </td>
-            </tr>
-            <tr>
-              <td>重新发布</td>
-              <td>「进行中」的任务可以重新发布。</td>
-            </tr>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">刷新</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">指派</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="assignResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assignResultModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">指派结果</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table">
           </table>
         </div>
       </div>
@@ -324,24 +356,16 @@
 
   // 批量指派任务
   $('#bat-assign').click(function () {
-    if (!$('.task-tr :checked').length) {
-      showError('请选择任务', '当前没有选中任务。');
-      return;
-    }
+    if (!$('.task-tr :checked').length)
+      return showError('请选择任务', '当前没有选中任务。');
     $('#assignModal').modal();
   });
 
   $("#select-user").select2({
     ajax: {
-      url: "/api/user/{{task_type}}",
-      type: 'POST',
-      dataType: 'json',
-      delay: 1000,
-      language: 'zh-CN',
-      allowClear: true,
-      width: "100%",
-      placeholder: "请选择",
-      maximumSelectionLength: 2,
+      type: 'POST', url: "/api/user/{{task_type}}", dataType: 'json',
+      delay: 1000, language: 'zh-CN', allowClear: true, width: "100%",
+      placeholder: "请选择", maximumSelectionLength: 2,
       data: function (params) {
         return {'q': params.term, 'page': params.page || 1};
       },
@@ -356,8 +380,15 @@
       return $(item).parent().parent().attr('id');
     });
     var data = {'task_ids': ids, 'user_id': $("#select-user").val()};
-    postApi('/task/assign/' + taskType, {'data': data}, function () {
-      window.location.reload();
+    var trans = {un_existed: '页面不存在', un_published: '任务不是已发布', lock_failed: '数据锁定失败', assigned: '指派成功'};
+    postApi('/task/assign/' + taskType, {'data': data}, function (res) {
+      var html = '';
+      for (var item in res.data) {
+        html += '<tr><td>' + trans[item] + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+      }
+      var $assignResultModal = $('#assignResultModal');
+      $assignResultModal.find('table').html(html);
+      $assignResultModal.modal();
     });
   });
 
@@ -366,6 +397,7 @@
   var searchStr = '';
   var taskType = '{{task_type}}';
   var $publishModal = $('#publishModal');
+  var $publishResultModal = $('#publishResultModal');
   var $myMultiSelect = $('#my_multi_select');
 
   // 点击发布任务，弹出对话框
@@ -420,15 +452,25 @@
         isFile = true;
         break;
     }
+    var trans = {
+      un_existed: '页面不存在', un_ready: '数据未就绪', published_before: '任务曾被发布',
+      finished_before: '任务已完成', data_is_locked: '数据被锁定',
+      lock_level_unqualified: '数据等级不够',
+      published: '任务已发布', pending: '等待前置任务'
+    };
     postApi('/task/publish', isFile ? formData : {data: data}, function (res) {
-      var len = (res.data.published || []).length + (res.data.pending || []).length;
-      showSuccess('已发布任务', len + ' 个页面已发布。');
-      setTimeout(function () {
-        if (len)
-          location.reload();
-      }, 1000);
+      var html = '';
+      for (var item in res.data) {
+        html += '<tr><td>' + trans[item] + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+      }
+      $publishResultModal.find('table').html(html);
+      $publishResultModal.modal();
     }, null, isFile);
+  });
 
+  // 刷新页面
+  $('.modal-refresh').click(function () {
+    location.reload();
   });
 
   // 初始化选择模块
