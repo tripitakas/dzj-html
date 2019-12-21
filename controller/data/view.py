@@ -79,7 +79,7 @@ class TripitakaListHandler(BaseHandler):
 
 
 class DataListHandler(BaseHandler):
-    URL = '/data/(tripitaka|sutra|reel|volume|page)'
+    URL = '/data/(tripitaka|sutra|reel|volume)'
 
     def get(self, metadata):
         """ 数据管理"""
@@ -93,8 +93,21 @@ class DataListHandler(BaseHandler):
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
                 {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
             ]
-            template = 'data_page.html' if metadata == 'page' else 'data_list.html'
-            self.render(template, docs=docs, pager=pager, q=q, order=order, model=model)
+            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, model=model)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageHandler(BaseHandler):
+    URL = '/data/page'
+
+    def get(self):
+        """ 页数据管理"""
+        try:
+            docs, pager, q, order = Page.find_by_page(self)
+            Page.info_fields = [f['id'] for f in Page.modal_fields] + ['ocr', 'ocr_col']
+            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, model=Page)
 
         except Exception as error:
             return self.send_db_error(error)

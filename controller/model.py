@@ -53,6 +53,7 @@ class Model(object):
         for f in cls.fields:
             if f['id'] == field:
                 return f['name']
+        return field
 
     @classmethod
     def get_field_type(cls, field):

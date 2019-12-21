@@ -1,6 +1,13 @@
 {% extends "com_list.html" %}
 
-{% block operation %}
+{% block custom-css %}
+<style>
+  .sty-table .btn-edit, .sty-table .btn-lock {
+    color: #B8906F;
+  !important;
+    cursor: pointer;
+  }
+</style>
 {% end %}
 
 {% block table %}
@@ -21,10 +28,15 @@
       </span></th>
     <th><span>卷内页序号</span></th>
     <th><span>页面结构</span></th>
-    <th><span>文本</span></th>
+    <th><span>字文本</span></th>
+    <th><span>列文本</span></th>
+    <th><span>审定文本</span></th>
+    <th><span>文本锁</span></th>
     <th><span>栏框</span></th>
     <th><span>列框</span></th>
     <th><span>字框</span></th>
+    <th><span>字序</span></th>
+    <th><span>切分锁</span></th>
     <th><span>操作</span></th>
   </tr>
   </thead>
@@ -38,20 +50,31 @@
     <td class="reel_code">{{d.get('reel_code') or ''}}</td>
     <td class="reel_page_no">{{d.get('reel_page_no') or ''}}</td>
     <td class="layout">{{d.get('layout') or ''}}</td>
+    <td class="ocr btn-edit" title="ocr">{{'修改' if d.get('ocr') else ''}}</td>
+    <td class="ocr_col btn-edit" title="ocr_col">{{'修改' if d.get('ocr_col') else ''}}</td>
     <td class="text"><a href="/data/edit/text/{{d.get('name')}}?from=/data/page">
-      {{'修改' if d.get('text') else ''}}</a></td>
+      {{'修改' if d.get('text') else ''}}
+    </a></td>
+    <td class="text_lock btn-lock" title="text">{{'解锁' if handler.prop(d, 'lock.text.is_temp') else ''}}</td>
     <td class="blocks"><a href="/data/edit/box/{{d.get('name')}}?step=block_box&from=/data/page">
-      {{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}</a></td>
+      {{'修改 %d栏' % len(d['blocks']) if d.get('blocks') else ''}}
+    </a></td>
     <td class="columns"><a href="/data/edit/box/{{d.get('name')}}?step=column_box&from=/data/page">
-      {{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}</a></td>
+      {{'修改 %d列' % len(d['columns']) if d.get('columns') else ''}}
+    </a></td>
     <td class="chars"><a href="/data/edit/box/{{d.get('name')}}?step=char_box&from=/data/page">
-      {{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}</a></td>
+      {{'修改 %d字' % len(d['chars']) if d.get('chars') else ''}}
+    </a></td>
+    <td class="order"><a href="/data/edit/box/{{d.get('name')}}?step=char_order&from=/data/page">
+      {{'修改' if d.get('chars') else ''}}
+    </a></td>
+    <td class="box_lock btn-lock" title="box">{{'解锁' if handler.prop(d, 'lock.box.is_temp') else ''}}</td>
     <td class="action">
-      {% set info = {f['id']:d.get(f['id']) for f in model.modal_fields} %}
+      {% set info = {f: handler.prop(d, f.replace('-', '.'), '') for f in model.info_fields} %}
       <span class="hide info">{{dumps(info)}}</span>
-      {% for a in model.actions %}
-      <a class="{{a.get('action') or ''}}">{{a.get('label')}}</a>
-      {% end %}
+      <a class="page-view">查看</a>
+      <a class="btn-update">修改</a>
+      <a class="btn-remove">删除</a>
     </td>
     </td>
   </tr>
@@ -59,3 +82,22 @@
   </tbody>
 </table>
 {% end %}
+
+{% block custom-js %}
+<script>
+  $('.btn-lock').click(function () {
+    var sharedField = $(this).attr('title');
+    var pageName = $(this).parent().find('.name').text();
+    var url = '/data/admin/unlock/' + sharedField + '/' + pageName;
+    showConfirm("确定解锁吗？", "页面" + pageName + "的数据锁将被释放！", function () {
+      postApi(url, {data: {}}, function () {
+        showSuccess('成功', '已成功解锁。');
+        refresh(1000);
+      }, function (error) {
+        showError('失败', error.message);
+      });
+    });
+  });
+</script>
+{% end %}
+

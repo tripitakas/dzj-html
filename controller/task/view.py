@@ -147,31 +147,34 @@ class MyTaskHandler(TaskHandler):
 class TaskPageInfoHandler(TaskHandler):
     URL = '/task/page/@page_name'
 
+    order = [
+        'upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
+        'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
+    ]
+    display_fields = [
+        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority', 'updated_time',
+        'finished_time', 'publish_by', 'publish_time', 'picked_by', 'picked_time', 'message'
+    ]
+
     def get(self, page_name):
         """ Page的任务详情 """
         from functools import cmp_to_key
-
         try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                return self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
-
+            page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)
             tasks = list(self.db.task.find({'collection': 'page', 'doc_id': page_name}))
-            order = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
-                     'text_proof_2', 'text_proof_3', 'text_review', 'text_hard']
-            tasks.sort(key=cmp_to_key(lambda a, b: order.index(a['task_type']) - order.index(b['task_type'])))
-            display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
-                              'updated_time', 'finished_time', 'publish_by', 'publish_time',
-                              'picked_by', 'picked_time', 'message']
-            self.render('task_page_info.html', page=page, tasks=tasks, format_value=self.format_value,
-                        display_fields=display_fields)
-
+            tasks.sort(key=cmp_to_key(lambda a, b: self.order.index(a['task_type']) - self.order.index(b['task_type'])))
+            self.render('task_page_info.html', page=page, tasks=tasks, display_fields=self.display_fields)
         except Exception as error:
             return self.send_db_error(error)
 
 
 class TaskInfoHandler(TaskHandler):
     URL = '/task/info/@task_id'
+
+    display_fields = [
+        'doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps', 'publish_time',
+        'publish_by', 'picked_time', 'picked_by', 'updated_time', 'finished_time', 'message'
+    ]
 
     def get(self, task_id):
         """ 任务详情 """
@@ -180,12 +183,6 @@ class TaskInfoHandler(TaskHandler):
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
                 self.send_error_response(e.no_object, message='没有找到该任务')
-
-            display_fields = ['doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps',
-                              'publish_time', 'publish_by', 'picked_time', 'picked_by',
-                              'updated_time', 'finished_time', 'message', ]
-            self.render('task_info.html', task=task, display_fields=display_fields,
-                        format_value=TaskPageInfoHandler.format_value)
-
+            self.render('task_info.html', task=task, display_fields=self.display_fields)
         except Exception as error:
             return self.send_db_error(error)

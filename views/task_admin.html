@@ -409,7 +409,8 @@
   var allColumns = decodeJSON('{{[f["id"] for f in handler.table_fields]}}');
 
   function toggleColumns() {
-    var hideColumns = JSON.parse(localStorage.getItem('hideColumns') || '{}');
+    var hideColumns = JSON.parse(localStorage.getItem('hideColumns') || '[]');
+    console.log(hideColumns);
     allColumns.forEach(function (item) {
       if (hideColumns.indexOf(item) !== -1) {
         $('.select-column .'+item).removeAttr('checked');

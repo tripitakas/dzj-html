@@ -18,7 +18,7 @@ class Task(Model):
         {'id': 'task_type', 'name': '任务类型'},
         {'id': 'collection', 'name': '任务关联的文档集合'},
         {'id': 'id_name', 'name': '文档键名'},
-        {'id': 'doc_id', 'name': '文档键值'},
+        {'id': 'doc_id', 'name': '页编码'},
         {'id': 'status', 'name': '任务状态'},
         {'id': 'priority', 'name': '任务优先级'},
         {'id': 'steps', 'name': '任务步骤'},

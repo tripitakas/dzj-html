@@ -30,6 +30,7 @@ $('#check-all').click(function () {
 /*---Modal相关代码---*/
 var $modal = $('#dataModal');
 var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
+// console.log(fields);
 
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
@@ -103,6 +104,7 @@ $('.btn-view').click(function () {
 $('.btn-update').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
+  console.log(data);
   $modal.find('.modal-title').html('修改数据');
   toggleModal($modal, fields, false);
   setModal($modal, data, fields);

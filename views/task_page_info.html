@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -55,8 +54,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module ComLeft(title="task-manage", sub="task-manage-cut-status" ) %}
+    {% module ComLeft(title="task-manage") %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -64,7 +62,8 @@
             <div class="tasks"></div>
             {% for task in tasks %}
             <div class="task">
-              <span class="task_type"> {{Th.get_task_name(task['task_type'])}}
+              <span class="task_type">
+                {{handler.get_task_name(task['task_type'])}}
                 {% if not task['task_type'] in ['upload_cloud', 'ocr_box', 'ocr_text'] %}
                 <a href="/task/{{task['task_type']}}/{{task['_id']}}">查看</a>
                 {% end %}
@@ -72,8 +71,8 @@
               {% for k, v in task.items() %}
               {% if k in display_fields and v %}
               <div class="info">
-                <label class="info-label">{{Th.get_field_name(k)}}</label>
-                <span class="info-value">{{format_value(k, v)}}</span>
+                <label class="info-label">{{handler.get_field_name(k)}}</label>
+                <span class="info-value">{{handler.format_value(k, v)}}</span>
               </div>
               {% end %}
               {% end %}
@@ -86,5 +85,6 @@
 </div>
 
 {% include _base_js.html %}
+
 </body>
 </html>

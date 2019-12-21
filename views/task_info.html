@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -56,8 +55,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module ComLeft(title="task-manage", sub="task-manage-cut-status" ) %}
+    {% module ComLeft(title="task-manage") %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -65,34 +63,32 @@
             <div class="task-info">
               <div class="info-title">基本信息</div>
               {% for k in display_fields %}
-              {% if task.get(k) not in [None, '', {}, []] %}
+              {% if task.get(k) %}
               <div class="info-item">
-                <label class="info-label">{{Th.get_field_name(k) or k}}</label>
-                <span class="info-value">{% raw format_value(k, task[k]) %}</span>
+                <label class="info-label">{{handler.get_field_name(k)}}</label>
+                <span class="info-value">{% raw handler.format_value(k, task[k]) %}</span>
               </div>
               {% end %}
               {% end %}
             </div>
-
             {% if task.get('input') %}
             <div class="task-info input">
               <div class="info-title">输入参数</div>
               {% for k, v in task.get('input').items() %}
               <div class="info-item">
                 <label class="info-label">{{k}}</label>
-                <span class="info-value">{% raw format_value(k, v) %}</span>
+                <span class="info-value">{% raw handler.format_value(k, v) %}</span>
               </div>
               {% end %}
             </div>
             {% end %}
-
             {% if task.get('result') %}
             <div class="task-info result">
               <div class="info-title">输出结果</div>
               {% for k, v in task.get('result').items() %}
               <div class="info-item">
                 <label class="info-label">{{k}}</label>
-                <span class="info-value">{% raw format_value(k, v) %}</span>
+                <span class="info-value">{% raw handler.format_value(k, v) %}</span>
               </div>
               {% end %}
             </div>
@@ -104,5 +100,6 @@
 </div>
 
 {% include _base_js.html %}
+
 </body>
 </html>

@@ -387,13 +387,15 @@ class LockTaskDataApi(TaskHandler):
 
 
 class UnlockTaskDataApi(TaskHandler):
-    URL = '/api/data/unlock/@shared_field/@doc_id'
+    URL = ['/api/data/admin/unlock/@shared_field/@doc_id',
+           '/api/data/unlock/@shared_field/@doc_id']
 
     def post(self, shared_field, doc_id):
         """ 释放临时数据锁。"""
         assert shared_field in self.data_auth_maps
         try:
-            count = self.release_temp_lock(doc_id, shared_field)
+            by_admin = '/admin' in self.request.path
+            count = self.release_temp_lock(doc_id, shared_field, by_admin)
             return self.send_data_response(dict(count=count))
 
         except DbError as error:

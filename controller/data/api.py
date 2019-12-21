@@ -61,14 +61,19 @@ class DataUploadApi(BaseHandler):
 class DataAddOrUpdateApi(BaseHandler):
     URL = '/api/data/@metadata'
 
-    def post(self, collection):
+    def post(self, metadata):
         """ 新增或修改 """
-        model = eval(collection.capitalize())
+        model = eval(metadata.capitalize())
         try:
             data = self.get_request_data()
-            r = model.save_one(self.db, collection, data)
+            if metadata == 'page':
+                if data.get('lock-level-box'):
+                    data['lock.level.box'] = data['lock-level-box']
+                if data.get('lock-level-text'):
+                    data['lock.level.text'] = data['lock-level-text']
+            r = model.save_one(self.db, metadata, data)
             if r.get('status') == 'success':
-                self.add_op_log(('update_' if r.get('update') else 'add_') + collection, context=r.get('message'))
+                self.add_op_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))

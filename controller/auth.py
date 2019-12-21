@@ -159,6 +159,7 @@ role_route_maps = {
             '/api/user/@task_type': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
             '/api/task/(assign|delete|admin)/@task_type': ['POST'],
+            '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
     '数据处理员': {

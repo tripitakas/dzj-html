@@ -225,13 +225,14 @@ class TaskHandler(BaseHandler, Task):
         }}})
         return True if r.matched_count else e.data_lock_failed
 
-    def release_temp_lock(self, doc_id, shared_field):
+    def release_temp_lock(self, doc_id, shared_field, by_admin=False):
         """ 释放用户的数据锁 """
         assert shared_field in self.data_auth_maps
         shared_field_meta = self.data_auth_maps[shared_field]
         id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        condition = {'lock.%s.locked_user_id' % shared_field: self.current_user['_id'],
-                     id_name: doc_id, 'lock.%s.is_temp' % shared_field: True}
+        condition = {id_name: doc_id, 'lock.%s.is_temp' % shared_field: True}
+        if not by_admin:
+            condition.update({'lock.%s.locked_user_id' % shared_field: self.current_user['_id']})
         r = self.db[collection].update_many(condition, {'$set': {'lock.%s' % shared_field: dict()}})
         return r.matched_count
 

@@ -160,6 +160,10 @@ class Page(Model):
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'lock', 'name': '数据锁'},
+        {'id': 'lock.box', 'name': '字框锁'},
+        {'id': 'lock.text', 'name': '文本锁'},
+        {'id': 'lock.level.box', 'name': '字框等级'},
+        {'id': 'lock.level.text', 'name': '文本等级'},
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
@@ -181,23 +185,25 @@ class Page(Model):
     page_title = '页数据管理'
     search_tip = '请搜索页编码、统一经编码、经编码、卷编码'
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
+    layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [
         {'id': 'name', 'name': '页编码'},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio',
-         'options': ['上下一栏', '上下两栏', '上下三栏', '左右两栏']},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
+        {'id': 'lock-level-box', 'name': '字框锁等级'},
+        {'id': 'lock-level-text', 'name': '文本锁等级'},
     ]
-
     actions = [  # 列表单条记录包含哪些操作
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
+    operations = []
 
     @classmethod
     def metadata(cls):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
                     page_code='', sutra_code='', uni_sutra_code='', reel_code='',
                     reel_page_no='', lock={}, blocks=[], columns=[], chars=[],
-                    ocr='',ocr_col='', text='', txt_html='')
+                    ocr='', ocr_col='', text='', txt_html='')
 
     @classmethod
     def name2pagecode(cls, page_name):
