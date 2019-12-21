@@ -87,7 +87,7 @@ class PublishTasksApi(PublishBaseHandler):
         data['doc_ids'] = self.get_doc_ids(data)
         assert isinstance(data['doc_ids'], list)
         rules = [
-            (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force'),
+            (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),
             (v.is_priority, 'priority'),
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
@@ -199,6 +199,7 @@ class UpdateTaskApi(TaskHandler):
     URL = '/api/task/admin/@task_type'
 
     def post(self, task_type):
+        """ 更新任务批次号"""
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, '_id', 'batch')]
@@ -320,7 +321,7 @@ class AssignTasksApi(TaskHandler):
                 return self.send_error_response(e.no_user)
 
             # 检查用户权限（管理员指派任务时，仅检查用户角色）
-            if not self.can_user_access_task(task_type, user):
+            if self.can_user_access_task(task_type, user) is not True:
                 return self.send_error_response(e.task_unauthorized, message='用户没有该任务的权限')
 
             # 批量指派已发布的任务

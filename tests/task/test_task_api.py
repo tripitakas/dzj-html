@@ -125,7 +125,7 @@ class TestTaskApi(APITestCase):
             # 获取任务的meta信息
             t = Th.task_types.get(task_type)
             pre_tasks = t.get('pre_tasks') or []
-            body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0')
+            body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0', batch='0')
             r = self.fetch('/api/task/publish', files=dict(ids_file=filename), body=dict(data=body))
             data = self.parse_response(r)
             status = 'published' if not t.get('pre_tasks') else 'pending'
@@ -168,7 +168,7 @@ class TestTaskApi(APITestCase):
         # 发布任务
         r = self.publish_tasks(dict(doc_ids=ready_ids, task_type=task_type, pre_tasks=[]))
         data = self.parse_response(r)
-        self.assertEqual(ready_ids[0:1], data.get('finished'))
+        self.assertEqual(ready_ids[0:1], data.get('finished_before'))
 
     def test_pick_and_return_task(self):
         """ 测试领取和退回任务 """

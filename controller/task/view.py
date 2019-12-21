@@ -7,6 +7,7 @@
 import random
 from bson.objectid import ObjectId
 from controller import errors as e
+from controller.task.task import Task
 from controller.task.base import TaskHandler
 
 
@@ -137,8 +138,8 @@ class MyTaskHandler(TaskHandler):
             if task_type:
                 condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
             tasks, pager, q, order = self.find_by_page(self, condition)
-            self.page_title = '我的任务-' + self.get_task_name(task_type)
-            self.render('my_task.html', tasks=tasks, pager=pager, q=q, order=order, model=self)
+            Task.page_title = '我的任务-' + self.get_task_name(task_type)
+            self.render('my_task.html', tasks=tasks, pager=pager, q=q, order=order, model=Task)
 
         except Exception as error:
             return self.send_db_error(error)

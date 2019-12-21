@@ -85,7 +85,7 @@ class PublishBaseHandler(TaskHandler):
                 self._publish_tasks(task_type, self.STATUS_PENDING, priority, pre_tasks_status, steps, doc_ids, batch)
                 log['pending'] = doc_ids
             else:
-                self._publish_tasks(task_type, self.STATUS_OPENED, priority, {}, steps, doc_ids)
+                self._publish_tasks(task_type, self.STATUS_OPENED, priority, {}, steps, doc_ids, batch)
                 log['published'] = doc_ids
 
         return {k: value for k, value in log.items() if value}

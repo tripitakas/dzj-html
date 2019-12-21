@@ -191,6 +191,7 @@ class APITestCase(AsyncHTTPTestCase):
         """发布任务"""
         assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
         data['force'] = data.get('force', '0')
+        data['batch'] = data.get('batch', '测试批次号')
         data['priority'] = data.get('priority', 3)
         data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % data['task_type']))
         if 'cut' in data.get('task_type', ''):
