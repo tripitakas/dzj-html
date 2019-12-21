@@ -66,9 +66,8 @@ box_not_identical = 3018, '切分信息不一致'
 
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'
-data_unauthorized = 4003, '没有数据权限'
-data_lock_unqualified = 4004, '没有数据资质'
-lock_level_unqualified = 4005, '数据等级不够'
+data_lock_unqualified = 4003, '没有数据资质'
+lock_level_unqualified = 4004, '数据等级不够'
 
 tptk_not_existed = 5000, '藏经不存在'
 tptk_img_unavailable = 5001, '藏经图片尚未就绪'

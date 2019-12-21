@@ -54,7 +54,7 @@ class CutHandler(TaskHandler):
 
             self.render(
                 template, task=task, task_type=task_type, page=page, readonly=not has_lock,
-                mode=mode, steps=steps, boxes=boxes, box_type=box_type,
+                mode=mode, steps=steps, boxes=boxes, box_type=box_type, err=error,
                 get_img=self.get_img, **kwargs
             )
 

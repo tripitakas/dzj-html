@@ -5,7 +5,6 @@ import tests.users as u
 from tests.testcase import APITestCase
 from tornado.escape import json_encode
 from controller.cut.api import CutTaskApi
-from controller import errors
 
 
 class TestCutTask(APITestCase):

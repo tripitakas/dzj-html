@@ -61,8 +61,8 @@ class PublishBaseHandler(TaskHandler):
 
         # 去掉数据锁已分配给其它任务或者数据等级不够的任务
         if doc_ids and shared_field:
-            log['lock_has_assigned'], log['level_unqualified'] = self._check_lock(task_type, doc_ids)
-            doc_ids = set(doc_ids) - log['lock_has_assigned'] - log['level_unqualified']
+            log['data_is_locked'], log['lock_level_unqualified'] = self._check_lock(task_type, doc_ids)
+            doc_ids = set(doc_ids) - log['data_is_locked'] - log['lock_level_unqualified']
 
         # 剩下的，发布新任务
         if doc_ids:
@@ -91,7 +91,7 @@ class PublishBaseHandler(TaskHandler):
 
     def _check_lock(self, task_type, doc_ids):
         """ 检查数据锁是否已分配给其它任务或数据等级是否小于当前数据等级"""
-        lock_has_assigned, level_unqualified = set(), set()
+        data_is_locked, lock_level_unqualified = set(), set()
         collection, id_name, input_filed, shared_field = self.get_task_data_conf(task_type)
         conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
         docs = self.db[collection].find({id_name: {'$in': list(doc_ids)}}, {'lock': 1, id_name: 1})
@@ -99,10 +99,10 @@ class PublishBaseHandler(TaskHandler):
             lock = self.prop(doc, 'lock.' + shared_field, {})
             level = int(self.prop(doc, 'lock.level.' + shared_field, 0))
             if lock and self.prop(lock, 'is_temp') is False:
-                lock_has_assigned.add(doc[id_name])
+                data_is_locked.add(doc[id_name])
             if conf_level < level:
-                level_unqualified.add(doc[id_name])
-        return lock_has_assigned, level_unqualified
+                lock_level_unqualified.add(doc[id_name])
+        return data_is_locked, lock_level_unqualified
 
     def _publish_tasks(self, task_type, status, priority, pre_tasks, steps, doc_ids):
         """ 发布新任务 """
