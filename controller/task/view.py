@@ -23,9 +23,16 @@ class TaskAdminHandler(TaskHandler):
         """ 任务管理/任务列表 """
 
         try:
+            condition = {}
             task_meta = self.get_task_meta(task_type)
             is_group = self.prop(task_meta, 'groups')
-            condition = {'task_type': {'$regex': '.*%s.*' % task_type} if is_group else task_type}
+            task_type_arg = self.get_query_argument('task_type', '')
+            if task_type_arg:
+                condition.update({'task_type': task_type_arg})
+            elif is_group:
+                condition.update({'task_type': {'$regex': task_type}})
+            else:
+                condition.update({'task_type': task_type})
             status = self.get_query_argument('status', '')
             if status:
                 condition.update({'status': status})

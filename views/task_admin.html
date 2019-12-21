@@ -65,22 +65,25 @@
                   页编码<span class="ion-arrow-down-b {{'toggle' if order == 'doc_id' else ''}}"></span>
                 </span></th>
                 <th><span class="btn-group">
-                  <span class="filter" id="task-types" data-toggle="dropdown" aria-expanded="false">
-                    任务类型<span class="ion-android-sort "></span>
+                  <span class="filter" title="task_type" data-toggle="dropdown" aria-expanded="false">
+                    任务类型
                   </span>
+                  {% if task_meta.get('groups') %}
+                  <span class="ion-android-sort"></span>
                   <ul class="dropdown-menu" role="menu">
-                    {% for k, v in handler.task_types.items() %}
-                    <li><a href="{{current_path}}?task_type={{k}}">{{v.get('name')}}</a></li>
+                    {% for t in task_meta.get('groups') %}
+                    <li><a class="btn-a" title="task_type={{t}}">{{handler.get_task_name(t)}}</a></li>
                     {% end %}
                   </ul>
+                  {% end %}
                 </span></th>
                 <th><span class="btn-group">
-                  <span class="filter" id="statuses" data-toggle="dropdown" aria-expanded="false">
-                    状态<span class="ion-android-sort "></span>
+                  <span class="filter" title="status" data-toggle="dropdown" aria-expanded="false">
+                    状态<span class="ion-android-sort"></span>
                   </span>
                   <ul class="dropdown-menu" role="menu">
                     {% for k, v in handler.task_status_names.items() %}
-                    <li><a href="{{current_path}}?status={{k}}">{{v}}</a></li>
+                    <li><a class="btn-a" title="status={{k}}">{{v}}</a></li>
                     {% end %}
                   </ul>
                 </span></th>
@@ -121,7 +124,7 @@
                   <span class="hide info">{{dumps(info)}}</span>
                   <a href="/task/info/{{t['_id']}}">详情</a>
                   <a href="/task/page/{{t['doc_id']}}">历程</a>
-                  <a href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
+                  <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
                   <a class="{{'btn-remove' if t['status'] not in ['picked', 'finished'] else 'disabled'}}" url="/task/delete/{{task_type}}">删除</a>
                   <a class="{{'btn-republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}">重新发布</a>
                 </td>
@@ -301,7 +304,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">刷新</button>
           <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">指派</button>
         </div>
       </div>
@@ -319,6 +321,10 @@
           <table class="table">
           </table>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-refresh">确定</button>
+        </div>
       </div>
     </div>
   </div>
@@ -332,6 +338,21 @@
 <script src="{{static_url('assets/jquery-multi-select/jquery.multi-select.js')}}"></script>
 <script src="{{static_url('assets/jquery-multi-select/jquery.quicksearch.js')}}"></script>
 <script>
+  // 任务类型或状态过滤
+  $('.btn-a').click(function () {
+    var title = $(this).attr('title').trim();
+    var kind = title.split('=')[0];
+    var search = location.search;
+    if (!search.length)
+      return location.href = location.pathname + '?' + title;
+    if (search.indexOf(kind) !== -1) {
+      search = search.replace(new RegExp(kind + '=.*?&', 'i'), title + '&');
+      search = search.replace(new RegExp(kind + '=.*?$', 'i'), title);
+    } else
+      search += '&' + title;
+    location.href = location.pathname + search;
+  });
+
   // 显示退回理由
   $('td.returned').click(function () {
     showTip("退回理由", $(this).attr('title'));
@@ -355,10 +376,12 @@
   });
 
   // 批量指派任务
+  var $assignModal = $('#assignModal');
+  var $assignResultModal = $('#assignResultModal');
   $('#bat-assign').click(function () {
     if (!$('.task-tr :checked').length)
       return showError('请选择任务', '当前没有选中任务。');
-    $('#assignModal').modal();
+    $assignModal.modal();
   });
 
   $("#select-user").select2({
@@ -384,9 +407,10 @@
     postApi('/task/assign/' + taskType, {'data': data}, function (res) {
       var html = '';
       for (var item in res.data) {
-        html += '<tr><td>' + trans[item] + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+        var label = trans[item] + '(' + res.data[item].length + ')';
+        html += '<tr><td>' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
       }
-      var $assignResultModal = $('#assignResultModal');
+      $assignModal.modal('hide');
       $assignResultModal.find('table').html(html);
       $assignResultModal.modal();
     });
@@ -461,7 +485,8 @@
     postApi('/task/publish', isFile ? formData : {data: data}, function (res) {
       var html = '';
       for (var item in res.data) {
-        html += '<tr><td>' + trans[item] + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+        var label = trans[item] + '(' + res.data[item].length + ')';
+        html += '<tr><td>' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
       }
       $publishResultModal.find('table').html(html);
       $publishResultModal.modal();
