@@ -164,7 +164,7 @@ def copy_img_files(src_path, pages):
 
 
 def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=True, use_local_img=False, update=False, reorder=False, only_check=False, source=None):
+         reset=False, use_local_img=False, update=False, reorder=False, only_check=False, source=None):
     """
     页面导入的主函数
     :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录

@@ -2,10 +2,13 @@
 
 {% block custom-css %}
 <style>
-  .sty-table .btn-edit, .sty-table .btn-lock {
-    color: #B8906F;
-  !important;
+  .sty-table .btn-text, .sty-table .btn-lock {
+    color: #B8906F !important;
     cursor: pointer;
+  }
+
+  #txt-content {
+    font-size: 1.2em;
   }
 </style>
 {% end %}
@@ -50,8 +53,8 @@
     <td class="reel_code">{{d.get('reel_code') or ''}}</td>
     <td class="reel_page_no">{{d.get('reel_page_no') or ''}}</td>
     <td class="layout">{{d.get('layout') or ''}}</td>
-    <td class="ocr btn-edit" title="ocr">{{'修改' if d.get('ocr') else ''}}</td>
-    <td class="ocr_col btn-edit" title="ocr_col">{{'修改' if d.get('ocr_col') else ''}}</td>
+    <td class="ocr btn-text" title="ocr">{{'修改' if d.get('ocr') else ''}}</td>
+    <td class="ocr_col btn-text" title="ocr_col">{{'修改' if d.get('ocr_col') else ''}}</td>
     <td class="text"><a href="/data/edit/text/{{d.get('name')}}?from=/data/page">
       {{'修改' if d.get('text') else ''}}
     </a></td>
@@ -83,6 +86,29 @@
 </table>
 {% end %}
 
+{% block custom-modal %}
+<div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">修改文本</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="page-id">
+        <input type="hidden" id="page-name">
+        <input type="hidden" id="txt-type">
+        <textarea type="text" id="txt-content" rows="20" class="form-control"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
 {% block custom-js %}
 <script>
   $('.btn-lock').click(function () {
@@ -98,6 +124,36 @@
       });
     });
   });
+
+  var $txtModal = $('#txtModal');
+  $('.btn-text').click(function () {
+    var id = $(this).parent().attr('id');
+    var txtType = $(this).attr('title');
+    var data = getData(id);
+    var trans = {ocr: 'OCR字文本', ocr_col: 'OCR列文本'};
+    $txtModal.find('#page-id').val(data._id);
+    $txtModal.find('#page-name').val(data.name);
+    $txtModal.find('#txt-type').val($(this).attr('title'));
+    $txtModal.find('.modal-title').html(trans[txtType]);
+    $txtModal.find('#txt-content').html(data[txtType].replace(/\|/g, '\n'));
+    $txtModal.modal();
+  });
+
+  $txtModal.find('.modal-confirm').click(function () {
+    var _id = $txtModal.find('#page-id').val();
+    var name = $txtModal.find('#page-name').val();
+    var txtType = $txtModal.find('#txt-type').val();
+    var txtContent = $txtModal.find('#txt-content').val();
+    var data = {name: name, _id: _id};
+    data[txtType] = txtContent.replace(/\n/g, '\|');
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('成功', '已成功修改。');
+      refresh(1000);
+    }, function (error) {
+      showError('失败', error.message);
+    });
+  });
+
 </script>
 {% end %}
 
