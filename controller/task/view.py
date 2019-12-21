@@ -5,8 +5,8 @@
 @time: 2018/12/26
 """
 import random
+from datetime import datetime
 from bson.objectid import ObjectId
-from datetime import datetime, timedelta
 from controller import errors as e
 from controller.helper import get_date_time
 from controller.task.base import TaskHandler
@@ -26,25 +26,24 @@ class TaskAdminHandler(TaskHandler):
             condition = {}
             task_meta = self.get_task_meta(task_type)
             is_group = self.prop(task_meta, 'groups')
-            task_type_arg = self.get_query_argument('task_type', '')
-            if task_type_arg:
-                condition.update({'task_type': task_type_arg})
+            if self.get_query_argument('task_type', ''):
+                condition.update({'task_type': self.get_query_argument('task_type', '')})
             elif is_group:
                 condition.update({'task_type': {'$regex': task_type}})
             else:
                 condition.update({'task_type': task_type})
-            status = self.get_query_argument('status', '')
-            if status:
-                condition.update({'status': status})
-            pan_name = self.prop(self.config, 'pan.name')
-            search_tip = '请搜索网盘名称或导入文件夹' if task_type == 'import_image' else '请搜索页编码'
-            template = 'task_admin_import.html' if task_type == 'import_image' else 'task_admin.html'
-            search_fields = ['input.pan_name', 'input.import_dir'] if task_type == 'import_image' else ['doc_id']
+            if self.get_query_argument('status', ''):
+                condition.update({'status': self.get_query_argument('status', '')})
+            search_tip, search_fields, template = self.search_tip, self.search_fields, 'task_admin.html'
+            if task_type == 'import_image':
+                template = 'task_admin_import.html'
+                search_tip = '请搜索网盘名称或导入文件夹'
+                search_fields = ['input.pan_name', 'input.import_dir']
             tasks, pager, q, order = self.find_by_page(self, condition, search_fields)
             self.render(
                 template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, task_meta=task_meta,
-                pan_name=pan_name, search_tip=search_tip, task_types=self.all_task_types(),
-                is_mod_enabled=self.is_mod_enabled,
+                search_tip=search_tip, task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
+                pan_name=self.prop(self.config, 'pan.name'), modal_fields=self.modal_fields,
             )
         except Exception as error:
             return self.send_db_error(error)

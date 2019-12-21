@@ -14,6 +14,7 @@ class Task(Model):
     collection = 'task'
     fields = [
         {'id': '_id', 'name': '主键'},
+        {'id': 'batch', 'name': '任务批次'},
         {'id': 'task_type', 'name': '任务类型'},
         {'id': 'collection', 'name': '任务关联的文档集合'},
         {'id': 'id_name', 'name': '文档键名'},
@@ -42,7 +43,8 @@ class Task(Model):
     primary = '_id'
 
     # 前端列表页面定义
-    search_fields = ['doc_id']
+    search_fields = ['doc_id', 'batch']
+    search_tip = '请搜索页编码或批次号'
     operations = [  # 列表包含哪些批量操作
         {'operation': 'bat-assign', 'label': '批量指派'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -51,6 +53,9 @@ class Task(Model):
         {'action': 'btn-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},
+    ]
+    modal_fields = [
+        {'id': 'batch', 'name': '任务批次'},
     ]
 
     @classmethod
@@ -61,8 +66,8 @@ class Task(Model):
 
     # 任务类型定义
     # pre_tasks：默认的前置任务
-    # data.collection：任务所对应数据表
     # data.id：数据表的主键名称
+    # data.collection：任务所对应数据表
     # data.input_field：任务所依赖的数据字段。如果该字段不为空，则可以发布任务
     # data.output_field：任务输出的字段。如果该字段不为空，则表示任务已完成
     # data.shared_field：任务共享和保护的数据字段

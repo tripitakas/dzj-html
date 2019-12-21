@@ -64,6 +64,9 @@
                 <th><span class="sort {{'active' if 'doc_id' in order else ''}}" title="doc_id">
                   页编码<span class="ion-arrow-down-b {{'toggle' if order == 'doc_id' else ''}}"></span>
                 </span></th>
+                <th><span class="sort {{'active' if 'batch' in order else ''}}" title="batch">
+                  任务批次<span class="ion-arrow-down-b {{'toggle' if order == 'batch' else ''}}"></span>
+                </span></th>
                 <th><span class="btn-group">
                   <span class="filter" title="task_type" data-toggle="dropdown" aria-expanded="false">
                     任务类型
@@ -110,6 +113,7 @@
               <tr id="{{t['_id']}}" class="task-tr">
                 <td><input type="checkbox"/></td>
                 <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+                <td class="batch">{{t.get('batch') or ''}}</td>
                 <td>{{handler.get_task_name(t['task_type']) or ''}}</td>
                 <td class="{{t['status']}}" title="{{t.get('message') or ''}}">{{handler.get_status_name(t['status']) or ''}}</td>
                 <td>{{handler.get_priority_name(t.get('priority')) or ''}}</td>
@@ -120,11 +124,12 @@
                 <td>{{to_date_str(t.get('picked_time'))}}</td>
                 <td>{{to_date_str(t.get('finished_time'))}}</td>
                 <td class="action">
-                  {% set info = {f:t.get(f) for f in ['_id', 'doc_id', 'status']} %}
+                  {% set info = {f:t.get(f, '') for f in ['_id', 'doc_id', 'status', 'batch']} %}
                   <span class="hide info">{{dumps(info)}}</span>
                   <a href="/task/info/{{t['_id']}}">详情</a>
                   <a href="/task/page/{{t['doc_id']}}">历程</a>
                   <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
+                  <a class="btn-update">修改</a>
                   <a class="{{'btn-remove' if t['status'] not in ['picked', 'finished'] else 'disabled'}}" url="/task/delete/{{task_type}}">删除</a>
                   <a class="{{'btn-republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}">重新发布</a>
                 </td>
@@ -143,6 +148,7 @@
 
 <div class="panel-body">
   {% block modal %}
+  {% module ComModal(modal_fields) %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
        aria-hidden="true">
     <div class="modal-dialog">
@@ -192,6 +198,12 @@
           <h4 class="modal-title">发布任务-<span id="task-name">{{handler.get_task_name(task_type)}}</span></h4>
         </div>
         <div class="modal-body">
+          <div class="batch">
+            <h4 class="control-label">任务批次</h4>
+            <div>
+              <input type="text" class="form-control" id="task-batch" placeholder="请输入批次号">
+            </div>
+          </div>
           <div class="pre-tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
@@ -433,6 +445,7 @@
 
   // 发布任务
   $publishModal.find('.modal-confirm').click(function () {
+    var batch = $publishModal.find('#task-batch').val();
     var force = $publishModal.find('.force :checked').val();
     var priority = $publishModal.find('.priority-list :checked').val();
     var preTasks = $.map($publishModal.find('.pre-tasks :checked'), function (item) {
@@ -443,7 +456,7 @@
     });
     var isFile = false;
     var formData = new FormData();
-    var data = {task_type: taskType, priority: priority, force: force, pre_tasks: preTasks, steps: steps};
+    var data = {task_type: taskType, batch: batch, priority: priority, force: force, pre_tasks: preTasks, steps: steps};
     var source = $('.tab-content .tab-pane.active').attr('id');
     switch (source) {
       case 'source-prefix':
@@ -478,9 +491,9 @@
     }
     var trans = {
       un_existed: '页面不存在', un_ready: '数据未就绪', published_before: '任务曾被发布',
-      finished_before: '任务已完成', data_is_locked: '数据被锁定',
-      lock_level_unqualified: '数据等级不够',
-      published: '任务已发布', pending: '等待前置任务'
+      finished_before: '任务已完成', lock_level_unqualified: '数据等级不够',
+      data_is_locked: '数据被锁定', published: '任务已发布',
+      pending: '等待前置任务'
     };
     postApi('/task/publish', isFile ? formData : {data: data}, function (res) {
       var html = '';

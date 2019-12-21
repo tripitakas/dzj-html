@@ -22,7 +22,7 @@ from controller.task.base import TaskHandler
 class PublishBaseHandler(TaskHandler):
     MAX_PUBLISH_RECORDS = 10000  # 用户单次发布任务最大值
 
-    def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids):
+    def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids, batch=None):
         """ 发布某个任务类型的任务。
         :return 格式如下：
             {'un_existed':[], 'un_ready':[], 'published_before':[], 'finished_before':[],
@@ -74,14 +74,15 @@ class PublishBaseHandler(TaskHandler):
                      'doc_id': {'$in': list(doc_ids)}, 'task_type': {'$in': pre_tasks}},
                     {'task_type': 1, 'doc_id': 1}
                 ))
-                log['published'] = self._select_tasks_which_pre_tasks_all_finished(finished_tasks, pre_tasks)
+                published = self._select_tasks_which_pre_tasks_all_finished(finished_tasks, pre_tasks)
                 pre_tasks_status = {t: self.STATUS_FINISHED for t in pre_tasks}
-                self._publish_tasks(task_type, self.STATUS_OPENED, priority, pre_tasks_status, steps, log['published'])
+                self._publish_tasks(task_type, self.STATUS_OPENED, priority, pre_tasks_status, steps, published, batch)
+                log['published'] = published
                 doc_ids = doc_ids - set(log['published'])
 
                 # 其余为前置任务未发布或未全部完成的情况，发布为PENDING
                 pre_tasks_status = {t: '' for t in pre_tasks}
-                self._publish_tasks(task_type, self.STATUS_PENDING, priority, pre_tasks_status, steps, doc_ids)
+                self._publish_tasks(task_type, self.STATUS_PENDING, priority, pre_tasks_status, steps, doc_ids, batch)
                 log['pending'] = doc_ids
             else:
                 self._publish_tasks(task_type, self.STATUS_OPENED, priority, {}, steps, doc_ids)
@@ -104,13 +105,13 @@ class PublishBaseHandler(TaskHandler):
                 lock_level_unqualified.add(doc[id_name])
         return data_is_locked, lock_level_unqualified
 
-    def _publish_tasks(self, task_type, status, priority, pre_tasks, steps, doc_ids):
+    def _publish_tasks(self, task_type, status, priority, pre_tasks, steps, doc_ids, batch):
         """ 发布新任务 """
 
         def get_meta(doc_id):
-            return dict(task_type=task_type, collection=collection, id_name=id_name, doc_id=doc_id, status=status,
-                        priority=int(priority), steps={'todo': steps}, pre_tasks=pre_tasks, input=None, result={},
-                        create_time=now, updated_time=now, publish_time=now,
+            return dict(task_type=task_type, batch=batch, collection=collection, id_name=id_name, doc_id=doc_id,
+                        status=status, priority=int(priority), steps={'todo': steps}, pre_tasks=pre_tasks,
+                        input=None, result={}, create_time=now, updated_time=now, publish_time=now,
                         publish_user_id=self.current_user['_id'],
                         publish_by=self.current_user['name'])
 

@@ -196,6 +196,26 @@ class PickTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
+class UpdateTaskApi(TaskHandler):
+    URL = '/api/task/admin/@task_type'
+
+    def post(self, task_type):
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, '_id', 'batch')]
+            errs = v.validate(data, rules)
+            if errs:
+                self.send_error_response(errs)
+            task = self.db.task.find_one({'_id': ObjectId(data['_id'])})
+            if not task:
+                self.send_error_response(e.task_un_existed)
+            self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': {'batch': data['batch']}})
+            self.add_op_log('update_batch', context=data['batch'], target_id=data['_id'])
+            self.send_data_response()
+        except DbError as error:
+            return self.send_db_error(error)
+
+
 class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_type/@task_id'
 

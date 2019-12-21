@@ -158,7 +158,7 @@ role_route_maps = {
             '/api/task/ready/@task_type': ['POST'],
             '/api/user/@task_type': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
-            '/api/task/(assign|delete)/@task_type': ['POST'],
+            '/api/task/(assign|delete|admin)/@task_type': ['POST'],
         }
     },
     '数据处理员': {
