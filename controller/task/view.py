@@ -38,12 +38,10 @@ class TaskAdminHandler(TaskHandler):
             return result
 
         try:
-            condition = {}
-            task_meta = self.get_task_meta(task_type)
-            is_group = self.prop(task_meta, 'groups')
+            condition = dict()
             if self.get_query_argument('task_type', ''):
                 condition.update({'task_type': self.get_query_argument('task_type', '')})
-            elif is_group:
+            elif self.is_group(task_type):
                 condition.update({'task_type': {'$regex': task_type}})
             else:
                 condition.update({'task_type': task_type})
@@ -56,10 +54,10 @@ class TaskAdminHandler(TaskHandler):
                 search_fields = ['input.pan_name', 'input.import_dir']
             tasks, pager, q, order = self.find_by_page(self, condition, search_fields)
             self.render(
-                template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, task_meta=task_meta,
-                search_tip=search_tip, task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled,
+                template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, search_tip=search_tip,
+                task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled, statistic=statistic(),
                 pan_name=self.prop(self.config, 'pan.name'), modal_fields=self.modal_fields,
-                statistic=statistic(),
+                task_meta=self.get_task_meta(task_type),
             )
         except Exception as error:
             return self.send_db_error(error)
@@ -90,13 +88,12 @@ class TaskLobbyHandler(TaskHandler):
             return _tasks[:page_size]
 
         assert task_type in self.all_task_types()
-        task_meta = self.get_task_meta(task_type)
         page_size = page_size or int(self.config['pager']['page_size'])
         condition = {'doc_id': {'$regex': q, '$options': '$i'}} if q else {}
-        if task_meta.get('groups'):
+        if self.is_group(task_type):
             condition.update({'task_type': {'$regex': task_type}, 'status': self.STATUS_OPENED})
-            my_tasks, count = MyTaskHandler.get_my_tasks_by_type(self, task_type, un_limit=True)
-            if count:
+            my_tasks = self.find_many(task_type, mine=True)
+            if my_tasks:
                 condition.update({'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}})
             total_count = self.db.task.count_documents(condition)
             skip_no = get_random_skip()
@@ -123,40 +120,27 @@ class TaskLobbyHandler(TaskHandler):
 class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
-    @staticmethod
-    def get_my_tasks_by_type(self, task_type=None, q=None, order=None, page_size=0, page_no=1, un_limit=None):
-        """获取我的任务/任务列表"""
-        task_meta = self.get_task_meta(task_type)
-        status = [self.STATUS_PICKED, self.STATUS_FINISHED]
-        condition = {'status': {'$in': status}, 'picked_user_id': self.current_user['_id']}
-        if q:
-            condition.update({'doc_id': {'$regex': q, '$options': '$i'}})
-        if task_type:
-            condition.update({'task_type': {'$regex': task_type} if task_meta.get('groups') else task_type})
-
-        total_count = self.db.task.count_documents(condition)
-        query = self.db.task.find(condition)
-        if order:
-            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(o, asc)
-        if not un_limit:
-            page_size = page_size or self.config['pager']['page_size']
-            page_no = page_no if page_no >= 1 else 1
-            query.skip(page_size * (page_no - 1)).limit(page_size)
-        return list(query), total_count
+    search_fields = ['doc_id']
+    search_tip = '请搜索页编码'
+    operations = []
+    table_fields = [dict(id='doc_id', name='页编码'), dict(id='status', name='任务状态'),
+                    dict(id='picked_time', name='领取时间'), dict(id='finished_time', name='完成时间')]
+    actions = [
+        {'action': 'my-task-do', 'label': '继续'},
+        {'action': 'my-task-view', 'label': '查看'},
+        {'action': 'my-task-update', 'label': '修改'},
+    ]
 
     def get(self, task_type):
         """ 我的任务 """
         try:
-            q = self.get_query_argument('q', '')
-            order = self.get_query_argument('order', '-picked_time')
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            tasks, total_count = self.get_my_tasks_by_type(
-                self, task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
-            )
-            pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
-            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
+            status = [self.STATUS_PICKED, self.STATUS_FINISHED]
+            condition = {'status': {'$in': status}, 'picked_user_id': self.current_user['_id']}
+            if task_type:
+                condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
+            tasks, pager, q, order = self.find_by_page(self, condition)
+            self.page_title = '我的任务-' + self.get_task_name(task_type)
+            self.render('my_task.html', tasks=tasks, pager=pager, q=q, order=order, model=self)
 
         except Exception as error:
             return self.send_db_error(error)

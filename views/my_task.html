@@ -1,105 +1,44 @@
-<!DOCTYPE html>
-{% from controller.task.base import TaskHandler as Th %}
-<html lang="zh-CN">
-<head>
-  <title>我的任务-{{Th.get_task_name(task_type)}}</title>
-  {% include _base_meta.html %}
-  {% include _base_css.html %}
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-  <![endif]-->
-</head>
+{% extends "com_list.html" %}
 
-<style>
-  .urgent {
-    background: red;
-  }
-</style>
+{% block operation %}
+{% end %}
 
-<body>
-<div class="app-main">
-  <div class="main">
-    {% module ComLeft(title="task_history") %}
-    <div class="main-content">
-      {% module ComHead() %}
-      <div class="layout">
-          <div class="wrapper">
-              <div class="sty-list">
-                <div class="search fr">
-                  <input id="search-name" type="text" placeholder="搜索">
-                  <i class="ser-btn"></i>
-                </div>
-                <table style="border-collapse:separate; border-spacing:0 10px;" class="sty-table">
-                  <thead>
-                  <tr>
-                    <th><span>页编码</span></th>
-                    <th><span>任务状态</span></th>
-                    <th><span id="picked_time" class="sort {{'active' if order in ['-picked_time', 'picked_time'] else ''}}">
-                        领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
-                      </span></th>
-                    <th><span>完成时间</span></th>
-                    <th><span>操作</span></th>
-                  </tr>
-                  </thead>
-
-                  <tbody>
-                  {% for t in tasks %}
-                  <tr>
-                    <td>{{t['doc_id']}}</td>
-                    <td>{{Th.get_status_name(t['status']) or ''}}</td>
-                    <td>{{to_date_str(t.get('picked_time'))}}</td>
-                    <td>{{to_date_str(t.get('finished_time'))}}</td>
-                    <td>
-                      <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>
-                      {% if t['status'] == Th.STATUS_PICKED %}
-                      <a class="do" href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
-                      {% elif t['status'] == Th.STATUS_FINISHED %}
-                      <a class="update" href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
-                      {% end %}
-                    </td>
-                  </tr>
-                  {% end %}
-                  </tbody>
-                </table>
-              </div>
-              {% module Pager(pager) %}
-            </div>
-        </div>
-    </div>
-  </div>
-</div>
-
-{% include _base_js.html %}
-<script type="text/javascript">
-  // 获取url参数
-  function getUrlParam(name) {
-    var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    return r != null ? unescape(r[2]) : null;
-  }
-
-  // 按领取时间排序
-  $("#picked_time.sort").click(function () {
-    var order = getUrlParam('order');
-    if (order && order == '-picked_time')
-      order = 'picked_time';
-    else
-      order = '-picked_time';
-    window.location = "{{current_path}}?order=" + order;
-  });
-
-  // 搜索
-  $('#search-name').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      var q = $(this).val().trim();
-      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
-      window.location = url;
-    }
-  });
-
-</script>
-
-</body>
-</html>
+{% block table %}
+<table class="sty-table">
+  <thead>
+  <tr>
+    <th><span title="doc_id" class="sort {{'active' if 'doc_id' in order else ''}}">
+      页编码<span class="ion-arrow-down-b {{'toggle' if order == 'doc_id' else ''}}"></span>
+    </span></th>
+    <th><span title="status" class="sort {{'active' if 'status' in order else ''}}">
+      任务状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
+    </span></th>
+    <th><span title="picked_time" class="sort {{'active' if 'picked_time' in order else ''}}">
+      领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
+    </span></th>
+    <th><span title="finished_time" class="sort {{'active' if 'finished_time' in order else ''}}">
+      完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
+    </span></th>
+    <th><span>操作</span></th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for t in tasks %}
+  <tr id="{{t['_id']}}" class="task-tr">
+    <td><a class="doc-name" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
+    <td>{{handler.get_status_name(t['status']) or ''}}</td>
+    <td>{{to_date_str(t.get('picked_time'))}}</td>
+    <td>{{to_date_str(t.get('finished_time'))}}</td>
+    <td class="action">
+      <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
+      {% if t['status'] == handler.STATUS_PICKED %}
+      <a href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
+      {% elif t['status'] == handler.STATUS_FINISHED %}
+      <a href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
+      {% end %}
+    </td>
+  </tr>
+  {% end %}
+  </tbody>
+</table>
+{% end %}

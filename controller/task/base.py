@@ -13,6 +13,39 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler, Task):
+    def find_many(self, task_type=None, status=None, mine=False, size=None, order=None):
+        """ 查找任务
+        mine参数存在时，status参数将失效
+        """
+        condition = dict()
+        if task_type:
+            condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
+        if status:
+            condition.update({'status': status if isinstance(status, str) else {'$in': status}})
+        if mine:
+            condition.update({'status': {'$ne': self.STATUS_RETURNED}})
+            condition.update({'picked_user_id': self.current_user['_id']})
+        query = self.db.task.find(condition)
+        if size:
+            query.limit(size)
+        if order:
+            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort(o, asc)
+        return list(query)
+
+    def count_task(self, task_type=None, status=None, mine=False):
+        condition = dict()
+        if task_type:
+            condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
+        if status:
+            condition.update({'status': {'$in': [status] if isinstance(status, str) else status}})
+        if mine:
+            con_status = condition.get('status') or {}
+            con_status.update({'$ne': self.STATUS_RETURNED})
+            condition.update({'status': con_status})
+            condition.update({'picked_user_id': self.current_user['_id']})
+        return self.db.task.count_documents(condition)
+
     def get_task_mode(self):
         return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
 
@@ -51,20 +84,6 @@ class TaskHandler(BaseHandler, Task):
         steps['prev'] = todo[index - 1] if index > 0 else None
         steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
         return steps
-
-    def find_tasks(self, task_type, doc_id=None, status=None, size=None, mine=False):
-        collection, id_name = self.get_task_data_conf(task_type)[:2]
-        condition = dict(task_type=task_type, collection=collection, id_name=id_name)
-        if doc_id:
-            condition.update({'doc_id': doc_id if isinstance(doc_id, str) else {'$in': doc_id}})
-        if status:
-            condition.update({'status': status if isinstance(status, str) else {'$in': status}})
-        if mine:
-            condition.update({'picked_user_id': self.current_user['_id']})
-        query = self.db.task.find(condition)
-        if size:
-            query.limit(size)
-        return list(query)
 
     def finish_task(self, task):
         """ 任务提交 """

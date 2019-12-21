@@ -533,7 +533,7 @@ class UsersOfTaskTypeApi(BaseHandler):
             condition = {'roles': {'$regex': '.*(%s).*' % '|'.join(roles)}}
             q = self.get_body_argument('q', '')
             if q:
-                condition.update({'name': {'$regex': '.*%s.*' % q}})
+                condition.update({'name': {'$regex': q}})
             size = 10
             cur_page = int(self.get_body_argument('page', 1))
             total_count = self.db.user.count_documents(condition)

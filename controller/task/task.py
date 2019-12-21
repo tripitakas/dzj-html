@@ -150,6 +150,10 @@ class Task(Model):
         return cls.all_task_types().get(task_type)
 
     @classmethod
+    def is_group(cls, task_type):
+        return 'groups' in prop(cls.all_task_types(), task_type)
+
+    @classmethod
     def get_task_data_conf(cls, task_type):
         d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
         return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')

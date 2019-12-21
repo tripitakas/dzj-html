@@ -29,7 +29,7 @@ class GetReadyTasksApi(TaskHandler):
             data = self.get_request_data()
             doc_filter = dict()
             if data.get('prefix'):
-                doc_filter.update({'$regex': '.*%s.*' % data.get('prefix'), '$options': '$i'})
+                doc_filter.update({'$regex': data.get('prefix'), '$options': '$i'})
             if data.get('exclude'):
                 doc_filter.update({'$nin': data.get('exclude')})
             collection, id_name, input_field, shared_field = self.get_task_data_conf(task_type)
@@ -66,7 +66,7 @@ class PublishTasksApi(PublishBaseHandler):
                     doc_ids = ids_str.split(r'|')
             elif data.get('prefix'):
                 collection, id_name, input_field, shared_field = self.get_task_data_conf(data['task_type'])
-                condition = {id_name: {'$regex': '.*%s.*' % data['prefix'], '$options': '$i'}}
+                condition = {id_name: {'$regex': data['prefix'], '$options': '$i'}}
                 if input_field:
                     condition[input_field] = {"$nin": [None, '']}
                 doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
@@ -145,8 +145,7 @@ class PickTaskApi(TaskHandler):
             now, user_id, user_name = datetime.now(), self.current_user['_id'], self.current_user['name']
             # 检查是否有未完成的任务
             task_type = 'text_proof' if 'text_proof' in task_type else task_type
-            task_meta = self.get_task_meta(task_type)
-            task_filter = {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type
+            task_filter = {'$regex': task_type} if self.is_group(task_type) else task_type
             condition = {'task_type': task_filter, 'status': self.STATUS_PICKED, 'picked_user_id': user_id}
             uncompleted = self.db.task.find_one(condition)
             if uncompleted:
@@ -168,7 +167,7 @@ class PickTaskApi(TaskHandler):
                     task = tasks[0]
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
-            if task_meta.get('groups') and self.db.task.find_one(dict(
+            if self.is_group(task_type) and self.db.task.find_one(dict(
                     task_type=task_filter, collection=task['collection'], id_name=task['id_name'],
                     doc_id=task['doc_id'], picked_user_id=user_id
             )):
