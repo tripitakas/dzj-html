@@ -30,6 +30,7 @@ $('#check-all').click(function () {
 /*---Modal相关代码---*/
 var $modal = $('#dataModal');
 var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
+
 // console.log(fields);
 
 function setModal(modal, info, fields) {
@@ -94,7 +95,8 @@ $('.operation #btn-add').click(function () {
 $('.btn-view').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
-  $modal.find('.modal-title').html('查看数据');
+  var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
+  $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, true);
   setModal($modal, data, fields);
   $modal.modal();
@@ -104,8 +106,8 @@ $('.btn-view').click(function () {
 $('.btn-update').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
-  console.log(data);
-  $modal.find('.modal-title').html('修改数据');
+  var title = 'name' in data ? '修改数据 - ' + data.name : '修改数据';
+  $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, false);
   setModal($modal, data, fields);
   $modal.modal();

@@ -80,8 +80,8 @@ class TaskHandler(BaseHandler, Task):
         elif key == 'priority':
             value = cls.get_priority_name(int(value))
         elif isinstance(value, dict):
-            value = value.get('error') or value.get('message')
-            value = value or '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
+            value = value.get('error') or value.get('message') or \
+                    '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
         return value or ''
 
     @classmethod

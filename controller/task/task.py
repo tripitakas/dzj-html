@@ -71,12 +71,6 @@ class Task(Model):
         {'id': 'batch', 'name': '任务批次'},
     ]
 
-    @classmethod
-    def get_field_name(cls, field):
-        for f in cls.fields:
-            if f['id'] == field:
-                return f['name']
-
     # 任务类型定义
     # pre_tasks：默认的前置任务
     # data.id：数据表的主键名称

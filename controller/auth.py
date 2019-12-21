@@ -16,6 +16,7 @@ url_placeholder = {
     'text_task': r'text_proof_\d|text_review',
     'data_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_id': r'[A-Za-z0-9]{24}',
+    'page_id': r'[A-Za-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'metadata': r'tripitaka|sutra|volume|reel|page',
     'shared_field': r'box|text',
@@ -180,6 +181,7 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
+            '/data/page/@page_id': ['GET'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],

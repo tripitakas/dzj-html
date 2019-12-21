@@ -6,9 +6,11 @@
 """
 import re
 from functools import cmp_to_key
-import controller.errors as errors
+from bson.objectid import ObjectId
+import controller.errors as e
 from controller.base import BaseHandler
 from controller.helper import cmp_page_code
+from controller.task.base import TaskHandler as Th
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -20,13 +22,13 @@ class TripitakaHandler(BaseHandler):
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
             if not m:
-                return self.send_error_response(errors.tptk_page_code_error)
+                return self.send_error_response(e.tptk_page_code_error)
             tripitaka_code = m.group(1)
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
-                return self.send_error_response(errors.tptk_not_existed)
+                return self.send_error_response(e.tptk_not_existed)
             elif tripitaka.get('img_available') == '否':
-                return self.send_error_response(errors.tptk_img_unavailable)
+                return self.send_error_response(e.tptk_img_unavailable)
 
             # 根据存储模式补齐page_code
             name_slice = page_code.split('_')
@@ -106,8 +108,35 @@ class DataPageHandler(BaseHandler):
         """ 页数据管理"""
         try:
             docs, pager, q, order = Page.find_by_page(self)
-            Page.info_fields = [f['id'] for f in Page.modal_fields] + ['ocr', 'ocr_col']
+            Page.info_fields = [f['id'] for f in Page.modal_fields] + ['ocr', 'name', 'ocr_col']
             self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, model=Page)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageViewHandler(BaseHandler, Page):
+    URL = '/data/page/@page_id'
+
+    def get(self, page_id):
+        """ 查看页数据"""
+        try:
+            page = self.db.page.find_one({'_id': ObjectId(page_id)})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面')
+
+            fields = ['name', 'width', 'height', 'layout', 'img_cloud_path', 'page_code',
+                      'uni_sutra_code', 'sutra_code', 'reel_code', ]
+            metadata = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+            fields = ['lock.box', 'lock.text', 'lock.level.box', 'lock.level.text']
+            data_lock = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+            fields = ['ocr', 'ocr_col', 'text']
+            page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+            fields = ['blocks', 'columns', 'chars']
+            page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+
+            self.render('data_page_view.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
+                        page_box=page_box, page=page, format_value=Th.format_value)
 
         except Exception as error:
             return self.send_db_error(error)

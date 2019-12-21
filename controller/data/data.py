@@ -167,9 +167,9 @@ class Page(Model):
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
-        {'id': 'ocr', 'name': '字OCR'},
-        {'id': 'ocr_col', 'name': '列OCR'},
-        {'id': 'text', 'name': '文本'},
+        {'id': 'ocr', 'name': '字框OCR'},
+        {'id': 'ocr_col', 'name': '列框OCR'},
+        {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
     ]
     rules = [
@@ -187,7 +187,6 @@ class Page(Model):
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [
-        {'id': 'name', 'name': '页编码'},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
         {'id': 'lock-level-box', 'name': '字框锁等级'},
         {'id': 'lock-level-text', 'name': '文本锁等级'},

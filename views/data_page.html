@@ -31,15 +31,15 @@
       </span></th>
     <th><span>卷内页序号</span></th>
     <th><span>页面结构</span></th>
-    <th><span>字文本</span></th>
-    <th><span>列文本</span></th>
+    <th><span>字框OCR</span></th>
+    <th><span>列框OCR</span></th>
     <th><span>审定文本</span></th>
     <th><span>文本锁</span></th>
     <th><span>栏框</span></th>
     <th><span>列框</span></th>
     <th><span>字框</span></th>
     <th><span>字序</span></th>
-    <th><span>切分锁</span></th>
+    <th><span>字框锁</span></th>
     <th><span>操作</span></th>
   </tr>
   </thead>
@@ -75,7 +75,7 @@
     <td class="action">
       {% set info = {f: handler.prop(d, f.replace('-', '.'), '') for f in model.info_fields} %}
       <span class="hide info">{{dumps(info)}}</span>
-      <a class="page-view">查看</a>
+      <a href="/data/page/{{d.get('_id')}}">详情</a>
       <a class="btn-update">修改</a>
       <a class="btn-remove">删除</a>
     </td>
@@ -130,7 +130,7 @@
     var id = $(this).parent().attr('id');
     var txtType = $(this).attr('title');
     var data = getData(id);
-    var trans = {ocr: 'OCR字文本', ocr_col: 'OCR列文本'};
+    var trans = {ocr: '字框OCR文本', ocr_col: '列框OCR文本'};
     $txtModal.find('#page-id').val(data._id);
     $txtModal.find('#page-name').val(data.name);
     $txtModal.find('#txt-type').val($(this).attr('title'));
