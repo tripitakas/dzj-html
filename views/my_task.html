@@ -48,9 +48,7 @@
                   <tr>
                     <td>{{t['doc_id']}}</td>
                     <td>{{Th.get_status_name(t['status']) or ''}}</td>
-                    <td class="{{'urgent' if (t.get('picked_time') < timeout and t['status'] == 'picked') else ''}}">
-                      {{to_date_str(t.get('picked_time'))}}
-                    </td>
+                    <td>{{to_date_str(t.get('picked_time'))}}</td>
                     <td>{{to_date_str(t.get('finished_time'))}}</td>
                     <td>
                       <a class="view" href="/task/{{t['task_type']}}/{{t['_id']}}">查看</a>

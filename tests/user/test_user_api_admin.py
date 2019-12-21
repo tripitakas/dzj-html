@@ -41,15 +41,13 @@ class TestUserAdminApi(APITestCase):
         self.assert_code(e.record_existed, r)
 
         # 邮箱格式有误
-        r = self.fetch('/api/user/profile', body={
-            'data': dict(_id=user1['_id'], name=user1['name'], email='123#123', phone=user1.get('phone'))
-        })
+        data = dict(_id=user1['_id'], name=user1['name'], email='123#123', phone=user1.get('phone'))
+        r = self.fetch('/api/user/profile', body={'data': data})
         self.assert_code(e.invalid_email, r)
 
         # 正常修改
-        r = self.fetch('/api/user/profile', body={
-            'data': dict(_id=user1['_id'], name=user1['name'], email='user1_new@test.com', phone=user1.get('phone'))
-        })
+        data = dict(_id=user1['_id'], name=user1['name'], email='user1_new@test.com', phone=user1.get('phone'))
+        r = self.fetch('/api/user/profile', body={'data': data})
         self.assert_code(200, r)
 
     def test_api_delete_user(self):

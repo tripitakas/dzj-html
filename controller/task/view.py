@@ -48,19 +48,18 @@ class TaskLobbyHandler(TaskHandler):
 
     @staticmethod
     def get_lobby_tasks_by_type(self, task_type, page_size=None, q=None):
-        """按优先级排序后随机获取任务大厅/任务列表"""
+        """ 按优先级排序后随机获取任务大厅/任务列表"""
 
-        def get_skip_no():
+        def get_random_skip():
             condition.update({'priority': 3})
             n3 = self.db.task.count_documents(condition)
             condition.update({'priority': 2})
             n2 = self.db.task.count_documents(condition)
-            del condition['priority']
+            condition.pop('priority', 0)
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
 
         def de_duplicate():
-            """根据doc_id去重"""
             _tasks, _doc_ids = [], []
             for task in tasks:
                 if task.get('doc_id') not in _doc_ids:
@@ -68,27 +67,23 @@ class TaskLobbyHandler(TaskHandler):
                     _doc_ids.append(task.get('doc_id'))
             return _tasks[:page_size]
 
-        if task_type not in self.all_task_types():
-            return [], 0
-
-        task_meta = self.all_task_types().get(task_type)
+        assert task_type in self.all_task_types()
+        task_meta = self.get_task_meta(task_type)
         page_size = page_size or int(self.config['pager']['page_size'])
-        condition = {}
-        if q:
-            condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
+        condition = {'doc_id': {'$regex': q, '$options': '$i'}} if q else {}
         if task_meta.get('groups'):
-            condition.update({'task_type': {'$regex': '.*%s.*' % task_type}, 'status': self.STATUS_OPENED})
+            condition.update({'task_type': {'$regex': task_type}, 'status': self.STATUS_OPENED})
             my_tasks, count = MyTaskHandler.get_my_tasks_by_type(self, task_type, un_limit=True)
             if count:
                 condition.update({'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}})
             total_count = self.db.task.count_documents(condition)
-            skip_no = get_skip_no()
+            skip_no = get_random_skip()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
             tasks = de_duplicate()
         else:
             condition.update({'task_type': task_type, 'status': self.STATUS_OPENED})
             total_count = self.db.task.count_documents(condition)
-            skip_no = get_skip_no()
+            skip_no = get_random_skip()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
 
         return tasks, total_count
@@ -96,7 +91,7 @@ class TaskLobbyHandler(TaskHandler):
     def get(self, task_type):
         """ 任务大厅 """
         try:
-            q = self.get_query_argument('q', '').upper()
+            q = self.get_query_argument('q', '')
             tasks, total_count = self.get_lobby_tasks_by_type(self, task_type, q=q)
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count)
         except Exception as error:
@@ -109,21 +104,19 @@ class MyTaskHandler(TaskHandler):
     @staticmethod
     def get_my_tasks_by_type(self, task_type=None, q=None, order=None, page_size=0, page_no=1, un_limit=None):
         """获取我的任务/任务列表"""
-        if task_type and task_type not in self.all_task_types():
-            return [], 0
-
-        condition = {'status': {"$in": [self.STATUS_PICKED, self.STATUS_FINISHED]},
-                     'picked_user_id': self.current_user['_id']}
-        if task_type:
-            task_meta = self.all_task_types()[task_type]
-            condition.update({'task_type': {'$regex': '.*%s.*' % task_type} if task_meta.get('groups') else task_type})
+        task_meta = self.get_task_meta(task_type)
+        status = [self.STATUS_PICKED, self.STATUS_FINISHED]
+        condition = {'status': {'$in': status}, 'picked_user_id': self.current_user['_id']}
         if q:
-            condition.update({'doc_id': {'$regex': '.*%s.*' % q}})
+            condition.update({'doc_id': {'$regex': q, '$options': '$i'}})
+        if task_type:
+            condition.update({'task_type': {'$regex': task_type} if task_meta.get('groups') else task_type})
+
         total_count = self.db.task.count_documents(condition)
         query = self.db.task.find(condition)
         if order:
-            order, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
-            query.sort(order, asc)
+            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort(o, asc)
         if not un_limit:
             page_size = page_size or self.config['pager']['page_size']
             page_no = page_no if page_no >= 1 else 1
@@ -133,20 +126,15 @@ class MyTaskHandler(TaskHandler):
     def get(self, task_type):
         """ 我的任务 """
         try:
-            q = self.get_query_argument('q', '').upper()
+            q = self.get_query_argument('q', '')
             order = self.get_query_argument('order', '-picked_time')
             page_size = int(self.config['pager']['page_size'])
             cur_page = int(self.get_query_argument('page', 1))
             tasks, total_count = self.get_my_tasks_by_type(
                 self, task_type=task_type, q=q, order=order, page_size=page_size, page_no=cur_page
             )
-
-            withdraw_time = get_date_time('%Y-%m-%d 02:00:00')  # 凌晨2点回收
-            timeout_days = self.prop(self.application.load_config(), 'task.task_timeout_days')
-            timeout = datetime.strptime(withdraw_time, '%Y-%m-%d %H:%M:%S') - timedelta(days=int(timeout_days))
-
             pager = dict(cur_page=cur_page, doc_count=total_count, page_size=page_size)
-            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order, timeout=timeout)
+            self.render('my_task.html', task_type=task_type, tasks=tasks, pager=pager, order=order)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -171,9 +159,8 @@ class TaskPageInfoHandler(TaskHandler):
         elif key == 'priority':
             value = cls.get_priority_name(int(value))
         elif isinstance(value, dict):
-            value = value.get('error') or value.get('message') \
-                    or '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-
+            value = value.get('error') or value.get('message')
+            value = value or '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
         return value
 
     def get(self, page_name):
@@ -192,7 +179,6 @@ class TaskPageInfoHandler(TaskHandler):
             display_fields = ['doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
                               'updated_time', 'finished_time', 'publish_by', 'publish_time',
                               'picked_by', 'picked_time', 'message']
-
             self.render('task_page_info.html', page=page, tasks=tasks, format_info=self.format_info,
                         display_fields=display_fields)
 
@@ -214,7 +200,6 @@ class TaskInfoHandler(TaskHandler):
             display_fields = ['doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps',
                               'publish_time', 'publish_by', 'picked_time', 'picked_by',
                               'updated_time', 'finished_time', 'message', ]
-
             self.render('task_info.html', task=task, display_fields=display_fields,
                         format_info=TaskPageInfoHandler.format_info)
 

@@ -160,8 +160,6 @@ class Page(Model):
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'lock', 'name': '数据锁'},
-        {'id': 'box_stage', 'name': '字框阶段'},
-        {'id': 'text_stage', 'name': '文本阶段'},
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
@@ -198,9 +196,8 @@ class Page(Model):
     def metadata(cls):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',
                     page_code='', sutra_code='', uni_sutra_code='', reel_code='',
-                    reel_page_no='', lock={}, box_stage='', text_stage='',
-                    blocks=[], columns=[], chars=[], ocr='',
-                    ocr_col='', text='', txt_html='')
+                    reel_page_no='', lock={}, blocks=[], columns=[], chars=[],
+                    ocr='',ocr_col='', text='', txt_html='')
 
     @classmethod
     def name2pagecode(cls, page_name):

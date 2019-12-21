@@ -15,7 +15,11 @@ class TestCutTask(APITestCase):
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin(
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.expert1, u.expert2, u.expert3]],
-            '切分专家,文字专家'
+            '切分专家,文字专家,数据处理员,单元测试用户'
+        )
+        self.add_users_by_admin(
+            [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
+            '普通用户,单元测试用户'
         )
         self.delete_tasks_and_locks()
 
@@ -53,20 +57,9 @@ class TestCutTask(APITestCase):
     def test_cut_edit(self):
         """测试编辑切分数据"""
         self.login(u.expert1[0], u.expert1[1])
-        # 测试没有数据权限
+        # 测试专家编辑提交数据
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
         steps = ['char_box', 'block_box', 'column_box', 'char_order']
-        for step in steps:
-            data_field = CutTaskApi.step2field.get(step)
-            data = {'step': step, 'boxes': json_encode(page[data_field])}
-            r = self.fetch('/api/data/edit/box/QL_25_16', body={'data': data})
-            self.assert_code(errors.data_unauthorized, r, msg=step)
-
-        # 获取数据权限
-        r = self.fetch('/api/data/lock/box/QL_25_16', body={'data': {}})
-        self.assert_code(200, r)
-
-        # 测试编辑提交数据
         for step in steps:
             data_field = CutTaskApi.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
@@ -75,11 +68,9 @@ class TestCutTask(APITestCase):
 
     def test_cut_mode(self):
         """测试切分页面的几种模式"""
-
         docs_ready = ['QL_25_16']
         task_type, step = 'cut_proof', 'char_box'
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
-
         # 发布任务
         self.login_as_admin()
         r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))

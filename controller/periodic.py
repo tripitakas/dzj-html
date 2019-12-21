@@ -37,19 +37,21 @@ def republish_timeout_tasks(db=None, timeout_days=None):
     tasks = list(db.task.find(condition))
     for task in tasks:
         # 重新发布
-        pre_tasks = task.get('pre_tasks') or {}
-        for t in pre_tasks:
-            pre_tasks[t] = ''
-        update = {'status': Th.STATUS_OPENED, 'steps.submitted': None, 'pre_tasks': pre_tasks,
-                  'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}}
-        r = db.task.update_one({'_id': task['_id']}, {'$set': update})
+        pre_tasks = prop(task, 'pre_tasks', {})
+        pre_tasks.update({p: '' for p in pre_tasks})
+        r = db.task.update_one({'_id': task['_id']}, {'$set': {
+            'status': Th.STATUS_OPENED, 'steps.submitted': None, 'pre_tasks': pre_tasks,
+            'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}
+        }})
         if r.matched_count:
             add_op_log(db, 'republish', target_id=task['_id'], context=task['task_type'])
 
-        # 释放领取任务时分配的数据锁
+        # 释放数据锁
         shared_field = Th.get_shared_field(task['task_type'])
         if shared_field:
-            Th.release_task_lock(db, [task['doc_id']], shared_field)
+            shared_field_meta = Th.data_auth_maps[shared_field]
+            id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+            db[collection].update_many({id_name: task['doc_id']}, {'$set': {'lock.%s' % shared_field: dict()}})
 
 
 def release_timeout_lock(db=None, timeout_days=None):

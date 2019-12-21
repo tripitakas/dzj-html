@@ -160,7 +160,7 @@ class TextReviewApi(TaskHandler):
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error)
-            has_lock, error = self.check_task_lock(task)
+            has_lock, error = self.check_data_lock(task)
             if not has_lock:
                 return self.send_error_response(error)
             # 保存当前任务
@@ -204,7 +204,7 @@ class TextHardApi(TaskHandler):
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error)
-            has_lock, error = self.check_task_lock(task)
+            has_lock, error = self.check_data_lock(task)
             if not has_lock:
                 return self.send_error_response(error)
 
@@ -241,15 +241,16 @@ class TextEditApi(TaskHandler):
             # 检查参数
             data = self.get_request_data()
             rules = [(v.not_empty, 'txt_html')]
-            err = v.validate(data, rules)
-            if err:
-                return self.send_error_response(err)
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(errors.no_object)
             # 检查数据锁
-            if not self.has_data_lock(page_name, 'text'):
-                return self.send_error_response(errors.data_unauthorized)
+            has_lock, error = self.check_data_lock(doc_id=page_name, shared_field='text')
+            if not has_lock:
+                return self.send_error_response(error)
             # 保存数据
             txt_html = data.get('txt_html', '').strip('\n')
             self.db.page.update_one({'name': page_name}, {'$set': {
@@ -258,7 +259,7 @@ class TextEditApi(TaskHandler):
             self.add_op_log('save_edit_text', context=page_name, target_id=page['_id'])
             # 提交时，释放数据锁
             if data.get('submit'):
-                self.release_temp_lock(page_name, shared_field='text')
+                self.release_temp_lock(page_name, 'text')
 
             self.send_data_response()
 

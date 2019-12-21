@@ -3,9 +3,10 @@
 """
 @time: 2019/5/13
 """
+import re
 from tornado.web import UIModule
 from bson.objectid import ObjectId
-from controller import errors as errors
+from controller import errors as e
 from controller.text.diff import Diff
 from controller.cut.cuttool import CutTool
 from controller.task.base import TaskHandler
@@ -26,7 +27,7 @@ class TextProofHandler(TaskHandler, TextTool):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, message='没有找到页面%s' % task['doc_id'])
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % task['doc_id'])
 
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
@@ -112,13 +113,13 @@ class TextReviewHandler(TaskHandler, TextTool):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, message='没有找到页面%s' % task['doc_id'])
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
-            has_lock = self.check_task_lock(task)[0]
+            has_lock = self.check_data_lock(task)[0]
 
             mode = self.get_task_mode()
             params = dict(mismatch_lines=[])
@@ -155,13 +156,13 @@ class TextHardHandler(TextReviewHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object)
+                return self.send_error_response(e.no_object)
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
-            has_lock, error = self.check_task_lock(task)
+            has_lock, error = self.check_data_lock(task)
 
             mode = self.get_task_mode()
             proof_doubt, texts = self.get_cmp_data(self, task['doc_id'])
@@ -190,9 +191,9 @@ class TextEditHandler(TaskHandler, TextTool):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object)
+                return self.send_error_response(e.no_object)
 
-            has_lock = self.get_data_lock(page_name, 'text') is True
+            has_lock = self.assign_temp_lock(page_name, 'text') is True
             cmp_data = self.prop(page, 'txt_html') or ''
             if not cmp_data and self.prop(page, 'text'):
                 segments = Diff.diff(self.prop(page, 'text').replace('|', '\n'))[0]

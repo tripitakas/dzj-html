@@ -43,7 +43,7 @@ class CutTaskApi(TaskHandler):
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error)
-            has_lock, error = self.check_task_lock(task)
+            has_lock, error = self.check_data_lock(task)
             if not has_lock:
                 return self.send_error_response(error)
 
@@ -68,7 +68,7 @@ class CutTaskApi(TaskHandler):
                     if self.get_task_mode() == 'do':
                         self.finish_task(task)
                     else:
-                        self.release_temp_lock(task['doc_id'], shared_field='box')
+                        self.release_temp_lock(task['doc_id'], 'box')
 
             return self.send_data_response()
 
@@ -92,27 +92,28 @@ class CutEditApi(TaskHandler):
         try:
             # 检查参数
             data = self.get_request_data()
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(CutTaskApi.step2field.keys()))]
-            err = v.validate(data, rules)
-            if err:
-                return self.send_error_response(err)
+            steps = list(CutTaskApi.step2field.keys())
+            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object)
+                return self.send_error_response(errors.no_object, message='没有找到页面' + page_name)
+
             # 检查数据锁
-            if not self.has_data_lock(page_name, 'box'):
-                return self.send_error_response(errors.data_unauthorized)
+            has_lock, error = self.check_data_lock(doc_id=page_name, shared_field='box')
+            if not has_lock:
+                return self.send_error_response(error)
             # 保存数据
-            if isinstance(data['boxes'], str):
-                data['boxes'] = json_decode(data['boxes'])
+            data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
             CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
             self.db.page.update_one({'name': page_name}, {'$set': {data_field: data['boxes']}})
             self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])
             # 释放数据锁
             if data.get('submit'):
-                self.release_temp_lock(page_name, shared_field='box')
-
+                self.release_temp_lock(page_name, 'box')
             return self.send_data_response()
 
         except DbError as error:

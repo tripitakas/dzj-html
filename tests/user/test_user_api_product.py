@@ -10,10 +10,6 @@ from tests.testcase import APITestCase
 
 
 class TestUserProductApi(APITestCase):
-
-    # def get_app(self, testing=False, debug=False):
-    #     return super(TestUserProductApi, self).get_app(testing=testing, debug=debug)
-
     def setUp(self):
         super(TestUserProductApi, self).setUp()
 
