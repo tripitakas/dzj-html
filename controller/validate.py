@@ -279,7 +279,7 @@ def not_existed(collection=None, exclude_id=None, **kw):
     :param exclude_id: 校验时，排除某个id对应的记录
     """
     errs = {}
-    code, message = e.record_existed
+    code, message = e.doc_existed
     if collection:
         for k, v in kw.items():
             condition = {k: v}
@@ -296,7 +296,7 @@ def exist(collection=None, **kw):
     :param collection: mongdb的collection
     """
     errs = {}
-    code, message = e.record_existed
+    code, message = e.doc_existed
     if collection:
         for k, v in kw.items():
             condition = {k: ObjectId(v) if k == '_id' else v}
@@ -308,7 +308,7 @@ def exist(collection=None, **kw):
 def is_unique(collection=None, **kw):
     """校验数据库中是否唯一"""
     errs = {}
-    code, message = e.record_existed
+    code, message = e.doc_existed
     if collection:
         for k, v in kw.items():
             if v is not None and collection.count_documents({k: v}) > 1:

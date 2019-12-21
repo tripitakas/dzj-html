@@ -38,7 +38,7 @@ class TestUserAdminApi(APITestCase):
         # 邮箱不能重复
         body = {'data': dict(_id=user1['_id'], name=user1['name'], email=u.user2[0], phone=user1.get('phone'))}
         r = self.fetch('/api/user/profile', body=body)
-        self.assert_code(e.record_existed, r)
+        self.assert_code(e.doc_existed, r)
 
         # 邮箱格式有误
         data = dict(_id=user1['_id'], name=user1['name'], email='123#123', phone=user1.get('phone'))

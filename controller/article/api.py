@@ -61,7 +61,7 @@ class ArticleAddOrUpdateApi(BaseHandler):
             if mode == 'update':
                 article = self.db.article.find_one({'article_id': article_id, '_id': {'$ne': ObjectId(data['_id'])}})
                 if article:
-                    return self.send_error_response(errors.record_existed, message='文章标识已被占用')
+                    return self.send_error_response(errors.doc_existed, message='文章标识已被占用')
                 r = self.db.article.update_one({'_id': ObjectId(data['_id'])}, {'$set': info})
                 if not r.matched_count:
                     return self.send_error_response(errors.no_object, message='文章不存在')
