@@ -313,29 +313,29 @@ class TestTaskApi(APITestCase):
         for task_type in task_types:
             # 管理员发布任务
             self.login_as_admin()
-            r = self.publish_tasks(dict(task_type=task_type, doc_ids=ready_ids, pre_tasks=[]))
-            self.assert_code(200, r)
+            r1 = self.publish_tasks(dict(task_type=task_type, doc_ids=ready_ids, pre_tasks=[]))
+            self.assert_code(200, r1)
 
             # 管理员指派任务时，用户没有任务对应的角色
-            user = self._app.db.user.find_one({'email': u.user1[0]})
+            user1 = self._app.db.user.find_one({'email': u.user1[0]})
             task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': ready_ids[0]})
-            data = {'task_ids': [task['_id']], 'user_id': user['_id']}
-            r = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
-            self.assert_code(errors.task_unauthorized, r, msg=task_type)
+            data = {'task_ids': [task['_id']], 'user_id': user1['_id']}
+            r2 = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
+            self.assert_code(errors.task_unauthorized, r2, msg=task_type)
 
             # 管理员不能指派进行中的任务
             user2 = self._app.db.user.find_one({'email': u.expert1[0]})
             self._app.db.task.update_one({'_id': task['_id']}, {'$set': {'status': 'finished'}})
             data = {'task_ids': [str(task['_id'])], 'user_id': str(user2['_id'])}
-            r = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
-            self.assertEqual(str(task['_id']), prop(self.parse_response(r), 'not_published')[0][0], msg=task_type)
+            r3 = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
+            self.assertEqual(str(task['doc_id']), prop(self.parse_response(r3), 'un_published')[0], msg=task_type)
 
             # 管理员指派已发布的任务给授权用户
             task2 = self._app.db.task.find_one({'task_type': task_type, 'doc_id': ready_ids[1]})
             data = {'task_ids': [str(task2['_id'])], 'user_id': str(user2['_id'])}
-            r = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
-            self.assertTrue(prop(self.parse_response(r), 'assigned'), msg=task_type)
-            self.assertEqual(str(task2['_id']), prop(self.parse_response(r), 'assigned')[0][0], msg=task_type)
+            r4 = self.fetch('/api/task/assign/%s' % task_type, body={'data': data})
+            self.assertTrue(prop(self.parse_response(r4), 'assigned'), msg=task_type)
+            self.assertEqual(str(task2['doc_id']), prop(self.parse_response(r4), 'assigned')[0], msg=task_type)
 
             self.delete_tasks_and_locks()
 
