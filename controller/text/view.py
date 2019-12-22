@@ -61,24 +61,22 @@ class TextProofHandler(TaskHandler, TextTool):
         CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
         # 获取比对来源的文本
-        ocr = page.get('ocr') or ''
-        ocr_col = page.get('ocr_col') or ''
         cmp = self.prop(task, 'result.cmp')
-        texts = dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col if ocr_col else cmp, cmp2=cmp if ocr_col else '')
-        labels = dict(base='OCR', cmp1='OCR' if ocr_col else '比对本', cmp2='比对本' if ocr_col else '')
+        ocr, ocr_col = page.get('ocr', ''), page.get('ocr_col', '')
+        texts = dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col, cmp2=cmp)
+        labels = dict(base='字框OCR', cmp1='列框OCR', cmp2='比对文本')
 
         # 检查是否已进行比对
         params = dict(mismatch_lines=[])
         cmp_data = self.prop(task, 'result.txt_html')
-        re_compare = self.get_query_argument('re_compare', 'false')
-        if not cmp_data or re_compare == 'true':
+        if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
             segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
 
         self.render(
-            'task_text_do.html', task_type=task['task_type'], task=task, page=page, mode=mode, readonly=readonly,
-            texts=texts, labels=labels, cmp_data=cmp_data, doubt=doubt, pre_doubt='',
-            steps=steps, get_img=self.get_img, **params
+            'task_text_proof.html', page_title='文字校对', task_type=task['task_type'], task=task, page=page,
+            mode=mode, readonly=readonly, texts=texts, labels=labels, cmp_data=cmp_data, doubt=doubt,
+            message='', steps=steps, get_img=self.get_img, **params
         )
 
 
@@ -91,21 +89,31 @@ class TextReviewHandler(TaskHandler, TextTool):
     def get_cmp_data(self, doc_id, page):
         """ 如果有文字校对任务，则从文字校对中获取比对文本。如果没有，则依次从text/ocr中获取比对文本"""
         has_proof, doubt, proofs = False, '', ['', '', '']
+        condition = {'doc_id': doc_id, 'status': self.STATUS_FINISHED}
         for i in [1, 2, 3]:
-            condition = {'task_type': 'text_proof_%s' % i, 'doc_id': doc_id, 'status': self.STATUS_FINISHED}
+            condition['task_type'] = 'text_proof_%s' % i
             proof_task = self.db.task.find_one(condition)
             if proof_task:
                 has_proof = True
-                doubt += self.prop(proof_task, 'result.doubt') or ''
-                proofs[i - 1] = self.html2txt(self.prop(proof_task, 'result.txt_html'))
+                doubt += self.prop(proof_task, 'result.doubt', '')
+                proofs[i - 1] = self.html2txt(self.prop(proof_task, 'result.txt_html', ''))
+
+        texts, labels = dict(base='', cmp1='', cmp2=''), dict(base='', cmp1='', cmp2='')
+        text, ocr, ocr_col = page.get('text', ''), page.get('ocr', ''), page.get('ocr_col', '')
         if has_proof:
-            texts = dict(base=proofs[0], cmp1=proofs[1], cmp2=proofs[2])
-            labels = dict(base='校一', cmp1='校一', cmp2='校三')
-        else:
-            txt = page.get('text') or page.get('ocr') or ''
-            texts = dict(base=re.sub(r'\|+', '\n', txt), cmp1='', cmp2='')
-            labels = dict(base='文本一', cmp1='', cmp2='')
-        return doubt, texts, labels
+            texts.update(dict(base=proofs[0], cmp1=proofs[1], cmp2=proofs[2]))
+            labels.update(dict(base='校一', cmp1='校一', cmp2='校三'))
+        elif text:
+            texts.update(dict(base=re.sub(r'\|+', '\n', text), cmp1=ocr, cmp2=ocr_col))
+            labels.update(dict(base='审定文本', cmp1='字框OCR', cmp2='列框OCR'))
+        elif ocr:
+            texts.update(dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col))
+            labels.update(dict(base='字框OCR', cmp1='列框OCR'))
+        elif ocr_col:
+            texts.update(dict(base=re.sub(r'\|+', '\n', ocr_col)))
+            labels.update(dict(base='列框OCR'))
+
+        return texts, labels, doubt
 
     def get(self, task_id):
         """ 文字审定页面"""
@@ -123,22 +131,25 @@ class TextReviewHandler(TaskHandler, TextTool):
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
+            message = '' if has_lock else str(error)
 
-            mode = self.get_task_mode()
+            # 字框排序
             params = dict(mismatch_lines=[])
             CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
+
+            mode = self.get_task_mode()
             review_doubt = self.prop(task, 'result.doubt')
-            proof_doubt, texts, labels = self.get_cmp_data(self, task['doc_id'], page)
+            texts, labels, proof_doubt = self.get_cmp_data(self, task['doc_id'], page)
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
-                readonly=not has_lock, texts=texts, labels=labels, cmp_data=cmp_data,
-                doubt=review_doubt, pre_doubt=proof_doubt, get_img=self.get_img,
-                steps=dict(is_first=True, is_last=True), **params
+                'task_text_review.html', page_title='文字审定', task_type=task_type, task=task, page=page,
+                mode=mode, readonly=not has_lock, texts=texts, labels=labels, cmp_data=cmp_data,
+                doubt=review_doubt, pre_doubt=proof_doubt, message=message, get_img=self.get_img,
+                steps=dict(is_first=True, is_last=True), **params,
             )
 
         except Exception as error:
@@ -159,25 +170,27 @@ class TextHardHandler(TextReviewHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(e.no_object)
+                return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
+            message = '' if has_lock else str(error)
 
             mode = self.get_task_mode()
-            proof_doubt, texts, labels = self.get_cmp_data(self, task['doc_id'], page)
+            texts, labels, proof_doubt = self.get_cmp_data(self, task['doc_id'], page)
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
             hard_doubt = self.prop(task, 'result.doubt')
             cmp_data = self.prop(page, 'txt_html')
-            kwargs = dict(texts=texts, labels=labels, steps=dict(is_first=True, is_last=True))
             self.render(
-                'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
-                readonly=not has_lock, cmp_data=cmp_data, doubt=hard_doubt, pre_doubt=review_doubt,
-                get_img=self.get_img, **kwargs
+                'task_text_review.html', page_title='难字审定', task_type=task_type, task=task, page=page,
+                mode=mode, readonly=not has_lock, cmp_data=cmp_data, texts=texts, labels=labels,
+                doubt=hard_doubt, pre_doubt=review_doubt, message=message,
+                steps=dict(is_first=True, is_last=True),
+                get_img=self.get_img,
             )
 
         except Exception as error:
@@ -194,19 +207,23 @@ class TextEditHandler(TaskHandler, TextTool):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 return self.send_error_response(e.no_object)
+            if not page.get('txt_html') and not page.get('text'):
+                self.send_error_response(e.no_object, message='没有找到审定文本')
 
-            has_lock = self.assign_temp_lock(page_name, 'text') is True
-            cmp_data = self.prop(page, 'txt_html') or ''
+            r = self.assign_temp_lock(page_name, 'text')
+            has_lock, message = r is True, '' if r is True else str(r)
+
+            cmp_data = self.prop(page, 'txt_html', '')
             if not cmp_data and self.prop(page, 'text'):
-                segments = Diff.diff(self.prop(page, 'text').replace('|', '\n'))[0]
+                segments = Diff.diff(page['text'].replace('|', '\n'))[0]
                 cmp_data = self.check_segments(segments, page['chars'], dict(mismatch_lines=[]))
 
             kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', pre_doubt='',
                           steps=dict(is_first=True, is_last=True))
             self.render(
-                'task_text_do.html', page=page, mode='edit', readonly=not has_lock, cmp_data=cmp_data,
+                'task_text_review.html', page_title='难字审定', page=page, mode='edit',
+                readonly=not has_lock, cmp_data=cmp_data, message=message,
                 get_img=self.get_img, **kwargs
-
             )
 
         except Exception as error:

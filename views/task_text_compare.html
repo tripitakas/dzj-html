@@ -127,8 +127,7 @@
       </div>
     </div>
   </div>
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
-       aria-hidden="true">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -242,7 +241,9 @@
   // 初始化加载比对本
   $(document).ready(function () {
     postApi('/task/text_get_compare/{{page["name"]}}', {data: {}}, function (data) {
+      // 设置文本
       $('#cmp').html(data.cmp);
+      // 设置分页
       var count = data.hit_page_codes.length;
       var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
       for (var i = 2; i <= count; i++) {
@@ -286,14 +287,13 @@
   });
 
   // 选中作为比对本
+  var $selected = $('#selected');
   $(document).on('click', '#select-txt', function () {
-    var $selected = $('#selected');
     $selected.val($selected.val() + window.getSelection().toString());
     $selected.height($selected.prop('scrollHeight'));
   });
 
   $(document).on('change', '#selected', function () {
-    var $selected = $('#selected');
     $selected.height($selected.prop('scrollHeight'));
   });
 

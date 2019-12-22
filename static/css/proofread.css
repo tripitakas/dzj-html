@@ -294,7 +294,7 @@
 .pfread .pfread-dialog {
   position: absolute;
   max-width: 600px;
-  min-width: 200px;
+  min-width: 240px;
 }
 
 .pfread .pfread-dialog .item {

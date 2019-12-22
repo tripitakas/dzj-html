@@ -41,6 +41,7 @@ class CutHandler(TaskHandler):
             if not has_auth:
                 return self.send_error_response(error, message='%s(%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
+            message = '' if has_lock else str(error)
 
             mode = self.get_task_mode()
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
@@ -54,7 +55,7 @@ class CutHandler(TaskHandler):
             self.render(
                 template, task=task, task_type=task_type, page=page, readonly=not has_lock,
                 mode=mode, steps=steps, box_type=box_type, boxes=page.get(box_type + 's'),
-                message='' if has_lock else str(error), get_img=self.get_img, **kwargs
+                message=message, get_img=self.get_img, **kwargs
             )
 
         except Exception as error:
