@@ -25,7 +25,8 @@ function error_callback(res) {
         window.location = res.url;
       });
   } else if (res.code === 3003) { // error.no_task_to_pick
-    showWarning('暂无新任务', res.message);
+    window.location = '/task/lobby/' + taskType;
+    // showWarning('暂无新任务', res.message);
   } else if (res.code !== 500) {
     showConfirm("是否领取其它任务？", res.message, function () {
       pick("/task/pick/" + taskType);
