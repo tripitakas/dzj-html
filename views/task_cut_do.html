@@ -73,8 +73,16 @@
           <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、工作目标</div>
-          <div class="intro">检查并完善OCR切分的栏框、字框、列框的大小。</div>
+          <div class="title">一、功能概述</div>
+          <div class="intro">
+            该功能用于检查OCR自动切分的栏框、字框、列框、字序是否正确，并对不正确的栏框、字框、列框、
+            字序进行修改。用户在领取切分校对任务后，按照四个步骤完成任务：栏框校对、字框校对、列框校对
+            和字序校对。栏框校对要求用栏框将图片所有文字框住（不包括边缘页码或注解文字），如果图片有多
+            栏，则需要多个栏框。字框校对要求将图片中的每个需要校对的文字框住，不能有漏框字、重复框字、
+            框不全字或字框重叠等情况，在操作时可以直接用鼠标对字框操作，也可通过快捷键进行操作。列框校
+            对要求用多个列框将图片的每列文字框住；字序校对是最后一个步骤，用于对字框的排列顺序进行检查
+            和调整，确保字框按照阅读文字的正确顺序排列，在操作时直接拖拽字序的连线即可。
+          </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
@@ -83,11 +91,11 @@
             </tr>
             <tr>
               <td><img src="{{ static_url('imgs/icon_pic.png') }}"/></td>
-              <td>显示或隐藏图片</td>
+              <td>显示或隐藏图片。有时候隐藏图片有助于看清所要校对的图框</td>
             </tr>
             <tr>
               <td><img src="{{ static_url('imgs/icon_char.png') }}"/></td>
-              <td>显示或隐藏字框</td>
+              <td>显示或隐藏字框。有时候隐藏图框有助于仔细辨认原始图片</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
@@ -98,8 +106,32 @@
               <td>取消撤销</td>
             </tr>
             <tr>
+              <td><span type="button" class="btn btn-default btn-sm">所有</span></td>
+              <td>把所有的图框以“淡红色”、“淡蓝色”、“白色”、“透明色”进行显示，帮助用户识别图框存在的问题</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">重叠</span></td>
+              <td>将发生重叠的图框用淡蓝色提示，帮助用户识别是否有错误</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">大框</span></td>
+              <td>将相对较大的图框用淡蓝色提示，帮助用户识别是否异常</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">窄框</span></td>
+              <td>将相对较窄的图框用淡蓝色提示</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">扁框</span></td>
+              <td>将相对较扁的图框用淡蓝色提示</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
+              <td>取消撤销</td>
+            </tr>
+            <tr>
               <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
-              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
+              <td>返回上一个步骤。</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>

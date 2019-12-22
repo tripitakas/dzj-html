@@ -229,9 +229,13 @@
           <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、页面功能</div>
+          <div class="title">一、功能概述</div>
           <div class="intro">
-            本页面提供古籍图片数据的阅读功能，包含图片、栏框、列框、字框、OCR文本、校对文本等。
+            本页面提供大藏经古籍数据的浏览及检索功能。藏经古籍数据的类型包含古籍图片以及图片的栏框、列框、字框、
+            OCR文本、校对文本等相关数据。用户可以根据自身需要直接浏览古籍的原始图片，也可以查阅符合现代人阅读习
+            惯的电子化文本，或者将原始图片和文本进行图文对照浏览。古籍图片数据是根据图片的物理结构（如藏-册-页、
+            藏-函-册-页）或逻辑结构（如藏-经-页）为目录来组织展示的。通过目录导航以及检索功能，用户可以方便地定
+            位到需要浏览或研究的页面。
           </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
@@ -245,11 +249,11 @@
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_panel.png')}}"/></td>
-              <td>打开经目检索面板，可以针对经名等著录项目进行检索</td>
+              <td>打开经目检索面板，可以针对经号、经名等属性在当前藏内检索页面</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_pic.png')}}"/></td>
-              <td>显示或隐藏图片区域</td>
+              <td>显示或隐藏图片区域。注意，系统会记住当前状态，下次自动显示或隐藏</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_txt.png')}}"/></td>
@@ -257,7 +261,7 @@
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
-              <td>打开文本显示面板，该面板将展示OCR和校对结果等文本</td>
+              <td>打开文本显示面板，该面板将展示与当前页相关的OCR文本和校对后文本</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_more.png')}}"/></td>
