@@ -66,12 +66,17 @@
   padding-top: 15px;
 }
 
-.menu-item .menu-title {
-  padding-left: 10px;
+.menu .menu-item {
+  margin: 8px 0 8px 10px;
+}
+
+.menu-item .sub-ul li {
+  margin: 4px 0;
 }
 
 .menu-item .sub-item {
-  padding-left: 18px;
+  padding-left: 24px;
+  margin-top: 5px;
 }
 
 .main-left .menu-title.has-sub:before {

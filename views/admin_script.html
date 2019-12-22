@@ -46,14 +46,14 @@
           <div class="wrapper">
               <div class="sty-list">
                 <div class="item">
-                  <div class="title">一、册JS<span class="btn-txt" id="gen-volume-JS">重新生成</span></div>
+                  <div class="title">一、册JS<span class="btn-txt" id="gen-volume-js">重新生成</span></div>
                   <div class="desc">
                     大藏经阅读界面中，目录导航的数据来源于册JS。
                     册JS从册数据中生成，如果该部藏经有册数据，则可以生成相应的册JS。如果手工更新了册信息，则可以重新生成册JS。
                   </div>
                 </div>
                 <div class="item">
-                  <div class="title">二、经JS<span class="btn-txt" id="gen-sutra-JS">重新生成</span></div>
+                  <div class="title">二、经JS<span class="btn-txt" id="gen-sutra-js">重新生成</span></div>
                   <div class="desc">
                     大藏经阅读界面中，经目信息的数据来源于经JS。
                     每部藏经都有对应相应的经JS，如果该部藏经有经数据，则可以生成相应的经JS。如果手工更新了经信息，则需要更新手工更新经JS。
@@ -79,7 +79,7 @@
 </div>
 
 <div class="panel-body">
-  <div id="JSModal" class="modal fade" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
+  <div id="jsModal" class="modal fade" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="width: 400px; margin: auto">
         <div class="modal-header">
@@ -99,7 +99,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="JS-modal-confirm">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
         </div>
       </div>
     </div>
@@ -110,29 +110,29 @@
 {% include _base_JS.html %}
 <script>
   // 生成册JS
-  $("#gen-volume-JS").click(function () {
+  $("#gen-volume-js").click(function () {
     $("#collection").val('volume');
     $("#modal-title").html('生成册JS');
-    $('#JSModal').modal();
+    $('#jsModal').modal();
   });
 
   // 生成经JS
-  $("#gen-sutra-JS").click(function () {
+  $("#gen-sutra-js").click(function () {
     $("#collection").val('sutra');
     $("#modal-title").html('生成经JS');
-    $('#JSModal').modal();
+    $('#jsModal').modal();
   });
 
   // modal提交
-  $("#JS-modal-confirm").click(function () {
+  $("#jsModal .modal-confirm").click(function () {
     var tripitaka_code = $('#select-tripitaka option:selected').attr('title');
     var data = {collection: $("#collection").val(), tripitaka_code: tripitaka_code};
-    postApi('/data/gen_JS', {data: data}, function () {
+    postApi('/data/gen_js', {data: data}, function () {
       showSuccess('成功', '数据已提交。');
     }, function (error) {
       return showError('提交失败', error.message);
     });
-    $('#JSModal').modal('hide');
+    $('#jsModal').modal('hide');
   });
 
 
