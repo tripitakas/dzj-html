@@ -52,8 +52,8 @@
   });
 
   // 退回任务
-  $(document).on('click', '#returnModal modal-confirm', function () {
-    var reason = $('#return_reason').val().trim();
+  $(document).on('click', '#returnModal .modal-confirm', function () {
+    var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
       return showError('请填写退回理由', '尚未填写退回理由');
     }

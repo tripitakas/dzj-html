@@ -149,7 +149,7 @@ class PickTaskApi(TaskHandler):
             condition = {'task_type': task_filter, 'status': self.STATUS_PICKED, 'picked_user_id': user_id}
             uncompleted = self.db.task.find_one(condition)
             if uncompleted:
-                url = '/task/do/%s/%s' % (task_type, uncompleted['_id'])
+                url = '/task/do/%s/%s' % (uncompleted['task_type'], uncompleted['_id'])
                 return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted['doc_id']})
 
             task_id, task = self.prop(self.get_request_data(), 'task_id'), None
