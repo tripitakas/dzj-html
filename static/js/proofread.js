@@ -482,7 +482,7 @@ function checkMismatch(report) {
       text = '<ul class="tips">' + text + '</ul>';
       showWarning("图文不匹配", text);
     } else {
-      showTip("图文匹配", "");
+      showTips("图文匹配", "");
     }
   }
 }

@@ -531,7 +531,7 @@
           ids.push(b.char_id);
         });
         if (newId && window.swal) {
-          showTip('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。');
+          showTips('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。');
         }
       };
 

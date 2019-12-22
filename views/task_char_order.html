@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as Th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -49,7 +48,9 @@
           {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
           <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
-        <div class="title" title="{{page['name']}}">切分校对<span class="sub-title">-{{Th.get_step_name(steps["current"])}}</span></div>
+        <div class="title" title="{{page['name']}}">
+          切分校对<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
+        </div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
@@ -82,9 +83,7 @@
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
       </div>
-      {% if mode in ['do', 'update', 'edit'] and readonly %}
-      <div class="tips right">数据已被其他人锁定，暂时不能修改。</div>
-      {% end %}
+      <div class="tips right">{{message}}</div>
     </div>
 
     <div class="full-bd">
@@ -101,8 +100,7 @@
 </div>
 
 <div class="panel-body">
-
-  <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal" aria-hidden="true">
+  <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -121,16 +119,12 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="return-modal-confirm">
-            确定
-          </button>
+          <button type="button" class="btn btn-primary waves-effect waves-light" id="return-modal-confirm">确定</button>
         </div>
       </div>
     </div>
   </div>
-
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
-       aria-hidden="true">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -226,8 +220,6 @@
       </div>
     </div>
   </div>
-
-
 </div>
 
 {% include _base_js.html %}

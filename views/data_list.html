@@ -43,9 +43,9 @@
       var errors = res.data.errors;
       if (errors.length > 0) {
         var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
-        showTip('上传完成', text, true);
+        showTips('上传完成', text, true);
       } else {
-        showTip('上传成功', res.message, true);
+        showTips('上传成功', res.message, true);
       }
     }, function (err) {
       $('#progress').addClass('hide');

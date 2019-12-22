@@ -15,7 +15,7 @@
 
 import re
 from bson.objectid import ObjectId
-from controller import errors as errors
+from controller import errors as e
 from controller.cut.api import CutTaskApi
 from controller.cut.cuttool import CutTool
 from controller.task.base import TaskHandler
@@ -34,7 +34,7 @@ class CutHandler(TaskHandler):
                 return self.render('_404.html')
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if not page:
-                return self.send_error_response(errors.no_object, message='%s 页面不存在' % task['doc_id'])
+                return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
@@ -45,7 +45,6 @@ class CutHandler(TaskHandler):
             mode = self.get_task_mode()
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             box_type = re.findall('(char|column|block)', steps['current'])[0]
-            boxes = page.get(box_type + 's')
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'char_order':
@@ -54,8 +53,8 @@ class CutHandler(TaskHandler):
 
             self.render(
                 template, task=task, task_type=task_type, page=page, readonly=not has_lock,
-                mode=mode, steps=steps, boxes=boxes, box_type=box_type, err=error,
-                get_img=self.get_img, **kwargs
+                mode=mode, steps=steps, box_type=box_type, boxes=page.get(box_type + 's'),
+                message=error or '', get_img=self.get_img, **kwargs
             )
 
         except Exception as error:
@@ -71,30 +70,30 @@ class CutEditHandler(TaskHandler):
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object)
+                return self.send_error_response(e.no_object)
 
             # 获取数据锁
             has_lock = self.assign_temp_lock(page_name, 'box') is True
 
             # 设置步骤
             default_steps = list(CutTaskApi.step2field.keys())
-            cur_step = self.get_query_argument('step', default_steps[0])
-            if cur_step not in default_steps:
-                return self.send_error_response(errors.task_step_error)
+            current_step = self.get_query_argument('step', default_steps[0])
+            if current_step not in default_steps:
+                return self.send_error_response(e.task_step_error)
             fake_task = dict(steps={'todo': default_steps})
-            steps = self.init_steps(fake_task, 'edit', cur_step)
+            steps = self.init_steps(fake_task, 'edit', current_step)
 
             box_type = re.findall('(char|column|block)', steps['current'])[0]
-            boxes = page.get(box_type + 's')
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'char_order':
                 template = 'task_char_order.html'
-                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **kwargs)
+                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
             self.render(
                 template, task_type='', task=dict(), page=page, steps=steps, readonly=not has_lock,
-                mode='edit', boxes=boxes, box_type=box_type, get_img=self.get_img, **kwargs
+                mode='edit', box_type=box_type, boxes=page.get(box_type + 's'),
+                message='', get_img=self.get_img, **kwargs
             )
 
         except Exception as error:

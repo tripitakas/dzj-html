@@ -6,8 +6,8 @@
 from datetime import datetime
 from bson.objectid import ObjectId
 from tornado.escape import json_decode
+from controller import errors as e
 from controller import validate as v
-from controller import errors as errors
 from controller.cut.cuttool import CutTool
 from controller.cut.reorder import char_reorder
 from controller.task.base import TaskHandler
@@ -29,15 +29,15 @@ class CutTaskApi(TaskHandler):
             # 检查参数
             data = self.get_request_data()
             rules = [(v.not_empty, 'step', 'boxes')]
-            err = v.validate(data, rules)
-            if err:
-                return self.send_error_response(err)
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                return self.send_error_response(errors.task_un_existed)
+                return self.send_error_response(e.task_un_existed)
             steps_todo = self.prop(task, 'steps.todo')
             if not data['step'] in steps_todo:
-                return self.send_error_response(errors.task_step_error)
+                return self.send_error_response(e.task_step_error)
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
@@ -60,9 +60,8 @@ class CutTaskApi(TaskHandler):
                 submitted = self.prop(task, 'steps.submitted', [])
                 if data['step'] not in submitted:
                     submitted.append(data['step'])
-                self.db.task.update_one({'_id': ObjectId(task_id)}, {'$set': {
-                    'updated_time': datetime.now(), 'steps.submitted': submitted
-                }})
+                update = {'updated_time': datetime.now(), 'steps.submitted': submitted}
+                self.db.task.update_one({'_id': ObjectId(task_id)}, {'$set': update})
                 self.add_op_log('save_%s' % task_type, target_id=task_id)
                 if data['step'] == steps_todo[-1]:
                     if self.get_task_mode() == 'do':
@@ -99,14 +98,15 @@ class CutEditApi(TaskHandler):
                 return self.send_error_response(errs)
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(errors.no_object, message='没有找到页面' + page_name)
+                return self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
 
             # 检查数据锁
             has_lock, error = self.check_data_lock(doc_id=page_name, shared_field='box')
             if not has_lock:
                 return self.send_error_response(error)
             # 保存数据
-            data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
+            if isinstance(data['boxes'], str):
+                data['boxes'] = json_decode(data['boxes'])
             CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
             self.db.page.update_one({'name': page_name}, {'$set': {data_field: data['boxes']}})
@@ -147,5 +147,7 @@ class GenerateCharIdApi(BaseHandler):
         if reorder.get('chars') and chars:
             zero_char_id, layout_type, chars_col = CutTool.sort(chars, columns, blocks, layout_type, chars_col)
 
-        return self.send_data_response(dict(blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-                                            zero_char_id=zero_char_id, layout_type=layout_type))
+        return self.send_data_response(dict(
+            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
+            zero_char_id=zero_char_id, layout_type=layout_type
+        ))

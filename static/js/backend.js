@@ -46,7 +46,7 @@ function showConfirm(title, text, func) {
   return swal(info, func);
 }
 
-function showTip(title, text, reload) {
+function showTips(title, text, reload) {
   if (typeof reload !== 'undefined' && reload) {
     swal({title: title, text: text, type: 'success', confirmButtonText: '确定', showConfirmButton: true, html: true},
         function () {
