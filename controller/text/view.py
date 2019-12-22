@@ -131,7 +131,7 @@ class TextReviewHandler(TaskHandler, TextTool):
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
-            message = '' if has_lock else str(error)
+            message = '' if has_lock else str(error[1])
 
             # 字框排序
             params = dict(mismatch_lines=[])
@@ -177,7 +177,7 @@ class TextHardHandler(TextReviewHandler):
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
-            message = '' if has_lock else str(error)
+            message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
             texts, labels, proof_doubt = self.get_cmp_data(self, task['doc_id'], page)
@@ -211,7 +211,7 @@ class TextEditHandler(TaskHandler, TextTool):
                 self.send_error_response(e.no_object, message='没有找到审定文本')
 
             r = self.assign_temp_lock(page_name, 'text')
-            has_lock, message = r is True, '' if r is True else str(r)
+            has_lock, message = r is True, '' if r is True else str(r[1])
 
             cmp_data = self.prop(page, 'txt_html', '')
             if not cmp_data and self.prop(page, 'text'):

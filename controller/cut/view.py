@@ -41,7 +41,7 @@ class CutHandler(TaskHandler):
             if not has_auth:
                 return self.send_error_response(error, message='%s(%s)' % (error[1], page['name']))
             has_lock, error = self.check_data_lock(task)
-            message = '' if has_lock else str(error)
+            message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
@@ -75,7 +75,7 @@ class CutEditHandler(TaskHandler):
 
             # 获取数据锁
             r = self.assign_temp_lock(page_name, 'box')
-            has_lock, message = r is True, '' if r is True else str(r)
+            has_lock, message = r is True, '' if r is True else str(r[1])
 
             # 设置步骤
             default_steps = list(CutTaskApi.step2field.keys())
