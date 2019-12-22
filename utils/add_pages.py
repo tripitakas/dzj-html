@@ -72,13 +72,17 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
         return
     if update or not exist:
         meta = Page.metadata()
-        width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width'))
-        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height'))
+        width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
+        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height'), or 0)
         page_code = Page.name2pagecode(name)
         meta.update(dict(
             name=name, width=width, height=height, page_code=page_code, blocks=prop(info, 'blocks', []),
             columns=prop(info, 'columns', []), chars=prop(info, 'chars', []),
         ))
+        if not width or not height:
+            assert exist
+            meta.pop('width')
+            meta.pop('height')
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
                 meta['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
@@ -143,6 +147,7 @@ def add_texts(src_path, pages, db):
             cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
             r = list(db.page.find(cond))
             if r and not r[0].get('text'):
+                text = re.sub(r'[<>]', '', text)
                 db.page.update_many(cond, {'$set': dict(ocr=text)})
 
 
