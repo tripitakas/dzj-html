@@ -51,7 +51,7 @@ class TaskAdminHandler(TaskHandler):
                 template = 'task_admin_import.html'
                 search_tip = '请搜索网盘名称或导入文件夹'
                 search_fields = ['input.pan_name', 'input.import_dir']
-            tasks, pager, q, order = self.find_by_page(self, condition, search_fields, order='-publish_time')
+            tasks, pager, q, order = self.find_by_page(self, condition, search_fields, default_order='-publish_time')
             self.render(
                 template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, search_tip=search_tip,
                 task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled, statistic=statistic(),
