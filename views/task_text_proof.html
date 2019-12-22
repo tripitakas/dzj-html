@@ -150,18 +150,21 @@
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
         <div class="modal-header">
           <div class="btn-group" role="group">
-            <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">基础本/{{labels.get('base') or ''}}</button>
-            <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">文本一/{{labels.get('cmp1') or ''}}</button>
-            <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">文本二/{{labels.get('cmp2') or ''}}</button>
-            <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-all">所有</button>
+            <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">{{labels.get('base') or ''}}</button>
+            <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">{{labels.get('cmp1') or ''}}</button>
+            <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">{{labels.get('cmp2') or ''}}</button>
+            {% set count = len([t for t in texts.values() if t]) %}
+            <button class="btn btn-txt btn-default{{'' if count else ' hide'}}" id="show-all">所有</button>
           </div>
         </div>
         <div class="modal-body">
           {% import re %}
           {% for k, txt in texts.items() %}
+          {% if txt %}
           <textarea id="{{k}}" style="{{'display: inline-block' if k == 'base' else 'display: none'}}" rows="26" readonly>
             {{'\n'.join(re.split(r'[\n|]', txt or ''))}}
           </textarea>
+          {% end %}
           {% end %}
         </div>
       </div>
