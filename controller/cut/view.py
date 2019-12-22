@@ -54,7 +54,7 @@ class CutHandler(TaskHandler):
             self.render(
                 template, task=task, task_type=task_type, page=page, readonly=not has_lock,
                 mode=mode, steps=steps, box_type=box_type, boxes=page.get(box_type + 's'),
-                message=error or '', get_img=self.get_img, **kwargs
+                message='' if has_lock else str(error), get_img=self.get_img, **kwargs
             )
 
         except Exception as error:
@@ -73,7 +73,8 @@ class CutEditHandler(TaskHandler):
                 return self.send_error_response(e.no_object)
 
             # 获取数据锁
-            has_lock = self.assign_temp_lock(page_name, 'box') is True
+            r = self.assign_temp_lock(page_name, 'box')
+            has_lock, message = r is True, '' if r is True else str(r)
 
             # 设置步骤
             default_steps = list(CutTaskApi.step2field.keys())
@@ -93,7 +94,7 @@ class CutEditHandler(TaskHandler):
             self.render(
                 template, task_type='', task=dict(), page=page, steps=steps, readonly=not has_lock,
                 mode='edit', box_type=box_type, boxes=page.get(box_type + 's'),
-                message='', get_img=self.get_img, **kwargs
+                message=message, get_img=self.get_img, **kwargs
             )
 
         except Exception as error:

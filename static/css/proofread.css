@@ -286,13 +286,6 @@
   border-spacing: 0px 20px;
 }
 
-#doubt_tip {
-  float: left;
-  color: red;
-  display: none;
-}
-
-
 /* 选择弹框 */
 #pfread-dialog {
   display: none;

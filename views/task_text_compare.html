@@ -65,7 +65,6 @@
 
 <body class="widescreen">
 <div class="app-main">
-
   <div class="main">
     <div class="pfread">
       <header class="m-header">
@@ -90,9 +89,6 @@
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         </div>
-        {% if mode in ['do', 'update', 'edit'] and readonly %}
-        <div class="tips right">数据已被其他人锁定，暂时不能修改。</div>
-        {% end %}
       </header>
 
       <div class="flex-content pfread-in">
@@ -119,8 +115,8 @@
 </div>
 
 <div class="panel-body">
-
-  <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModalLabel" aria-hidden="true">
+  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+  <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -131,35 +127,6 @@
       </div>
     </div>
   </div>
-
-  <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">退回任务</h4>
-        </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <table style="width: 100%">
-              <tr>
-                <td>退回理由：</td>
-                <td><textarea id="return_reason" class="form-control search-input" rows="4" cols="40"></textarea></td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="return-modal-confirm">
-            确定
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
        aria-hidden="true">
     <div class="modal-dialog">
@@ -227,7 +194,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 {% include _font.html %}

@@ -55,7 +55,7 @@ class CutTool(object):
 
     @staticmethod
     def sort_blocks(blocks):
-        """根据坐标对栏框排序和生成编号"""
+        """ 根据坐标对栏框排序和生成编号"""
         blocks.sort(key=cmp_to_key(lambda a, b: a['y'] + a['h'] / 2 - b['y'] - b['h'] / 2))
         for i, blk in enumerate(blocks):
             blk['no'] = i + 1
@@ -74,7 +74,7 @@ class CutTool(object):
 
     @classmethod
     def sort_columns(cls, columns, blocks):
-        """根据列框坐标和所在的栏对列框排序和生成编号"""
+        """ 根据列框坐标和所在的栏对列框排序和生成编号"""
         columns_dict = [[] for _ in blocks]
         for c in columns:
             block_no = cls.get_block_index(c, blocks) + 1
@@ -92,9 +92,11 @@ class CutTool(object):
 
     @staticmethod
     def get_invalid_char_ids(chars):
-        return [c.get('char_id') for c in chars if not (
-                re.match(r'^b\dc\d+c\d{1,2}$', c.get('char_id', ''))
-                and c.get('block_no') and c.get('line_no') and c.get('no'))]
+        def valid(c):
+            regex = r'^b\dc\d+c\d{1,2}$'
+            return re.match(regex, c.get('char_id', '')) and c.get('block_no') and c.get('line_no') and c.get('no')
+
+        return [c.get('char_id') for c in chars if not valid(c)]
 
     @classmethod
     def sort_chars(cls, chars, columns, blocks, layout_type=None):

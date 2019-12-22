@@ -12,7 +12,7 @@ class SubmitDataTaskApi(TaskHandler):
     def submit_one(self, task):
         tsk = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
         if not tsk:
-            return errors.task_un_existed
+            return errors.task_not_existed
         elif tsk['picked_user_id'] != self.current_user['_id']:
             return errors.task_unauthorized_locked
         page_name = self.prop(task, 'page_name')

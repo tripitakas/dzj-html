@@ -163,7 +163,8 @@
 </div>
 
 <div class="panel-body">
-
+  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+  {% module ComModal(handler.doubt_modal_fields, 'doubtModal', '存疑') %}
   <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -186,56 +187,6 @@
       </div>
     </div>
   </div>
-
-  <div id="doubtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="doubtModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h4 class="modal-title">存疑</h4></div>
-        <div class="modal-body">
-          <div class="form-group">
-            <table style="width: 100%">
-              <tr>
-                <td>存疑文字：</td>
-                <td><input type="text" class="form-control search-input" id="doubt-input" readonly="readonly"></td>
-              </tr>
-              <tr>
-                <td>存疑理由：</td>
-                <td><textarea id="doubt_reason" class="form-control search-input" rows="4" cols="40"></textarea></td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <span id="doubt_tip">请填写存疑理由</span>
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="doubt-modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="returnModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="returnModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header"><h4 class="modal-title">退回任务</h4></div>
-        <div class="modal-body">
-          <div class="form-group">
-            <table style="width: 100%">
-              <tr>
-                <td>退回理由：</td>
-                <td><textarea id="return_reason" class="form-control search-input" rows="4" cols="40"></textarea></td>
-              </tr>
-            </table>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light" id="return-modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
        aria-hidden="true">
     <div class="modal-dialog">
@@ -320,8 +271,6 @@
       </div>
     </div>
   </div>
-
-
 </div>
 
 {% include _font.html %}

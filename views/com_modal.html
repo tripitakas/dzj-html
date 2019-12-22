@@ -1,4 +1,4 @@
-<div id="{{id or 'dataModal'}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+<div id="{{id or 'dataModal'}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{id or 'dataModal'}}"
      aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -12,7 +12,7 @@
         <form class="form-horizontal">
           {% for f in modal_fields %}
           <div class="form-group">
-            <label class="col-sm-2 control-label">{{f.get('name')}}</label>
+            <h4 class="col-sm-2 control-label">{{f.get('name')}}</h4>
             <div class="col-md-10">
               {% set input_type, fid = f.get('input_type') or '', f.get('id') or '' %}
               {% if input_type == 'radio' %}
@@ -30,9 +30,9 @@
                 {% end %}
               </select>
               {% elif input_type == 'textarea' %}
-              <textarea type="text" class="form-control {{fid}}"></textarea>
+              <textarea type="text" class="form-control {{fid}}" rows="4" {{'readonly' if f.get('readonly') else ''}}></textarea>
               {% else %}
-              <input type="text" class="form-control {{fid}}">
+              <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
               {% end %}
             </div>
           </div>

@@ -34,7 +34,7 @@ class CutTaskApi(TaskHandler):
                 return self.send_error_response(errs)
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
-                return self.send_error_response(e.task_un_existed)
+                return self.send_error_response(e.task_not_existed)
             steps_todo = self.prop(task, 'steps.todo')
             if not data['step'] in steps_todo:
                 return self.send_error_response(e.task_step_error)

@@ -85,21 +85,21 @@ class TaskHandler(BaseHandler, Task):
         return value or ''
 
     @classmethod
-    def init_steps(cls, task, mode, cur_step=''):
+    def init_steps(cls, task, mode, current_step=''):
         """ 检查当前任务的步骤，缺省时进行设置，有误时报错 """
-        todo = cls.prop(task, 'steps.todo') or []
-        submitted = cls.prop(task, 'steps.submitted') or []
+        todo = cls.prop(task, 'steps.todo', [])
+        submitted = cls.prop(task, 'steps.submitted', [])
         un_submitted = [s for s in todo if s not in submitted]
         if not todo:
             return e.task_steps_is_empty
-        if cur_step and cur_step not in todo:
+        if current_step and current_step not in todo:
             return e.task_step_error
-        if not cur_step:
-            cur_step = un_submitted[0] if mode == 'do' else todo[0]
+        if not current_step:
+            current_step = un_submitted[0] if mode == 'do' else todo[0]
 
         steps = dict()
-        index = todo.index(cur_step)
-        steps['current'] = cur_step
+        index = todo.index(current_step)
+        steps['current'] = current_step
         steps['is_first'] = index == 0
         steps['is_last'] = index == len(todo) - 1
         steps['prev'] = todo[index - 1] if index > 0 else None

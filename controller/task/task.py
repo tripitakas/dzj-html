@@ -71,6 +71,15 @@ class Task(Model):
         {'id': 'batch', 'name': '任务批次'},
     ]
 
+    return_modal_fields = [
+        {'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'},
+    ]
+
+    doubt_modal_fields = [
+        {'id': 'doubt_input', 'name': '存疑文本', 'readonly': True},
+        {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'},
+    ]
+
     # 任务类型定义
     # pre_tasks：默认的前置任务
     # data.id：数据表的主键名称

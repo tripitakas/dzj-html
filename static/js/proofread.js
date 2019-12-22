@@ -315,7 +315,7 @@ $('#save-doubt').on('click', function () {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubt-input').val(word);
+  $('#doubtModal .doubt_input').val(word);
 });
 
 // 切换存疑列表
@@ -334,13 +334,11 @@ $('.doubt-list .tab-view').on('click', function () {
 });
 
 // 存疑确认
-$('#doubt-modal-confirm').on('click', function () {
-  var txt = $('#doubt-input').val().trim();
-  var reason = $('#doubt_reason').val().trim();
-  if (reason.length <= 0) {
-    $('#doubt_tip').show();
-    return;
-  }
+$('#doubtModal .modal-confirm').on('click', function () {
+  var txt = $('#doubtModal .doubt_input').val().trim();
+  var reason = $('#doubtModal .doubt_reason').val().trim();
+  if (reason.length <= 0)
+    return showTips('请填写存疑理由');
   var $span = $('.current-span');
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
@@ -363,9 +361,8 @@ $('#toggle-arrow').on('click', function () {
 
 // 关闭对话框时，清空输入框内容
 $('#doubtModal').on('hide.bs.modal', function () {
-  $('#doubt-input').val('');
+  $('#doubt_input').val('');
   $('#doubt_reason').val('');
-  $('#doubt_tip').hide();
 });
 
 // 点击删除按钮，删除该行
@@ -482,7 +479,7 @@ function checkMismatch(report) {
       text = '<ul class="tips">' + text + '</ul>';
       showWarning("图文不匹配", text);
     } else {
-      showTips("图文匹配", "");
+      showTips("图文匹配");
     }
   }
 }
@@ -503,7 +500,7 @@ $('#re-compare').on("click", function () {
 });
 
 // 弹出的文本可以拖拽
-$('.modal-header').on('mousedown', function (downEvt) {
+$('#txtModal .modal-header').on('mousedown', function (downEvt) {
   var $txtModel = $('#txtModal');
   var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
   var x = downEvt.pageX - $txtModel.offset().left;

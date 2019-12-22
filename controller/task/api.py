@@ -208,7 +208,7 @@ class UpdateTaskApi(TaskHandler):
                 self.send_error_response(errs)
             task = self.db.task.find_one({'_id': ObjectId(data['_id'])})
             if not task:
-                self.send_error_response(e.task_un_existed)
+                self.send_error_response(e.task_not_existed)
             self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': {'batch': data['batch']}})
             self.add_op_log('update_batch', context=data['batch'], target_id=data['_id'])
             self.send_data_response()

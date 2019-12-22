@@ -21,20 +21,23 @@ class TextProofHandler(TaskHandler, TextTool):
     def get(self, num, task_id):
         """ 文字校对页面 """
         try:
+            # 检查参数
             task_type = 'text_proof_' + num
             task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
             if not task:
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % task['doc_id'])
-
+                return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
+            # 检查权限
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
+            # 设置步骤
             mode = self.get_task_mode()
             readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
+
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
             else:
@@ -113,13 +116,13 @@ class TextReviewHandler(TaskHandler, TextTool):
                 return self.render('_404.html')
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % task['doc_id'])
+                return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
 
             # 检查任务权限及数据锁
             has_auth, error = self.check_task_auth(task)
             if not has_auth:
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
-            has_lock = self.check_data_lock(task)[0]
+            has_lock, error = self.check_data_lock(task)
 
             mode = self.get_task_mode()
             params = dict(mismatch_lines=[])
@@ -165,12 +168,11 @@ class TextHardHandler(TextReviewHandler):
             has_lock, error = self.check_data_lock(task)
 
             mode = self.get_task_mode()
-            proof_doubt, texts = self.get_cmp_data(self, task['doc_id'])
+            proof_doubt, texts, labels = self.get_cmp_data(self, task['doc_id'], page)
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
             hard_doubt = self.prop(task, 'result.doubt')
             cmp_data = self.prop(page, 'txt_html')
-            labels = dict(base='校一', cmp1='校一', cmp2='校三')
             kwargs = dict(texts=texts, labels=labels, steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_do.html', task_type=task_type, task=task, page=page, mode=mode,
