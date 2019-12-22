@@ -188,7 +188,7 @@ class PickTaskApi(TaskHandler):
             }})
 
             self.add_op_log('pick_' + task_type, context=task['doc_id'], target_id=task['_id'])
-            url = '/task/do/%s/%s' % (task_type, task['_id'])
+            url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
 
         except DbError as error:
