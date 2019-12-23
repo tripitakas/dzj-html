@@ -699,7 +699,7 @@
       removeShapes(this.errNodes);
       errors.forEach(function (node) {
         var r = node.createBox('#0f0');
-        r.animate({'fill-opacity': 0.7}, 1000, 'elastic');
+        r.animate({'fill-opacity': 0.5}, 1000, 'elastic');
         self.errNodes.push(r);
       });
 

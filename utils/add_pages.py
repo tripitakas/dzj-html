@@ -73,7 +73,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
     if update or not exist:
         meta = Page.metadata()
         width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
-        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height'), or 0)
+        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
         page_code = Page.name2pagecode(name)
         meta.update(dict(
             name=name, width=width, height=height, page_code=page_code, blocks=prop(info, 'blocks', []),
@@ -120,7 +120,7 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
         if only_check:
             r = meta
         elif exist:
-            meta.pop('create_time')
+            meta.pop('create_time', 0)
             r = update and db.page.update_one(dict(name=name), {'$set': meta})
             info['id'] = str(exist['_id'])
         else:

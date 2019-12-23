@@ -171,11 +171,25 @@ class TextReviewApi(TaskHandler):
             if data.get('submit') and doubt and not self.prop(task, 'result.hard_task'):
                 update['result.hard_task'] = self.publish_hard_task(task, doubt)
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
+
             # 将数据结果同步到page中
             txt_html = data.get('txt_html', '').strip('\n')
-            self.db.page.update_one({'name': task['doc_id']}, {'$set': {
+            update = {
                 'text': TextTool.html2txt(txt_html), 'txt_html': txt_html
-            }})
+            }
+            if data.get('write_back_txt'):
+                chars = self.db.page.find_one({'name': task['doc_id']}, {'chars': 1})['chars']
+                n = 0
+                for c in chars:
+                    if c.get('char_id') in data['write_back_txt']:
+                        txt = data['write_back_txt'][c['char_id']]
+                        if c.get('txt') != txt:
+                            c['txt'] = txt
+                            n += 1
+                print('%d chars writed back in %s' % (n, task['doc_id']))
+                update['chars'] = chars
+
+            self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
             if data.get('submit'):
                 if self.get_task_mode() == 'do':
                     self.finish_task(task)
