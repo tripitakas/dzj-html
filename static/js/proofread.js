@@ -44,7 +44,11 @@ function findBestBoxes(offset, block_no, line_no, cmp) {
 
 function getLineText($line) {
   var chars = [];
-  $line.find('span').each(function (i, el) {
+  var $span = $line.find('span');
+  $span.each(function (i, el) {
+    if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
+      return;
+    }
     if ($(el).hasClass('variant')) {
       chars.push($(el).text());
     } else {
@@ -442,6 +446,8 @@ $(window).resize(function () {
   heightAdaptive();
 });
 
+var write_back_txt = {};
+
 // 图文匹配
 function checkMismatch(report) {
   var mismatch = [];
@@ -465,13 +471,20 @@ function checkMismatch(report) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
     mismatch.splice(0, 0, lineCountMisMatch);
   }
+  write_back_txt = {};
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = getLine(no.blockNo, no.lineNo);
-    var len = getLineText($line).length;
+    var text = getLineText($line);
+    var len = text.length;
     $line.toggleClass('mismatch', boxes.length !== len);
+    $line.attr({mismatch: boxes.length + '!=' + len});
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
+    } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
+      boxes.forEach(function(c, i) {
+        write_back_txt[c.char_id] = text[i];
+      });
     }
   });
   if (report) {
