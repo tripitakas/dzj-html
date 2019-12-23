@@ -57,7 +57,7 @@ class UserRolesHandler(BaseHandler):
         try:
             docs, pager, q, order = User.find_by_page(self)
             init_roles = self.prop(self.config, 'role.init')
-            disabled_roles = self.prop(self.config, 'role.disabled')
+            disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
             User.operations = []
             User.search_tips = '请搜索用户名'
