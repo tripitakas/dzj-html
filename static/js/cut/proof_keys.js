@@ -120,7 +120,6 @@
       var box, offset;
       var self = this;
       var data = self.data;
-      var s = data.ratio;
       var fontSize = data.fontSize;
       highlightBox = refresh;
 
@@ -141,16 +140,16 @@
       if (box) {
         box.width = box.x2 - box.x;
         if (box.x2 > self.data.width * self.data.ratioInitial * 0.75) {
-          offset = -15 - box.width;
+          offset = -20 - box.width;
         } else {
-          offset = box.width + 15;
+          offset = box.width + 20;
         }
         box.x += offset;
       }
 
       // 显示浮动面板
       if (chars.length) {
-        data.bandNumberBox = data.paper.rect(box.x - 5, box.y - 5, box.width + 10, box.y2 - box.y + 10)
+        data.bandNumberBox = data.paper.rect(box.x - 5, box.y - 5, box.width + 15, box.y2 - box.y + 10)
             .attr({fill: 'rgba(255,255,255,1)', stroke: 'rgba(0,0,0,.2)'});
       }
 
@@ -167,7 +166,8 @@
             data.paper.rect(p.x + offset, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.3)'}),
             data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
-                .attr({'font-size': fontSize, 'text-align': 'center', stroke: text.length > 1 ? '#f00' : '#333'}),
+                .attr({'font-size': fontSize, 'text-align': 'center',
+                  stroke: text.length > 1 ? text.indexOf('？') < 0 ? '#f00' : '#00f' : '#333'}),
             data.paper.rect(p.x, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.4)'})
           ]
