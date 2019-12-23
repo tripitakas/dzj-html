@@ -30,9 +30,7 @@
 
 <script>
   $(function () {
-    $('.sidebar-collapse').slimScroll({
-      height: '100%', railOpacity: 0.9, alwaysVisible: false
-    });
+    $('.sidebar-collapse').slimScroll({height: '100%', railOpacity: 0.9, alwaysVisible: false});
   });
 
   $('#side-menu').on('click', '.has-sub .menu-title', function () {
@@ -47,8 +45,8 @@
 
   $(document).ready(function () {
     var id = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
-    id = id.replace('-2', '-1').replace('-3', '-1');
-    $(id).addClass('sub-active');
+    console.log(id);
+    $(id).addClass('active');
     $(id).parent().removeClass('sub-ul-hidden');
   });
 

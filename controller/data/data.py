@@ -25,7 +25,7 @@ class Tripitaka(Model):
     primary = 'tripitaka_code'
 
     page_title = '藏数据管理'
-    search_tip = '请搜索藏经名称和编码'
+    search_tips = '请搜索藏经名称和编码'
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
@@ -56,7 +56,7 @@ class Sutra(Model):
     primary = 'sutra_code'
 
     page_title = '经数据管理'
-    search_tip = '请搜索统一经编码、经编码、经名'
+    search_tips = '请搜索统一经编码、经编码、经名'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
@@ -86,7 +86,7 @@ class Reel(Model):
     primary = 'reel_code'
 
     page_title = '卷数据管理'
-    search_tip = '请搜索统一经编码、经编码、经名和卷编码'
+    search_tips = '请搜索统一经编码、经编码、经名和卷编码'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
@@ -120,7 +120,7 @@ class Volume(Model):
     primary = 'volume_code'
 
     page_title = '册数据管理'
-    search_tip = '请搜索册编码'
+    search_tips = '请搜索册编码'
     search_fields = ['volume_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
                     ['content_pages', 'front_cover_pages', 'back_cover_pages']]
@@ -183,7 +183,7 @@ class Page(Model):
     primary = 'name'
 
     page_title = '页数据管理'
-    search_tip = '请搜索页编码、统一经编码、经编码、卷编码'
+    search_tips = '请搜索页编码、统一经编码、经编码、卷编码'
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [

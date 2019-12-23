@@ -25,7 +25,7 @@ class Model(object):
     primary = ''  # 主键
 
     page_title = ''  # 前端页面title
-    search_tip = ''  # 列表的查询提示
+    search_tips = ''  # 列表的查询提示
     search_fields = []  # 列表查询哪些字段
     table_fields = [dict(id='', name='')]  # 列表显示哪些字段
     operations = [  # 列表包含哪些批量操作
@@ -125,13 +125,14 @@ class Model(object):
                     return dict(status='failed', errors=e.not_changed)
                 return dict(status='success', id=doc.get('_id'), update=True, insert=False)
             else:
-                return dict(status='failed', errors=e.tptk_id_not_existed)
+                return dict(status='failed', errors=e.no_object)
         else:  # 新增
-            if cls.ignore_existed_check(doc) is False and not db[collection].find_one({cls.primary: doc[cls.primary]}):
+            condition = {cls.primary: doc.get(cls.primary, '')}
+            if cls.ignore_existed_check(doc) is False and not db[collection].find_one(condition):
                 r = db[collection].insert_one(doc)
                 return dict(status='success', id=r.inserted_id, update=False, insert=True)
             else:
-                return dict(status='failed', errors=e.tptk_code_existed)
+                return dict(status='failed', errors=e.code_existed)
 
     @classmethod
     def save_many(cls, db, collection, docs=None, file_stream=None, update=True, updated_fields=None):
@@ -151,7 +152,7 @@ class Model(object):
             need_fields = [cls.get_field_name(r) for r in cls.get_fields() if r not in heads]
             if need_fields:
                 message = '缺以下字段：%s' % ','.join(need_fields)
-                return dict(status='failed', code=e.tptk_field_error[0], message=message)
+                return dict(status='failed', code=e.field_error[0], message=message)
             docs = [{heads[i]: item for i, item in enumerate(row)} for row in rows[1:]]
 
         # 逐个校验数据
@@ -162,7 +163,7 @@ class Model(object):
                 error_codes.append([doc.get(cls.primary), err[0][1]])
             elif cls.ignore_existed_check(doc) is False and doc.get(cls.primary) in valid_codes:
                 # 去掉重复数据
-                error_codes.append([doc.get(cls.primary), e.tptk_code_duplicated[1]])
+                error_codes.append([doc.get(cls.primary), e.code_duplicated[1]])
             else:
                 valid_docs.append(cls.pack_doc(doc))
                 valid_codes.append(doc.get(cls.primary))

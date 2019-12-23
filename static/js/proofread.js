@@ -310,12 +310,13 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
 
 // 存疑对话框
 $('#save-doubt').on('click', function () {
-  var word = window.getSelection ? window.getSelection().toString() : null;
-  if (word.length <= 0 || !currentSpan[0]) {
+  var txt = window.getSelection ? window.getSelection().toString() : '';
+  if (!txt.length || !currentSpan[0]) {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubtModal .doubt_input').val(word);
+  $('#doubtModal .doubt_input').val(txt);
+  $('#doubtModal .doubt_reason').val('');
 });
 
 // 切换存疑列表

@@ -22,13 +22,13 @@ class TripitakaHandler(BaseHandler):
         try:
             m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
             if not m:
-                return self.send_error_response(e.tptk_page_code_error)
+                return self.send_error_response(e.page_code_error)
             tripitaka_code = m.group(1)
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
-                return self.send_error_response(e.tptk_not_existed)
+                return self.send_error_response(e.no_object, message='藏经%不存在' % tripitaka_code)
             elif tripitaka.get('img_available') == '否':
-                return self.send_error_response(e.tptk_img_unavailable)
+                return self.send_error_response(e.img_unavailable)
 
             # 根据存储模式补齐page_code
             name_slice = page_code.split('_')

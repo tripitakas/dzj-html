@@ -79,15 +79,15 @@ class ComLeft(UIModule):
                 item['id'] = re.sub('[/_]', '-', item['link'][1:])
                 display_items.append(item)
             if item.get('sub_items'):
-                sub_items = [i for i in item['sub_items'] if
-                             is_enabled(i.get('name')) and i.get('link') and can_access(i['link'])]
+                checked = lambda i: is_enabled(i.get('name')) and i.get('link') and can_access(i['link'])
+                sub_items = [i for i in item['sub_items'] if checked(i)]
                 if sub_items:
                     for _item in sub_items:
                         _item['id'] = re.sub('[/_]', '-', _item['link'][1:])
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
-        return self.render_string('com_left.html', title=title, sub=sub, display_items=display_items)
+        return self.render_string('com_left.html', display_items=display_items, active_name='')
 
 
 class ComHead(UIModule):

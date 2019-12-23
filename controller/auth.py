@@ -208,7 +208,8 @@ role_route_maps = {
         'routes': {
             '/user/statistic': ['GET'],
             '/user/(admin|role)': ['GET'],
-            '/api/user/(delete|role|profile|reset_pwd)': ['POST'],
+            '/api/user/admin': ['POST'],
+            '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
         }
     },
 }

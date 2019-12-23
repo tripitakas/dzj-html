@@ -55,7 +55,7 @@
             </div>
             {% end %}
             <div class="search fr">
-              <input id="search-input" type="text" placeholder="{{search_tip}}" value="{{q}}">
+              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}">
               <i class="ser-btn"></i>
             </div>
             {% block table %}
@@ -291,7 +291,7 @@
   <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
        aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content" style="margin: 0 10px">
         <div>
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
           <h4 class="modal-title">发布结果</h4>
@@ -303,7 +303,7 @@
       </div>
     </div>
   </div>
-  <div id="assignModal" class="modal fade" role="dialog" aria-labelledby="assignModal" aria-hidden="true">
+  <div id="assignModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="assignModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="width: 400px; margin: auto">
         <div class="modal-header">
@@ -410,7 +410,7 @@
 
   function toggleColumns() {
     var hideColumns = JSON.parse(localStorage.getItem('hideColumns') || '[]');
-    console.log(hideColumns);
+    // console.log(hideColumns);
     allColumns.forEach(function (item) {
       if (hideColumns.indexOf(item) !== -1) {
         $('.select-column .'+item).removeAttr('checked');
