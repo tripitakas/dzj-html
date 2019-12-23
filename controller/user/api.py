@@ -489,7 +489,11 @@ class UserAddOrUpdateApi(BaseHandler):
             data = self.get_request_data()
             if data.get('_id'):
                 user = self.db.user.find_one(dict(_id=ObjectId(data['_id'])))
-                if user and user['password'] != data['password']:
+                if not user:
+                    self.send_error_response(e.no_object, message='没有找到用户')
+                if not data.get('password'):
+                    data['password'] = user['password']
+                elif data['password'] != user['password']:
                     data['password'] = helper.gen_id(data['password'])
                 User.rules.append((v.not_existed, self.db.user, ObjectId(data['_id']), 'phone', 'email'))
             else:

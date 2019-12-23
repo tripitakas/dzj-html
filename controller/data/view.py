@@ -26,7 +26,7 @@ class TripitakaHandler(BaseHandler):
             tripitaka_code = m.group(1)
             tripitaka = self.db.tripitaka.find_one({'tripitaka_code': tripitaka_code})
             if not tripitaka:
-                return self.send_error_response(e.no_object, message='藏经%不存在' % tripitaka_code)
+                return self.send_error_response(e.no_object, message='藏经%s不存在' % tripitaka_code)
             elif tripitaka.get('img_available') == '否':
                 return self.send_error_response(e.img_unavailable)
 
