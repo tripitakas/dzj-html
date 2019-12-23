@@ -161,13 +161,13 @@
         var text = content(c, i);
         if (p) {
           el.data('order', c.char_no);
-          el.data('text', text);
+          el.data('text', text[0]);
           data.texts = data.texts || {};
           data.texts[el.data('cid')] = data.texts[el.data('cid')] || [
             data.paper.rect(p.x + offset, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.3)'}),
             data.paper.text(p.x + p.width / 2 + offset, p.y + p.height / 2, '' + text)
-                .attr({'font-size': fontSize, 'text-align': 'center', stroke: '#333333'}),
+                .attr({'font-size': fontSize, 'text-align': 'center', stroke: text.length > 1 ? '#f00' : '#333'}),
             data.paper.rect(p.x, p.y, p.width, p.height)
                 .attr({stroke: 'rgba(0,0,0,.4)'})
           ]

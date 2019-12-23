@@ -181,7 +181,8 @@ $.cut.onBoxChanged(function (char, box, reason) {
     $.cut.showFloatingPanel(
         (showOrder || showText) ? all : [],
         function (char, index) {
-          return (showOrder ? char.char_no : '') + (!text[index] ? '？' : showText ? text[index] : '');
+          return (showOrder ? char.char_no : '') + (!text[index] ? '？' : showText ? text[index] : '')
+              + (text[index] === char.ocr_txt && (char.cc || 1) > 0.5 ? '' : char.ocr_txt);
         },
         highlightBox
     );

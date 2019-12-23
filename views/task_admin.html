@@ -546,7 +546,7 @@
     switch (source) {
       case 'source-prefix':
         var idPrefix = $('#id_prefix').val().trim();
-        if (idPrefix)
+        if (!idPrefix)
           return showError('请输入页码前缀');
         data['prefix'] = idPrefix;
         break;
