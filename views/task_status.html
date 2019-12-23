@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+{% from controller.task.base import TaskHandler as Th %}
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>任务管理-任务状态</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+
+  <style>
+    .sty-table td a {
+      color: #333333;
+      font-size: 14px;
+    }
+
+    .sty-table td.unready a {
+      color: #333333;
+    }
+
+    .sty-table td.ready a {
+      color: #666666;
+    }
+
+    .sty-table td.pending a {
+      color: #D2691E;
+    }
+
+    .sty-table td.opened a {
+      color: #8B4513;
+    }
+
+    .sty-table td.picked a {
+      color: #BB5500;
+    }
+
+    .sty-table td.returned a {
+      color: #FF0000;
+    }
+
+    .sty-table td.finished a {
+      color: #228B22;
+    }
+  </style>
+
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    <!--模拟出左边菜单，方便写样式-->
+    {% module ComLeft(title="task-manage", sub="task-manage-cut-status" ) %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+          <div class="wrapper">
+              <div class="sty-list">
+                <div class="search fr">
+                  <input type="text" id="search-name" placeholder="搜索">
+                  <i class="ser-btn"></i>
+                </div>
+                <table style="border-collapse:separate; border-spacing:0px 10px;" class="sty-table">
+                  <thead>
+                  <tr>
+                    <th><input type="checkbox" name="checkbox-all" id="checkbox-all" value=""/></th>
+                    <th><span>页编码</span></th>
+                    {% for _task_type, name in display_task_types.items() %}
+                    <th>
+                      <div class="btn-group">
+                        <span class="sort" data-toggle="dropdown" aria-expanded="false">{{name}}</span>
+                        <span class="ion-android-sort "></span>
+                        <ul class="dropdown-menu" role="menu">
+                          {% for k, v in Th.task_statuses.items() %}
+                          <li><a href="{{current_path}}?type={{_task_type}}&status={{k}}">{{v}}</a></li>
+                          {% end %}
+                        </ul>
+                      </div>
+                    </th>
+                    {% end %}
+                  </tr>
+                  </thead>
+
+                  <tbody>
+                  {% for t in tasks %}
+                  <tr id="{{t['name']}}" class="task-tr">
+                    <td><input type="checkbox" name="" id="" value=""/></td>
+                    <td><a href="/task/page/{{t['name']}}">{{t['name']}}</a></td>
+                    {% for _task_type in display_task_types.keys() %}
+                    <td class="{{Th.prop(t, 'tasks.%s.status' % _task_type)}}">
+                      <a href="/task/{{_task_type}}/{{t['name']}}">
+                        {{Th.get_status_name(Th.prop(t, 'tasks.%s.status' % _task_type), '')}}
+                      </a>
+                    </td>
+                    {% end %}
+                  </tr>
+                  {% end %}
+                  </tbody>
+                </table>
+              </div>
+              {% module Pager(pager) %}
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+<script type="text/javascript">
+  $('#checkbox-all').click(function () {
+    var $items = $(".task-tr [type='checkbox']");
+    if (!this.checked) {
+      $items.removeAttr('checked');
+    } else {
+      $items.prop('checked', 'true');
+    }
+  });
+
+  $('#search-name').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var q = $(this).val().trim();
+      var url = q == '' ? "{{current_path}}" : "{{current_path}}?q=" + q;
+      window.location = url;
+    }
+  });
+</script>
+
+</body>
+</html>

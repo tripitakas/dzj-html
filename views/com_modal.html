@@ -1,0 +1,48 @@
+<div id="{{id or 'dataModal'}}" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="{{id or 'dataModal'}}"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">{{title or '新增数据'}}</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="fields" class="fields" value="{{modal_fields}}"/>
+        <input type="hidden" id="_id" class="_id">
+        <form class="form-horizontal">
+          {% for f in modal_fields %}
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">{{f.get('name')}}</h4>
+            <div class="col-md-10">
+              {% set input_type, fid = f.get('input_type') or '', f.get('id') or '' %}
+              {% if input_type == 'radio' %}
+              <div class="modal-radio">
+                {% for o in f.get('options') %}
+                {% set o = [o, o] if isinstance(o, str) else o %}
+                <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
+                {% end %}
+              </div>
+              {% elif input_type == 'select' %}
+              <select class="form-control {{fid}}">
+                {% for o in f.get('options') %}
+                {% set o = [o, o] if isinstance(o, str) else o %}
+                <option title="{{o[0]}}">{{o[1]}}</option>
+                {% end %}
+              </select>
+              {% elif input_type == 'textarea' %}
+              <textarea type="text" class="form-control {{fid}}" rows="4" {{'readonly' if f.get('readonly') else ''}}></textarea>
+              {% else %}
+              <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
+              {% end %}
+            </div>
+          </div>
+          {% end %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>

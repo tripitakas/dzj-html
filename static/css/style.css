@@ -583,8 +583,8 @@ a:focus {
 .btn-warning:focus,
 .btn-warning:hover,
 .open>.dropdown-toggle.btn-warning {
-	background-color: #ffd740;
-	border: 1px solid #ffd740;
+	background-color: #cfcfcf;
+	border: 1px solid #cfcfcf;
 	color: #333 !important;
 }
 
@@ -928,15 +928,15 @@ a:focus {
 	border: 1px solid #ddd;
 }
 
-.pagination>.active>a,
-.pagination>.active>span,
-.pagination>.active>a:hover,
-.pagination>.active>span:hover,
-.pagination>.active>a:focus,
-.pagination>.active>span:focus {
-	background-color: #317eeb;
-	border-color: #317eeb;
-}
+/*.pagination>.active>a,*/
+/*.pagination>.active>span,*/
+/*.pagination>.active>a:hover,*/
+/*.pagination>.active>span:hover,*/
+/*.pagination>.active>a:focus,*/
+/*.pagination>.active>span:focus {*/
+/*	background-color: #317eeb;*/
+/*	border-color: #317eeb;*/
+/*}*/
 
 
 /* 2.10 Tabs-Accordions */
@@ -4206,15 +4206,6 @@ div.dataTables_info {
 	}
 }
 
-.dzj_wrapper {
-	padding: 0 0 0 80px;
-}
-
-.dzj_wrapper1 {
-	padding: 0 0 0 80px;
-	background: url(../imgs/dzj_bg.png) repeat;
-}
-
 .dialog-h3 {
 	background: #3b3d38;
 	height: 30px;
@@ -4297,8 +4288,5 @@ div.dataTables_info {
 	
 }
 .dialog-content-row4{
-	display: none;
-}
-#modal-1-confirm{
 	display: none;
 }

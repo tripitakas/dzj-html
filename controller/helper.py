@@ -6,18 +6,32 @@
 """
 
 import re
+import random
+import hashlib
 import logging
 import inspect
-import random
-from datetime import datetime, timedelta
 from hashids import Hashids
+from datetime import datetime, timedelta, timezone
 
 
-def get_date_time(fmt=None, diff_seconds=None):
-    time = datetime.now()
+def md5_encode(page_code, salt):
+    md5 = hashlib.md5()
+    md5.update((page_code + salt).encode('utf-8'))
+    return md5.hexdigest()
+
+
+def get_date_time(fmt=None, date_time=None, diff_seconds=None):
+    time = date_time if date_time else datetime.now()
+    if isinstance(time, str):
+        try:
+            time = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return time
     if diff_seconds:
         time += timedelta(seconds=diff_seconds)
-    return time.strftime(fmt or '%Y-%m-%d %H:%M:%S')
+
+    time_zone = timezone(timedelta(hours=8))
+    return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
 
 
 def gen_id(value, salt='', rand=False, length=16):
@@ -44,6 +58,34 @@ def my_framer():
     return f0
 
 
+def cmp_page_code(a, b):
+    """ 比较图片名称大小 """
+    al, bl = a.split('_'), b.split('_')
+    if len(al) != len(bl):
+        return len(al) - len(bl)
+    for i in range(len(al)):
+        length = max(len(al[i]), len(bl[i]))
+        ai, bi = al[i].zfill(length), bl[i].zfill(length)
+        if ai != bi:
+            return 1 if ai > bi else -1
+    return 0
+
+
+def is_box_changed(page_a, page_b, ignore_none=True):
+    """检查两个页面的切分信息是否发生了修改"""
+    for field in ['blocks', 'columns', 'chars']:
+        a, b = page_a.get(field), page_b.get(field)
+        if ignore_none and (not a or not b):
+            continue
+        if len(a) != len(b):
+            return field + '.len'
+        for i in range(len(a)):
+            for j in ['x', 'y', 'w', 'h']:
+                if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
+                    return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
+    return None
+
+
 def random_code():
     code = ''
     for i in range(4):
@@ -54,6 +96,12 @@ def random_code():
             temp = random.randint(0, 9)
         code += str(temp)
     return code
+
+
+def prop(obj, key, default=None):
+    for s in key.split('.'):
+        obj = obj.get(s) if isinstance(obj, dict) else None
+    return default if obj is None else obj
 
 
 old_framer = logging.currentframe

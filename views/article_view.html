@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>{{article['title']}}</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .article {
+      max-width: 1024px;
+      margin: auto;
+      height: 100%;
+      font-size: 16px;
+      font-weight: 300;
+      background: #fff;
+    }
+
+    .content {
+      background: #fff;
+      padding: 0 10px 10px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: normal;
+    }
+
+    h1, h2, h3, h4, h5 {
+      margin: 20px 0 10px;
+    }
+
+    h1 {
+      font-size: 1.5em;
+    }
+
+    h2 {
+      font-size: 1.4em;
+    }
+
+    h3 {
+      font-size: 1.3em;
+    }
+
+    h4 {
+      font-size: 1.2em;
+    }
+
+    h5 {
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-main">
+  <div class="article">
+    <div class="title">{{article['title']}}</div>
+    <div class="content"> {% raw article['content'] %}</div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+
+</body>
+</html>

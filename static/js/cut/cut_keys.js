@@ -3,11 +3,12 @@
   'use strict';
 
   $.extend($.cut, {
+    bindKey: function(key, func) {
+      $.mapKey(key, func, {direction: 'down'});
+    },
     bindKeys: function() {
       var self = this;
-      var on = function(key, func) {
-        $.mapKey(key, func, {direction: 'down'});
-      };
+      var on = this.bindKey;
 
       // 方向键：在字框间导航
       on('left', function() {
@@ -79,6 +80,14 @@
         }
       });
 
+      // z Undo, r Redo
+      on('z', function() {
+        self.undo();
+      });
+      on('r', function() {
+        self.redo();
+      });
+
       // 1~5 页面缩放
       on('1', function() {
         self.setRatio(1);
@@ -112,20 +121,20 @@
       on('subtract', sub);
       on('-', sub);
 
-      // shift + 5~9 页面缩放
-      on('shift+5', function() {
+      // 5~9 页面缩放
+      on('5', function() {
         self.setRatio(0.5);
       });
-      on('shift+6', function() {
+      on('6', function() {
         self.setRatio(0.6);
       });
-      on('shift+7', function() {
+      on('7', function() {
         self.setRatio(0.7);
       });
-      on('shift+8', function() {
+      on('8', function() {
         self.setRatio(0.8);
       });
-      on('shift+9', function() {
+      on('9', function() {
         self.setRatio(0.9);
       });
 

@@ -5,40 +5,32 @@
   <title>{{site['name']}} - 404</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
+  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet"/>
 </head>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--公共左侧导航栏 -->
-    {% module CommonLeft(title="task-lobby", sub="task-lobby-char") %}
+    {% module ComLeft() %}
     <div class="main-content">
-      <!--公共头部 -->
-      {% module CommonHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h3 class="panel-title">页面不存在</h3>
-                  </div>
-                  <div class="panel-body" style="padding: 10px">
-                    <p>您要访问的页面不存在，请检查输入的地址是否有误。<br>{{request.uri}}</p>
-                    <p style="margin-top: 10px">
-                      <a href="javascript:history.back(-1)" class="btn btn-default">
-                        <i class="glyphicon glyphicon-chevron-left"></i> 返回前页</a>
-                      <a href="/" class="btn btn-default"><i class="glyphicon glyphicon-home"></i> 回到首页</a>
-                    </p>
-                  </div>
-                </div>
+      {% module ComHead() %}
+      <div class="layout">
+          <div class="wrapper">
+            <div class="panel panel-default" style="height: unset; margin: 0">
+              <div class="panel-heading">
+                <h3 class="panel-title">页面不存在</h3>
+              </div>
+              <div class="panel-body" style="padding: 20px">
+                <p>您要访问的页面不存在，请检查输入的地址是否正确。<br>{{request.uri}}</p>
+                <p style="margin: 10px 0 40px">
+                  <a href="javascript:history.back(-1)" class="btn btn-default fr">
+                    <i class="glyphicon glyphicon-chevron-left"></i> 返回前页</a>
+                  <a href="/" class="btn btn-default fr"><i class="glyphicon glyphicon-home"></i> 回到首页</a>
+                </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </div>

@@ -1,0 +1,57 @@
+{% extends "com_list.html" %}
+
+{% block custom-modal %}
+<div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">批量上传</h4>
+      </div>
+      <div class="modal-body">
+        <i>请上传CSV文件，一次上传一个，文件大小不超过10MB</i>
+        <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
+      </div>
+      <div class="modal-footer">
+        <img src="{{ static_url('imgs/loading.gif') }}" class="btn-img hide" id="progress" title="进行中" style="margin: 6px 6px;"/>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">上传</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  // 上传文件-提交
+  $("#uploadModal .modal-confirm").click(function () {
+    var file = $('#upload')[0].files[0];
+    if (typeof file === 'undefined') {
+      return showError('请选择文件');
+    } else if (!/\.(csv|CSV)$/.test(file.name)) {
+      return showError('文件不是CSV类型');
+    } else if (file.size > (10 * 1024 * 1024)) {
+      return showError('文件大小不能超过10M');
+    }
+
+    $('#progress').removeClass('hide');
+    var formData = new FormData();
+    formData.append('csv', file);
+    postFile(location.pathname + '/upload', formData, function (res) {
+      $('#progress').addClass('hide');
+      var errors = res.data.errors;
+      if (errors.length > 0) {
+        var text = '<div class="message">' + res.message + '</div><br/><a href="' + res.url + '">下载上传结果</a>';
+        showTips('上传完成', text, true);
+      } else {
+        showTips('上传成功', res.message, true);
+      }
+    }, function (err) {
+      $('#progress').addClass('hide');
+      showError('上传失败', err.message);
+    });
+  });
+
+</script>
+{% end %}

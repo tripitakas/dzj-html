@@ -1,166 +1,202 @@
-.app-main{
-    width:100%;
-    height:100%;
+.app-main {
+  width: 100%;
+  height: 100%;
 }
-.main{
-    position: relative;
-    width:100%;
-    height:100%;
-    background: url(../imgs/background.jpg) no-repeat top center;
-    background-size: cover;
+
+.main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: url(../imgs/background.jpg) no-repeat top center;
+  background-size: cover;
 }
-.login{
-    
-    height:430px;
-    background: #fff;
-    position: absolute;
-    left:50%;
-    top:50%;
-    transform: translate(-50%,-50%);
-    -webkit-transform: translate(-50%,-50%);
-    -ms-transform: translate(-50%,-50%);
-    -moz-transform: translate(-50%,-50%);
+
+.login {
+  height: 430px;
+  background: #fff;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
 }
-.login .left{
-    background: url(../imgs/banner.jpg) no-repeat;
-    width:430px;
-    height:430px;
+
+.login .left {
+  background: url(../imgs/banner.jpg) no-repeat;
+  width: 430px;
+  height: 430px;
 }
-.login .right{
-    background:url(../imgs/r-bg.png) no-repeat;
-    width:450px;
-    height:430px;
+
+.login .right {
+  background: url(../imgs/r-bg.png) no-repeat;
+  width: 450px;
+  height: 430px;
 }
+
 .login .right-in {
-    padding:40px;
+  padding: 40px;
 }
-.login .right-in .logo{
-    background: url(../imgs/logo.png) no-repeat;
-    width:356px;
-    height:56px;
-    margin-bottom:26px;
-    background-position:50%;
+
+.login .right-in .logo {
+  background: url(../imgs/logo.png) no-repeat;
+  width: 356px;
+  height: 56px;
+  margin-bottom: 26px;
+  background-position: 50%;
 }
-.login .right-in .item{
-    margin-bottom:25px;
-    position: relative;
+
+.login .right-in .item {
+  margin-bottom: 25px;
+  position: relative;
 }
-.login .right-in .item input{
-    line-height:56px;
-    border:0 none;
-    background: none;
-    outline: none;
-    border-bottom:1px solid #d5d5d5;
-    display: block;
-    width:100%;
-    box-sizing: border-box;
-    padding-left:40px;
-    font-size:14px;
+
+.login .right-in .item input {
+  line-height: 56px;
+  border: 0 none;
+  background: none;
+  outline: none;
+  border-bottom: 1px solid #d5d5d5;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 40px;
+  font-size: 14px;
 }
-.login .right-in .item input:-moz-placeholder
-{
-    color: #B3B3B3;
+
+.login .right-in .item input:-moz-placeholder {
+  color: #B3B3B3;
 }
-.login .right-in .item input:-ms-input-placeholder
-{
-    color: #B3B3B3;
+
+.login .right-in .item input:-ms-input-placeholder {
+  color: #B3B3B3;
 }
-.login .right-in .item input::-webkit-input-placeholder
-{
-    color: #B3B3B3;
+
+.login .right-in .item input::-webkit-input-placeholder {
+  color: #B3B3B3;
 }
+
 .login .right-in .item input:focus {
-    border-color: #c22d22;
+  border-color: #c22d22;
 }
-.login .right-in .item i{
-    position: absolute;
-    left:0;
-    top:14px;
+
+.login .right-in .item i {
+  position: absolute;
+  left: 2px;
+  top: 27px;
 }
-.login .right-in .item i.user-icon{
-    background: url(../imgs/user.png) no-repeat;
-    background-position: 0 0;
-    width:27px;
-    height:29px;
+
+.login .right-in .item i.user-icon {
+  background: url(../imgs/user.png) no-repeat;
+  background-position: 0 0;
+  width: 27px;
+  height: 29px;
 }
-.login .right-in .item input:focus+i.user-icon{
-    background-position: 0 -30px;
+
+.login .right-in .item input:focus + i.user-icon {
+  background-position: 0 -30px;
 }
-.login .right-in .item .pass-icon{
-    background: url(../imgs/pass.png) no-repeat;
-    background-position: 0 0;
-    width:23px;
-    height:28px;
+
+.login .right-in .item .pass-icon {
+  background: url(../imgs/pass.png) no-repeat;
+  background-position: 0 0;
+  width: 23px;
+  height: 28px;
 }
-.login .right-in .item input:focus+i.pass-icon{
-    background-position: 0 -30px;
+
+.login .right-in .item input:focus + i.pass-icon {
+  background-position: 0 -30px;
 }
-.login .right-in .item .forget{
-    position: absolute;
-    right:0;
-    top:50%;
-    transform: translateY(-50%);
-    font-size:14px;
-    cursor: pointer;
+
+.login .right-in .item .forget {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  cursor: pointer;
 }
-.login .right-in .other{
-    padding-top:14px;
+
+.login .right-in .other {
+  padding-top: 14px;
 }
+
 /*隐藏掉我们模型的checkbox*/
 .keep .inp {
-    appearance: none;
-    -webkit-appearance: none;
-    outline: none;
-    display: none;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  display: none;
 }
+
 /*未选中时*/
-.keep .inp+span {
-    width: 16px;
-    height: 16px;
-    display: inline-block;
-    background: url(../imgs/checkbox.png) no-repeat;
-    background-position-x: 0;
-    background-position-y: 0;
-    position: relative;
-    top: 3px;
+.keep .inp + span {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background: url(../imgs/checkbox.png) no-repeat;
+  background-position-x: 0;
+  background-position-y: 0;
+  position: relative;
+  top: 3px;
 }
-.keep em{
-    margin-left:5px;
-    color:#6b6b6b;
+
+.keep em {
+  margin-left: 5px;
+  color: #6b6b6b;
 }
+
 /*选中checkbox时,修改背景图片的位置*/
-.keep .inp:checked+span {
-    background-position: 0 -16px;
+.keep .inp:checked + span {
+  background-position: 0 -16px;
 }
-.login .right-in .other .desc{
-    color:#6b6b6b;
+
+.login .right-in .other .desc {
+  color: #6b6b6b;
 }
-.login .right-in .other .desc em{
-    color:#c53023;
-    cursor: pointer;
+
+.login .right-in .other .desc em {
+  color: #c53023;
+  cursor: pointer;
 }
-.login .right-in .log .log-btn{
-    width:100%;
-    height:40px;
-    background: #b8906f;
-    border-radius:4px;
-    text-align: center;
-    line-height:40px;
-    color:#fff;
-    margin-top:25px;
-    cursor: pointer;
-    font-size:16px;
-    /*letter-spacing: 25px;*/
-    font-weight:600;
+
+.login .right-in .log .log-btn {
+  width: 100%;
+  height: 40px;
+  background: #b8906f;
+  border-radius: 4px;
+  text-align: center;
+  line-height: 40px;
+  color: #fff;
+  margin-top: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  /*letter-spacing: 25px;*/
+  font-weight: 600;
 }
+
 /*去除ie浏览器input中的自带删除图标*/
-input::-ms-clear{display:none;}
-.login_a{
-	color: #c53023;
+input::-ms-clear {
+  display: none;
 }
-.log-btn a{
-	display: inline-block;
-	width: 100%;
-	height: 100%;
-	color: white;
+
+.login_a {
+  color: #c53023;
+}
+
+.log-btn a {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+
+.login .item i {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #985F0D;
+  font-size: 2.5em;
 }

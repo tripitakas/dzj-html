@@ -1,25 +1,16 @@
 <!DOCTYPE html>
-{% from controller.task.base import TaskHandler as th %}
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>字序校对</title>
+  <title>字序校对-{{page["name"]}}</title>
   {% include _base_meta.html %}
-
-  <!-- Plugins css -->
+  {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-
-  <!-- Custom Files -->
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
-  <link href="{{ static_url('css/style.css') }}" rel="stylesheet" type="text/css"/>
-
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-
-  {% include _base_css.html %}
-  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet" type="text/css"/>
 
   <style>
     #info {
@@ -30,7 +21,7 @@
       background-color: #fff;
       border-top: 1px solid #ddd;
       opacity: .9;
-      color: var(--Color_Brown_Darker);
+      color: var(--Brown_Darker);
     }
 
     #info > span + span {
@@ -40,131 +31,248 @@
     .sweet-overlay {
       background-color: transparent;
     }
+
+    text tspan {
+      fill: #f00;
+    }
   </style>
+
 </head>
 
 <body class="widescreen">
 <div class="app-main">
   <div class="main">
-    <div class="main-content">
-
-      <div class="m-header">
-        <div class="left">
-          <div class="back">
-            {% set title, img = ('任务大厅', 'icon_lobby') if mode  == 'do' else ('返回', 'icon_back') %}
-            <a onclick="leave()" title="{{title}}">
-              <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img"/>
-            </a>
-          </div>
-          <div class="title" title="{{page['name']}}">{{th.task_types.get(task_type)}}</div>
-          <div class="sub-title">/ 字框顺序</div>
-          <div class="help">
-            <img src="{{ static_url('imgs/help.png') }}" class="btn-img btn-help" title="帮助"/>
-          </div>
-          <div class="edit-btns">
-            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img btn-enlarge" title="放大"/>
-            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img btn-reduce" title="缩小"/>
-            <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img btn-undo" title="撤销"/>
-            <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img btn-redo" title="重做"/>
-          </div>
-          <div class="slice-btns">
-            <div class="btn-group">
-              <button type="button" class="btn btn-default btn-sm" id="switch-image" title="显示页面图">背景</button>
-              <button type="button" class="btn btn-default btn-sm" id="toggle-columns" title="显示列框">列框</button>
-              <button type="button" class="btn btn-default btn-sm" id="toggle-chars" title="显示字框">字框</button>
-              <button type="button" class="btn btn-default btn-sm" id="switch-char-no" title="显示字框编号">编号</button>
-              <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显示待修正的字框">查漏</button>
-              <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后重新设置字框编号">应用</button>
-            </div>
-          </div>
+    <div class="m-header">
+      <div class="left">
+        <div class="back">
+          {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
+          <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
-        <div class="right">
-          <div class="edit-btns">
-            <div class="more">
-              <div class="btn-group more-group hidden" role="group" aria-label="更多">
-                {% for i, txt in enumerate(['原始字序', '重排(旧算法)', '重排(新算法)']) %}
-                <a class="btn btn-default btn-sm" href="/task{{'' if mode == 'view' else '/' + mode}}/char_cut_proof/order/{{name}}{{'?layout=%d' % i}}">
-                  {{txt}}
-                </a>
-                {% end %}
-              </div>
-              <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img btn-ed-box fl" title="更多"/>
-            </div>
-            {% if not readonly %}
-            <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img btn-save" title="保存" style="margin-left: 20px;"/>
-            {% end %}
-            {% if not readonly and mode == 'do' %}
-            <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img btn-submit" title="提交"/>
-            {% end %}
+        <div class="title" title="{{page['name']}}">
+          切分校对<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
+        </div>
+        <div class="btn-group" style="margin-left: 10px">
+          <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
+          <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
+          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+          <img src="{{ static_url('imgs/icon_lr.png') }}" class="btn-img" id="undo" title="撤销"/>
+          <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img" id="redo" title="重做"/>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-default btn-sm active" id="toggle-image" title="显隐图片">图片</button>
+          <button type="button" class="btn btn-default btn-sm active" id="blur-image" title="页面图透明">透明</button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-column" title="显隐列框">列框</button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-char" title="显隐字框">字框</button>
+          <button type="button" class="btn btn-default btn-sm active" id="toggle-path" title="显隐连线">连线</button>
+          <button type="button" class="btn btn-default btn-sm" id="toggle-char-no" title="显隐字框编号">编号</button>
+          <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显隐待修正的字框">查漏</button>
+          <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后，重新设置字框编号">应用</button>
+        </div>
+      </div>
+      <div class="btn-group right">
+        <div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="margin-top: 4px">
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=1'}}">原始字序</a>
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=2'}}">重排(旧算法)</a>
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=char_order&layout=3'}}">重排(新算法)</a>
+        </div>
+        <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img fl" id="toggle-more" title="更多"/>
+        <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
+        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly and mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
+        <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
+        <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
+      </div>
+      <div class="tips right">{{message}}</div>
+    </div>
+
+    <div class="full-bd">
+      <!-- holder为显示切分框和页面图的画布容器 -->
+      <div id="holder"></div>
+      <div id="info">
+        <span class="cur-char"></span>
+        <span class="col-info"></span>
+        <span class="char-info"></span>
+        <span class="target-char"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body">
+  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、工作目标</div>
+          <div class="intro">检查并完善字框的先后顺序，使之与阅读顺序一致。</div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
+              <td>返回任务大厅</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
+              <td>撤销上一步对切分框的调整</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
+              <td>取消撤销</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
+              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
+              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">图片</span></td>
+              <td>显示或隐藏图片的切换按钮，隐藏图片有助于看清字序的连线</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">透明</span></td>
+              <td>字序连线底色是否透明的切换按钮</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">列框</span></td>
+              <td>用颜色来突出列框以帮助看清连线</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">编号</span></td>
+              <td>是否显示字框序号</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">查漏</span></td>
+              <td>程序自动检查字序并提示可能存在的问题</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">应用</span></td>
+              <td>应用指的是调整字框连线后，重新计算字框编号</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>
+              <td>退回任务。如果任务数据有问题，比如图片缺失、数据异常等，可以选择退回任务，退回时请注明退回理由。</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_save.png')}}"/></td>
+              <td>保存任务数据。</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_next.png')}}"/></td>
+              <td>保存当前步骤并跳转至下一步。</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_submit.png')}}"/></td>
+              <td>提交任务。提交后，系统将自动领取下一个任务。</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>wsad</td>
+              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
+            </tr>
+            <tr>
+              <td>shift + 方向键</td>
+              <td>shift表示扩大字框，方向键代表字框的四条边</td>
+            </tr>
+            <tr>
+              <td>alt + 方向键</td>
+              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+            </tr>
+          </table>
+          <div class="title">四、相关说明</div>
+          <div class="intro">
+            默认显示图片和连线，并且对图片透明处理。您可以自行打开或者关闭按钮。注：本工作界面仍然可以键盘调整字框大小。<br/>
+            字序指的是对同一列的所有字框按照阅读先后顺序排序的顺序，它有编号和连线两种表示方式。<br/>
+            针对每个字框，有左右两个点，右出左入，从而在字框之间构成连线。<br/>可以用鼠标增加或者删除连线。用鼠标
+            从字框A的右边圆点画一条线至字框B的左边原点，表示B是A的下一个字框。用鼠标右键将连线的任何一个原点拖拽至
+            空白处，然后释放即可删除该连线。
           </div>
         </div>
       </div>
-      <div class="full-bd">
-        <!-- holder为显示切分框和页面图的画布容器 -->
-        <div id="holder"></div>
-        <div id="info">
-          <span class="cur-char"></span>
-          <span class="col-info"></span>
-          <span class="char-info"></span>
-          <span class="target-char"></span>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
 
 {% include _base_js.html %}
-{% include _cut_base.html %}
+{% include _base_cut.html %}
+{% include _base_task.html %}
+<script src="{{ static_url('js/nav.js') }}"></script>
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
-
 <script>
+  // 页面图和切分框
   var blocks = decodeJSON('{{page["blocks"]}}');
   var columns = decodeJSON('{{page["columns"]}}');
-  var chars = '{{page["chars"]}}';
+  var chars = decodeJSON('{{page["chars"]}}');
   $.cut.create({
     orderMode: true,
     readonly: true,
-    name: '{{name}}_order',
+    name: '{{page["name"]}}_order',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    image: "{{get_img(page.get('img_name', name), page.get('use_local_img'))}}",
-    version: '{{box_version}}',
+    image: "{{get_img(page)}}",
+    version: '1',
     chars: chars
   });
-
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+  $.cut.toggleBox('hide');
 
-</script>
+  // 获取任务数据
+  function getSubmitData(submit) {
+    var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
+    if ($.cut.isLinkChanged()) {
+      $.cut.applyLinks(blocks, columns);
+      setTimeout(function () {
+        data.boxes = JSON.stringify($.cut.exportBoxes());
+        return data;
+      }, 1000);
+    } else {
+      data.boxes = JSON.stringify($.cut.exportBoxes());
+      return data;
+    }
+  }
 
-<script>
   // 更新Undo
   function updateUndo() {
-    $('.btn-undo').attr('src', $.cut.canUndo() ? "{{ static_url('imgs/icon_lr.png') }}"
-        : "{{ static_url('imgs/icon_lr_not.png') }}");
-    $('.btn-redo').attr('src', $.cut.canRedo() ? "{{ static_url('imgs/icon_rr.png') }}"
-        : "{{ static_url('imgs/icon_rr_not.png') }}");
+    var root = '{{static_url("imgs")}}';
+    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
+    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
   }
+
   updateUndo();
 
-  $('.btn-undo').click(function () {
+  $('#undo').click(function () {
     $.cut.undo();
     updateUndo();
   });
 
-  $.cut.onBoxChanged(function (char, box, reason) {
-    if (reason === 'navigate') {
-      $('#info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
-    }
+  $('#redo').click(function () {
+    $.cut.redo();
     updateUndo();
-  });
-
-  $('#switch-image').click(function () {
-    var style = $.cut.data.image.node.style;
-    style.display = style.display === 'none' ? '' : 'none';
   });
 
   // 显示字序待修正的字框
@@ -175,143 +283,47 @@
     $.cut.showErrorBoxes();
   }, 100);
 
-  // 缩小画布
-  $('.btn-reduce').click(function () {
-    if ($.cut.data.ratio > 0.5) {
-      $.cut.setRatio($.cut.data.ratio * 0.9);
-    }
+  // 显隐连线
+  $('#toggle-path').click(function () {
+    $(this).toggleClass('active');
+    var active = $(this).hasClass('active');
+    $('#holder svg path').each(function (i, path) {
+      var stroke = $(path).css('stroke');
+      if (active) {
+        stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
+      } else {
+        stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
+      }
+      $(path).css('stroke', stroke);
+      // console.log(stroke);
+    });
   });
 
-  // 放大画布
-  $('.btn-enlarge').click(function () {
-    if ($.cut.data.ratio < 5) {
-      $.cut.setRatio($.cut.data.ratio * 1.5);
-    }
+  // 图片透明
+  $.cut.data.image.node.style.opacity = 0.2;
+  $('#blur-image').click(function () {
+    $(this).toggleClass('active');
+    var style = $.cut.data.image.node.style;
+    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
   });
 
   // 显隐列框
-  $('#toggle-columns').click(function () {
+  $('#toggle-column').click(function () {
+    $(this).toggleClass('active');
     $.cut.toggleColumns(columns);
   });
 
   // 显隐字框
-  $('#toggle-chars').click(function () {
+  $('#toggle-char').click(function () {
+    $(this).toggleClass('active');
     $.cut.toggleBox('hide');
   });
 
-  // 更多操作
-  $('.btn-ed-box').click(function () {
-    $('.more-group').toggleClass('hidden');
-  });
-
-  // 调整字框连线后重新设置字框编号
+  // 调整字框连线后，重新设置字框编号
   $('#apply').click(function () {
+    $(this).toggleClass('active');
     $.cut.applyLinks(blocks, columns);
   });
-
-</script>
-
-<script>
-  // 保存任务
-  $('.btn-save').on("click", function () {
-    postApi('{{current_path.replace("/order", "")}}', {
-      data: {
-        submit: false,
-        box_type: '{{box_type}}',
-        boxes: JSON.stringify($.cut.exportBoxes())
-      }
-    }, function (data) {
-      showSuccess('保存成功', '{{name}} ' + '已保存成功');
-      setTimeout(function () {
-        window.location.reload();
-      }, 1000);
-    });
-	});
-
-  // 提交任务
-  $('.btn-submit').on("click", function () {
-    postApi('{{current_path.replace("/order", "")}}', {
-      data: {
-      submit: true,
-      box_type: '{{box_type}}',
-      boxes: JSON.stringify($.cut.exportBoxes())
-      }
-    }, function () {
-      // showSuccess('提交成功', '{{name}} ' + '已提交成功');
-      pick('/task/pick/{{task_type}}');
-    });
-  });
-
-  // 离开页面时解锁数据
-  window.leave = function () {
-    // 当前页面模式，包括view/do/update/edit等
-    if ('{{mode}}' === 'edit') {
-      postApi('/task/unlock/{{task_type}}/{{name}}', {}, function () {
-        window.history.back();
-      });
-    } else if ('{{mode}}' === 'view') {
-      window.history.back();
-    } else {
-      window.location = '/task/lobby/{{task_type}}';
-    }
-  };
-
-</script>
-
-{% import controller.errors as e %}
-<script>
-  // 领取新任务（从任务大厅拷贝）
-  function pick(url, page_name) {
-    var data = {data: page_name === undefined ? {} : {page_name: page_name}};
-    postApi(url, data, function (res) {
-      if (res && res.url) {
-        window.location = res.url;
-      }
-    }, function (res) {
-      error_callback(res);
-    });
-  }
-
-  // 领取任务失败回调
-  function error_callback(res) {
-    console.log(res);
-    if (res.code == '{{e.task_uncompleted[0]}}') {
-      var info = {
-        title: "是否继续未完成的任务？",
-        text: "您还有未完成的任务" + res.uncompleted_name + "，不能领取新任务！",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定继续",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info, function() {
-        window.location = res.url;
-      });
-    } else if (res.code == '{{e.no_task_to_pick[0]}}') {
-      showError('暂无新任务', res.message);
-      setTimeout(function () {
-        window.location = "/task/lobby/{{'text_proof' if 'text_proof' in task_type else task_type}}";
-      }, 1000);
-    } else if (res.code != 500) {
-      var info = {
-        title: "是否领取其它任务？",
-        text: res.message,
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b8906f",
-        confirmButtonText: "确定领取",
-        cancelButtonText: "取消",
-        closeOnConfirm: false
-      };
-      swal(info,function() {
-          pick("/task/pick/{{task_type}}");
-      });
-    } else {
-      showError('发生错误', res.message);
-    }
-  }
 
 </script>
 

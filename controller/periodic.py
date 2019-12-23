@@ -3,49 +3,89 @@
 """
 @time: 2018/10/23
 """
-
 import logging
+import pymongo
+from controller.helper import prop
 from datetime import datetime, timedelta
+from controller.app import Application as App
 from controller.task.base import TaskHandler as Th
 
-data = {}
-unlock_task_minutes = 60  # 一小时自动释放任务锁
-unlock_temp_minutes = 30  # 30分钟自动释放数据锁
+
+def connect_db():
+    cfg = App.load_config().get('database')
+    if cfg.get('user'):
+        uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
+            cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
+        )
+    else:
+        uri = 'mongodb://{0}:{1}/'.format(cfg.get('host'), cfg.get('port', 27017))
+    conn = pymongo.MongoClient(
+        uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+        maxPoolSize=10, waitQueueTimeoutMS=5000
+    )
+    return conn[cfg['name']]
 
 
-def periodic_task(app, opt=None):
-    opt = opt or {}
-    if 'update_time' not in data or opt.get('at_once') or (
-                datetime.now() - data['update_time']).seconds > opt.get('interval', 600):
-        data['update_time'] = datetime.now()
-        try:
-            task_time = datetime.now() - timedelta(minutes=opt.get('minutes', unlock_task_minutes))
-            temp_time = datetime.now() - timedelta(minutes=opt.get('minutes', unlock_temp_minutes))
-            fields = list(set(Th.task_shared_data_fields.values()))
-            task_cond = [{'lock.%s.locked_time' % f: {'$lt': task_time}, 'lock.%s.is_temp' % f: False} for f in fields]
-            temp_cond = [{'lock.%s.locked_time' % f: {'$lt': temp_time}, 'lock.%s.is_temp' % f: True} for f in fields]
-            for page in app.db.page.find({'$or': task_cond + temp_cond}):
-                for field in fields:
-                    lock = page['lock'].get(field)
-                    if lock and lock.get('locked_time') and lock['locked_time'] < task_time:
-                        task_type = lock['lock_type'].get('tasks')
-                        locked_time = lock['locked_time'].strftime('%m-%d %H:%M')
-                        update = {'lock.%s' % field: {}}
-                        values = {'$set': update}
-                        if not lock.get('is_temp'):
-                            update['tasks.%s.status' % task_type] = Th.STATUS_OPENED
-                            values['$unset'] = {}
-                            for k in Th.prop(page, 'tasks.%s' % task_type):
-                                if k.startswith('picked'):
-                                    values['$unset'][k] = None
-                        r = app.db.page.update_one({'name': page['name']}, values)
-                        if r.matched_count:
-                            add_op_log(app.db, 'auto_unlock', ','.join([
-                                page['name'], locked_time, lock['locked_by'], task_type]))
-        except Exception as e:
-            logging.error('periodic_db_task: %s %s' % (e.__class__.__name__, str(e)))
+def republish_timeout_tasks(db=None, timeout_days=None):
+    """ 系统重新发布超时任务
+        重新发布所有已领取未完成超过时间的任务
+    """
+    db = connect_db() if not db else db
+    timeout_days = prop(App.load_config(), 'task.task_timeout_days') if timeout_days is None else timeout_days
+    from_time = datetime.now() - timedelta(days=int(timeout_days))
+    condition = {'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}
+    tasks = list(db.task.find(condition))
+    for task in tasks:
+        # 重新发布
+        pre_tasks = prop(task, 'pre_tasks', {})
+        pre_tasks.update({p: '' for p in pre_tasks})
+        r = db.task.update_one({'_id': task['_id']}, {'$set': {
+            'status': Th.STATUS_OPENED, 'steps.submitted': None, 'pre_tasks': pre_tasks,
+            'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}
+        }})
+        if r.matched_count:
+            add_op_log(db, 'republish', target_id=task['_id'], context=task['task_type'])
+
+        # 释放数据锁
+        shared_field = Th.get_shared_field(task['task_type'])
+        if shared_field:
+            shared_field_meta = Th.data_auth_maps[shared_field]
+            id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+            db[collection].update_many({id_name: task['doc_id']}, {'$set': {'lock.%s' % shared_field: dict()}})
 
 
-def add_op_log(db, op_type, context):
+def release_timeout_lock(db=None, timeout_days=None):
+    """ 系统释放超时的数据锁
+        释放所有超过一天的临时数据锁
+    """
+    db = connect_db() if not db else db
+    timeout_days = prop(App.load_config(), 'task.temp_lock_timeout_days') if timeout_days is None else timeout_days
+    from_time = datetime.now() - timedelta(days=int(timeout_days))
+    db.page.update_many({'lock.box.is_temp': True, 'lock.box.locked_time': {'$gt': from_time}},
+                        {'$set': {'lock.box': dict()}})
+    db.page.update_many({'lock.text.is_temp': True, 'lock.text.locked_time': {'$gt': from_time}},
+                        {'$set': {'lock.text': dict()}})
+
+
+def statistic_tasks(db=None):
+    """ 统计每日完成的工作 """
+    db = connect_db() if not db else db
+    pass
+
+
+def add_op_log(db, op_type, target_id, context):
     logging.info('%s,context=%s' % (op_type, context))
-    db.log.insert_one(dict(type=op_type, context=context and context[:80], create_time=datetime.now()))
+    db.log.insert_one(dict(type=op_type, target_id=target_id, context=context, create_time=datetime.now()))
+
+
+def periodic_task(db, timeout_days=None):
+    """ 定时任务，每晚11点运行"""
+    republish_timeout_tasks(db, timeout_days)
+    release_timeout_lock(db, timeout_days)
+    statistic_tasks(db)
+
+
+if __name__ == '__main__':
+    import fire
+
+    fire.Fire(periodic_task)

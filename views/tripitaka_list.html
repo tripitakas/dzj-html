@@ -1,130 +1,97 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
   <title>{{site['description']}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('css/helper.css') }}" rel="stylesheet" type="text/css"/>
 </head>
+
+<style>
+  .main-right {
+    width: 100%;
+  }
+
+  .tripitaka-list .list {
+    margin: 85px 20px 0;
+  }
+
+  .tripitaka-list .list li {
+    width: 15.5%;
+    padding: 12px 12px 0 12px;
+    float: left;
+    box-sizing: border-box;
+    background: #fff;
+    box-shadow: 4px 0 4px rgba(142, 142, 142, 0.1);
+    text-align: center;
+    margin-right: 1.4%;
+    margin-bottom: 1.4%;
+  }
+
+  .tripitaka-list .list li:nth-child(6n+6) {
+    margin-right: 0;
+  }
+
+  .tripitaka-list .list a {
+    display: block;
+  }
+
+  .tripitaka-list .list .tripitaka-cover {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .tripitaka-list .list p {
+    line-height: 42px;
+    color: #13171c;
+    font-size: 16px;
+    position: relative;
+  }
+
+  .tripitaka-list .list p:before {
+    content: "";
+    position: absolute;
+    background: url("{{static_url('imgs/hehua.png') }}") no-repeat;
+    width: 23px;
+    height: 27px;
+    top: 10px;
+    left: 10px;
+  }
+</style>
 
 <body>
 <div class="app-main">
   <div class="main">
-    <!--模拟出左边菜单，方便写样式-->
-    {% module CommonLeft(title="index") %}
+    {% module ComLeft(title="index") %}
     <div class="main-content">
-      {% module CommonHead() %}
-      <div class="single-page-con">
-        <div class="layout">
-          <div class="layout-content">
-            <!-- 中间内容 -->
-            <div class="home">
-
+      {% module ComHead() %}
+      <div class="layout">
+          <div class="wrapper">
               <div class="flex-content">
                 <div class="main-right no-bg no-pm">
                   <div class="tripitaka-list">
                     <div class="wrapper">
                       <ul class="list clearfix">
+                        {% for t in tripitakas %}
                         <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
+                          <a href="/page/{{t['tripitaka_code']}}">
+                            <img class="tripitaka-cover" src="{{static_url('imgs/cover/%s.jpg' % t['tripitaka_code'])}}" alt="没有找到图片"
+                                 onerror=javascript:this.src='{{static_url("imgs/cover/default.jpg")}}';>
+                            <p>{{t['name']}}</p>
                           </a>
                         </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="/tripitaka.html">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <img src="{{ static_url('imgs/FS_face.jpg') }}" alt="">
-                            <p>房山石经</p>
-                          </a>
-                        </li>
+                        {% end %}
                       </ul>
-                      {% module Pager(pager='TODO') %}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <!-- ./中间内容 -->
-          </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
+
 {% include _base_js.html %}
 </body>
-
 </html>

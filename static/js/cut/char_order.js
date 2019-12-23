@@ -46,16 +46,13 @@
   // 销毁所有图形，obj 可为图形对象的容器对象或数组，或有remove方法的对象
   function removeShapes(obj) {
     if (!obj) {
-    }
-    else if (obj instanceof Array) {
+    } else if (obj instanceof Array) {
       while (obj.length) {
         removeShapes(obj.pop());
       }
-    }
-    else if (obj.remove) {
+    } else if (obj.remove) {
       obj.remove();
-    }
-    else {
+    } else {
       Object.keys(obj).forEach(function (k) {
         if (obj[k] instanceof Array) {
           removeShapes(obj[k]);
@@ -193,7 +190,7 @@
     getId: function () {
       if (this.c1 && this.c2) {
         var a = this.c1.getId().split('c'), b = this.c2.getId().split('c');
-        return this.c1.getId() + '-' + (a.length == 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
+        return this.c1.getId() + '-' + (a.length === 3 && a[0] === b[0] && a[1] === b[1] ? 'c' + b[2] : this.c2.getId());
       }
     },
 
@@ -210,6 +207,11 @@
     // 得到终点坐标
     getEndPos: function () {
       return this.c2.getLets()[0];
+    },
+
+    // 是独占一列的回环连接
+    isSelfLink: function () {
+      return this.c1 === this.c2;
     },
 
     // 创建亮显连线
@@ -237,8 +239,7 @@
           'stroke-dasharray': '.',
           'stroke-width': 1 / data.ratioInitial
         });
-      }
-      else if (up && !zoomed) {
+      } else if (up && !zoomed) {
         line.setAttr({
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
@@ -276,6 +277,7 @@
     this.label = [];        // 字框编号文字
     this.links = [];        // linksOfCol中的连线，及新增连线
     this.state = {tol: 1};
+    this.changed = false;
 
     // 创建字框节点
     console.assert(src instanceof Array);
@@ -305,9 +307,9 @@
       var self = this;
       self.state.avgLen = 0;
       this.remove();
-      this.chars_col = chars_col || this.chars_col;
+      this.chars_col = chars_col || this.chars_col || [];
       this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
-        return ids.slice(1).map(function (id, i) {
+        return (ids.length === 1 ? ids : ids.slice(1)).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
           if (!c1 || !c2 || !c1.isValidId() || !c2.isValidId()) {
             return;
@@ -334,8 +336,9 @@
         this.nodes.forEach(function (node) {
           if (node.isValidId()) {
             var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
-            self.label.push(data.paper.text(cen.x, cen.y, nums[1] + 'c' + nums[2])
-                .attr({'font-size': '13px'}));
+
+            self.label.push(data.paper.text(cen.x, cen.y, nums[2])
+                .attr({'font-size': (14 * $.cut.data.ratio) + 'px'}));
           }
         });
       }
@@ -415,8 +418,7 @@
         if (links.length === 1) {
           hit.obj = links[0];
           hit.type = 'link';
-        }
-        else if (links.length > 1) {
+        } else if (links.length > 1) {
           hit = this.hitTest(pt, null, {only: {link: true}});
         }
       }
@@ -519,8 +521,7 @@
             this.drag.box = node && node.createBox(colors.sel);
             this.drag.dot = hit && hit.obj.createLet(hit.type === 'inlet');
             this.drag.line = this.state.dragLink.createLine(colors.sel);
-          }
-          else {
+          } else {
             this.drag.line = this.state.dragLink.createLineWith(
                 this.state.outletHit ? pt : this.state.dragLink.getStartPos(),
                 this.state.inletHit ? pt : this.state.dragLink.getEndPos(),
@@ -533,15 +534,16 @@
       }
     },
 
-    mouseUp: function (pt) {
+    mouseUp: function (pt, e) {
       var link = this.state.dragLink, srcLink = link && link.source;
       var changed;
+      var enableSelfLink = e.shiftKey;
 
       // 恢复原连接的透明度
       if (srcLink && srcLink.shapes.line) {
         srcLink.shapes.line.attr({'opacity': 1});
       }
-      if (link && link.c1 !== link.c2 && (!srcLink || srcLink.shapes.line)) {
+      if (link && (link.c1 !== link.c2 || enableSelfLink) && (!srcLink || srcLink.shapes.line)) {
         // 改变原连接的端点
         if (srcLink && (link.c1 !== srcLink.c1 || link.c2 !== srcLink.c2)) {
           if (link.c1 && link.c2) {
@@ -561,6 +563,7 @@
       delete this.state.dragLink;
 
       if (changed) {
+      this.changed = true;
         this.checkLinks();
         this._updateCurrentLink(changed, pt);
         this.linkSwitched(changed instanceof Link && changed);
@@ -597,6 +600,7 @@
     delLink: function (c1, c2) {
       var link = this.findLinkBetween(c1, c2);
       if (link) {
+        this.changed = true;
         link.remove();
         this.links.splice(this.links.indexOf(link), 1);
         return true;
@@ -607,6 +611,7 @@
     addLink: function (c1, c2) {
       var link = this.findLinkBetween(c1, c2);
       if (!link && c1 && c2 && c1 !== c2) {
+        this.changed = true;
         link = new Link(c1, c2);
         link.shapes.line = link.createLine(colors.link[2]);
         this.links.push(link);
@@ -617,7 +622,8 @@
     // 移动连接
     moveLink: function (c1Old, c2Old, c1New, c2New) {
       var link = this.findLinkBetween(c1Old, c2Old);
-      if (link && c1New && c2New && c1New !== c2New) {
+      if (link && c1New && c2New) {
+        this.changed = true;
         link.remove();
         link.c1 = c1New;
         link.c2 = c2New;
@@ -630,6 +636,7 @@
     reverseLink: function () {
       var link = (this.state.hit || {}).obj;
       if (link instanceof Link && !this.drag.line) {
+        this.changed = true;
         this.moveLink(link.c1, link.c2, link.c2, link.c1);
         this._updateCurrentLink(link);
         this.linkSwitched(link);
@@ -637,6 +644,10 @@
     },
 
     checkLinks: function (routes, heads) {
+      if (!this.chars_col || !this.chars_col.length) {
+        return;
+      }
+
       var self = this;
       var errors = [];
       var tails = [];
@@ -646,21 +657,22 @@
 
       // 每个字框的出入点至少有一个有连接，一个点最多一个连接
       this.nodes.forEach(function (node) {
-        var links1 = self.findInLinks(node);
-        var links2 = self.findOutLinks(node);
+        var linksIn = self.findInLinks(node);
+        var linksOut = self.findOutLinks(node);
 
-        if (!links1.length && !links2.length || links1.length > 1 || links2.length > 1) {
+        if (!linksIn.length && !linksOut.length || linksIn.length > 1 || linksOut.length > 1) {
           errors.push(node);
-        }
-        else if (!links1.length && links2.length === 1) {
+        } else if (!linksIn.length && linksOut.length === 1) {
           heads.push(node);
-        }
-        else if (!links2.length && links1.length === 1) {
+        } else if (!linksOut.length && linksIn.length === 1) {
+          tails.push(node.getId());
+        } else if (linksOut.length === 1 && linksOut[0].isSelfLink()) {
+          heads.push(node);
           tails.push(node.getId());
         }
       });
 
-      // 从开始字框到结束字框应只有一条通路
+      // 从开始字框到结束字框应有且仅有一条通路
       function pass(node, route) {
         if (used.indexOf(node) >= 0) {
           errors.push(node);
@@ -670,7 +682,7 @@
         route.push(node.char);
 
         var links = self.findOutLinks(node);
-        if (links.length === 1 && errors.indexOf(links[0]) < 0) {
+        if (links.length === 1 && errors.indexOf(links[0]) < 0 && links[0].c2 !== node) {
           pass(links[0].c2, route);
         }
       }
@@ -687,7 +699,7 @@
       removeShapes(this.errNodes);
       errors.forEach(function (node) {
         var r = node.createBox('#0f0');
-        r.animate({'fill-opacity': 0.7}, 1000, 'elastic');
+        r.animate({'fill-opacity': 0.5}, 1000, 'elastic');
         self.errNodes.push(r);
       });
 
@@ -708,8 +720,8 @@
     cs.mouseDrag(pt);
   }
 
-  function mouseUp(pt) {
-    cs.mouseUp(pt);
+  function mouseUp(pt, e) {
+    cs.mouseUp(pt, e);
   }
 
   $.extend($.cut, {
@@ -728,6 +740,7 @@
       state.mouseDown = mouseDown;
       state.mouseDrag = mouseDrag;
       state.mouseUp = mouseUp;
+      return cs;
     },
 
     bindCharOrderKeys: function () {
@@ -785,32 +798,38 @@
       }
     },
 
+    isLinkChanged: function() {
+      return cs && cs.changed;
+    },
+
     // 调整字框连线后重新设置字框编号
     applyLinks: function (blocks, columns, update) {
       var self = this, routes = [], heads = [];
 
       if (!cs.checkLinks(routes, heads)) {
-        return showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+        showError('字框连接有误', '请修正高亮绿框的字框连线。');
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
           return char.id;
         });
       });
-      postApi('/data/gen_char_id', {data: {
-        blocks: blocks, columns: columns, chars_col: chars_col,
-        chars: $.cut.exportBoxes()
-      }}, function (res) {
+      postApi('/cut/gen_char_id', {
+        data: {
+          blocks: blocks, columns: columns, chars_col: chars_col,
+          chars: $.cut.exportBoxes()
+        }
+      }, function (res) {
         var changed = data.chars.map(function (c) {
-              return c.char_id;
-            }).join(',') !== res.chars.map(function (c) {
-              return c.char_id;
-            }).join(',');
+          return c.char_id;
+        }).join(',') !== res.chars.map(function (c) {
+          return c.char_id;
+        }).join(',');
 
         heads = heads.map(function (node) {
           return node.char.id;
         });
-        data.chars.forEach(function(b) {
+        data.chars.forEach(function (b) {
           if (b.shape) {
             b.shape.remove();
             delete b.shape;
@@ -837,6 +856,9 @@
 
     // 检查不合理的列头字框：每列第一个字框上方不存在同栏、X范围重叠的字框
     checkInvalidHead: function (headIds) {
+      if (!this.chars_col || !this.chars_col.length)
+        return;
+
       var errors = [];
 
       headIds.forEach(function (id) {
@@ -881,9 +903,10 @@
   });
 
   // 显隐字框编号
-  $('#switch-char-no').click(function () {
+  $('#toggle-char-no').click(function () {
     cs.state.labelVisible = !cs.state.labelVisible;
     cs.updateLabel();
   });
+
 
 }());

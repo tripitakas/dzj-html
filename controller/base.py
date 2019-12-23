@@ -8,26 +8,26 @@
 import re
 import logging
 import traceback
-import hashlib
 from os import path
-
+from datetime import datetime
 from bson import json_util
 from bson.errors import BSONError
 from pymongo.errors import PyMongoError
 from tornado import gen
 from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
+from tornado.httpclient import HTTPError
 from tornado.options import options
 from tornado.web import RequestHandler
 from tornado_cors import CorsMixin
-
 from controller import errors as e
-from controller.role import get_route_roles, can_access
-from controller.helper import get_date_time
 from controller.op_type import get_op_name
+from controller.auth import get_route_roles, can_access
+from controller.helper import get_date_time, prop, md5_encode
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
+hook = {}
 
 
 class BaseHandler(CorsMixin, RequestHandler):
@@ -37,7 +37,7 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
-        self.db = self.application.db
+        self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
         self.config = self.application.config
         self.more = {}  # 给子类记录使用
 
@@ -63,22 +63,27 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not self.current_user:
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
-        user_in_db = self.db.user.find_one(dict(_id=self.current_user.get('_id')))
-        if not user_in_db:
-            return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+        try:
+            cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
+            user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
+            if not user_in_db:
+                return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+        except MongoError as error:
+            return self.send_db_error(error, render=not self.get_query_argument('_raw', 0) and not api)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
         # 检查当前用户是否可以访问本请求
         self.current_user['roles'] = user_in_db.get('roles', '')  # 检查权限前更新roles
-        self.set_secure_cookie('user', json_util.dumps(self.current_user))
+        self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
         if can_access(self.current_user['roles'], p, m):
             return
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
-        assert need_roles, '未在role.py中配置访问路径'
+        if not need_roles:
+            return self.send_error_response(e.url_not_found, render=not api)
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
-        self.send_error_response(e.unauthorized, render=not api, message=message)
+        return self.send_error_response(e.unauthorized, render=not api, message=message)
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -102,12 +107,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
-        kwargs['release_html'] = not kwargs['debug'] and path.exists(
-            path.join(self.application.BASE_DIR, 'static', 'built'))
         # can_access/dumps/to_date_str传递给页面模板
         kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
-        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': t and t.strftime(fmt) or ''
+        kwargs['prop'] = self.prop
+        kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
+        kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
         if self._finished:  # check_auth 等处报错返回后就不再渲染
             return
 
@@ -119,13 +124,13 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_data_response(**kwargs)
 
         logging.info(template_name + ' by ' + re.sub(r"^.+controller\.|'>", '', str(self.__class__)))
-        self.add_op_log('visit', context=self.request.path)
+        # self.add_op_log('visit', context=self.request.path)
 
         try:
             super(BaseHandler, self).render(template_name, **kwargs)
-        except Exception as err:
+        except Exception as error:
             traceback.print_exc()
-            message = '网页生成出错(%s): %s' % (template_name, str(err) or err.__class__.__name__)
+            message = '网页生成出错(%s): %s' % (template_name, str(error) or error.__class__.__name__)
             kwargs.update(dict(code=500, message=message))
             super(BaseHandler, self).render('_error.html', **kwargs)
 
@@ -135,9 +140,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         客户端请求需在请求体中包含 data 属性，例如 $.ajax({url: url, data: {data: some_obj}...
         """
         if 'data' not in self.request.body_arguments:
-            body = b'{"data":' in self.request.body and json_util.loads(self.request.body).get('data')
+            body = b'{"data":' in self.request.body and json_util.loads(to_basestring(self.request.body)).get('data')
         else:
-            body = json_util.loads(self.get_body_argument('data'))
+            body = json_util.loads(to_basestring(self.get_body_argument('data')))
         return body or {}
 
     def send_data_response(self, data=None, **kwargs):
@@ -173,7 +178,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        if response.pop('render', 0):  # 如果是页面渲染请求，则返回错误页面
+        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
+        if response.pop('render', render):  # 如果是页面渲染请求，则返回错误页面
             return self.render('_error.html', **response)
 
         user_name = self.current_user and self.current_user['name']
@@ -200,7 +206,12 @@ class BaseHandler(CorsMixin, RequestHandler):
             str(self).split('.')[-1].split(' ')[0],
             '%s(%s)' % (exc.__class__.__name__, re.sub(r"^'|'$", '', str(exc)))
         )
-        self.send_error_response((status_code, message), **kwargs)
+        if re.search(r'\[Errno \d+\]', message):
+            code = int(re.sub(r'^.+Errno |\].+$', '', message))
+            message = re.sub(r'^.+\]', '', message)
+            message = '无法访问文档库' if code in [61] else '%s: %s' % (e.mongo_error[1], message)
+            return self.send_error_response((e.mongo_error[0] + code, message))
+        return self.send_error_response((status_code, message), **kwargs)
 
     def send_db_error(self, error, render=False):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
@@ -210,7 +221,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not code and '[Errno' in reason and isinstance(error, MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
-            reason = '无法访问文档库' if code in [61] else '%s(%s)%s' % (
+            reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
                 e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
             )
             return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
@@ -227,45 +238,55 @@ class BaseHandler(CorsMixin, RequestHandler):
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
-        self.send_error_response((default_error[0] + code, reason), render=render)
+        return self.send_error_response((default_error[0] + code, reason), render=render)
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
-    def add_op_log(self, op_type, target_id=None, context=None):
+    def add_op_log(self, op_type, target_id=None, context=None, username=None):
         op_name = get_op_name(op_type)
-        assert op_name
-        logging.info('%s,target_id=%s,context=%s' % (op_name, target_id, context))
-        self.db.log.insert_one(dict(
-            type=op_type, target_id=target_id and str(target_id) or None,
-            context=context and context[:80], ip=self.get_ip(),
-            nickname=self.current_user and self.current_user.get('name'),
-            user_id=self.current_user and self.current_user.get('_id'), create_time=get_date_time(),
-        ))
+        assert op_name, op_type + ' need add into op_type.py'
+        target_id = target_id and str(target_id) or None
+        user_id = self.current_user and self.current_user.get('_id')
+        username = username or self.current_user and self.current_user.get('name')
+        logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
+        try:
+            self.db.log.insert_one(dict(
+                op_type=op_type, username=username, user_id=user_id, target_id=target_id,
+                context=str(context), ip=self.get_ip(), create_time=datetime.now(),
+            ))
+        except MongoError:
+            pass
 
-    def get_img(self, page_code, resize=False, force_local=False):
-        host = self.config.get('img', {}).get('host')
-        salt = self.config.get('img', {}).get('salt')
+    def get_img(self, page, resize=False, force_local=False):
+        if page.get('img_cloud_path'):
+            url = page['img_cloud_path']
+            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+        page_name = page['name']
+        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
         if not host or salt in [None, '', '待配置'] or force_local:
-            fn = '/static/img/{0}/{1}.jpg'.format(page_code[:2], page_code)
-            if not path.exists(path.join(self.application.BASE_DIR, fn[1:])):
+            fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
+            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
-        md5 = hashlib.md5()
-        md5.update((page_code + salt).encode('utf-8'))
-        hash_value = md5.hexdigest()
-        inner_path = '/'.join(page_code.split('_')[:-1])
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_code, hash_value)
-        url = url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-        return url
+
+        hash_value = md5_encode(page_name, salt)
+        inner_path = '/'.join(page_name.split('_')[:-1])
+        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
+        return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+    @classmethod
+    def prop(cls, obj, key, default=None):
+        return prop(obj, key, default=default)
 
     @gen.coroutine
-    def call_back_api(self, url, handle_response, handle_error=None, **kwargs):
+    def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):
         def callback(r):
             if r.error:
                 if handle_error:
-                    handle_error(r.error)
+                    handle_error(str(r.error))
                 else:
                     self.render('_error.html', code=500, message='错误1: ' + str(r.error))
             else:
@@ -280,8 +301,9 @@ class BaseHandler(CorsMixin, RequestHandler):
                         except TypeError:
                             body = to_basestring(r.body).strip()
                         self._handle_body(body, params_for_handler, handle_response, handle_error)
-                except Exception as err:
-                    err = '错误(%s): %s' % (err.__class__.__name__, str(err))
+                except Exception as error:
+                    err = '错误(%s): %s' % (error.__class__.__name__, str(error))
+                    traceback.print_exc()
                     if handle_error:
                         handle_error(err)
                     else:
@@ -295,12 +317,18 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         client = AsyncHTTPClient()
         url = re.sub('[\'"]', '', url)
-        if not re.match(r'http(s)?://', url):
-            url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
-            yield client.fetch(url, headers=self.request.headers,
-                               callback=callback, validate_cert=False, **kwargs)
-        else:
-            yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+        try:
+            if not re.match(r'http(s)?://', url):
+                url = '%s://localhost:%d%s' % (self.request.protocol, options['port'], url)
+                yield client.fetch(url, headers=self.request.headers,
+                                   callback=callback, validate_cert=False, **kwargs)
+            else:
+                yield client.fetch(url, callback=callback, validate_cert=False, **kwargs)
+        except (OSError, HTTPError) as err_con:
+            if handle_error:
+                handle_error('服务无响应: ' + str(err_con))
+            else:
+                self.render('_error.html', code=500, message=str(err_con))
 
     def _handle_body(self, body, params_for_handler, handle_response, handle_error):
         if re.match(r'(\s|\n)*(<!DOCTYPE|<html)', body, re.I):
@@ -313,11 +341,11 @@ class BaseHandler(CorsMixin, RequestHandler):
                 handle_response(body, **params_for_handler)
         else:
             body = json_util.loads(body)
-            if body.get('error'):
-                body['error'] = body.get('message')
+            if isinstance(body, dict) and body.get('error'):
+                body['error'] = body.get('message') or body['error']
                 if handle_error:
                     handle_error(body['error'])
                 else:
                     self.render('_error.html', **body)
             else:
-                handle_response(body.get('data') or body, **params_for_handler)
+                handle_response(isinstance(body, dict) and body.get('data') or body, **params_for_handler)

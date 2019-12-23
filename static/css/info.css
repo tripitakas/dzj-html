@@ -1,0 +1,48 @@
+.block {
+  display: block;
+  padding: 20px 20px 0;
+  clear: both;
+}
+
+.block-head {
+  padding: 5px;
+  font-size: 20px;
+  display: block;
+  clear: both;
+  background: #fff;
+}
+
+.block-head a {
+  font-size: 12px;
+  margin-left: 10px;
+  color: #B8906F;
+  cursor: pointer;
+}
+
+.info {
+  width: 50%;
+  float: left;
+  padding: 4px 5px;
+  display: flex;
+}
+
+.info.long {
+  width: 100%;
+}
+
+.info .label {
+  font-weight: bold;
+  font-size: 1em;
+  max-width: 120px;
+  text-align: left;
+  color: #333;
+  flex: 1;
+}
+
+.info .value {
+  display: inline-block;
+  word-break: break-all;
+  flex: 1;
+}
+
+

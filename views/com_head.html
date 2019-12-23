@@ -1,0 +1,40 @@
+<div class="main-header">
+  <div class="ivu-row-flex">
+    <div class="main-header-left">
+      <div class="title">
+        <span class="platform"><img src="{{ static_url('imgs/platform.png') }}" alt="platform"></span>
+      </div>
+      <div class="line"></div>
+    </div>
+    {% set user = current_user %}
+    {% set img = user and user.get('img') %}
+    {% set gender = user and user.get('gender') %}
+    {% set ava = 'ava1.png' if gender == '男' else 'ava2.png' if gender == '女' else 'ava3.png' %}
+    <div class="main-header-right">
+        <span class="welcome">
+          欢迎您：<a href="/user/my/profile" title="个人中心">{{user['name'] if user else '访客'}}</a>
+        </span>
+      <span>
+					<a href="/user/my/profile" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="个人中心">
+					<img class="thumb-sm img-circle" src="{{ static_url(img if img else 'imgs/' + ava) }}" style="margin-top: 10px;height: 32px; width: 32px;">
+					</a>
+				</span>
+      <span>
+          <a id="logout" data-toggle="tooltip" data-placement="bottom" data-original-title="退出系统">
+            <img src="{{ static_url('imgs/logout.png') }}" alt="" title="退出系统">
+          </a>
+        </span>
+    </div>
+  </div>
+</div>
+
+<script>
+  $('#logout').click(function () {
+    postApi('/user/logout', {'data': {}}, function () {
+      showSuccess('注销成功', '');
+      goto('/user/login', 1000);
+    });
+  });
+</script>
+
+

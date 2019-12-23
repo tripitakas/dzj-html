@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
+  <title>{{site['description']}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link rel="stylesheet" type="text/css" href="{{ static_url('css/login.css') }}">
-  <title>登录</title>
+  <link rel="stylesheet" href="{{ static_url('css/login.css') }}">
 </head>
 
 <body>
@@ -19,12 +18,13 @@
           <div class="log">
             <div class="item">
               <input type="text" placeholder='请输入手机号或邮箱账号' id="phone_or_email">
-              <i class="user-icon"></i>
+<!--              <i class="user-icon"></i>-->
+              <i class="ion-ios7-person-outline"></i>
             </div>
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
-              <i class="pass-icon"></i>
-              <span class="forget">忘记密码？</span>
+              <i class="ion-ios7-unlocked-outline"></i>
+              <span class="forget hidden" data-toggle="modal" data-target="#forgetModal">忘记密码？</span>
             </div>
             <div class="other clearfix">
               <div class="select fl">
@@ -47,6 +47,31 @@
   </div>
 </div>
 
+<!--忘记密码-->
+<div class="panel-body">
+  <div id="forgetModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">找回密码</h4>
+        </div>
+        <div class="modal-body">
+          <h4 class="control-label">姓名</h4>
+          <input type="text" class="form-control" id="name" placeholder="输入注册时填写的姓名"/>
+          <h4 class="control-label">账号</h4>
+          <input type="text" class="form-control" id="account" readonly/>
+        </div>
+        <div class="modal-footer">
+          <span class="ajax-error" style="display: none; float: left"></span>
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light">找回密码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include _base_js.html %}
 <script>
   $('.log-btn > a').click(function () {
@@ -57,14 +82,35 @@
       }
     }, function () {
       window.location = '{{next}}';
+    }, function (obj) {
+      showError('登录失败', obj.message);
+      if (obj.message === '密码错误') {
+        $('.forget').removeClass('hidden');
+      }
     });
   });
   // 回车
   $(document).on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode == "13") {
+    if (keyCode ===  13) {
       $('.log-btn > a').click();
     }
+  });
+
+  var $modal = $('#forgetModal');
+
+  $modal.on('shown.bs.modal', function () {
+    $modal.find('#account').val($('#phone_or_email').val());
+  });
+
+  $modal.find('.btn-primary').click(function () {
+    postApi('/user/forget_pwd', {data: {
+      name: $modal.find('#name').val(),
+      phone_or_email: $('#phone_or_email').val()
+    }}, function () {
+      showSuccess('新的密码已经发送，请查收。');
+      $modal.find('#name').val('新的密码已经发送，请查收。');
+    });
   });
 </script>
 

@@ -1,10 +1,12 @@
-from . import data as t
-from . import api_algorithm as g
+from . import view, api
 
 views = [
-    t.DataTripitakaHandler, t.DataEnvelopHandler, t.DataVolumeHandler, t.DataSutraHandler, t.DataReelHandler,
-    t.DataPageHandler, t.DataSearchCbetaHandler
+    view.TripitakaListHandler, view.TripitakaHandler, view.DataListHandler,
+    view.DataPageHandler, view.DataPageViewHandler,
 ]
+
 handlers = [
-    g.GenerateCharIdApi,
+    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi,
+    api.FetchDataTasksApi, api.SubmitDataTasksApi, api.ConfirmFetchDataTasksApi,
+    api.DataGenJsApi,
 ]
