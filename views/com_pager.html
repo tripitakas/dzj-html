@@ -19,7 +19,7 @@
   </ul>
   <span style="margin-left: 15px">每页
   <select name="page-size" id="page-size">
-    {% for v in [10,50,100,500,1000]%}
+    {% for v in [5,10,50,100,500,1000]%}
     <option value="{{v}}" {{'selected' if page_size == v else ''}}>{{v}}</option>
     {% end %}
   </select>
@@ -39,7 +39,7 @@
     }
   });
   $('#page-size').on("change", function () {
-    var url = "{{uri+link}}" + "&page_size=" + this.value;
+    var url = "{{uri+link}}" + "page_size=" + this.value;
     window.location = url.replace(/&amp;/g, "&");
   });
 </script>
