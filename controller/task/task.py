@@ -44,7 +44,7 @@ class Task(Model):
 
     # 前端列表页面定义
     search_fields = ['doc_id', 'batch']
-    search_tip = '请搜索页编码或批次号'
+    search_tips = '请搜索页编码或批次号'
     operations = [  # 列表包含哪些批量操作
         {'operation': 'bat-assign', 'label': '批量指派'},
         {'operation': 'bat-remove', 'label': '批量删除'},

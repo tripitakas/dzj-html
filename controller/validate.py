@@ -52,6 +52,7 @@ def i18n_trans(key):
         'user_code': '用户名',
         'tripitaka_code': '藏别',
         'folder': '目录名',
+        'batch': '批次',
         'step': '步骤',
         'boxes': '框',
         'force': '已完成时是否重新发布',
@@ -268,7 +269,7 @@ def has_fields(fields, **kw):
     if v:
         need_fields = [r for r in fields if r not in v.keys()]
         if need_fields:
-            err = e.tptk_field_error[0], '缺字段：%s' % ','.join(need_fields)
+            err = e.field_error[0], '缺字段：%s' % ','.join(need_fields)
             return {k: err}
 
 

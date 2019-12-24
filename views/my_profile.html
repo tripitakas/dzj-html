@@ -30,37 +30,40 @@
                 <div class="form-group">
                   <label class="col-sm-2 control-label"></label>
                   <div class="profile-info-name">
-                    {% set gender = current_user and current_user.get('gender') %}
-                    {% set ava = 'ava1.png' if gender == '男' else 'ava2.png' if gender == '女' else 'ava3.png' %}
-                    <img src="{{ static_url(current_user.get('img') or 'imgs/' + ava)}}" class="thumb-lg img-circle img-thumbnail" onclick="uploadImg()">
+                    {% set user = current_user %}
+                    {% set ava = 'imgs/ava%s.png' % {'男':'1','女':'2','':'3'}.get(user.get('gender', '')) %}
+                    <img src="{{static_url(user.get('img') or ava)}}" class="thumb-lg img-circle img-thumbnail" onclick="uploadImg()">
                     <a href="javascript:uploadImg();" style="vertical-align:bottom;">上传头像</a>
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">姓名</label>
                   <div class="col-sm-5">
-                    <input type="text" id="name" class="form-control" value="{{current_user['name']}}">
+                    <input type="text" id="name" class="form-control" value="{{user.get('name') or ''}}">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">手机</label>
                   <div class="col-sm-5">
-                    <input type="text" id="phone" class="form-control" value="{{current_user.get('phone') or ''}}">
+                    <input type="text" id="phone" class="form-control" value="{{user.get('phone') or ''}}">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">邮箱</label>
                   <div class="col-sm-5">
-                    <input type="text" id="email" class="form-control" value="{{current_user.get('email')}}">
+                    <input type="text" id="email" class="form-control" value="{{user.get('email') or ''}}">
                   </div>
                 </div>
                 <div class="form-group">
                   <label class="col-sm-2 control-label">性别</label>
                   <div class="col-sm-5">
                     <select id="gender" class="form-control">
-                      <option {{"selected" if not current_user.get('gender') else '' }}></option>
-                      <option {{"selected" if current_user.get('gender')=='男' else '' }}>男</option>
-                      <option {{"selected" if current_user.get('gender')=='女' else '' }}>女</option>
+                      <option {{
+                      "selected" if not user.get('gender') else '' }}></option>
+                      <option {{
+                      "selected" if user.get('gender')=='男' else '' }}>男</option>
+                      <option {{
+                      "selected" if user.get('gender')=='女' else '' }}>女</option>
                     </select>
                   </div>
                 </div>
@@ -170,21 +173,22 @@
 
   // 提交密码修改
   $("#updateModal .modal-confirm").click(function () {
-    if ($('#password').val().trim() != $('#confirm_password').val().trim()) {
-      showError('请重新输入', '两次密码不一致。');
-      return;
+    var password = $('#password').val().trim();
+    var oldPassword = $('#old_password').val().trim();
+    var confirmPassword = $('#confirm_password').val().trim();
+    if (password !== confirmPassword) {
+      return showError('请重新输入', '两次密码不一致。');
     }
-    var info = {old_password: $('#old_password').val(), password: $('#password').val()};
-    postApi('/user/my/pwd', {data: info}, function () {
+    postApi('/user/my/pwd', {data: {old_password: oldPassword, password: password}}, function () {
       showSuccess('修改成功', $('#name').val() + ' 的密码已修改。');
     }, function (err) {
       if (err.code === 1009) {
         showSuccess('修改成功', '密码没有发生改变。');
+        $('#updateModal').modal('hide');
       } else {
         showError('修改失败', err.message);
       }
     });
-    $('#updateModal').modal('hide');
   });
 
   // 弹出上传用户头像提示框

@@ -21,7 +21,7 @@ class Article(Model):
     primary = 'article_id'
 
     page_title = '文章管理'
-    search_tip = '请搜索标题或内容'
+    search_tips = '请搜索标题或内容'
     search_fields = ['title', 'content']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in ['content']]
     modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),

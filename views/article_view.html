@@ -10,9 +10,10 @@
   <![endif]-->
   <style>
     .article {
-      max-width: 1024px;
-      margin: auto;
+      width: 960px;
       height: 100%;
+      margin: auto;
+      padding-top: 40px;
       font-size: 16px;
       font-weight: 300;
       background: #fff;
@@ -20,13 +21,25 @@
 
     .content {
       background: #fff;
-      padding: 0 10px 10px;
+      padding: 0 20px;
     }
 
     .title {
+      font-size: 1.5em;
       text-align: center;
-      font-size: 1.2em;
       font-weight: normal;
+      margin: 5px 0 10px;
+    }
+
+    .m-header {
+      height: 40px;
+    }
+
+    .logo-con img {
+      width: 118px;
+      margin-top: 5px;
+      margin-left: 20px;
+      cursor: pointer;
     }
 
     h1, h2, h3, h4, h5 {
@@ -57,6 +70,11 @@
 
 <body>
 <div class="app-main">
+  <header class="m-header">
+    <a class="logo-con">
+      <img class="large" src="{{ static_url('imgs/logo_rushi.png') }}">
+    </a>
+  </header>
   <div class="article">
     <div class="title">{{article['title']}}</div>
     <div class="content"> {% raw article['content'] %}</div>
@@ -64,6 +82,15 @@
 </div>
 
 {% include _base_js.html %}
+<script>
+  var category = '{{article["category"]}}';
+  $('.logo-con').click(function () {
+    if (category === '通知')
+      window.location = '/announce';
+    else
+      window.location = '/help'
+  });
+</script>
 
 </body>
 </html>

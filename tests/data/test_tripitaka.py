@@ -62,7 +62,7 @@ class TestTripitakaApi(APITestCase):
 
         for tripitaka in tripitakas:
             r = self.fetch('/page/%s?_raw=1&_no_auth=1' % tripitaka)
-            self.assert_code([200, e.tptk_img_unavailable, e.tptk_not_existed], r, msg=tripitaka)
+            self.assert_code([200, e.img_unavailable, e.no_object], r, msg=tripitaka)
             if self.get_code(r) == 200:
                 d = self.parse_response(r)
                 self.assertIn('tripitaka', d)

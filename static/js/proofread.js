@@ -318,12 +318,13 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
 
 // 存疑对话框
 $('#save-doubt').on('click', function () {
-  var word = window.getSelection ? window.getSelection().toString() : null;
-  if (word.length <= 0 || !currentSpan[0]) {
+  var txt = window.getSelection ? window.getSelection().toString() : '';
+  if (!txt.length || !currentSpan[0]) {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubtModal .doubt_input').val(word);
+  $('#doubtModal .doubt_input').val(txt);
+  $('#doubtModal .doubt_reason').val('');
 });
 
 // 切换存疑列表
@@ -731,4 +732,8 @@ $('#ed-column-box').click(function () {
 // 修改字序
 $('#ed-char-order').click(function () {
   location = '/data/edit/box/' + pageName + '?step=char_order&from=' + location.pathname + location.search;
+});
+
+$('#lq-dict').click(function () {
+  window.open('http://hanzi.lqdzj.cn/stroke_search', '_blank');
 });

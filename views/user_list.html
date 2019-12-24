@@ -1,0 +1,58 @@
+{% extends "com_list.html" %}
+
+{% block table %}
+<table class="sty-table">
+  <thead>
+  <tr>
+    <th><input id="check-all" type="checkbox"/></th>
+    <th><span>头像</span></th>
+    {% for f in model.table_fields %}
+    <th><span class="sort {{'active' if f['id'] in order else ''}}" title="{{f['id']}}">
+      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == f['id'] else ''}}"></span>
+    </span></th>
+    {% end %}
+    <th>操作</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for d in docs %}
+  <tr id="{{d['_id']}}">
+    <td><input type="checkbox"/></td>
+    {% set ava = 'imgs/ava%s.png' % {'男':'1','女':'2','':'3'}.get(d.get('gender', '')) %}
+    <td><img src="{{static_url(d.get('img') or ava)}}" class="thumb-md img-circle"></td>
+    {% for f in model.table_fields %}
+    {% if 'time' in f['id'] %}
+    <td class="{{f['id']}}">{{to_date_str(d.get(f['id']))}}</td>
+    {% else %}
+    <td class="{{f['id']}}">{{d.get(f['id']) or ''}}</td>
+    {% end %}
+    {% end %}
+    <td class="action">
+      <span class="hide info">{{dumps(d)}}</span>
+      {% for a in model.actions %}
+      <a class="{{a['action']}}">{{a['label']}}</a>
+      {% end %}
+    </td>
+  </tr>
+  {% end %}
+  </tbody>
+</table>
+{% end %}
+
+{% block custom-js %}
+<script>
+  $('.btn-reset-pwd').click(function () {
+    var id = $(this).parent().parent().attr('id');
+    var user = getData(id);
+    showConfirm("确定重置" + user.name + "吗？", "重置后无法恢复！", function () {
+      postApi('/user/admin/reset_pwd', {data: {_id: user._id}}, function (res) {
+        console.log(res.password);
+        showTips('重置成功', '新密码是 <b>' + res.password + '</b><br>请转告用此密码登录，然后修改密码。');
+      }, function (err) {
+        showError('重置失败', err.message);
+      });
+    });
+  });
+
+</script>
+{% end %}

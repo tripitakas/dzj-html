@@ -1,17 +1,6 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <title>人员管理-授权管理</title>
-  {% include _base_meta.html %}
-  {% include _base_css.html %}
-  <link href="{{ static_url('assets/responsive-table/rwd-table.min.css') }}" rel="stylesheet" media="screen"/>
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-  <![endif]-->
-
-</head>
-
+{% extends "com_list.html" %}
+{% block custom-css %}
+<link href="{{ static_url('assets/responsive-table/rwd-table.min.css') }}" rel="stylesheet" media="screen"/>
 <style>
   table th a {
     cursor: pointer;
@@ -28,163 +17,129 @@
     margin-bottom: 0;
     float: left;
   }
-
 </style>
+{% end %}
 
-<body>
-<div class="app-main">
-  <div class="main">
-    {% module ComLeft(title="user-management", sub="user-management-role") %}
-    <div class="main-content">
-      {% module ComHead() %}
-      <div class="layout">
-        <div class="wrapper">
-          <div class="sty-list">
-            <div class="search fr">
-              <input type="text" placeholder="搜索">
-              <i class="ser-btn"></i>
-            </div>
-            <div class="table-responsive" data-pattern="priority-columns">
-              <table class="table table-small-font sty-table">
-                <thead>
-                <tr>
-                  <th data-priority="1">操作</th>
-                  <th data-priority="1">姓名</th>
-                  <th data-priority="0">手机</th>
-                  <th data-priority="0">邮箱</th>
-                  {% for r in roles %}
-                  <th data-priority="1">
-                    <div class="btn-group">
-                      <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span><span class="ion-android-sort "></span>
-                    </div>
-                  </th>
-                  {% end %}
-                </tr>
-                </thead>
-                <tbody>
-                {% for p in users %}
-                <tr>
-                  <th>
-                    <a onclick="modify('{{dumps(p)}}')">修改</a>
-                  </th>
-                  <td>{{p['name']}}</td>
-                  <td>{{p.get('phone') or ''}}</td>
-                  <td>{{p.get('email', '') }}</td>
-                  {% for r in roles %}
-                  <td>{{r if r in (p.get('roles') or '') else '否'}}</td>
-                  {% end %}
-                </tr>
-                {% end %}
-                </tbody>
-              </table>
+{% block table %}
+<div class="table-responsive" data-pattern="priority-columns">
+  <table class="table table-small-font sty-table">
+    <thead>
+    <tr>
+      <th data-priority="1">操作</th>
+      <th data-priority="1">姓名</th>
+      <th data-priority="0">手机</th>
+      <th data-priority="0">邮箱</th>
+      {% for r in roles %}
+      <th data-priority="1">
+        <div class="btn-group">
+          <span class="sort" data-toggle="dropdown" aria-expanded="false">{{r}}</span>
+          <span class="ion-android-sort "></span>
+        </div>
+      </th>
+      {% end %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for user in docs %}
+    <tr>
+      <th><a onclick="modify('{{dumps(user)}}')">修改</a></th>
+      <td>{{user.get('name') or ''}}</td>
+      <td>{{user.get('phone') or ''}}</td>
+      <td>{{user.get('email', '') }}</td>
+      {% for r in roles %}
+      <td>{{r if r in (user.get('roles') or '') else '否'}}</td>
+      {% end %}
+    </tr>
+    {% end %}
+    </tbody>
+  </table>
+</div>
+{% end %}
+
+{% block custom-modal %}
+<div id="roleModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="roleModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">修改用户角色</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <input type="hidden" id="_id"/>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">姓名</label>
+            <div class="col-md-10">
+              <p class="form-control-static" id="name"></p>
             </div>
           </div>
-          {% module Pager(pager=pager) %}
-        </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">联系方式</label>
+            <div class="col-md-10">
+              <p class="form-control-static" id="account"></p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-md-2 control-label">角色选择</label>
+            <div class="col-md-10 roles-list">
+              {% for r in roles %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{r}}">{{r}}
+              </label>
+              {% end %}
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
       </div>
     </div>
   </div>
 </div>
+{% end %}
 
-<div class="panel-body">
-  <div id="updateModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="myModalLabel">修改用户角色</h4>
-        </div>
-        <div class="modal-body">
-          <form class="form-horizontal">
-            <div class="form-group">
-              <label class="col-sm-2 control-label">姓名</label>
-              <div class="col-md-10">
-                <p class="form-control-static" id="name"></p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-sm-2 control-label">联系方式</label>
-              <div class="col-md-10">
-                <p class="form-control-static" id="account"></p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-md-2 control-label">角色选择</label>
-              <div class="col-md-10 roles-list">
-                {% for r in roles %}
-                <label class="checkbox-inline">
-                  <input type="checkbox">{{r}}
-                </label>
-                {% end %}
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% include _base_js.html %}
+{% block custom-js %}
 <!-- responsive-table-->
 <script src="{{ static_url('assets/responsive-table/rwd-table.min.js') }}" type="text/javascript"></script>
 
 <script type="text/javascript">
-  $('.table-responsive').responsiveTable({
-    addFocusBtn: false,
-    addDisplayAllBtn: true
-  });
+  $('.table-responsive').responsiveTable({addFocusBtn: false, addDisplayAllBtn: true});
+
+  var $roleModal = $('#roleModal');
 
   function modify(user) {
     user = decodeJSON(user);
     user.roles = user.roles || '';
-    var $dlg = $('#updateModal');
-    var $name = $dlg.find('#name');
-    var $account = $dlg.find('#account');
-    var $list = $dlg.find('.roles-list');
-    $name.text(user.name);
-    $account.text((user.phone || '') + (user.phone && user.email ? ' / ' : '') + (user.email || ''));
-    $list.find('label').each(function (i, el) {
+    $roleModal.find('#_id').text(user._id);
+    $roleModal.find('#name').text(user.name);
+    var account = (user.phone || '') + (user.phone && user.email ? ' / ' : '') + (user.email || '');
+    $roleModal.find('#account').text(account);
+    $roleModal.find('.roles-list').find('label').each(function (i, el) {
       var label = $(el).text().replace(/\s/g, '');
       $(el).find('input').prop('checked', user.roles.indexOf(label) >= 0);
     });
-
-    $dlg.modal();
-    $dlg.find(".modal-confirm").unbind('click').click(function () {
-      var info = {_id: user._id};
-      var roles = [];
-      $list.find('label').each(function (i, el) {
-        var label = $(el).text().replace(/\s/g, '');
-        if ($(el).find('input').is(':checked')) {
-          roles.push(label);
-        }
-      });
-      info.roles = roles.sort().join(',');
-      // 判断角色是否发生改变
-      var old_roles = user.roles.replace(/\s/g, '').split(',').sort().join(',');
-      if (old_roles === info.roles) {
-        showError('修改失败', '所选角色与原有角色相同。');
-        return;
-      }
-      postApi('/user/role', {data: info}, function () {
-        showSuccess('修改成功', user.name + ' 的信息已修改。');
-        setTimeout(function () {
-          window.location.reload();
-        }, 1500);
-      }, function (err) {
-        if (err.code === 1009) {
-          showSuccess('修改成功', '用户信息没有发生改变。');
-          return $dlg.modal('hide');
-        }
-        showError('修改失败', err.message);
-      });
-    });
+    $roleModal.modal();
   }
-</script>
 
-</body>
-</html>
+  $roleModal.find(".modal-confirm").click(function () {
+    var roles = $.map($roleModal.find(':checked'), function (item) {
+      return $(item).attr('title');
+    }).join(',');
+    var name = $roleModal.find('#name').text();
+    var data = {_id: $roleModal.find('#_id').text(), roles: roles};
+    postApi('/user/admin/role', {data: data}, function () {
+      showSuccess('修改成功', name + ' 的信息已修改。');
+      refresh(1000);
+    }, function (err) {
+      if (err.code === 1009) {
+        showSuccess('修改成功', '用户信息没有发生改变。');
+        $roleModal.modal('hide');
+      } else
+        showError('修改失败', err.message);
+    });
+  });
+
+</script>
+{% end %}

@@ -698,8 +698,8 @@
       // 高亮有问题的字框
       removeShapes(this.errNodes);
       errors.forEach(function (node) {
-        var r = node.createBox('#0f0');
-        r.animate({'fill-opacity': 0.5}, 1000, 'elastic');
+        var r = node.createBox('#ff0');
+        r.animate({'fill-opacity': 0.3}, 1000, 'elastic');
         self.errNodes.push(r);
       });
 

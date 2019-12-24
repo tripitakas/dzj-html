@@ -46,14 +46,14 @@ class TaskAdminHandler(TaskHandler):
                 condition.update({'task_type': task_type})
             if self.get_query_argument('status', ''):
                 condition.update({'status': self.get_query_argument('status', '')})
-            search_tip, search_fields, template = self.search_tip, self.search_fields, 'task_admin.html'
+            search_tips, search_fields, template = self.search_tips, self.search_fields, 'task_admin.html'
             if task_type == 'import_image':
                 template = 'task_admin_import.html'
-                search_tip = '请搜索网盘名称或导入文件夹'
+                search_tips = '请搜索网盘名称或导入文件夹'
                 search_fields = ['input.pan_name', 'input.import_dir']
             tasks, pager, q, order = self.find_by_page(self, condition, search_fields, default_order='-publish_time')
             self.render(
-                template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, search_tip=search_tip,
+                template, task_type=task_type, tasks=tasks, pager=pager, order=order, q=q, search_tips=search_tips,
                 task_types=self.all_task_types(), is_mod_enabled=self.is_mod_enabled, statistic=statistic(),
                 pan_name=self.prop(self.config, 'pan.name'), modal_fields=self.modal_fields,
                 task_meta=self.get_task_meta(task_type),
@@ -120,7 +120,7 @@ class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
     search_fields = ['doc_id']
-    search_tip = '请搜索页编码'
+    search_tips = '请搜索页编码'
     operations = []
     table_fields = [dict(id='doc_id', name='页编码'), dict(id='status', name='任务状态'),
                     dict(id='picked_time', name='领取时间'), dict(id='finished_time', name='完成时间')]

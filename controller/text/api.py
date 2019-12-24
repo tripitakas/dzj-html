@@ -12,6 +12,7 @@ from controller.base import DbError
 from controller.text.diff import Diff
 from controller.task.base import TaskHandler
 from controller.text.texttool import TextTool
+import logging
 
 
 class GetCompareTextApi(TaskHandler):
@@ -187,7 +188,7 @@ class TextReviewApi(TaskHandler):
                         if c.get('txt') != txt:
                             c['txt'] = txt
                             n += 1
-                print('%d chars writed back in %s' % (n, task['doc_id']))
+                logging.info('%d chars writed back in %s' % (n, task['doc_id']))
                 update['chars'] = chars
 
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})

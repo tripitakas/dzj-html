@@ -16,7 +16,7 @@ class TestUserAdminApi(APITestCase):
     def test_api_admin_roles(self):
         """ 给用户授予角色 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/api/user/role', body={'data': dict(_id=users[0]['_id'], email=u.user1[0], roles='切分校对员')})
+        r = self.fetch('/api/user/admin/role', body={'data': dict(_id=users[0]['_id'], email=u.user1[0], roles='切分校对员')})
         self.assert_code(200, r)
         data = self.parse_response(r)
         self.assertIn('切分校对员', data['roles'])
@@ -24,7 +24,7 @@ class TestUserAdminApi(APITestCase):
     def test_api_admin_reset_password(self):
         """ 重置用户密码 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/api/user/reset_pwd', body={'data': dict(_id=users[0]['_id'])})
+        r = self.fetch('/api/user/admin/reset_pwd', body={'data': dict(_id=users[0]['_id'])})
         self.assert_code(200, r)
         data = self.parse_response(r)
         self.assertIsNotNone(data['password'])
@@ -37,21 +37,21 @@ class TestUserAdminApi(APITestCase):
 
         # 邮箱不能重复
         body = {'data': dict(_id=user1['_id'], name=user1['name'], email=u.user2[0], phone=user1.get('phone'))}
-        r = self.fetch('/api/user/profile', body=body)
+        r = self.fetch('/api/user/admin', body=body)
         self.assert_code(e.doc_existed, r)
 
         # 邮箱格式有误
         data = dict(_id=user1['_id'], name=user1['name'], email='123#123', phone=user1.get('phone'))
-        r = self.fetch('/api/user/profile', body={'data': data})
+        r = self.fetch('/api/user/admin', body={'data': data})
         self.assert_code(e.invalid_email, r)
 
         # 正常修改
         data = dict(_id=user1['_id'], name=user1['name'], email='user1_new@test.com', phone=user1.get('phone'))
-        r = self.fetch('/api/user/profile', body={'data': data})
+        r = self.fetch('/api/user/admin', body={'data': data})
         self.assert_code(200, r)
 
     def test_api_delete_user(self):
         """ 测试删除用户 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/api/user/delete', body={'data': dict(_id=users[0]['_id'])})
+        r = self.fetch('/api/user/admin/delete', body={'data': dict(_id=users[0]['_id'])})
         self.assert_code(200, r)

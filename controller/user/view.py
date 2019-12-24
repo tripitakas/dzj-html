@@ -6,8 +6,9 @@
 """
 import math
 import logging
-from controller.base import BaseHandler
 from controller import auth
+from controller.user.user import User
+from controller.base import BaseHandler
 
 
 class UserLoginHandler(BaseHandler):
@@ -40,17 +41,12 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            doc_count = self.db.user.count_documents({})
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
-            users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            logging.info('%d users' % len(users))
+            docs, pager, q, order = User.find_by_page(self)
+            User.search_tips = '请搜索用户名、手机和邮箱'
+            self.render('user_list.html', docs=docs, pager=pager, q=q, order=order, model=User)
+
         except Exception as error:
             return self.send_db_error(error)
-
-        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
-        self.render('user_admin.html', users=users, pager=pager)
 
 
 class UserRolesHandler(BaseHandler):
@@ -59,22 +55,17 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            doc_count = self.db.user.count_documents({})
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
-            users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            logging.info('%d users' % len(users))
-            init_roles = self.config.get('role', {}).get('init', '')
-            disabled_roles = self.config.get('role', {}).get('disabled') or ''
-
+            docs, pager, q, order = User.find_by_page(self)
+            init_roles = self.prop(self.config, 'role.init')
+            disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
+            User.operations = []
+            User.search_tips = '请搜索用户名'
+            self.render('user_role.html', docs=docs, pager=pager, q=q, order=order, model=User,
+                        roles=roles, init_roles=init_roles, disabled_roles=disabled_roles)
+
         except Exception as error:
             return self.send_db_error(error)
-
-        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
-        self.render('user_role.html', users=users, roles=roles, pager=pager, init_roles=init_roles,
-                    disable_roles=disabled_roles)
 
 
 class UserStatisticHandler(BaseHandler):
