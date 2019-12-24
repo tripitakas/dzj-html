@@ -86,7 +86,7 @@ class Application(web.Application):
         with open(cfg_file, **param) as f:
             config = load_yml(f, Loader=SafeLoader)
         for k, v in config_base.items():
-            if k not in config or k in ['site', 'pager']:
+            if k not in config:
                 config[k] = v
         return config
 

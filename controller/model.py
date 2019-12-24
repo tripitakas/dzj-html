@@ -9,6 +9,7 @@ import csv
 import math
 import controller.errors as e
 import controller.validate as v
+from controller.helper import prop
 from bson.objectid import ObjectId
 
 
@@ -92,8 +93,8 @@ class Model(object):
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(o, asc)
         doc_count = self.db[cls.collection].count_documents(condition)
-        page_size = int(self.config['pager']['page_size'])
         cur_page = int(self.get_query_argument('page', 1))
+        page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page
         docs = list(query.skip((cur_page - 1) * page_size).limit(page_size))

@@ -1,22 +1,31 @@
-{% if isinstance(pager, dict) and pager['page_count'] > 1 %}
+{% if pager_count > 1 %}
 <div class="pagers">
-  <span>当前&nbsp;<em>{{pager['cur_page']}}</em>/{{pager['page_count']}}&nbsp;页，共&nbsp;<em>{{pager['doc_count']}}</em>&nbsp;条</span>
+  <span>当前&nbsp;<em>{{cur_page}}</em>/{{pager_count}}&nbsp;页，共&nbsp;<em>{{doc_count}}</em>&nbsp;条</span>
   <ul>
-    <li><a href="{{pager['path']}}">首页</a></li>
-    {% if pager['cur_page'] > 1 %}
-    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page'] - 1)}}">上一页</a></li>
+    <li><a href="{{uri}}">首页</a></li>
+    {% if cur_page > 1 %}
+    <li><a href="{{uri+link+'page='+str(cur_page - 1)+'&page_size='+str(page_size)}}"><</a></li>
     {% end %}
-    {% for i in pager['display_range'] %}
-    <li class="{{'active' if i == pager['cur_page'] else '' }}">
-      <a href="{{pager['path']+pager['link']+'page='+str(i)}}">{{i}}</a>
+    {% for i in display_range %}
+    <li class="{{'active' if i == cur_page else '' }}">
+      <a href="{{uri+link+'page='+str(i)+'&page_size='+str(page_size)}}">{{i}}</a>
     </li>
     {% end %}
-    {% if pager['cur_page'] < pager['page_count'] %}
-    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['cur_page']+1)}}">下一页</a></li>
+    {% if cur_page < pager_count %}
+    <li><a href="{{uri+link+'page='+str(cur_page+1)+'&page_size='+str(page_size)}}">></a></li>
     {% end %}
-    <li><a href="{{pager['path']+pager['link']+'page='+str(pager['page_count'])}}">末页</a></li>
-    <li>跳至&nbsp;<input id="page-no" type="text">&nbsp;页</li>
+    <li><a href="{{uri+link+'page='+str(pager_count)+'&page_size='+str(page_size)}}">末页</a></li>
+    <li>跳至<input id="page-no" type="text">页</li>
   </ul>
+  <span style="margin-left: 15px">每页
+  <select name="page-size" id="page-size">
+    <option value="10">10</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+    <option value="200">200</option>
+  </select>
+  条</span>
+
 </div>
 {% end %}
 
@@ -26,8 +35,11 @@
     if (keyCode === 13) {
       var page = $(this).val().trim();
       page = page > 1 ? page : 1;
-      var url = "{{pager.get('path') + pager.get('link')}}" + "page=" + page;
+      var url = "{{uri+link}}" + "page=" + page + "&page_size=" + "{{page_size}}";
       window.location = url.replace(/&amp;/g, "&");
     }
+  });
+  $('#page-size').on("change", function () {
+    window.location = "{{uri+link}}" + "&page_size=" + this.value;
   });
 </script>

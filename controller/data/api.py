@@ -234,10 +234,10 @@ class SubmitDataTasksApi(SubmitDataTaskApi):
             tasks = []
             for task in data['tasks']:
                 r = self.submit_one(task)
-                tasks.append(dict(ocr_task_id=task['ocr_task_id'], task_id=task['task_id'],
-                                  status='success' if r is True else 'failed',
-                                  page_name=task.get('page_name'),
-                                  message='' if r is True else r))
+                message = '' if r is True else r
+                status = 'success' if r is True else 'failed'
+                tasks.append(dict(ocr_task_id=task['ocr_task_id'], task_id=task['task_id'], status=status,
+                                  page_name=task.get('page_name'), message=message))
             self.send_data_response(dict(tasks=tasks))
 
         except DbError as error:

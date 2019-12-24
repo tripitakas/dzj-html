@@ -100,21 +100,22 @@ class Pager(UIModule):
         if not isinstance(pager, dict):
             pager = dict(cur_page=0, doc_count=0)
         if isinstance(pager, dict) and 'cur_page' in pager and 'doc_count' in pager:
-            conf = self.handler.application.config['pager']
-            pager['page_size'] = pager.get('page_size', conf['page_size'])  # 每页显示多少条记录
-            pager['page_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
-            pager['display_count'] = conf['display_count']  # pager导航条中显示多少个页码
-            pager['path'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
-            pager['link'] = '&' if '?' in pager['path'] else '?'  # 当前path
+            conf = self.handler.application.config
+            pager['page_size'] = prop(pager, 'page_size', prop(conf, 'pager.page_size'))  # 每页显示多少条记录
+            pager['pager_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
+            pager['display_count'] = prop(conf, 'pager.display_count')  # pager导航条中显示多少个页码
+            pager['uri'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
+            pager['uri'] = re.sub(r'[?&]page_size=\d+', '', pager['uri'])  # 当前path
+            pager['link'] = '&' if '?' in pager['uri'] else '?'  # 当前path
             gap, if_left, cur_page = int(pager['display_count'] / 2), int(pager['display_count']) % 2, pager['cur_page']
             start, end = cur_page - gap, cur_page + gap - 1 + if_left
-            offset = 1 - start if start < 1 else pager['page_count'] - end if pager['page_count'] < end else 0
+            offset = 1 - start if start < 1 else pager['pager_count'] - end if pager['pager_count'] < end else 0
             start, end = start + offset, end + offset
             start = 1 if start < 1 else start
-            end = pager['page_count'] if end > pager['page_count'] else end
+            end = pager['pager_count'] if end > pager['pager_count'] else end
             pager['display_range'] = range(start, end + 1)
 
-        return self.render_string('com_pager.html', pager=pager)
+        return self.render_string('com_pager.html', **pager)
 
 
 class ComTable(UIModule):
