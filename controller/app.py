@@ -28,7 +28,7 @@ define('port', default=8000, help='run port', type=int)
 
 class Application(web.Application):
     def __init__(self, handlers, **settings):
-        self._db = self._db_test = self.config = self.site = None
+        self._db = self._db_test = self.db_uri = self.config = self.site = None
         self.init_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
@@ -96,13 +96,12 @@ class Application(web.Application):
             cfg = self.config['database']
             uri = cfg['host']
             if cfg.get('user'):
-                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
-                    cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
-                )
-            conn = pymongo.MongoClient(
-                uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000, maxPoolSize=10, waitQueueTimeoutMS=5000
-            )
+                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
+                uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
             self._db = conn[cfg['name']]
+            self.db_uri = uri
         return self._db
 
     @property
