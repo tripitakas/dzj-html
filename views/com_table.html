@@ -18,7 +18,8 @@
     <td class="{{f['id']}}">{{d.get(f['id']) or ''}}</td>
     {% end %}
     <td class="action">
-      <span class="hide info">{{dumps(d)}}</span>
+      {% set info = {f: handler.prop(d, f, '') for f in info_fields} %}
+      <span class="hide info">{{dumps(info)}}</span>
       {% for a in actions %}
       <a class="{{a['action']}}">{{a['label']}}</a>
       {% end %}

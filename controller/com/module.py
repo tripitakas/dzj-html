@@ -119,9 +119,10 @@ class Pager(UIModule):
 
 
 class ComTable(UIModule):
-    def render(self, docs, table_fields, actions, order=''):
+    def render(self, docs, table_fields, actions, info_fields=None, order=''):
+        info_fields = [d['id'] for d in table_fields]
         return self.render_string('com_table.html', dumps=dumps, docs=docs, table_fields=table_fields,
-                                  actions=actions, order=order)
+                                  info_fields=info_fields, actions=actions, order=order)
 
 
 class ComModal(UIModule):

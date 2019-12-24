@@ -35,10 +35,12 @@ var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
 
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio')
-      modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
-    else
+    if ('input_type' in item && item['input_type'] === 'radio') {
+      if (info[item.id])
+        modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
+    } else {
       modal.find('.' + item.id).val(info[item.id]);
+    }
   })
 }
 

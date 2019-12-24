@@ -29,6 +29,7 @@ class Model(object):
     search_tips = ''  # 列表的查询提示
     search_fields = []  # 列表查询哪些字段
     table_fields = [dict(id='', name='')]  # 列表显示哪些字段
+    info_fields = [d['id'] for d in table_fields]  # 列表操作需要哪些字段信息
     operations = [  # 列表包含哪些批量操作
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -42,8 +43,9 @@ class Model(object):
     modal_fields = [dict(id='', name='', input_type='', options=[])]  # 模态框包含哪些字段
 
     @classmethod
-    def validate(cls, doc):
-        return v.validate(doc, cls.rules)
+    def validate(cls, doc, rules=None):
+        rules = cls.rules if not rules else rules
+        return v.validate(doc, rules)
 
     @classmethod
     def get_fields(cls):
@@ -107,14 +109,15 @@ class Model(object):
         return False
 
     @classmethod
-    def save_one(cls, db, collection, doc):
+    def save_one(cls, db, collection, doc, rules=None):
         """ 插入或更新一条记录
         :param db 数据库连接
         :param collection: 准备插入哪个集合
         :param doc: 准备插入哪条数据
+        :param rules: 数据验证规则
         """
         doc = cls.pack_doc(doc)
-        errs = cls.validate(doc)
+        errs = cls.validate(doc, rules)
         if errs:
             return dict(status='failed', errors=errs)
 

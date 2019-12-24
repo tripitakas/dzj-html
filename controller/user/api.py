@@ -487,6 +487,7 @@ class UserAddOrUpdateApi(BaseHandler):
         """ 新增或修改 """
         try:
             data = self.get_request_data()
+            rules = User.rules.copy()
             if data.get('_id'):
                 user = self.db.user.find_one(dict(_id=ObjectId(data['_id'])))
                 if not user:
@@ -495,11 +496,11 @@ class UserAddOrUpdateApi(BaseHandler):
                     data['password'] = user['password']
                 elif data['password'] != user['password']:
                     data['password'] = helper.gen_id(data['password'])
-                User.rules.append((v.not_existed, self.db.user, ObjectId(data['_id']), 'phone', 'email'))
+                rules.append((v.not_existed, self.db.user, ObjectId(data['_id']), 'phone', 'email'))
             else:
                 data['password'] = helper.gen_id(data['password'])
-                User.rules.append((v.not_existed, self.db.user, 'phone', 'email'))
-            r = User.save_one(self.db, 'user', data)
+                rules.append((v.not_existed, self.db.user, 'phone', 'email'))
+            r = User.save_one(self.db, 'user', data, rules)
             if r.get('status') == 'success':
                 self.add_op_log(('update_' if r.get('update') else 'add_') + 'user', context=r.get('message'))
                 self.send_data_response(r)

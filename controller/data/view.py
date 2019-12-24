@@ -108,7 +108,6 @@ class DataPageHandler(BaseHandler):
         """ 页数据管理"""
         try:
             docs, pager, q, order = Page.find_by_page(self)
-            Page.info_fields = [f['id'] for f in Page.modal_fields] + ['ocr', 'name', 'ocr_col']
             self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, model=Page)
 
         except Exception as error:

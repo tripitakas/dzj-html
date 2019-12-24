@@ -18,7 +18,7 @@
   {% for d in docs %}
   <tr id="{{d['_id']}}">
     <td><input type="checkbox"/></td>
-    {% set ava = 'imgs/ava%s.png' % {'男':'1','女':'2','':'3'}.get(d.get('gender', '')) %}
+    {% set ava = 'imgs/ava%s.png' % {'男':'1','女':'2','default':'3'}.get(d.get('gender') or 'default') %}
     <td><img src="{{static_url(d.get('img') or ava)}}" class="thumb-md img-circle"></td>
     {% for f in model.table_fields %}
     {% if 'time' in f['id'] %}
