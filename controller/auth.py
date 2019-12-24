@@ -159,7 +159,7 @@ role_route_maps = {
             '/api/task/ready/@task_type': ['POST'],
             '/api/user/@task_type': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
-            '/api/task/(assign|delete|admin)/@task_type': ['POST'],
+            '/api/task/(assign|delete|update)/@task_type': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
@@ -206,8 +206,8 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/user/statistic': ['GET'],
-            '/user/(admin|role)': ['GET'],
+            '/user/admin': ['GET'],
+            '/user/admin/(statistic|role)': ['GET'],
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
         }

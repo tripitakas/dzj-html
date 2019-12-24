@@ -62,17 +62,17 @@ function resetModal(modal, fields) {
   });
 }
 
-function toggleModal(modal, fields, readonly) {
-  readonly = typeof readonly !== 'undefined' && readonly;
-  if (readonly) {
+function toggleModal(modal, fields, disabled) {
+  disabled = typeof disabled !== 'undefined' && disabled;
+  if (disabled) {
     modal.find('.modal-footer').hide();
     fields.forEach(function (item) {
-      modal.find('.' + item.id).attr('readonly', 'readonly');
+      modal.find('.' + item.id).attr('disabled', 'disabled');
     });
   } else {
     modal.find('.modal-footer').show();
     fields.forEach(function (item) {
-      modal.find('.' + item.id).removeAttr('readonly');
+      modal.find('.' + item.id).removeAttr('disabled');
     });
   }
 }
@@ -107,6 +107,7 @@ $('.btn-update').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var title = 'name' in data ? '修改数据 - ' + data.name : '修改数据';
+  $modal.find('#url').val($(this).attr('url') || location.pathname);
   $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, false);
   setModal($modal, data, fields);
@@ -116,7 +117,7 @@ $('.btn-update').click(function () {
 // 新增/修改-提交
 $("#dataModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
-  postApi(location.pathname, {data: data}, function () {
+  postApi($modal.find('#url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');
     refresh(1500);
   }, function (error) {

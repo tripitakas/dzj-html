@@ -37,31 +37,42 @@ class UserProfileHandler(BaseHandler):
 
 class UsersAdminHandler(BaseHandler):
     URL = '/user/admin'
+    search_tips = '请搜索用户名、手机和邮箱'
+    operations = [  # 列表包含哪些批量操作
+        {'operation': 'btn-add', 'label': '新增用户'},
+        {'operation': 'bat-remove', 'label': '批量删除'},
+    ]
 
     def get(self):
         """ 用户管理页面 """
         try:
-            docs, pager, q, order = User.find_by_page(self)
-            User.search_tips = '请搜索用户名、手机和邮箱'
-            self.render('user_list.html', docs=docs, pager=pager, q=q, order=order, model=User)
+            model = User
+            model.operations = self.operations
+            model.search_tips = self.search_tips
+            docs, pager, q, order = model.find_by_page(self)
+            self.render('user_list.html', docs=docs, pager=pager, q=q, order=order, model=model)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
 class UserRolesHandler(BaseHandler):
-    URL = '/user/role'
+    URL = '/user/admin/role'
+    operations = []
+    search_tips = '请搜索用户名'
 
     def get(self):
         """ 角色管理页面 """
         try:
-            docs, pager, q, order = User.find_by_page(self)
+            model = User
+            model.operations = self.operations
+            model.search_tips = self.search_tips
+            docs, pager, q, order = model.find_by_page(self)
             init_roles = self.prop(self.config, 'role.init')
             disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]
-            User.operations = []
-            User.search_tips = '请搜索用户名'
-            self.render('user_role.html', docs=docs, pager=pager, q=q, order=order, model=User,
+
+            self.render('user_role.html', docs=docs, pager=pager, q=q, order=order, model=model,
                         roles=roles, init_roles=init_roles, disabled_roles=disabled_roles)
 
         except Exception as error:
@@ -69,7 +80,7 @@ class UserRolesHandler(BaseHandler):
 
 
 class UserStatisticHandler(BaseHandler):
-    URL = '/user/statistic'
+    URL = '/user/admin/statistic'
 
     def get(self):
         """ 人员管理-数据管理页面 """

@@ -196,10 +196,10 @@ class PickTaskApi(TaskHandler):
 
 
 class UpdateTaskApi(TaskHandler):
-    URL = '/api/task/admin/@task_type'
+    URL = '/api/task/update/@task_type'
 
     def post(self, task_type):
-        """ 更新任务批次号"""
+        """ 更新任务"""
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, '_id', 'batch')]

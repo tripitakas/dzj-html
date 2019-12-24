@@ -187,6 +187,7 @@ class Page(Model):
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [
+        {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
         {'id': 'lock-level-box', 'name': '字框锁等级'},
         {'id': 'lock-level-text', 'name': '文本锁等级'},

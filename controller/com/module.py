@@ -56,8 +56,8 @@ class ComLeft(UIModule):
             ]),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
-                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
+                dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
+                dict(name='数据统计', icon='icon_subitem', link='/user/admin/statistic'),
             ]),
             dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
                 dict(name='文章管理', icon='icon_subitem', link='/article'),

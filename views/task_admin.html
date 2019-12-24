@@ -133,7 +133,7 @@
                   <a href="/task/page/{{t['doc_id']}}">历程</a>
                   <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
                   <a class="{{'btn-remove' if t['status'] not in ['picked', 'finished'] else 'disabled'}}" url="/task/delete/{{task_type}}">删除</a>
-                  <a class="btn-update">修改批次</a>
+                  <a class="btn-update" url="/task/update/{{task_type}}">修改批次</a>
                   <a class="{{'btn-republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}">重新发布</a>
                 </td>
               </tr>
