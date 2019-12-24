@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.auth import url_placeholder
 
-__version__ = '0.0.71.91223'
+__version__ = '0.1.72.91223'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -97,7 +97,7 @@ class Application(web.Application):
             uri = cfg['host']
             if cfg.get('user'):
                 uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-                uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+                uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
             conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
                                        maxPoolSize=10, waitQueueTimeoutMS=5000)
             self._db = conn[cfg['name']]
