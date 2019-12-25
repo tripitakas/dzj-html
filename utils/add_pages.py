@@ -64,6 +64,23 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
                         ret.add(name)
 
 
+def check_ids(page):
+    def check(m):
+        return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 99])
+
+    for c in page.get('blocks'):
+        c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no']
+        if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
+            return print(page['name'] + str(c))
+    for c in page.get('columns'):
+        if not check(re.findall(r'^b(\d+)c(\d+)$', c.get('column_id', ''))):
+            return print(page['name'] + str(c))
+    for c in page.get('chars'):
+        if not check(re.findall(r'^b(\d+)c(\d+)c(\d+)$', c.get('char_id', ''))):
+            return print(page['name'] + str(c))
+    return True
+
+
 def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
              source=None, reorder=False, only_check=False):
     exist = db.page.find_one(dict(name=name))
@@ -110,11 +127,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
                                                sort=True, remove_outside=True, img_file=name)
             except AssertionError as e:
                 sys.stderr.write('%s %s' % (name, str(e)))
+        if not check_ids(meta):
+            return
 
         data['count'] += 1
-        print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
-            name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
-        ))
+        if not only_check:
+            print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
+                name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
+            ))
 
         info.pop('id', 0)
         if only_check:
