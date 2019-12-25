@@ -7,8 +7,8 @@
 import random
 from bson.objectid import ObjectId
 from controller import errors as e
-from controller.task.task import Task
 from controller.task.base import TaskHandler
+from controller.task.task import Task, Statistic
 
 
 class TaskAdminHandler(TaskHandler):
@@ -185,5 +185,22 @@ class TaskInfoHandler(TaskHandler):
             if not task:
                 self.send_error_response(e.no_object, message='没有找到该任务')
             self.render('task_info.html', task=task, display_fields=self.display_fields)
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class TaskStatisticHandler(TaskHandler):
+    URL = '/task/admin/statistic'
+
+    def get(self):
+        """ 数据统计页面 """
+        try:
+            model = Statistic
+            users = {u['_id']: u.get('name') for u in list(self.db.user.find({}, {'name': 1}))}
+            task_types = {k: v for k, v in self.all_task_types().items() if 'text_proof_' not in k}
+            docs, pager, q, order = model.find_by_page(self, default_order='-day')
+            self.render('task_statistic.html', docs=docs, pager=pager, q=q, order=order, model=model,
+                        users=users, task_types=task_types)
+
         except Exception as error:
             return self.send_db_error(error)

@@ -37,6 +37,7 @@ class ComLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
+                dict(name='数据统计', icon='icon_subitem', link='/task/admin/statistic'),
                 dict(name='导入图片', icon='icon_subitem', link='/task/admin/import_image'),
                 dict(name='上传云端', icon='icon_subitem', link='/task/admin/upload_cloud'),
                 dict(name='OCR字框', icon='icon_subitem', link='/task/admin/ocr_box'),
@@ -57,7 +58,6 @@ class ComLeft(UIModule):
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
-                dict(name='数据统计', icon='icon_subitem', link='/user/admin/statistic'),
             ]),
             dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
                 dict(name='文章管理', icon='icon_subitem', link='/article'),

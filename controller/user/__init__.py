@@ -3,7 +3,7 @@ from controller.base import hook
 
 views = [
     view.UserLoginHandler, view.UserRegisterHandler, view.UserProfileHandler,
-    view.UsersAdminHandler, view.UserRolesHandler, view.UserStatisticHandler,
+    view.UsersAdminHandler, view.UserRolesHandler,
 ]
 handlers = [
     api.LoginApi, api.LogoutApi, api.SendUserEmailCodeApi, api.SendUserPhoneCodeApi, api.RegisterApi,

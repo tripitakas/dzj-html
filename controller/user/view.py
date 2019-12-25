@@ -78,26 +78,3 @@ class UserRolesHandler(BaseHandler):
         except Exception as error:
             return self.send_db_error(error)
 
-
-class UserStatisticHandler(BaseHandler):
-    URL = '/user/admin/statistic'
-
-    def get(self):
-        """ 人员管理-数据管理页面 """
-        try:
-            doc_count = self.db.user.count_documents({})
-            page_size = int(self.config['pager']['page_size'])
-            cur_page = int(self.get_query_argument('page', 1))
-            cur_page = math.ceil(doc_count / page_size) if math.ceil(doc_count / page_size) < cur_page else cur_page
-            users = list(self.db.user.find().sort('_id', 1).skip((cur_page - 1) * page_size).limit(page_size))
-            logging.info('%d users' % len(users))
-            for r in users:
-                # 切分校对数量、切分审定数量、文字校对数量、文字审定数量、文字难字数量、文字反馈数量、格式标注数量、格式审定数量
-                r.update(dict(cut_proof_count=0, cut_review_count=0, text_proof_count=0, text_review_count=0,
-                              text_difficult_count=0, text_feedback_count=0, fmt_proof_count=0,
-                              fmt_review_count=0))
-        except Exception as error:
-            return self.send_db_error(error)
-
-        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
-        self.render('user_statistic.html', users=users, pager=pager)

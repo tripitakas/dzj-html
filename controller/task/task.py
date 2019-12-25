@@ -222,3 +222,33 @@ class Task(Model):
     @classmethod
     def get_priority_name(cls, priority):
         return cls.priority_names.get(priority)
+
+
+class Statistic(Model):
+    collection = 'statistic'
+    fields = [
+        {'id': '_id', 'name': '主键'},
+        {'id': 'day', 'name': '日期'},
+        {'id': 'user_id', 'name': '用户ID'},
+        {'id': 'task_type', 'name': '任务类型'},
+        {'id': 'count', 'name': '数量'},
+    ]
+    rules = [
+        (v.not_empty, 'day', 'user_id', 'task_type', 'count'),
+    ]
+    primary = '_id'
+
+    search_fields = ['task_type']
+    search_tips = '请搜索任务类型'
+    operations = [
+        {'operation': 'btn-search', 'label': '数据查询'},
+        {'operation': 'btn-statistic', 'label': '数据统计'},
+    ]
+    actions = []
+    table_fields = [
+        {'id': 'day', 'name': '日期'},
+        {'id': 'user_id', 'name': '用户ID'},
+        {'id': 'task_type', 'name': '任务类型'},
+        {'id': 'count', 'name': '数量'},
+    ]
+    modal_fields = []

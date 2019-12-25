@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import random
 import tests.users as u
 from tests.testcase import APITestCase
+from datetime import datetime, timedelta
 from controller.task.base import TaskHandler as Th
 
 
@@ -90,3 +91,26 @@ class TestTaskView(APITestCase):
             self.assertEqual(set(docs), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
             self.assertEqual(len(docs), len(set(docs)))  # 不同校次的同名页面只列出一个
             self.assertEqual(docs, ['JX_165_7_12', 'GL_1056_5_6', 'JX_165_7_30'])  # 按优先级顺序排列
+
+    def add_local_statistic(self):
+        docs = []
+        users = list(self._app.db.user.find({}))
+        task_types = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
+                      'text_proof_2', 'text_proof_3', 'text_review', 'text_hard']
+
+        today = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
+        for task_type in task_types:
+            for i in range(10):
+                day = today - timedelta(days=i)
+                user = users[random.randint(0, len(users) - 1)]
+                meta = dict(day=day, user_id=user['_id'], task_type=task_type, count=random.randint(0, 1000))
+                docs.append(meta)
+        self._app.db.statistic.insert_many(docs)
+
+    def test_task_statistic(self):
+        self.login_as_admin()
+        if not self._app.db.statistic.count_documents({}):
+            self.add_local_statistic()
+        r = self.fetch('/task/admin/statistic?_raw=1')
+        d = self.parse_response(r)
+        self.assert_code(200, r)

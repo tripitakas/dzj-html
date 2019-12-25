@@ -22,15 +22,19 @@ class StatisticTasks(Worker):
         Worker.__init__(self, db)
 
     def work(self, **kwargs):
+        def get_task_type(task):
+            task_type = task['task_type']
+            return 'text_proof' if 'text_proof' in task['task_type'] else task_type
+
         def statistic():
             ret = []
-            user_id, task_type, count = tasks[0]['picked_user_id'], tasks[0]['task_type'], 1
+            user_id, task_type, count = tasks[0]['picked_user_id'], get_task_type(tasks[0]), 1
             for task in tasks[1:]:
-                if task['task_type'] == task_type and task['picked_user_id'] == user_id:
+                if task['picked_user_id'] == user_id and get_task_type(task) == task_type:
                     count += 1
                 else:
                     ret.append(dict(day=from_day, user_id=user_id, task_type=task_type, count=count))
-                    user_id, task_type, count = task['picked_user_id'], task['task_type'], 1
+                    user_id, task_type, count = task['picked_user_id'], get_task_type(task), 1
             ret.append(dict(day=from_day, user_id=user_id, task_type=task_type, count=count))
             return ret
 
@@ -43,7 +47,7 @@ class StatisticTasks(Worker):
         from_day = day_begin(latest_stat['day'] if latest_stat else first_task['finished_time'])
         while from_day < today:
             condition = {'finished_time': {'$gt': from_day, '$lt': from_day + timedelta(days=1)}}
-            tasks = list(self.db.task.find(condition).sort([('task_type', 1), ('picked_user_id', 1)]))
+            tasks = list(self.db.task.find(condition).sort([('picked_user_id', 1), ('task_type', 1)]))
             if tasks:
                 result.extend(statistic())
             from_day = from_day + timedelta(days=1)
