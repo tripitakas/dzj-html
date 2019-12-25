@@ -819,6 +819,11 @@ a:hover, a:visited, a:focus {
   word-break: break-all;
 }
 
+.modal .btn-sm {
+  padding: 3px 6px !important;
+  margin-left: -6px;
+}
+
 .sweet-alert h2 {
   font-size: 22px;
   font-weight: 500;

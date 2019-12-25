@@ -793,7 +793,7 @@
         if (r) {
           showSuccess('字框连接正常', '没有待修正的字框连线。');
         } else {
-          showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+          showError('字框连线有误', '请修正黄色字框的连线。');
         }
       }
     },
@@ -807,7 +807,7 @@
       var self = this, routes = [], heads = [];
 
       if (!cs.checkLinks(routes, heads)) {
-        showError('字框连接有误', '请修正高亮绿框的字框连线。');
+        showError('字框连线有误', '请修正黄色字框的连线。');
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
@@ -884,7 +884,7 @@
         cs.errNodes.push(r);
       });
       if (errors.length) {
-        showError('字框连接待修正', '请修正高亮绿框的字框连线，不应为列的第一个字框。');
+        showError('字框连线有误', '请修正黄色字框的连线，不应为列的第一个字框。');
       }
       return errors.length;
     }
