@@ -31,15 +31,6 @@ class TestUserAdminViews(APITestCase):
         data = self.parse_response(r)
         self.assertIn(u.user1[0], data)
 
-    def test_view_user_statistic(self):
-        """数据统计页面"""
-        self.add_first_user_as_admin_then_login()
-        self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
-        r = self.fetch('/user/admin/statistic')
-        self.assert_code(200, r)
-        data = self.parse_response(r)
-        self.assertIn(u.user1[2], data)
-
     def _test_user_views(self):
         """URL的合法性"""
         for view in views:

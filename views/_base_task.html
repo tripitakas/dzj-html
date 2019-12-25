@@ -4,7 +4,7 @@
   var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
 
   function saveTask(submit, url) {
-    showTips('保存中……');
+    showTips('保存中');
     postApi('{{current_path}}', {data: getSubmitData(submit)}, function () {
       if (!submit)
         showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');

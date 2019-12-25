@@ -1,45 +1,28 @@
-{% if pager_count > 1 %}
 <div class="pagers">
-  <span>当前&nbsp;<em>{{cur_page}}</em>/{{pager_count}}&nbsp;页，共&nbsp;<em>{{doc_count}}</em>&nbsp;条</span>
+  <span>当前&nbsp;<em>{{cur_page}}</em>/{{page_count}}&nbsp;页，共&nbsp;<em>{{doc_count}}</em>&nbsp;条</span>
+  {% if page_count > 1 %}
   <ul>
-    <li><a href="{{uri}}">首页</a></li>
+    <li><a href="{{get_page_uri(1)}}">首页</a></li>
     {% if cur_page > 1 %}
-    <li><a href="{{uri+link+'page='+str(cur_page - 1)+'&page_size='+str(page_size)}}"><</a></li>
+    <li><a href="{{get_page_uri(cur_page - 1)}}"><</a></li>
     {% end %}
     {% for i in display_range %}
     <li class="{{'active' if i == cur_page else '' }}">
-      <a href="{{uri+link+'page='+str(i)+'&page_size='+str(page_size)}}">{{i}}</a>
+      <a href="{{get_page_uri(i)}}">{{i}}</a>
     </li>
     {% end %}
-    {% if cur_page < pager_count %}
-    <li><a href="{{uri+link+'page='+str(cur_page+1)+'&page_size='+str(page_size)}}">></a></li>
+    {% if cur_page < page_count %}
+    <li><a href="{{get_page_uri(cur_page + 1)}}">></a></li>
     {% end %}
-    <li><a href="{{uri+link+'page='+str(pager_count)+'&page_size='+str(page_size)}}">末页</a></li>
-    <li>跳至<input id="page-no" type="text">页</li>
+    <li><a href="{{get_page_uri(page_count)}}">末页</a></li>
+    <li>跳至<input class="page-no" type="text">页</li>
   </ul>
+  {% end %}
   <span style="margin-left: 15px">每页
-  <select name="page-size" id="page-size">
+  <select name="page-size" class="page-size">
     {% for v in [5,10,50,100,500,1000]%}
     <option value="{{v}}" {{'selected' if page_size == v else ''}}>{{v}}</option>
     {% end %}
   </select>
   条</span>
-
 </div>
-{% end %}
-
-<script type="text/javascript">
-  $('#page-no').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      var page = $(this).val().trim();
-      page = page > 1 ? page : 1;
-      var url = "{{uri+link}}" + "page=" + page + "&page_size=" + "{{page_size}}";
-      window.location = url.replace(/&amp;/g, "&");
-    }
-  });
-  $('#page-size').on("change", function () {
-    var url = "{{uri+link}}" + "page_size=" + this.value;
-    window.location = url.replace(/&amp;/g, "&");
-  });
-</script>

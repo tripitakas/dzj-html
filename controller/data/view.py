@@ -88,14 +88,15 @@ class DataListHandler(BaseHandler):
         try:
             model = eval(metadata.capitalize())
             docs, pager, q, order = model.find_by_page(self)
+            kwargs = model.get_page_params()
             template_url = '/static/template/%s-sample.csv' % metadata
-            model.operations = [
-                {'operation': 'add', 'label': '新增记录'},
+            kwargs['operations'] = [
+                {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
                 {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
             ]
-            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, model=model)
+            self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -107,8 +108,10 @@ class DataPageHandler(BaseHandler):
     def get(self):
         """ 页数据管理"""
         try:
-            docs, pager, q, order = Page.find_by_page(self)
-            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, model=Page)
+            model = Page
+            docs, pager, q, order = model.find_by_page(self)
+            kwargs = model.get_page_params()
+            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

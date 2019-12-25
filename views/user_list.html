@@ -6,7 +6,7 @@
   <tr>
     <th><input id="check-all" type="checkbox"/></th>
     <th><span>头像</span></th>
-    {% for f in model.table_fields %}
+    {% for f in table_fields %}
     <th><span class="sort {{'active' if f['id'] in order else ''}}" title="{{f['id']}}">
       {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == f['id'] else ''}}"></span>
     </span></th>
@@ -20,7 +20,7 @@
     <td><input type="checkbox"/></td>
     {% set ava = 'imgs/ava%s.png' % {'男':'1','女':'2','default':'3'}.get(d.get('gender') or 'default') %}
     <td><img src="{{static_url(d.get('img') or ava)}}" class="thumb-md img-circle"></td>
-    {% for f in model.table_fields %}
+    {% for f in table_fields %}
     {% if 'time' in f['id'] %}
     <td class="{{f['id']}}">{{to_date_str(d.get(f['id']))}}</td>
     {% else %}
@@ -29,7 +29,7 @@
     {% end %}
     <td class="action">
       <span class="hide info">{{dumps(d)}}</span>
-      {% for a in model.actions %}
+      {% for a in actions %}
       <a class="{{a['action']}}">{{a['label']}}</a>
       {% end %}
     </td>

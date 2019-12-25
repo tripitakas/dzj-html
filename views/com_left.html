@@ -44,10 +44,11 @@
   });
 
   $(document).ready(function () {
-    var id = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
-    console.log(id);
-    $(id).addClass('active');
-    $(id).parent().removeClass('sub-ul-hidden');
+    var activeId = '{{active_id}}';
+    if (!activeId)
+      activeId = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
+    $(activeId).addClass('active');
+    $(activeId).parent().removeClass('sub-ul-hidden');
   });
 
 </script>

@@ -111,6 +111,6 @@ class TestTaskView(APITestCase):
         self.login_as_admin()
         if not self._app.db.statistic.count_documents({}):
             self.add_local_statistic()
-        r = self.fetch('/task/admin/statistic?_raw=1')
+        r = self.fetch('/task/admin/list?_raw=1')
         d = self.parse_response(r)
         self.assert_code(200, r)

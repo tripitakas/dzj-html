@@ -65,11 +65,9 @@ class TaskHandler(BaseHandler, Task):
         return has_auth, error
 
     @classmethod
-    def format_value(cls, key, value):
+    def format_value(cls, value, key=None):
         """ 格式化任务信息"""
-        if isinstance(value, datetime):
-            value = get_date_time('%Y-%m-%d %H:%M', value)
-        elif key == 'task_type':
+        if key == 'task_type':
             value = cls.get_task_name(value)
         elif key == 'status':
             value = cls.get_status_name(value)
@@ -79,6 +77,8 @@ class TaskHandler(BaseHandler, Task):
             value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
         elif key == 'priority':
             value = cls.get_priority_name(int(value))
+        elif isinstance(value, datetime):
+            value = get_date_time('%Y-%m-%d %H:%M', value)
         elif isinstance(value, dict):
             value = value.get('error') or value.get('message') or \
                     '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])

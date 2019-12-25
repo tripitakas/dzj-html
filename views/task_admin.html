@@ -18,7 +18,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(title="data-management", sub="") %}
+    {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -27,7 +27,7 @@
             {% block operation %}
             <div class="operation">
               <div class="btn-group">
-                <button class="btn btn-default waves-effect" data-toggle="modal" data-target="#statisticModal">任务统计</button>
+                <button class="btn btn-default waves-effect" data-toggle="modal" data-target="#statisticModal">数据统计</button>
                 <button class="btn btn-default waves-effect" id="bat-assign">批量指派</button>
                 <button class="btn btn-default waves-effect" id="bat-remove" url="/task/delete/{{task_type}}">批量刪除</button>
                 <div class="btn-group dropdown bat-publish {{'hide' if task_type == 'text_hard' else ''}}">
@@ -308,11 +308,11 @@
       <div class="modal-content" style="width: 400px; margin: auto">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="choose-users">选择用户</h4>
+          <h4 class="modal-title">选择用户</h4>
         </div>
         <div class="modal-body">
           <div style="min-height: 150px; text-align: center">
-            <select id="select-user" class="form-control">
+            <select class="form-control select-user">
               <option></option>
             </select>
           </div>
@@ -389,8 +389,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">确定</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
         </div>
       </div>
     </div>
@@ -404,6 +404,8 @@
 <script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
 <script src="{{static_url('assets/jquery-multi-select/jquery.multi-select.js')}}"></script>
 <script src="{{static_url('assets/jquery-multi-select/jquery.quicksearch.js')}}"></script>
+{% block custom-js %}
+{% end %}
 <script>
   // 设置显示列
   var allColumns = decodeJSON('{{[f["id"] for f in handler.table_fields]}}');
@@ -413,10 +415,10 @@
     // console.log(hideColumns);
     allColumns.forEach(function (item) {
       if (hideColumns.indexOf(item) !== -1) {
-        $('.select-column .'+item).removeAttr('checked');
+        $('.select-column .' + item).removeAttr('checked');
         $('.sty-table .' + item).addClass('hide');
       } else {
-        $('.select-column .'+item).prop('checked', 'true');
+        $('.select-column .' + item).prop('checked', 'true');
         $('.sty-table .' + item).removeClass('hide');
       }
     })
@@ -439,16 +441,7 @@
   // 任务类型或状态过滤
   $('.btn-a').click(function () {
     var title = $(this).attr('title').trim();
-    var kind = title.split('=')[0];
-    var search = location.search;
-    if (!search.length)
-      return location.href = location.pathname + '?' + title;
-    if (search.indexOf(kind) !== -1) {
-      search = search.replace(new RegExp(kind + '=.*?&', 'i'), title + '&');
-      search = search.replace(new RegExp(kind + '=.*?$', 'i'), title);
-    } else
-      search += '&' + title;
-    location.href = location.pathname + search;
+    location.href = setQueryString(title.split('=')[0], title.split('=')[1])
   });
 
   // 显示退回理由
@@ -473,18 +466,10 @@
     });
   });
 
-  // 批量指派任务
-  var $assignModal = $('#assignModal');
-  var $assignResultModal = $('#assignResultModal');
-  $('#bat-assign').click(function () {
-    if (!$('.task-tr :checked').length)
-      return showError('请选择任务', '当前没有选中任务。');
-    $assignModal.modal();
-  });
-
-  $("#select-user").select2({
+  // 选择用户
+  $("#assignModal .select-user").select2({
     ajax: {
-      type: 'POST', url: "/api/user/{{task_type}}", dataType: 'json', delay: 1000, language: 'zh-CN',
+      type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
       allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
       data: function (params) {
         return {'q': params.term, 'page': params.page || 1};
@@ -495,11 +480,20 @@
     }
   });
 
-  $('#assignModal .modal-confirm').click(function () {
+  // 批量指派任务
+  var $assignModal = $('#assignModal');
+  var $assignResultModal = $('#assignResultModal');
+  $('#bat-assign').click(function () {
+    if (!$('.task-tr :checked').length)
+      return showError('请选择任务', '当前没有选中任务。');
+    $assignModal.modal();
+  });
+
+  $assignModal.find('.modal-confirm').click(function () {
     var ids = $.map($('table tbody :checked'), function (item) {
       return $(item).parent().parent().attr('id');
     });
-    var data = {'task_ids': ids, 'user_id': $("#select-user").val()};
+    var data = {'task_ids': ids, 'user_id': $assignModal.find(".select-user").val()};
     var trans = {un_existed: '页面不存在', un_published: '任务不是已发布', lock_failed: '数据锁定失败', assigned: '指派成功'};
     postApi('/task/assign/' + taskType, {'data': data}, function (res) {
       var html = '';
@@ -708,7 +702,5 @@
   });
 
 </script>
-{% block custom-js %}
-{% end %}
 </body>
 </html>

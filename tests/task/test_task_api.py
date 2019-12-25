@@ -339,12 +339,12 @@ class TestTaskApi(APITestCase):
 
             self.delete_tasks_and_locks()
 
-    def test_get_users_by_task_type(self):
-        """ 测试获取能访问某个任务类型的用户列表 """
+    def test_get_user_list(self):
+        """ 测试获取用户列表 """
         self.login_as_admin()
         # task_types = ['cut_proof']
         for task_type in task_types:
-            r = self.fetch('/api/user/' + task_type, body={'data': {}})
+            r = self.fetch('/api/user/list', body={'data': {}})
             self.assert_code(200, r, msg=task_type)
 
     def test_publish_import_image(self):

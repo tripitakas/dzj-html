@@ -368,15 +368,13 @@ class SendUserPhoneCodeApi(BaseHandler):
             self.send_error_response(e.verify_failed, message=message)
 
 
-class UsersOfTaskTypeApi(BaseHandler):
-    URL = '/api/user/@task_type'
+class UserlistApi(BaseHandler):
+    URL = '/api/user/list'
 
-    def post(self, task_type):
+    def post(self):
         """ 获取可访问某个任务类型的用户列表 """
         try:
-            from controller.auth import get_route_roles
-            roles = get_route_roles('/api/task/pick/' + task_type, 'POST')
-            condition = {'roles': {'$regex': '.*(%s).*' % '|'.join(roles)}}
+            condition = dict()
             q = self.get_body_argument('q', '')
             if q:
                 condition.update({'name': {'$regex': q}})

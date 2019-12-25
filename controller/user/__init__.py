@@ -9,6 +9,6 @@ handlers = [
     api.LoginApi, api.LogoutApi, api.SendUserEmailCodeApi, api.SendUserPhoneCodeApi, api.RegisterApi,
     api.ForgetPasswordApi, api.ChangeMyProfileApi, api.ChangeMyPasswordApi, api.UploadUserAvatarApi,
     api.UserAddOrUpdateApi, api.DeleteUserApi, api.ResetUserPasswordApi, api.ChangeUserRoleApi,
-    api.UsersOfTaskTypeApi,
+    api.UserlistApi,
 ]
 hook['login'] = api.LoginApi.login
