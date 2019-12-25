@@ -4,7 +4,7 @@
   var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
 
   function saveTask(submit, url) {
-    showTips('保存中');
+    showTips('保存中‧‧‧');
     postApi('{{current_path}}', {data: getSubmitData(submit)}, function () {
       if (!submit)
         showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
@@ -41,7 +41,7 @@
 
   // 提交任务
   $(document).on("click", '#submit-task', function () {
-    showTips('保存中');
+    showTips('提交中‧‧‧');
     postApi('{{current_path}}', {data: getSubmitData(true)}, function () {
       showSuccess('成功', '已提交。');
       setTimeout(function () {
