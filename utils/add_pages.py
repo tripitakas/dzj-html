@@ -68,10 +68,10 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
 
 def check_ids(page):
     def check(m):
-        return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 99])
+        return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 150])
 
     for c in page.get('blocks'):
-        c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no']
+        c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no'] or ''
         if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
             return print(page['name'] + str(c))
     for c in page.get('columns'):
