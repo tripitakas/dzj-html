@@ -4,8 +4,9 @@ from .tool import *
 
 def char_reorder(chars, blocks=None, sort=True, remove_outside=True, img_file=''):
     columns = []
-    if not blocks or len(blocks) == 1:
-        blocks = [0]  # 单栏则取为整页范围，避免某些折痕明显的页面识别为窄栏
+    blocks = blocks or [0]
+    if not chars:
+        return []
     for c in chars:
         c['block_no'] = c['line_no'] = c['char_no'] = c['no'] = c['char_id'] = 0
 

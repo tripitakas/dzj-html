@@ -84,8 +84,10 @@ def read_col(col_out):
         char_array = []
         for j in range(col_out[i].shape[0]):
             box = col_out[i][j]
+            if width < 1:
+                continue
             if ((box[3] - box[1]) / width > 0.6
-                or (box[1] <= center <= box[3] and box[3] > center and
+                or (box[1] <= center <= box[3] and box[3] - center > 1 and
                     1 / 3 < (center - box[1]) / (box[3] - center) < 3 and
                     (box[3] - box[1]) / width >= 0.5)):
                 # mean big character

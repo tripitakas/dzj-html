@@ -72,6 +72,8 @@ def check_ids(page):
 
     for c in page.get('blocks'):
         c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no'] or ''
+        if not c['block_id'] and len(page['blocks']) == 1:
+            c['block_id'] = 'b1'
         if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
             return print(page['name'] + str(c))
     for c in page.get('columns'):
