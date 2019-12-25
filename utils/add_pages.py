@@ -35,7 +35,7 @@ def load_json(filename):
     try:
         with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
             return json.load(f)
-    except Exception as error:
+    except Exception as e:
         sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
@@ -46,6 +46,8 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
         return []
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
+        if fn[0] in '._':
+            continue
         if path.isdir(filename):
             fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
             if not kind or kind == fn2:
