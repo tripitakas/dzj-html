@@ -35,7 +35,7 @@ def load_json(filename):
     try:
         with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
             return json.load(f)
-    except Exception as error:
+    except Exception as e:
         sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
 
 
@@ -46,6 +46,8 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
         return []
     for fn in sorted(listdir(src_path)):
         filename = path.join(src_path, fn)
+        if fn[0] in '._':
+            continue
         if path.isdir(filename):
             fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
             if not kind or kind == fn2:
@@ -62,6 +64,23 @@ def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
                     if add_page(name, info, db, use_local_img=use_local_img, update=update,
                                 source=source, reorder=reorder, only_check=only_check):
                         ret.add(name)
+
+
+def check_ids(page):
+    def check(m):
+        return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 99])
+
+    for c in page.get('blocks'):
+        c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no']
+        if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
+            return print(page['name'] + str(c))
+    for c in page.get('columns'):
+        if not check(re.findall(r'^b(\d+)c(\d+)$', c.get('column_id', ''))):
+            return print(page['name'] + str(c))
+    for c in page.get('chars'):
+        if not check(re.findall(r'^b(\d+)c(\d+)c(\d+)$', c.get('char_id', ''))):
+            return print(page['name'] + str(c))
+    return True
 
 
 def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
@@ -110,11 +129,14 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
                                                sort=True, remove_outside=True, img_file=name)
             except AssertionError as e:
                 sys.stderr.write('%s %s' % (name, str(e)))
+        if not check_ids(meta):
+            return
 
         data['count'] += 1
-        print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
-            name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
-        ))
+        if not only_check:
+            print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
+                name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
+            ))
 
         info.pop('id', 0)
         if only_check:
