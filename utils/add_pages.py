@@ -20,6 +20,7 @@ sys.path.append(BASE_DIR)
 from controller.helper import prop
 from controller.data.data import Page
 from controller.cut.reorder import char_reorder
+from controller.cut.cuttool import CutTool
 
 data = dict(count=0)
 
@@ -125,19 +126,23 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
             meta['source'] = source
         meta['layout'] = prop(info, 'layout') or ['上下一栏', '上下一栏', '上下两栏', '上下三栏'][len(info['blocks'])]
 
+        zero_id = []
         if reorder:
             try:
-                meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
-                                               sort=True, remove_outside=True, img_file=name)
-            except AssertionError as e:
+                if reorder == 'v2':
+                    zero_id, meta['layout_type'] = CutTool.sort_chars(meta['chars'], meta['columns'], meta['blocks'])
+                else:
+                    meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
+                                                   sort=True, remove_outside=True, img_file=name)
+            except Exception as e:
                 sys.stderr.write('%s %s' % (name, str(e)))
         if not check_ids(meta):
             return
 
         data['count'] += 1
         if not only_check:
-            print('%s:\t%d x %d blocks=%d columns=%d chars=%d' % (
-                name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars'])
+            print('%s:\t%d x %d blocks=%d columns=%d chars=%d\t%s' % (
+                name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars']), ','.join(zero_id)
             ))
 
         info.pop('id', 0)
