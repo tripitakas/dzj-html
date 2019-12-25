@@ -79,6 +79,7 @@
 
 .sty-table a.disabled, .sty-table a.disabled:hover {
   color: #797979;
+  cursor: not-allowed
 }
 
 .sty-table td.returned {
