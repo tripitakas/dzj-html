@@ -437,7 +437,6 @@
     toggleColumns();
   });
 
-
   // 任务类型或状态过滤
   $('.btn-a').click(function () {
     var title = $(this).attr('title').trim();
@@ -466,8 +465,14 @@
     });
   });
 
+  // 批量指派任务
+  var $assignModal = $('#assignModal');
+  var $assignResultModal = $('#assignResultModal');
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {
+  };
   // 选择用户
-  $("#assignModal .select-user").select2({
+  $assignModal.find(".select-user").select2({
+    dropdownParent: $assignModal,
     ajax: {
       type: 'POST', url: '/api/user/list', dataType: 'json', delay: 1000, language: 'zh-CN',
       allowClear: true, width: "100%", placeholder: "请选择", maximumSelectionLength: 2,
@@ -480,9 +485,6 @@
     }
   });
 
-  // 批量指派任务
-  var $assignModal = $('#assignModal');
-  var $assignResultModal = $('#assignResultModal');
   $('#bat-assign').click(function () {
     if (!$('.task-tr :checked').length)
       return showError('请选择任务', '当前没有选中任务。');
