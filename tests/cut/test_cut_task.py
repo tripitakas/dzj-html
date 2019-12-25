@@ -130,12 +130,3 @@ class TestCutTask(APITestCase):
 
         p = self._app.db.page.find_one({'name': 'GL_924_2_35'})
         self.assertIsNotNone(p)
-        err_ids = [c['char_id'] for c in p['chars'] if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
-        self.assertTrue(err_ids)
-        r = self.parse_response(self.fetch('/api/cut/gen_char_id', body={'data': p}))
-        self.assertEqual(p['blocks'], r['blocks'])
-        self.assertEqual(p['columns'], r['columns'])
-        chars = r['chars']
-        err_ids = [c['char_id'] for c in chars if not re.match(r'^b\d+c\d+c\d+', c['char_id'])]
-        self.assertEqual(r.get('zero_char_id'), err_ids)
-        self.assertFalse(err_ids)
