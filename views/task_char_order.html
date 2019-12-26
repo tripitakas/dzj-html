@@ -221,15 +221,11 @@
   function getSubmitData(submit) {
     var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
     if ($.cut.isLinkChanged()) {
-      $.cut.applyLinks(blocks, columns);
-      setTimeout(function () {
-        data.boxes = JSON.stringify($.cut.exportBoxes());
-        return data;
-      }, 1000);
+      data.apply_links = $.cut.applyLinks(blocks, columns, null, true);
     } else {
       data.boxes = JSON.stringify($.cut.exportBoxes());
-      return data;
     }
+    return data;
   }
 
   // 更新Undo

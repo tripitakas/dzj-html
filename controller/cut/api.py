@@ -28,6 +28,13 @@ class CutTaskApi(TaskHandler):
         try:
             # 检查参数
             data = self.get_request_data()
+            if 'apply_links' in data:
+                a = data['apply_links']
+                GenerateCharIdApi.calc(a['blocks'], a['columns'], a['chars'], a['chars_col'], a.get('layout_type'))
+                data['boxes'] = a['chars']
+                data['columns'] = a['columns']
+                assert data['columns'] and data['boxes']
+
             rules = [(v.not_empty, 'step', 'boxes')]
             errs = v.validate(data, rules)
             if errs:
@@ -53,6 +60,8 @@ class CutTaskApi(TaskHandler):
                 data['boxes'] = json_decode(data['boxes'])
             self.reorder_chars(data, page)
             update = {self.step2field.get(data['step']): data['boxes']}
+            if 'columns' in data:
+                update['columns'] = data['columns']
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
 
             # 提交任务
@@ -130,11 +139,23 @@ class GenerateCharIdApi(BaseHandler):
         columns = data['columns']
         chars = data['chars']
         chars_col = data.get('chars_col')  # 每列字框的序号 [[char_index_of_col1, ...], col2...]
-        reorder = data.get('reorder', dict(blocks=True, columns=True, chars=True))
 
+        zero_char_id, layout_type = [], data.get('layout_type')
+        r = self.calc(blocks, columns, chars, chars_col, layout_type)
+        if r:
+            zero_char_id, layout_type, chars_col = r
+
+        return self.send_data_response(dict(
+            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
+            zero_char_id=zero_char_id, layout_type=layout_type
+        ))
+
+    @staticmethod
+    def calc(blocks, columns, chars, chars_col, layout_type=None):
         assert isinstance(blocks, list)
         assert isinstance(columns, list)
         assert isinstance(chars, list)
+        reorder = dict(blocks=True, columns=True, chars=True)
         if chars_col:
             assert isinstance(chars_col, list) and isinstance(chars_col[0], list) and isinstance(chars_col[0][0], int)
 
@@ -143,11 +164,5 @@ class GenerateCharIdApi(BaseHandler):
         if reorder.get('columns') and blocks:
             columns = CutTool.sort_columns(columns, blocks)
 
-        zero_char_id, layout_type = [], data.get('layout_type')
         if reorder.get('chars') and chars:
-            zero_char_id, layout_type, chars_col = CutTool.sort(chars, columns, blocks, layout_type, chars_col)
-
-        return self.send_data_response(dict(
-            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-            zero_char_id=zero_char_id, layout_type=layout_type
-        ))
+            return CutTool.sort(chars, columns, blocks, layout_type, chars_col)

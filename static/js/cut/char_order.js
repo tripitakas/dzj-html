@@ -803,7 +803,7 @@
     },
 
     // 调整字框连线后重新设置字框编号
-    applyLinks: function (blocks, columns, update) {
+    applyLinks: function (blocks, columns, update, notPost) {
       var self = this, routes = [], heads = [];
 
       if (!cs.checkLinks(routes, heads)) {
@@ -814,6 +814,12 @@
           return char.id;
         });
       });
+      if (notPost) {
+        return {
+          blocks: blocks, columns: columns, chars_col: chars_col,
+          chars: $.cut.exportBoxes()
+        };
+      }
       postApi('/cut/gen_char_id', {
         data: {
           blocks: blocks, columns: columns, chars_col: chars_col,
