@@ -111,11 +111,13 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
                 meta['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
             else:
                 meta['ocr'] = info['ocr'].replace('\n', '|')
+            meta['ocr'] = meta['ocr'].replace(r'\|+', '|')
         if info.get('text'):
             if isinstance(info['text'], list):
                 meta['text'] = '|'.join(info['text']).replace('\u3000', '|').replace(' ', '')
             else:
                 meta['text'] = info['text'].replace('\n', '|')
+            meta['text'] = meta['text'].replace(r'\|+', '|')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
@@ -177,7 +179,7 @@ def add_texts(src_path, pages, db):
             r = list(db.page.find(cond))
             if r and not r[0].get('text'):
                 text = re.sub(r'[<>]', '', text)
-                db.page.update_many(cond, {'$set': dict(ocr=text)})
+                db.page.update_many(cond, {'$set': dict(text=text)})
 
 
 def copy_img_files(src_path, pages):
