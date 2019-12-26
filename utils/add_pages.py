@@ -158,7 +158,7 @@ class AddPage(object):
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
             zero_id = []
-            chars, columns, blocks = meta['chars'], meta['blocks'], meta['columns']
+            chars, columns, blocks = meta['chars'], meta['columns'], meta['blocks']
             if self.reorder:
                 try:
                     meta['columns'] = char_reorder(chars, blocks, sort=True, remove_outside=True, img_file=name)
