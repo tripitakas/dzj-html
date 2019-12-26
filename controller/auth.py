@@ -39,7 +39,7 @@ role_route_maps = {
     '单元测试用户': {
         'is_assignable': False,
         'routes': {
-            '/api/user/list': ['GET'],
+            '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/finish/@task_type/@task_id': ['POST'],
             '/api/data/lock/@shared_field/@doc_id': ['POST'],
@@ -156,10 +156,11 @@ role_route_maps = {
             '/task/page/@page_name': ['GET'],
             '/task/info/@task_id': ['GET'],
             '/task/admin/@task_type': ['GET'],
+            '/task/admin/list': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/user/@task_type': ['POST'],
+            '/api/user/list': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
-            '/api/task/(assign|delete|admin)/@task_type': ['POST'],
+            '/api/task/(assign|delete|update)/@task_type': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
@@ -206,8 +207,8 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/user/statistic': ['GET'],
-            '/user/(admin|role)': ['GET'],
+            '/user/admin': ['GET'],
+            '/user/admin/role': ['GET'],
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
         }

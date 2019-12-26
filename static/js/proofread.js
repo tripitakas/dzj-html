@@ -187,9 +187,10 @@ $.cut.onBoxChanged(function (char, box, reason) {
         function (char, index) {
           var no = showOrder ? char.char_no : '';
           var txt = !text[index] ? '？' : showText ? text[index] : '';
-          var cc = char.cc || 1;
-          var same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
-          return no + txt + (showText ? (same && (cc > 0.5 || cc < 0.35) ? '' : same ? '？' : char.ocr_txt) : '');
+          // var cc = char.cc || 1;
+          // var same = !char.ocr_txt || text[index] === char.ocr_txt || cc < 0.35;
+          // return no + txt + (showText ? (same && (cc > 0.5 || cc < 0.35) ? '' : same ? '？' : char.ocr_txt) : '');
+          return no + txt;
         },
         highlightBox
     );

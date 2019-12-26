@@ -15,7 +15,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(title="task-manage") %}
+    {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -25,7 +25,7 @@
             {% for k, v in metadata.items() %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(k, v) %}</span>
+              <span class="value">{% raw format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -34,7 +34,7 @@
             {% for k, v in data_lock.items() %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(k, v) %}</span>
+              <span class="value">{% raw format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -43,7 +43,7 @@
             {% for k, v in page_txt.items() %}
             <div class="info long">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(k, v) %}</span>
+              <span class="value">{% raw format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -52,7 +52,7 @@
             {% for k, v in page_box.items() %}
             <div class="info long">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(k, v) %}</span>
+              <span class="value">{% raw format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>

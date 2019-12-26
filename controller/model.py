@@ -9,18 +9,21 @@ import csv
 import math
 import controller.errors as e
 import controller.validate as v
+from controller.helper import prop
 from bson.objectid import ObjectId
 
 
 class Model(object):
     collection = ''  # 数据库表名
-    fields = [{  # 字段定义
-        'id': '',  # 字段id
-        'name': '',  # 字段名称
-        'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-        'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
-        'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
-    }]
+    fields = []  # 数据库字段定义
+    # 字段定义格式如下
+    # {
+    #     'id': '',  # 字段id
+    #     'name': '',  # 字段名称
+    #     'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
+    #     'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
+    #     'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
+    # }
     rules = []  # 校验规则
     primary = ''  # 主键
 
@@ -28,6 +31,7 @@ class Model(object):
     search_tips = ''  # 列表的查询提示
     search_fields = []  # 列表查询哪些字段
     table_fields = [dict(id='', name='')]  # 列表显示哪些字段
+    info_fields = []  # 列表操作需要哪些字段信息
     operations = [  # 列表包含哪些批量操作
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -41,8 +45,17 @@ class Model(object):
     modal_fields = [dict(id='', name='', input_type='', options=[])]  # 模态框包含哪些字段
 
     @classmethod
-    def validate(cls, doc):
-        return v.validate(doc, cls.rules)
+    def validate(cls, doc, rules=None):
+        rules = cls.rules if not rules else rules
+        return v.validate(doc, rules)
+
+    @classmethod
+    def get_page_params(cls, fields=None):
+        fields = fields if fields else [
+            'page_title', 'operations', 'search_tips', 'table_fields',
+            'modal_fields', 'info_fields', 'actions'
+        ]
+        return {f: getattr(cls, f) for f in fields}
 
     @classmethod
     def get_fields(cls):
@@ -92,8 +105,8 @@ class Model(object):
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             query.sort(o, asc)
         doc_count = self.db[cls.collection].count_documents(condition)
-        page_size = int(self.config['pager']['page_size'])
         cur_page = int(self.get_query_argument('page', 1))
+        page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page
         docs = list(query.skip((cur_page - 1) * page_size).limit(page_size))
@@ -106,14 +119,15 @@ class Model(object):
         return False
 
     @classmethod
-    def save_one(cls, db, collection, doc):
+    def save_one(cls, db, collection, doc, rules=None):
         """ 插入或更新一条记录
         :param db 数据库连接
         :param collection: 准备插入哪个集合
         :param doc: 准备插入哪条数据
+        :param rules: 数据验证规则
         """
         doc = cls.pack_doc(doc)
-        errs = cls.validate(doc)
+        errs = cls.validate(doc, rules)
         if errs:
             return dict(status='failed', errors=errs)
 

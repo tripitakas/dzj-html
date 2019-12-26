@@ -63,7 +63,7 @@
   </style>
 </head>
 
-<body class="widescreen">
+<body class="widescreen" style="overflow: hidden">
 <div class="app-main">
   <div class="main">
     <div class="pfread">
@@ -132,11 +132,16 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
         </div>
         <div class="modal-body">
           <div class="title">一、工作目标</div>
-          <div class="intro">从右侧文本区域，选择与左侧图片最相似的文本</div>
+          <div class="intro">
+            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
+            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
+            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
+            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
+          </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
@@ -145,32 +150,13 @@
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_select.png')}}"/></td>
-              <td>将当前选中的文本拷贝至文字输入框中</td>
+              <td>将当前选中的文本拷贝至文本输入框中</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
-              <td>显示OCR文本面板，该面板展示了当前OCR的文本内容</td>
+              <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
             </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
-              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>
-              <td>退回任务。如果任务数据有问题，比如图片缺失、数据异常等，可以选择退回任务，退回时请注明退回理由</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_save.png')}}"/></td>
-              <td>保存任务数据</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_next.png')}}"/></td>
-              <td>保存当前步骤并跳转至下一步</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_submit.png')}}"/></td>
-              <td>提交任务。提交后，系统将自动领取下一个任务</td>
-            </tr>
+            {% include _task_help.html %}
           </table>
           <div class="title">三、快捷键</div>
           <table class="table" id="hot-key">
@@ -183,12 +169,6 @@
               <td>图片缩小至60%~90%</td>
             </tr>
           </table>
-          <div class="title">四、相关说明</div>
-          <div class="intro">
-            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。<br/>
-            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。<br/>
-            该步骤所选中的文本，将作为下一步文字校对的比对本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。<br/>
-          </div>
         </div>
       </div>
     </div>

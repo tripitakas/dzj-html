@@ -10,12 +10,20 @@
   background: none;
 }
 
-.modal a{
+.modal h4 {
+  clear: both;
+}
+
+.modal a {
   cursor: pointer;
   text-decoration: underline;
 }
 
-.operation .btn-img{
+.modal td.published, .modal td.pending {
+  color: green !important;
+}
+
+.operation .btn-img {
   width: 22px;
   height: 22px;
 }
@@ -75,6 +83,7 @@
 
 .sty-table a.disabled, .sty-table a.disabled:hover {
   color: #797979;
+  cursor: not-allowed
 }
 
 .sty-table td.returned {
@@ -140,5 +149,5 @@
 }
 
 .select2-container {
-  width: 200px !important;
+  width: 100% !important;
 }

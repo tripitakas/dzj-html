@@ -70,18 +70,17 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
         </div>
         <div class="modal-body">
           <div class="title">一、功能概述</div>
           <div class="intro">
-            该功能用于检查OCR自动切分的栏框、字框、列框、字序是否正确，并对不正确的栏框、字框、列框、
-            字序进行修改。用户在领取切分校对任务后，按照四个步骤完成任务：栏框校对、字框校对、列框校对
-            和字序校对。栏框校对要求用栏框将图片所有文字框住（不包括边缘页码或注解文字），如果图片有多
-            栏，则需要多个栏框。字框校对要求将图片中的每个需要校对的文字框住，不能有漏框字、重复框字、
-            框不全字或字框重叠等情况，在操作时可以直接用鼠标对字框操作，也可通过快捷键进行操作。列框校
-            对要求用多个列框将图片的每列文字框住；字序校对是最后一个步骤，用于对字框的排列顺序进行检查
-            和调整，确保字框按照阅读文字的正确顺序排列，在操作时直接拖拽字序的连线即可。
+            该功能用于检查图片的栏框、字框、列框、字序等是否正确，并对不正确的切分框及字序进行修改。
+            工作步骤依次是：栏框校对、字框校对、列框校对和字序校对。<br/>
+            栏框校对要求将图片的正文（不包括边缘的页码等）用栏框框住，尽量不要包括正文外的边缘线。如果图片有多栏，则需要多个栏框。<br/>
+            字框校对要求将图片的正文用字框框住，因文字紧凑而导致字框交叠时，首要原则是尽量把笔画都框住，其次是尽量减少交叠。<br/>
+            列框校对要求用列框将图片的每列文字框住。<br/>
+            <b>注：</b>请您看下第三部分的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
           </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
@@ -91,15 +90,15 @@
             </tr>
             <tr>
               <td><img src="{{ static_url('imgs/icon_pic.png') }}"/></td>
-              <td>显示或隐藏图片。有时候隐藏图片有助于看清所要校对的图框</td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
             </tr>
             <tr>
               <td><img src="{{ static_url('imgs/icon_char.png') }}"/></td>
-              <td>显示或隐藏字框。有时候隐藏图框有助于仔细辨认原始图片</td>
+              <td>显示或隐藏字框。隐藏字框有助于仔细辨认图片</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
-              <td>撤销上一步对切分框的调整</td>
+              <td>撤销上一步操作</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
@@ -107,48 +106,25 @@
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">所有</span></td>
-              <td>把所有的图框以“淡红色”、“淡蓝色”、“白色”、“透明色”进行显示，帮助用户识别图框存在的问题</td>
+              <td>切换所有字框的颜色，有无色、白色不透明、蓝色半透明三种状态。<br/>白色不透明可以用于检查字框是否有遗漏，蓝色半透明则可以看清字迹</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">重叠</span></td>
-              <td>将发生重叠的图框用淡蓝色提示，帮助用户识别是否有错误</td>
+              <td>高亮提示所有重叠的字框，从而帮助您检查这些字框是否正常</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">大框</span></td>
-              <td>将相对较大的图框用淡蓝色提示，帮助用户识别是否异常</td>
+              <td>高亮提示所有的大框</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">窄框</span></td>
-              <td>将相对较窄的图框用淡蓝色提示</td>
+              <td>高亮提示所有的窄框</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">扁框</span></td>
-              <td>将相对较扁的图框用淡蓝色提示</td>
+              <td>高亮提示所有的扁框</td>
             </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
-              <td>取消撤销</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
-              <td>返回上一个步骤。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>
-              <td>退回任务。如果任务数据有问题，比如图片缺失、数据异常等，可以选择退回任务，退回时请注明退回理由。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_save.png')}}"/></td>
-              <td>保存任务数据。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_next.png')}}"/></td>
-              <td>保存当前步骤并跳转至下一步。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_submit.png')}}"/></td>
-              <td>提交任务。提交后，系统将自动领取下一个任务。</td>
-            </tr>
+            {% include _task_help.html %}
           </table>
           <div class="title">三、快捷键</div>
           <table class="table" id="hot-key">
@@ -177,8 +153,6 @@
               <td>alt表示缩小字框，方向键代表字框的四条边</td>
             </tr>
           </table>
-          <div class="title">四、相关说明</div>
-          <div class="intro">点击上一步时，请先保存当前步骤的数据。点击下一步时，则不必，系统会自动保存。</div>
         </div>
       </div>
     </div>

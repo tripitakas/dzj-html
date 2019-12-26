@@ -9,6 +9,7 @@
       <div class="modal-body">
         <input type="hidden" id="fields" class="fields" value="{{modal_fields}}"/>
         <input type="hidden" id="_id" class="_id">
+        <input type="hidden" id="url" class="url">
         <form class="form-horizontal">
           {% for f in modal_fields %}
           <div class="form-group">
@@ -34,6 +35,7 @@
               {% else %}
               <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
               {% end %}
+
             </div>
           </div>
           {% end %}

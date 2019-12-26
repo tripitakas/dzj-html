@@ -73,7 +73,7 @@ class TestCutReorder(APITestCase):
             # self.assertEqual('分思惟經一卷別六情經一卷', self.get_column_txt(chars, 'b1c2c'))  错！
             self.assertEqual('後出阿弥陁佛偈一卷貞觀九年入正目訖',
                              self.get_column_txt(chars, 'b1c12c'))
-            self.assertEqual('迦旃延偈經一卷沒一名盡迦偈旃百延二十說章法貞觀九年入正目訖',
+            self.assertEqual('迦旃延偈經一卷沒一名盡迦偈旃百延二十說章法貞觀九年入正目',
                              self.get_column_txt(chars, 'b1c13c'))  # 错
             self.assertEqual('菩薩戒經一卷北鿌沮渠蒙遜世沙門曇無䜟於姑𮍏譯',
                              self.get_column_txt(chars, 'b1c17c'))

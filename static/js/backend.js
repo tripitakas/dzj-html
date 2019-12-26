@@ -80,6 +80,20 @@ function getQueryString(name) {
   return null;
 }
 
+function setQueryString(name, value) {
+  var search = location.search;
+  var add = name + '=' + value;
+  if (search.indexOf(name + '=') !== -1) {
+    search = search.replace(new RegExp(name + '=.*?&', 'i'), add + '&');
+    search = search.replace(new RegExp(name + '=.*?$', 'i'), add);
+  } else if (search) {
+    search += '&' + add;
+  } else {
+    search = '?' + add;
+  }
+  return location.pathname + search;
+}
+
 /**
  * 调用后端接口
  * @param url 以“/”开头的地址

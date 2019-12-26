@@ -5,6 +5,7 @@
 @time: 2018/12/26
 """
 import random
+from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.task import Task
@@ -58,6 +59,58 @@ class TaskAdminHandler(TaskHandler):
                 pan_name=self.prop(self.config, 'pan.name'), modal_fields=self.modal_fields,
                 task_meta=self.get_task_meta(task_type),
             )
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class TaskListHandler(TaskHandler):
+    URL = '/task/admin/list'
+
+    table_fields = [
+        {'id': 'doc_id', 'name': '页编码'},
+        {'id': 'batch', 'name': '任务批次'},
+        {'id': 'task_type', 'name': '任务类型', 'options': []},
+        {'id': 'status', 'name': '状态', 'options': []},
+        {'id': 'priority', 'name': '优先级'},
+        {'id': 'publish_time', 'name': '发布时间'},
+        {'id': 'picked_by', 'name': '领取人'},
+        {'id': 'picked_time', 'name': '领取时间'},
+        {'id': 'finished_time', 'name': '完成时间'},
+    ]
+    operations = [
+        {'operation': 'btn-search', 'label': '字段检索', 'data-target': 'searchModal'},
+    ]
+
+    def get(self):
+        """ 任务总表 """
+
+        try:
+            condition, params = dict(), dict()
+            for field in ['doc_id', 'batch', 'task_type']:
+                value = self.get_query_argument(field, '')
+                if value:
+                    params[field] = value
+                    condition.update({field: {'$regex': value, '$options': '$i'}})
+            picked_user_id = self.get_query_argument('picked_user_id', '')
+            if picked_user_id:
+                params['picked_user_id'] = picked_user_id
+                condition.update({'picked_user_id': ObjectId(picked_user_id)})
+            start_time = self.get_query_argument('finished_time_start', '')
+            if start_time:
+                params['finished_time_start'] = start_time
+                condition.update({'finished_time': {'$gt': datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')}})
+            end_time = self.get_query_argument('finished_time_end', '')
+            if end_time:
+                params['finished_time_end'] = end_time
+                condition.update({'finished_time': {'$lt': datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')}})
+
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
+            kwargs = self.get_page_params()
+            kwargs['table_fields'] = self.table_fields
+            kwargs['actions'] = []
+
+            self.render('task_list.html', docs=docs, pager=pager, q=q, order=order, params=params, **kwargs)
+
         except Exception as error:
             return self.send_db_error(error)
 
@@ -119,17 +172,6 @@ class TaskLobbyHandler(TaskHandler):
 class MyTaskHandler(TaskHandler):
     URL = '/task/my/@task_type'
 
-    search_fields = ['doc_id']
-    search_tips = '请搜索页编码'
-    operations = []
-    table_fields = [dict(id='doc_id', name='页编码'), dict(id='status', name='任务状态'),
-                    dict(id='picked_time', name='领取时间'), dict(id='finished_time', name='完成时间')]
-    actions = [
-        {'action': 'my-task-do', 'label': '继续'},
-        {'action': 'my-task-view', 'label': '查看'},
-        {'action': 'my-task-update', 'label': '修改'},
-    ]
-
     def get(self, task_type):
         """ 我的任务 """
         try:
@@ -138,8 +180,24 @@ class MyTaskHandler(TaskHandler):
             if task_type:
                 condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
             tasks, pager, q, order = self.find_by_page(self, condition)
-            Task.page_title = '我的任务-' + self.get_task_name(task_type)
-            self.render('my_task.html', tasks=tasks, pager=pager, q=q, order=order, model=Task)
+
+            kwargs = Task.get_page_params()
+            kwargs['page_title'] = '我的任务-' + self.get_task_name(task_type)
+            kwargs['search_fields'] = ['doc_id']
+            kwargs['search_tips'] = '请搜索页编码'
+            kwargs['operations'] = []
+            kwargs['table_fields'] = [
+                {'id': 'doc_id', 'name': '页编码'},
+                {'id': 'status', 'name': '任务状态'},
+                {'id': 'picked_time', 'name': '领取时间'},
+                {'id': 'finished_time', 'name': '完成时间'},
+            ]
+            kwargs['actions'] = [
+                {'action': 'my-task-do', 'label': '继续'},
+                {'action': 'my-task-view', 'label': '查看'},
+                {'action': 'my-task-update', 'label': '修改'},
+            ]
+            self.render('my_task.html', tasks=tasks, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -153,8 +211,9 @@ class TaskPageInfoHandler(TaskHandler):
         'text_proof_2', 'text_proof_3', 'text_review', 'text_hard'
     ]
     display_fields = [
-        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority', 'updated_time',
-        'finished_time', 'publish_by', 'publish_time', 'picked_by', 'picked_time', 'message'
+        'doc_id', 'task_type', 'status', 'pre_tasks', 'steps', 'priority',
+        'updated_time', 'finished_time', 'publish_by', 'publish_time',
+        'picked_by', 'picked_time', 'message'
     ]
 
     def get(self, page_name):
@@ -174,7 +233,8 @@ class TaskInfoHandler(TaskHandler):
 
     display_fields = [
         'doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps', 'publish_time',
-        'publish_by', 'picked_time', 'picked_by', 'updated_time', 'finished_time', 'message'
+        'publish_by', 'picked_time', 'picked_by', 'updated_time',
+        'finished_time', 'message'
     ]
 
     def get(self, task_id):

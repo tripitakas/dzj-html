@@ -46,7 +46,6 @@
           </span>
         </div>
         <div class="btn-group right">
-          <img src="{{ static_url('imgs/icon_dict.png') }}" class="btn-img" id="lq-dict" title="龙泉字库"/>
           <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
           <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>
           <div class="btn-txt" id="previous-diff" title="上一条异文"><</div>
@@ -177,11 +176,23 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
         </div>
         <div class="modal-body">
           <div class="title">一、工作目标</div>
-          <div class="intro">根据图片进行文字校对，包括文字和字序两部分。文字校对是本系统中的关键步骤，请您仔细校对。</div>
+          <div class="intro">
+            根据图片进行文字校对，包括文字和字序两部分。<br/>
+            校对以如实为原则，即图片上是什么字，就输入什么字。如果遇到一些无法输入的字，请先使用相关工具进行查找，
+            比如<a href="http://hanzi.lqdzj.cn" target="_blank">龙泉字库</a>或<a href="http://www.guoxuedashi.com/zidian/bujian" target="_blank">国学大师</a>。
+            确实找不到时，也可以输入<a href="http://www.cbeta.org/data-format/rare-rule.htm">组字式</a>。如果拿不准，请您进行存疑，以便后续环节处理。<br/>
+            如果图片的文本有多个来源，如OCR文本或从古籍文库中选择的相似文本等，系统将会进行横向比对，找出文本间的差异，即所谓的异文。异文将以红色高亮显示。
+            双击异文，将弹框展示各个来源的文本，您可以点选，也可以在选择结果中进行修改。<br/>
+            如果只有OCR文本，则您需要逐字检查；如果有古籍文库中的相似文本，则您只需要检查异文，同文浏览一下即可。<br/>
+            文字校对完毕后，请您做一次图文匹配检查，确保您校对的文字和图片的字框的一致性。<br/>
+            注：请下载<a href=" https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/KaiXinSong.ttf">开心宋</a>或者
+            <a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/hanazono-20170904.zip">花园明朝</a>
+            字体并安装，以便显示UTF-8扩展区域的字符。
+          </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
@@ -220,6 +231,7 @@
               <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
               <td>弹出来源文本面板。该面板显示所有的来源文本，包括一至两份OCR、一份比对文本等。点击该面板顶部的按钮可以进行拖拽</td>
             </tr>
+            {% include _task_help.html %}
           </table>
           <div class="title">三、快捷键</div>
           <table class="table" id="hot-key">
@@ -236,21 +248,6 @@
               <td>按照方向键↑→↓←的指示，切换当前字框</td>
             </tr>
           </table>
-          <div class="title">四、相关说明</div>
-          <div class="intro">
-            校对以如实为原则，即图片上是什么字，就输入什么字。如果遇到一些无法输入的字，请先使用相关工具进行查找，确实找不
-            到时也可以输入组字式，如果拿不准，请您进行存疑，以便后续环节处理。<br/>
-            图片的文本有多个来源。文字校对的来源包括OCR字符识别引擎输出、OCR行识别引擎输出、从古籍文库中选择等。文字校对
-            的结果将作为文字审定的文本来源。<br/>针对多份文本，系统将会进行横向比对，找出文本间的差异，即所谓的异文。异文
-            将在文本区域红色高亮显示。如果有多份来源，则您要特别关心异文，对于同文则简单检查即可。如果只有一份来源，则您需
-            要逐字进行校对。<br/>双击异文，将弹出选择框展示各个来源的文本，您可以点选，也可以在选择结果中进行修改。双击同
-            文，您可以直接编辑文本。通过导航条上的按钮，您还可以对列进行增加或者删除。<br/>您从头至尾完成一遍校对后，请您
-            进行图文匹配检查，确保您校对的文字和图片的字框的一致性。<br/>图文匹配检查通过后，您还可以关闭右侧文本，进入纯
-            图片模式，然后通过浮动面板来检查、欣赏您的校对结果。<br/>
-            请下载<a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/KaiXinSong.ttf">开心宋</a>或者
-            <a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/hanazono-20170904.zip">花园明朝</a>
-            字体并安装，以便显示UTF-8扩展区域的字符。
-          </div>
         </div>
       </div>
     </div>

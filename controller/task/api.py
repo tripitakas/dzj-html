@@ -101,7 +101,7 @@ class PublishTasksApi(PublishBaseHandler):
             if len(data['doc_ids']) > max_count:
                 return self.send_error_response(e.task_count_exceed_max, message='任务数量不能超过%s' % max_count)
             log = self.publish_many(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
-                                    data['priority'], data['force'] == '是', doc_ids=data['doc_ids'])
+                                    data['priority'], data['force'] == '是', data['doc_ids'], data['batch'])
             return self.send_data_response({k: value for k, value in log.items() if value})
 
         except DbError as error:
@@ -196,10 +196,10 @@ class PickTaskApi(TaskHandler):
 
 
 class UpdateTaskApi(TaskHandler):
-    URL = '/api/task/admin/@task_type'
+    URL = '/api/task/update/@task_type'
 
     def post(self, task_type):
-        """ 更新任务批次号"""
+        """ 更新任务"""
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, '_id', 'batch')]

@@ -563,7 +563,7 @@
       delete this.state.dragLink;
 
       if (changed) {
-      this.changed = true;
+        this.changed = true;
         this.checkLinks();
         this._updateCurrentLink(changed, pt);
         this.linkSwitched(changed instanceof Link && changed);
@@ -793,100 +793,29 @@
         if (r) {
           showSuccess('字框连接正常', '没有待修正的字框连线。');
         } else {
-          showError('字框连接待修正', '请修正高亮绿框的字框连线。');
+          showError('字框连线有误', '请修正黄色字框的连线。');
         }
       }
     },
 
-    isLinkChanged: function() {
+    isLinkChanged: function () {
       return cs && cs.changed;
     },
 
-    // 调整字框连线后重新设置字框编号
-    applyLinks: function (blocks, columns, update) {
-      var self = this, routes = [], heads = [];
+    // 获取每列的字框id
+    getCharsCol: function () {
+      var routes = [], heads = [], error = null;
 
       if (!cs.checkLinks(routes, heads)) {
-        showError('字框连接有误', '请修正高亮绿框的字框连线。');
+        error = '字框连线有误，请修正黄色字框的连线。';
+        showError(error);
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
           return char.id;
         });
       });
-      postApi('/cut/gen_char_id', {
-        data: {
-          blocks: blocks, columns: columns, chars_col: chars_col,
-          chars: $.cut.exportBoxes()
-        }
-      }, function (res) {
-        var changed = data.chars.map(function (c) {
-          return c.char_id;
-        }).join(',') !== res.chars.map(function (c) {
-          return c.char_id;
-        }).join(',');
-
-        heads = heads.map(function (node) {
-          return node.char.id;
-        });
-        data.chars.forEach(function (b) {
-          if (b.shape) {
-            b.shape.remove();
-            delete b.shape;
-          }
-        });
-        data.chars = res.chars;
-        $.cut._apply(data.chars);
-
-        cs.remove();
-        cs = new CharNodes(data.chars);
-        cs.buildColumns(res.chars_col);
-        if (update) {
-          update(res.data);
-        }
-        if (self.checkInvalidHead(heads) === 0) {
-          if (changed) {
-            showSuccess('字序已调整', '已经重新设置字框编号。');
-          } else {
-            showSuccess('没有改变', '字框顺序没有改变。');
-          }
-        }
-      });
-    },
-
-    // 检查不合理的列头字框：每列第一个字框上方不存在同栏、X范围重叠的字框
-    checkInvalidHead: function (headIds) {
-      if (!this.chars_col || !this.chars_col.length)
-        return;
-
-      var errors = [];
-
-      headIds.forEach(function (id) {
-        var node = cs.findNode(id);
-        var box = node.getBox(), c = node.char;
-        var above = $.cut.data.chars.filter(function (char) {
-          if (char.shape && char.block_no === c.block_no) {
-            var box2 = char.shape.getBBox();
-            if (box2.x2 > box.x + box.width / 4 && box2.x < box.x + box.width * 0.75) {
-              return box2.y < box.y;
-            }
-          }
-        });
-        if (above.length) {
-          errors.push(node);
-        }
-      });
-
-      removeShapes(cs.errNodes);
-      errors.forEach(function (node) {
-        var r = node.createBox('#0f0');
-        r.animate({'fill-opacity': 0.7}, 1000, 'elastic');
-        cs.errNodes.push(r);
-      });
-      if (errors.length) {
-        showError('字框连接待修正', '请修正高亮绿框的字框连线，不应为列的第一个字框。');
-      }
-      return errors.length;
+      return {chars_col: chars_col, error: error};
     }
   });
 

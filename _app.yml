@@ -36,7 +36,7 @@ role:
 # 任务
 task:
   task_timeout_days: 7
-  temp_lock_timeout_days: 1
+  temp_lock_timeout_hours: 1
 
 # OSS
 img:

@@ -73,12 +73,11 @@
     </a></td>
     <td class="box_lock btn-lock" title="box">{{'解锁' if handler.prop(d, 'lock.box.is_temp') else ''}}</td>
     <td class="action">
-      {% set info = {f: handler.prop(d, f.replace('-', '.'), '') for f in model.info_fields} %}
+      {% set info = {f: handler.prop(d, f.replace('-', '.'), '') for f in info_fields} %}
       <span class="hide info">{{dumps(info)}}</span>
       <a href="/data/page/{{d.get('_id')}}">详情</a>
       <a class="btn-update">修改</a>
       <a class="btn-remove">删除</a>
-    </td>
     </td>
   </tr>
   {% end %}

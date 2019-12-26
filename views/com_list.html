@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{model.page_title}}</title>
+  <title>{{page_title}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{static_url('assets/datatables/jquery.dataTables.min.css')}}" rel="stylesheet"/>
@@ -17,7 +17,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(title="data-management", sub="") %}
+    {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -26,7 +26,7 @@
             {% block operation %}
             <div class="operation">
               <div class="btn-group">
-                {% for o in model.operations %}
+                {% for o in operations %}
                 {% if 'data-target' in o %}
                 <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#{{o['data-target']}}">
                   {{o.get('label')}}
@@ -46,14 +46,16 @@
             {% end %}
 
             {% block search %}
+            {% if search_tips %}
             <div class="search fr">
-              <input id="search-input" type="text" placeholder="{{model.search_tips}}" value="{{q}}">
+              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}">
               <i class="ser-btn"></i>
             </div>
             {% end %}
+            {% end %}
 
             {% block table %}
-            {% module ComTable(docs, model.table_fields, order=order, actions=model.actions) %}
+            {% module ComTable(docs, table_fields, order=order, actions=actions, info_fields=info_fields) %}
             {% end %}
 
             {% module Pager(pager) %}
@@ -65,7 +67,7 @@
 </div>
 
 <div class="panel-body">
-  {% module ComModal(model.modal_fields) %}
+  {% module ComModal(modal_fields) %}
   {% block custom-modal %}
   {% end %}
 </div>

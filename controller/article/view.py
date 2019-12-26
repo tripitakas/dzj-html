@@ -14,8 +14,10 @@ class ArticleListHandler(BaseHandler):
     def get(self):
         """ 文章管理"""
         try:
-            docs, pager, q, order = Article.find_by_page(self)
-            self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, model=Article)
+            model = Article
+            docs, pager, q, order = model.find_by_page(self)
+            kwargs = model.get_page_params()
+            self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

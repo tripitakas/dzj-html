@@ -124,6 +124,7 @@ class Volume(Model):
     search_fields = ['volume_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
                     ['content_pages', 'front_cover_pages', 'back_cover_pages']]
+    info_fields = [f['id'] for f in fields]
     modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                          options=f.get('options', [])) for f in fields]
 
@@ -134,7 +135,7 @@ class Volume(Model):
             content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
             content_pages.sort(key=cmp_to_key(cmp_page_code))
             doc['content_pages'] = content_pages
-        doc['content_page_count'] = len(doc['content_pages'])
+        doc['content_page_count'] = len(doc.get('content_pages') or [])
         if doc.get('front_cover_pages') and isinstance(doc['front_cover_pages'], str):
             front_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['front_cover_pages']).split(',')
             front_cover_pages.sort(key=cmp_to_key(cmp_page_code))
@@ -186,7 +187,9 @@ class Page(Model):
     search_tips = '请搜索页编码、统一经编码、经编码、卷编码'
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
+    info_fields = ['name', 'layout', 'ocr', 'ocr_col', 'lock-level-box', 'lock-level-text']
     modal_fields = [
+        {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
         {'id': 'lock-level-box', 'name': '字框锁等级'},
         {'id': 'lock-level-text', 'name': '文本锁等级'},

@@ -67,7 +67,6 @@
           <button type="button" class="btn btn-default btn-sm active" id="toggle-path" title="显隐连线">连线</button>
           <button type="button" class="btn btn-default btn-sm" id="toggle-char-no" title="显隐字框编号">编号</button>
           <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显隐待修正的字框">查漏</button>
-          <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后，重新设置字框编号">应用</button>
         </div>
       </div>
       <div class="btn-group right">
@@ -106,48 +105,47 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="#">更多</a></h4>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、工作目标</div>
-          <div class="intro">检查并完善字框的先后顺序，使之与阅读顺序一致。</div>
+          <div class="title">一、功能概述</div>
+          <div class="intro">
+            字序指的是字框的先后顺序，字序校对的目标是保证字框的顺序与阅读顺序一致。针对同一列字框，字序有编号和连线两种表示方式。<br/>
+            1）编号。按照数字编号显示字序。<br/>
+            2）连线。每个字框都有左右两个点，从前一个字框的右边画一条线到后一个字框的左边，就建立起了两个字框的先后顺序。<br/>
+            删除连线，有两种方式：一是Delete键；二是将连线的任意一个点拖拽至空白处释放。Delete键删除当前连线时，并不需要鼠标完全选中连线，只需要靠近后，有高亮提示即可。<br/>
+            修改连线，可以直接用鼠标拖拽。当鼠标移动至连线的端点时，也会高亮提示，表示已选中当前端点。并不需要将光标完全放在端点上，只需要靠近后有提示，就可以进行拖拽了。<br/>
+            注：本工作界面仍然可以键盘调整字框大小，保存及提交。<br/>
+          </div>
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
-              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
+              <td><img src="{{ static_url('imgs/icon_lobby.png') }}"/></td>
               <td>返回任务大厅</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
-              <td>撤销上一步对切分框的调整</td>
+              <td>撤销上一步操作</td>
             </tr>
             <tr>
               <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
               <td>取消撤销</td>
             </tr>
             <tr>
-              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
-              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_prev.png')}}"/></td>
-              <td>返回上一个步骤。注意，请先保存数据，然后再返回</td>
-            </tr>
-            <tr>
               <td><span type="button" class="btn btn-default btn-sm">图片</span></td>
-              <td>显示或隐藏图片的切换按钮，隐藏图片有助于看清字序的连线</td>
+              <td>显示或隐藏图片。隐藏图片有助于看清字框间的连线</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">透明</span></td>
-              <td>字序连线底色是否透明的切换按钮</td>
+              <td>设置或取消图片半透明</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">列框</span></td>
-              <td>用颜色来突出列框以帮助看清连线</td>
+              <td>显示或隐藏列框</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">编号</span></td>
-              <td>是否显示字框序号</td>
+              <td>显示或隐藏字框序号</td>
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">查漏</span></td>
@@ -155,24 +153,9 @@
             </tr>
             <tr>
               <td><span type="button" class="btn btn-default btn-sm">应用</span></td>
-              <td>应用指的是调整字框连线后，重新计算字框编号</td>
+              <td>调整字框连线后重新计算字框编号</td>
             </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_return.png')}}"/></td>
-              <td>退回任务。如果任务数据有问题，比如图片缺失、数据异常等，可以选择退回任务，退回时请注明退回理由。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_save.png')}}"/></td>
-              <td>保存任务数据。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_next.png')}}"/></td>
-              <td>保存当前步骤并跳转至下一步。</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_submit.png')}}"/></td>
-              <td>提交任务。提交后，系统将自动领取下一个任务。</td>
-            </tr>
+            {% include _task_help.html %}
           </table>
           <div class="title">三、快捷键</div>
           <table class="table" id="hot-key">
@@ -201,14 +184,6 @@
               <td>alt表示缩小字框，方向键代表字框的四条边</td>
             </tr>
           </table>
-          <div class="title">四、相关说明</div>
-          <div class="intro">
-            默认显示图片和连线，并且对图片透明处理。您可以自行打开或者关闭按钮。注：本工作界面仍然可以键盘调整字框大小。<br/>
-            字序指的是对同一列的所有字框按照阅读先后顺序排序的顺序，它有编号和连线两种表示方式。<br/>
-            针对每个字框，有左右两个点，右出左入，从而在字框之间构成连线。<br/>可以用鼠标增加或者删除连线。用鼠标
-            从字框A的右边圆点画一条线至字框B的左边原点，表示B是A的下一个字框。用鼠标右键将连线的任何一个原点拖拽至
-            空白处，然后释放即可删除该连线。
-          </div>
         </div>
       </div>
     </div>
@@ -243,17 +218,16 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
-    var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
+    var data = {submit: submit, step: 'char_order', box_type: 'chars', boxes: JSON.stringify($.cut.exportBoxes())};
     if ($.cut.isLinkChanged()) {
-      $.cut.applyLinks(blocks, columns);
-      setTimeout(function () {
-        data.boxes = JSON.stringify($.cut.exportBoxes());
-        return data;
-      }, 1000);
-    } else {
-      data.boxes = JSON.stringify($.cut.exportBoxes());
-      return data;
+      var r = $.cut.getCharsCol();
+      data.error = r.error;
+      data.chars_col = r.chars_col;
+      data.blocks = blocks;
+      data.columns = columns;
     }
+    console.log(data);
+    return data;
   }
 
   // 更新Undo
@@ -317,12 +291,6 @@
   $('#toggle-char').click(function () {
     $(this).toggleClass('active');
     $.cut.toggleBox('hide');
-  });
-
-  // 调整字框连线后，重新设置字框编号
-  $('#apply').click(function () {
-    $(this).toggleClass('active');
-    $.cut.applyLinks(blocks, columns);
   });
 
 </script>

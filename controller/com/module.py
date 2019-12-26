@@ -10,10 +10,11 @@ import math
 from bson.json_util import dumps
 from tornado.web import UIModule
 from controller.helper import prop
+from controller.task.base import TaskHandler as Th
 
 
 class ComLeft(UIModule):
-    def render(self, title='', sub=''):
+    def render(self, active_id=''):
         def is_enabled(module):
             return module not in prop(self.handler.config, 'modules.disabled', '')
 
@@ -37,6 +38,7 @@ class ComLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
+                dict(name='任务总表', icon='icon_subitem', link='/task/admin/list'),
                 dict(name='导入图片', icon='icon_subitem', link='/task/admin/import_image'),
                 dict(name='上传云端', icon='icon_subitem', link='/task/admin/upload_cloud'),
                 dict(name='OCR字框', icon='icon_subitem', link='/task/admin/ocr_box'),
@@ -56,8 +58,7 @@ class ComLeft(UIModule):
             ]),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon_subitem', link='/user/role'),
-                dict(name='数据统计', icon='icon_subitem', link='/user/statistic'),
+                dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
             ]),
             dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
                 dict(name='文章管理', icon='icon_subitem', link='/article'),
@@ -87,7 +88,7 @@ class ComLeft(UIModule):
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
-        return self.render_string('com_left.html', display_items=display_items, active_name='')
+        return self.render_string('com_left.html', display_items=display_items, active_id=active_id)
 
 
 class ComHead(UIModule):
@@ -96,16 +97,31 @@ class ComHead(UIModule):
 
 
 class Pager(UIModule):
+    def get_page_uri(self, page_no):
+        page_no = str(page_no)
+        uri = self.request.uri
+        if 'page=' in uri:
+            uri = re.sub(r'page=\d+&', 'page=' + page_no + '&', uri)
+            uri = re.sub(r'page=\d+$', 'page=' + page_no, uri)
+            return uri
+        elif '?' in uri:
+            return uri + '&page=' + page_no
+        else:
+            return uri + '?page=' + page_no
+
     def render(self, pager):
         if not isinstance(pager, dict):
             pager = dict(cur_page=0, doc_count=0)
         if isinstance(pager, dict) and 'cur_page' in pager and 'doc_count' in pager:
-            conf = self.handler.application.config['pager']
-            pager['page_size'] = pager.get('page_size', conf['page_size'])  # 每页显示多少条记录
+            conf = self.handler.application.config
+            pager['page_size'] = prop(pager, 'page_size', prop(conf, 'pager.page_size'))  # 每页显示多少条记录
             pager['page_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
-            pager['display_count'] = conf['display_count']  # pager导航条中显示多少个页码
-            pager['path'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
-            pager['link'] = '&' if '?' in pager['path'] else '?'  # 当前path
+            pager['display_count'] = prop(conf, 'pager.display_count')  # pager导航条中显示多少个页码
+            # print(self.request.uri)
+            # pager['uri'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
+            # pager['uri'] = re.sub(r'[?&]page_size=\d+', '', pager['uri'])  # 当前path
+            # pager['link'] = '&' if '?' in pager['uri'] else '?'  # 当前path
+            # 计算显示哪些页码
             gap, if_left, cur_page = int(pager['display_count'] / 2), int(pager['display_count']) % 2, pager['cur_page']
             start, end = cur_page - gap, cur_page + gap - 1 + if_left
             offset = 1 - start if start < 1 else pager['page_count'] - end if pager['page_count'] < end else 0
@@ -114,13 +130,17 @@ class Pager(UIModule):
             end = pager['page_count'] if end > pager['page_count'] else end
             pager['display_range'] = range(start, end + 1)
 
-        return self.render_string('com_pager.html', pager=pager)
+        return self.render_string('com_pager.html', get_page_uri=self.get_page_uri, **pager)
 
 
 class ComTable(UIModule):
-    def render(self, docs, table_fields, actions, order=''):
-        return self.render_string('com_table.html', dumps=dumps, docs=docs, table_fields=table_fields,
-                                  actions=actions, order=order)
+    def render(self, docs, table_fields, actions, info_fields=None, order='', pack=None, format_value=None):
+        pack = dumps if not pack else pack
+        format_value = Th.format_value if not format_value else format_value
+        info_fields = [d['id'] for d in table_fields] if not info_fields else info_fields
+        return self.render_string('com_table.html', docs=docs, order=order, actions=actions,
+                                  table_fields=table_fields, info_fields=info_fields,
+                                  pack=pack, format_value=format_value)
 
 
 class ComModal(UIModule):

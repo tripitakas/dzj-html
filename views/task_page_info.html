@@ -15,7 +15,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(title="task-manage") %}
+    {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -32,7 +32,7 @@
             {% if k in display_fields and v %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{{handler.format_value(k, v)}}</span>
+              <span class="value">{{handler.format_value(v, k)}}</span>
             </div>
             {% end %}
             {% end %}

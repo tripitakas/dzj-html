@@ -15,7 +15,7 @@
 <body>
 <div class="app-main">
   <div class="main">
-    {% module ComLeft(title="task-manage") %}
+    {% module ComLeft() %}
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
@@ -26,7 +26,7 @@
             {% if task.get(k) %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw handler.format_value(k, task[k]) %}</span>
+              <span class="value">{% raw handler.format_value(task[k], k) %}</span>
             </div>
             {% end %}
             {% end %}
@@ -37,7 +37,7 @@
             {% for k, v in task.get('input').items() %}
             <div class="info">
               <label class="label">{{k}}</label>
-              <span class="value">{% raw handler.format_value(k, v) %}</span>
+              <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -48,7 +48,7 @@
             {% for k, v in task.get('result').items() %}
             <div class="info">
               <label class="label">{{k}}</label>
-              <span class="value">{% raw handler.format_value(k, v) %}</span>
+              <span class="value">{% raw handler.format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
