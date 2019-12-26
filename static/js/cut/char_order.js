@@ -563,7 +563,7 @@
       delete this.state.dragLink;
 
       if (changed) {
-      this.changed = true;
+        this.changed = true;
         this.checkLinks();
         this._updateCurrentLink(changed, pt);
         this.linkSwitched(changed instanceof Link && changed);
@@ -798,18 +798,17 @@
       }
     },
 
-    isLinkChanged: function() {
+    isLinkChanged: function () {
       return cs && cs.changed;
     },
 
-    // 调整字框连线后重新设置字框编号
-    applyLinks: function (blocks, columns) {
-      var routes = [], heads = [];
-      var error = null;
+    // 获取字序的Links数据
+    getLinkData: function (blocks, columns) {
+      var routes = [], heads = [], has_error = false;
 
       if (!cs.checkLinks(routes, heads)) {
-        error = '字框连线有误，请修正黄色字框的连线。';
-        showError(error);
+        showError('字框连线有误，请修正黄色字框的连线。');
+        has_error = true;
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
@@ -818,7 +817,7 @@
       });
       return {
         blocks: blocks, columns: columns, chars_col: chars_col,
-        chars: $.cut.exportBoxes(), error: error
+        chars: $.cut.exportBoxes(), has_error: has_error
       };
     }
   });

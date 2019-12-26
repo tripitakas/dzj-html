@@ -220,8 +220,7 @@
   function getSubmitData(submit) {
     var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
     if ($.cut.isLinkChanged()) {
-      data.apply_links = $.cut.applyLinks(blocks, columns);
-      data.error = data.apply_links.error;
+      data.link_data = $.cut.getLinkData(blocks, columns);
     } else {
       data.boxes = JSON.stringify($.cut.exportBoxes());
     }

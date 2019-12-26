@@ -28,13 +28,6 @@ class CutTaskApi(TaskHandler):
         try:
             # 检查参数
             data = self.get_request_data()
-            if 'apply_links' in data:
-                a = data['apply_links']
-                GenerateCharIdApi.calc(a['blocks'], a['columns'], a['chars'], a['chars_col'], a.get('layout_type'))
-                data['boxes'] = a['chars']
-                data['columns'] = a['columns']
-                assert data['columns'] and data['boxes']
-
             rules = [(v.not_empty, 'step', 'boxes')]
             errs = v.validate(data, rules)
             if errs:
@@ -53,6 +46,14 @@ class CutTaskApi(TaskHandler):
             has_lock, error = self.check_data_lock(task)
             if not has_lock:
                 return self.send_error_response(error)
+
+            # 字序校对时，检查连线数据
+            if data['step'] == 'char_order' and data.get('link_data'):
+                d = data['link_data']
+                GenerateCharIdApi.calc(d['blocks'], d['columns'], d['chars'], d['chars_col'], d.get('layout_type'))
+                data['boxes'] = d['chars']
+                data['columns'] = d['columns']
+                assert data['columns'] and data['boxes']
 
             # 保存数据
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
