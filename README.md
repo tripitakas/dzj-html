@@ -40,7 +40,7 @@
 
 ```
 sh meta/decompress.sh
-python3 utils/add_pages.py --reorder=1
+python3 utils/add_pages.py --reorder=v2
 python3 utils/import_meta.py
 ```
 
@@ -56,7 +56,7 @@ python3 utils/add_pages.py --db_name=tripitaka --uri=mongodb://user:password@ser
 ```
 pip install -r tests/requirements.txt
 sh meta/decompress.sh
-python3 utils/add_pages.py --db_name=tripitaka_test --reset=1 --reorder=1
+python3 utils/add_pages.py --db_name=tripitaka_test --reset=1 --reorder=v2
 python3 utils/import_meta.py --db_name=tripitaka_test --reset=1
 python3 run_tests.py 或选中测试用例文件调试
 ```

@@ -75,6 +75,7 @@ def check_ids(page):
         c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no'] or ''
         if not c['block_id'] and len(page['blocks']) == 1:
             c['block_id'] = 'b1'
+            c['block_no'] = 1
         if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
             return print(page['name'] + str(c))
     for c in page.get('columns'):
@@ -129,11 +130,10 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
         zero_id = []
         if reorder:
             try:
+                meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
+                                               sort=True, remove_outside=True, img_file=name)
                 if reorder == 'v2':
                     zero_id, meta['layout_type'] = CutTool.sort_chars(meta['chars'], meta['columns'], meta['blocks'])
-                else:
-                    meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
-                                                   sort=True, remove_outside=True, img_file=name)
             except Exception as e:
                 sys.stderr.write('%s %s' % (name, str(e)))
         if not check_ids(meta):
