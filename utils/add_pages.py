@@ -107,7 +107,7 @@ class AddPage(object):
                 if not fn.endswith('.jpg') or fn[:-4] not in pages:
                     continue
                 dst_dir = path.join(img_path, fn[:2])
-                if not path.exists(img_path):
+                if not path.exists(dst_dir):
                     makedirs(dst_dir)
                 dst_file = path.join(dst_dir, fn)
                 if not path.exists(dst_file) or update:
@@ -219,7 +219,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', reorder='', source='', check_id=False, reset=True,
+         txt_field='ocr', kind='', reorder='v2', source='', check_id=True, reset=True,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
