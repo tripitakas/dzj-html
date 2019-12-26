@@ -187,7 +187,7 @@ class Page(Model):
     search_tips = '请搜索页编码、统一经编码、经编码、卷编码'
     search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
-    info_fields = ['name', 'layout', 'ocr_col', 'lock-level-box', 'lock-level-text']
+    info_fields = ['name', 'layout', 'ocr', 'ocr_col', 'lock-level-box', 'lock-level-text']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
