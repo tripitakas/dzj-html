@@ -285,8 +285,9 @@ class TaskHandler(BaseHandler, Task):
         has_lock, error = True, None
         if shared_field and mode == 'do':
             lock = self.get_data_lock_and_level(doc_id, shared_field)[0]
-            has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
-            error = e.data_is_locked
+            if lock:
+                has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
+                error = e.data_is_locked
         if shared_field and mode in ['update', 'edit']:
             r = self.assign_temp_lock(doc_id, shared_field)
             has_lock = r is True
