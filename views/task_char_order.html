@@ -222,6 +222,7 @@
     var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
     if ($.cut.isLinkChanged()) {
       data.apply_links = $.cut.applyLinks(blocks, columns, null, true);
+      data.error = data.apply_links.error;
     } else {
       data.boxes = JSON.stringify($.cut.exportBoxes());
     }

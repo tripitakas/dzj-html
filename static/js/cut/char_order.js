@@ -805,9 +805,11 @@
     // 调整字框连线后重新设置字框编号
     applyLinks: function (blocks, columns, update, notPost) {
       var self = this, routes = [], heads = [];
+      var error = null;
 
       if (!cs.checkLinks(routes, heads)) {
-        showError('字框连线有误', '请修正黄色字框的连线。');
+        error = '字框连线有误，请修正黄色字框的连线。';
+        showError(error);
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
@@ -817,7 +819,7 @@
       if (notPost) {
         return {
           blocks: blocks, columns: columns, chars_col: chars_col,
-          chars: $.cut.exportBoxes()
+          chars: $.cut.exportBoxes(), error: error
         };
       }
       postApi('/cut/gen_char_id', {
