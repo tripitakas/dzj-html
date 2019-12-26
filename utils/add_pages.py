@@ -106,6 +106,8 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
             assert exist
             meta.pop('width')
             meta.pop('height')
+        if info.get('ocr_col'):
+            meta['ocr_col'] = info['ocr_col']
         if info.get('ocr'):
             if isinstance(info['ocr'], list):
                 meta['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
@@ -118,6 +120,8 @@ def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
             else:
                 meta['text'] = info['text'].replace('\n', '|')
             meta['text'] = meta['text'].replace(r'\|+', '|')
+        if meta.get('text') == meta.get('ocr'):
+            meta.pop('text')
         if img_name:
             meta['img_name'] = img_name
         if use_local_img:
