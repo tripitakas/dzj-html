@@ -101,7 +101,7 @@ class PublishBaseHandler(TaskHandler):
             level = int(self.prop(doc, 'lock.level.' + shared_field, 0))
             if lock and self.prop(lock, 'is_temp') is False:
                 data_is_locked.add(doc[id_name])
-            if conf_level < level:
+            elif conf_level < level:
                 lock_level_unqualified.add(doc[id_name])
         return data_is_locked, lock_level_unqualified
 

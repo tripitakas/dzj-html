@@ -19,6 +19,10 @@
   text-decoration: underline;
 }
 
+.modal td.published, .modal td.pending {
+  color: green !important;
+}
+
 .operation .btn-img {
   width: 22px;
   height: 22px;

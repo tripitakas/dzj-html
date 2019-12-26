@@ -389,7 +389,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">确定</button>
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
           <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
         </div>
       </div>
@@ -580,7 +580,7 @@
       var html = '';
       for (var item in res.data) {
         var label = trans[item] + '(' + res.data[item].length + ')';
-        html += '<tr><td>' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+        html += '<tr><td class="'+item+'">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
       }
       $publishResultModal.find('table').html(html);
       $publishResultModal.modal();
