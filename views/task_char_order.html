@@ -67,7 +67,6 @@
           <button type="button" class="btn btn-default btn-sm active" id="toggle-path" title="显隐连线">连线</button>
           <button type="button" class="btn btn-default btn-sm" id="toggle-char-no" title="显隐字框编号">编号</button>
           <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显隐待修正的字框">查漏</button>
-          <button type="button" class="btn btn-default btn-sm" id="apply" title="调整字框连线后，重新设置字框编号">应用</button>
         </div>
       </div>
       <div class="btn-group right">
@@ -221,15 +220,12 @@
   function getSubmitData(submit) {
     var data = {submit: submit, step: '{{steps.get("current")}}', box_type: '{{box_type}}'};
     if ($.cut.isLinkChanged()) {
-      $.cut.applyLinks(blocks, columns);
-      setTimeout(function () {
-        data.boxes = JSON.stringify($.cut.exportBoxes());
-        return data;
-      }, 1000);
+      data.apply_links = $.cut.applyLinks(blocks, columns);
+      data.error = data.apply_links.error;
     } else {
       data.boxes = JSON.stringify($.cut.exportBoxes());
-      return data;
     }
+    return data;
   }
 
   // 更新Undo
@@ -293,12 +289,6 @@
   $('#toggle-char').click(function () {
     $(this).toggleClass('active');
     $.cut.toggleBox('hide');
-  });
-
-  // 调整字框连线后，重新设置字框编号
-  $('#apply').click(function () {
-    $(this).toggleClass('active');
-    $.cut.applyLinks(blocks, columns);
   });
 
 </script>

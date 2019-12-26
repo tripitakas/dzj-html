@@ -5,11 +5,14 @@
 
   function saveTask(submit, url) {
     showTips('保存中‧‧‧');
-    postApi('{{current_path}}', {data: getSubmitData(submit)}, function () {
-      if (!submit)
-        showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
-      goto(url, 1000);
-    });
+    var data = getSubmitData(submit);
+    if (data && !data.error) {
+      postApi('{{current_path}}', {data: data}, function () {
+        if (!submit)
+          showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
+        goto(url, 1000);
+      });
+    }
   }
 
   // 上一步
