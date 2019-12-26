@@ -135,3 +135,20 @@ class CutTool(object):
         kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = CutTool.sort(
             page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
         return kwargs
+
+    @staticmethod
+    def calc(blocks, columns, chars, chars_col, layout_type=None):
+        assert isinstance(blocks, list)
+        assert isinstance(columns, list)
+        assert isinstance(chars, list)
+        reorder = dict(blocks=True, columns=True, chars=True)
+        if chars_col:
+            assert isinstance(chars_col, list) and isinstance(chars_col[0], list) and isinstance(chars_col[0][0], int)
+
+        if reorder.get('blocks'):
+            blocks = CutTool.sort_blocks(blocks)
+        if reorder.get('columns') and blocks:
+            columns = CutTool.sort_columns(columns, blocks)
+
+        if reorder.get('chars') and chars:
+            return CutTool.sort(chars, columns, blocks, layout_type, chars_col)

@@ -802,23 +802,20 @@
       return cs && cs.changed;
     },
 
-    // 获取字序的Links数据
-    getLinkData: function (blocks, columns) {
-      var routes = [], heads = [], has_error = false;
+    // 获取每列的字框id
+    getCharsCol: function () {
+      var routes = [], heads = [], error = null;
 
       if (!cs.checkLinks(routes, heads)) {
-        showError('字框连线有误，请修正黄色字框的连线。');
-        has_error = true;
+        error = '字框连线有误，请修正黄色字框的连线。';
+        showError(error);
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
           return char.id;
         });
       });
-      return {
-        blocks: blocks, columns: columns, chars_col: chars_col,
-        chars: $.cut.exportBoxes(), has_error: has_error
-      };
+      return {chars_col: chars_col, error: error};
     }
   });
 

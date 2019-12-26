@@ -47,19 +47,21 @@ class CutTaskApi(TaskHandler):
             if not has_lock:
                 return self.send_error_response(error)
 
-            # 字序校对时，检查连线数据
-            if data['step'] == 'char_order' and data.get('link_data'):
-                d = data['link_data']
-                GenerateCharIdApi.calc(d['blocks'], d['columns'], d['chars'], d['chars_col'], d.get('layout_type'))
-                data['boxes'] = d['chars']
-                data['columns'] = d['columns']
-                assert data['columns'] and data['boxes']
-
-            # 保存数据
-            page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            # 字序校对检查连线数据
             if isinstance(data['boxes'], str):
                 data['boxes'] = json_decode(data['boxes'])
-            self.reorder_chars(data, page)
+            page = self.db.page.find_one({task['id_name']: task['doc_id']})
+            if data['step'] == 'char_order' and data.get('chars_col'):
+                chars, chars_col = data['boxes'], data['chars_col']
+                blocks = data.get('blocks') or page.get('block')
+                columns = data.get('columns') or page.get('columns')
+                CutTool.calc(blocks, columns, chars, chars_col)
+
+            # 字框校对时重新排序
+            if data['step'] == 'char_box':
+                self.reorder_chars(data, page)
+
+            # 保存数据
             update = {self.step2field.get(data['step']): data['boxes']}
             if 'columns' in data:
                 update['columns'] = data['columns']
@@ -86,11 +88,10 @@ class CutTaskApi(TaskHandler):
 
     @staticmethod
     def reorder_chars(data, page):
-        if data['step'] == 'char_box':
-            columns = char_reorder(data['boxes'], page['blocks'])
-            if columns and len(columns) != len(page['columns']):
-                print(columns)
-            return columns
+        columns = char_reorder(data['boxes'], page['blocks'])
+        if columns and len(columns) != len(page['columns']):
+            print(columns)
+        return columns
 
 
 class CutEditApi(TaskHandler):
@@ -142,7 +143,7 @@ class GenerateCharIdApi(BaseHandler):
         chars_col = data.get('chars_col')  # 每列字框的序号 [[char_index_of_col1, ...], col2...]
 
         zero_char_id, layout_type = [], data.get('layout_type')
-        r = self.calc(blocks, columns, chars, chars_col, layout_type)
+        r = CutTool.calc(blocks, columns, chars, chars_col, layout_type)
         if r:
             zero_char_id, layout_type, chars_col = r
 
@@ -150,20 +151,3 @@ class GenerateCharIdApi(BaseHandler):
             blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
             zero_char_id=zero_char_id, layout_type=layout_type
         ))
-
-    @staticmethod
-    def calc(blocks, columns, chars, chars_col, layout_type=None):
-        assert isinstance(blocks, list)
-        assert isinstance(columns, list)
-        assert isinstance(chars, list)
-        reorder = dict(blocks=True, columns=True, chars=True)
-        if chars_col:
-            assert isinstance(chars_col, list) and isinstance(chars_col[0], list) and isinstance(chars_col[0][0], int)
-
-        if reorder.get('blocks'):
-            blocks = CutTool.sort_blocks(blocks)
-        if reorder.get('columns') and blocks:
-            columns = CutTool.sort_columns(columns, blocks)
-
-        if reorder.get('chars') and chars:
-            return CutTool.sort(chars, columns, blocks, layout_type, chars_col)
