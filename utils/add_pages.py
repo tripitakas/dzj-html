@@ -4,15 +4,15 @@
 # 本脚本的执行结果相当于在“数据管理-页数据”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
 # python utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
-
 import re
 import sys
 import json
 import shutil
 import pymongo
+from glob2 import glob
 from tornado.util import PY3
 from datetime import datetime
-from os import path, listdir, mkdir
+from os import path, listdir, makedirs, walk
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -22,218 +22,236 @@ from controller.data.data import Page
 from controller.cut.reorder import char_reorder
 from controller.cut.cuttool import CutTool
 
-data = dict(count=0)
 
+class AddPage(object):
+    def __init__(self, db, source='', reorder='', update=False, check_only=False,
+                 use_local_img=False, check_id=False):
+        self.db = db
+        self.source = source
+        self.reorder = reorder
+        self.update = update
+        self.check_only = check_only
+        self.use_local_img = use_local_img
+        self.check_id = check_id
 
-def create_dir(dirname):
-    if not path.exists(dirname):
-        mkdir(dirname)
-
-
-def load_json(filename):
-    if not path.exists(filename):
-        return
-    try:
-        with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
-            return json.load(f)
-    except Exception as e:
-        sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
-
-
-def scan_dir(src_path, kind, db, ret, use_local_img=False, update=False,
-             source=None, reorder=False, only_check=False):
-    if not path.exists(src_path):
-        sys.stderr.write('%s not exist\n' % (src_path,))
-        return []
-    for fn in sorted(listdir(src_path)):
-        filename = path.join(src_path, fn)
-        if fn[0] in '._':
-            continue
-        if path.isdir(filename):
-            fn2 = fn if re.match(r'^[A-Z]{2}$', fn) else kind
-            if not kind or kind == fn2:
-                scan_dir(filename, fn2, db, ret, use_local_img=use_local_img, update=update,
-                         source=source, reorder=reorder, only_check=only_check)
-        elif not kind or fn[:2] == kind:
-            if fn.endswith('.json') and fn[:-5] not in ret:  # 相同名称的页面只导入一次
-                info = load_json(filename)
-                if info:
-                    name = info.get('img_name') or info.get('imgname') or info.get('name')
-                    if name != fn[:-5] or not re.match(r'^[A-Z]{2}(_\d+)+$', name):
-                        sys.stderr.write('invalid img_name %s, %s\n' % (filename, name))
-                        continue
-                    if add_page(name, info, db, use_local_img=use_local_img, update=update,
-                                source=source, reorder=reorder, only_check=only_check):
-                        ret.add(name)
-
-
-def check_ids(page):
-    def check(m):
-        return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 150])
-
-    for c in page.get('blocks'):
-        c['block_id'] = c.get('block_id') or c.get('block_no') and 'b%d' % c['block_no'] or ''
-        if not c['block_id'] and len(page['blocks']) == 1:
-            c['block_id'] = 'b1'
-            c['block_no'] = 1
-        if not check(re.findall(r'^b(\d+)$', c.get('block_id'))):
-            return print(page['name'] + str(c))
-    for c in page.get('columns'):
-        if not check(re.findall(r'^b(\d+)c(\d+)$', c.get('column_id', ''))):
-            return print(page['name'] + str(c))
-    for c in page.get('chars'):
-        if not check(re.findall(r'^b(\d+)c(\d+)c(\d+)$', c.get('char_id', ''))):
-            return print(page['name'] + str(c))
-    return True
-
-
-def add_page(name, info, db, img_name=None, use_local_img=False, update=False,
-             source=None, reorder=False, only_check=False):
-    exist = db.page.find_one(dict(name=name))
-    if only_check and exist:
-        print('%s exist' % name)
-        return
-    if update or not exist:
-        meta = Page.metadata()
-        width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
-        height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
-        page_code = Page.name2pagecode(name)
-        meta.update(dict(
-            name=name, width=width, height=height, page_code=page_code, blocks=prop(info, 'blocks', []),
-            columns=prop(info, 'columns', []), chars=prop(info, 'chars', []),
-        ))
-        if not width or not height:
-            assert exist
-            meta.pop('width')
-            meta.pop('height')
-        if info.get('ocr_col'):
-            meta['ocr_col'] = info['ocr_col']
-        if info.get('ocr'):
-            if isinstance(info['ocr'], list):
-                meta['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
-            else:
-                meta['ocr'] = info['ocr'].replace('\n', '|')
-            meta['ocr'] = meta['ocr'].replace(r'\|+', '|')
-        if info.get('text'):
-            if isinstance(info['text'], list):
-                meta['text'] = '|'.join(info['text']).replace('\u3000', '|').replace(' ', '')
-            else:
-                meta['text'] = info['text'].replace('\n', '|')
-            meta['text'] = meta['text'].replace(r'\|+', '|')
-        if meta.get('text') == meta.get('ocr'):
-            meta.pop('text')
-        if img_name:
-            meta['img_name'] = img_name
-        if use_local_img:
-            meta['use_local_img'] = True
-        for field in ['source', 'create_time']:
-            if info.get(field):
-                meta[field] = info[field]
-        if source:
-            meta['source'] = source
-        meta['layout'] = prop(info, 'layout') or ['上下一栏', '上下一栏', '上下两栏', '上下三栏'][len(info['blocks'])]
-
-        zero_id = []
-        if reorder:
-            try:
-                meta['columns'] = char_reorder(meta['chars'], blocks=meta['blocks'],
-                                               sort=True, remove_outside=True, img_file=name)
-                if reorder == 'v2':
-                    zero_id, meta['layout_type'] = CutTool.sort_chars(meta['chars'], meta['columns'], meta['blocks'])
-            except Exception as e:
-                sys.stderr.write('%s %s' % (name, str(e)))
-        if not check_ids(meta):
+    @staticmethod
+    def load_json(filename):
+        if not path.exists(filename):
             return
-
-        data['count'] += 1
-        if not only_check:
-            print('%s:\t%d x %d blocks=%d columns=%d chars=%d\t%s' % (
-                name, width, height, len(meta['blocks']), len(meta['columns']), len(meta['chars']), ','.join(zero_id)
-            ))
-
-        info.pop('id', 0)
-        if only_check:
-            r = meta
-        elif exist:
-            meta.pop('create_time', 0)
-            r = update and db.page.update_one(dict(name=name), {'$set': meta})
-            info['id'] = str(exist['_id'])
-        else:
-            if not meta.get('create_time'):
-                meta['create_time'] = datetime.now()
-            elif isinstance(meta['create_time'], str):
-                meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
-            r = db.page.insert_one(meta)
-            info['id'] = str(r.inserted_id)
-
-        return r
-
-
-def add_texts(src_path, pages, db):
-    if not path.exists(src_path):
-        return
-    for fn in listdir(src_path):
-        filename = path.join(src_path, fn)
-        if path.isdir(filename):
-            add_texts(filename, pages, db)
-        elif (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in pages:
+        try:
             with open(filename, encoding='UTF-8') if PY3 else open(filename) as f:
-                text = f.read().strip().replace('\n', '|')
-            cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
-            r = list(db.page.find(cond))
-            if r and not r[0].get('text'):
-                text = re.sub(r'[<>]', '', text)
-                db.page.update_many(cond, {'$set': dict(text=text)})
+                return json.load(f)
+        except Exception as e:
+            sys.stderr.write('invalid file %s: %s\n' % (filename, str(e)))
+
+    @staticmethod
+    def check_ids(page):
+        def check(m):
+            return m and len(m[0]) == len([n for n in m[0] if 0 < int(n) < 150])
+
+        for b in page.get('blocks'):
+            b['block_id'] = b.get('block_id') or b.get('block_no') and 'b%d' % b['block_no'] or ''
+            if not b['block_id'] and len(page['blocks']) == 1:
+                b['block_id'] = 'b1'
+                b['block_no'] = 1
+            if not check(re.findall(r'^b(\d+)$', b.get('block_id'))):
+                print('%s invalid block: %s' % (page['name'], str(b)))
+                return False
+        for c in page.get('columns'):
+            if not check(re.findall(r'^b(\d+)c(\d+)$', c.get('column_id', ''))):
+                print('%s invalid column: %s' % (page['name'], str(c)))
+                return False
+        for c in page.get('chars'):
+            if not check(re.findall(r'^b(\d+)c(\d+)c(\d+)$', c.get('char_id', ''))):
+                print('%s invalid column: %s' % (page['name'], str(c)))
+                return False
+        return True
+
+    def add_text(self, pages, src_dir, field='ocr', update=False):
+        """ 更新数据库page表的tex字段
+        :param pages, 待更新的页面名称
+        :param src_dir, 从该文件夹中查找
+        :param field, 更新哪个字段
+        :param update, 数据库中存在时，是否更新
+        """
+        if not path.exists(src_dir):
+            return
+        for root, dirs, files in walk(src_dir):
+            for fn in files:
+                if (fn.endswith('.ocr') or fn.endswith('.txt')) and fn[:-4] in pages:
+                    cond = {'$or': [dict(name=fn[:-4]), dict(img_name=fn[:-4])]}
+                    page = self.db.page.find_one(cond)
+                    if not page:
+                        continue
+                    pathname = path.join(root, fn)
+                    with open(pathname, encoding='UTF-8') if PY3 else open(pathname) as f:
+                        text = f.read().strip().replace('\n', '|')
+                    if not page.get('text') or update:
+                        self.db.page.update_many(cond, {'$set': {field: re.sub(r'[<>]', '', text)}})
+
+    @classmethod
+    def copy_img_files(cls, pages, src_dir, update=False):
+        """ 拷贝图片文件
+        :param pages, 待拷贝的页面名称
+        :param src_dir, 从该文件夹中查找
+        :param update, 图片存在时，是否更新
+        """
+        if not path.exists(src_dir):
+            return
+        img_path = path.join(BASE_DIR, 'static', 'img')
+        if not path.exists(img_path):
+            makedirs(img_path)
+
+        for root, dirs, files in walk(src_dir):
+            for fn in files:
+                if not fn.endswith('.jpg') or fn[:-4] not in pages:
+                    continue
+                dst_dir = path.join(img_path, fn[:2])
+                if not path.exists(img_path):
+                    makedirs(dst_dir)
+                dst_file = path.join(dst_dir, fn)
+                if not path.exists(dst_file) or update:
+                    shutil.copy(path.join(root, fn), dst_file)
+
+    def add_box(self, name, info):
+        """ 导入切分信息 """
+        exist = self.db.page.find_one(dict(name=name))
+        if self.check_only and exist:
+            print('%s exist' % name)
+            return
+        if self.update or not exist:
+            width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
+            height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
+            meta = Page.metadata()
+            meta.update(dict(
+                name=name, width=width, height=height, page_code=Page.name2pagecode(name),
+                blocks=prop(info, 'blocks', []), columns=prop(info, 'columns', []),
+                chars=prop(info, 'chars', []),
+            ))
+            if not width or not height:
+                assert exist
+                meta.pop('width')
+                meta.pop('height')
+
+            for field in ['source', 'create_time', 'ocr_col', 'img_name']:
+                if info.get(field):
+                    meta[field] = info[field]
+            if info.get('ocr'):
+                if isinstance(info['ocr'], list):
+                    info['ocr'] = '|'.join(info['ocr']).replace('\u3000', '|').replace(' ', '')
+                else:
+                    info['ocr'] = info['ocr'].replace('\n', '|')
+                meta['ocr'] = info['ocr'].replace(r'\|+', '|')
+            if info.get('text'):
+                if isinstance(info['text'], list):
+                    info['text'] = '|'.join(info['text']).replace('\u3000', '|').replace(' ', '')
+                else:
+                    info['text'] = info['text'].replace('\n', '|')
+                meta['text'] = info['text'].replace(r'\|+', '|')
+            if info.get('text') == info.get('ocr'):
+                info.pop('text', 0)
+            if self.use_local_img:
+                meta['use_local_img'] = True
+            if self.source:
+                meta['source'] = self.source
+            layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
+            meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
+
+            zero_id = []
+            chars, columns, blocks = meta['chars'], meta['blocks'], meta['columns']
+            if self.reorder:
+                try:
+                    meta['columns'] = char_reorder(chars, blocks, sort=True, remove_outside=True, img_file=name)
+                    if self.reorder == 'v2':
+                        zero_id, meta['layout_type'] = CutTool.sort_chars(chars, columns, blocks)
+                except Exception as e:
+                    sys.stderr.write('%s %s' % (name, str(e)))
+
+            if self.check_id and not self.check_ids(meta):
+                return False
+
+            if self.check_only:
+                return meta
+
+            info.pop('id', 0)
+            message = '%s:\t%d x %d blocks=%d columns=%d chars=%d\t%s'
+            print(message % (name, width, height, len(blocks), len(columns), len(chars), ','.join(zero_id)))
+            if exist and self.update:
+                meta.pop('create_time', 0)
+                r = self.db.page.update_one(dict(name=name), {'$set': meta})
+                info['id'] = str(exist['_id'])
+            else:
+                if meta.get('create_time') and isinstance(meta['create_time'], str):
+                    meta['create_time'] = datetime.strptime(meta['create_time'], '%Y-%m-%d %H:%M:%S')
+                meta['create_time'] = prop(meta, 'create_time', datetime.now())
+                r = self.db.page.insert_one(meta)
+                info['id'] = str(r.inserted_id)
+
+            return r
+
+    def add_many_from_dir(self, src_dir, kind):
+        """ 导入json格式的切分数据
+        :param src_dir, 待导入的文件夹
+        :param kind, 指定藏经类别
+        """
+        pages = set()
+        for pathname in glob(path.join(src_dir, '**', '*.json')):
+            fn = path.basename(pathname)
+            if kind and kind != fn[:2]:
+                continue
+            if fn[:-5] in pages:
+                sys.stderr.write('duplicate page name %s \n' % pathname)
+                continue
+            info = self.load_json(pathname)
+            if not info:
+                sys.stderr.write('invalid json %s \n' % pathname)
+                continue
+            name = info.get('img_name') or info.get('imgname') or info.get('name')
+            if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
+                sys.stderr.write('invalid name in file %s \n' % pathname)
+                continue
+            if name != fn[:-5]:
+                sys.stderr.write('filename not equal to name in json %s \n' % pathname)
+                continue
+            if self.add_box(name, info):
+                pages.add(name)
+        return pages
 
 
-def copy_img_files(src_path, pages):
-    if not path.exists(src_path):
-        return
-    img_path = path.join(BASE_DIR, 'static', 'img')
-    create_dir(img_path)
-    for fn in listdir(src_path):
-        filename = path.join(src_path, fn)
-        if path.isdir(filename):
-            copy_img_files(filename, pages)
-        elif fn.endswith('.jpg') and fn[:-4] in pages:
-            dst_file = path.join(img_path, fn[:2])
-            create_dir(dst_file)
-            dst_file = path.join(dst_file, fn)
-            if not path.exists(dst_file):
-                shutil.copy(filename, dst_file)
-
-
-def main(json_path='', img_path='img', txt_path='txt', kind='', db_name='tripitaka', uri='localhost',
-         reset=False, use_local_img=False, update=False, reorder=False, only_check=False, source=None):
+def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
+         txt_field='ocr', kind='', reorder='', source='', check_id=False, reset=True,
+         use_local_img=False, update=False, check_only=False):
     """
-    页面导入的主函数
+    导入页面的主函数
+    :param db: 数据库链接
+    :param db_name: 数据库名
+    :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     :param json_path: 页面JSON文件的路径，如果遇到是两个大写字母的文件夹就视为藏别，json_path为空则取为data目录
     :param img_path: 页面图路径，json_path为空时取为data目录，可在不同的子目录下放图片文件(*.jpg)
     :param txt_path: 页面文本文件的路径，json_path为空时取为data目录，可在不同的子目录下放图片文件(*.txt)
+    :param txt_field: 文本导入哪个字段
     :param kind: 可指定要导入的藏别
-    :param db_name: 数据库名
-    :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
-    :param reset: 是否先清空page表
-    :param use_local_img: 是否让页面强制使用本地的页面图，默认是使用OSS上的高清图（如果在app.yml配置了OSS）
-    :param update: 已存在的页面是否更新
     :param reorder: 是否重新对字框和列框排序
-    :param only_check: 是否仅校验数据而不插入数据
     :param source: 导入批次名称
+    :param check_id: 是否检查切分框的id
+    :param reset: 是否先清空page表
+    :param use_local_img: 是否强制使用本地的页面图，默认使用OSS上的高清图（如果在app.yml配置了OSS）
+    :param update: 已存在的页面是否更新
+    :param check_only: 是否仅校验数据而不插入数据
     :return: 新导入的页面的个数
     """
-    conn = pymongo.MongoClient(uri)
-    db = conn[db_name]
+    if not db:
+        db = pymongo.MongoClient(uri)[db_name]
     if reset:
         db.page.delete_many({})
-
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
-    pages = set()
-    scan_dir(json_path, kind, db, pages, use_local_img=use_local_img, update=update,
-             reorder=reorder, only_check=only_check, source=source)
-    copy_img_files(img_path, pages)
-    add_texts(txt_path, pages, db)
-    return data['count']
+
+    add = AddPage(db, source, reorder, update, check_only, use_local_img, check_id)
+    pages = add.add_many_from_dir(json_path, kind)
+    add.copy_img_files(pages, img_path)
+    add.add_text(pages, txt_path, txt_field)
+    return 'add %s pages' % len(pages)
 
 
 if __name__ == '__main__':
