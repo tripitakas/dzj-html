@@ -86,10 +86,10 @@ class TextReviewHandler(TaskHandler, TextTool):
            '/task/update/text_review/@task_id']
 
     @staticmethod
-    def get_cmp_data(self, doc_id, page):
+    def get_cmp_data(self, page):
         """ 如果有文字校对任务，则从文字校对中获取比对文本。如果没有，则依次从text/ocr中获取比对文本"""
         has_proof, doubt, proofs = False, '', ['', '', '']
-        condition = {'doc_id': doc_id, 'status': self.STATUS_FINISHED}
+        condition = {'doc_id': page['name'], 'status': self.STATUS_FINISHED}
         for i in [1, 2, 3]:
             condition['task_type'] = 'text_proof_%s' % i
             proof_task = self.db.task.find_one(condition)
@@ -139,7 +139,7 @@ class TextReviewHandler(TaskHandler, TextTool):
 
             mode = self.get_task_mode()
             review_doubt = self.prop(task, 'result.doubt')
-            texts, labels, proof_doubt = self.get_cmp_data(self, task['doc_id'], page)
+            texts, labels, proof_doubt = self.get_cmp_data(self, page)
             cmp_data = self.prop(page, 'txt_html')
             if not cmp_data:
                 segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
@@ -252,3 +252,62 @@ class TextArea(UIModule):
             item['block_no'] = blocks[-1]['block_no']
 
         return dict(blocks=blocks) if raw else self.render_string('task_text_area.html', blocks=blocks)
+
+
+class TextSampleProofHandler(TaskHandler, TextTool):
+    URL = '/task/sample/text'
+
+    def get(self):
+        """ 文字校对练习页面 """
+
+        try:
+            page_name = self.get_query_argument('page_name', '')
+            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            page = self.db.page.find_one(condition)
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
+
+            # 字框排序
+            params = dict(mismatch_lines=[])
+            CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
+
+            mode = self.get_task_mode()
+            texts, labels, proof_doubt = TextReviewHandler.get_cmp_data(self, page)
+            cmp_data = self.prop(page, 'txt_html')
+            if not cmp_data:
+                segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
+                cmp_data = self.check_segments(segments, page['chars'], params)
+
+            self.render(
+                'task_text_review.html', page_title='文字审定', task_type='text_review', task=dict(),
+                page=page, mode=mode, readonly=True, texts=texts, labels=labels, cmp_data=cmp_data,
+                doubt='', pre_doubt=proof_doubt, steps=dict(is_first=True, is_last=True),
+                get_img=self.get_img, message='练习-' + page['name'],
+                **params,
+            )
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class TextSampleSelectHandler(TaskHandler, TextTool):
+    URL = '/task/sample/select_compare'
+
+    def get(self):
+        """ 文字校对-选择比对文本练习页面 """
+
+        try:
+            page_name = self.get_query_argument('page_name', '')
+            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            page = self.db.page.find_one(condition)
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
+
+            kwargs = dict(task_type='', task={}, cmp='', num=1, steps=dict(is_first=True, is_last=True))
+            self.render(
+                'task_text_compare.html', page=page, mode='edit', readonly=True, ocr=page.get('ocr'),
+                message='练习-' + page['name'], get_img=self.get_img, **kwargs,
+            )
+
+        except Exception as error:
+            return self.send_db_error(error)

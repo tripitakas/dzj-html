@@ -137,9 +137,9 @@ class GenerateCharIdApi(BaseHandler):
     def post(self):
         """根据坐标重新生成栏、列、字框的编号"""
         data = self.get_request_data()
+        chars = data['chars']
         blocks = data['blocks']
         columns = data['columns']
-        chars = data['chars']
         chars_col = data.get('chars_col')  # 每列字框的序号 [[char_index_of_col1, ...], col2...]
 
         zero_char_id, layout_type = [], data.get('layout_type')

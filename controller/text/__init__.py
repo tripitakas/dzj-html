@@ -1,7 +1,8 @@
 from . import api, view
 
 views = [
-    view.TextProofHandler, view.TextReviewHandler, view.TextHardHandler, view.TextEditHandler
+    view.TextProofHandler, view.TextReviewHandler, view.TextHardHandler, view.TextEditHandler,
+    view.TextSampleProofHandler, view.TextSampleSelectHandler,
 ]
 
 handlers = [

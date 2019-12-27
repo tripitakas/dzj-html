@@ -587,7 +587,6 @@ a:hover, a:visited, a:focus {
   height: 40px;
   position: fixed;
   z-index: 1000;
-  user-select: none;
   display: inline-block;
   vertical-align: middle;
   top: 0;
@@ -603,7 +602,7 @@ a:hover, a:visited, a:focus {
 .m-header .tips {
   color: var(--Brown_Darker);
   font-size: 14px;
-  margin: 9px 6px;
+  margin: 10px 20px;
 }
 
 .m-header .back {
