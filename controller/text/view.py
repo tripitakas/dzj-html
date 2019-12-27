@@ -262,12 +262,14 @@ class TextSampleProofHandler(TaskHandler, TextTool):
 
         try:
             page_name = self.get_query_argument('page_name', '')
-            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
-            page = self.db.page.find_one(condition)
-            if not page:
+            cond_name = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            condition = [{'$match': cond_name}, {'$sample': {'size': 1}}]
+            pages = list(self.db.page.aggregate(condition))
+            if not pages:
                 return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
 
             # 字框排序
+            page = pages[0]
             params = dict(mismatch_lines=[])
             CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
 
@@ -298,11 +300,13 @@ class TextSampleSelectHandler(TaskHandler, TextTool):
 
         try:
             page_name = self.get_query_argument('page_name', '')
-            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
-            page = self.db.page.find_one(condition)
-            if not page:
+            cond_name = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            condition = [{'$match': cond_name}, {'$sample': {'size': 1}}]
+            pages = list(self.db.page.aggregate(condition))
+            if not pages:
                 return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
 
+            page = pages[0]
             kwargs = dict(task_type='', task={}, cmp='', num=1, steps=dict(is_first=True, is_last=True))
             self.render(
                 'task_text_compare.html', page=page, mode='edit', readonly=True, ocr=page.get('ocr'),
