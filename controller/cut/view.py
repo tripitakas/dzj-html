@@ -110,11 +110,13 @@ class CutSampleHandler(TaskHandler):
 
         try:
             page_name = self.get_query_argument('page_name', '')
-            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
-            page = self.db.page.find_one(condition)
-            if not page:
+            cond_name = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            condition = [{'$match': cond_name}, {'$sample': {'size': 1}}]
+            pages = list(self.db.page.aggregate(condition))
+            if not pages:
                 return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
 
+            page = pages[0]
             default_steps = list(CutTaskApi.step2field.keys())
             current_step = self.get_query_argument('step', default_steps[0])
             if current_step not in default_steps:
