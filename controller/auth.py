@@ -71,6 +71,8 @@ role_route_maps = {
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
             '/task/sample/(box|text|select_compare)': ['GET'],
+            '/api/task/text_get_compare/@page_name': ['POST'],
+            '/api/task/text_compare_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
         }
     },
@@ -113,8 +115,6 @@ role_route_maps = {
             '/api/task/pick/text_proof': ['POST'],
             '/api/task/pick/text_proof_@num': ['POST'],
             '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
-            '/api/task/text_get_compare/@page_name': ['POST'],
-            '/api/task/text_compare_neighbor': ['POST'],
             '/api/task/(do|update|return)/text_proof_@num/@task_id': ['POST'],
             '/data/edit/box/@page_name': ['GET'],
             '/api/data/edit/box/@page_name': ['POST'],
