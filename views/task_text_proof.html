@@ -65,7 +65,7 @@
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
           <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
         </div>
-        <div class="tips right">{{message}}</div>
+        <div class="tips right">{{message or page['name']}}</div>
       </header>
 
       <div class="flex-content pfread-in">
@@ -154,7 +154,7 @@
             <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">{{labels.get('cmp1') or ''}}</button>
             <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">{{labels.get('cmp2') or ''}}</button>
             {% set count = len([t for t in texts.values() if t]) %}
-            <button class="btn btn-txt btn-default{{'' if count else ' hide'}}" id="show-all">所有</button>
+            <button class="btn btn-txt btn-default{{'' if count > 1 else ' hide'}}" id="show-all">所有</button>
           </div>
         </div>
         <div class="modal-body">

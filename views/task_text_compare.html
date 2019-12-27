@@ -89,6 +89,7 @@
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         </div>
+        <div class="tips right">{{message or page['name']}}</div>
       </header>
 
       <div class="flex-content pfread-in">

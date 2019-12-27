@@ -43,7 +43,7 @@ unauthorized = 2005, '没有权限'
 auth_changed = 2006, '授权信息已改变，请您重新登录'
 not_changed = 2007, '没有发生改变'
 cannot_delete_self = 2008, '不能删除自己'
-url_not_found = 2009, '路径不存在或没有配置'
+url_not_config = 2009, '路径没有配置'
 verify_failed = 2010, '验证服务失败'
 email_send_failed = 2011, '邮件发送失败'
 

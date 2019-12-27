@@ -100,3 +100,40 @@ class CutEditHandler(TaskHandler):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class CutSampleHandler(TaskHandler):
+    URL = '/task/sample/box'
+
+    def get(self):
+        """ 切分校对练习页面"""
+
+        try:
+            page_name = self.get_query_argument('page_name', '')
+            condition = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
+            page = self.db.page.find_one(condition)
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
+
+            default_steps = list(CutTaskApi.step2field.keys())
+            current_step = self.get_query_argument('step', default_steps[0])
+            if current_step not in default_steps:
+                return self.send_error_response(e.task_step_error)
+            fake_task = dict(steps={'todo': default_steps})
+            steps = self.init_steps(fake_task, 'view', current_step)
+
+            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            template = 'task_cut_do.html'
+            kwargs = dict()
+            if steps['current'] == 'char_order':
+                template = 'task_char_order.html'
+                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
+
+            self.render(
+                template, task_type='', task=dict(), page=page, steps=steps, readonly=True,
+                mode='edit', box_type=box_type, boxes=page.get(box_type + 's'),
+                message='练习-' + page['name'], get_img=self.get_img, **kwargs
+            )
+
+        except Exception as error:
+            return self.send_db_error(error)

@@ -70,6 +70,7 @@ role_route_maps = {
             '/tool/search': ['GET'],
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
+            '/task/sample/(box|text|select_compare)': ['GET'],
             '/task/@task_type/@task_id': ['GET'],
         }
     },
@@ -258,9 +259,8 @@ def can_access(role, path, method):
 
 
 def get_role_routes(roles, routes=None):
-    """
-    获取指定角色对应的route集合
-    :param role: 可以是一个或多个角色，多个角色为逗号分隔的字符串
+    """ 获取指定角色对应的route集合
+    :param roles: 可以是一个或多个角色，多个角色为逗号分隔的字符串
     """
     assert type(roles) in [str, list]
     if type(roles) == str:

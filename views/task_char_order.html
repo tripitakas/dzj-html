@@ -82,7 +82,7 @@
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
       </div>
-      <div class="tips right">{{message}}</div>
+      <div class="tips right">{{message or page['name']}}</div>
     </div>
 
     <div class="full-bd">
