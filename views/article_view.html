@@ -71,9 +71,9 @@
 <body>
 <div class="app-main">
   <header class="m-header">
-    <a class="logo-con">
-      <img class="large" src="{{ static_url('imgs/logo_rushi.png') }}">
-    </a>
+    <div class="back">
+      <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img" onclick="leave()"/>
+    </div>
   </header>
   <div class="article">
     <div class="title">{{article['title']}}</div>
@@ -84,12 +84,13 @@
 {% include _base_js.html %}
 <script>
   var category = '{{article["category"]}}';
-  $('.logo-con').click(function () {
+
+  function leave() {
     if (category === '通知')
       window.location = '/announce';
     else
-      window.location = '/help'
-  });
+      window.location = '/help';
+  }
 </script>
 
 </body>
