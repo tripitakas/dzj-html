@@ -53,13 +53,20 @@ class CutTaskApi(TaskHandler):
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if data['step'] == 'orders' and data.get('chars_col'):
                 chars, chars_col = data['boxes'], data['chars_col']
-                blocks = data.get('blocks') or page.get('block')
+                blocks = data.get('blocks') or page.get('blocks')
                 columns = data.get('columns') or page.get('columns')
                 CutTool.calc(blocks, columns, chars, chars_col)
 
             # 字框校对时重新排序
             if data['step'] == 'chars':
                 self.reorder_chars(data, page)
+            # 校对保存时重新排序
+            if data['step'] == 'block_box':
+                CutTool.sort_blocks(data['boxes'])
+            elif data['step'] == 'column_box':
+                CutTool.sort_columns(data['boxes'], page['blocks'])
+            elif data['step'] == 'char_box':
+                self.reorder_chars(data, page)  # 基于栏框和字框做字框排序，忽略了列框的改变
 
             # 保存数据
             update = {self.step2field.get(data['step']): data['boxes']}

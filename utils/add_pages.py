@@ -195,7 +195,7 @@ class AddPage(object):
         :param kind, 指定藏经类别
         """
         pages = set()
-        for pathname in glob(path.join(src_dir, '**', '*.json')):
+        for pathname in sorted(glob(path.join(src_dir, '**', '*.json'))):
             fn = path.basename(pathname)
             if kind and kind != fn[:2]:
                 continue
@@ -219,7 +219,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', reorder='v2', source='', check_id=True, reset=True,
+         txt_field='ocr', kind='', reorder='v2', source='', check_id=True, reset=False,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数

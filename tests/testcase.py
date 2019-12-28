@@ -197,6 +197,9 @@ class APITestCase(AsyncHTTPTestCase):
         if 'cut' in data.get('task_type', ''):
             data['steps'] = data.get('steps', ['chars', 'blocks', 'columns', 'orders'])
         if 'text_proof' in data.get('task_type', ''):
+        if 'cut' in data.get('task_type', '') and 'steps' not in data:
+            data['steps'] = data.get('steps', ['char_box', 'block_box', 'column_box', 'char_order'])
+        if 'text_proof' in data.get('task_type', '') and 'steps' not in data:
             data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
         return self.fetch('/api/task/publish', body={'data': data})
 
