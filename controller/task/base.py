@@ -273,7 +273,7 @@ class TaskHandler(BaseHandler, Task):
         update = {'lock.%s' % shared_field: dict()}
         if update_level:
             conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task['task_type']), 0)
-            update.update({'lock.level.%s' % shared_field: conf_level})
+            update.update({'level.%s' % shared_field: conf_level})
         r = self.db[collection].update_many(condition, {'$set': update})
         return r.matched_count
 

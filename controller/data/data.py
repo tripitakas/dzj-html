@@ -150,7 +150,7 @@ class Volume(Model):
 class Page(Model):
     collection = 'page'
     fields = [
-        {'id': 'name', 'name': '页名称'},
+        {'id': 'name', 'name': '页编码'},
         {'id': 'width', 'name': '宽度'},
         {'id': 'height', 'name': '高度'},
         {'id': 'source', 'name': '批次'},
@@ -164,11 +164,11 @@ class Page(Model):
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
-        {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
+        {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'lock', 'name': '数据锁'},
         {'id': 'level.box', 'name': '切分等级'},
@@ -198,7 +198,7 @@ class Page(Model):
         {'id': 'level-text', 'name': '文本锁等级'},
     ]
     operations = [
-        {'operation': 'btn-search', 'label': '综合检索'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-pub-box', 'label': '发布切分任务'},
         {'operation': 'btn-pub-text', 'label': '发布文字任务'},
     ]

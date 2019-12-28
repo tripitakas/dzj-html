@@ -1,7 +1,14 @@
 {% extends "com_list.html" %}
-
 {% block custom-css %}
 <style>
+  #searchModal .modal-body h4, #searchModal .modal-body div {
+    margin: 5px 0;
+  }
+
+  .select2-container {
+    width: 100% !important;
+  }
+
   .sty-table .action {
     color: #B8906F !important;
     cursor: pointer;
@@ -25,7 +32,7 @@
   <thead>
   <tr>
     <th><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
-      页名称<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
+      页编码<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
     </span></th>
     <th><span class="sort {{'active' if 'source' in order else ''}}" title="source">
       批次<span class="ion-arrow-down-b {{'toggle' if order == 'source' else ''}}"></span>
@@ -121,6 +128,123 @@
     </div>
   </div>
 </div>
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">综合检索</h4>
+      </div>
+      <div class="modal-body" style="min-height: 560px">
+        <h4 class="col-sm-2 control-label">页编码</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" value="" placeholder="请输入页编码，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">批次</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control source" value="" placeholder="请输入批次，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">页面结构</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control layout" value="" placeholder="请输入页面结构，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">切分等级</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control level_box" value="" placeholder="请输入，比如>5、<100、=10等，默认为等于">
+        </div>
+        <h4 class="col-sm-2 control-label">文本等级</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control level_text" value="" placeholder="请输入，比如>5、<100、=10等，默认为等于">
+        </div>
+        <h4 class="col-sm-2 control-label">切分已就绪</h4>
+        <div class="col-sm-10">
+          <select class="form-control box_ready">
+            <option value=""></option>
+            <option value="是">是</option>
+            <option value="否">否</option>
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">切分校对</h4>
+        <div class="col-sm-10">
+          <select class="form-control cut_proof">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('cut_proof', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">切分审定</h4>
+        <div class="col-sm-10">
+          <select class="form-control cut_review">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('cut_review', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校一</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_1">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_1', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校二</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_2">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_2', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校三</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_3">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_3', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字审定</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_review">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_review', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
@@ -139,9 +263,9 @@
     if (!$(this).text().length)
       return;
     var sharedField = $(this).attr('title');
-    var pageName = $(this).parent().find('.name').text();
-    var url = '/data/admin/unlock/' + sharedField + '/' + pageName;
-    showConfirm("确定解锁吗？", "页面" + pageName + "的数据锁将被释放！", function () {
+    var name = $(this).siblings('.name').text();
+    var url = '/data/admin/unlock/' + sharedField + '/' + name;
+    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
         showSuccess('成功', '已成功解锁。');
         refresh(1000);
@@ -181,6 +305,37 @@
     }, function (error) {
       showError('失败', error.message);
     });
+  });
+
+  // 综合检索
+  $searchModal = $("#searchModal");
+  $searchModal.find('.modal-confirm').click(function () {
+    var search = '';
+    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
+    fields.forEach(function (field) {
+      var value = $searchModal.find('.' + field).val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields.forEach(function (field) {
+      var value = $searchModal.find('.' + field + ' :selected').val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    if (!search.length)
+      return showWarning('请输入查询条件');
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+
+  // 发布切分任务
+  $('.btn-pub-box').click(function () {
+    location.href = 'data/page/publish/box' + location.search;
+  });
+
+  // 发布文字任务
+  $('.btn-pub-box').click(function () {
+    location.href = 'data/page/publish/text' + location.search;
   });
 
 </script>

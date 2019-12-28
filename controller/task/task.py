@@ -214,14 +214,14 @@ class Task(Model):
 
     @classmethod
     def get_status_name(cls, status):
-        return cls.task_statuses.get(status)
+        return cls.task_statuses.get(status) or status
 
     # 任务优先级
     priority_names = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
     def get_priority_name(cls, priority):
-        return cls.priority_names.get(priority)
+        return cls.priority_names.get(priority) or priority
 
 
 class Statistic(Model):

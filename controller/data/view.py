@@ -10,7 +10,7 @@ from bson.objectid import ObjectId
 import controller.errors as e
 from controller.base import BaseHandler
 from controller.helper import cmp_page_code
-from controller.task.base import TaskHandler as Th
+from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -102,16 +102,41 @@ class DataListHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class DataPageHandler(BaseHandler):
+class DataPageHandler(TaskHandler):
     URL = '/data/page'
+
+    task_statuses = {
+        '': '', 'un_published': '未发布', 'opened': '已发布未领取', 'pending': '等待前置任务',
+        'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
+    }
 
     def get(self):
         """ 页数据管理"""
         try:
+            condition, params = dict(), dict()
+            for field in ['name', 'source', 'layout', 'box_ready']:
+                value = self.get_query_argument(field, '')
+                if value:
+                    params[field] = value
+                    condition.update({field: {'$regex': value, '$options': '$i'}})
+            for field in ['level_box', 'level_text']:
+                value = self.get_query_argument(field, '')
+                m = re.search(r'([><=])(\d+)', value)
+                if m:
+                    params[field] = m.group(0)
+                    maps = {'>': {'$gte': value}, '<': {'$lte': value}, '=': value}
+                    condition.update({field.replace('_', '.'): maps.get(m.group(1)) or value})
+            for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
+                value = self.get_query_argument(field, '')
+                if value:
+                    params[field] = value
+                    condition.update({'tasks.' + field: None if value == 'un_published' else value})
+
             model = Page
-            docs, pager, q, order = model.find_by_page(self)
+            docs, pager, q, order = model.find_by_page(self, condition=condition)
             kwargs = model.get_page_params()
-            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
+            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, params=params,
+                        task_statuses=self.task_statuses, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -127,18 +152,20 @@ class DataPageViewHandler(BaseHandler, Page):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面')
 
-            fields = ['name', 'width', 'height', 'layout', 'img_cloud_path', 'page_code',
-                      'uni_sutra_code', 'sutra_code', 'reel_code', ]
+            fields = ['name', 'width', 'height', 'source', 'layout', 'img_cloud_path', 'page_code',
+                      'uni_sutra_code', 'sutra_code', 'reel_code']
             metadata = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
-            fields = ['lock.box', 'lock.text', 'lock.level.box', 'lock.level.text']
+            fields = ['lock.box', 'lock.text', 'level.box', 'level.text']
             data_lock = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['ocr', 'ocr_col', 'text']
             page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['blocks', 'columns', 'chars']
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+            page_tasks = self.prop(page, 'tasks')
 
             self.render('data_page_view.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
-                        page_box=page_box, page=page, format_value=Th.format_value)
+                        page_box=page_box, page_tasks=page_tasks, page=page,
+                        Th=TaskHandler)
 
         except Exception as error:
             return self.send_db_error(error)
