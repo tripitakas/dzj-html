@@ -61,11 +61,11 @@ class CutTaskApi(TaskHandler):
             if data['step'] == 'chars':
                 self.reorder_chars(data, page)
             # 校对保存时重新排序
-            if data['step'] == 'block_box':
+            if data['step'] == 'blocks':
                 CutTool.sort_blocks(data['boxes'])
-            elif data['step'] == 'column_box':
+            elif data['step'] == 'columns':
                 CutTool.sort_columns(data['boxes'], page['blocks'])
-            elif data['step'] == 'char_box':
+            elif data['step'] == 'chars':
                 self.reorder_chars(data, page)  # 基于栏框和字框做字框排序，忽略了列框的改变
 
             # 保存数据

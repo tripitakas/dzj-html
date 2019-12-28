@@ -27,7 +27,7 @@ class TestCutSave(APITestCase):
     def _test_save_proof(self, kind, step=None, do_change=None, for_save=None):
         task_type = 'cut_proof'
         data_field = kind + 's'
-        step = step or kind + '_box'
+        step = step or kind + 's'
 
         # 发布任务
         self.login_as_admin()
@@ -98,7 +98,7 @@ class TestCutSave(APITestCase):
             chars_col[0].append(chars_col[1].pop(0))
 
         chars_col = []
-        page = self._test_save_proof('char', step='char_order', do_change=change,
+        page = self._test_save_proof('char', step='orders', do_change=change,
                                      for_save=lambda d: d.update({'chars_col': chars_col}))
         self.assertEqual([c.get('char_id') for c in page['chars'][:6]],
                          ['b1c1c1', 'b1c1c2', 'b1c1c3', 'b1c1c4', 'b1c1c5', 'b1c2c1'])
