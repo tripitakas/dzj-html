@@ -184,6 +184,7 @@ role_route_maps = {
         'routes': {
             '/data/@metadata': ['GET'],
             '/data/page/@page_id': ['GET'],
+            '/data/page/publish/(box|text)': ['GET'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],

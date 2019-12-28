@@ -1,7 +1,7 @@
 :root {
   --White: #fff;
   --Black: #000;
-  --Black_Light: #333;
+  --Color_333: #333;
   --Brown: #eab977;
   --Brown_Dark: #cb9b66;
   --Brown_Darker: #b68856;
@@ -94,12 +94,12 @@ input[type="number"] {
 }
 
 a {
-  color: var(--Black_Light);
+  color: var(--Color_333);
   text-decoration: none;
 }
 
 a:hover, a:visited, a:focus {
-  color: var(--Black_Light);
+  color: var(--Color_333);
 }
 
 .clearfix:after {
@@ -145,7 +145,7 @@ a:hover, a:visited, a:focus {
   height: 100%;
   background: var(--Brown_Dark);
   position: fixed;
-  color: var(--Black_Light);
+  color: var(--Color_333);
   z-index: 2;
 }
 
@@ -158,7 +158,7 @@ a:hover, a:visited, a:focus {
 }
 
 .menu-item a, .menu-item a:hover {
-  color: var(--Black_Light);
+  color: var(--Color_333);
 }
 
 .main {
@@ -193,7 +193,7 @@ a:hover, a:visited, a:focus {
 
 .main-menu > li {
   line-height: 36px;
-  color: var(--Black_Light);
+  color: var(--Color_333);
   margin-right: 12px;
   width: 100%;
 }
@@ -595,6 +595,20 @@ a:hover, a:visited, a:focus {
   left: 0;
 }
 
+.m-bottom {
+  height: 30px;
+  font-size: 14px;
+  color: var(--Color_333);
+  background-color: var(--Grey_Line);
+  position: fixed;
+  z-index: 1000;
+  display: inline-block;
+  vertical-align: middle;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
 .m-header .right {
   float: right;
   margin-right: 10px;
@@ -625,7 +639,7 @@ a:hover, a:visited, a:focus {
   font-size: 20px;
   font-weight: 500;
   margin: 4px 0 0 10px;
-  color: var(--Black_Light);
+  color: var(--Color_333);
 }
 
 .m-header .sub-title {

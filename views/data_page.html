@@ -150,11 +150,11 @@
         </div>
         <h4 class="col-sm-2 control-label">切分等级</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control level_box" value="" placeholder="请输入，比如>5、<100、=10等，默认为等于">
+          <input type="text" class="form-control level_box" value="" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
         </div>
         <h4 class="col-sm-2 control-label">文本等级</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control level_text" value="" placeholder="请输入，比如>5、<100、=10等，默认为等于">
+          <input type="text" class="form-control level_text" value="" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
         </div>
         <h4 class="col-sm-2 control-label">切分已就绪</h4>
         <div class="col-sm-10">
@@ -329,13 +329,13 @@
   });
 
   // 发布切分任务
-  $('.btn-pub-box').click(function () {
-    location.href = 'data/page/publish/box' + location.search;
+  $('#btn-pub-box').click(function () {
+    location.href = '/data/page/publish/box' + location.search;
   });
 
   // 发布文字任务
-  $('.btn-pub-box').click(function () {
-    location.href = 'data/page/publish/text' + location.search;
+  $('#btn-pub-text').click(function () {
+    location.href = '/data/page/publish/text' + location.search;
   });
 
 </script>

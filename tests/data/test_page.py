@@ -30,3 +30,13 @@ class TestPageApi(APITestCase):
 
         r = self.fetch('/api/data/page/upload', files={'json': filename}, body={'data': {'layout': '上下一栏'}})
         self.assert_code(200, r)
+
+    def test_publish_simple(self):
+        r = self.fetch('/data/page/publish/box?_raw=1')
+        self.assert_code(200, r)
+
+        pages = list(self._app.db.page.find().limit(2))
+        self.assertTrue(pages)
+        r = self.fetch('/data/page/publish/box?current=%s&next=next&_raw=1' % str(pages[0]['_id']))
+        d = self.parse_response(r)
+        self.assertEqual(pages[1]['_id'], d['page']['_id'])

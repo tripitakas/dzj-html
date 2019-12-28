@@ -18941,7 +18941,7 @@ div.dataTables_info {
 	display: none;
 }
 :root {
-    --Black_Light: #333333;
+    --Color_333: #333333;
     --White: #fff;
     --Black: #000;
     --Brown: #eab977;
@@ -19086,11 +19086,11 @@ body {
 }
 
 a {
-    color: var(--Black_Light);
+    color: var(--Color_333);
 }
 
 a:hover {
-    color: var(--Black_Light);
+    color: var(--Color_333);
 }
 
 /*左边菜单*/
@@ -19100,7 +19100,7 @@ a:hover {
     height: 100%;
     background: var(--Brown_Dark);
     position: fixed;
-    color: var(--Black_Light);
+    color: var(--Color_333);
     z-index: 2;
 }
 
@@ -19117,7 +19117,7 @@ a:hover {
 }
 
 .menu-item a, .menu-item a:hover {
-    color: var(--Black_Light);
+    color: var(--Color_333);
 }
 
 .main {
@@ -19152,7 +19152,7 @@ a:hover {
 
 .main .menu > li {
     line-height: 36px;
-    color: var(--Black_Light);
+    color: var(--Color_333);
     margin-right: 12px;
     width: 100%;
 }
@@ -19693,14 +19693,14 @@ a:hover {
     font-size: 20px;
     font-weight: 500;
     margin: 4px 0px 0px 10px;
-    color: var(--Black_Light);
+    color: var(--Color_333);
 }
 
 .m-header .sub-title {
     font-size: 14px;
     font-weight: 500;
     margin: 12px 0px 0px 6px;
-    color: var(--Black_Light);
+    color: var(--Color_333);
 }
 
 .m-header .m-pager {

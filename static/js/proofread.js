@@ -734,7 +734,3 @@ $('#ed-column-box').click(function () {
 $('#ed-char-order').click(function () {
   location = '/data/edit/box/' + pageName + '?step=orders&from=' + location.pathname + location.search;
 });
-
-$('#lq-dict').click(function () {
-  window.open('http://hanzi.lqdzj.cn/stroke_search', '_blank');
-});
