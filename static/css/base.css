@@ -589,6 +589,7 @@ a:hover, a:visited, a:focus {
   z-index: 1000;
   display: inline-block;
   vertical-align: middle;
+  user-select: none;
   top: 0;
   right: 0;
   left: 0;

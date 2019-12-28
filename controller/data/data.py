@@ -150,28 +150,29 @@ class Volume(Model):
 class Page(Model):
     collection = 'page'
     fields = [
-        {'id': 'name', 'name': '页编码'},
+        {'id': 'name', 'name': '页名称'},
         {'id': 'width', 'name': '宽度'},
         {'id': 'height', 'name': '高度'},
+        {'id': 'source', 'name': '批次'},
         {'id': 'layout', 'name': '页面结构'},
         {'id': 'img_path', 'name': '图片路径'},
         {'id': 'img_cloud_path', 'name': '云图路径'},
-        {'id': 'page_code', 'name': '页编码'},
+        {'id': 'page_code', 'name': '对齐编码'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
-        {'id': 'lock', 'name': '数据锁'},
-        {'id': 'lock.box', 'name': '字框锁'},
-        {'id': 'lock.text', 'name': '文本锁'},
-        {'id': 'lock.level.box', 'name': '字框等级'},
-        {'id': 'lock.level.text', 'name': '文本等级'},
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
+        {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
+        {'id': 'tasks', 'name': '任务'},
+        {'id': 'lock', 'name': '数据锁'},
+        {'id': 'level.box', 'name': '切分等级'},
+        {'id': 'level.text', 'name': '文本等级'},
     ]
     rules = [
         (v.not_empty, 'name'),
@@ -184,21 +185,23 @@ class Page(Model):
     primary = 'name'
 
     page_title = '页数据管理'
-    search_tips = '请搜索页编码、统一经编码、经编码、卷编码'
-    search_fields = ['name', 'uni_sutra_code', 'sutra_code', 'reel_code']
+    search_tips = '请搜索页名称、批次号、页面结构、统一经编码、卷编码'
+    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
-    info_fields = ['name', 'layout', 'ocr', 'ocr_col', 'lock-level-box', 'lock-level-text']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
+        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
-        {'id': 'lock-level-box', 'name': '字框锁等级'},
-        {'id': 'lock-level-text', 'name': '文本锁等级'},
+        {'id': 'source', 'name': '批次'},
+        {'id': 'level-box', 'name': '切分锁等级'},
+        {'id': 'level-text', 'name': '文本锁等级'},
     ]
-    actions = [  # 列表单条记录包含哪些操作
-        {'action': 'btn-update', 'label': '修改'},
-        {'action': 'btn-remove', 'label': '删除'},
+    operations = [
+        {'operation': 'btn-search', 'label': '综合检索'},
+        {'operation': 'btn-pub-box', 'label': '发布切分任务'},
+        {'operation': 'btn-pub-text', 'label': '发布文字任务'},
     ]
-    operations = []
 
     @classmethod
     def metadata(cls):

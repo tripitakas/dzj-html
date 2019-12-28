@@ -120,8 +120,8 @@
                 {% end %}
                 <td class="status {{t['status']}}" title="{{t.get('message') or ''}}">{{handler.get_status_name(t['status']) or ''}}</td>
                 <td class="priority">{{handler.get_priority_name(t.get('priority')) or ''}}</td>
-                <td class="steps">{{'/'.join([handler.step_names().get(s) for s in handler.prop(t, 'steps.todo') or []])}}</td>
-                <td class="pre_tasks">{{'/'.join([handler.task_names().get(p) for p in t.get('pre_tasks') or []])}}</td>
+                <td class="steps">{{'/'.join([handler.get_step_name(s) for s in handler.prop(t, 'steps.todo') or []])}}</td>
+                <td class="pre_tasks">{{'/'.join([handler.get_task_name(p) for p in t.get('pre_tasks') or []])}}</td>
                 <td class="publish_time">{{to_date_str(t.get('publish_time'))}}</td>
                 <td class="picked_by">{{t.get('picked_by') or ''}}</td>
                 <td class="picked_time">{{to_date_str(t.get('picked_time'))}}</td>

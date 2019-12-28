@@ -78,7 +78,7 @@ class TaskListHandler(TaskHandler):
         {'id': 'finished_time', 'name': '完成时间'},
     ]
     operations = [
-        {'operation': 'btn-search', 'label': '字段检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
 
     def get(self):
