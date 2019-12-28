@@ -45,7 +45,7 @@ class CutHandler(TaskHandler):
 
             mode = self.get_task_mode()
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'orders':
@@ -85,7 +85,7 @@ class CutEditHandler(TaskHandler):
             fake_task = dict(steps={'todo': default_steps})
             steps = self.init_steps(fake_task, 'edit', current_step)
 
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'orders':
@@ -124,7 +124,7 @@ class CutSampleHandler(TaskHandler):
             fake_task = dict(steps={'todo': default_steps})
             steps = self.init_steps(fake_task, 'view', current_step)
 
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'orders':
