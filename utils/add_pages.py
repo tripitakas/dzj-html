@@ -195,7 +195,7 @@ class AddPage(object):
         :param kind, 指定藏经类别
         """
         pages = set()
-        for pathname in glob(path.join(src_dir, '**', '*.json')):
+        for pathname in sorted(glob(path.join(src_dir, '**', '*.json'))):
             fn = path.basename(pathname)
             if kind and kind != fn[:2]:
                 continue

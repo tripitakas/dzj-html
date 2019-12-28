@@ -194,9 +194,9 @@ class APITestCase(AsyncHTTPTestCase):
         data['batch'] = data.get('batch', '测试批次号')
         data['priority'] = data.get('priority', 3)
         data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % data['task_type']))
-        if 'cut' in data.get('task_type', ''):
+        if 'cut' in data.get('task_type', '') and 'steps' not in data:
             data['steps'] = data.get('steps', ['char_box', 'block_box', 'column_box', 'char_order'])
-        if 'text_proof' in data.get('task_type', ''):
+        if 'text_proof' in data.get('task_type', '') and 'steps' not in data:
             data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
         return self.fetch('/api/task/publish', body={'data': data})
 
