@@ -42,7 +42,7 @@ class TestCutTask(APITestCase):
 
             # 提交各步骤
             page = self._app.db.page.find_one({'name': 'QL_25_16'})
-            steps = ['char_box', 'block_box', 'column_box', 'char_order']
+            steps = ['chars', 'blocks', 'columns', 'orders']
             for step in steps:
                 data_field = CutTaskApi.step2field.get(step)
                 data = {'step': step, 'submit': True, 'boxes': json_encode(page[data_field])}
@@ -58,7 +58,7 @@ class TestCutTask(APITestCase):
         self.login(u.expert1[0], u.expert1[1])
         # 测试专家编辑提交数据
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
-        steps = ['char_box', 'block_box', 'column_box', 'char_order']
+        steps = ['chars', 'blocks', 'columns', 'orders']
         for step in steps:
             data_field = CutTaskApi.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
@@ -68,7 +68,7 @@ class TestCutTask(APITestCase):
     def test_cut_mode(self):
         """测试切分页面的几种模式"""
         docs_ready = ['QL_25_16']
-        task_type, step = 'cut_proof', 'char_box'
+        task_type, step = 'cut_proof', 'chars'
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
         # 发布任务
         self.login_as_admin()

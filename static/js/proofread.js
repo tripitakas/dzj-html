@@ -717,22 +717,22 @@ $('#zoom-reset').on('click', function () {
 // 修改字框
 var pageName = $('#page-name').val();
 $('#ed-char-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=char_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=chars&from=' + location.pathname + location.search;
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=block_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=blocks&from=' + location.pathname + location.search;
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=column_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=columns&from=' + location.pathname + location.search;
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=char_order&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=orders&from=' + location.pathname + location.search;
 });
 
 $('#lq-dict').click(function () {

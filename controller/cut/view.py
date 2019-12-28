@@ -48,7 +48,7 @@ class CutHandler(TaskHandler):
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
                 template = 'task_char_order.html'
 
@@ -88,7 +88,7 @@ class CutEditHandler(TaskHandler):
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 template = 'task_char_order.html'
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
@@ -127,7 +127,7 @@ class CutSampleHandler(TaskHandler):
             box_type = re.findall('(char|column|block)', steps['current'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 template = 'task_char_order.html'
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 

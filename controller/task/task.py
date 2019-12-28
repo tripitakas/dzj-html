@@ -102,12 +102,12 @@ class Task(Model):
         'cut_proof': {
             'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['block_box', '栏框'], ['char_box', '字框'], ['column_box', '列框'], ['char_order', '字序']],
+            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
         },
         'cut_review': {
             'name': '切分审定', 'pre_tasks': ['cut_proof'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['block_box', '栏框'], ['char_box', '字框'], ['column_box', '列框'], ['char_order', '字序']],
+            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
         },
         'ocr_text': {
             'name': 'OCR文字', 'pre_tasks': ['cut_review'],

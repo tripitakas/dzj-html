@@ -18,7 +18,7 @@ class CutTaskApi(TaskHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
-    step2field = dict(block_box='blocks', char_box='chars', column_box='columns', char_order='chars')
+    step2field = dict(blocks='blocks', chars='chars', columns='columns', orders='chars')
 
     def post(self, task_type, task_id):
         """ 提交任务。有两种模式：
@@ -51,14 +51,14 @@ class CutTaskApi(TaskHandler):
             if isinstance(data['boxes'], str):
                 data['boxes'] = json_decode(data['boxes'])
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
-            if data['step'] == 'char_order' and data.get('chars_col'):
+            if data['step'] == 'orders' and data.get('chars_col'):
                 chars, chars_col = data['boxes'], data['chars_col']
                 blocks = data.get('blocks') or page.get('block')
                 columns = data.get('columns') or page.get('columns')
                 CutTool.calc(blocks, columns, chars, chars_col)
 
             # 字框校对时重新排序
-            if data['step'] == 'char_box':
+            if data['step'] == 'chars':
                 self.reorder_chars(data, page)
 
             # 保存数据
