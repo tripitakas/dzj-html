@@ -277,6 +277,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
+    def is_mod_enabled(self, mod):
+        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
+        return not disabled_mods or mod not in disabled_mods
+
     @classmethod
     def prop(cls, obj, key, default=None):
         return prop(obj, key, default=default)

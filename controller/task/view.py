@@ -15,10 +15,6 @@ from controller.task.base import TaskHandler
 class TaskAdminHandler(TaskHandler):
     URL = '/task/admin/@task_type'
 
-    def is_mod_enabled(self, mod):
-        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
-        return not disabled_mods or mod not in disabled_mods
-
     def get(self, task_type):
         """ 任务管理/任务列表 """
 

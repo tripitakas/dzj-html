@@ -179,6 +179,14 @@ class Task(Model):
         return [t for t, v in cls.task_types.items() if prop(v, 'data.collection') == 'page']
 
     @classmethod
+    def get_task_steps(cls, task_type):
+        return prop(cls.all_task_types(), task_type + '.steps', [])
+
+    @classmethod
+    def get_pre_tasks(cls, task_type):
+        return prop(cls.all_task_types(), task_type + '.pre_tasks', [])
+
+    @classmethod
     def task_names(cls):
         return {k: v.get('name') for k, v in cls.all_task_types().items()}
 
