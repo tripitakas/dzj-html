@@ -44,6 +44,7 @@ def i18n_trans(key):
         'gender': '性别',
         'priority': '优先级',
         'task_type': '任务类型',
+        'task_types': '任务类型',
         'doc_ids': '数据',
         'sutra_code': '经编码',
         'sutra_name': '经名',

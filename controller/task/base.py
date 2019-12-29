@@ -53,7 +53,7 @@ class TaskHandler(BaseHandler, Task):
     def get_publish_meta(self, task_type):
         now = datetime.now()
         collection, id_name = self.get_task_data_conf(task_type)[:2]
-        return dict(task_type='task_type', batch='', collection=collection, id_name=id_name, doc_id='',
+        return dict(task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
                     status='', priority='', steps={}, pre_tasks=[], input=None, result={},
                     create_time=now, updated_time=now, publish_time=now,
                     publish_user_id=self.current_user['_id'],

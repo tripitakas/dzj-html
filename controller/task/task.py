@@ -192,7 +192,7 @@ class Task(Model):
 
     @classmethod
     def get_task_name(cls, task_type):
-        return cls.task_names().get(task_type)
+        return cls.task_names().get(task_type) or task_type
 
     @classmethod
     def step_names(cls):
@@ -204,7 +204,7 @@ class Task(Model):
 
     @classmethod
     def get_step_name(cls, step):
-        return cls.step_names().get(step)
+        return cls.step_names().get(step) or step
 
     # 任务状态表
     STATUS_OPENED = 'opened'

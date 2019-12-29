@@ -213,16 +213,16 @@
         <div class="modal-body">
           <div class="batch">
             <h4 class="control-label">任务批次</h4>
-            <input type="text" class="form-control" id="task-batch" placeholder="请输入批次号">
+            <input type="text" class="form-control" id="batch" placeholder="请输入批次号">
           </div>
-          <div class="task-types">
+          <div class="task_types">
             <h4 class="control-label">选择任务类型</h4>
             <div>
               <label class="checkbox-inline"><input type="checkbox" title="cut_proof" checked>切分校对</label>
               <label class="checkbox-inline"><input type="checkbox" title="cut_review" checked>切分审定</label>
             </div>
           </div>
-          <div class="pre-tasks">
+          <div class="pre_tasks">
             <h4 class="control-label">选择前置任务</h4>
             <div>
               {% for t, v in handler.task_types.items() %}
@@ -244,7 +244,7 @@
               {% end %}
             </div>
           </div>
-          <div class="priority-list">
+          <div class="priority">
             <h4 class="control-label">选择优先级</h4>
             <input type="radio" name="priority" value="3" style="margin-right: 10px">高
             <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
@@ -263,6 +263,26 @@
       </div>
     </div>
   </div>
+  <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="margin: 0 10px">
+        <div>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">发布结果</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect cancel">取消</button>
+          <button type="button" class="btn btn-default waves-effect view-task">查看任务</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light next">下一个</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% include _base_js.html %}
@@ -270,6 +290,7 @@
 <script src="{{ static_url('js/nav.js') }}"></script>
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 <script src="{{static_url('js/cut/char_order.js') }}"></script>
+<script src="{{static_url('js/com-table.js') }}"></script>
 <script>
   // 离开页面
   window.leave = function () {
@@ -309,6 +330,53 @@
   $('#btn-ed-order').click(function () {
     location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + location.pathname + location.search;
   });
+
+  // 发布任务
+  var $publishModal = $('#publishModal');
+  var $publishResultModal = $('#publishResultModal');
+  var trans = {
+    un_existed: '页面不存在', un_ready: '数据未就绪', published_before: '任务曾被发布',
+    finished_before: '任务已完成', lock_level_unqualified: '数据等级不够',
+    data_is_locked: '数据被锁定', published: '任务发布成功',
+    pending: '等待前置任务'
+  };
+  $publishModal.find(".modal-confirm").click(function () {
+    var fields = [
+      {id: 'batch'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
+      {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
+      {id: 'task_types', input_type: 'checkbox'}
+    ];
+    var data = getModal($publishModal, fields);
+    data.name = '{{page["name"]}}';
+    postApi('/task/publish/box', {data: data}, function (res) {
+      var html = '';
+      for (var task_type in res.data) {
+        html += '<tr><td class="' + task_type + '">' + task_type + '<td>' + trans[res.data[task_type]] + '</td>' + '</td></tr>';
+      }
+      $publishResultModal.find('table').html(html);
+      $publishResultModal.modal();
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+  // 取消
+  $publishResultModal.find('.cancel').click(function () {
+    $publishModal.modal('hide');
+    $publishResultModal.modal('hide');
+
+  });
+
+  // 查看任务
+  $publishResultModal.find('.view-task').click(function () {
+    location.href = '/task/admin/list?q={{page["name"]}}';
+  });
+
+  // 下一个
+  $publishResultModal.find('.next').click(function () {
+    location.href = setQueryString('last', "{{page['_id']}}");
+  });
+
 </script>
 
 <script>

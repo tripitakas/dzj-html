@@ -156,6 +156,7 @@ class PublishPageTasksApi(PublishBaseHandler):
 
             ret = {}
             published = [r for r in page.get('tasks', {})]
+
             for task_type in data['task_types']:
                 # 文字任务，检查切分数据是否已就绪
                 if kind == 'text' and not page.get('box_ready'):
@@ -168,9 +169,9 @@ class PublishPageTasksApi(PublishBaseHandler):
                     pre_tasks_patch = list(set([r for r in published + data['task_types'] if 'text_proof' in r]))
                 # 发布任务
                 pre_tasks = list(set(data.get('pre_tasks', []) + pre_tasks_patch))
-                r = self.publish_many(task_type, pre_tasks, data.get('steps', []), data['priority'],
-                                      data['force'] == '是', data['name'], data['batch'])
-                ret[task_type] = list(r.keys())[0]
+                log = self.publish_many(task_type, pre_tasks, data.get('steps', []), data['priority'],
+                                        data['force'] == '是', data['name'], data['batch'])
+                ret[self.get_task_name(task_type)] = list(log.keys())[0]
 
             self.send_data_response(ret)
 

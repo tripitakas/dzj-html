@@ -10,6 +10,15 @@
   .select2-container {
     width: 100% !important;
   }
+
+  .sty-table .doc_id {
+    color: #B8906F !important;
+    cursor: pointer;
+  }
+
+  .sty-table .doc_id:hover {
+    color: #b33c2b !important;
+  }
 </style>
 {% end %}
 
@@ -148,6 +157,18 @@
     $searchModal.find('.finished_time_start').val('');
     $searchModal.find('.finished_time_end').val('');
   });
+
+  // 查看任务
+  $('.task-view').click(function () {
+    var id = $(this).parent().parent().attr('id');
+    var data = getData(id);
+    console.log(data);
+  });
+
+  // 查看任务
+  $('.doc_id').click(function () {
+    location.href = '/page/' + $(this).text();
+  })
 
 </script>
 

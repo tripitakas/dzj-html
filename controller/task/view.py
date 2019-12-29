@@ -77,6 +77,10 @@ class TaskListHandler(TaskHandler):
     operations = [
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
+    actions = [
+        {'action': 'task-view', 'label': '查看'},
+    ]
+    info_fields = ['task_type', 'doc_id']
 
     def get(self):
         """ 任务总表 """
@@ -104,7 +108,8 @@ class TaskListHandler(TaskHandler):
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-publish_time')
             kwargs = self.get_page_params()
             kwargs['table_fields'] = self.table_fields
-            kwargs['actions'] = []
+            kwargs['actions'] = self.actions
+            kwargs['info_fields'] = self.info_fields
 
             self.render('task_list.html', docs=docs, pager=pager, q=q, order=order, params=params, **kwargs)
 
@@ -256,19 +261,12 @@ class TaskPagePublishHandler(TaskHandler):
             page = self.db.page.find_one(condition, sort=[('_id', 1)])
             if not page:
                 self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
-            current = self.get_query_argument('current', '')
-            if current:
-                next = self.get_query_argument('next', '')
-                if next:
-                    condition['_id'] = {'$gt': ObjectId(current)}
-                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                    if not page:
-                        self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s，当前记录%s' % (current, str(params)))
-                else:
-                    condition['_id'] = ObjectId(current)
-                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                    if not page:
-                        self.send_error_response(e.no_object, message='当前记录%s不符合查询条件%s' % (current, str(params)))
+            last = self.get_query_argument('last', '')
+            if last:
+                condition['_id'] = {'$gt': ObjectId(last)}
+                page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                if not page:
+                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
 
             self.render('task_publish_%s.html' % kind, page=page, img_url=self.get_img(page), params=params)
 

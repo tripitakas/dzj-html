@@ -62,12 +62,21 @@ function setModal(modal, info, fields) {
 function getModal(modal, fields) {
   var info = {};
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio')
+    if ('input_type' in item && item['input_type'] === 'radio') {
       info[item.id] = modal.find('input:radio[name=' + item.id + ']:checked').val();
-    else if ('input_type' in item && item['input_type'] === 'select')
+      if (!info[item.id])
+        info[item.id] = modal.find('.' + item.id + ' :checked').val();
+    } else if ('input_type' in item && item['input_type'] === 'checkbox') {
+      info[item.id] = $.map(modal.find('.' + item.id + ' :checked'), function (item) {
+        return $(item).attr('title');
+      });
+    } else if ('input_type' in item && item['input_type'] === 'select') {
       info[item.id] = modal.find('.' + item.id + ' :selected').val();
-    else
+    } else {
       info[item.id] = modal.find('.' + item.id).val();
+      if (!info[item.id])
+        info[item.id] = modal.find('.' + item.id + ' input').val();
+    }
   });
   return info;
 }
