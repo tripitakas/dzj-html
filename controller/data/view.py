@@ -121,7 +121,7 @@ class DataPageViewHandler(BaseHandler, Page):
             page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['blocks', 'columns', 'chars']
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
-            page_tasks = self.prop(page, 'tasks')
+            page_tasks = self.prop(page, 'tasks') or {}
 
             self.render('data_page_view.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
                         page_box=page_box, page_tasks=page_tasks, page=page,
