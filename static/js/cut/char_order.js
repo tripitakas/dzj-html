@@ -278,6 +278,7 @@
     this.links = [];        // linksOfCol中的连线，及新增连线
     this.state = {tol: 1};
     this.changed = false;
+    this.readonly = false;
 
     // 创建字框节点
     console.assert(src instanceof Array);
@@ -484,7 +485,7 @@
     // 拖拽出入点到字框或空白处
     mouseDrag: function (pt) {
       if (!this.state.dragging && (this.state.inletHit || this.state.outletHit && this.hover.line)) {
-        this.state.dragging = getDistance(state.downOrigin, pt) > this.state.avgLen / 3;
+        this.state.dragging = getDistance(state.downOrigin, pt) > this.state.avgLen / 3 && !this.readonly;
         if (!this.state.dragging) {
           return;
         }
@@ -731,12 +732,13 @@
       }
     },
 
-    addCharOrderLinks: function (chars_col) {
+    addCharOrderLinks: function (chars_col, readonly) {
       if (!cs) {
         cs = new CharNodes(data.chars.filter(function(c) {
           return c.shape && (!c.shape.data('class') || c.shape.data('class') === 'char');
         }));
         cs.buildColumns(chars_col);
+        cs.readonly = readonly;
       }
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;

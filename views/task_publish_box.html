@@ -355,7 +355,7 @@
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
