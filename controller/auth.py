@@ -71,6 +71,7 @@ role_route_maps = {
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
             '/task/sample/(box|text|select_compare)': ['GET'],
+            '/task/sample/box/@page_name': ['GET'],
             '/api/task/text_get_compare/@page_name': ['POST'],
             '/api/task/text_compare_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
