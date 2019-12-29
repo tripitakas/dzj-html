@@ -538,6 +538,7 @@
       self.destroy();
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
+      data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       state.focus = true;
       state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {
       };
@@ -555,13 +556,16 @@
       data.columnMode = p.columnMode;
       data.charMode = p.charMode;
       data.orderMode = p.orderMode;
-      data.ratioInitial = ($(data.holder).width()) / p.width;
+      data.ratioInitial = $(data.holder).width() / p.width;
+      var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
+      if (h) {
+        data.ratioInitial = Math.min(data.ratioInitial, (h - 6) / p.height);
+      }
       if (p.blockMode || p.columnMode || p.charMode || p.orderMode) {
         data.activeFillOpacity = 0.3;
         data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 40) / p.height)
       }
 
-      data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       $(data.holder)
           .mousedown(mouseDown)
           .mouseup(mouseUp)
@@ -789,7 +793,8 @@
             pt.y < box.y + box.height + tol;
       };
 
-      if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)) {
+      if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)
+          && (!state.canHitBox || state.canHitBox(state.edit))) {
         return state.edit;
       }
       for (i = 0; i < data.chars.length; i++) {
@@ -1005,9 +1010,9 @@
       }
     },
 
-    toggleBox: function (visible) {
+    toggleBox: function (visible, cls) {
       data.chars.forEach(function (box) {
-        if (box.shape) {
+        if (box.shape && (!cls || cls === box.shape.data('class'))) {
           $(box.shape.node).toggle(visible);
         }
       });
