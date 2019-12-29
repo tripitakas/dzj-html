@@ -733,7 +733,9 @@
 
     addCharOrderLinks: function (chars_col) {
       if (!cs) {
-        cs = new CharNodes(data.chars);
+        cs = new CharNodes(data.chars.filter(function(c) {
+          return c.shape && (!c.shape.data('class') || c.shape.data('class') === 'char');
+        }));
         cs.buildColumns(chars_col);
       }
       state.mouseHover = mouseHover;

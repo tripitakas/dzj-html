@@ -85,7 +85,7 @@
             <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img" id="toggle-block" title="显隐栏框"/>
             <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img" id="toggle-column" title="显隐列框"/>
             <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img" id="toggle-char" title="显隐字框"/>
-            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img" id="toggle-order" title="显隐字序"/>
+            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img active" id="toggle-order" title="显隐字序"/>
           </div>
           <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" id="toggle-more" title="更多"/>
           <span class="btn-group hidden" id="more-group">
@@ -355,7 +355,7 @@
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(null);
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
@@ -405,6 +405,21 @@
     }
   };
 
+  // 显隐字序连线
+  $('#toggle-order').click(function () {
+    $(this).toggleClass('active');
+    var active = $(this).hasClass('active');
+    $('#holder svg path').each(function (i, path) {
+      var stroke = $(path).css('stroke');
+      if (active) {
+        stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
+      } else {
+        stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
+      }
+      $(path).css('stroke', stroke);
+      // console.log(stroke);
+    });
+  });
 </script>
 
 </body>
