@@ -793,7 +793,8 @@
             pt.y < box.y + box.height + tol;
       };
 
-      if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)) {
+      if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)
+          && (!state.canHitBox || state.canHitBox(state.edit))) {
         return state.edit;
       }
       for (i = 0; i < data.chars.length; i++) {
@@ -1009,9 +1010,9 @@
       }
     },
 
-    toggleBox: function (visible) {
+    toggleBox: function (visible, cls) {
       data.chars.forEach(function (box) {
-        if (box.shape) {
+        if (box.shape && (!cls || cls === box.shape.data('class'))) {
           $(box.shape.node).toggle(visible);
         }
       });
