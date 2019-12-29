@@ -39,7 +39,8 @@
     .sub-line .name {
       margin-right: 10px;
     }
-    .box-ready input {
+
+    .sub-line .box-ready {
       margin-right: 5px;
       background-color: transparent;
     }
@@ -92,11 +93,11 @@
         </div>
         <div class="right">
           <label>切分已就绪：</label>
-          <span class="box-ready">
+          <span>
           {% for v in ['是', '否']%}
-          <input type="radio" name="ready" value="{{v}}" {{'checked' if page.get('box_ready') == v else ''}}>{{v}}
+          <input type="radio" name="box-ready" class="box-ready" value="{{v}}" {{'checked' if page.get('box_ready') == v else ''}}>{{v}}
           {% end %}
-        </span>
+          </span>
         </div>
       </div>
     </div>
@@ -270,6 +271,25 @@
 <script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
 <script src="{{static_url('js/cut/char_order.js') }}"></script>
 <script>
+  // 离开页面
+  window.leave = function () {
+    var from = getQueryString('from');
+    if (from) {
+      window.location = from;
+    } else {
+      window.location = '/data/page' + location.search;
+    }
+  };
+
+  // 切分已就绪
+  $('.box-ready').click(function () {
+    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}", box_ready: $(this).val()};
+    console.log(data);
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('修改成功');
+    });
+  });
+
   // 修改字框
   $('#btn-ed-char').click(function () {
     location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + location.pathname + location.search;
@@ -289,8 +309,8 @@
   $('#btn-ed-order').click(function () {
     location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + location.pathname + location.search;
   });
-
 </script>
+
 <script>
   function initBoxes(boxesStr, className) {
     var boxes = decodeJSON(boxesStr);

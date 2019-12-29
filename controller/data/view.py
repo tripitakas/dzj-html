@@ -174,32 +174,3 @@ class DataPageHandler(TaskHandler):
         except Exception as error:
             return self.send_db_error(error)
 
-
-class DataPagePublishHandler(TaskHandler):
-    URL = '/data/page/publish/(box|text)'
-
-    def get(self, kind):
-        """ 发布任务"""
-        try:
-            condition, params = DataPageHandler.get_condition(self)
-            page = self.db.page.find_one(condition, sort=[('_id', 1)])
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
-            current = self.get_query_argument('current', '')
-            if current:
-                next = self.get_query_argument('next', '')
-                if next:
-                    condition['_id'] = {'$gt': ObjectId(current)}
-                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                    if not page:
-                        self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s，当前记录%s' % (current, str(params)))
-                else:
-                    condition['_id'] = ObjectId(current)
-                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                    if not page:
-                        self.send_error_response(e.no_object, message='当前记录%s不符合查询条件%s' % (current, str(params)))
-
-            self.render('data_publish_%s.html' % kind, page=page, img_url=self.get_img(page), params=params)
-
-        except Exception as error:
-            return self.send_db_error(error)

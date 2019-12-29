@@ -10,6 +10,7 @@ from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.task import Task
 from controller.task.base import TaskHandler
+from controller.data.view import DataPageHandler
 
 
 class TaskAdminHandler(TaskHandler):
@@ -241,5 +242,35 @@ class TaskInfoHandler(TaskHandler):
             if not task:
                 self.send_error_response(e.no_object, message='没有找到该任务')
             self.render('task_info.html', task=task, display_fields=self.display_fields)
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class TaskPagePublishHandler(TaskHandler):
+    URL = '/task/page/publish/(box|text)'
+
+    def get(self, kind):
+        """ 发布任务"""
+        try:
+            condition, params = DataPageHandler.get_condition(self)
+            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
+            current = self.get_query_argument('current', '')
+            if current:
+                next = self.get_query_argument('next', '')
+                if next:
+                    condition['_id'] = {'$gt': ObjectId(current)}
+                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                    if not page:
+                        self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s，当前记录%s' % (current, str(params)))
+                else:
+                    condition['_id'] = ObjectId(current)
+                    page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                    if not page:
+                        self.send_error_response(e.no_object, message='当前记录%s不符合查询条件%s' % (current, str(params)))
+
+            self.render('task_publish_%s.html' % kind, page=page, img_url=self.get_img(page), params=params)
+
         except Exception as error:
             return self.send_db_error(error)

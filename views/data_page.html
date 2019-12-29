@@ -332,14 +332,26 @@
     location.href = location.pathname + '?' + search.substr(1);
   });
 
+  // 重置
+  $searchModal.find('.reset').click(function () {
+    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
+    fields.forEach(function (field) {
+      $searchModal.find('.' + field).val('');
+    });
+    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields.forEach(function (field) {
+      $searchModal.find('.' + field + ' :selected').removeAttr('selected');
+    });
+  });
+
   // 发布切分任务
   $('#btn-pub-box').click(function () {
-    location.href = '/data/page/publish/box' + location.search;
+    location.href = '/task/page/publish/box' + location.search;
   });
 
   // 发布文字任务
   $('#btn-pub-text').click(function () {
-    location.href = '/data/page/publish/text' + location.search;
+    location.href = '/task/page/publish/text' + location.search;
   });
 
 </script>

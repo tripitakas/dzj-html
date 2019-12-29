@@ -2,7 +2,7 @@ from . import view, api
 
 views = [
     view.TripitakaListHandler, view.TripitakaHandler, view.DataListHandler,
-    view.DataPageHandler, view.DataPageViewHandler, view.DataPagePublishHandler,
+    view.DataPageHandler, view.DataPageViewHandler,
 ]
 
 handlers = [
