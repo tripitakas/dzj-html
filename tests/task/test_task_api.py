@@ -170,6 +170,24 @@ class TestTaskApi(APITestCase):
         data = self.parse_response(r)
         self.assertEqual(ready_ids[0:1], data.get('finished_before'))
 
+    def test_publish_page_task(self):
+        """ 测试发布页面的切分或文字任务"""
+        # 测试发布切分任务
+        data = {'task_types': ['cut_review', 'cut_proof'], 'name': ready_ids[0]}
+        r = self.fetch('/api/task/publish/box', body={'data': self.init_data(data)})
+        self.assert_code(200, r)
+
+        # 测试发布文字任务
+        self._app.db.page.update_one({'name': ready_ids[0]}, {'$set': {'box_ready': None}})
+        data = {'task_types': ['text_review', 'text_proof_1'], 'name': ready_ids[0]}
+        r = self.fetch('/api/task/publish/text', body={'data': self.init_data(data)})
+        self.assert_code(errors.box_un_ready[0], r)
+
+        self._app.db.page.update_one({'name': ready_ids[0]}, {'$set': {'box_ready': True}})
+        data = {'task_types': ['text_review', 'text_proof_1'], 'name': ready_ids[0]}
+        r = self.fetch('/api/task/publish/text', body={'data': self.init_data(data)})
+        self.assert_code(200, r)
+
     def test_pick_and_return_task(self):
         """ 测试领取和退回任务 """
         # task_types = ['cut_proof']

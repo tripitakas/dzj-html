@@ -247,7 +247,7 @@ class TaskInfoHandler(TaskHandler):
 
 
 class TaskPagePublishHandler(TaskHandler):
-    URL = '/task/page/publish/(box|text)'
+    URL = '/task/publish/(box|text)'
 
     def get(self, kind):
         """ 发布任务"""

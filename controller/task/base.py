@@ -50,6 +50,15 @@ class TaskHandler(BaseHandler, Task):
     def get_task_mode(self):
         return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
 
+    def get_publish_meta(self, task_type):
+        now = datetime.now()
+        collection, id_name = self.get_task_data_conf(task_type)[:2]
+        return dict(task_type='task_type', batch='', collection=collection, id_name=id_name, doc_id='',
+                    status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+                    create_time=now, updated_time=now, publish_time=now,
+                    publish_user_id=self.current_user['_id'],
+                    publish_by=self.current_user['name'])
+
     def check_task_auth(self, task, mode=None):
         """ 检查当前用户是否拥有相应的任务权限 """
         mode = self.get_task_mode() if not mode else mode

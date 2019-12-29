@@ -134,6 +134,50 @@ class PublishTasksApi(PublishBaseHandler):
             return self.send_db_error(error)
 
 
+class PublishPageTasksApi(PublishBaseHandler):
+    URL = r'/api/task/publish/(box|text)'
+
+    def post(self, kind):
+        """ 发布Page页面的切分或文字任务"""
+        try:
+            data = self.get_request_data()
+            rules = [
+                (v.not_empty, 'name', 'batch', 'task_types', 'priority', 'force'),
+                (v.is_priority, 'priority'),
+                (v.in_list, 'task_type', list(self.task_types.keys())),
+                (v.in_list, 'pre_tasks', list(self.task_types.keys())),
+            ]
+            errs = v.validate(data, rules)
+            if errs:
+                return self.send_error_response(errs)
+            page = self.db.page.find_one({'name': data['name']})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % data['name'])
+
+            ret = {}
+            published = [r for r in page.get('tasks', {})]
+            for task_type in data['task_types']:
+                # 文字任务，检查切分数据是否已就绪
+                if kind == 'text' and not page.get('box_ready'):
+                    return self.send_error_response(e.box_un_ready)
+                # 审定任务，设置校对任务为前置任务
+                pre_tasks_patch = []
+                if task_type == 'cut_review':
+                    pre_tasks_patch = list(set([r for r in published + data['task_types'] if 'cut_proof' in r]))
+                if task_type == 'text_review':
+                    pre_tasks_patch = list(set([r for r in published + data['task_types'] if 'text_proof' in r]))
+                # 发布任务
+                pre_tasks = list(set(data.get('pre_tasks', []) + pre_tasks_patch))
+                r = self.publish_many(task_type, pre_tasks, data.get('steps', []), data['priority'],
+                                      data['force'] == '是', data['name'], data['batch'])
+                ret[task_type] = list(r.keys())[0]
+
+            self.send_data_response(ret)
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+
 class PickTaskApi(TaskHandler):
     URL = '/api/task/pick/@task_type'
 

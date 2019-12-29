@@ -31,6 +31,8 @@ class PublishBaseHandler(TaskHandler):
         log = dict()
         assert task_type in self.task_types
         collection, id_name, input_field, shared_field = self.get_task_data_conf(task_type)
+        if isinstance(doc_ids, str):
+            doc_ids = doc_ids.replace(' ', '').split(',')
 
         # 去掉不存在的数据
         docs = list(self.db[collection].find({id_name: {'$in': doc_ids}}))
@@ -109,19 +111,22 @@ class PublishBaseHandler(TaskHandler):
         """ 发布新任务 """
 
         def get_meta(doc_id):
-            return dict(task_type=task_type, batch=batch, collection=collection, id_name=id_name, doc_id=doc_id,
-                        status=status, priority=int(priority), steps={'todo': steps}, pre_tasks=pre_tasks,
-                        input=None, result={}, create_time=now, updated_time=now, publish_time=now,
-                        publish_user_id=self.current_user['_id'],
-                        publish_by=self.current_user['name'])
+            meta = self.get_publish_meta(task_type)
+            meta.update(dict(batch=batch, doc_id=doc_id, status=status, priority=int(priority),
+                             steps={'todo': steps}, pre_tasks=pre_tasks))
+            return meta
 
-        now = datetime.now()
-        collection, id_name = self.get_task_data_conf(task_type)[:2]
+        if not doc_ids:
+            return []
+
+        # 发布任务
         pre_tasks = {t: '' for t in pre_tasks} if isinstance(pre_tasks, list) else pre_tasks
         tasks = [get_meta(d) for d in doc_ids]
-        if tasks:
-            self.db.task.insert_many(tasks, ordered=False)
-            self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
+        self.db.task.insert_many(tasks, ordered=False)
+        # 更新doc
+        collection, id_name = self.get_task_data_conf(task_type)[:2]
+        self.db[collection].update_many({id_name: {'$in': list(doc_ids)}}, {'$set': {'tasks.' + task_type: status}})
+        self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
     @staticmethod
     def _select_tasks_which_pre_tasks_all_finished(tasks_finished, pre_tasks):

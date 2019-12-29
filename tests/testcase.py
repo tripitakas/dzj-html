@@ -183,22 +183,28 @@ class APITestCase(AsyncHTTPTestCase):
         r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         self.assert_code(200, r)
         u = self.parse_response(r)
-        r = self.fetch('/api/user/admin/role', body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
+        r = self.fetch('/api/user/admin/role',
+                       body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
         self.assert_code(200, r)
         return r
+
+    @staticmethod
+    def init_data(data):
+        data['force'] = data.get('force', '0')
+        data['batch'] = data.get('batch', '测试批次号')
+        data['priority'] = data.get('priority', 3)
+        task_type = data.get('task_type') or data.get('task_types')[0]
+        data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % task_type))
+        if 'cut' in task_type and 'steps' not in data:
+            data['steps'] = data.get('steps', ['chars', 'blocks', 'columns', 'orders'])
+        if 'text_proof' in task_type and 'steps' not in data:
+            data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
+        return data
 
     def publish_tasks(self, data):
         """发布任务"""
         assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        data['force'] = data.get('force', '0')
-        data['batch'] = data.get('batch', '测试批次号')
-        data['priority'] = data.get('priority', 3)
-        data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % data['task_type']))
-        if 'cut' in data.get('task_type', '') and 'steps' not in data:
-            data['steps'] = data.get('steps', ['chars', 'blocks', 'columns', 'orders'])
-        if 'text_proof' in data.get('task_type', '') and 'steps' not in data:
-            data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
-        return self.fetch('/api/task/publish', body={'data': data})
+        return self.fetch('/api/task/publish', body={'data': self.init_data(data)})
 
     def delete_tasks_and_locks(self):
         """ 清空任务以及数据锁 """
