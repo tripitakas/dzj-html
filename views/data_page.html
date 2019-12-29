@@ -90,7 +90,7 @@
     <td class="blocks action" title="blocks">{{'修改' if d.get('blocks') else ''}}</td>
     <td class="columns action" title="columns">{{'修改' if d.get('columns') else ''}}</td>
     <td class="chars action" title="chars">{{'修改' if d.get('chars') else ''}}</td>
-    <td class="order action" title="order">{{'修改' if d.get('chars') else ''}}</td>
+    <td class="orders action" title="orders">{{'修改' if d.get('chars') else ''}}</td>
     <td class="ocr action" title="ocr">{{'修改' if d.get('ocr') else ''}}</td>
     <td class="ocr_col action" title="ocr_col">{{'修改' if d.get('ocr_col') else ''}}</td>
     <td class="text action">{{'修改' if d.get('text') else ''}}</td>
@@ -254,7 +254,7 @@
 {% block custom-js %}
 <script>
   // 修改栏框、列框、字框、字序
-  $('.blocks, .columns, .chars, .order').click(function () {
+  $('.blocks, .columns, .chars, .orders').click(function () {
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
