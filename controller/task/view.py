@@ -269,11 +269,13 @@ class TaskPagePublishHandler(TaskHandler):
                 if not page:
                     self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
 
+            batch = self.get_query_argument('batch', '')
+
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
             chars_col = r[2]
 
-            self.render('task_publish_%s.html' % kind, page=page, img_url=self.get_img(page),
-                        chars_col=chars_col, params=params)
+            self.render('task_publish_%s.html' % kind, page=page, batch=batch, chars_col=chars_col,
+                        img_url=self.get_img(page), params=params)
 
         except Exception as error:
             return self.send_db_error(error)

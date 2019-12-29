@@ -21,7 +21,7 @@
     font-size: 12px;
   }
 
-  .sty-table .tasks{
+  .sty-table .tasks {
     max-width: 55px;
   }
 
@@ -253,6 +253,27 @@
     </div>
   </div>
 </div>
+<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">设置参数</h4>
+      </div>
+      <div class="modal-body" style="min-height: 80px">
+        <input type="hidden" id="kind">
+        <h4 class="col-sm-2 control-label">批次号</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control batch" placeholder="请输入批次号">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
@@ -348,14 +369,24 @@
     });
   });
 
-  // 发布切分任务
+  // 发布任务弹框
+  $publishModal = $('#publishModal');
   $('#btn-pub-box').click(function () {
-    location.href = '/task/publish/box' + location.search;
+    $publishModal.find('#kind').val('box');
+    $publishModal.modal();
+  });
+  $('#btn-pub-text').click(function () {
+    $publishModal.find('#kind').val('text');
+    $publishModal.modal();
   });
 
-  // 发布文字任务
-  $('#btn-pub-text').click(function () {
-    location.href = '/task/publish/text' + location.search;
+  // 发布切分、文字任务
+  $publishModal.find('.modal-confirm').click(function () {
+    var kind = $publishModal.find('#kind').val();
+    var batch = $publishModal.find('.batch').val();
+    if (!batch.length)
+      return showWarning('请输入批次号');
+    location.href = '/task/publish/' + kind + location.search + '&batch=' + batch;
   });
 
 </script>

@@ -94,6 +94,15 @@ function setQueryString(name, value) {
   return location.pathname + search;
 }
 
+function encodeUrl() {
+  var url = location.pathname + location.search;
+  return url.replace(/&/g, '@');
+}
+
+function decodeUrl(url) {
+  return url.replace(/@/g, '&');
+}
+
 /**
  * 调用后端接口
  * @param url 以“/”开头的地址

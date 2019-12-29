@@ -231,7 +231,7 @@
         <div class="modal-body">
           <div class="batch">
             <h4 class="control-label">任务批次</h4>
-            <input type="text" class="form-control" id="batch" placeholder="请输入批次号">
+            <input type="text" class="form-control" id="batch" placeholder="请输入批次号" value="{{batch}}">
           </div>
           <div class="task_types">
             <h4 class="control-label">选择任务类型</h4>
@@ -323,7 +323,6 @@
   // 切分已就绪
   $('.box-ready').click(function () {
     var data = {_id: "{{page['_id']}}", name: "{{page['name']}}", box_ready: $(this).val()};
-    console.log(data);
     postApi('/data/page', {data: data}, function () {
       showSuccess('修改成功');
     });
@@ -331,22 +330,22 @@
 
   // 修改字框
   $('#btn-ed-char').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + location.pathname + location.search;
+    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + encodeUrl();
   });
 
   // 修改栏框
   $('#btn-ed-block').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + location.pathname + location.search;
+    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + encodeUrl();
   });
 
   // 修改列框
   $('#btn-ed-column').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + location.pathname + location.search;
+    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + encodeUrl();
   });
 
   // 修改字序
   $('#btn-ed-order').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + location.pathname + location.search;
+    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + encodeUrl();
   });
 
   // 发布任务
