@@ -386,7 +386,7 @@
     var batch = $publishModal.find('.batch').val();
     if (!batch.length)
       return showWarning('请输入批次号');
-    location.href = '/task/publish/' + kind + location.search + '&batch=' + batch;
+    location.href = '/task/publish/' + kind + location.search + (location.href.indexOf('?') < 0 ? '?' : '&') + 'batch=' + batch;
   });
 
 </script>

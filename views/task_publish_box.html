@@ -351,19 +351,20 @@
   // 发布任务
   var $publishModal = $('#publishModal');
   var $publishResultModal = $('#publishResultModal');
+  var publishFields = [
+    {id: 'batch'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
+    {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
+    {id: 'task_types', input_type: 'checkbox'}
+  ];
   var trans = {
     un_existed: '页面不存在', un_ready: '数据未就绪', published_before: '任务曾被发布',
     finished_before: '任务已完成', lock_level_unqualified: '数据等级不够',
     data_is_locked: '数据被锁定', published: '任务发布成功',
     pending: '等待前置任务'
   };
+  // 发布任务的确定按钮
   $publishModal.find(".modal-confirm").click(function () {
-    var fields = [
-      {id: 'batch'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
-      {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
-      {id: 'task_types', input_type: 'checkbox'}
-    ];
-    var data = getModal($publishModal, fields);
+    var data = getModal($publishModal, publishFields);
     data.name = '{{page["name"]}}';
     postApi('/task/publish/box', {data: data}, function (res) {
       var html = '';
@@ -375,6 +376,11 @@
     }, function (error) {
       return showError('提交失败', error.message);
     });
+  });
+
+  // 初始化选择列表
+  $publishModal.on('shown.bs.modal', function () {
+
   });
 
   // 取消
