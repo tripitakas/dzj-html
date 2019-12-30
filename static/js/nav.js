@@ -80,11 +80,51 @@ $(document).on('click', '#zoom-reset', function () {
   }
 });
 
-// 显隐画布
-$(document).on('click', '#toggle-image', function () {
+// 显隐图片
+$('#toggle-image').click(function () {
   $(this).toggleClass('active');
   var style = $.cut.data.image.node.style;
   style.display = style.display === 'none' ? '' : 'none';
+});
+
+// 模糊图片
+$('#toggle-blur').click(function () {
+  $(this).toggleClass('active');
+  var style = $.cut.data.image.node.style;
+  style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+});
+
+// 显隐栏框
+$('#toggle-block').click(function () {
+  $(this).toggleClass('active');
+  $.cut.toggleBox('hide', 'block');
+});
+
+// 显隐列框
+$('#toggle-column').click(function () {
+  $(this).toggleClass('active');
+  $.cut.toggleColumns(columns);
+});
+
+// 显隐字框
+$('#toggle-char').click(function () {
+  $(this).toggleClass('active');
+  $.cut.toggleBox('hide', 'char');
+});
+
+// 显隐字序连线
+$('#toggle-order').click(function () {
+  $(this).toggleClass('active');
+  var active = $(this).hasClass('active');
+  $('#holder svg path').each(function (i, path) {
+    var stroke = $(path).css('stroke');
+    if (active) {
+      stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
+    } else {
+      stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
+    }
+    $(path).css('stroke', stroke);
+  });
 });
 
 // 更多操作

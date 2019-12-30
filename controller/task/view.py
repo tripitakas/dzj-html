@@ -5,14 +5,11 @@
 @time: 2018/12/26
 """
 import random
-import json
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.task import Task
 from controller.task.base import TaskHandler
-from controller.data.view import DataPageHandler
-from controller.cut.cuttool import CutTool
 
 
 class TaskAdminHandler(TaskHandler):
@@ -252,36 +249,3 @@ class TaskInfoHandler(TaskHandler):
         except Exception as error:
             return self.send_db_error(error)
 
-
-class TaskPagePublishHandler(TaskHandler):
-    URL = '/task/publish/(box|text)'
-
-    def get(self, kind):
-        """ 发布任务"""
-        try:
-            condition, params = DataPageHandler.get_condition(self)
-            page = self.db.page.find_one(condition, sort=[('_id', 1)])
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
-            last = self.get_query_argument('last', '')
-            if last:
-                condition['_id'] = {'$gt': ObjectId(last)}
-                page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                if not page:
-                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
-
-            batch = self.get_query_argument('batch', '')
-
-            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            chars_col = r[2]
-
-            try:
-                options = json.loads(self.get_secure_cookie('publish_%s' % kind))
-            except (TypeError, ValueError, AttributeError):
-                options = {}
-
-            self.render('task_publish_%s.html' % kind, page=page, batch=batch, chars_col=chars_col,
-                        img_url=self.get_img(page), options=options, params=params)
-
-        except Exception as error:
-            return self.send_db_error(error)

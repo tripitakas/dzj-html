@@ -187,6 +187,25 @@ class Page(Model):
     page_title = '页数据管理'
     search_tips = '请搜索页名称、批次号、页面结构、统一经编码、卷编码'
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
+    table_fields = [
+        {'id': 'name', 'name': '页编码'},
+        {'id': 'source', 'name': '批次'},
+        {'id': 'layout', 'name': '页面结构'},
+        {'id': 'uni_sutra_code', 'name': '统一经编码'},
+        {'id': 'reel_code', 'name': '卷编码'},
+        {'id': 'tasks', 'name': '任务'},
+        {'id': 'box_ready', 'name': '切分已就绪'},
+        {'id': 'level_box', 'name': '切分等级'},
+        {'id': 'level_text', 'name': '文本等级'},
+        {'id': 'lock_box', 'name': '切分锁'},
+        {'id': 'lock_text', 'name': '文本锁'},
+        {'id': 'blocks', 'name': '栏框数据'},
+        {'id': 'columns', 'name': '列框数据'},
+        {'id': 'chars', 'name': '字框数据'},
+        {'id': 'ocr', 'name': '字框OCR'},
+        {'id': 'ocr_col', 'name': '列框OCR'},
+        {'id': 'text', 'name': '审定文本'},
+    ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
     layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [

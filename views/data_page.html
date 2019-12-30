@@ -22,7 +22,12 @@
   }
 
   .sty-table .tasks {
-    max-width: 55px;
+    width: 72px;
+  }
+
+  .operation .btn-img {
+    width: 22px;
+    height: 22px;
   }
 
   #txt-content {
@@ -31,48 +36,70 @@
 </style>
 {% end %}
 
+{% block operation %}
+<div class="operation">
+  <button class="btn btn-default waves-effect" data-toggle="modal" data-target="#searchModal">综合检索</button>
+  <div class="btn-group">
+    <button class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
+      浏览检索结果 <i class="caret"></i>
+    </button>
+    <ul class="dropdown-menu" role="menu">
+      <li><a class="task-type" id="btn-nav-box" href="javascript:void(0);">切分数据</a></li>
+      <li class="divider"></li>
+      <li><a class="task-type" id="btn-nav-text" href="javascript:void(0);">文本数据</a></li>
+    </ul>
+  </div>
+  <button class="btn btn-default waves-effect" id="btn-pub-box">发布切分任务</button>
+  <button class="btn btn-default waves-effect" id="btn-pub-text">发布文字任务</button>
+  <div style="margin: 5px; display: inline-block; cursor: pointer">
+    <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img" data-toggle="modal" data-target="#configModal" title="配置"/>
+    <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+  </div>
+</div>
+{% end %}
+
 {% block table %}
 <table class="sty-table">
   <thead>
   <tr>
-    <th><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
+    <th class="name"><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
       页编码<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'source' in order else ''}}" title="source">
+    <th class="source"><span class="sort {{'active' if 'source' in order else ''}}" title="source">
       批次<span class="ion-arrow-down-b {{'toggle' if order == 'source' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'layout' in order else ''}}" title="page_code">
+    <th class="layout"><span class="sort {{'active' if 'layout' in order else ''}}" title="page_code">
       页面结构<span class="ion-arrow-down-b {{'toggle' if order == 'layout' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'uni_sutra_code' in order else ''}}" title="uni_sutra_code">
+    <th class="uni_sutra_code"><span class="sort {{'active' if 'uni_sutra_code' in order else ''}}" title="uni_sutra_code">
       统一经编码<span class="ion-arrow-down-b {{'toggle' if order == 'uni_sutra_code' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
+    <th class="reel_code"><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
       卷编码<span class="ion-arrow-down-b {{'toggle' if order == 'reel_code' else ''}}"></span>
     </span></th>
-    <th><span>已发布任务</span></th>
-    <th><span class="sort {{'active' if 'box_ready' in order else ''}}" title="box_ready">
+    <th class="tasks"><span>已发布任务</span></th>
+    <th class="box_ready"><span class="sort {{'active' if 'box_ready' in order else ''}}" title="box_ready">
       切分已就绪<span class="ion-arrow-down-b {{'toggle' if order == 'box_ready' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'level.box' in order else ''}}" title="level.box">
+    <th class="level_box"><span class="sort {{'active' if 'level.box' in order else ''}}" title="level.box">
       切分等级<span class="ion-arrow-down-b {{'toggle' if order == 'level.box' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'level.text' in order else ''}}" title="level.text">
+    <th class="level_text"><span class="sort {{'active' if 'level.text' in order else ''}}" title="level.text">
       文本等级<span class="ion-arrow-down-b {{'toggle' if order == 'level.text' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'lock.box.is_temp' in order else ''}}" title="lock.box.is_temp">
+    <th class="lock_box"><span class="sort {{'active' if 'lock.box.is_temp' in order else ''}}" title="lock.box.is_temp">
       切分锁<span class="ion-arrow-down-b {{'toggle' if order == 'lock.box.is_temp' else ''}}"></span>
     </span></th>
-    <th><span class="sort {{'active' if 'lock.text.is_temp' in order else ''}}" title="lock.text.is_temp">
+    <th class="lock_text"><span class="sort {{'active' if 'lock.text.is_temp' in order else ''}}" title="lock.text.is_temp">
       文本锁<span class="ion-arrow-down-b {{'toggle' if order == 'lock.text.is_temp' else ''}}"></span>
     </span></th>
-    <th><span>栏框</span></th>
-    <th><span>列框</span></th>
-    <th><span>字框</span></th>
-    <th><span>字序</span></th>
-    <th><span>字框OCR</span></th>
-    <th><span>列框OCR</span></th>
-    <th><span>审定文本</span></th>
+    <th class="blocks"><span>栏框</span></th>
+    <th class="columns"><span>列框</span></th>
+    <th class="chars"><span>字框</span></th>
+    <th class="orders"><span>字序</span></th>
+    <th class="ocr"><span>字框OCR</span></th>
+    <th class="ocr_col"><span>列框OCR</span></th>
+    <th class="text"><span>审定文本</span></th>
     <th><span>操作</span></th>
   </tr>
   </thead>
@@ -112,6 +139,69 @@
 {% end %}
 
 {% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          任务管理模块提供管理员对任务进行操作，包括发布、指派、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
+        </div>
+        <div class="title">二、任务操作</div>
+        <table class="table">
+          <tr>
+            <td>批量指派</td>
+            <td>将「已发布」的任务指派给某个特定的用户</td>
+          </tr>
+          <tr>
+            <td>批量删除</td>
+            <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
+          </tr>
+          <tr>
+            <td>发布任务</td>
+            <td>
+              任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
+              任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
+              前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
+              用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
+            </td>
+          </tr>
+          <tr>
+            <td>重新发布</td>
+            <td>「进行中」的任务可以重新发布。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">配置列表</h4>
+      </div>
+      <div class="modal-body">
+        <div class="select-column">
+          {% for f in table_fields %}
+          <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" checked>{{f['name']}}</label>
+          {% end %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -253,31 +343,40 @@
     </div>
   </div>
 </div>
-<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">设置参数</h4>
-      </div>
-      <div class="modal-body" style="min-height: 80px">
-        <input type="hidden" id="kind">
-        <h4 class="col-sm-2 control-label">批次号</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control batch" placeholder="请输入批次号">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-      </div>
-    </div>
-  </div>
-</div>
 {% end %}
 
 {% block custom-js %}
 <script>
+  // 设置显示列
+  var allColumns = decodeJSON('{{[f["id"] for f in table_fields]}}');
+  var columnsName = location.pathname.replace('/', '_');
+
+  function toggleColumns() {
+    var hideColumns = JSON.parse(localStorage.getItem(columnsName) || '[]');
+    allColumns.forEach(function (item) {
+      if (hideColumns.indexOf(item) !== -1) {
+        $('.select-column .' + item).removeAttr('checked');
+        $('.sty-table .' + item).addClass('hide');
+      } else {
+        $('.select-column .' + item).prop('checked', 'true');
+        $('.sty-table .' + item).removeClass('hide');
+      }
+    })
+  }
+
+  $(document).ready(function () {
+    toggleColumns()
+  });
+
+  // 列表配置
+  $('#configModal .modal-confirm').click(function () {
+    var hideColumns = $.map($('.select-column :not(:checked)'), function (item) {
+      return $(item).attr('title');
+    });
+    localStorage.setItem(columnsName, JSON.stringify(hideColumns));
+    toggleColumns();
+  });
+
   // 修改栏框、列框、字框、字序
   $('.blocks, .columns, .chars, .orders').click(function () {
     if (!$(this).text().length)
@@ -369,25 +468,21 @@
     });
   });
 
-  // 发布任务弹框
-  $publishModal = $('#publishModal');
-  $('#btn-pub-box').click(function () {
-    $publishModal.find('#kind').val('box');
-    $publishModal.modal();
-  });
-  $('#btn-pub-text').click(function () {
-    $publishModal.find('#kind').val('text');
-    $publishModal.modal();
+  // 浏览切分数据
+  $('#btn-nav-box').click(function () {
+    location.href = '/data/page/nav/box' + location.search;
   });
 
-  // 发布切分、文字任务
-  $publishModal.find('.modal-confirm').click(function () {
-    var kind = $publishModal.find('#kind').val();
-    var batch = $publishModal.find('.batch').val();
-    if (!batch.length)
-      return showWarning('请输入批次号');
-    location.href = '/task/publish/' + kind + location.search + (location.href.indexOf('?') < 0 ? '?' : '&') + 'batch=' + batch;
+  // 浏览文本数据
+  $('#btn-nav-text').click(function () {
+    location.href = '/data/page/nav/text' + location.search;
   });
+
+  // 发布切分任务
+  $('#btn-pub-box').click(function () {
+    location.href = '/data/page/nav/box?op=pub';
+  });
+
 
 </script>
 {% end %}

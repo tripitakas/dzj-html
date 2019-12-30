@@ -5,12 +5,14 @@
 @time: 2019/3/13
 """
 import re
+import json
 from functools import cmp_to_key
 from bson.objectid import ObjectId
 import controller.errors as e
 from controller.base import BaseHandler
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
+from controller.cut.cuttool import CutTool
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -174,3 +176,39 @@ class DataPageHandler(TaskHandler):
         except Exception as error:
             return self.send_db_error(error)
 
+
+class DataPageNavBoxHandler(TaskHandler):
+    URL = '/data/page/nav/box'
+
+    def get(self):
+        """ 浏览检索结果的切分数据"""
+        try:
+            op = self.get_query_argument('op', '')
+            if op == 'pub':
+                condition = {'$or': [{t: None} for t in ['cut_proof', 'cut_review']]}
+                params = {'op': 'pub'}
+            else:
+                condition, params = DataPageHandler.get_condition(self)
+            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
+            last = self.get_query_argument('last', '')
+            if last:
+                condition['_id'] = {'$gt': ObjectId(last)}
+                page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                if not page:
+                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
+
+            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
+            chars_col = r[2]
+
+            try:
+                options = json.loads(self.get_secure_cookie('publish_box'))
+            except (TypeError, ValueError, AttributeError):
+                options = {}
+
+            self.render('data_nav_box.html', page=page, chars_col=chars_col,
+                        img_url=self.get_img(page), options=options, params=params)
+
+        except Exception as error:
+            return self.send_db_error(error)

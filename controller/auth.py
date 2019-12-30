@@ -154,7 +154,6 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/task/publish/(box|text)': ['GET'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/publish': ['POST'],
             '/task/page/@page_name': ['GET'],
@@ -187,6 +186,7 @@ role_route_maps = {
         'routes': {
             '/data/@metadata': ['GET'],
             '/data/page/@page_id': ['GET'],
+            '/data/page/nav/(box|text)': ['GET'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],

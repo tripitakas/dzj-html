@@ -409,10 +409,10 @@
 <script>
   // 设置显示列
   var allColumns = decodeJSON('{{[f["id"] for f in handler.table_fields]}}');
+  var columnsName = location.pathname.replace('/', '_');
 
   function toggleColumns() {
-    var hideColumns = JSON.parse(localStorage.getItem('hideColumns') || '[]');
-    // console.log(hideColumns);
+    var hideColumns = JSON.parse(localStorage.getItem(columnsName) || '[]');
     allColumns.forEach(function (item) {
       if (hideColumns.indexOf(item) !== -1) {
         $('.select-column .' + item).removeAttr('checked');
@@ -433,7 +433,7 @@
     var hideColumns = $.map($('.select-column :not(:checked)'), function (item) {
       return $(item).attr('title');
     });
-    localStorage.setItem('hideColumns', JSON.stringify(hideColumns));
+    localStorage.setItem(columnsName, JSON.stringify(hideColumns));
     toggleColumns();
   });
 
@@ -580,7 +580,7 @@
       var html = '';
       for (var item in res.data) {
         var label = trans[item] + '(' + res.data[item].length + ')';
-        html += '<tr><td class="'+item+'">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+        html += '<tr><td class="' + item + '">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
       }
       $publishResultModal.find('table').html(html);
       $publishResultModal.modal();
