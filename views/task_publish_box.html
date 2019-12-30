@@ -236,8 +236,12 @@
           <div class="task_types">
             <h4 class="control-label">选择任务类型</h4>
             <div>
-              <label class="checkbox-inline"><input type="checkbox" title="cut_proof" checked>切分校对</label>
-              <label class="checkbox-inline"><input type="checkbox" title="cut_review" checked>切分审定</label>
+              <label class="checkbox-inline">
+                <input type="checkbox" title="cut_proof"
+                       {{'checked' if 'cut_proof' in options.get('task_types', ['cut_proof']) else ''}}>切分校对</label>
+              <label class="checkbox-inline">
+                <input type="checkbox" title="cut_review"
+                       {{'checked' if 'cut_review' in options.get('task_types', ['cut_review']) else ''}}>切分审定</label>
             </div>
           </div>
           <div class="pre_tasks">
@@ -246,19 +250,22 @@
               {% for t, v in handler.task_types.items() %}
               {% if handler.is_mod_enabled(v['name']) and t not in ['cut_proof','cut_review'] %}
               <label class="checkbox-inline">
-                {% set pre_tasks = handler.get_pre_tasks('cut_proof') %}
+                {% set pre_tasks = options.get('pre_tasks', handler.get_pre_tasks('cut_proof')) %}
                 <input type="checkbox" title="{{t}}" {{'checked' if t in pre_tasks else ''}}>{{v['name']}}
               </label>
               {% end %}
               {% end %}
             </div>
           </div>
+          {% set last_steps = options.get('steps') %}
           {% set steps = handler.get_task_steps('cut_proof') %}
           <div class="steps{{ '' if steps else ' hide' }}">
             <h4 class="control-label">选择子步骤</h4>
             <div id="step-items">
               {% for step in steps %}
-              <label class="checkbox-inline"><input type="checkbox" title="{{step[0]}}" checked>{{step[1]}}</label>
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{step[0]}}"
+                       {{ 'checked' if step[0] in options.get('steps', [step[0]]) else '' }}>{{step[1]}}</label>
               {% end %}
             </div>
           </div>

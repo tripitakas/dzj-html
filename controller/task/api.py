@@ -156,6 +156,7 @@ class PublishPageTasksApi(PublishBaseHandler):
 
             ret = {}
             published = [r for r in page.get('tasks', {})]
+            self.save_options(data, kind)
 
             for task_type in data['task_types']:
                 # 文字任务，检查切分数据是否已就绪
@@ -177,6 +178,12 @@ class PublishPageTasksApi(PublishBaseHandler):
 
         except DbError as error:
             return self.send_db_error(error)
+
+    def save_options(self, data, kind):
+        data = dict(data)
+        data.pop('name')
+        data.pop('batch')
+        self.set_secure_cookie('publish_%s' % kind, json.dumps(data))
 
 
 class PickTaskApi(TaskHandler):

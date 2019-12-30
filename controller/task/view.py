@@ -5,6 +5,7 @@
 @time: 2018/12/26
 """
 import random
+import json
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
@@ -274,8 +275,13 @@ class TaskPagePublishHandler(TaskHandler):
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
             chars_col = r[2]
 
+            try:
+                options = json.loads(self.get_secure_cookie('publish_%s' % kind))
+            except (TypeError, ValueError, AttributeError):
+                options = {}
+
             self.render('task_publish_%s.html' % kind, page=page, batch=batch, chars_col=chars_col,
-                        img_url=self.get_img(page), params=params)
+                        img_url=self.get_img(page), options=options, params=params)
 
         except Exception as error:
             return self.send_db_error(error)
