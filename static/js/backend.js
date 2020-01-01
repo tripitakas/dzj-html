@@ -100,7 +100,7 @@ function encodeUrl() {
 }
 
 function decodeUrl(url) {
-  return url.replace(/@/g, '&');
+  return url && url.replace(/@/g, '&');
 }
 
 /**
