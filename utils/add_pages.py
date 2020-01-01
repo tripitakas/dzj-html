@@ -164,6 +164,7 @@ class AddPage(object):
                     meta['columns'] = char_reorder(chars, blocks, sort=True, remove_outside=True, img_file=name)
                     if self.reorder == 'v2':
                         zero_id, meta['layout_type'] = CutTool.sort_chars(chars, columns, blocks)
+                    CutTool.gen_ocr_text(meta)
                 except Exception as e:
                     sys.stderr.write('%s %s' % (name, str(e)))
 

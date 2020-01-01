@@ -514,8 +514,8 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    window.location = window.location.href.replace(/[?&]re_compare=true/g, '') +
-      (window.location.href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
+    var href = window.location.href.replace(/[?&]re_compare=true/g, '');
+    window.location = href + (href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
   });
 });
 
