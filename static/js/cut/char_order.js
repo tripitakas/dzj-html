@@ -555,7 +555,7 @@
         }
         // 新加连接
         else if (!srcLink) {
-          changed = this.addLink(link.c1, link.c2);
+          changed = this.addLink(link.c1, link.c2, enableSelfLink);
         }
       }
       this.state.dragging = false;
@@ -609,9 +609,9 @@
     },
 
     // 新加连接
-    addLink: function (c1, c2) {
+    addLink: function (c1, c2, enableSelfLink) {
       var link = this.findLinkBetween(c1, c2);
-      if (!link && c1 && c2 && c1 !== c2) {
+      if (!link && c1 && c2 && (c1 !== c2 || enableSelfLink)) {
         this.changed = true;
         link = new Link(c1, c2);
         link.shapes.line = link.createLine(colors.link[2]);

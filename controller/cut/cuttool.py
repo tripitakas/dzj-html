@@ -158,3 +158,43 @@ class CutTool(object):
 
         if reorder.get('chars') and chars:
             return CutTool.sort(chars, columns, blocks, layout_type, chars_col)
+
+    @staticmethod
+    def gen_ocr_text(page, blocks=None, columns=None, chars=None):
+        """根据当前字序生成页面的ocr和ocr_col文本，假定已按编号排序"""
+        blocks = blocks or page['blocks']
+        columns = columns or page['columns']
+        chars = chars or page['chars']
+        try:
+            chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
+        except KeyError:
+            pass
+
+        # 根据列框的ocr_txt，生成页面的ocr_col，栏间用||分隔
+        try:
+            page['ocr_txt'] = '||'.join('|'.join(c['ocr_txt'] for c in columns if c['block_no'] == b['block_no'])
+                                        for b in blocks)
+        except KeyError:
+            pass
+
+        # 生成页面的ocr，按字序把每个字框的ocr_txt组合而成，栏间用||分隔
+        texts = {'blocks': []}
+        for c in chars:
+            if c.get('ocr_txt') and c.get('line_no') and c.get('block_no'):
+                if c['ocr_txt'] == '蠱':
+                    c = c
+                block = texts.get(str(c['block_no']))
+                if not block:
+                    block = texts[str(c['block_no'])] = {'columns': []}
+                    texts['blocks'].append(block)
+                col = block.get(str(c['line_no']))
+                if not col:
+                    col = block[str(c['line_no'])] = {'txt': ''}
+                    block['columns'].append(col)
+                col['txt'] += c['ocr_txt']
+
+        page['ocr'] = '||'.join('|'.join(c['txt'] for c in b['columns']) for b in texts['blocks'])
+        for c in columns:
+            c.pop('txt', None)
+
+        return page

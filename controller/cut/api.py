@@ -65,13 +65,19 @@ class CutTaskApi(TaskHandler):
                 CutTool.sort_blocks(data['boxes'])
             elif data['step'] == 'columns':
                 CutTool.sort_columns(data['boxes'], page['blocks'])
+                CutTool.gen_ocr_text(data, blocks=page['blocks'], columns=data['boxes'], chars=page['chars'])
             elif data['step'] == 'chars':
                 self.reorder_chars(data, page)  # 基于栏框和字框做字框排序，忽略了列框的改变
+                CutTool.gen_ocr_text(data, blocks=page['blocks'], columns=page['blocks'], chars=data['boxes'])
 
             # 保存数据
             update = {self.step2field.get(data['step']): data['boxes']}
             if 'columns' in data:
                 update['columns'] = data['columns']
+            if data.get('ocr_txt'):
+                update['ocr_txt'] = data['ocr_txt']
+            if data.get('ocr'):
+                update['ocr'] = data['ocr']
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
 
             # 提交任务
@@ -125,7 +131,14 @@ class CutEditApi(TaskHandler):
             # 保存数据
             if isinstance(data['boxes'], str):
                 data['boxes'] = json_decode(data['boxes'])
-            CutTaskApi.reorder_chars(data, page)
+
+            if data['step'] == 'orders' and data.get('chars_col'):
+                chars, chars_col = data['boxes'], data['chars_col']
+                blocks = data.get('blocks') or page.get('blocks')
+                columns = data.get('columns') or page.get('columns')
+                CutTool.calc(blocks, columns, chars, chars_col)
+            else:
+                CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
             self.db.page.update_one({'name': page_name}, {'$set': {data_field: data['boxes']}})
             self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])
