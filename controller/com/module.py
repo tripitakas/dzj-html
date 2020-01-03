@@ -10,7 +10,6 @@ import math
 from bson.json_util import dumps
 from tornado.web import UIModule
 from controller.helper import prop
-from controller.task.base import TaskHandler as Th
 
 
 class ComLeft(UIModule):
@@ -38,16 +37,8 @@ class ComLeft(UIModule):
                 dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
             ]),
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
-                dict(name='任务总表', icon='icon_subitem', link='/task/admin/list'),
-                dict(name='导入图片', icon='icon_subitem', link='/task/admin/import_image'),
-                dict(name='上传云端', icon='icon_subitem', link='/task/admin/upload_cloud'),
-                dict(name='OCR字框', icon='icon_subitem', link='/task/admin/ocr_box'),
-                dict(name='切分校对', icon='icon_subitem', link='/task/admin/cut_proof'),
-                dict(name='切分审定', icon='icon_subitem', link='/task/admin/cut_review'),
-                dict(name='OCR文字', icon='icon_subitem', link='/task/admin/ocr_text'),
-                dict(name='文字校对', icon='icon_subitem', link='/task/admin/text_proof'),
-                dict(name='文字审定', icon='icon_subitem', link='/task/admin/text_review'),
-                dict(name='难字校对', icon='icon_subitem', link='/task/admin/text_hard'),
+                dict(name='页图片', icon='icon_subitem', link='/task/admin/image'),
+                dict(name='页数据', icon='icon_subitem', link='/task/admin/page'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
@@ -117,10 +108,6 @@ class Pager(UIModule):
             pager['page_size'] = prop(pager, 'page_size', prop(conf, 'pager.page_size'))  # 每页显示多少条记录
             pager['page_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
             pager['display_count'] = prop(conf, 'pager.display_count')  # pager导航条中显示多少个页码
-            # print(self.request.uri)
-            # pager['uri'] = re.sub(r'[?&]page=\d+', '', self.request.uri)  # 当前path
-            # pager['uri'] = re.sub(r'[?&]page_size=\d+', '', pager['uri'])  # 当前path
-            # pager['link'] = '&' if '?' in pager['uri'] else '?'  # 当前path
             # 计算显示哪些页码
             gap, if_left, cur_page = int(pager['display_count'] / 2), int(pager['display_count']) % 2, pager['cur_page']
             start, end = cur_page - gap, cur_page + gap - 1 + if_left
@@ -134,15 +121,21 @@ class Pager(UIModule):
 
 
 class ComTable(UIModule):
-    def render(self, docs, table_fields, actions, info_fields=None, order='', pack=None, format_value=None):
+
+    def render(self, docs, table_fields, actions, info_fields=None, hide_fields=None, order='',
+               pack=None, format_value=None):
+        from controller.task.base import TaskHandler
         pack = dumps if not pack else pack
-        format_value = Th.format_value if not format_value else format_value
+        hide_fields = [] if hide_fields is None else hide_fields
+        format_value = TaskHandler.format_value if not format_value else format_value
         info_fields = [d['id'] for d in table_fields] if not info_fields else info_fields
         return self.render_string('com_table.html', docs=docs, order=order, actions=actions,
                                   table_fields=table_fields, info_fields=info_fields,
-                                  pack=pack, format_value=format_value)
+                                  hide_fields=hide_fields, pack=pack,
+                                  format_value=format_value)
 
 
 class ComModal(UIModule):
-    def render(self, modal_fields, id='', title=''):
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id=id, title=title)
+    def render(self, modal_fields, id='', title='', buttons=None):
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')] if buttons is None else buttons
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id=id, title=title, buttons=buttons)

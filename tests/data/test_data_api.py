@@ -21,7 +21,7 @@ class TestApi(APITestCase):
         for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
             # 发布任务
             docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
-            r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
+            r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
             self.assert_code(200, r)
 
             # 测试批量领取任务
@@ -63,10 +63,10 @@ class TestApi(APITestCase):
         # 发布任务
         task_type = 'import_image'
         data = dict(task_type=task_type, import_dir='/srv/test1/abc', redo='1', layout='上下一栏')
-        r = self.fetch('/api/task/publish', body={'data': data})
+        r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
         data = dict(task_type=task_type, import_dir='/srv/test2/def', redo='0', layout='上下一栏')
-        r = self.fetch('/api/task/publish', body={'data': data})
+        r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
         # 测试领取任务
         r = self.fetch('/api/task/fetch_many/' + task_type, body={'data': {'size': 100}})

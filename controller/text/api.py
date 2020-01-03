@@ -140,7 +140,7 @@ class TextReviewApi(TaskHandler):
         """ 发布难字任务"""
         now = datetime.now()
         task = dict(task_type='text_hard', collection='page', id_name='name', doc_id=review_task['doc_id'],
-                    status=self.STATUS_OPENED, priority=review_task['priority'], steps={'todo': []},
+                    status=self.STATUS_PUBLISHED, priority=review_task['priority'], steps={'todo': []},
                     pre_tasks={}, input={'review_task': review_task['_id']}, result={'doubt': doubt},
                     create_time=now, updated_time=now, publish_time=now,
                     publish_user_id=self.current_user['_id'],

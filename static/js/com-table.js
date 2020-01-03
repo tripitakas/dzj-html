@@ -9,6 +9,12 @@ $('.sty-table .sort').click(function () {
   location.href = setQueryString('order', direction + $(this).attr('title'));
 });
 
+// 过滤
+$('.btn-filter').click(function () {
+  var title = $(this).attr('title').trim();
+  location.href = setQueryString(title.split('=')[0], title.split('=')[1])
+});
+
 // 搜索
 $('#search-input').on("keydown", function (event) {
   var keyCode = event.keyCode || event.which;
@@ -42,12 +48,25 @@ $('.pagers .page-size').on("change", function () {
   location.href = setQueryString('page_size', this.value);
 });
 
+// 列表配置
+$('#configModal .modal-confirm').click(function () {
+  $.map($('#configModal :not(:checked)'), function (item) {
+    $('.sty-table .' + $(item).attr('title')).addClass('hide');
+  });
+  $.map($('#configModal :checked'), function (item) {
+    $('.sty-table .' + $(item).attr('title')).removeClass('hide');
+  });
+
+  var data = {};
+  var key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
+  data[key] = $.map($('#configModal :not(:checked)'), function (item) {
+    return $(item).attr('title');
+  });
+  postApi('/session/config', {data: data});
+});
+
+
 /*---Modal相关代码---*/
-var $modal = $('#dataModal');
-var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
-
-// console.log(fields);
-
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
     if ('input_type' in item && item['input_type'] === 'radio') {
@@ -62,20 +81,19 @@ function setModal(modal, info, fields) {
 function getModal(modal, fields) {
   var info = {};
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio') {
-      info[item.id] = modal.find('input:radio[name=' + item.id + ']:checked').val();
-      if (!info[item.id])
-        info[item.id] = modal.find('.' + item.id + ' :checked').val();
-    } else if ('input_type' in item && item['input_type'] === 'checkbox') {
+    if ('input_type' in item && item['input_type'] === 'checkbox') {
       info[item.id] = $.map(modal.find('.' + item.id + ' :checked'), function (item) {
         return $(item).attr('title');
       });
+    } else if ('input_type' in item && item['input_type'] === 'radio') {
+      info[item.id] = modal.find('.' + item.id + ' :checked').val();
     } else if ('input_type' in item && item['input_type'] === 'select') {
       info[item.id] = modal.find('.' + item.id + ' :selected').val();
     } else {
-      info[item.id] = modal.find('.' + item.id).val();
-      if (!info[item.id])
-        info[item.id] = modal.find('.' + item.id + ' input').val();
+      info[item.id] = modal.find('.' + item.id).val() || modal.find('.' + item.id + ' input').val();
+    }
+    if (typeof info[item.id] === 'undefined' || !info[item.id]) {
+      delete info[item.id];
     }
   });
   return info;
@@ -83,10 +101,18 @@ function getModal(modal, fields) {
 
 function resetModal(modal, fields) {
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio')
-      modal.find('input:radio[name=' + item.id + ']').removeAttr("checked");
-    else
+    if ('input_type' in item && item['input_type'] === 'checkbox') {
+      $.map(modal.find('.' + item.id + ' :checked'), function (item) {
+        $(item).removeAttr('checked');
+      });
+    } else if ('input_type' in item && item['input_type'] === 'radio') {
+      modal.find('.' + item.id).removeAttr('checked');
+    } else if ('input_type' in item && item['input_type'] === 'select') {
+      modal.find('.' + item.id + ' :selected').removeAttr('selected');
+    } else {
       modal.find('.' + item.id).val('');
+      modal.find('.' + item.id + ' input').val('');
+    }
   });
 }
 
@@ -110,6 +136,10 @@ function getData(id) {
   data['_id'] = id;
   return data;
 }
+
+var $modal = $('#dataModal');
+var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
+// console.log(fields);
 
 // 新增-弹框
 $('.operation #btn-add').click(function () {
@@ -147,7 +177,6 @@ $('.btn-update').click(function () {
 // 新增/修改-提交
 $("#dataModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
-  // console.log(data);
   postApi($modal.find('#url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');
     refresh(1500);
@@ -161,7 +190,7 @@ $('.btn-remove').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var name = 'name' in data ? data.name : '';
-  var url = $(this).attr('url') || location.pathname + '/delete';
+  var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function () {
       showSuccess('成功', '数据' + name + '已删除');
@@ -173,13 +202,13 @@ $('.btn-remove').click(function () {
 });
 
 // 批量删除
-$('#bat-remove').click(function () {
+$('.operation .bat-remove').click(function () {
   var ids = $.map($('table tbody :checked'), function (item) {
     return $(item).parent().parent().attr('id');
   });
   if (!ids.length)
     return showWarning('请选择', '当前没有选中任何记录。');
-  var url = $(this).attr('url') || location.pathname + '/delete';
+  var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function () {
       showSuccess('删除成功', '数据已删除。');

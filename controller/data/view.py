@@ -13,6 +13,7 @@ from controller.base import BaseHandler
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
 from controller.cut.cuttool import CutTool
+from controller.text.texttool import TextTool
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -90,7 +91,7 @@ class DataListHandler(BaseHandler):
         try:
             model = eval(metadata.capitalize())
             docs, pager, q, order = model.find_by_page(self)
-            kwargs = model.get_page_params()
+            kwargs = model.get_page_kwargs()
             template_url = '/static/template/%s-sample.csv' % metadata
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
@@ -137,7 +138,7 @@ class DataPageHandler(TaskHandler):
     URL = '/data/page'
 
     task_statuses = {
-        '': '', 'un_published': '未发布', 'opened': '已发布未领取', 'pending': '等待前置任务',
+        '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
 
@@ -169,7 +170,7 @@ class DataPageHandler(TaskHandler):
             model = Page
             condition, params = self.get_condition(self)
             docs, pager, q, order = model.find_by_page(self, condition=condition)
-            kwargs = model.get_page_params()
+            kwargs = model.get_page_kwargs()
             self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, **kwargs)
 
@@ -178,10 +179,10 @@ class DataPageHandler(TaskHandler):
 
 
 class DataPageNavBoxHandler(TaskHandler):
-    URL = '/data/page/nav/box'
+    URL = '/data/page/box'
 
     def get(self):
-        """ 浏览检索结果的切分数据"""
+        """ 浏览页面的的切分数据"""
         try:
             op = self.get_query_argument('op', '')
             if op == 'pub':
@@ -209,6 +210,44 @@ class DataPageNavBoxHandler(TaskHandler):
 
             self.render('data_nav_box.html', page=page, chars_col=chars_col,
                         img_url=self.get_img(page), options=options, params=params)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageNavTextHandler(TaskHandler):
+    URL = '/data/page/text'
+
+    def get(self):
+        """ 浏览页面的文本数据"""
+        try:
+            op = self.get_query_argument('op', '')
+            if op == 'pub':
+                task_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
+                condition = {'$or': [{t: None} for t in task_types]}
+                params = {'op': 'pub'}
+            else:
+                condition, params = DataPageHandler.get_condition(self)
+            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
+            last = self.get_query_argument('last', '')
+            if last:
+                condition['_id'] = {'$gt': ObjectId(last)}
+                page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                if not page:
+                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
+
+            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
+            chars_col = r[2]
+
+            options = json.loads(self.get_secure_cookie('publish_text') or '{}')
+            fields = ['txt_html', 'text', 'ocr', 'ocr_col']
+            labels = dict(txt_html='审定HTML', text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
+            texts = {f: (labels[f], TextTool.txt2html(page.get(f))) for f in fields if page.get(f)}
+
+            self.render('data_nav_text.html', page=page, img_url=self.get_img(page), options=options,
+                        chars_col=chars_col, params=params, labels=labels, texts=texts)
 
         except Exception as error:
             return self.send_db_error(error)

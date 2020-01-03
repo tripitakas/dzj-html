@@ -168,7 +168,7 @@ class FetchDataTasksApi(TaskHandler):
             data = self.get_request_data()
             size = int(data.get('size') or 1)
 
-            condition = {'task_type': data_task, 'status': self.STATUS_OPENED}
+            condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
                 self.send_data_response(dict(tasks=None))

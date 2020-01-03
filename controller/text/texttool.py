@@ -11,6 +11,23 @@ from tornado.escape import url_escape
 
 class TextTool(object):
     @classmethod
+    def txt2html(cls, txt):
+        """ 把文本转换为html，文本以空行或者||为分栏"""
+        if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
+            return txt
+
+        txt = '|'.join(txt) if isinstance(txt, list) else txt
+        assert isinstance(txt, str)
+
+        html = ''
+        blocks = txt.split('||')
+        line = '<li class="line"><span contenteditable="true" class="same" base="%s">%s</span></li>'
+        for block in blocks:
+            lines = block.split('|')
+            html += '<ul class="block">%s</ul>' % ''.join([line % (l, l) for l in lines])
+        return html
+
+    @classmethod
     def html2txt(cls, html):
         lines = []
         regex = re.compile("<li.*?>.*?</li>", re.M | re.S)

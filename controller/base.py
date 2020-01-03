@@ -245,7 +245,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
-        op_name = get_op_name(op_type)
+        op_name = get_op_name(op_type) or op_type
         assert op_name, op_type + ' need add into op_type.py'
         target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')

@@ -31,7 +31,7 @@ class TestCutTask(APITestCase):
             # 发布任务
             self.login_as_admin()
             docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
-            r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
+            r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
             self.assert_code(200, r)
 
             # 领取指定的任务
@@ -72,7 +72,7 @@ class TestCutTask(APITestCase):
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
         # 发布任务
         self.login_as_admin()
-        r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))
+        r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))
         self.assert_code(200, r)
 
         # 用户expert1领取指定的任务

@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 @desc: 数据模型定义类。
+数据库字段(fields)定义格式如下:
+{
+    'id': '',  # 字段id
+    'name': '',  # 字段名称
+    'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
+    'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
+    'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
+}
 @time: 2019/12/10
 """
 import re
@@ -14,34 +22,28 @@ from bson.objectid import ObjectId
 
 
 class Model(object):
+    """ 数据库参数"""
     collection = ''  # 数据库表名
     fields = []  # 数据库字段定义
-    # 字段定义格式如下
-    # {
-    #     'id': '',  # 字段id
-    #     'name': '',  # 字段名称
-    #     'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-    #     'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
-    #     'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
-    # }
-    rules = []  # 校验规则
     primary = ''  # 主键
+    rules = []  # 校验规则
 
-    page_title = ''  # 前端页面title
-    search_tips = ''  # 列表的查询提示
-    search_fields = []  # 列表查询哪些字段
-    table_fields = [dict(id='', name='')]  # 列表显示哪些字段
-    info_fields = []  # 列表操作需要哪些字段信息
-    operations = [  # 列表包含哪些批量操作
+    """ 前端列表页面参数"""
+    page_title = ''  # 页面title
+    search_tips = ''  # 查询提示
+    search_fields = []  # 查询哪些字段
+    table_fields = [dict(id='', name='')]  # 列表包含哪些字段
+    hide_fields = []  # 列表默认隐藏哪些字段
+    info_fields = []  # 列表action操作需要哪些字段信息
+    operations = [  # 批量操作
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
-    actions = [  # 列表单条记录包含哪些操作
+    actions = [  # 单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-
     modal_fields = [dict(id='', name='', input_type='', options=[])]  # 模态框包含哪些字段
 
     @classmethod
@@ -50,10 +52,10 @@ class Model(object):
         return v.validate(doc, rules)
 
     @classmethod
-    def get_page_params(cls, fields=None):
+    def get_page_kwargs(cls, fields=None):
         fields = fields if fields else [
-            'page_title', 'operations', 'search_tips', 'table_fields',
-            'modal_fields', 'info_fields', 'actions'
+            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
+            'info_fields', 'operations', 'actions', 'modal_fields'
         ]
         return {f: getattr(cls, f) for f in fields}
 

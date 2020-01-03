@@ -29,7 +29,7 @@ class TestPeriodicTask(APITestCase):
     def test_republish_timeout_task(self):
         self.delete_tasks_and_locks()
         # 发布任务，前置任务为空
-        r = self.publish_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
+        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
         self.assert_code(200, r)
 
         # 领取任务
@@ -47,7 +47,7 @@ class TestPeriodicTask(APITestCase):
         # 测试自动回收任务
         republish_timeout_tasks(self._app.db, timeout_days=1, once_break=True)
         task = self._app.db.task.find_one({'_id': task['_id']})
-        self.assertEqual(task['status'], Th.STATUS_OPENED)
+        self.assertEqual(task['status'], Th.STATUS_PUBLISHED)
 
     def test_release_timeout_lock(self):
         # 设置数据锁时间
@@ -66,7 +66,7 @@ class TestPeriodicTask(APITestCase):
         user = self._app.db.user.find_one({'email': u.expert1[0]})
 
         # 发布任务，前置任务为空
-        r = self.publish_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
+        r = self.publish_page_tasks(dict(task_type='cut_proof', doc_ids=ready_ids, pre_tasks=[]))
         self.assert_code(200, r)
 
         # 领取任务

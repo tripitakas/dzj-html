@@ -31,7 +31,7 @@ class TestCutSave(APITestCase):
 
         # 发布任务
         self.login_as_admin()
-        r = self.publish_tasks(dict(doc_ids=[self.doc_id], task_type=task_type, pre_tasks=[], steps=[step]))
+        r = self.publish_page_tasks(dict(doc_ids=[self.doc_id], task_type=task_type, pre_tasks=[], steps=[step]))
         self.assert_code(200, r)
 
         # 领取指定的任务

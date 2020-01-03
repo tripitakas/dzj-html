@@ -2,11 +2,12 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>浏览切分数据</title>
+  <title>浏览文本数据</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
   <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet"/>
   <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -67,6 +68,28 @@
       margin: 0 10px
     }
 
+    .pfread-in {
+      padding: 70px 0 0;
+    }
+
+    .pfread-in .left {
+      border-radius: unset;
+    }
+
+    .pfread-in .right {
+      border-radius: unset;
+      margin-left: 1px;
+    }
+
+    .nav li a {
+      height: 30px;
+      line-height: 30px !important;
+    }
+
+    .nav li.active a {
+      background-color: var(--Grey_Line) !important;
+    }
+
   </style>
 </head>
 
@@ -79,26 +102,19 @@
           <div class="back">
             <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img" onclick="leave()" title="返回"/>
           </div>
-          <div class="title" title="{{page['name']}}">浏览切分数据</div>
+          <div class="title" title="{{page['name']}}">浏览文本数据</div>
           <div class="btn-group" style="margin-left: 10px">
             <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
             <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
-            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img active" id="toggle-blur" title="模糊"/>
+            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
             <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
             <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
             <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
             <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img" id="toggle-block" title="显隐栏框"/>
             <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img" id="toggle-column" title="显隐列框"/>
             <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img" id="toggle-char" title="显隐字框"/>
-            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img active" id="toggle-order" title="显隐字序"/>
           </div>
-          <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" id="toggle-more" title="更多"/>
-          <span class="btn-group hidden" id="more-group">
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-block">栏框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-column">列框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-char">字框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-oder">字序</button>
-        </span>
+          </span>
         </div>
         <div class="right">
           <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#publishModal">发布任务</button>
@@ -109,7 +125,7 @@
         <div class="left">
           <label>页面：</label><span class="name">{{page['name']}}</span>
           {% if handler.prop(page, 'level.box') %}
-          <label>切分等级：</label><span class="level-box">{{handler.prop(page, 'level.box')}}</span>
+          <label>文本等级：</label><span class="level-box">{{handler.prop(page, 'level.text')}}</span>
           {% end %}
           {% if page.get('tasks') %}
           <label>相关任务：</label>
@@ -131,9 +147,25 @@
       </div>
     </div>
 
-    <div class="full-bd">
-      <div id="holder-container">
-        <div id="holder"></div>
+    <div class="full-bd flex-content pfread-in">
+      <div class="left" id="left-region">
+        <div class="bd" id="holder-container">
+          <div id="holder"></div>
+        </div>
+      </div>
+      <div class="right" id="right-region">
+        <ul class="nav nav-tabs">
+          {% for k,v in texts.items() %}
+          <li><a href="#{{k}}" data-toggle="tab">{{v[0]}}</a></li>
+          {% end %}
+        </ul>
+        <div class="bd">
+          {% for k,v in texts.items() %}
+          <div class="sutra-text" id="{{k}}">
+            {% raw v[1] %}
+          </div>
+          {% end %}
+        </div>
       </div>
     </div>
   </div>
@@ -247,13 +279,13 @@
           <div class="task_types">
             <h4 class="control-label">选择任务类型</h4>
             <div>
-              {% set task_types = options.get('task_types', ['cut_proof', 'cut_review'])%}
+              {% set task_types = options.get('task_types', handler.get_tasks('text'))%}
+              {% for task_type in handler.get_tasks('text') %}
               <label class="checkbox-inline">
-                <input type="checkbox" title="cut_proof" {{'checked' if 'cut_proof' in task_types else ''}}>切分校对
+                <input type="checkbox" title="{{task_type}}" {{'checked' if task_type in task_types else ''}}>
+                {{handler.get_task_name(task_type)}}
               </label>
-              <label class="checkbox-inline">
-                <input type="checkbox" title="cut_review" {{'checked' if 'cut_review' in task_types else ''}}>切分审定
-              </label>
+              {% end %}
             </div>
           </div>
           <div class="pre_tasks">
@@ -349,26 +381,6 @@
     });
   });
 
-  // 修改字框
-  $('#btn-ed-char').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + encodeUrl();
-  });
-
-  // 修改栏框
-  $('#btn-ed-block').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + encodeUrl();
-  });
-
-  // 修改列框
-  $('#btn-ed-column').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + encodeUrl();
-  });
-
-  // 修改字序
-  $('#btn-ed-order').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + encodeUrl();
-  });
-
   // 下一个页面
   $('#btn-next').click(function () {
     location.href = setQueryString('last', "{{page['_id']}}");
@@ -449,7 +461,7 @@
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  $.cut.addCharOrderLinks([], true);
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
@@ -480,9 +492,6 @@
       return true;
     }
   };
-
-  // 设置图片初始模糊
-  $.cut.data.image.node.style.opacity = 0.2;
 
 </script>
 

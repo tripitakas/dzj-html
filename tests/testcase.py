@@ -201,10 +201,10 @@ class APITestCase(AsyncHTTPTestCase):
             data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
         return data
 
-    def publish_tasks(self, data):
-        """发布任务"""
+    def publish_page_tasks(self, data):
+        """ 发布页面任务"""
         assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        return self.fetch('/api/task/publish', body={'data': self.init_data(data)})
+        return self.fetch('/api/task/publish/pages', body={'data': self.init_data(data)})
 
     def delete_tasks_and_locks(self):
         """ 清空任务以及数据锁 """

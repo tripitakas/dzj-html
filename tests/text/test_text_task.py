@@ -28,7 +28,7 @@ class TestTextTask(APITestCase):
         for i, task_type in enumerate(['text_proof_1', 'text_proof_2', 'text_proof_3']):
             # 发布任务
             self.login_as_admin()
-            r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
+            r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
             self.assert_code(200, r)
 
             # 领取任务
@@ -69,7 +69,7 @@ class TestTextTask(APITestCase):
 
         # 发布审定任务
         self.login_as_admin()
-        r = self.publish_tasks(dict(task_type='text_review', doc_ids=docs_ready))
+        r = self.publish_page_tasks(dict(task_type='text_review', doc_ids=docs_ready))
         self.assert_code(200, r)
         self.assertEqual(self.parse_response(r).get('published'), [docs_ready[0]])
 
@@ -144,7 +144,7 @@ class TestTextTask(APITestCase):
 
         # 发布任务
         self.login_as_admin()
-        r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
+        r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
         self.assert_code(200, r)
 
         # 用户expert1领取指定的任务

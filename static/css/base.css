@@ -388,8 +388,17 @@ a:hover, a:visited, a:focus {
   padding: 0 10px;
 }
 
+.pagers .page-size {
+  background-color: transparent;
+}
+
 .sub-ul-hidden {
   display: none;
+}
+
+.operation .btn-img {
+  width: 22px;
+  height: 22px;
 }
 
 .sty-list .search {

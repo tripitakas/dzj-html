@@ -1,23 +1,29 @@
+<!--相关变量docs、table_fields、actions、info_fields，相关函数format_value-->
 <table class="sty-table">
   <thead>
   <tr>
     <th><input id="check-all" type="checkbox"/></th>
     {% for f in table_fields %}
+    {% set fid = f['id'].replace('-', '.') %}
     {% if f.get('filter') %}
-    <th><span class="btn-group">
-      <span class="filter" title="{{f['id']}}" data-toggle="dropdown" aria-expanded="false">
-        {{f['name']}}<span class="ion-android-sort"></span>
+    <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
+      <span class="btn-group">
+        <span class="filter" title="{{f['id']}}" data-toggle="dropdown" aria-expanded="false">
+          {% raw f['name'] %}<span class="ion-android-sort"></span>
+        </span>
+        <ul class="dropdown-menu" role="menu">
+          {% for k, v in f.get('filter').items() %}
+          <li><a class="btn-filter" title="{{'%s=%s' % (f['id'], k)}}">{{v}}</a></li>
+          {% end %}
+        </ul>
       </span>
-      <ul class="dropdown-menu" role="menu">
-        {% for k, v in f.get('filter').items() %}
-        <li><a class="btn-a" title="{{'%s=%s' % (f['id'], k)}}">{{v}}</a></li>
-        {% end %}
-      </ul>
-    </span></th>
+    </th>
     {% else %}
-    <th><span class="sort {{'active' if order in [f['id'], '-'+f['id']] else ''}}" title="{{f['id']}}">
-      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == f['id'] else ''}}"></span>
-    </span></th>
+    <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
+      <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
+      {% raw f['name'] %}<span class="ion-arrow-down-b {{'toggle' if order == fid else ''}}"></span>
+      </span>
+    </th>
     {% end %}
     {% end %}
     {% if len(actions) %}
@@ -30,13 +36,15 @@
   <tr id="{{d['_id']}}">
     <td><input type="checkbox"/></td>
     {% for f in table_fields %}
-    <td class="{{f['id']}}">{{format_value(d.get(f['id']), f['id']) or ''}}</td>
+    <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
+      {{format_value(handler.prop(d, f['id'].replace('-', '.')), f['id']) or ''}}
+    </td>
     {% end %}
     <td class="action">
       {% set info = {f: handler.prop(d, f, '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
-      <a class="{{a['action']}}">{{a['label']}}</a>
+      <a class="{{a['action']}}" title="{{a.get('title') or ''}}">{{a['label']}}</a>
       {% end %}
     </td>
   </tr>
