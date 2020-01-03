@@ -341,9 +341,6 @@ class DeleteTasksApi(TaskHandler):
 class AssignTasksApi(TaskHandler):
     URL = '/api/task/assign'
 
-    l10n = {'unauthorized': '无权访问', 'un_existed': '页面不存在', 'un_published': '任务不是已发布',
-            'lock_failed': '数据锁定失败', 'assigned': '指派成功'}
-
     @staticmethod
     def can_user_access(task_type, user):
         user_roles = ','.join(get_all_roles(user.get('roles')))

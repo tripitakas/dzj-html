@@ -23,13 +23,6 @@ from controller.task.base import TaskHandler
 class PublishPageTaskBaseHandler(TaskHandler):
     MAX_PUBLISH_RECORDS = 10000  # 用户单次发布任务最大值
 
-    l10n = {
-        'un_existed': '页面不存在', 'un_ready': '数据未就绪', 'published_before': '任务曾被发布',
-        'finished_before': '任务已完成', 'lock_level_unqualified': '数据等级不够',
-        'data_is_locked': '数据被锁定', 'published': '任务已发布',
-        'pending': '等待前置任务'
-    }
-
     def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids, batch=None):
         """ 发布某个任务类型的任务。
         :return 格式如下：

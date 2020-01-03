@@ -96,11 +96,6 @@ class PageTaskAdminHandler(TaskHandler):
     def get(self):
         """ 任务管理/页任务管理"""
         try:
-            from controller.task.api import AssignTasksApi
-            from controller.task.publish import PublishPageTaskBaseHandler
-            assign_l10n = AssignTasksApi.l10n
-            pub_l10n = PublishPageTaskBaseHandler.l10n
-
             kwargs = self.get_page_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
@@ -109,8 +104,7 @@ class PageTaskAdminHandler(TaskHandler):
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-publish_time')
             self.render(
                 'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                is_mod_enabled=self.is_mod_enabled, pub_l10n=pub_l10n, assign_l10n=assign_l10n,
-                **kwargs,
+                is_mod_enabled=self.is_mod_enabled, **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)
