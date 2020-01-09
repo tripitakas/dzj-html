@@ -11,6 +11,7 @@ from os import path
 from bson import json_util
 from bson.objectid import ObjectId
 from tornado.options import options
+from tornado.web import urlencode
 from datetime import datetime, timedelta
 
 from email.header import Header
@@ -92,9 +93,8 @@ class LoginApi(BaseHandler):
     def send_user_info(self):
         user = self.current_user
         url = self.get_query_argument('next').replace('?info=1', '').replace('&info=1', '')
-        self.set_header('sso_id', str(user['_id']))
-        self.set_header('sso_name', user['name'])
-        self.set_header('roles', user['roles'])
+        url += ('&' if '?' in url else '?') + urlencode(dict(
+            sso_id=str(user['_id']), sso_name=user['name'], roles=user['roles']))
         self.send_data_response(dict(redirect=url))
 
 
