@@ -33,7 +33,7 @@ def validate(data, rules):
 
 def i18n_trans(key):
     maps = {
-        'name': '姓名',
+        'name': '名称',
         'phone': '手机',
         'email': '邮箱',
         'email_code': '邮箱验证码',
@@ -44,6 +44,7 @@ def i18n_trans(key):
         'gender': '性别',
         'priority': '优先级',
         'task_type': '任务类型',
+        'task_types': '任务类型',
         'doc_ids': '数据',
         'sutra_code': '经编码',
         'sutra_name': '经名',

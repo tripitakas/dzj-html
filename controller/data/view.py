@@ -5,12 +5,15 @@
 @time: 2019/3/13
 """
 import re
+import json
 from functools import cmp_to_key
 from bson.objectid import ObjectId
 import controller.errors as e
 from controller.base import BaseHandler
 from controller.helper import cmp_page_code
-from controller.task.base import TaskHandler as Th
+from controller.task.base import TaskHandler
+from controller.cut.cuttool import CutTool
+from controller.text.texttool import TextTool
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -88,7 +91,7 @@ class DataListHandler(BaseHandler):
         try:
             model = eval(metadata.capitalize())
             docs, pager, q, order = model.find_by_page(self)
-            kwargs = model.get_page_params()
+            kwargs = model.get_page_kwargs()
             template_url = '/static/template/%s-sample.csv' % metadata
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
@@ -97,21 +100,6 @@ class DataListHandler(BaseHandler):
                 {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
             ]
             self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class DataPageHandler(BaseHandler):
-    URL = '/data/page'
-
-    def get(self):
-        """ 页数据管理"""
-        try:
-            model = Page
-            docs, pager, q, order = model.find_by_page(self)
-            kwargs = model.get_page_params()
-            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -127,18 +115,139 @@ class DataPageViewHandler(BaseHandler, Page):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面')
 
-            fields = ['name', 'width', 'height', 'layout', 'img_cloud_path', 'page_code',
-                      'uni_sutra_code', 'sutra_code', 'reel_code', ]
+            fields = ['name', 'width', 'height', 'source', 'layout', 'img_cloud_path', 'page_code',
+                      'uni_sutra_code', 'sutra_code', 'reel_code']
             metadata = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
-            fields = ['lock.box', 'lock.text', 'lock.level.box', 'lock.level.text']
+            fields = ['lock.box', 'lock.text', 'level.box', 'level.text']
             data_lock = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['ocr', 'ocr_col', 'text']
             page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['blocks', 'columns', 'chars']
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
+            page_tasks = self.prop(page, 'tasks') or {}
 
             self.render('data_page_view.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
-                        page_box=page_box, page=page, format_value=Th.format_value)
+                        page_box=page_box, page_tasks=page_tasks, page=page,
+                        Th=TaskHandler)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageHandler(TaskHandler):
+    URL = '/data/page'
+
+    task_statuses = {
+        '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
+        'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
+    }
+
+    @staticmethod
+    def get_condition(self):
+        condition, params = dict(), dict()
+        for field in ['name', 'source', 'layout', 'box_ready']:
+            value = self.get_query_argument(field, '')
+            if value:
+                params[field] = value
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        for field in ['level_box', 'level_text']:
+            value = self.get_query_argument(field, '')
+            m = re.search(r'([><=]+)(\d+)', value)
+            if m:
+                params[field] = m.group(0)
+                op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
+                condition.update({field.replace('_', '.'): {op: value} if op else value})
+        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
+            value = self.get_query_argument(field, '')
+            if value:
+                params[field] = value
+                condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        return condition, params
+
+    def get(self):
+        """ 页数据管理"""
+        try:
+            model = Page
+            condition, params = self.get_condition(self)
+            docs, pager, q, order = model.find_by_page(self, condition=condition)
+            kwargs = model.get_page_kwargs()
+            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, params=params,
+                        task_statuses=self.task_statuses, **kwargs)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageNavBoxHandler(TaskHandler):
+    URL = '/data/page/box'
+
+    def get(self):
+        """ 浏览页面的的切分数据"""
+        try:
+            op = self.get_query_argument('op', '')
+            if op == 'pub':
+                condition = {'$or': [{t: None} for t in ['cut_proof', 'cut_review']]}
+                params = {'op': 'pub'}
+            else:
+                condition, params = DataPageHandler.get_condition(self)
+            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
+            last = self.get_query_argument('last', '')
+            if last:
+                condition['_id'] = {'$gt': ObjectId(last)}
+                page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                if not page:
+                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
+
+            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
+            chars_col = r[2]
+
+            try:
+                options = json.loads(self.get_secure_cookie('publish_box'))
+            except (TypeError, ValueError, AttributeError):
+                options = {}
+
+            self.render('data_nav_box.html', page=page, chars_col=chars_col,
+                        img_url=self.get_img(page), options=options, params=params)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataPageNavTextHandler(TaskHandler):
+    URL = '/data/page/text'
+
+    def get(self):
+        """ 浏览页面的文本数据"""
+        try:
+            op = self.get_query_argument('op', '')
+            if op == 'pub':
+                task_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
+                condition = {'$or': [{t: None} for t in task_types]}
+                params = {'op': 'pub'}
+            else:
+                condition, params = DataPageHandler.get_condition(self)
+            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
+            last = self.get_query_argument('last', '')
+            if last:
+                condition['_id'] = {'$gt': ObjectId(last)}
+                page = self.db.page.find_one(condition, sort=[('_id', 1)])
+                if not page:
+                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
+
+            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
+            chars_col = r[2]
+
+            options = json.loads(self.get_secure_cookie('publish_text') or '{}')
+            fields = ['txt_html', 'text', 'ocr', 'ocr_col']
+            labels = dict(txt_html='审定HTML', text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
+            texts = {f: (labels[f], TextTool.txt2html(page.get(f))) for f in fields if page.get(f)}
+
+            self.render('data_nav_text.html', page=page, img_url=self.get_img(page), options=options,
+                        chars_col=chars_col, params=params, labels=labels, texts=texts)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -1,6 +1,6 @@
 <script src="{{ static_url('js/pick-task.js') }}"></script>
 <script>
-  var from = getQueryString('from');
+  var from = decodeUrl(getQueryString('from'));
   var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
 
   // 保存任务

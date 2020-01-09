@@ -11,6 +11,7 @@ from os import path
 from bson import json_util
 from bson.objectid import ObjectId
 from tornado.options import options
+from tornado.web import urlencode
 from datetime import datetime, timedelta
 
 from email.header import Header
@@ -50,7 +51,10 @@ class LoginApi(BaseHandler):
                 return self.send_error_response(e.unauthorized, message='登录失败，请一分钟后重试')
 
             # 尝试登录，成功后清除登录失败记录，设置为当前用户
-            self.login(self, data.get('phone_or_email'), data.get('password'))
+            next_url = self.get_query_argument('next', '')
+            self.login(self, data.get('phone_or_email'), data.get('password'), send_response='info=1' not in next_url)
+            if 'info=1' in next_url:
+                LoginApi.send_user_info(self)
 
         except DbError as error:
             return self.send_db_error(error)
@@ -84,6 +88,14 @@ class LoginApi(BaseHandler):
         if send_response:
             self.send_data_response(user)
         return user
+
+    @staticmethod
+    def send_user_info(self):
+        user = self.current_user
+        url = self.get_query_argument('next').replace('?info=1', '').replace('&info=1', '')
+        url += ('&' if '?' in url else '?') + urlencode(dict(
+            sso_id=str(user['_id']), sso_name=user['name'], roles=user['roles']))
+        self.send_data_response(dict(redirect=url))
 
 
 class LogoutApi(BaseHandler):
@@ -139,7 +151,12 @@ class RegisterApi(BaseHandler):
 
             message = '%s, %s, %s' % (data.get('email'), data.get('phone'), data['name'])
             self.add_op_log('register', context=message, username=data['name'])
-            self.send_data_response(data)
+
+            next_url = self.get_query_argument('next', '')
+            if 'info=1' in next_url:
+                LoginApi.send_user_info(self)
+            else:
+                self.send_data_response(data)
 
         except DbError as error:
             return self.send_db_error(error)

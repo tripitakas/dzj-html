@@ -1,127 +1,9 @@
-{% extends "task_admin.html" %}
-
-
-{% block operation %}
-<div class="operation">
-  <div class="btn-group">
-    <button class="btn btn-default waves-effect" id="bat-remove" url="/task/delete/{{task_type}}">批量刪除</button>
-    <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#publishImportModal">
-      发布任务
-    </button>
-    <div style="margin: 5px; display: inline-block; cursor: pointer">
-      <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-    </div>
-  </div>
-</div>
+{% extends "com_list.html" %}
+{% block custom-css %}
+<link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
 {% end %}
 
-{% block table %}
-<table class="sty-table">
-  <thead>
-  <tr>
-    <th><input id="check-all" type="checkbox"/></th>
-    <th><span>网盘名称</span></th>
-    <th><span>导入文件夹</span></th>
-    <th><span>是否覆盖<br/>已有图片</span></th>
-    <th><span title="layout" class="sort {{'active' if 'layout' in order else ''}}">
-      图片版面结构<span class="ion-arrow-down-b {{'toggle' if order == 'layout' else ''}}"></span>
-    </span></th>
-    <th><span title="status" class="sort {{'active' if 'status' in order else ''}}">
-      状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
-    </span></th>
-    <th><span title="publish_time" class="sort {{'active' if 'publish_time' in order else ''}}">
-      发布时间<span class="ion-arrow-down-b {{'toggle' if order == 'publish_time' else ''}}"></span>
-    </span></th>
-    <th><span title="picked_time" class="sort {{'active' if 'picked_time' in order else ''}}">
-      领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
-    </span></th>
-    <th><span title="finished_time" class="sort {{'active' if 'finished_time' in order else ''}}">
-      完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
-    </span></th>
-    <th><span>操作</span></th>
-  </tr>
-  </thead>
-
-  <tbody>
-  {% for t in tasks %}
-  <tr class="task-tr" id="{{t['_id']}}">
-    <td><input type="checkbox"/></td>
-    <td>{{handler.prop(t, 'input.pan_name') or ''}}</td>
-    <td>{{handler.prop(t, 'input.import_dir') or ''}}</td>
-    <td>{{'是' if handler.prop(t, 'input.redo') else '否'}}</td>
-    <td>{{handler.prop(t, 'input.layout', '')}}</td>
-    <td>{{handler.get_status_name(t.get('status')) or ''}}</td>
-    <td>{{to_date_str(t.get('publish_time'))}}</td>
-    <td>{{to_date_str(t.get('picked_time'))}}</td>
-    <td>{{to_date_str(t.get('finished_time'))}}</td>
-    <td class="action">
-      {% set info = {f:t.get(f) for f in ['_id', 'doc_id', 'status']} %}
-      <span class="hide info">{{dumps(info)}}</span>
-      <a href="/task/info/{{t['_id']}}">详情</a>
-      <a class="{{'btn-remove' if t['status'] not in ['picked', 'finished'] else 'disabled'}}" url="/task/delete/{{task_type}}">删除</a>
-      <a class="{{'btn-republish' if t['status'] in ['picked', 'failed'] else 'disabled'}}">重新发布</a>
-    </td>
-  </tr>
-  {% end %}
-  </tbody>
-</table>
-{% end %}
-
-
-{% block modal %}
-<div id="publishImportModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishImportModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title" id="modal-title">发布任务-导入图片</h4>
-      </div>
-      <div class="modal-body">
-        <div class="id-values">
-          <h4 class="control-label">导入哪个文件夹</h4>
-          <ul class="nav nav-tabs" id="tabContent">
-            <li class="active"><a href="#tab-pan" data-toggle="tab">网盘目录</a></li>
-            <li><a href="#tab-manual" data-toggle="tab">手工输入</a></li>
-          </ul>
-          <div class="tab-content">
-            <div class="tab-pane active" id="tab-pan">
-              <div style="display: flex">
-                <input type="text" class="form-control" id="pan-name" value="{{pan_name}}"/>
-                <span style="margin-top: 5px">@</span>
-                <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
-              </div>
-            </div>
-            <div class="tab-pane" id="tab-manual">
-              <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
-            </div>
-          </div>
-        </div>
-        <div>
-          <h4 class="control-label">图片重复时如何处理？</h4>
-          <input type="radio" name="redo" value="否" style="margin: 0 10px 0 0" checked>跳过
-          <input type="radio" name="redo" value="是" style="margin: 0 10px">重新导入<br>
-        </div>
-        <div>
-          <h4 class="control-label">图片版面结构</h4>
-          <select class="form-control" id="img-layout">
-            <option>上下一栏</option>
-            <option>上下两栏</option>
-            <option>上下三栏</option>
-            <option>左右两栏</option>
-          </select>
-        </div>
-        <div>
-          <h4 class="control-label">备注</h4>
-          <input type="text" class="form-control" id="remark" placeholder="备注"/>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+{% block custom-modal %}
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
@@ -159,19 +41,100 @@
     </div>
   </div>
 </div>
+<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title" id="modal-title">发布任务-导入图片</h4>
+      </div>
+      <div class="modal-body">
+        <div class="batch">
+          <h4 class="control-label">批次</h4>
+          <input type="text" class="form-control" placeholder="批次"/>
+        </div>
+        <div class="modal-tab import_dir">
+          <h4 class="control-label">导入哪个文件夹</h4>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#wang-pan" data-toggle="tab">网盘目录</a></li>
+            <li><a href="#manual" data-toggle="tab">手工输入</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="wang-pan">
+              <div style="display: flex">
+                <input type="text" class="form-control" id="pan-name" value="{{pan_name}}"/>
+                <span style="margin-top: 5px">@</span>
+                <input type="text" class="form-control" id="pan-dir" placeholder="请输入网盘中的文件夹路径"/>
+              </div>
+            </div>
+            <div class="tab-pane" id="manual">
+              <input type="text" class="form-control" id="manual-dir" placeholder="请输入绝对路径"/>
+            </div>
+          </div>
+        </div>
+        <div class="priority">
+          <h4 class="control-label">选择优先级</h4>
+          <input type="radio" name="priority" value="3" style="margin-right: 10px">高
+          <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
+          <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+        </div>
+        <div class="layout">
+          <h4 class="control-label">版面结构</h4>
+          <input type="radio" name="layout" value="上下一栏" style="margin-right: 10px" checked>上下一栏
+          <input type="radio" name="layout" value="上下两栏" style="margin: 0 10px">上下两栏
+          <input type="radio" name="layout" value="上下三栏" style="margin: 0 10px">上下三栏
+          <input type="radio" name="layout" value="左右两栏" style="margin: 0 10px">左右两栏
+        </div>
+        <div class="redo">
+          <h4 class="control-label">重复时如何处理？</h4>
+          <input type="radio" name="redo" value="否" style="margin-right: 10px" checked>跳过
+          <input type="radio" name="redo" value="是" style="margin: 0 10px">重新导入
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
 <script>
-  $("#publishImportModal .modal-confirm").click(function () {
+  // 任务详情
+  $('.sty-table .action .btn-detail').click(function () {
+    var node = $(this).parent().parent();
+    location.href = '/task/detail/' + node.attr('id');
+  });
+  // 重新发布任务
+  $('.btn-republish').click(function () {
+    var node = $(this).parent().parent();
+    var regex = /(进行中|失败)/i;
+    if (!node.find('.status').text().trim().match(regex)) {
+      return showWarning('状态有误', '只能重新发布进行中或已失败的任务！');
+    }
+    showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
+      postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {
+        window.location.reload();
+      });
+    });
+  });
+</script>
+<script>
+  // 发布任务
+  var $publishModal = $('#publishModal');
+  var publishFields = [
+    {id: 'batch'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
+    {id: 'layout', input_type: 'radio'}
+  ];
+  $publishModal.find(".modal-confirm").click(function () {
+    var data = getModal($publishModal, publishFields);
     var active = $('.tab-content .tab-pane.active').attr('id');
-    var panName = active === 'tab-pan' ? $('#pan-name').val().trim() : '';
-    var importDir = active === 'tab-pan' ? $('#pan-dir').val() : $('#manual-dir').val();
-    var layout = $('#img-layout option:selected').text();
-    var redo = $('#publishImportModal input:radio:checked').val();
-    var remark = $('#publishImportModal #remark').val();
-    var data = {task_type: 'import_image', import_dir: importDir, layout: layout, pan_name: panName, redo: redo, remark: remark};
-    postApi('/task/publish', {data: data}, function () {
+    var panName = active === 'wang-pan' ? $('#pan-name').val().trim() : '';
+    var importDir = active === 'wang-pan' ? $('#pan-dir').val().trim() : $('#manual-dir').val().trim();
+    Object.assign(data, {task_type: 'import_image', import_dir: importDir, pan_name: panName});
+    postApi('/task/publish/import', {data: data}, function () {
       showSuccess('成功', '数据已提交。');
       refresh(1000);
     }, function (error) {

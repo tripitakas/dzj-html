@@ -53,7 +53,7 @@ function showTips(title, text, reload) {
           window.location.reload();
         });
   } else {
-    swal({title: title, text: text, type: 'info', html: true, showConfirmButton: false, allowOutsideClick: true});
+    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
   }
 }
 
@@ -77,7 +77,7 @@ function getQueryString(name) {
   if (r != null) {
     return unescape(r[2]);
   }
-  return null;
+  return '';
 }
 
 function setQueryString(name, value) {
@@ -92,6 +92,15 @@ function setQueryString(name, value) {
     search = '?' + add;
   }
   return location.pathname + search;
+}
+
+function encodeUrl() {
+  var url = location.pathname + location.search;
+  return url.replace(/&/g, '@');
+}
+
+function decodeUrl(url) {
+  return url && url.replace(/@/g, '&');
 }
 
 /**

@@ -41,6 +41,7 @@ class TextProofHandler(TaskHandler, TextTool):
             if steps['current'] == 'select_compare_text':
                 return self.select_compare_text(task, page, mode, steps, readonly, num)
             else:
+                CutTool.gen_ocr_text(page)
                 return self.proof(task, page, mode, steps, readonly)
 
         except Exception as error:

@@ -10,20 +10,20 @@ from controller import validate as v
 
 
 class Task(Model):
-    # 数据库定义
+    """ 数据库定义"""
     collection = 'task'
+    primary = '_id'
     fields = [
         {'id': '_id', 'name': '主键'},
-        {'id': 'batch', 'name': '任务批次'},
-        {'id': 'task_type', 'name': '任务类型'},
-        {'id': 'collection', 'name': '任务关联的文档集合'},
-        {'id': 'id_name', 'name': '文档键名'},
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'status', 'name': '任务状态'},
-        {'id': 'priority', 'name': '任务优先级'},
-        {'id': 'steps', 'name': '任务步骤'},
+        {'id': 'batch', 'name': '批次号'},
+        {'id': 'task_type', 'name': '类型'},
+        {'id': 'collection', 'name': '数据表'},
+        {'id': 'id_name', 'name': '主键名'},
+        {'id': 'doc_id', 'name': '数据编码'},
+        {'id': 'status', 'name': '状态'},
+        {'id': 'priority', 'name': '优先级'},
+        {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'lock', 'name': '数据锁'},
         {'id': 'input', 'name': '任务输入参数'},
         {'id': 'result', 'name': '任务输出结果'},
         {'id': 'return_reason', 'name': '退回理由'},
@@ -38,46 +38,7 @@ class Task(Model):
         {'id': 'finished_time', 'name': '完成时间'},
     ]
     rules = [
-        (v.not_empty, 'task_type', 'name'),
-    ]
-    primary = '_id'
-
-    # 前端列表页面定义
-    search_fields = ['doc_id', 'batch']
-    search_tips = '请搜索页编码或批次号'
-    operations = [  # 列表包含哪些批量操作
-        {'operation': 'bat-assign', 'label': '批量指派'},
-        {'operation': 'bat-remove', 'label': '批量删除'},
-    ]
-    actions = [  # 列表单条记录包含哪些操作
-        {'action': 'btn-view', 'label': '查看'},
-        {'action': 'btn-update', 'label': '修改'},
-        {'action': 'btn-remove', 'label': '删除'},
-    ]
-    table_fields = [
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'batch', 'name': '任务批次'},
-        {'id': 'task_type', 'name': '任务类型', 'options': []},
-        {'id': 'status', 'name': '状态', 'options': []},
-        {'id': 'priority', 'name': '优先级'},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'publish_time', 'name': '发布时间'},
-        {'id': 'picked_by', 'name': '领取人'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'finished_time', 'name': '完成时间'},
-    ]
-    modal_fields = [
-        {'id': 'batch', 'name': '任务批次'},
-    ]
-
-    return_modal_fields = [
-        {'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'},
-    ]
-
-    doubt_modal_fields = [
-        {'id': 'doubt_input', 'name': '存疑文本', 'readonly': True},
-        {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'},
+        (v.not_empty, 'batch', 'task_type'),
     ]
 
     # 任务类型定义
@@ -102,12 +63,12 @@ class Task(Model):
         'cut_proof': {
             'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['block_box', '栏框'], ['char_box', '字框'], ['column_box', '列框'], ['char_order', '字序']],
+            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
         },
         'cut_review': {
             'name': '切分审定', 'pre_tasks': ['cut_proof'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['block_box', '栏框'], ['char_box', '字框'], ['column_box', '列框'], ['char_order', '字序']],
+            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
         },
         'ocr_text': {
             'name': 'OCR文字', 'pre_tasks': ['cut_review'],
@@ -157,26 +118,33 @@ class Task(Model):
         return task_types
 
     @classmethod
-    def get_shared_field(cls, task_type):
-        """ 获取任务保护的共享字段 """
-        return prop(cls.task_types, '%s.data.shared_field' % task_type)
+    def is_group(cls, task_type):
+        return 'groups' in prop(cls.all_task_types(), task_type)
+
+    @classmethod
+    def get_page_tasks(cls):
+        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == 'page'}
 
     @classmethod
     def get_task_meta(cls, task_type):
         return cls.all_task_types().get(task_type)
 
     @classmethod
-    def is_group(cls, task_type):
-        return 'groups' in prop(cls.all_task_types(), task_type)
+    def get_shared_field(cls, task_type):
+        return prop(cls.task_types, '%s.data.shared_field' % task_type)
 
     @classmethod
-    def get_task_data_conf(cls, task_type):
+    def get_data_conf(cls, task_type):
         d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
         return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
 
     @classmethod
-    def get_page_tasks(cls):
-        return [t for t, v in cls.task_types.items() if prop(v, 'data.collection') == 'page']
+    def get_task_steps(cls, task_type):
+        return prop(cls.all_task_types(), task_type + '.steps', [])
+
+    @classmethod
+    def get_pre_tasks(cls, task_type):
+        return prop(cls.all_task_types(), task_type + '.pre_tasks', [])
 
     @classmethod
     def task_names(cls):
@@ -184,7 +152,7 @@ class Task(Model):
 
     @classmethod
     def get_task_name(cls, task_type):
-        return cls.task_names().get(task_type)
+        return cls.task_names().get(task_type) or task_type
 
     @classmethod
     def step_names(cls):
@@ -196,59 +164,29 @@ class Task(Model):
 
     @classmethod
     def get_step_name(cls, step):
-        return cls.step_names().get(step)
+        return cls.step_names().get(step) or step
 
     # 任务状态表
-    STATUS_OPENED = 'opened'
+    STATUS_PUBLISHED = 'published'
     STATUS_PENDING = 'pending'
-    STATUS_FETCHED = 'fetched'  # 已获取。小欧获取任务后尚未进行确认时的状态
+    STATUS_FETCHED = 'fetched'
     STATUS_PICKED = 'picked'
-    STATUS_FAILED = 'failed'  # 失败。小欧执行任务失败时的状态
+    STATUS_FAILED = 'failed'
     STATUS_RETURNED = 'returned'
     STATUS_FINISHED = 'finished'
     task_statuses = {
-        STATUS_OPENED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
+        STATUS_PUBLISHED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
         STATUS_PICKED: '进行中', STATUS_FAILED: '失败', STATUS_RETURNED: '已退回',
         STATUS_FINISHED: '已完成',
     }
 
     @classmethod
     def get_status_name(cls, status):
-        return cls.task_statuses.get(status)
+        return cls.task_statuses.get(status) or status
 
     # 任务优先级
-    priority_names = {3: '高', 2: '中', 1: '低'}
+    priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
     def get_priority_name(cls, priority):
-        return cls.priority_names.get(priority)
-
-
-class Statistic(Model):
-    collection = 'statistic'
-    fields = [
-        {'id': '_id', 'name': '主键'},
-        {'id': 'day', 'name': '日期'},
-        {'id': 'user_id', 'name': '用户ID'},
-        {'id': 'task_type', 'name': '任务类型'},
-        {'id': 'count', 'name': '数量'},
-    ]
-    rules = [
-        (v.not_empty, 'day', 'user_id', 'task_type', 'count'),
-    ]
-    primary = '_id'
-
-    search_fields = ['task_type']
-    search_tips = '请搜索任务类型'
-    operations = [
-        {'operation': 'btn-search', 'label': '数据查询'},
-        {'operation': 'btn-statistic', 'label': '数据统计'},
-    ]
-    actions = []
-    table_fields = [
-        {'id': 'day', 'name': '日期'},
-        {'id': 'user_id', 'name': '用户ID'},
-        {'id': 'task_type', 'name': '任务类型'},
-        {'id': 'count', 'name': '数量'},
-    ]
-    modal_fields = []
+        return cls.priorities.get(priority) or priority

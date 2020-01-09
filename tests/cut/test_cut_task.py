@@ -31,7 +31,7 @@ class TestCutTask(APITestCase):
             # 发布任务
             self.login_as_admin()
             docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
-            r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
+            r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
             self.assert_code(200, r)
 
             # 领取指定的任务
@@ -42,7 +42,7 @@ class TestCutTask(APITestCase):
 
             # 提交各步骤
             page = self._app.db.page.find_one({'name': 'QL_25_16'})
-            steps = ['char_box', 'block_box', 'column_box', 'char_order']
+            steps = ['chars', 'blocks', 'columns', 'orders']
             for step in steps:
                 data_field = CutTaskApi.step2field.get(step)
                 data = {'step': step, 'submit': True, 'boxes': json_encode(page[data_field])}
@@ -58,7 +58,7 @@ class TestCutTask(APITestCase):
         self.login(u.expert1[0], u.expert1[1])
         # 测试专家编辑提交数据
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
-        steps = ['char_box', 'block_box', 'column_box', 'char_order']
+        steps = ['chars', 'blocks', 'columns', 'orders']
         for step in steps:
             data_field = CutTaskApi.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
@@ -68,11 +68,11 @@ class TestCutTask(APITestCase):
     def test_cut_mode(self):
         """测试切分页面的几种模式"""
         docs_ready = ['QL_25_16']
-        task_type, step = 'cut_proof', 'char_box'
+        task_type, step = 'cut_proof', 'chars'
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
         # 发布任务
         self.login_as_admin()
-        r = self.publish_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))
+        r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))
         self.assert_code(200, r)
 
         # 用户expert1领取指定的任务

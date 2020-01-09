@@ -1,41 +1,29 @@
 {% extends "com_list.html" %}
+{% block custom-css %}
+<style>
+  .btn-config, .btn-help {
+    display: none;
+  }
+</style>
+{% end %}
 
-{% block table %}
-<table class="sty-table">
-  <thead>
-  <tr>
-    <th><span title="doc_id" class="sort {{'active' if 'doc_id' in order else ''}}">
-      页编码<span class="ion-arrow-down-b {{'toggle' if order == 'doc_id' else ''}}"></span>
-    </span></th>
-    <th><span title="status" class="sort {{'active' if 'status' in order else ''}}">
-      任务状态<span class="ion-arrow-down-b {{'toggle' if order == 'status' else ''}}"></span>
-    </span></th>
-    <th><span title="picked_time" class="sort {{'active' if 'picked_time' in order else ''}}">
-      领取时间<span class="ion-arrow-down-b {{'toggle' if order == 'picked_time' else ''}}"></span>
-    </span></th>
-    <th><span title="finished_time" class="sort {{'active' if 'finished_time' in order else ''}}">
-      完成时间<span class="ion-arrow-down-b {{'toggle' if order == 'finished_time' else ''}}"></span>
-    </span></th>
-    <th><span>操作</span></th>
-  </tr>
-  </thead>
-  <tbody>
-  {% for t in tasks %}
-  <tr id="{{t['_id']}}" class="task-tr">
-    <td><a class="doc_id" href="/page/{{t['doc_id']}}">{{t['doc_id']}}</a></td>
-    <td>{{handler.get_status_name(t['status']) or ''}}</td>
-    <td>{{to_date_str(t.get('picked_time'))}}</td>
-    <td>{{to_date_str(t.get('finished_time'))}}</td>
-    <td class="action">
-      <a href="/task/{{t['task_type']}}/{{t['_id']}}?from={{current_path}}">查看</a>
-      {% if t['status'] == handler.STATUS_PICKED %}
-      <a href="/task/do/{{t['task_type']}}/{{t['_id']}}">继续</a>
-      {% elif t['status'] == handler.STATUS_FINISHED %}
-      <a href="/task/update/{{t['task_type']}}/{{t['_id']}}">修改</a>
-      {% end %}
-    </td>
-  </tr>
-  {% end %}
-  </tbody>
-</table>
+{% block custom-js %}
+<script>
+  // 查看
+  $('.action .my-task-view').click(function () {
+    var data = getData($(this).parent().parent().attr('id'));
+    location.href = '/task/' + data.task_type + '/' + data._id + '?from=' + location.pathname;
+  });
+  // 继续
+  $('.action .my-task-do').click(function () {
+    var data = getData($(this).parent().parent().attr('id'));
+    location.href = '/task/do/' + data.task_type + '/' + data._id;
+  });
+  // 修改
+  $('.action .my-task-update').click(function () {
+    var data = getData($(this).parent().parent().attr('id'));
+    location.href = '/task/update/' + data.task_type + '/' + data._id + '?from=' + location.pathname;
+  });
+
+</script>
 {% end %}

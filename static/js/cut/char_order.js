@@ -278,6 +278,7 @@
     this.links = [];        // linksOfCol中的连线，及新增连线
     this.state = {tol: 1};
     this.changed = false;
+    this.readonly = false;
 
     // 创建字框节点
     console.assert(src instanceof Array);
@@ -484,7 +485,7 @@
     // 拖拽出入点到字框或空白处
     mouseDrag: function (pt) {
       if (!this.state.dragging && (this.state.inletHit || this.state.outletHit && this.hover.line)) {
-        this.state.dragging = getDistance(state.downOrigin, pt) > this.state.avgLen / 3;
+        this.state.dragging = getDistance(state.downOrigin, pt) > this.state.avgLen / 3 && !this.readonly;
         if (!this.state.dragging) {
           return;
         }
@@ -554,7 +555,7 @@
         }
         // 新加连接
         else if (!srcLink) {
-          changed = this.addLink(link.c1, link.c2);
+          changed = this.addLink(link.c1, link.c2, enableSelfLink);
         }
       }
       this.state.dragging = false;
@@ -608,9 +609,9 @@
     },
 
     // 新加连接
-    addLink: function (c1, c2) {
+    addLink: function (c1, c2, enableSelfLink) {
       var link = this.findLinkBetween(c1, c2);
-      if (!link && c1 && c2 && c1 !== c2) {
+      if (!link && c1 && c2 && (c1 !== c2 || enableSelfLink)) {
         this.changed = true;
         link = new Link(c1, c2);
         link.shapes.line = link.createLine(colors.link[2]);
@@ -731,10 +732,13 @@
       }
     },
 
-    addCharOrderLinks: function (chars_col) {
+    addCharOrderLinks: function (chars_col, readonly) {
       if (!cs) {
-        cs = new CharNodes(data.chars);
+        cs = new CharNodes(data.chars.filter(function(c) {
+          return c.shape && (!c.shape.data('class') || c.shape.data('class') === 'char');
+        }));
         cs.buildColumns(chars_col);
+        cs.readonly = readonly;
       }
       state.mouseHover = mouseHover;
       state.mouseDown = mouseDown;

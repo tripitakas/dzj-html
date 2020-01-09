@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>浏览文本数据</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .m-header {
+      height: 70px;
+    }
+
+    .m-header .header-line {
+      width: 100%;
+      height: 40px;
+      color: var(--Brown_Darker);
+    }
+
+    .m-header .sub-line {
+      height: 30px;
+      line-height: 30px;
+      padding-left: 10px;
+      user-select: text;
+      background-color: var(--Grey_Line);
+    }
+
+    .sub-line label {
+      font-weight: 300;
+      color: var(--Color_333);
+    }
+
+    .sub-line .name {
+      margin-right: 10px;
+    }
+
+    .sub-line .box-ready {
+      margin-right: 5px;
+      background-color: transparent;
+    }
+
+    .full-bd {
+      height: 100%;
+      padding-top: 70px;
+    }
+
+    #holder-container {
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .panel-body {
+      padding: 0;
+    }
+
+    .btn-img.active {
+      border: 1px solid #999;
+    }
+
+    .priority input[type='radio'], .force input[type='radio'] {
+      margin: 0 10px
+    }
+
+    .pfread-in {
+      padding: 70px 0 0;
+    }
+
+    .pfread-in .left {
+      border-radius: unset;
+    }
+
+    .pfread-in .right {
+      border-radius: unset;
+      margin-left: 1px;
+    }
+
+    .nav li a {
+      height: 30px;
+      line-height: 30px !important;
+    }
+
+    .nav li.active a {
+      background-color: var(--Grey_Line) !important;
+    }
+
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="header-line main-line">
+        <div class="left">
+          <div class="back">
+            <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img" onclick="leave()" title="返回"/>
+          </div>
+          <div class="title" title="{{page['name']}}">浏览文本数据</div>
+          <div class="btn-group" style="margin-left: 10px">
+            <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
+            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
+            <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
+            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img" id="toggle-block" title="显隐栏框"/>
+            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img" id="toggle-column" title="显隐列框"/>
+            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img" id="toggle-char" title="显隐字框"/>
+          </div>
+          </span>
+        </div>
+        <div class="right">
+          <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#publishModal">发布任务</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-next">下一页</button>
+        </div>
+      </div>
+      <div class="header-line sub-line">
+        <div class="left">
+          <label>页面：</label><span class="name">{{page['name']}}</span>
+          {% if handler.prop(page, 'level.box') %}
+          <label>文本等级：</label><span class="level-box">{{handler.prop(page, 'level.text')}}</span>
+          {% end %}
+          {% if page.get('tasks') %}
+          <label>相关任务：</label>
+          <span class="tasks">
+          {% for task, status in page.get('tasks', {}).items() %}
+          <span class="task">{{handler.get_task_name(task)+'/'+handler.get_status_name(status)}}</span>
+          {% end %}
+          {% end %}
+        </span>
+        </div>
+        <div class="right">
+          <label>切分已就绪：</label>
+          <span>
+          {% for v in ['是', '否']%}
+          <input type="radio" name="box-ready" class="box-ready" value="{{v}}" {{'checked' if page.get('box_ready') == v else ''}}>{{v}}
+          {% end %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="full-bd flex-content pfread-in">
+      <div class="left" id="left-region">
+        <div class="bd" id="holder-container">
+          <div id="holder"></div>
+        </div>
+      </div>
+      <div class="right" id="right-region">
+        <ul class="nav nav-tabs">
+          {% for k,v in texts.items() %}
+          <li><a href="#{{k}}" data-toggle="tab">{{v[0]}}</a></li>
+          {% end %}
+        </ul>
+        <div class="bd">
+          {% for k,v in texts.items() %}
+          <div class="sutra-text" id="{{k}}">
+            {% raw v[1] %}
+          </div>
+          {% end %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、功能概述</div>
+          <div class="intro">
+            该功能用于检查图片的栏框、字框、列框、字序等是否正确，并对不正确的切分框及字序进行修改。
+            工作步骤依次是：栏框校对、字框校对、列框校对和字序校对。<br/>
+            栏框校对要求将图片的正文（不包括边缘的页码等）用栏框框住，尽量不要包括正文外的边缘线。如果图片有多栏，则需要多个栏框。<br/>
+            字框校对要求将图片的正文用字框框住，因文字紧凑而导致字框交叠时，首要原则是尽量把笔画都框住，其次是尽量减少交叠。<br/>
+            列框校对要求用列框将图片的每列文字框住。<br/>
+            <b>注：</b>请您看下第三部分的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
+              <td>返回任务大厅</td>
+            </tr>
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_pic.png') }}"/></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+            </tr>
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_char.png') }}"/></td>
+              <td>显示或隐藏字框。隐藏字框有助于仔细辨认图片</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
+              <td>撤销上一步操作</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
+              <td>取消撤销</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">所有</span></td>
+              <td>切换所有字框的颜色，有无色、白色不透明、蓝色半透明三种状态。<br/>白色不透明可以用于检查字框是否有遗漏，蓝色半透明则可以看清字迹</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">重叠</span></td>
+              <td>高亮提示所有重叠的字框，从而帮助您检查这些字框是否正常</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">大框</span></td>
+              <td>高亮提示所有的大框</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">窄框</span></td>
+              <td>高亮提示所有的窄框</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-default btn-sm">扁框</span></td>
+              <td>高亮提示所有的扁框</td>
+            </tr>
+            {% include _task_help.html %}
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>wsad</td>
+              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
+            </tr>
+            <tr>
+              <td>shift + 方向键</td>
+              <td>shift表示扩大字框，方向键代表字框的四条边</td>
+            </tr>
+            <tr>
+              <td>alt + 方向键</td>
+              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">发布任务-{{page['name']}}</span></h4>
+        </div>
+        <div class="modal-body">
+          <div class="batch">
+            <h4 class="control-label">任务批次</h4>
+            <input type="text" class="form-control" id="batch" placeholder="请输入批次号" value="{{options.get('batch','')}}">
+          </div>
+          <div class="task_types">
+            <h4 class="control-label">选择任务类型</h4>
+            <div>
+              {% set task_types = options.get('task_types', handler.get_tasks('text'))%}
+              {% for task_type in handler.get_tasks('text') %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{task_type}}" {{'checked' if task_type in task_types else ''}}>
+                {{handler.get_task_name(task_type)}}
+              </label>
+              {% end %}
+            </div>
+          </div>
+          <div class="pre_tasks">
+            <h4 class="control-label">选择前置任务</h4>
+            <div>
+              {% set pre_tasks = options.get('pre_tasks', handler.get_pre_tasks('cut_proof')) %}
+              {% for t, v in handler.task_types.items() %}
+              {% if handler.is_mod_enabled(v['name']) and t not in ['cut_proof','cut_review'] %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{t}}" {{'checked' if t in pre_tasks else ''}}>{{v['name']}}
+              </label>
+              {% end %}
+              {% end %}
+            </div>
+          </div>
+          <div class="steps">
+            <h4 class="control-label">选择子步骤</h4>
+            <div>
+              {% set steps = options.get('steps') or [r[0] for r in handler.get_task_steps('cut_proof')] %}
+              {% for step in handler.get_task_steps('cut_proof') %}
+              <label class="checkbox-inline">
+                <input type="checkbox" title="{{step[0]}}" {{'checked' if step[0] in steps else '' }}>{{step[1]}}
+              </label>
+              {% end %}
+            </div>
+          </div>
+          <div class="priority">
+            <h4 class="control-label">选择优先级</h4>
+            {% set priority = int(options.get('priority') or 2) %}
+            {% for p in [(3,'高'),(2,'中'),(1,'低')] %}
+            <input type="radio" name="priority" value="{{p[0]}}" {{'checked' if priority == p[0] else ''}}>{{p[1]}}
+            {% end %}
+          </div>
+          <div class="force">
+            <h4 class="control-label">任务已完成时，是否重新发布？</h4>
+            {% set force = options.get('force') or '否' %}
+            {% for f in ['否','是'] %}
+            <input type="radio" name="force" value="{{f}}" {{'checked' if force == f else ''}}>{{f}}
+            {% end %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="margin: 0 10px">
+        <div>
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">发布结果</h4>
+        </div>
+        <div class="modal-body">
+          <table class="table">
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect cancel">取消</button>
+          <button type="button" class="btn btn-default waves-effect view-tasks">查看任务</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light next">下一个</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{ static_url('js/nav.js') }}"></script>
+<script src="{{ static_url('js/cut/cut_adv.js') }}"></script>
+<script src="{{static_url('js/cut/char_order.js') }}"></script>
+<script src="{{static_url('js/com-table.js') }}"></script>
+<script>
+  // 离开页面
+  window.leave = function () {
+    var from = getQueryString('from');
+    if (from) {
+      window.location = from;
+    } else {
+      window.location = '/data/page' + location.search.replace(/[&?]last=[0-9a-z]+?$/, '');
+    }
+  };
+
+  // 切分已就绪
+  $('.box-ready').click(function () {
+    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}", box_ready: $(this).val()};
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('修改成功');
+    });
+  });
+
+  // 下一个页面
+  $('#btn-next').click(function () {
+    location.href = setQueryString('last', "{{page['_id']}}");
+  });
+
+  // 发布任务
+  var $publishModal = $('#publishModal');
+  var $publishResultModal = $('#publishResultModal');
+  var publishFields = [
+    {id: 'batch'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
+    {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
+    {id: 'task_types', input_type: 'checkbox'}
+  ];
+  var trans = {
+    un_existed: '页面不存在', un_ready: '数据未就绪', published_before: '任务曾被发布',
+    finished_before: '任务已完成', lock_level_unqualified: '数据等级不够',
+    data_is_locked: '数据被锁定', published: '任务发布成功',
+    pending: '等待前置任务'
+  };
+  // 发布任务的确定按钮
+  $publishModal.find(".modal-confirm").click(function () {
+    var data = getModal($publishModal, publishFields);
+    data.name = '{{page["name"]}}';
+    postApi('/task/publish/box', {data: data}, function (res) {
+      var html = '';
+      for (var task_type in res.data) {
+        html += '<tr><td class="' + task_type + '">' + task_type + '<td>' + trans[res.data[task_type]] + '</td>' + '</td></tr>';
+      }
+      $publishResultModal.find('table').html(html);
+      $publishResultModal.modal();
+    }, function (error) {
+      return showError('提交失败', error.message);
+    });
+  });
+
+  // 取消
+  $publishResultModal.find('.cancel').click(function () {
+    $publishModal.modal('hide');
+    $publishResultModal.modal('hide');
+
+  });
+
+  // 查看任务
+  $publishResultModal.find('.view-tasks').click(function () {
+    location.href = '/task/admin/list?q={{page["name"]}}';
+  });
+
+  // 发布下一个
+  $publishResultModal.find('.next').click(function () {
+    location.href = setQueryString('last', "{{page['_id']}}");
+  });
+
+</script>
+
+<script>
+  function initBoxes(boxesStr, className) {
+    var boxes = decodeJSON(boxesStr);
+    for (var i = 0; i < boxes.length; i++) {
+      boxes[i]['class'] = className;
+    }
+    return boxes;
+  }
+
+  var chars = initBoxes('{{page.get("chars", [])}}', 'char');
+  var columns = initBoxes('{{page.get("columns", [])}}', 'column');
+  var blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
+
+  $.cut.create({
+    readonly: true,
+    scrollContainer: '#holder-container',
+    name: '{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    image: '{{img_url}}',
+    chars: chars.concat(columns).concat(blocks)
+  });
+  $.cut.switchCurrentBox(null);
+  $.cut.bindKeys();
+  $.cut.bindCharOrderKeys();
+  $.cut.addCharOrderLinks([], true);
+
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+      return true;
+    }
+    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+      return true;
+    }
+    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+      return true;
+    }
+  };
+
+  $('rect.block').css('display', 'none');
+  $('rect.column').css('display', 'none');
+  $('rect.char').css('display', 'none');
+
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+      return true;
+    }
+    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+      return true;
+    }
+    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+      return true;
+    }
+  };
+
+</script>
+
+</body>
+</html>

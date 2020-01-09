@@ -15,9 +15,7 @@ from controller.helper import get_date_time
 
 class TaskHandler(BaseHandler, Task):
     def find_many(self, task_type=None, status=None, mine=False, size=None, order=None):
-        """ 查找任务
-        mine参数存在时，status参数将失效
-        """
+        """ 查找任务。(mine参数存在时，status参数将失效) """
         condition = dict()
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
@@ -49,6 +47,15 @@ class TaskHandler(BaseHandler, Task):
 
     def get_task_mode(self):
         return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
+
+    def get_publish_meta(self, task_type):
+        now = datetime.now()
+        collection, id_name = self.get_data_conf(task_type)[:2]
+        return dict(task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
+                    status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+                    create_time=now, updated_time=now, publish_time=now,
+                    publish_user_id=self.current_user['_id'],
+                    publish_by=self.current_user['name'])
 
     def check_task_auth(self, task, mode=None):
         """ 检查当前用户是否拥有相应的任务权限 """
@@ -126,7 +133,7 @@ class TaskHandler(BaseHandler, Task):
             # 如果当前任务为悬挂，且所有前置任务均已完成，则修改状态为已发布
             unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
             if task['status'] == self.STATUS_PENDING and not unfinished:
-                update.update({'status': self.STATUS_OPENED})
+                update.update({'status': self.STATUS_PUBLISHED})
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
 
     """ 数据锁介绍
@@ -273,7 +280,7 @@ class TaskHandler(BaseHandler, Task):
         update = {'lock.%s' % shared_field: dict()}
         if update_level:
             conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task['task_type']), 0)
-            update.update({'lock.level.%s' % shared_field: conf_level})
+            update.update({'level.%s' % shared_field: conf_level})
         r = self.db[collection].update_many(condition, {'$set': update})
         return r.matched_count
 

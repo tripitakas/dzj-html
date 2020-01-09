@@ -45,10 +45,10 @@ class CutHandler(TaskHandler):
 
             mode = self.get_task_mode()
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
                 template = 'task_char_order.html'
 
@@ -85,10 +85,10 @@ class CutEditHandler(TaskHandler):
             fake_task = dict(steps={'todo': default_steps})
             steps = self.init_steps(fake_task, 'edit', current_step)
 
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 template = 'task_char_order.html'
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
@@ -103,20 +103,25 @@ class CutEditHandler(TaskHandler):
 
 
 class CutSampleHandler(TaskHandler):
-    URL = '/task/sample/box'
+    URL = ['/task/sample/box', '/task/sample/box/@page_name']
 
-    def get(self):
+    def get(self, page_name=None):
         """ 切分校对练习页面"""
-
         try:
-            page_name = self.get_query_argument('page_name', '')
-            cond_name = {'name': page_name, 'is_sample': True} if page_name else {'is_sample': True}
-            condition = [{'$match': cond_name}, {'$sample': {'size': 1}}]
-            pages = list(self.db.page.aggregate(condition))
-            if not pages:
-                return self.send_error_response(e.no_object, message='没有找到练习页面%s' % page_name)
+            if not page_name:
+                condition = [{'$match': {'is_sample': True}}, {'$sample': {'size': 1}}]
+                pages = list(self.db.page.aggregate(condition))
+                if not pages:
+                    return self.send_error_response(e.no_object, message='没有找到任何练习页面')
+                else:
+                    return self.redirect(self.request.uri.replace('/box', '/box/' + pages[0]['name']))
 
-            page = pages[0]
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            if not page.get('is_sample'):
+                return self.send_error_response(e.no_object, message='页面%s不是练习页面' % page_name)
+
             default_steps = list(CutTaskApi.step2field.keys())
             current_step = self.get_query_argument('step', default_steps[0])
             if current_step not in default_steps:
@@ -124,10 +129,10 @@ class CutSampleHandler(TaskHandler):
             fake_task = dict(steps={'todo': default_steps})
             steps = self.init_steps(fake_task, 'view', current_step)
 
-            box_type = re.findall('(char|column|block)', steps['current'])[0]
+            box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
             kwargs = dict()
-            if steps['current'] == 'char_order':
+            if steps['current'] == 'orders':
                 template = 'task_char_order.html'
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 

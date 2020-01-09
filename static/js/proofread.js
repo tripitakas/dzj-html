@@ -514,8 +514,8 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    window.location = window.location.href.replace(/[?&]re_compare=true/g, '') +
-      (window.location.href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
+    var href = window.location.href.replace(/[?&]re_compare=true/g, '');
+    window.location = href + (href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
   });
 });
 
@@ -717,24 +717,20 @@ $('#zoom-reset').on('click', function () {
 // 修改字框
 var pageName = $('#page-name').val();
 $('#ed-char-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=char_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=chars&from=' + location.pathname + location.search;
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=block_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=blocks&from=' + location.pathname + location.search;
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=column_box&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + pageName + '?step=columns&from=' + location.pathname + location.search;
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=char_order&from=' + location.pathname + location.search;
-});
-
-$('#lq-dict').click(function () {
-  window.open('http://hanzi.lqdzj.cn/stroke_search', '_blank');
+  location = '/data/edit/box/' + pageName + '?step=orders&from=' + location.pathname + location.search;
 });

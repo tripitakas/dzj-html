@@ -4,6 +4,7 @@
 @time: 2019/6/3
 """
 import re
+import math
 from operator import itemgetter
 from functools import cmp_to_key
 from .v1 import calc as calc_old
@@ -55,18 +56,20 @@ class CutTool(object):
 
     @staticmethod
     def sort_blocks(blocks):
-        """ 根据坐标对栏框排序和生成编号"""
+        """ 根据坐标对栏框排序和生成编号(block_id,block_no,no)"""
         blocks.sort(key=cmp_to_key(lambda a, b: a['y'] + a['h'] / 2 - b['y'] - b['h'] / 2))
         for i, blk in enumerate(blocks):
-            blk['no'] = i + 1
+            blk['no'] = blk['block_no'] = i + 1
             blk['block_id'] = 'b%d' % blk['no']
         return blocks
 
     @staticmethod
     def get_block_index(column, blocks):
-        index, dist = -1, 1e5
-        for idx, blk in enumerate(blocks):
-            d = abs(column['y'] + column['h'] / 2 - blk['y'] - blk['h'] / 2)
+        """根据列框坐标查找所在的栏序号"""
+        index, dist = 0, 1e5  # 0表示默认属于第一栏，防止单栏列高度太大找不到栏
+        for idx, blk in enumerate(blocks):  # 假定栏是上下分离的，只需要比较框中心Y的偏差
+            d = math.hypot(column['x'] + column['w'] / 2 - blk['x'] - blk['w'] / 2,
+                           column['y'] + column['h'] / 2 - blk['y'] - blk['h'] / 2)
             if dist > d:
                 dist = d
                 index = idx
@@ -74,18 +77,21 @@ class CutTool(object):
 
     @classmethod
     def sort_columns(cls, columns, blocks):
-        """ 根据列框坐标和所在的栏对列框排序和生成编号"""
+        """ 根据列框坐标和所在的栏对列框排序和生成编号(column_id,line_no,no)"""
+
+        # 根据坐标将列分组到各栏
         columns_dict = [[] for _ in blocks]
         for c in columns:
-            block_no = cls.get_block_index(c, blocks) + 1
-            columns_dict[block_no - 1].append(c)
+            block_index = cls.get_block_index(c, blocks)
+            columns_dict[block_index].append(c)
 
         ret_columns = []
         for blk_i, columns_blk in enumerate(columns_dict):
+            # 在一栏内，按水平坐标对其列排序
             columns_blk.sort(key=cmp_to_key(lambda a, b: b['x'] + b['w'] / 2 - a['x'] - a['w'] / 2))
             for i, c in enumerate(columns_blk):
-                c['no'] = i + 1
-                c['column_id'] = 'b%dc%d' % (blk_i + 1, c['no'])
+                c['no'] = c['line_no'] = i + 1
+                c['column_id'] = 'b%dc%d' % (blocks[blk_i].get('block_no', blk_i + 1), c['no'])
             ret_columns.extend(columns_blk)
 
         return ret_columns
@@ -152,3 +158,43 @@ class CutTool(object):
 
         if reorder.get('chars') and chars:
             return CutTool.sort(chars, columns, blocks, layout_type, chars_col)
+
+    @staticmethod
+    def gen_ocr_text(page, blocks=None, columns=None, chars=None):
+        """根据当前字序生成页面的ocr和ocr_col文本，假定已按编号排序"""
+        blocks = blocks or page['blocks']
+        columns = columns or page['columns']
+        chars = chars or page['chars']
+        try:
+            chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
+        except KeyError:
+            pass
+
+        # 根据列框的ocr_txt，生成页面的ocr_col，栏间用||分隔
+        try:
+            page['ocr_txt'] = '||'.join('|'.join(c['ocr_txt'] for c in columns if c['block_no'] == b['block_no'])
+                                        for b in blocks)
+        except KeyError:
+            pass
+
+        # 生成页面的ocr，按字序把每个字框的ocr_txt组合而成，栏间用||分隔
+        texts = {'blocks': []}
+        for c in chars:
+            if c.get('ocr_txt') and c.get('line_no') and c.get('block_no'):
+                if c['ocr_txt'] == '蠱':
+                    c = c
+                block = texts.get(str(c['block_no']))
+                if not block:
+                    block = texts[str(c['block_no'])] = {'columns': []}
+                    texts['blocks'].append(block)
+                col = block.get(str(c['line_no']))
+                if not col:
+                    col = block[str(c['line_no'])] = {'txt': ''}
+                    block['columns'].append(col)
+                col['txt'] += c['ocr_txt']
+
+        page['ocr'] = '||'.join('|'.join(c['txt'] for c in b['columns']) for b in texts['blocks'])
+        for c in columns:
+            c.pop('txt', None)
+
+        return page

@@ -105,7 +105,7 @@
     if (password !== confirm_psw) {
       return showError('密码错误', '两次输入的密码不一致。');
     }
-    postApi('/user/register', {
+    postApi('/user/register?next={{next}}', {
       data: {
         name: $('#name').val(),
         gender: $('#gender').val(),
@@ -116,7 +116,7 @@
         phone: $('#phone').val()
       }
     }, function (data) {
-      window.location = '{{next}}';
+      window.location = data.redirect || '{{next}}';
     }, function (error) {
       return showError('提交失败', error.message);
     });

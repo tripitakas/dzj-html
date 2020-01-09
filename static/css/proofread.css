@@ -105,12 +105,17 @@
 
 /* 文本区域 */
 .right .sutra-text {
-  font-size: 0;
+  /*font-size: 0;*/
+  display: none;
   padding-top: 5px;
   margin-left: 10px;
   height: 100%;
   overflow: auto;
   flex: 1 1 auto;
+}
+
+.right .sutra-text.active{
+  display: block;
 }
 
 .sutra-text .block {

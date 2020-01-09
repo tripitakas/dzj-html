@@ -245,7 +245,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
-        op_name = get_op_name(op_type)
+        op_name = get_op_name(op_type) or op_type
         assert op_name, op_type + ' need add into op_type.py'
         target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')
@@ -276,6 +276,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(page_name.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+    def is_mod_enabled(self, mod):
+        disabled_mods = self.prop(self.config, 'modules.disabled_mods')
+        return not disabled_mods or mod not in disabled_mods
 
     @classmethod
     def prop(cls, obj, key, default=None):

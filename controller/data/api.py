@@ -67,10 +67,10 @@ class DataAddOrUpdateApi(BaseHandler):
         try:
             data = self.get_request_data()
             if metadata == 'page':
-                if data.get('lock-level-box'):
-                    data['lock.level.box'] = data['lock-level-box']
-                if data.get('lock-level-text'):
-                    data['lock.level.text'] = data['lock-level-text']
+                if data.get('level-box'):
+                    data['level.box'] = data['level-box']
+                if data.get('level-text'):
+                    data['level.text'] = data['level-text']
             r = model.save_one(self.db, metadata, data)
             if r.get('status') == 'success':
                 self.add_op_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
@@ -168,7 +168,7 @@ class FetchDataTasksApi(TaskHandler):
             data = self.get_request_data()
             size = int(data.get('size') or 1)
 
-            condition = {'task_type': data_task, 'status': self.STATUS_OPENED}
+            condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
                 self.send_data_response(dict(tasks=None))

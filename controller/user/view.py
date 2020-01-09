@@ -44,7 +44,7 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            kwargs = User.get_page_params()
+            kwargs = User.get_page_kwargs()
             kwargs['operations'] = self.operations
             kwargs['search_tips'] = self.search_tips
             docs, pager, q, order = User.find_by_page(self)
@@ -62,7 +62,7 @@ class UserRolesHandler(BaseHandler):
     def get(self):
         """ 角色管理页面 """
         try:
-            kwargs = User.get_page_params()
+            kwargs = User.get_page_kwargs()
             kwargs['operations'] = self.operations
             kwargs['search_tips'] = self.search_tips
             docs, pager, q, order = User.find_by_page(self)

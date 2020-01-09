@@ -29,7 +29,7 @@ class RepublishTimeoutTasks(Worker):
             # 重新发布任务
             pre_tasks = {p: '' for p in prop(task, 'pre_tasks', {})}
             self.db.task.update_one({'_id': task['_id']}, {'$set': {
-                'status': Th.STATUS_OPENED, 'steps.submitted': [], 'pre_tasks': pre_tasks,
+                'status': Th.STATUS_PUBLISHED, 'steps.submitted': [], 'pre_tasks': pre_tasks,
                 'picked_user_id': None, 'picked_by': None, 'picked_time': None, 'result': {}
             }})
             self.add_log('republish', target_id=task['_id'], context=task['task_type'])

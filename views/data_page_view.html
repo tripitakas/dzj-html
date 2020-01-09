@@ -25,7 +25,16 @@
             {% for k, v in metadata.items() %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(v, k) %}</span>
+              <span class="value">{% raw Th.format_value(v, k) %}</span>
+            </div>
+            {% end %}
+          </div>
+          <div class="block">
+            <div class="block-head">相关任务</div>
+            {% for k, v in page_tasks.items() %}
+            <div class="info">
+              <label class="label">{{Th.get_task_name(k)}}</label>
+              <span class="value">{{Th.get_status_name(v)}}</span>
             </div>
             {% end %}
           </div>
@@ -34,7 +43,7 @@
             {% for k, v in data_lock.items() %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(v, k) %}</span>
+              <span class="value">{% raw Th.format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -43,7 +52,7 @@
             {% for k, v in page_txt.items() %}
             <div class="info long">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(v, k) %}</span>
+              <span class="value">{% raw Th.format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>
@@ -52,7 +61,7 @@
             {% for k, v in page_box.items() %}
             <div class="info long">
               <label class="label">{{handler.get_field_name(k)}}</label>
-              <span class="value">{% raw format_value(v, k) %}</span>
+              <span class="value">{% raw Th.format_value(v, k) %}</span>
             </div>
             {% end %}
           </div>

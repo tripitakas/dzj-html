@@ -94,7 +94,7 @@
 
       <div class="flex-content pfread-in">
         <div class="left fl" id="left-region">
-          <div class="bd" id="canvas-bd">
+          <div class="bd" id="holder-container">
             <div id="holder"></div>
           </div>
         </div><!--left-->
@@ -192,7 +192,7 @@
   function createPage() {
     $.cut.create({
       readonly: true,
-      scrollContainer: '#canvas-bd',
+      scrollContainer: '#holder-container',
       name: '{{page["name"]}}',
       width: '{{page["width"]}}',
       height: '{{page["height"]}}',
@@ -207,7 +207,7 @@
   }
 
   createPage();
-  $('#canvas-bd').focus();
+  $('#holder-container').focus();
 
   // 检查数据有效性，然后返回任务数据
   function getSubmitData(submit) {

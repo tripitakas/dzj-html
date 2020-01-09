@@ -70,14 +70,14 @@
 
       <div class="flex-content pfread-in">
         <div class="left" id="left-region">
-          <div class="bd" id="canvas-bd">
+          <div class="bd" id="holder-container">
             <div id="holder"></div>
           </div>
         </div>
         <!--/.left-->
         <div class="right" id="right-region">
           <div class="bd">
-            <div class="sutra-text" id="sutra-text">
+            <div class="sutra-text active" id="sutra-text">
               {% if isinstance(cmp_data, str) %}
               {% raw cmp_data %}
               {% else %}
@@ -270,7 +270,7 @@
   function createPage() {
     $.cut.create({
       readonly: true,
-      scrollContainer: '#canvas-bd',
+      scrollContainer: '#holder-container',
       name: '{{page["name"]}}',
       width: '{{page["width"]}}',
       height: '{{page["height"]}}',
@@ -285,7 +285,7 @@
   }
 
   createPage();
-  $('#canvas-bd').focus();
+  $('#holder-container').focus();
 
   // 默认显示浮动条
   showText = true;

@@ -37,7 +37,7 @@ class TestTaskView(APITestCase):
         task_types = Th.get_page_tasks()
         docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         for task_type in task_types:
-            r = self.publish_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
+            r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
             self.assert_code(200, r, msg=task_type)
 
         # 领取并完成任务
@@ -52,11 +52,10 @@ class TestTaskView(APITestCase):
 
         # 任务管理页面
         self.login_as_admin()
-        for task_type in task_types:
-            r = self.fetch('/task/admin/%s?_raw=1' % task_type)
-            self.assert_code(200, r)
-            d = self.parse_response(r)
-            self.assertIn('tasks', d, msg=task_type)
+        r = self.fetch('/task/admin/page?_raw=1')
+        self.assert_code(200, r)
+        r = self.fetch('/task/admin/image?_raw=1')
+        self.assert_code(200, r)
 
         # 任务大厅页面
         for task_type in task_types:
@@ -73,16 +72,16 @@ class TestTaskView(APITestCase):
             r = self.fetch('/task/my/%s?_raw=1' % task_type)
             self.assert_code(200, r)
             d = self.parse_response(r)
-            self.assertIn('tasks', d, msg=task_type)
+            self.assertIn('docs', d, msg=task_type)
 
     def test_lobby_order(self):
         """测试任务大厅的任务显示顺序"""
         self.login_as_admin()
-        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2, pre_tasks=[]))
-        self.publish_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3, pre_tasks=[]))
-        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_12'], priority=2, pre_tasks=[]))
-        self.publish_tasks(dict(task_type='text_proof_3', doc_ids=['JX_165_7_12'], priority=1, pre_tasks=[]))
-        self.publish_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_30'], priority=1, pre_tasks=[]))
+        self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2, pre_tasks=[]))
+        self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3, pre_tasks=[]))
+        self.publish_page_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_12'], priority=2, pre_tasks=[]))
+        self.publish_page_tasks(dict(task_type='text_proof_3', doc_ids=['JX_165_7_12'], priority=1, pre_tasks=[]))
+        self.publish_page_tasks(dict(task_type='text_proof_2', doc_ids=['JX_165_7_30'], priority=1, pre_tasks=[]))
 
         self.login(u.expert1[0], u.expert1[1])
         for i in range(5):
@@ -106,11 +105,3 @@ class TestTaskView(APITestCase):
                 meta = dict(day=day, user_id=user['_id'], task_type=task_type, count=random.randint(0, 1000))
                 docs.append(meta)
         self._app.db.statistic.insert_many(docs)
-
-    def test_task_statistic(self):
-        self.login_as_admin()
-        if not self._app.db.statistic.count_documents({}):
-            self.add_local_statistic()
-        r = self.fetch('/task/admin/list?_raw=1')
-        d = self.parse_response(r)
-        self.assert_code(200, r)
