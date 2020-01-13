@@ -220,6 +220,14 @@ role_route_maps = {
             '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
         }
     },
+
+    # 下列角色供其他系统用，SSO登录获取角色
+    'OCR校对员': {
+        'is_assignable': True
+    },
+    'OCR审定员': {
+        'is_assignable': True
+    },
 }
 
 
