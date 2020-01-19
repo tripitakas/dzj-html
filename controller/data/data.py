@@ -213,10 +213,10 @@ class Page(Model):
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'bat-update', 'label': '更新分类', 'data-target': 'updateModal'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-nav', 'label': '浏览结果'},
     ]
     actions = [
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']

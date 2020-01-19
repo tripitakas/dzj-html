@@ -107,15 +107,15 @@ class DataListHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class DataPageViewHandler(BaseHandler, Page):
-    URL = '/data/page/@page_id'
+class DataPageInfoHandler(BaseHandler, Page):
+    URL = '/data/page/info/@page_code'
 
-    def get(self, page_id):
-        """ 查看页数据"""
+    def get(self, page_code):
+        """ 页面详情"""
         try:
-            page = self.db.page.find_one({'_id': ObjectId(page_id)})
+            page = self.db.page.find_one({'name': page_code})
             if not page:
-                self.send_error_response(e.no_object, message='没有找到页面')
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
 
             fields = ['name', 'width', 'height', 'source', 'layout', 'img_cloud_path', 'page_code',
                       'uni_sutra_code', 'sutra_code', 'reel_code']
@@ -128,7 +128,7 @@ class DataPageViewHandler(BaseHandler, Page):
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             page_tasks = self.prop(page, 'tasks') or {}
 
-            self.render('data_page_view.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
+            self.render('data_page_info.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
                         page_box=page_box, page_tasks=page_tasks, page=page,
                         Th=TaskHandler)
 
@@ -136,12 +136,16 @@ class DataPageViewHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class DataPageHandler(BaseHandler, Page):
+class DataPageListHandler(BaseHandler, Page):
     URL = '/data/page'
 
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
+    }
+
+    group_task_statuses = {
+        '': '', 'un_published': '全未发布', 'published': '已发布', 'finished': '全部完成',
     }
 
     @staticmethod
@@ -164,6 +168,17 @@ class DataPageHandler(BaseHandler, Page):
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        if field == 'cut_task':
+            value = self.get_query_argument(field, '')
+            params[field] = value
+            for task_type in ['cut_proof', 'cut_review']:
+                condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
+        if field == 'text_task':
+            value = self.get_query_argument(field, '')
+            params[field] = value
+            for task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']:
+                condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
+
         return condition, params
 
     @staticmethod
@@ -179,7 +194,7 @@ class DataPageHandler(BaseHandler, Page):
                 else:
                     value = '长时锁'
         elif key in ['blocks', 'columns', 'chars']:
-            value = '%s框' % len(value)
+            value = '%s个' % len(value)
         elif key in ['ocr', 'ocr_col', 'text']:
             value = '%s字' % len(value)
         else:
@@ -195,26 +210,22 @@ class DataPageHandler(BaseHandler, Page):
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             condition, params = self.get_search_condition(self)
             docs, pager, q, order = self.find_by_page(self, condition)
-            self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        task_statuses=self.task_statuses, Th=TaskHandler, format_value=self.format_value,
+            self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
+                        task_statuses=self.task_statuses, group_task_statuses=self.group_task_statuses,
+                        Th=TaskHandler, format_value=self.format_value,
                         **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class DataPageNavBoxHandler(TaskHandler):
-    URL = '/data/page/box'
+class DataPageHandler(TaskHandler):
+    URL = '/data/page/@page_code'
 
-    def get(self):
-        """ 浏览页面的的切分数据"""
+    def get(self, page_code):
+        """ 浏览页面数据"""
         try:
-            op = self.get_query_argument('op', '')
-            if op == 'pub':
-                condition = {'$or': [{t: None} for t in ['cut_proof', 'cut_review']]}
-                params = {'op': 'pub'}
-            else:
-                condition, params = DataPageHandler.get_search_condition(self)
+            condition, params = DataPageListHandler.get_search_condition(self)
             page = self.db.page.find_one(condition, sort=[('_id', 1)])
             if not page:
                 self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
@@ -233,7 +244,7 @@ class DataPageNavBoxHandler(TaskHandler):
             except (TypeError, ValueError, AttributeError):
                 options = {}
 
-            self.render('data_nav_box.html', page=page, chars_col=chars_col,
+            self.render('data_page.html', page=page, chars_col=chars_col,
                         img_url=self.get_img(page), options=options, params=params)
 
         except Exception as error:
@@ -252,7 +263,7 @@ class DataPageNavTextHandler(TaskHandler):
                 condition = {'$or': [{t: None} for t in task_types]}
                 params = {'op': 'pub'}
             else:
-                condition, params = DataPageHandler.get_search_condition(self)
+                condition, params = DataPageListHandler.get_search_condition(self)
             page = self.db.page.find_one(condition, sort=[('_id', 1)])
             if not page:
                 self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))

@@ -50,10 +50,10 @@ $('.pagers .page-size').on("change", function () {
 
 // 列表配置
 $('#configModal .modal-confirm').click(function () {
-  $.map($('#configModal :not(:checked)'), function (item) {
+  $.map($('#configModal :checkbox:not(:checked)'), function (item) {
     $('.sty-table .' + $(item).attr('title')).addClass('hide');
   });
-  $.map($('#configModal :checked'), function (item) {
+  $.map($('#configModal :checkbox:checked'), function (item) {
     $('.sty-table .' + $(item).attr('title')).removeClass('hide');
   });
 

@@ -188,8 +188,8 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
-            '/data/page/@page_id': ['GET'],
-            '/data/page/(box|text)': ['GET'],
+            '/data/page/@page_code': ['GET'],
+            '/data/page/info/@page_code': ['GET'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],

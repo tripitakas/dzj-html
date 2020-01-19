@@ -69,7 +69,7 @@
             {% end %}
 
             {% block table %}
-            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order) %}
+            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=format_value) %}
             {% end %}
 
             {% module Pager(pager) %}

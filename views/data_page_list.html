@@ -1,0 +1,326 @@
+{% extends "com_list.html" %}
+{% block custom-css %}
+<style>
+  #searchModal .modal-body h4, #searchModal .modal-body div {
+    margin: 5px 0;
+  }
+
+  .select2-container {
+    width: 100% !important;
+  }
+
+  .sty-table .action {
+    color: #B8906F !important;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .sty-table .action:hover {
+    color: #b33c2b !important;
+    cursor: pointer;
+    font-size: 12px;
+  }
+
+  .sty-table .tasks {
+    width: 72px;
+  }
+
+  .operation .btn-img {
+    width: 22px;
+    height: 22px;
+  }
+
+  #txt-content {
+    font-size: 1.2em;
+  }
+</style>
+{% end %}
+
+{% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档</h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、简介</div>
+        <div class="intro">
+          任务管理模块提供管理员对任务进行操作，包括发布、指派、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
+        </div>
+        <div class="title">二、任务操作</div>
+        <table class="table">
+          <tr>
+            <td>批量指派</td>
+            <td>将「已发布」的任务指派给某个特定的用户</td>
+          </tr>
+          <tr>
+            <td>批量删除</td>
+            <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
+          </tr>
+          <tr>
+            <td>发布任务</td>
+            <td>
+              任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
+              任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
+              前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
+              用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
+            </td>
+          </tr>
+          <tr>
+            <td>重新发布</td>
+            <td>「进行中」的任务可以重新发布。</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">配置列表</h4>
+      </div>
+      <div class="modal-body">
+        <div class="select-column">
+          {% for f in table_fields %}
+          <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" checked>{{f['name']}}</label>
+          {% end %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">综合检索</h4>
+      </div>
+      <div class="modal-body" style="min-height: 560px">
+        <h4 class="col-sm-2 control-label">页编码</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入页编码，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">批次</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入批次，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">页面结构</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control layout" value="{{params.get('layout') or ''}}" placeholder="请输入页面结构，支持正则式">
+        </div>
+        <h4 class="col-sm-2 control-label">切分等级</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control level_box" value="{{params.get('level_box') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
+        </div>
+        <h4 class="col-sm-2 control-label">文本等级</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control level_text" value="{{params.get('level_text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
+        </div>
+        <h4 class="col-sm-2 control-label">切分已就绪</h4>
+        <div class="col-sm-10">
+          <select class="form-control box_ready">
+            {% for v in ['', '是', '否'] %}
+            {% if params.get('box_ready', '') == v %}
+            <option value="{{v}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{v}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">切分任务</h4>
+        <div class="col-sm-10">
+          <select class="form-control cut_task">
+            {% for k,v in group_task_statuses.items() %}
+            {% if params.get('cut_task', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">切分校对</h4>
+        <div class="col-sm-10">
+          <select class="form-control cut_proof">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('cut_proof', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">切分审定</h4>
+        <div class="col-sm-10">
+          <select class="form-control cut_review">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('cut_review', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字任务</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_task">
+            {% for k,v in group_task_statuses.items() %}
+            {% if params.get('text_task', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校一</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_1">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_1', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校二</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_2">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_2', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字校三</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_proof_3">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_proof_3', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+        <h4 class="col-sm-2 control-label">文字审定</h4>
+        <div class="col-sm-10">
+          <select class="form-control text_review">
+            {% for k,v in task_statuses.items() %}
+            {% if params.get('text_review', '') == k %}
+            <option value="{{k}}" selected="selected">{{v}}</option>
+            {% else %}
+            <option value="{{k}}">{{v}}</option>
+            {% end %}
+            {% end %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect reset">重置</button>
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script>
+  // 修改栏框、列框、字框、字序
+  $('.blocks, .columns, .chars, .orders').click(function () {
+    if (!$(this).text().length)
+      return;
+    var name = $(this).siblings('.name').text();
+    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('title');
+    location.href = url + '&from=' + location.pathname + location.search;
+  });
+
+  // 解锁
+  $('.lock_box, .lock_text').click(function () {
+    if (!$(this).text().length)
+      return;
+    var sharedField = $(this).attr('title');
+    var name = $(this).siblings('.name').text();
+    var url = '/data/admin/unlock/' + sharedField + '/' + name;
+    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
+      postApi(url, {data: {}}, function () {
+        showSuccess('成功', '已成功解锁。');
+        refresh(1000);
+      }, function (error) {
+        showError('失败', error.message);
+      });
+    });
+  });
+
+  // 详情
+  $('.btn-detail').click(function () {
+    location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
+  });
+
+  // 浏览
+  $('.btn-nav').click(function () {
+    location.href = '/data/page/' + $(this).parent().siblings('.name').text() + location.search;
+  });
+
+</script>
+
+<script>
+  // 综合检索
+  $searchModal = $("#searchModal");
+  $searchModal.find('.modal-confirm').click(function () {
+    var search = '';
+    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
+    fields.forEach(function (field) {
+      var value = $searchModal.find('.' + field).val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    fields = ['box_ready', 'cut_task', 'cut_proof', 'cut_review', 'text_task', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields.forEach(function (field) {
+      var value = $searchModal.find('.' + field + ' :selected').val();
+      if (value)
+        search += '&' + field + '=' + value;
+    });
+    if (!search.length)
+      return showWarning('请输入查询条件');
+    location.href = location.pathname + '?' + search.substr(1);
+  });
+
+  // 重置检索条件
+  $searchModal.find('.reset').click(function () {
+    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
+    fields.forEach(function (field) {
+      $searchModal.find('.' + field).val('');
+    });
+    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields.forEach(function (field) {
+      $searchModal.find('.' + field + ' :selected').removeAttr('selected');
+    });
+  });
+
+</script>
+{% end %}
+

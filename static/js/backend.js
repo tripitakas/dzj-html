@@ -46,12 +46,14 @@ function showConfirm(title, text, func) {
   return swal(info, func);
 }
 
-function showTips(title, text, reload) {
+function showTips(title, text, reload, timer) {
   if (typeof reload !== 'undefined' && reload) {
     swal({title: title, text: text, type: 'success', confirmButtonText: '确定', showConfirmButton: true, html: true},
         function () {
           window.location.reload();
         });
+  } else if (typeof timer !== 'undefined') {
+    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true, timer: timer});
   } else {
     swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
   }
