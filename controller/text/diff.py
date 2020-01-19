@@ -25,28 +25,28 @@ class Diff(object):
         :param base: 基础比对文本
         :param check_variant: 是否检查异体字
         :param label: {'base': '...', 'cmp1': '...', 'cmp2': '...', 'cmp3': '...'}
-        :return:
         """
-        lbl = {'base': 'base', 'cmp1': 'cmp1', 'cmp2': 'cmp2', 'cmp3': 'cmp3'}
+        _label = {'base': 'base', 'cmp1': 'cmp1', 'cmp2': 'cmp2', 'cmp3': 'cmp3'}
         if label:
-            lbl.update(label)
+            _label.update(label)
+
         base = Diff.pre_ocr(base)
 
         if not cmp1 and not cmp2 and not cmp3:
-            return Diff._diff_one(base, {'base': lbl['base']}), []
+            return Diff._diff_one(base, {'base': _label['base']}), []
 
         ret, err = [], []
         if cmp1:
-            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
-            ret, _err = Diff._merge_by_combine(ret, ret1, base_key=lbl['base'])
+            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': _label['base'], 'cmp': _label['cmp1']})
+            ret, _err = Diff._merge_by_combine(ret, ret1, base_key=_label['base'])
             err.extend(_err)
         if cmp2:
-            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
-            ret, _err = Diff._merge_by_combine(ret, ret2, base_key=lbl['base'])
+            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant, {'base': _label['base'], 'cmp': _label['cmp2']})
+            ret, _err = Diff._merge_by_combine(ret, ret2, base_key=_label['base'])
             err.extend(_err)
         if cmp3:
-            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant, {'base': lbl['base'], 'cmp': lbl['cmp3']})
-            ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
+            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant, {'base': _label['base'], 'cmp': _label['cmp3']})
+            ret, _err = Diff._merge_by_combine(ret, ret3, base_key=_label['base'])
             err.extend(_err)
         return ret, err
 

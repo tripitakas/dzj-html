@@ -313,11 +313,9 @@ a:hover, a:visited, a:focus {
   padding: 5px;
 }
 
-
 .sub-ul-hidden {
   display: none;
 }
-
 
 .pagers {
   margin: 20px 0 0;
@@ -515,6 +513,22 @@ a:hover, a:visited, a:focus {
 
 .sty-table .sort {
   cursor: pointer;
+}
+
+.open > .dropdown-menu {
+  min-width: 96px;
+}
+
+.dropdown-menu > li > a {
+  padding: 5px 20px;
+}
+
+.operation .dropdown-menu > li > a {
+  padding: 0 20px;
+}
+
+.dropdown-menu .divider:last-child {
+  display: none;
 }
 
 .modal-body .progress-lg {

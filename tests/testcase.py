@@ -198,7 +198,7 @@ class APITestCase(AsyncHTTPTestCase):
         if 'cut' in task_type and 'steps' not in data:
             data['steps'] = data.get('steps', ['chars', 'blocks', 'columns', 'orders'])
         if 'text_proof' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['select_compare_text', 'proof'])
+            data['steps'] = data.get('steps', ['select', 'proof'])
         return data
 
     def publish_page_tasks(self, data):

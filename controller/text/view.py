@@ -38,40 +38,43 @@ class TextProofHandler(TaskHandler, TextTool):
             readonly = 'view' == mode
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
 
-            if steps['current'] == 'select_compare_text':
-                return self.select_compare_text(task, page, mode, steps, readonly, num)
+            if steps['current'] == 'select':
+                return self.select(task, page, mode, steps, readonly, num)
             else:
-                CutTool.gen_ocr_text(page)
+                # CutTool.gen_ocr_text(page)
                 return self.proof(task, page, mode, steps, readonly)
 
         except Exception as error:
             return self.send_db_error(error)
 
-    def select_compare_text(self, task, page, mode, steps, readonly, num):
+    def select(self, task, page, mode, steps, readonly, num):
         self.render(
             'task_text_compare.html', task_type=task['task_type'], task=task, page=page,
             mode=mode, readonly=readonly, num=num, steps=steps, ocr=page.get('ocr'),
-            cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
+            message='', cmp=self.prop(task, 'result.cmp'), get_img=self.get_img,
         )
 
     def proof(self, task, page, mode, steps, readonly):
-        """ 文字校对
-        文本来源有多种情况，ocr可能会输出两份数据，比对本可能有一份数据。
-        """
+        """ 文字校对。文本来源有多种情况，其中ocr可能会输出两份数据，比对本可能有一份数据。"""
         doubt = self.prop(task, 'result.doubt')
         CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
 
         # 获取比对来源的文本
+        texts, labels = {}, {}
         cmp = self.prop(task, 'result.cmp')
         ocr, ocr_col = page.get('ocr', ''), page.get('ocr_col', '')
-        texts = dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col, cmp2=cmp)
-        labels = dict(base='字框OCR', cmp1='列框OCR', cmp2='比对文本')
+        if ocr:
+            texts = dict(base=re.sub(r'\|+', '\n', ocr), cmp1=ocr_col, cmp2=cmp)
+            labels = dict(base='字框OCR', cmp1='列框OCR', cmp2='比对文本')
+        elif ocr_col:
+            texts = dict(base=re.sub(r'\|+', '\n', ocr_col), cmp1=cmp)
+            labels = dict(base='列框OCR', cmp1='比对文本')
 
         # 检查是否已进行比对
         params = dict(mismatch_lines=[])
         cmp_data = self.prop(task, 'result.txt_html')
         if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
-            segments = Diff.diff(texts['base'], texts['cmp1'], texts['cmp2'])[0]
+            segments = Diff.diff(texts.get('base', ''), texts.get('cmp1', ''), texts.get('cmp2', ''))[0]
             cmp_data = self.check_segments(segments, page['chars'], params)
 
         self.render(

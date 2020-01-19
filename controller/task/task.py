@@ -4,9 +4,11 @@
 @desc: 任务基础表。
 @time: 2019/10/16
 """
+from datetime import datetime
 from controller.helper import prop
 from controller.model import Model
 from controller import validate as v
+from controller.helper import get_date_time
 
 
 class Task(Model):
@@ -77,17 +79,17 @@ class Task(Model):
         'text_proof_1': {
             'name': '文字校一', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
         },
         'text_proof_2': {
             'name': '文字校二', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
         },
         'text_proof_3': {
             'name': '文字校三', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
         },
         'text_review': {
             'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
@@ -106,7 +108,7 @@ class Task(Model):
         'text_proof': {
             'name': '文字校对',
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select_compare_text', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
             'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
     }
@@ -165,6 +167,26 @@ class Task(Model):
     @classmethod
     def get_step_name(cls, step):
         return cls.step_names().get(step) or step
+
+    @classmethod
+    def format_value(cls, value, key=None):
+        """ 格式化任务信息"""
+        if key == 'task_type':
+            value = cls.get_task_name(value)
+        elif key == 'status':
+            value = cls.get_status_name(value)
+        elif key == 'pre_tasks':
+            value = '/'.join([cls.get_task_name(t) for t in value])
+        elif key == 'steps':
+            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
+        elif key == 'priority':
+            value = cls.get_priority_name(int(value))
+        elif isinstance(value, datetime):
+            value = get_date_time('%Y-%m-%d %H:%M', value)
+        elif isinstance(value, dict):
+            value = value.get('error') or value.get('message') or \
+                    '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
+        return value or ''
 
     # 任务状态表
     STATUS_PUBLISHED = 'published'

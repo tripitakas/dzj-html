@@ -172,8 +172,9 @@ class CutTool(object):
 
         # 根据列框的ocr_txt，生成页面的ocr_col，栏间用||分隔
         try:
-            page['ocr_col'] = '||'.join('|'.join(c['ocr_txt'] for c in columns if c['block_no'] == b['block_no'])
-                                        for b in blocks)
+            if not page.get('ocr_col'):
+                page['ocr_col'] = '||'.join('|'.join(c['ocr_txt'] for c in columns if c['block_no'] == b['block_no'])
+                                            for b in blocks)
         except KeyError:
             pass
 

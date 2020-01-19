@@ -89,7 +89,7 @@
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         </div>
-        <div class="tips right">{{message or page['name']}}</div>
+        <div class="tips right">{{message}}</div>
       </header>
 
       <div class="flex-content pfread-in">
@@ -116,7 +116,7 @@
 </div>
 
 <div class="panel-body">
-  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+  {% module ReturnModal() %}
   <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -216,7 +216,7 @@
       showError('请选择文本', '尚未选择文本');
       return false;
     }
-    return {submit: submit, name: '{{page["name"]}}', step: 'select_compare_text', cmp: $selectedTxt};
+    return {submit: submit, name: '{{page["name"]}}', step: 'select', cmp: $selectedTxt};
   }
 
   // 初始化加载比对本

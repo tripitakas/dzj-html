@@ -110,12 +110,10 @@ class Application(web.Application):
             cfg = self.config['database']
             uri = cfg['host']
             if cfg.get('user'):
-                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
-                    cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
-                )
-            conn = pymongo.MongoClient(
-                uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000, maxPoolSize=10, waitQueueTimeoutMS=5000
-            )
+                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
+                uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
             self._db_test = conn[cfg['name'] + '_test']
         return self._db_test
 

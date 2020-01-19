@@ -16,7 +16,7 @@ from controller.task.base import TaskHandler
 class PageTaskAdminHandler(TaskHandler):
     URL = '/task/admin/page'
 
-    page_title = '页数据任务管理'
+    page_title = '页任务管理'
     search_tips = '请搜索页编码或批次号'
     search_fields = ['doc_id', 'batch']
     operations = [

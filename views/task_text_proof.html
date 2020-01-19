@@ -65,7 +65,7 @@
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
           <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
         </div>
-        <div class="tips right">{{message or page['name']}}</div>
+        <div class="tips right">{{message}}</div>
       </header>
 
       <div class="flex-content pfread-in">
@@ -142,8 +142,8 @@
 </div>
 
 <div class="panel-body">
-  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
-  {% module ComModal(handler.doubt_modal_fields, 'doubtModal', '存疑') %}
+  {% module ReturnModal() %}
+  {% module DoubtModal() %}
   <div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">

@@ -28,6 +28,7 @@
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
           <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+          <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
           <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img active" id="toggle-box" title="显隐字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
@@ -53,7 +54,7 @@
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
       </div><!--right-->
-      <div class="tips right">{{message or page['name']}}</div>
+      <div class="tips right">{{message}}</div>
     </div>
 
     <div class="full-bd bd-container">
@@ -64,7 +65,7 @@
 </div>
 
 <div class="panel-body">
-  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+  {% module ReturnModal() %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">

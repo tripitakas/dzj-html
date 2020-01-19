@@ -38,7 +38,7 @@ class TestTextTask(APITestCase):
             self.assert_code(200, r)
 
             # 第一步：选择比对文本
-            r = self.fetch('/task/do/%s/%s?step=select_compare_text&_raw=1' % (task_type, task1['_id']))
+            r = self.fetch('/task/do/%s/%s?step=select&_raw=1' % (task_type, task1['_id']))
             self.assert_code(200, r)
 
             # 测试获取比对本
@@ -50,11 +50,11 @@ class TestTextTask(APITestCase):
             # 提交第一步
             r = self.fetch(
                 '/api/task/do/%s/%s' % (task_type, task1['_id']),
-                body={'data': dict(submit=True, cmp=data.get('cmp'), step='select_compare_text')}
+                body={'data': dict(submit=True, cmp=data.get('cmp'), step='select')}
             )
             self.assert_code(200, r)
             task = self._app.db.task.find_one({'_id': task1['_id']})
-            self.assertIn('select_compare_text', task['steps']['submitted'])
+            self.assertIn('select', task['steps']['submitted'])
 
             # 第二步：文字校对
             r = self.fetch('/task/do/%s/%s?step=proof&_raw=1' % (task_type, task1['_id']))

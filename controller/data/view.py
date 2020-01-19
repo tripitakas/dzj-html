@@ -7,13 +7,15 @@
 import re
 import json
 from functools import cmp_to_key
+from bson import json_util
 from bson.objectid import ObjectId
 import controller.errors as e
 from controller.base import BaseHandler
-from controller.helper import cmp_page_code
+from controller.task.task import Task
 from controller.task.base import TaskHandler
 from controller.cut.cuttool import CutTool
 from controller.text.texttool import TextTool
+from controller.helper import cmp_page_code, prop
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -134,7 +136,7 @@ class DataPageViewHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class DataPageHandler(TaskHandler):
+class DataPageHandler(BaseHandler, Page):
     URL = '/data/page'
 
     task_statuses = {
@@ -143,7 +145,7 @@ class DataPageHandler(TaskHandler):
     }
 
     @staticmethod
-    def get_condition(self):
+    def get_search_condition(self):
         condition, params = dict(), dict()
         for field in ['name', 'source', 'layout', 'box_ready']:
             value = self.get_query_argument(field, '')
@@ -164,15 +166,38 @@ class DataPageHandler(TaskHandler):
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
         return condition, params
 
+    @staticmethod
+    def format_value(value, key=None):
+        if key == 'tasks':
+            value = value or {}
+            tasks = ['%s:%s' % (Task.get_task_name(k), Task.get_status_name(k)) for k, v in value.items()]
+            value = '<br/>'.join(tasks)
+        elif key in ['lock-box', 'lock-text']:
+            if prop(value, 'is_temp') is not None:
+                if prop(value, 'is_temp'):
+                    value = '临时锁<a>解锁</a>'
+                else:
+                    value = '长时锁'
+        elif key in ['blocks', 'columns', 'chars']:
+            value = '%s框' % len(value)
+        elif key in ['ocr', 'ocr_col', 'text']:
+            value = '%s字' % len(value)
+        else:
+            value = Task.format_value(value, key)
+        return value
+
     def get(self):
         """ 页数据管理"""
         try:
-            model = Page
-            condition, params = self.get_condition(self)
-            docs, pager, q, order = model.find_by_page(self, condition=condition)
-            kwargs = model.get_page_kwargs()
+            kwargs = self.get_page_kwargs()
+            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
+            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            condition, params = self.get_search_condition(self)
+            docs, pager, q, order = self.find_by_page(self, condition)
             self.render('data_page.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        task_statuses=self.task_statuses, **kwargs)
+                        task_statuses=self.task_statuses, Th=TaskHandler, format_value=self.format_value,
+                        **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -189,7 +214,7 @@ class DataPageNavBoxHandler(TaskHandler):
                 condition = {'$or': [{t: None} for t in ['cut_proof', 'cut_review']]}
                 params = {'op': 'pub'}
             else:
-                condition, params = DataPageHandler.get_condition(self)
+                condition, params = DataPageHandler.get_search_condition(self)
             page = self.db.page.find_one(condition, sort=[('_id', 1)])
             if not page:
                 self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
@@ -227,7 +252,7 @@ class DataPageNavTextHandler(TaskHandler):
                 condition = {'$or': [{t: None} for t in task_types]}
                 params = {'op': 'pub'}
             else:
-                condition, params = DataPageHandler.get_condition(self)
+                condition, params = DataPageHandler.get_search_condition(self)
             page = self.db.page.find_one(condition, sort=[('_id', 1)])
             if not page:
                 self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))

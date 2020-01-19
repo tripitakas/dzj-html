@@ -170,9 +170,10 @@ class Page(Model):
         {'id': 'txt_html', 'name': '文本HTML'},
         {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'tasks', 'name': '任务'},
-        {'id': 'lock', 'name': '数据锁'},
-        {'id': 'level.box', 'name': '切分等级'},
-        {'id': 'level.text', 'name': '文本等级'},
+        {'id': 'lock.box', 'name': '切分数据锁'},
+        {'id': 'lock.text', 'name': '文本数据锁'},
+        {'id': 'level.box', 'name': '切分数据等级'},
+        {'id': 'level.text', 'name': '文本数据等级'},
     ]
     rules = [
         (v.not_empty, 'name'),
@@ -185,41 +186,49 @@ class Page(Model):
     primary = 'name'
 
     page_title = '页数据管理'
-    search_tips = '请搜索页名称、批次号、页面结构、统一经编码、卷编码'
+    search_tips = '请搜索页名称、分类、页面结构、统一经编码、卷编码'
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
     table_fields = [
         {'id': 'name', 'name': '页编码'},
-        {'id': 'source', 'name': '批次'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
+        {'id': 'img_cloud_path', 'name': '云图路径'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
+        {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'box_ready', 'name': '切分已就绪'},
-        {'id': 'level_box', 'name': '切分等级'},
-        {'id': 'level_text', 'name': '文本等级'},
-        {'id': 'lock_box', 'name': '切分锁'},
-        {'id': 'lock_text', 'name': '文本锁'},
-        {'id': 'blocks', 'name': '栏框数据'},
-        {'id': 'columns', 'name': '列框数据'},
-        {'id': 'chars', 'name': '字框数据'},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
+        {'id': 'lock-box', 'name': '切分锁'},
+        {'id': 'lock-text', 'name': '文本锁'},
+        {'id': 'blocks', 'name': '栏框'},
+        {'id': 'columns', 'name': '列框'},
+        {'id': 'chars', 'name': '字框'},
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
     ]
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'bat-update', 'label': '更新分类', 'data-target': 'updateModal'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-nav', 'label': '浏览结果'},
+    ]
+    actions = [
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
-    layout = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layout},
         {'id': 'source', 'name': '批次'},
-        {'id': 'level-box', 'name': '切分锁等级'},
-        {'id': 'level-text', 'name': '文本锁等级'},
-    ]
-    operations = [
-        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-        {'operation': 'btn-pub-box', 'label': '发布切分任务'},
-        {'operation': 'btn-pub-text', 'label': '发布文字任务'},
+        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
+            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
+        ]},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
     ]
 
     @classmethod
