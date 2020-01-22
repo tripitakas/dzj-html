@@ -25,6 +25,19 @@
     width: 72px;
   }
 
+  td.blocks, td.columns, td.chars, td.orders {
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+    color: #B8906F;
+  }
+
+  .sty-table td a {
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
   .operation .btn-img {
     width: 22px;
     height: 22px;
@@ -263,21 +276,48 @@
 
 {% block custom-js %}
 <script>
+  // 批量更新分类
+  $('.operation .bat-source').click(function () {
+    var ids = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().attr('id');
+    });
+    if (!ids.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+    $('#inputModal').modal();
+  });
+  $('#inputModal .modal-confirm').click(function () {
+    var source = $('#inputModal .modal-body input').val().trim();
+    if (!source.length)
+      return showWarning('请输入分类');
+    var ids = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().attr('id');
+    });
+    postApi('/data/page/source', {data: {_ids: ids, source: source}}, function () {
+      refresh(1000);
+    });
+  });
+
+  // 查找重复
+  $('.operation .btn-duplicate').click(function () {
+    location.href = location.pathname + '?duplicate=true';
+  });
+
   // 修改栏框、列框、字框、字序
-  $('.blocks, .columns, .chars, .orders').click(function () {
+  $('td.blocks, td.columns, td.chars, td.orders').click(function () {
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('title');
+    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('class');
     location.href = url + '&from=' + location.pathname + location.search;
   });
 
   // 解锁
-  $('.lock_box, .lock_text').click(function () {
+  $('.lock-box a, .lock-text a').click(function () {
     if (!$(this).text().length)
       return;
-    var sharedField = $(this).attr('title');
-    var name = $(this).siblings('.name').text();
+    var node = $(this).parent();
+    var name = node.siblings('.name').text().trim();
+    var sharedField = node.attr('class').indexOf('box') !== -1 ? 'box' : 'text';
     var url = '/data/admin/unlock/' + sharedField + '/' + name;
     showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
@@ -288,29 +328,6 @@
       });
     });
   });
-
-  // 批量更新分类
-  $('.operation .bat-source').click(function () {
-    var ids = $.map($('table tbody :checked'), function (item) {
-      return $(item).parent().parent().attr('id');
-    });
-    if (!ids.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
-    $('#inputModal').modal();
-  });
-
-  $('#inputModal .modal-confirm').click(function () {
-    var source = $('#inputModal .modal-body input').val().trim();
-    if (!source.length)
-      return showWarning('请输入分类');
-    var ids = $.map($('table tbody :checked'), function (item) {
-      return $(item).parent().parent().attr('id');
-    });
-    postApi('/data/page/update_source', {data: {_ids: ids, source: source}}, function () {
-      refresh(1000);
-    });
-  });
-
 
   // 详情
   $('.action .btn-detail').click(function () {

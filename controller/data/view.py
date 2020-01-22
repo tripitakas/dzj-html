@@ -151,6 +151,15 @@ class DataPageListHandler(BaseHandler, Page):
         '': '', 'un_published': '全未发布', 'published': '已发布', 'finished': '全部完成',
     }
 
+    def get_duplicate_condition(self):
+        pages = list(self.db.page.aggregate([
+            {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
+            {'$match': {'count': {'$gte': 2}}},
+        ]))
+        condition = {'name': {'$in': [p['_id'] for p in pages]}}
+        params = {'duplicate': 'true'}
+        return condition, params
+
     @staticmethod
     def get_search_condition(self):
         condition, params = dict(), dict()
@@ -211,7 +220,11 @@ class DataPageListHandler(BaseHandler, Page):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            condition, params = self.get_search_condition(self)
+
+            if self.get_query_argument('duplicate', '') == 'true':
+                condition, params = self.get_duplicate_condition()
+            else:
+                condition, params = self.get_search_condition(self)
             docs, pager, q, order = self.find_by_page(self, condition)
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, group_task_statuses=self.group_task_statuses,

@@ -107,7 +107,7 @@ class DataDeleteApi(BaseHandler):
 
 
 class DataPageUpdateSourceApi(BaseHandler):
-    URL = '/api/data/page/update_source'
+    URL = '/api/data/page/source'
 
     def post(self):
         """ 批量更新分类 """
