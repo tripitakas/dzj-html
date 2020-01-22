@@ -92,15 +92,18 @@ class DataListHandler(BaseHandler):
         """ 数据管理"""
         try:
             model = eval(metadata.capitalize())
-            docs, pager, q, order = model.find_by_page(self)
             kwargs = model.get_page_kwargs()
-            template_url = '/static/template/%s-sample.csv' % metadata
+            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
+            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
                 {'operation': 'bat-upload', 'label': '批量上传', 'data-target': 'uploadModal'},
-                {'operation': 'download-template', 'label': '下载模板', 'url': template_url},
+                {'operation': 'download-template', 'label': '下载模板',
+                 'url': '/static/template/%s-sample.csv' % metadata},
             ]
+            docs, pager, q, order = model.find_by_page(self)
             self.render('data_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
@@ -196,7 +199,7 @@ class DataPageListHandler(BaseHandler, Page):
         elif key in ['blocks', 'columns', 'chars']:
             value = '%s个' % len(value)
         elif key in ['ocr', 'ocr_col', 'text']:
-            value = '%s字' % len(value)
+            value = '%s字' % len(value) if len(value) else ''
         else:
             value = Task.format_value(value, key)
         return value

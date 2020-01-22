@@ -15,7 +15,7 @@ class Tripitaka(Model):
         {'id': 'name', 'name': '藏名'},
         {'id': 'short_name', 'name': '简称'},
         {'id': 'store_pattern', 'name': '存储模式'},
-        {'id': 'img_available', 'name': '图片是否就绪', 'input_type': 'select', 'options': ['是', '否']},
+        {'id': 'img_available', 'name': '图片是否就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'remark', 'name': '备注'}
     ]
     rules = [
@@ -211,18 +211,20 @@ class Page(Model):
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
-        {'operation': 'bat-update', 'label': '更新分类', 'data-target': 'updateModal'},
+        {'operation': 'btn-duplicate', 'label': '查找重复'},
+        {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
     ]
     actions = [
-        {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'source', 'name': '批次'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
             '上下一栏', '上下两栏', '上下三栏', '左右两栏'

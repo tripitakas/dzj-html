@@ -7,7 +7,7 @@ views = [
 ]
 
 handlers = [
-    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi,
+    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi, api.DataPageUpdateSourceApi,
     api.FetchDataTasksApi, api.SubmitDataTasksApi, api.ConfirmFetchDataTasksApi,
     api.DataGenJsApi,
 ]

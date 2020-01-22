@@ -106,6 +106,31 @@ class DataDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
+class DataPageUpdateSourceApi(BaseHandler):
+    URL = '/api/data/page/update_source'
+
+    def post(self):
+        """ 批量更新分类 """
+        try:
+            data = self.get_request_data()
+            rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
+            err = v.validate(data, rules)
+            if err:
+                self.send_error_response(err)
+
+            if data.get('_id'):
+                r = self.db.page.update_one({'_id': ObjectId(data['_id'])}, {'$set': {'source': data['source']}})
+                self.add_op_log('update_page_source', target_id=data['_id'])
+            else:
+                r = self.db.page.update_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}},
+                                             {'$set': {'source': data['source']}})
+                self.add_op_log('update_page_source', target_id=data['_ids'])
+            self.send_data_response(dict(matched_count=r.matched_count))
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

@@ -17,16 +17,16 @@
             {% if name %}
             <h4 class="col-sm-2 control-label">{{name}}</h4>
             {% end %}
-            <div class="{{'col-md-10' if name else 'col-md-12'}} {{fid}}">
+            <div class="{{'col-md-10' if name else 'col-md-12'}}">
               {% if input_type == 'radio' %}
-              <div class="form-control">
+              <div class="modal-radio {{fid}}">
                 {% for o in f.get('options') %}
                 {% set o = [o, o] if isinstance(o, str) else o %}
                 <input type="radio" name="{{fid}}" value="{{o[0]}}">{{o[1]}}
                 {% end %}
               </div>
               {% elif input_type == 'checkbox' %}
-              <div class="form-control">
+              <div class="modal-checkbox {{fid}}">
                 {% for o in f.get('options') %}
                 {% set o = [o, o] if isinstance(o, str) else o %}
                 <label class="checkbox-inline">
@@ -35,16 +35,16 @@
                 {% end %}
               </div>
               {% elif input_type == 'select' %}
-              <select class="form-control">
+              <select class="modal-select {{fid}}">
                 {% for o in f.get('options') %}
                 {% set o = [o, o] if isinstance(o, str) else o %}
                 <option title="{{o[0]}}">{{o[1]}}</option>
                 {% end %}
               </select>
               {% elif input_type == 'textarea' %}
-              <textarea type="text" class="form-control" rows="4" {{'readonly' if f.get('readonly') else ''}}></textarea>
+              <textarea type="text" class="form-control {{fid}}" rows="4" {{'readonly' if f.get('readonly') else ''}}></textarea>
               {% else %}
-              <input type="text" class="form-control" {{'readonly' if f.get('readonly') else ''}}>
+              <input type="text" class="form-control {{fid}}" {{'readonly' if f.get('readonly') else ''}}>
               {% end %}
             </div>
           </div>

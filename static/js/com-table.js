@@ -90,7 +90,7 @@ function getModal(modal, fields) {
     } else if ('input_type' in item && item['input_type'] === 'select') {
       info[item.id] = modal.find('.' + item.id + ' :selected').val();
     } else {
-      info[item.id] = modal.find('.' + item.id).val() || modal.find('.' + item.id + ' input').val();
+      info[item.id] = modal.find('.' + item.id).val();
     }
     if (typeof info[item.id] === 'undefined' || !info[item.id]) {
       delete info[item.id];
@@ -111,7 +111,6 @@ function resetModal(modal, fields) {
       modal.find('.' + item.id + ' :selected').removeAttr('selected');
     } else {
       modal.find('.' + item.id).val('');
-      modal.find('.' + item.id + ' input').val('');
     }
   });
 }
@@ -122,6 +121,7 @@ function toggleModal(modal, fields, disabled) {
     modal.find('.modal-footer').hide();
     fields.forEach(function (item) {
       modal.find('.' + item.id).attr('disabled', 'disabled');
+      modal.find('.' + item.id + ' input').attr('disabled', 'disabled');
     });
   } else {
     modal.find('.modal-footer').show();
@@ -137,12 +137,12 @@ function getData(id) {
   return data;
 }
 
-var $modal = $('#dataModal');
+var $modal = $('#updateModal');
 var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
 // console.log(fields);
 
 // 新增-弹框
-$('.operation #btn-add').click(function () {
+$('.operation .btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('#url').val($(this).attr('url') || location.pathname);
   console.log($(this).attr('url') || location.pathname);
@@ -175,7 +175,7 @@ $('.btn-update').click(function () {
 });
 
 // 新增/修改-提交
-$("#dataModal .modal-confirm").click(function () {
+$("#updateModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
   postApi($modal.find('#url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');

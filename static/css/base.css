@@ -788,8 +788,9 @@ a:hover, a:visited, a:focus {
   width: 680px;
 }
 
-.modal .modal-radio {
-  margin-top: 5px
+.modal-radio, .modal-select, .modal-checkbox {
+  margin-top: 5px;
+  background: transparent;
 }
 
 .modal-radio input[type='radio'] {

@@ -44,7 +44,11 @@
       {% set info = {f: prop(d, f, '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
-      <a class="{{a['action']}}" title="{{a.get('title') or ''}}">{{a['label']}}</a>
+      {% if a.get('title') %}
+      <a class="{{a['action']}}" title="{{a['title']}}">{{a['label']}}</a>
+      {% else %}
+      <a class="{{a['action']}}">{{a['label']}}</a>
+      {% end %}
       {% end %}
     </td>
   </tr>

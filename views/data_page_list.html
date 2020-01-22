@@ -245,6 +245,20 @@
     </div>
   </div>
 </div>
+<div id="inputModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <input type="text" class="form-control" value="" placeholder="请输入分类">
+      </div>
+      <div class="modal-footer" style="border: 0">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% end %}
 
 {% block custom-js %}
@@ -275,13 +289,36 @@
     });
   });
 
+  // 批量更新分类
+  $('.operation .bat-source').click(function () {
+    var ids = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().attr('id');
+    });
+    if (!ids.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+    $('#inputModal').modal();
+  });
+
+  $('#inputModal .modal-confirm').click(function () {
+    var source = $('#inputModal .modal-body input').val().trim();
+    if (!source.length)
+      return showWarning('请输入分类');
+    var ids = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().attr('id');
+    });
+    postApi('/data/page/update_source', {data: {_ids: ids, source: source}}, function () {
+      refresh(1000);
+    });
+  });
+
+
   // 详情
-  $('.btn-detail').click(function () {
+  $('.action .btn-detail').click(function () {
     location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
   });
 
   // 浏览
-  $('.btn-nav').click(function () {
+  $('.action .btn-nav').click(function () {
     location.href = '/data/page/' + $(this).parent().siblings('.name').text() + location.search;
   });
 

@@ -190,6 +190,7 @@ role_route_maps = {
             '/data/@metadata': ['GET'],
             '/data/page/@page_code': ['GET'],
             '/data/page/info/@page_code': ['GET'],
+            '/api/data/page/update_source': ['POST'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],

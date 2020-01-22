@@ -104,8 +104,7 @@ class PageTaskAdminHandler(TaskHandler):
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-publish_time')
             self.render(
                 'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                is_mod_enabled=self.is_mod_enabled, format_value=None,
-                **kwargs,
+                is_mod_enabled=self.is_mod_enabled, **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)
@@ -304,4 +303,3 @@ class TaskDetailHandler(TaskHandler):
 
         except Exception as error:
             return self.send_db_error(error)
-

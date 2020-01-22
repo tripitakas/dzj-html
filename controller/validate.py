@@ -12,8 +12,7 @@ from datetime import datetime, timedelta
 
 
 def validate(data, rules):
-    """
-    数据校验主控函数
+    """ 数据校验主控函数
     :param data:  待校验的数据，一般是指从页面POST的dict类型的数据
     :param rules: 校验规则列表，每个rule是一个(func, para1, para2, ...)元组，其中，func是校验工具函数。关于para1、para2等参数：
                   1. 如果是字符串格式，则表示data的属性，将data[para1]数据作为参数传递给func函数
@@ -31,7 +30,7 @@ def validate(data, rules):
     return errs or None
 
 
-def i18n_trans(key):
+def i18n(key):
     maps = {
         'name': '名称',
         'phone': '手机',
@@ -62,6 +61,7 @@ def i18n_trans(key):
         'tasks': '任务列表',
         'task_ids': '任务',
         'user_id': '用户',
+        'source': '分类',
         'title': '标题',
         'category': '分类',
         'content': '内容',
@@ -77,7 +77,7 @@ def allowed_keys(**kw):
 def not_empty(**kw):
     """不允许为空以及空串"""
     code, message = e.not_allowed_empty
-    errs = {k: (code, message % i18n_trans(k)) for k, v in kw.items() if not v}
+    errs = {k: (code, message % i18n(k)) for k, v in kw.items() if not v}
     return errs or None
 
 
@@ -87,7 +87,7 @@ def not_both_empty(**kw):
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
     code, message = e.not_allowed_both_empty
-    err = code, message % (i18n_trans(k1), i18n_trans(k2))
+    err = code, message % (i18n(k1), i18n(k2))
     if not v1 and not v2:
         return {k1: err, k2: err}
 
@@ -97,7 +97,7 @@ def not_equal(**kw):
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
     code, message = e.both_times_equal
-    err = code, message % (i18n_trans(k1), i18n_trans(k2))
+    err = code, message % (i18n(k1), i18n(k2))
     if v1 == v2:
         return {k1: err, k2: err}
 
@@ -107,7 +107,7 @@ def equal(**kw):
     k1, k2 = kw.keys()
     v1, v2 = kw.values()
     code, message = e.not_equal
-    err = code, message % (i18n_trans(k1), i18n_trans(k2))
+    err = code, message % (i18n(k1), i18n(k2))
     if v1 != v2:
         return {k1: err, k2: err}
 
@@ -246,7 +246,7 @@ def between(min_v, max_v, **kw):
     if isinstance(v, str) and re.match(r'^\d+$', v):
         v = int(v)
     code, message = e.invalid_range
-    err = code, message % (i18n_trans(k), min_v, max_v)
+    err = code, message % (i18n(k), min_v, max_v)
     if isinstance(v, int) and (v < min_v or v > max_v):
         return {k: err}
 
@@ -256,7 +256,7 @@ def in_list(lst, **kw):
     k, v = list(kw.items())[0]
     if v:
         code, message = e.should_in_list
-        err = code, message % (i18n_trans(k), lst)
+        err = code, message % (i18n(k), lst)
         assert type(v) in [str, list]
         v = [v] if isinstance(v, str) else v
         not_in = [i for i in v if i not in lst]
@@ -288,7 +288,7 @@ def not_existed(collection=None, exclude_id=None, **kw):
             if exclude_id:
                 condition['_id'] = {'$ne': exclude_id}
             if v and collection.find_one(condition):
-                errs[k] = code, message % i18n_trans(k)
+                errs[k] = code, message % i18n(k)
     return errs or None
 
 
@@ -303,7 +303,7 @@ def exist(collection=None, **kw):
         for k, v in kw.items():
             condition = {k: ObjectId(v) if k == '_id' else v}
             if v and not collection.find_one(condition):
-                errs[k] = code, message % i18n_trans(k)
+                errs[k] = code, message % i18n(k)
     return errs or None
 
 
@@ -314,7 +314,7 @@ def is_unique(collection=None, **kw):
     if collection:
         for k, v in kw.items():
             if v is not None and collection.count_documents({k: v}) > 1:
-                errs[k] = code, message % i18n_trans(k)
+                errs[k] = code, message % i18n(k)
     return errs or None
 
 
@@ -331,7 +331,7 @@ def code_verify_timeout(collection=None, **kw):
              "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
-            errs['email_code'] = code, message % i18n_trans('email_code')
+            errs['email_code'] = code, message % i18n('email_code')
 
     if phone and phone_code and collection:
         code, message = e.code_wrong_or_timeout
@@ -341,5 +341,5 @@ def code_verify_timeout(collection=None, **kw):
              "stime": {"$gt": datetime.now() - timedelta(minutes=5)}}
         )
         if not r:
-            errs['phone_code'] = code, message % i18n_trans('phone_code')
+            errs['phone_code'] = code, message % i18n('phone_code')
     return errs or None
