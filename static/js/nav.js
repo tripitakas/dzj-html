@@ -4,11 +4,13 @@
 
 // 显隐左侧区域
 $(document).on('click', '#toggle-left', function () {
+  $(this).toggleClass('active');
   $('#left-region').toggleClass('hide');
 });
 
 // 隐藏右侧区域
 $(document).on('click', '#toggle-right', function () {
+  $(this).toggleClass('active');
   $('#right-region').toggleClass('hide');
 });
 
@@ -113,9 +115,7 @@ $('#toggle-char').click(function () {
 });
 
 // 显隐字序连线
-$('#toggle-order').click(function () {
-  $(this).toggleClass('active');
-  var active = $(this).hasClass('active');
+function setOrderStatus(active) {
   $('#holder svg path').each(function (i, path) {
     var stroke = $(path).css('stroke');
     if (active) {
@@ -125,6 +125,11 @@ $('#toggle-order').click(function () {
     }
     $(path).css('stroke', stroke);
   });
+}
+
+$('#toggle-order').click(function () {
+  $(this).toggleClass('active');
+  setOrderStatus($(this).hasClass('active'));
 });
 
 // 更多操作

@@ -31,6 +31,12 @@ class TestPageApi(APITestCase):
         r = self.fetch('/api/data/page/upload', files={'json': filename}, body={'data': {'layout': '上下一栏'}})
         self.assert_code(200, r)
 
+    def test_nav_page(self):
+        d = self.parse_response(self.fetch('/data/page/JX_165_7_12?name=jx&to=next&_raw=1'))
+        self.assertEqual('JX_165_7_30', d['page']['name'])
+        d = self.parse_response(self.fetch('/data/page/JX_165_7_12?to=prev&_raw=1'))
+        self.assertEqual('GL_924_2_35', d['page']['name'])
+
     def test_publish_simple(self):
         r = self.fetch('/data/page/box?_raw=1')
         self.assert_code(200, r)

@@ -38,6 +38,10 @@ class TextTool(object):
         return ''.join(lines).rstrip('\n')
 
     @classmethod
+    def txt2lines(cls, txt):
+        return txt.replace('|', '\n')
+
+    @classmethod
     def check_segments(cls, segments, chars, params=None):
         """ 检查segments """
         params = params or {}

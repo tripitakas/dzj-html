@@ -75,7 +75,7 @@ function setModal(modal, info, fields) {
     } else {
       modal.find('.' + item.id).val(info[item.id]);
     }
-  })
+  });
 }
 
 function getModal(modal, fields) {

@@ -241,65 +241,33 @@ class DataPageHandler(TaskHandler):
     def get(self, page_code):
         """ 浏览页面数据"""
         try:
+            page = self.db.page.find_one({'name': page_code})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
             condition, params = DataPageListHandler.get_search_condition(self)
-            page = self.db.page.find_one(condition, sort=[('_id', 1)])
+            to = self.get_query_argument('to', '')
+            params['to'] = to
+            if to == 'next':
+                condition['page_code'] = {'$gt': page['page_code']}
+                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
+            elif to == 'prev':
+                condition['page_code'] = {'$lt': page['page_code']}
+                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
             if not page:
-                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
-            last = self.get_query_argument('last', '')
-            if last:
-                condition['_id'] = {'$gt': ObjectId(last)}
-                page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                if not page:
-                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
+                return self.send_error_response(e.no_object, message='没有找到页面%s的%s' % (
+                    page_code, '上一页' if to == 'prev' else '下一页'
+                ))
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            chars_col = r[2]
-
-            try:
-                options = json.loads(self.get_secure_cookie('publish_box'))
-            except (TypeError, ValueError, AttributeError):
-                options = {}
-
-            self.render('data_page.html', page=page, chars_col=chars_col,
-                        img_url=self.get_img(page), options=options, params=params)
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class DataPageNavTextHandler(TaskHandler):
-    URL = '/data/page/text'
-
-    def get(self):
-        """ 浏览页面的文本数据"""
-        try:
-            op = self.get_query_argument('op', '')
-            if op == 'pub':
-                task_types = ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']
-                condition = {'$or': [{t: None} for t in task_types]}
-                params = {'op': 'pub'}
-            else:
-                condition, params = DataPageListHandler.get_search_condition(self)
-            page = self.db.page.find_one(condition, sort=[('_id', 1)])
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到任何页面。查询条件%s' % str(params))
-            last = self.get_query_argument('last', '')
-            if last:
-                condition['_id'] = {'$gt': ObjectId(last)}
-                page = self.db.page.find_one(condition, sort=[('_id', 1)])
-                if not page:
-                    self.send_error_response(e.no_object, message='没有下一条记录。查询条件%s' % str(params))
-
-            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            chars_col = r[2]
-
-            options = json.loads(self.get_secure_cookie('publish_text') or '{}')
-            fields = ['txt_html', 'text', 'ocr', 'ocr_col']
-            labels = dict(txt_html='审定HTML', text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-            texts = {f: (labels[f], TextTool.txt2html(page.get(f))) for f in fields if page.get(f)}
-
-            self.render('data_nav_text.html', page=page, img_url=self.get_img(page), options=options,
-                        chars_col=chars_col, params=params, labels=labels, texts=texts)
+            options = json_util.loads(self.get_secure_cookie('publish_page') or '{}')
+            fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
+            texts = {f: TextTool.txt2lines(page[f]) for f in fields}
+            modal_fields = Page.modal_fields
+            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in modal_fields}
+            self.render('data_page.html', page=page, chars_col=r[2], options=options, params=params,
+                        labels=labels, fields=fields, texts=texts, modal_fields=modal_fields,
+                        info=info, img_url=self.get_img(page))
 
         except Exception as error:
             return self.send_db_error(error)

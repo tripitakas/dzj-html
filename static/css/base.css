@@ -691,6 +691,10 @@ a:hover, a:visited, a:focus {
   transform: scale(1.2);
 }
 
+.btn-img.active, btn-txt.active {
+  border: 1px solid #999;
+}
+
 .m-header .image {
   margin-left: 40px;
 }

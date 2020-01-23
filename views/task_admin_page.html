@@ -390,7 +390,7 @@
     var data = {'tasks': tasks, 'user_id': $assignModal.find(".select-user").val()};
     postApi('/task/assign', {'data': data}, function (res) {
       var html = $.map(res.data, function (value, key) {
-        return '<tr><td>' + assignL10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
+        return '<tr><td>' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
       }).join('');
       $assignModal.modal('hide');
       $assignResultModal.find('table').html(html);
@@ -520,7 +520,7 @@
     postApi('/task/publish/pages', isFile ? formData : {data: data}, function (res) {
       var html = '';
       for (var item in res.data) {
-        var label = publishL10n[item] + '(' + res.data[item].length + ')';
+        var label = l10n[item] + '(' + res.data[item].length + ')';
         html += '<tr><td class="' + item + '">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
       }
       $publishResultModal.find('table').html(html);

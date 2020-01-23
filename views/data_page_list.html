@@ -336,7 +336,8 @@
 
   // 浏览
   $('.action .btn-nav').click(function () {
-    location.href = '/data/page/' + $(this).parent().siblings('.name').text() + location.search;
+    var name = $(this).parent().siblings('.name').text();
+    location.href = '/data/page/' + name + location.search;
   });
 
 </script>

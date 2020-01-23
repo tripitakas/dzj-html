@@ -184,7 +184,7 @@ class TextHardHandler(TextReviewHandler):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
-            texts, labels, proof_doubt = self.get_cmp_data(self, task['doc_id'], page)
+            texts, labels, proof_doubt = self.get_cmp_data(self, page)
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
             hard_doubt = self.prop(task, 'result.doubt')
@@ -206,7 +206,6 @@ class TextEditHandler(TaskHandler, TextTool):
 
     def get(self, page_name):
         """ 文字修改页面 """
-
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -219,7 +218,7 @@ class TextEditHandler(TaskHandler, TextTool):
 
             cmp_data = self.prop(page, 'txt_html', '')
             if not cmp_data and self.prop(page, 'text'):
-                segments = Diff.diff(page['text'].replace('|', '\n'))[0]
+                segments = Diff.diff(re.sub('[|]+', '\n', page['text']))[0]
                 cmp_data = self.check_segments(segments, page['chars'], dict(mismatch_lines=[]))
 
             kwargs = dict(task_type='', task={}, texts={}, labels={}, doubt='', pre_doubt='',
