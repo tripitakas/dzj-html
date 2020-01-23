@@ -5,6 +5,7 @@
 @time: 2019/10/16
 """
 import re
+from bson.objectid import ObjectId
 from datetime import datetime
 from controller import auth
 from controller import errors as e
@@ -13,6 +14,11 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler, Task):
+    def is_admin(self):
+        """ 是否为任务管理员"""
+        user_roles = auth.get_all_roles(self.current_user['roles'])
+        return '任务管理员' in user_roles
+
     def find_many(self, task_type=None, status=None, mine=False, size=None, order=None):
         """ 查找任务。(mine参数存在时，status参数将失效) """
         condition = dict()

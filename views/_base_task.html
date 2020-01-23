@@ -1,9 +1,30 @@
 <script src="{{ static_url('js/pick-task.js') }}"></script>
 <script>
-  var from = decodeUrl(getQueryString('from'));
+  var from = decodeFrom();
   var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
 
-  // 保存任务
+  // 离开页面
+  window.leave = function () {
+    // 释放临时数据锁
+    if ('{{not readonly and mode in ["edit", "update"] and "cut" in task_type}}' === 'True') {
+      postApi('/data/unlock/box/{{page["name"]}}', {});
+    }
+    if ('{{not readonly and mode in ["edit", "update"] and "text" in task_type}}' === 'True') {
+      postApi('/data/unlock/text/{{page["name"]}}', {});
+    }
+    // 返回
+    if (from) {
+      window.location = from;
+    } else if ('{{mode}}' === 'do') {
+      window.location = '/task/lobby/' + taskType;
+    } else if ('{{mode}}' === 'update') {
+      window.location = '/task/my/' + taskType;
+    } else {
+      window.history.back();
+    }
+  };
+
+  // 保存任务函数
   function saveTask(submit, url) {
     var data = getSubmitData(submit);
     if (data && !data.error) {
@@ -63,7 +84,7 @@
 
   // 退回任务
   $(document).on('click', '#returnModal .modal-confirm', function () {
-    var reason = $('#returnModal .return_reason textarea').val().trim();
+    var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
       return showError('请填写退回理由', '尚未填写退回理由');
     }
@@ -73,25 +94,35 @@
     });
   });
 
-  // 离开页面
-  window.leave = function () {
-    // 释放临时数据锁
-    if ('{{not readonly and mode in ["edit", "update"] and "cut" in task_type}}' === 'True') {
-      postApi('/data/unlock/box/{{page["name"]}}', {});
-    }
-    if ('{{not readonly and mode in ["edit", "update"] and "text" in task_type}}' === 'True') {
-      postApi('/data/unlock/text/{{page["name"]}}', {});
-    }
-    // 返回
-    if (from) {
-      window.location = from;
-    } else if ('{{mode}}' === 'do') {
-      window.location = '/task/lobby/' + taskType;
-    } else if ('{{mode}}' === 'update') {
-      window.location = '/task/my/' + taskType;
-    } else {
-      window.history.back();
-    }
-  };
+  function setTaskId(url) {
+    return url.replace(/[0-9a-z]{24}/, '{{task.get("_id") or ""}}');
+  }
+
+  // 上一个任务
+  $(document).on("click", '#prev-task', function () {
+    location.href = setTaskId(setQueryString('to', 'prev'));
+  });
+
+  // 下一个任务
+  $(document).on("click", '#next-task', function () {
+    location.href = setTaskId(setQueryString('to', 'next'));
+  });
+
+  // 查看页面
+  $(document).on("click", '#view-page', function () {
+    location.href = '/data/page/{{task.get("doc_id", "")}}?from=' + encodeFrom();
+  });
+
+  // 备注任务
+  $('#remarkModal .modal-confirm').click(function () {
+    var remark = $('#remarkModal .remark').val().trim();
+    if (!remark.length)
+      return showWarning('请输入备注内容');
+    var data = {_id: '{{task.get("_id", "")}}', remark: remark};
+    postApi('/task/remark', {data: data}, function () {
+      showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
+      $('#remarkModal').modal('hide');
+    });
+  });
 </script>
 

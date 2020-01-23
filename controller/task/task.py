@@ -38,6 +38,7 @@ class Task(Model):
         {'id': 'picked_user_id', 'name': '领取人id'},
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'remark', 'name': '备注'},
     ]
     rules = [
         (v.not_empty, 'batch', 'task_type'),

@@ -355,8 +355,8 @@
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script>
   // 离开页面
+  var from = decodeFrom();
   window.leave = function () {
-    var from = getQueryString('from');
     if (from) {
       window.location = from;
     } else {
@@ -366,27 +366,27 @@
 
   // 修改字框
   $('#btn-ed-char').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + encodeUrl();
+    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + encodeFrom();
   });
 
   // 修改栏框
   $('#btn-ed-block').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + encodeUrl();
+    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + encodeFrom();
   });
 
   // 修改列框
   $('#btn-ed-column').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + encodeUrl();
+    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + encodeFrom();
   });
 
   // 修改字序
   $('#btn-ed-order').click(function () {
-    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + encodeUrl();
+    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + encodeFrom();
   });
 
   // 修改审定文本
   $('#btn-ed-text').click(function () {
-    location = '/data/edit/text/{{page["name"]}}?from=' + encodeUrl();
+    location = '/data/edit/text/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 解锁

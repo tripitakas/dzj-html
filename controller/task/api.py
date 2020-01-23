@@ -97,52 +97,6 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
         return doc_ids
 
 
-class PublishPageTasksApi(PublishPageTaskBaseHandler):
-    URL = r'/api/task/publish/(box|text)'
-
-    def post(self, kind):
-        """ 发布单个页面的切分或文字任务"""
-        try:
-            data = self.get_request_data()
-            rules = [
-                (v.not_empty, 'name', 'batch', 'task_types', 'priority', 'force'),
-                (v.is_priority, 'priority'),
-                (v.in_list, 'task_type', list(self.task_types.keys())),
-                (v.in_list, 'pre_tasks', list(self.task_types.keys())),
-            ]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
-            page = self.db.page.find_one({'name': data['name']})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % data['name'])
-
-            ret = {}
-            published = [r for r in page.get('tasks', {})]
-            self.set_secure_cookie('publish_%s' % kind, json.dumps(dict(data)))
-
-            for task_type in data['task_types']:
-                # 文字任务，检查切分数据是否已就绪
-                if kind == 'text' and not page.get('box_ready'):
-                    return self.send_error_response(e.box_un_ready)
-                # 审定任务，设置校对任务为前置任务
-                pre_tasks_patch = []
-                if task_type == 'cut_review':
-                    pre_tasks_patch = list(set([r for r in published + data['task_types'] if 'cut_proof' in r]))
-                if task_type == 'text_review':
-                    pre_tasks_patch = list(set([r for r in published + data['task_types'] if 'text_proof' in r]))
-                # 发布任务
-                pre_tasks = list(set(data.get('pre_tasks', []) + pre_tasks_patch))
-                log = self.publish_many(task_type, pre_tasks, data.get('steps', []), data['priority'],
-                                        data['force'] == '是', data['name'], data['batch'])
-                ret[self.get_task_name(task_type)] = list(log.keys())[0]
-
-            self.send_data_response(ret)
-
-        except DbError as error:
-            return self.send_db_error(error)
-
-
 class PublishImportImageTasksApi(PublishPageTaskBaseHandler):
     URL = r'/api/task/publish/import'
 
@@ -224,21 +178,26 @@ class PickTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class TaskUpdateBatchApi(TaskHandler):
-    URL = '/api/task/update_batch'
+class TaskUpdateApi(TaskHandler):
+    URL = '/api/task/(batch|remark)'
 
-    def post(self):
-        """ 批量更新任务批次"""
+    def post(self, field):
+        """ 批量更新任务批次或备注"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, '_ids', 'batch')]
+            rules = [(v.not_both_empty, '_ids', '_id'), (v.not_both_empty, 'batch', 'remark')]
             errs = v.validate(data, rules)
             if errs:
                 self.send_error_response(errs)
 
-            _ids = [ObjectId(t) for t in data['_ids']]
-            r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': {'batch': data['batch']}})
-            self.add_op_log('update_batch', context=data['batch'], target_id=_ids)
+            if data.get('_id'):
+                r = self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': {field: data[field]}})
+                self.add_op_log('update_task', context=data[field], target_id=data['_id'])
+            else:
+                _ids = [ObjectId(t) for t in data['_ids']]
+                r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': {field: data[field]}})
+                self.add_op_log('update_task', context=data[field], target_id=_ids)
+
             self.send_data_response(dict(count=r.matched_count))
 
         except DbError as error:

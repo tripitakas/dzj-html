@@ -157,3 +157,11 @@ class DoubtModal(UIModule):
                         {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'}]
         return self.render_string('com_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
                                   buttons=buttons)
+
+
+class RemarkModal(UIModule):
+    def render(self):
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        modal_fields = [{'id': 'remark', 'name': '备注内容'}]
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+                                  buttons=buttons)

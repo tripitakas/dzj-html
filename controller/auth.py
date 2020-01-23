@@ -167,7 +167,7 @@ role_route_maps = {
             '/api/task/publish/import': ['POST'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
-            '/api/task/(assign|delete|update_batch)': ['POST'],
+            '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },

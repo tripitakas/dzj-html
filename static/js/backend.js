@@ -96,13 +96,27 @@ function setQueryString(name, value) {
   return location.pathname + search;
 }
 
-function encodeUrl() {
-  var url = location.pathname + location.search;
-  return url.replace(/&/g, '@');
+function deleteQueryString(name) {
+  var search = location.search;
+  search = search.replace(new RegExp(name + '=.*?&', 'i'), '');
+  search = search.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
+  return location.pathname + search;
 }
 
-function decodeUrl(url) {
-  return url && url.replace(/@/g, '&');
+function encodeFrom() {
+  // 删除to参数，然后将第一个?替换为&
+  return deleteQueryString('to').replace('?', '&');
+}
+
+function decodeFrom() {
+  var from = '';
+  var index = location.search.indexOf('from=');
+  if (index !== -1) {
+    from = location.search.substr(index + 5);
+    if (from.indexOf('?') === -1)
+      from = from.replace('&', '?');
+  }
+  return from;
 }
 
 /**

@@ -192,9 +192,13 @@ $('.btn-remove').click(function () {
   var name = 'name' in data ? data.name : '';
   var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
-    postApi(url, {data: {_id: data._id}}, function () {
-      showSuccess('成功', '数据' + name + '已删除');
-      refresh(1000);
+    postApi(url, {data: {_id: data._id}}, function (res) {
+      if (res.count) {
+        showSuccess('成功', '数据' + name + '已删除');
+        refresh(1000);
+      } else {
+        showWarning('未删除', '数据未删除');
+      }
     }, function (err) {
       showError('删除失败', err.message);
     });
@@ -210,9 +214,13 @@ $('.operation .bat-remove').click(function () {
     return showWarning('请选择', '当前没有选中任何记录。');
   var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
-    postApi(url, {data: {_ids: ids}}, function () {
-      showSuccess('删除成功', '数据已删除。');
-      refresh(1000);
+    postApi(url, {data: {_ids: ids}}, function (res) {
+      if (res.count) {
+        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。');
+        refresh(1000);
+      } else {
+        showWarning('未删除', '删除0条数据');
+      }
     }, function (err) {
       showError('删除失败', err.message);
     });
