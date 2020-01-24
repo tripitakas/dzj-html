@@ -23,7 +23,7 @@ from controller.task.base import TaskHandler
 
 class CutHandler(PageTask):
     URL = ['/task/@cut_task/@task_id',
-           '/task/admin/@cut_task/@task_id',
+           '/task/browse/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
@@ -46,7 +46,7 @@ class CutHandler(PageTask):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
-            readonly = not has_lock or mode in ['view', 'admin']
+            readonly = not has_lock or mode in ['view', 'browse']
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'

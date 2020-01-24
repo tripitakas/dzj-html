@@ -351,7 +351,7 @@
   $('.sty-table .action .btn-nav').click(function () {
     var node = $(this).parent().parent();
     var taskType = node.find('.task_type').attr('title');
-    location.href = '/task/admin/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
+    location.href = '/task/browse/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
   });
   // 任务详情
   $('.sty-table .action .btn-detail').click(function () {
@@ -590,7 +590,7 @@
   }
 
   // 待选对象-翻页
-  $('#pagination a').click(function () {
+  $(document).on('click', '#pagination a', function () {
     var page = $(this).attr('title').trim();
     var selectedDocs = [];
     $(".ms-selection .ms-selected").each(function () {

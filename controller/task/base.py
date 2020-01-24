@@ -45,7 +45,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.count_documents(condition)
 
     def get_task_mode(self):
-        return (re.findall('(do|update|edit|admin)/', self.request.path) or ['view'])[0]
+        return (re.findall('(do|update|edit|browse)/', self.request.path) or ['view'])[0]
 
     def get_publish_meta(self, task_type):
         now = datetime.now()

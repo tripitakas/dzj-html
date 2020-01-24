@@ -96,13 +96,13 @@
 
   // 前一个任务
   $(document).on("click", '#prev-task', function () {
-    var path = '/task/admin/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
     location.href = path + setQueryString('to', 'prev', true);
   });
 
   // 后一个任务
   $(document).on("click", '#next-task', function () {
-    var path = '/task/admin/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
     location.href = path + setQueryString('to', 'next', true);
   });
 

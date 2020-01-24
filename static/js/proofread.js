@@ -556,7 +556,6 @@ $('#txtModal .btn-txt').click(function () {
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $(this).toggleClass('active');
   $.fn.mapKey.bindings = {up: {}, down: {}};
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(true);

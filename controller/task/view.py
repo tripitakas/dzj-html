@@ -22,6 +22,9 @@ class PageTask(TaskHandler):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
+        if self.get_task_mode() == 'browse' and not params.get('task_type'):
+            # 浏览任务时，排除小欧的任务
+            condition.update({'task_type': {'$nin': ['upload_cloud', 'ocr_box', 'ocr_text']}})
         picked_user_id = self.get_query_argument('picked_user_id', '')
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
@@ -65,7 +68,7 @@ class PageTask(TaskHandler):
             return False
         elif current_task['task_type'] != to_task['task_type']:
             query = re.sub('[?&]to=(prev|next)', '', self.request.query)
-            url = '/task/admin/%s/%s?' % (to_task['task_type'], to_task['_id']) + query
+            url = '/task/browse/%s/%s?' % (to_task['task_type'], to_task['_id']) + query
             self.redirect(url.rstrip('?'))
             return False
         else:

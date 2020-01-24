@@ -77,7 +77,7 @@ class TestCutSave(APITestCase):
         """ 列框校对: 把columns数据传给后台，后台保存columns，然后重新计算序号 """
         page = self._test_save_proof('column')
         column_ids = [c.get('column_id') for c in page['columns']]
-        should = ['b1c1', 'b1c2', 'b1c3', 'b1c4', 'b1c5', 'b1c6', 'b1c7', 'b1c8', 'b1c9', 'b1c10', 'b1c11']
+        should = ['b1c1', 'b1c2', 'b1c3', 'b1c4', 'b1c5', 'b1c6', 'b1c7', 'b1c8', 'b1c9']
         self.assertEqual(column_ids, should)
 
     def test_save_char_proof(self):

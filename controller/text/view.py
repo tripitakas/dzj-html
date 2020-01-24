@@ -15,7 +15,7 @@ from controller.text.texttool import TextTool
 
 class TextProofHandler(PageTask, TextTool):
     URL = ['/task/text_proof_@num/@task_id',
-           '/task/admin/text_proof_@num/@task_id',
+           '/task/browse/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
@@ -35,7 +35,7 @@ class TextProofHandler(PageTask, TextTool):
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             # 设置步骤
             mode = self.get_task_mode()
-            readonly = mode in ['view', 'admin']
+            readonly = mode in ['view', 'browse']
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
 
             if steps['current'] == 'select':
@@ -86,7 +86,7 @@ class TextProofHandler(PageTask, TextTool):
 
 class TextReviewHandler(PageTask, TextTool):
     URL = ['/task/text_review/@task_id',
-           '/task/admin/text_review/@task_id',
+           '/task/browse/text_review/@task_id',
            '/task/do/text_review/@task_id',
            '/task/update/text_review/@task_id']
 
@@ -142,7 +142,7 @@ class TextReviewHandler(PageTask, TextTool):
             CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
 
             mode = self.get_task_mode()
-            readonly = not has_lock or mode in ['view', 'admin']
+            readonly = not has_lock or mode in ['view', 'browse']
             review_doubt = self.prop(task, 'result.doubt')
             texts, labels, proof_doubt = self.get_cmp_data(self, page)
             cmp_data = self.prop(page, 'txt_html')
@@ -163,7 +163,7 @@ class TextReviewHandler(PageTask, TextTool):
 
 class TextHardHandler(TextReviewHandler):
     URL = ['/task/text_hard/@task_id',
-           '/task/admin/text_hard/@task_id',
+           '/task/browse/text_hard/@task_id',
            '/task/do/text_hard/@task_id',
            '/task/update/text_hard/@task_id']
 
@@ -185,7 +185,7 @@ class TextHardHandler(TextReviewHandler):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
-            readonly = not has_lock or mode in ['view', 'admin']
+            readonly = not has_lock or mode in ['view', 'browse']
             texts, labels, proof_doubt = self.get_cmp_data(self, page)
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None

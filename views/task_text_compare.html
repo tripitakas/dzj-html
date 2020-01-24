@@ -87,7 +87,7 @@
           <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
           <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly or mode == 'admin' else ''}}" id="save-task" title="保存"/>
           <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
-          {% if mode == 'admin' %}
+          {% if mode == 'browse' %}
           <div class="btn-txt btn-gap"></div>
           <img src="{{ static_url('imgs/icon_view.png') }}" class="btn-img" id="view-page" title="查看页面"/>
           <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注任务"/>

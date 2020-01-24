@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>切分校对-{{page["name"]}}</title>
+  <title>{{handler.get_task_name(task_type)}}-{{page["name"]}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -23,7 +23,7 @@
           <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
         <div class="title" title="{{page['name']}}">
-          切分校对<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
+          {{handler.get_task_name(task_type)}}<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
         </div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
@@ -53,7 +53,7 @@
         <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly or mode == 'admin' else ''}}" id="save-task" title="保存"/>
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
-        {% if mode == 'admin' %}
+        {% if mode == 'browse' %}
         <div class="btn-txt btn-gap"></div>
         <img src="{{ static_url('imgs/icon_view.png') }}" class="btn-img" id="view-page" title="查看页面"/>
         <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注任务"/>
