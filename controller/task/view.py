@@ -81,7 +81,7 @@ class PageTaskAdminHandler(PageTask):
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'title': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
-        {'operation': 'bat-update', 'label': '更新批次', 'data-target': 'updateModal'},
+        {'operation': 'bat-update', 'label': '更新批次', 'data-target': 'batchModal'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'picked_user_id', 'label': '按用户'},
@@ -119,9 +119,7 @@ class PageTaskAdminHandler(PageTask):
         {'id': 'remark', 'name': '备注'},
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
-    modal_fields = [
-        {'id': 'batch', 'name': '任务批次'},
-    ]
+    modal_fields = []
 
     def get(self):
         """ 任务管理/页任务管理"""
@@ -192,6 +190,37 @@ class TaskAdminImageHandler(TaskHandler):
                 'task_admin_import.html', docs=docs, pager=pager, order=order, q=q,
                 pan_name=self.prop(self.config, 'pan.name'), **kwargs,
             )
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageTaskStatisticHandler(PageTask):
+    URL = '/task/page/statistic'
+
+    def get(self):
+        """ 根据用户、任务类型或任务状态统计页任务"""
+        try:
+            condition = self.get_search_condition()[0]
+            kind = self.get_query_argument('kind', '')  # 默认按用户统计
+            if kind not in ['picked_user_id', 'task_type', 'status']:
+                return self.send_error_response(e.invalid_statistic_type, message='只能按用户、任务类型或任务状态统计')
+
+            counts = list(self.db.task.aggregate([
+                {'$match': condition},
+                {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},
+            ]))
+            trans = {}
+            if kind == 'picked_user_id':
+                users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
+                trans = {u['_id']: u['name'] for u in users}
+            elif kind == 'task_type':
+                trans = self.task_names()
+            elif kind == 'status':
+                trans = self.task_statuses
+
+            label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
+            self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans)
 
         except Exception as error:
             return self.send_db_error(error)

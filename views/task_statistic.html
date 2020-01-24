@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <title>任务统计</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft() %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="sty-list">
+            <table class="sty-table">
+              <thead>
+              <tr>
+                <th>{{label}}</th>
+                <th>数量</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for c in counts %}
+              <tr>
+                <td>{{trans.get(c['_id'])}}</td>
+                <td>{{c['count']}}</td>
+              </tr>
+              {% end %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+{% include _base_js.html %}
+</body>
+</html>

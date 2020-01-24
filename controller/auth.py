@@ -159,6 +159,7 @@ role_route_maps = {
         'routes': {
             '/task/admin/image': ['GET'],
             '/task/admin/page': ['GET'],
+            '/task/page/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
             '/task/admin/@task_type/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],

@@ -7,6 +7,7 @@
 {% end %}
 
 {% block custom-modal %}
+{% module ComModal([{'id': 'batch', 'name': '批次'}], 'batchModal', '更新批次') %}
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
@@ -284,29 +285,26 @@
 <script>
   /*---普通操作---*/
   // 批量更新批次
-  var $updateModal = $('#updateModal');
-  $updateModal.find('.modal-confirm').click(function () {
-    if (!$('.sty-table :checked').length) {
-      $updateModal.modal('hide');
-      return showError('请选择任务');
-    }
-    if (!$updateModal.find('.batch input').val().length) {
-      return showError('请输入批次');
-    }
+  var $batchModal = $('#batchModal');
+  $batchModal.find('.modal-confirm').click(function () {
     var ids = $.map($('.sty-table :checked'), function (item) {
       return $(item).parent().parent().attr('id');
     });
-    // console.log(ids);
-    var data = {'_ids': ids, 'batch': $updateModal.find('.batch input').val()};
-    postApi('/task/batch', {'data': data}, function (res) {
+    if (!ids.length) {
+      $batchModal.modal('hide');
+      return showError('请选择任务');
+    }
+    var batch = $batchModal.find('.batch').val();
+    if (!batch.length) {
+      return showError('请输入批次');
+    }
+    postApi('/task/batch', {data: {'_ids': ids, 'batch': batch}}, function (res) {
       location.reload();
     });
   });
   // 统计检索结果
   $('.operation .btn-statistic a').click(function () {
-    var data = {kind: $(this).attr('title'), search: location.search};
-    postApi('/task/statistic', {'data': data}, function (res) {
-    });
+    location.href = '/task/page/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
   });
   // 显示退回理由、失败理由等
   $('.sty-table td.return_reason').click(function () {
