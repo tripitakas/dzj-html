@@ -196,87 +196,49 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+          <h4 class="modal-title">帮助文档</h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、功能概述</div>
+          <div class="title">一、简介</div>
           <div class="intro">
-            该功能用于检查图片的栏框、字框、列框、字序等是否正确，并对不正确的切分框及字序进行修改。
-            工作步骤依次是：栏框校对、字框校对、列框校对和字序校对。<br/>
-            栏框校对要求将图片的正文（不包括边缘的页码等）用栏框框住，尽量不要包括正文外的边缘线。如果图片有多栏，则需要多个栏框。<br/>
-            字框校对要求将图片的正文用字框框住，因文字紧凑而导致字框交叠时，首要原则是尽量把笔画都框住，其次是尽量减少交叠。<br/>
-            列框校对要求用列框将图片的每列文字框住。<br/>
-            <b>注：</b>请您看下第三部分的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
+            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+            另外，本页面还可以发布任务。<br/>
+            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
           </div>
-          <div class="title">二、功能按钮</div>
+          <div class="title">二、操作</div>
           <table class="table">
             <tr>
-              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
-              <td>返回任务大厅</td>
+              <td><img src="{{ static_url('imgs/icon_back.png') }}"/></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td>页码</td>
+              <td>查看页面详情</td>
             </tr>
             <tr>
               <td><img src="{{ static_url('imgs/icon_pic.png') }}"/></td>
               <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
             </tr>
             <tr>
-              <td><img src="{{ static_url('imgs/icon_char.png') }}"/></td>
-              <td>显示或隐藏字框。隐藏字框有助于仔细辨认图片</td>
+              <td><img src="{{ static_url('imgs/icon_txt.png') }}"/></td>
+              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
             </tr>
             <tr>
-              <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
-              <td>撤销上一步操作</td>
+              <td><img src="{{static_url('imgs/icon_blur.png')}}"/></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
             </tr>
             <tr>
-              <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
-              <td>取消撤销</td>
+              <td><img src="{{static_url('imgs/icon_edit.png')}}"/></td>
+              <td>修改页面基本信息</td>
             </tr>
             <tr>
-              <td><span type="button" class="btn btn-default btn-sm">所有</span></td>
-              <td>切换所有字框的颜色，有无色、白色不透明、蓝色半透明三种状态。<br/>白色不透明可以用于检查字框是否有遗漏，蓝色半透明则可以看清字迹</td>
+              <td><img src="{{static_url('imgs/icon_more.png')}}"/></td>
+              <td>更多操作，包括修改栏框、列框、字框、审定文本等</td>
             </tr>
             <tr>
-              <td><span type="button" class="btn btn-default btn-sm">重叠</span></td>
-              <td>高亮提示所有重叠的字框，从而帮助您检查这些字框是否正常</td>
-            </tr>
-            <tr>
-              <td><span type="button" class="btn btn-default btn-sm">大框</span></td>
-              <td>高亮提示所有的大框</td>
-            </tr>
-            <tr>
-              <td><span type="button" class="btn btn-default btn-sm">窄框</span></td>
-              <td>高亮提示所有的窄框</td>
-            </tr>
-            <tr>
-              <td><span type="button" class="btn btn-default btn-sm">扁框</span></td>
-              <td>高亮提示所有的扁框</td>
-            </tr>
-            {% include _task_help.html %}
-          </table>
-          <div class="title">三、快捷键</div>
-          <table class="table" id="hot-key">
-            <tr>
-              <td>1/2/3/4/5</td>
-              <td>图片放大1~5倍</td>
-            </tr>
-            <tr>
-              <td>6/7/8/9</td>
-              <td>图片缩小至60%~90%</td>
-            </tr>
-            <tr>
-              <td>方向键</td>
-              <td>按照方向键↑→↓←的指示，切换当前字框</td>
-            </tr>
-            <tr>
-              <td>wsad</td>
-              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
-            </tr>
-            <tr>
-              <td>shift + 方向键</td>
-              <td>shift表示扩大字框，方向键代表字框的四条边</td>
-            </tr>
-            <tr>
-              <td>alt + 方向键</td>
-              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+              <td><span type="button" class="btn btn-primary btn-sm">保存文本</span></td>
+              <td>保存当前选中的字框OCR或列框OCR</td>
             </tr>
           </table>
         </div>
