@@ -25,9 +25,12 @@
     width: 180px;
   }
 
-  td.blocks, td.columns, td.chars, td.orders {
+  td.ocr, td.ocr_col {
     font-size: 12px;
-    margin-left: 5px;
+  }
+
+  td.blocks, td.columns, td.chars, td.orders, td.text {
+    font-size: 12px;
     cursor: pointer;
     color: #B8906F;
   }
@@ -312,6 +315,14 @@
   // 查找重复
   $('.operation .btn-duplicate').click(function () {
     location.href = location.pathname + '?duplicate=true';
+  });
+
+  // 修改审定文本
+  $('td.text').click(function () {
+    if (!$(this).text().length)
+      return;
+    var name = $(this).siblings('.name').text();
+    location.href = '/data/edit/text/' + name + '?from=' + location.pathname + location.search;
   });
 
   // 修改栏框、列框、字框、字序

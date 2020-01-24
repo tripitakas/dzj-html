@@ -222,6 +222,7 @@ class Page(Model):
         {'action': 'btn-remove', 'label': '删除'},
     ]
     info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
+    hide_fields = ['img_cloud_path', 'uni_sutra_code', 'box_ready']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},

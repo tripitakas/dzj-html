@@ -197,7 +197,7 @@ class DataPageListHandler(BaseHandler, Page):
     def format_value(value, key=None):
         if key == 'tasks':
             value = value or {}
-            tasks = ['%s:%s' % (Task.get_task_name(k), Task.get_status_name(k)) for k, v in value.items()]
+            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
             value = '<br/>'.join(tasks)
         elif key in ['lock-box', 'lock-text']:
             if prop(value, 'is_temp') is not None:
