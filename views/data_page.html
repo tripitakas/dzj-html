@@ -319,14 +319,6 @@
 <script>
   var buttonConfig = decodeJSON('{{button_config}}');
   console.log(buttonConfig);
-  $(document).ready(function () {
-    $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
-    $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === 1 ? 0.2 : 1;
-    $('rect.block').css('display', buttonConfig['toggle-block'] === 1 ? 'block' : 'none');
-    $('rect.column').css('display', buttonConfig['toggle-column'] === 1 ? 'block' : 'none');
-    $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
-    setOrderStatus(buttonConfig['toggle-order'] === 1);
-  });
 
   // 获取当前按钮状态
   function getConfig() {
@@ -570,6 +562,14 @@
       return true;
     }
   };
+
+  // 初始化设置
+  $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
+  $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === 1 ? 0.2 : 1;
+  $('rect.block').css('display', buttonConfig['toggle-block'] === 1 ? 'block' : 'none');
+  $('rect.column').css('display', buttonConfig['toggle-column'] === 1 ? 'block' : 'none');
+  $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
+  setOrderStatus(buttonConfig['toggle-order'] === 1);
 
 </script>
 
