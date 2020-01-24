@@ -100,7 +100,7 @@
           <div class="btn-group" style="margin-left: 10px">
             <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
             <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
-            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img active" id="toggle-right" title="显隐文字"/>
+            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img {{'' if button_config.get('toggle-right') == -1 else 'active'}}" id="toggle-right" title="显隐文字"/>
             <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
             <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
             <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
@@ -174,7 +174,7 @@
         </div>
       </div>
       {% if fields %}
-      <div class="right" id="right-region">
+      <div class="right{{' hide' if button_config.get('toggle-right') == -1 else ''}}" id="right-region">
         <div class="bd">
           {% for i,f in enumerate(fields) %}
           <div class="sutra-text {{f if i == 0 else f + ' hide'}}">
@@ -288,7 +288,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">发布任务-{{page['name']}}-<span class="task-type"></span></h4>
+          <h4 class="modal-title">发布任务/{{page['name']}}/<span class="task-type"></span></h4>
         </div>
         <div class="modal-body">
           <input class="task_type" type="hidden" value="">
@@ -306,7 +306,7 @@
             {% end %}
             {% end %}
           </div>
-          <h4 class="control-label">选择子步骤</h4>
+          <h4 class="control-label steps-label">选择子步骤</h4>
           <div class="steps" id="step-items">
             <label class="checkbox-inline"><input type="checkbox" title="step1" checked>子步骤1</label>
           </div>
@@ -389,7 +389,46 @@
     location = '/data/edit/text/{{page["name"]}}?from=' + encodeFrom();
   });
 
-  // 解锁
+  var buttonConfig = decodeJSON('{{button_config}}');
+
+  function getConfig() {
+    var config = {};
+    // var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block', 'toggle-column', 'toggle-char', 'toggle-order'];
+    var buttons = ['toggle-right'];
+    buttons.forEach(function (button) {
+      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    });
+    return config;
+  }
+
+  function go(to) {
+    var url = setQueryString('to', to).replace(location.pathname, '/data/page/{{page["name"]}}');
+    var config = getConfig();
+    if (JSON.stringify(buttonConfig) !== JSON.stringify(config)) {
+      // console.log({data_page_button: config});
+      // return;
+      postApi('/session/config', {data: {data_page_button: config}}, function (res) {
+        location.href = url;
+      });
+    } else {
+      location.href = url;
+    }
+  }
+
+  console.log(getConfig());
+  console.log(buttonConfig);
+
+  // 上一页
+  $('#btn-prev').click(function () {
+    go('prev');
+  });
+
+  // 下一页
+  $('#btn-next').click(function () {
+    go('next');
+  });
+
+  // 解锁临时锁
   $('.lock').click(function () {
     var name = '{{page["name"]}}';
     var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
@@ -430,16 +469,6 @@
     $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
   });
 
-  // 上一个页面
-  $('#btn-prev').click(function () {
-    location.href = setQueryString('to', 'prev').replace(location.pathname, '/data/page/{{page["name"]}}');
-  });
-
-  // 下一个页面
-  $('#btn-next').click(function () {
-    location.href = setQueryString('to', 'next').replace(location.pathname, '/data/page/{{page["name"]}}');
-  });
-
   // 保存文本
   $('#btn-save').click(function () {
     var which = $('.ocr-txt :checked').val();
@@ -452,7 +481,9 @@
       refresh(500);
     });
   });
+</script>
 
+<script>
   // 发布任务
   var taskType = '';
   var taskTypes = decodeJSON('{{handler.task_types}}');
@@ -463,7 +494,13 @@
     {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'}
   ];
 
-  // 弹框
+  // 设置参数
+  function setPublishParams(taskType) {
+    var params = decodeJSON(localStorage.getItem('publish_' + taskType) || '{}');
+    setModal($publishModal, params, publishFields);
+  }
+
+  // 发布框-弹框
   $('.btn-publish a').click(function () {
     taskType = $(this).attr('title');
     $publishModal.find('.task_type').val(taskType);
@@ -476,16 +513,24 @@
         $(item).removeAttr('checked');
     });
     var steps = taskTypes[taskType].steps || [];
+    if (steps.length) {
+      $publishModal.find('.steps-label').removeClass('hide');
+    } else {
+      $publishModal.find('.steps-label').addClass('hide');
+    }
     var html = $.map(steps, function (item) {
       return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
     }).join('');
     $publishModal.find('#step-items').html(html);
+    setPublishParams(taskType);
     $publishModal.modal();
   });
 
-  // 发布任务的确定按钮
+
+  // 发布框-提交
   $publishModal.find(".modal-confirm").click(function () {
     var data = getModal($publishModal, publishFields);
+    localStorage.setItem('publish_' + taskType, JSON.stringify(data));
     data['doc_ids'] = ['{{page["name"]}}'];
     postApi('/task/publish/pages', {data: data}, function (res) {
       $publishResultModal.find('.tips').text(l10n[Object.keys(res.data)[0]]);
@@ -495,12 +540,12 @@
     });
   });
 
-  // 确定
+  // 结果框-确定
   $publishResultModal.find('.modal-confirm').click(function () {
     location.reload();
   });
 
-  // 取消
+  // 结果框-取消
   $publishResultModal.find('.cancel').click(function () {
     $publishModal.modal('hide');
     $publishResultModal.modal('hide');

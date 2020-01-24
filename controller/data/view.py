@@ -259,13 +259,13 @@ class DataPageHandler(TaskHandler):
                 ))
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            options = json_util.loads(self.get_secure_cookie('publish_page') or '{}')
+            button_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = {f: TextTool.txt2lines(page[f]) for f in fields}
             modal_fields = Page.modal_fields
             info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in modal_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], options=options, params=params,
+            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config, params=params,
                         labels=labels, fields=fields, texts=texts, modal_fields=modal_fields,
                         info=info, img_url=self.get_img(page))
 

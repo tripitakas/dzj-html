@@ -69,11 +69,22 @@ $('#configModal .modal-confirm').click(function () {
 /*---Modal相关代码---*/
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio') {
-      if (info[item.id])
-        modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
-    } else {
-      modal.find('.' + item.id).val(info[item.id]);
+    if (info[item.id]) { // 如果值为空，则不予设置
+      if ('input_type' in item) {
+        if (item['input_type'] === 'radio')
+          modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
+        else if (item['input_type'] === 'checkbox')
+          console.log(info[item.id]);
+        $.map(modal.find('.' + item.id + ' :checkbox'), function (obj) {
+          console.log($(obj).attr('title'));
+          if (info[item.id].indexOf($(obj).attr('title')) !== -1)
+            $(obj).prop('checked', true);
+          else
+            $(obj).removeAttr('checked');
+        });
+      } else {
+        modal.find('.' + item.id).val(info[item.id]);
+      }
     }
   });
 }
