@@ -315,10 +315,12 @@ class DeleteTasksApi(TaskHandler):
             task2doc = dict()
             for t in tasks:
                 doc_ids = task2doc.get(t['task_type']) or []
-                task2doc[t['task_type']] = doc_ids + [t['doc_id']]
+                if t['doc_id']:
+                    task2doc[t['task_type']] = doc_ids + [t['doc_id']]
             for task_type, doc_ids in task2doc.items():
-                collection, id_name = self.get_data_conf(task_type)[:2]
-                self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$unset': {'tasks.' + task_type: ''}})
+                if doc_ids:
+                    collection, id_name = self.get_data_conf(task_type)[:2]
+                    self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$unset': {'tasks.' + task_type: ''}})
 
             return self.send_data_response({'count': r.deleted_count})
 
