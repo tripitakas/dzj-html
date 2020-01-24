@@ -125,7 +125,7 @@ class PublishPageTaskBaseHandler(TaskHandler):
         pre_tasks = {t: '' for t in pre_tasks} if isinstance(pre_tasks, list) else pre_tasks
         tasks = [get_meta(d) for d in doc_ids]
         self.db.task.insert_many(tasks, ordered=False)
-        # 更新doc
+        # 更新doc的任务状态
         collection, id_name = self.get_data_conf(task_type)[:2]
         self.db[collection].update_many({id_name: {'$in': list(doc_ids)}}, {'$set': {'tasks.' + task_type: status}})
         self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))

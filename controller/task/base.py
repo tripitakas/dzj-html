@@ -114,6 +114,11 @@ class TaskHandler(BaseHandler, Task):
             if task['status'] == self.STATUS_PENDING and not unfinished:
                 update.update({'status': self.STATUS_PUBLISHED})
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
+        # 更新doc的任务状态
+        if task['doc_id']:
+            collection, id_name = self.get_data_conf(task['task_type'])[:2]
+            update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
     """ 数据锁介绍
     1）数据锁的目的：
