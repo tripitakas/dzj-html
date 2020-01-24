@@ -225,7 +225,7 @@ class DataPageListHandler(BaseHandler, Page):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = self.get_search_condition(self)
-            docs, pager, q, order = self.find_by_page(self, condition)
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, group_task_statuses=self.group_task_statuses,
                         Th=TaskHandler, format_value=self.format_value,
@@ -252,7 +252,7 @@ class DataPageHandler(TaskHandler):
                 page = self.db.page.find_one(condition, sort=[('page_code', 1)])
             elif to == 'prev':
                 condition['page_code'] = {'$lt': page['page_code']}
-                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
+                page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s的%s' % (
                     page_code, '上一页' if to == 'prev' else '下一页'
