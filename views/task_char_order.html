@@ -77,17 +77,26 @@
         </div>
         <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img fl" id="toggle-more" title="更多"/>
         <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
-        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly and mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
+        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly or mode == 'admin' else ''}}" id="save-task" title="保存"/>
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
+        {% if mode == 'admin' %}
+        <div class="btn-txt btn-gap"></div>
+        <img src="{{ static_url('imgs/icon_view.png') }}" class="btn-img" id="view-page" title="查看页面"/>
+        <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注任务"/>
+        <img src="{{ static_url('imgs/icon_prev2.png') }}" class="btn-img" id="prev-task" title="前一个任务"/>
+        <img src="{{ static_url('imgs/icon_next2.png') }}" class="btn-img" id="next-task" title="后一个任务"/>
+        {% end %}
       </div>
       <div class="tips right">{{message}}</div>
     </div>
 
     <div class="full-bd">
       <!-- holder为显示切分框和页面图的画布容器 -->
-      <div id="holder"></div>
+      <div class="bd" id="holder-container">
+        <div id="holder"></div>
+      </div>
       <div id="info">
         <span class="cur-char"></span>
         <span class="col-info"></span>
@@ -98,8 +107,9 @@
   </div>
 </div>
 
-<div class="panel-body">
+<div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
+  {% module RemarkModal() %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">

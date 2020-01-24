@@ -82,7 +82,7 @@ function getQueryString(name) {
   return '';
 }
 
-function setQueryString(name, value) {
+function setQueryString(name, value, onlySearch) {
   var search = location.search;
   var add = name + '=' + value;
   if (search.indexOf(name + '=') !== -1) {
@@ -93,19 +93,22 @@ function setQueryString(name, value) {
   } else {
     search = '?' + add;
   }
-  return location.pathname + search;
+  if (typeof onlySearch !== 'undefined' && onlySearch)
+    return search;
+  else
+    return location.pathname + search;
 }
 
-function deleteQueryString(name) {
-  var search = location.search;
+function deleteQueryString(search, name) {
   search = search.replace(new RegExp(name + '=.*?&', 'i'), '');
   search = search.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
-  return location.pathname + search;
+  return search;
 }
 
 function encodeFrom() {
-  // 删除to参数，然后将第一个?替换为&
-  return deleteQueryString('to').replace('?', '&');
+  // 将第一个?替换为&，然后删除to/page等参数
+  var url = location.pathname + location.search.replace('?', '&');
+  return deleteQueryString(url, 'to');
 }
 
 function decodeFrom() {
@@ -116,7 +119,7 @@ function decodeFrom() {
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
-  return from;
+  return deleteQueryString(from, 'to');
 }
 
 /**

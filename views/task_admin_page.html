@@ -51,18 +51,14 @@
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">综合检索</h4>
-      </div>
-      <div class="modal-body" style="height: 440px">
+      <div class="modal-body" style="height: 425px; padding: 0">
         <h4 class="col-sm-2 control-label">批次号</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次号，支持正则查询">
+          <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次号">
         </div>
         <h4 class="col-sm-2 control-label">页编码</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码，支持正则查询">
+          <input type="text" class="form-control doc_id" value="{{params.get('doc_id') or ''}}" placeholder="请输入页编码">
         </div>
         <h4 class=" col-sm-2 control-label">任务类型</h4>
         <div class="col-sm-10">
@@ -114,7 +110,7 @@
         </div>
         <h4 class="col-sm-2 control-label">备注</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注，支持正则查询">
+          <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
         </div>
       </div>
       <div class="modal-footer">
@@ -328,7 +324,7 @@
   $('.sty-table .action .btn-nav').click(function () {
     var node = $(this).parent().parent();
     var taskType = node.find('.task_type').attr('title');
-    location.href = '/task/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
+    location.href = '/task/admin/' + taskType + '/' + node.attr('id') + '?from=' + encodeFrom();
   });
   // 任务详情
   $('.sty-table .action .btn-detail').click(function () {

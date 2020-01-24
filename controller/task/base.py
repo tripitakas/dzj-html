@@ -5,7 +5,6 @@
 @time: 2019/10/16
 """
 import re
-from bson.objectid import ObjectId
 from datetime import datetime
 from controller import auth
 from controller import errors as e
@@ -14,11 +13,6 @@ from controller.base import BaseHandler
 
 
 class TaskHandler(BaseHandler, Task):
-    def is_admin(self):
-        """ 是否为任务管理员"""
-        user_roles = auth.get_all_roles(self.current_user['roles'])
-        return '任务管理员' in user_roles
-
     def find_many(self, task_type=None, status=None, mine=False, size=None, order=None):
         """ 查找任务。(mine参数存在时，status参数将失效) """
         condition = dict()
@@ -51,7 +45,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.count_documents(condition)
 
     def get_task_mode(self):
-        return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
+        return (re.findall('(do|update|edit|admin)/', self.request.path) or ['view'])[0]
 
     def get_publish_meta(self, task_type):
         now = datetime.now()
@@ -85,8 +79,8 @@ class TaskHandler(BaseHandler, Task):
         if not todo:
             return e.task_steps_is_empty
         if current_step and current_step not in todo:
-            return e.task_step_error
-        if not current_step:
+            current_step = todo[0]
+        elif not current_step:
             current_step = un_submitted[0] if mode == 'do' else todo[0]
 
         steps = dict()

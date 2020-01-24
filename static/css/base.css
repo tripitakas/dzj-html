@@ -399,6 +399,10 @@ a:hover, a:visited, a:focus {
   height: 22px;
 }
 
+.sty-list {
+  margin-bottom: 20px;
+}
+
 .sty-list .search {
   position: relative;
   top: -20px;

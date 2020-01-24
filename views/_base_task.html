@@ -59,7 +59,7 @@
   $(document).on("click", '#prev-step', function () {
     var prev = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
     var url = from ? prev + '&from=' + from : prev;
-    if ('{{not readonly and mode != "view"}}' === 'True') {
+    if ('{{readonly}}' === 'False') {
       saveTask(true, url);
     } else {
       goto(url, 500);
@@ -70,7 +70,7 @@
   $(document).on("click", '#next-step', function () {
     var next = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
     var url = from ? next + '&from=' + from : next;
-    if ('{{not readonly and mode != "view"}}' === 'True') {
+    if ('{{readonly}}' === 'False') {
       saveTask(true, url);
     } else {
       goto(url, 500);
@@ -94,18 +94,16 @@
     });
   });
 
-  function setTaskId(url) {
-    return url.replace(/[0-9a-z]{24}/, '{{task.get("_id") or ""}}');
-  }
-
-  // 上一个任务
+  // 前一个任务
   $(document).on("click", '#prev-task', function () {
-    location.href = setTaskId(setQueryString('to', 'prev'));
+    var path = '/task/admin/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    location.href = path + setQueryString('to', 'prev', true);
   });
 
-  // 下一个任务
+  // 后一个任务
   $(document).on("click", '#next-task', function () {
-    location.href = setTaskId(setQueryString('to', 'next'));
+    var path = '/task/admin/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    location.href = path + setQueryString('to', 'next', true);
   });
 
   // 查看页面

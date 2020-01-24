@@ -23,6 +23,7 @@ from controller.task.base import TaskHandler
 
 class CutHandler(PageTask):
     URL = ['/task/@cut_task/@task_id',
+           '/task/admin/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
@@ -31,7 +32,7 @@ class CutHandler(PageTask):
         try:
             task = self.get_page_task(task_id)
             if not task:
-                return self.send_error_response(e.no_object, message='没有找到任务')
+                return
 
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if not page:
@@ -45,6 +46,7 @@ class CutHandler(PageTask):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
+            readonly = not has_lock or mode in ['view', 'admin']
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
@@ -54,7 +56,7 @@ class CutHandler(PageTask):
                 template = 'task_char_order.html'
 
             self.render(
-                template, task=task, task_type=task_type, page=page, readonly=not has_lock or mode == 'view',
+                template, task=task, task_type=task_type, page=page, readonly=readonly,
                 mode=mode, steps=steps, box_type=box_type, boxes=page.get(box_type + 's'),
                 message=message, get_img=self.get_img, **kwargs
             )

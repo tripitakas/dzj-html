@@ -5,16 +5,17 @@
 """
 import re
 from tornado.web import UIModule
-from bson.objectid import ObjectId
 from controller import errors as e
 from controller.text.diff import Diff
 from controller.cut.cuttool import CutTool
+from controller.task.view import PageTask
 from controller.task.base import TaskHandler
 from controller.text.texttool import TextTool
 
 
-class TextProofHandler(TaskHandler, TextTool):
+class TextProofHandler(PageTask, TextTool):
     URL = ['/task/text_proof_@num/@task_id',
+           '/task/admin/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
@@ -22,10 +23,9 @@ class TextProofHandler(TaskHandler, TextTool):
         """ 文字校对页面 """
         try:
             # 检查参数
-            task_type = 'text_proof_' + num
-            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            task = self.get_page_task(task_id)
             if not task:
-                return self.render('_404.html')
+                return
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
                 return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
@@ -35,7 +35,7 @@ class TextProofHandler(TaskHandler, TextTool):
                 return self.send_error_response(error, message='%s (%s)' % (error[1], page['name']))
             # 设置步骤
             mode = self.get_task_mode()
-            readonly = 'view' == mode
+            readonly = mode in ['view', 'admin']
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
 
             if steps['current'] == 'select':
@@ -84,8 +84,9 @@ class TextProofHandler(TaskHandler, TextTool):
         )
 
 
-class TextReviewHandler(TaskHandler, TextTool):
+class TextReviewHandler(PageTask, TextTool):
     URL = ['/task/text_review/@task_id',
+           '/task/admin/text_review/@task_id',
            '/task/do/text_review/@task_id',
            '/task/update/text_review/@task_id']
 
@@ -122,10 +123,9 @@ class TextReviewHandler(TaskHandler, TextTool):
     def get(self, task_id):
         """ 文字审定页面"""
         try:
-            task_type = 'text_review'
-            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            task = self.get_page_task(task_id)
             if not task:
-                return self.render('_404.html')
+                return
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
                 return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
@@ -142,6 +142,7 @@ class TextReviewHandler(TaskHandler, TextTool):
             CutTool.char_render(page, int(self.get_query_argument('layout', 0)), **params)
 
             mode = self.get_task_mode()
+            readonly = not has_lock or mode in ['view', 'admin']
             review_doubt = self.prop(task, 'result.doubt')
             texts, labels, proof_doubt = self.get_cmp_data(self, page)
             cmp_data = self.prop(page, 'txt_html')
@@ -150,8 +151,8 @@ class TextReviewHandler(TaskHandler, TextTool):
                 cmp_data = self.check_segments(segments, page['chars'], params)
 
             self.render(
-                'task_text_review.html', page_title='文字审定', task_type=task_type, task=task, page=page,
-                mode=mode, readonly=not has_lock, texts=texts, labels=labels, cmp_data=cmp_data,
+                'task_text_review.html', page_title='文字审定', task_type=task['task_type'], task=task, page=page,
+                mode=mode, readonly=readonly, texts=texts, labels=labels, cmp_data=cmp_data,
                 doubt=review_doubt, pre_doubt=proof_doubt, message=message, get_img=self.get_img,
                 steps=dict(is_first=True, is_last=True), **params,
             )
@@ -162,16 +163,16 @@ class TextReviewHandler(TaskHandler, TextTool):
 
 class TextHardHandler(TextReviewHandler):
     URL = ['/task/text_hard/@task_id',
+           '/task/admin/text_hard/@task_id',
            '/task/do/text_hard/@task_id',
            '/task/update/text_hard/@task_id']
 
     def get(self, task_id):
         """ 难字审定页面 """
         try:
-            task_type = 'text_hard'
-            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            task = self.get_page_task(task_id)
             if not task:
-                return self.render('_404.html')
+                return
             page = self.db.page.find_one({'name': task['doc_id']})
             if not page:
                 return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
@@ -184,14 +185,15 @@ class TextHardHandler(TextReviewHandler):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
+            readonly = not has_lock or mode in ['view', 'admin']
             texts, labels, proof_doubt = self.get_cmp_data(self, page)
             review_task = self.db.task.find_one({'_id': self.prop(task, 'input.review_task')})
             review_doubt = self.prop(review_task, 'result.doubt') if review_task else None
             hard_doubt = self.prop(task, 'result.doubt')
             cmp_data = self.prop(page, 'txt_html')
             self.render(
-                'task_text_review.html', page_title='难字审定', task_type=task_type, task=task, page=page,
-                mode=mode, readonly=not has_lock, cmp_data=cmp_data, texts=texts, labels=labels,
+                'task_text_review.html', page_title='难字审定', task_type=task['task_type'], task=task, page=page,
+                mode=mode, readonly=readonly, cmp_data=cmp_data, texts=texts, labels=labels,
                 doubt=hard_doubt, pre_doubt=review_doubt, message=message,
                 steps=dict(is_first=True, is_last=True),
                 get_img=self.get_img,
@@ -296,7 +298,7 @@ class TextSampleProofHandler(TaskHandler, TextTool):
 
 
 class TextSampleSelectHandler(TaskHandler, TextTool):
-    URL = '/task/sample/select_compare'
+    URL = '/task/sample/select'
 
     def get(self):
         """ 文字校对-选择比对文本练习页面 """

@@ -46,15 +46,30 @@ class PageTask(TaskHandler):
 
     def get_page_task(self, task_id):
         """ 根据task_id/to以及其它查询条件，获取页任务"""
+        current_task = self.db.task.find_one({'_id': ObjectId(task_id)})
+        if not current_task:
+            self.send_error_response(e.no_object, message='没有找到任务%s' % task_id)
+            return None
         to = self.get_query_argument('to', '')
         condition = self.get_search_condition()[0]
         if to == 'next':
-            condition.update({'_id': {'$gt': ObjectId(task_id)}})
-        elif to == 'prev':
             condition.update({'_id': {'$lt': ObjectId(task_id)}})
+        elif to == 'prev':
+            condition.update({'_id': {'$gt': ObjectId(task_id)}})
         else:
             condition.update({'_id': ObjectId(task_id)})
-        return self.db.task.find_one(condition, sort=[('_id', -1 if to == 'prev' else 1)])
+        to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
+        if not to_task:
+            message = '没有找到任务%s的%s任务' % (task_id, '前一个' if to == 'prev' else '后一个')
+            self.send_error_response(e.no_object, message=message)
+            return False
+        elif current_task['task_type'] != to_task['task_type']:
+            query = re.sub('[?&]to=(prev|next)', '', self.request.query)
+            url = '/task/admin/%s/%s?' % (to_task['task_type'], to_task['_id']) + query
+            self.redirect(url.rstrip('?'))
+            return False
+        else:
+            return to_task
 
 
 class PageTaskAdminHandler(PageTask):
@@ -116,7 +131,7 @@ class PageTaskAdminHandler(PageTask):
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             condition, params = self.get_search_condition()
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-publish_time')
+            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
                 'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
                 is_mod_enabled=self.is_mod_enabled, **kwargs,
