@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>{{handler.get_task_name(task_type)}}-{{page["name"]}}</title>
+  <title>{{handler.get_task_name(task_type) or '切分'}}-{{page["name"]}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -23,7 +23,7 @@
           <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
         <div class="title" title="{{page['name']}}">
-          {{handler.get_task_name(task_type)}}<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
+          {{handler.get_task_name(task_type) or '切分'}}<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
         </div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>

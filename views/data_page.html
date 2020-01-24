@@ -99,16 +99,16 @@
           <div class="title" title="{{page['name']}}"><a href="/data/page/info/{{page['name']}}">{{page['name']}}</a></div>
           <div class="btn-group" style="margin-left: 10px">
             <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img {{'' if button_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
             <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img {{'' if button_config.get('toggle-right') == -1 else 'active'}}" id="toggle-right" title="显隐文字"/>
-            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
+            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img {{'' if button_config.get('toggle-blur') == -1 else 'active'}}" id="toggle-blur" title="模糊"/>
             <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
             <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
             <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
-            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img" id="toggle-block" title="显隐栏框"/>
-            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img" id="toggle-column" title="显隐列框"/>
-            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img active" id="toggle-char" title="显隐字框"/>
-            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img" id="toggle-order" title="显隐字序"/>
+            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img {{'' if button_config.get('toggle-block') == -1 else 'active'}}" id="toggle-block" title="显隐栏框"/>
+            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img {{'' if button_config.get('toggle-column') == -1 else 'active'}}" id="toggle-column" title="显隐列框"/>
+            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img {{'' if button_config.get('toggle-char') == -1 else 'active'}}" id="toggle-char" title="显隐字框"/>
+            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img {{'' if button_config.get('toggle-order') == -1 else 'active'}}" id="toggle-order" title="显隐字序"/>
             <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" id="btn-update" title="修改"/>
           </div>
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img" id="toggle-more" title="更多"/>
@@ -158,8 +158,9 @@
           {% if fields %}
           <label>显示文本：</label>
           <span class="ocr-txt">
+            {% set which = button_config.get('sutra-txt') or '' %}
             {% for i,f in enumerate(fields) %}
-            <input type="radio" name="ocr-txt" value="{{f}}" {{'checked' if i == 0 else ''}}>{{labels[f]}}
+            <input type="radio" name="ocr-txt" value="{{f}}" {{'checked' if (which in fields and f == which) or (which not in fields and i == 0) else ''}}>{{labels[f]}}
             {% end %}
           </span>
           {% end %}
@@ -177,7 +178,7 @@
       <div class="right{{' hide' if button_config.get('toggle-right') == -1 else ''}}" id="right-region">
         <div class="bd">
           {% for i,f in enumerate(fields) %}
-          <div class="sutra-text {{f if i == 0 else f + ' hide'}}">
+          <div class="sutra-text {{f if (which in fields and f == which) or (which not in fields and i == 0) else f + ' hide'}}">
             <textarea class="form-control" rows="{{len(texts[f].split('\n'))+1}}" {{'readonly' if f == 'text' else ''}}>{% raw texts[f] %}</textarea>
           </div>
           {% end %}
@@ -316,6 +317,55 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script>
+  var buttonConfig = decodeJSON('{{button_config}}');
+  // console.log(buttonConfig);
+  $(document).ready(function () {
+    $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === -1 ? 1 : 0.2;
+    $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
+    $('rect.block').css('display', buttonConfig['toggle-block'] === -1 ? 'none' : 'block');
+    $('rect.column').css('display', buttonConfig['toggle-column'] === -1 ? 'none' : 'block');
+    $('rect.char').css('display', buttonConfig['toggle-char'] === -1 ? 'none' : 'block');
+    setOrderStatus(!(buttonConfig['toggle-order'] === -1));
+  });
+
+  // 获取当前按钮状态
+  function getConfig() {
+    var config = {};
+    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
+      'toggle-column', 'toggle-char', 'toggle-order'];
+    buttons.forEach(function (button) {
+      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    });
+    if (sutraTxt)
+      config['sutra-txt'] = sutraTxt;
+    else
+      config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
+    return config;
+  }
+
+  // 切换文本
+  var sutraTxt = '';
+  $('.ocr-txt input').click(function () {
+    $('.bd .sutra-text').addClass('hide');
+    $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
+    sutraTxt = $(this).val();
+  });
+
+  // 保存文本
+  $('#btn-save').click(function () {
+    var which = $('.ocr-txt :checked').val();
+    if (which === 'text')
+      return;
+    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
+    data[which] = $('.sutra-text.' + which + ' textarea').val();
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('修改成功');
+      refresh(500);
+    });
+  });
+
+</script>
+<script>
   // 离开页面
   var from = decodeFrom();
   window.leave = function () {
@@ -351,24 +401,11 @@
     location = '/data/edit/text/{{page["name"]}}?from=' + encodeFrom();
   });
 
-  var buttonConfig = decodeJSON('{{button_config}}');
-
-  function getConfig() {
-    var config = {};
-    // var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block', 'toggle-column', 'toggle-char', 'toggle-order'];
-    var buttons = ['toggle-right'];
-    buttons.forEach(function (button) {
-      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
-    });
-    return config;
-  }
-
+  // 跳转
   function go(to) {
     var url = setQueryString('to', to).replace(location.pathname, '/data/page/{{page["name"]}}');
     var config = getConfig();
     if (JSON.stringify(buttonConfig) !== JSON.stringify(config)) {
-      // console.log({data_page_button: config});
-      // return;
       postApi('/session/config', {data: {data_page_button: config}}, function (res) {
         location.href = url;
       });
@@ -376,9 +413,6 @@
       location.href = url;
     }
   }
-
-  console.log(getConfig());
-  console.log(buttonConfig);
 
   // 上一页
   $('#btn-prev').click(function () {
@@ -422,25 +456,6 @@
       refresh(1500);
     }, function (error) {
       showError('提交失败', error.message);
-    });
-  });
-
-  // 切换文本
-  $('.ocr-txt input').click(function () {
-    $('.bd .sutra-text').addClass('hide');
-    $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
-  });
-
-  // 保存文本
-  $('#btn-save').click(function () {
-    var which = $('.ocr-txt :checked').val();
-    if (which === 'text')
-      return;
-    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
-    data[which] = $('.sutra-text.' + which + ' textarea').val();
-    postApi('/data/page', {data: data}, function () {
-      showSuccess('修改成功');
-      refresh(500);
     });
   });
 </script>
@@ -542,12 +557,6 @@
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
-
-  $('rect.block').css('display', 'none');
-  $('rect.column').css('display', 'none');
-  $('rect.char').css('display', 'block');
-  // 隐藏连线
-  setOrderStatus(false);
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
