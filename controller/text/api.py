@@ -97,7 +97,7 @@ class TextProofApi(TaskHandler):
             if not has_auth:
                 return self.send_error_response(error)
 
-            if data['step'] == 'select_compare_text':
+            if data['step'] == 'select':
                 return self.save_compare_text(task, data)
             else:
                 return self.save_proof(task, data)

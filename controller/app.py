@@ -18,7 +18,7 @@ from tornado.util import PY3
 from tornado.log import access_log
 from controller.auth import url_placeholder
 
-__version__ = '0.2.74.200109'
+__version__ = '0.1.75.200113'
 BASE_DIR = path.dirname(path.dirname(__file__))
 
 define('testing', default=False, help='the testing mode', type=bool)
@@ -32,7 +32,7 @@ class Application(web.Application):
         self.init_config(settings.get('db_name_ext'))
 
         self.IMAGE_PATH = path.join(BASE_DIR, 'static', 'img')
-        self.version = __version__ + '-work'
+        self.version = __version__ + '-alpha'
         self.BASE_DIR = BASE_DIR
         self.handlers = handlers
         handlers = [(r'/upload/(\w+/\w+\.(png|jpg|jpeg|gif|bmp))', web.StaticFileHandler,
@@ -110,12 +110,10 @@ class Application(web.Application):
             cfg = self.config['database']
             uri = cfg['host']
             if cfg.get('user'):
-                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
-                    cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
-                )
-            conn = pymongo.MongoClient(
-                uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000, maxPoolSize=10, waitQueueTimeoutMS=5000
-            )
+                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
+                uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
             self._db_test = conn[cfg['name'] + '_test']
         return self._db_test
 

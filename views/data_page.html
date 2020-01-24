@@ -1,397 +1,433 @@
-{% extends "com_list.html" %}
-{% block custom-css %}
-<style>
-  #searchModal .modal-body h4, #searchModal .modal-body div {
-    margin: 5px 0;
-  }
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{page['name']}}</title>
+  {% include _base_meta.html %}
+  {% include _base_css.html %}
+  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
+  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
+  <link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .m-header {
+      height: 70px;
+    }
 
-  .select2-container {
-    width: 100% !important;
-  }
+    .m-header .header-line {
+      width: 100%;
+      height: 40px;
+      color: var(--Brown_Darker);
+    }
 
-  .sty-table .action {
-    color: #B8906F !important;
-    cursor: pointer;
-    font-size: 12px;
-  }
+    .m-header .ocr-txt input {
+      margin-right: 5px;
+    }
 
-  .sty-table .action:hover {
-    color: #b33c2b !important;
-    cursor: pointer;
-    font-size: 12px;
-  }
+    .m-header .sub-line {
+      height: 30px;
+      line-height: 30px;
+      padding-left: 10px;
+      user-select: text;
+      background-color: var(--Grey_Line);
+    }
 
-  .sty-table .tasks {
-    width: 72px;
-  }
+    .sub-line a {
+      color: var(--Brown_Darker);
+      cursor: pointer;
+    }
 
-  .operation .btn-img {
-    width: 22px;
-    height: 22px;
-  }
+    .sub-line label {
+      font-weight: 300;
+      color: var(--Color_333);
+    }
 
-  #txt-content {
-    font-size: 1.2em;
-  }
-</style>
-{% end %}
+    .full-bd {
+      height: 100%;
+      padding-top: 70px;
+    }
 
-{% block operation %}
-<div class="operation">
-  <button class="btn btn-default waves-effect" data-toggle="modal" data-target="#searchModal">综合检索</button>
-  <div class="btn-group">
-    <button class="btn btn-default dropdown-toggle waves-effect" data-toggle="dropdown" aria-expanded="false">
-      浏览检索结果 <i class="caret"></i>
-    </button>
-    <ul class="dropdown-menu" role="menu">
-      <li><a class="task-type" id="btn-nav-box" href="javascript:void(0);">切分数据</a></li>
-      <li class="divider"></li>
-      <li><a class="task-type" id="btn-nav-text" href="javascript:void(0);">文本数据</a></li>
-    </ul>
-  </div>
-  <button class="btn btn-default waves-effect" id="btn-pub-box">发布切分任务</button>
-  <button class="btn btn-default waves-effect" id="btn-pub-text">发布文字任务</button>
-  <div style="margin: 5px; display: inline-block; cursor: pointer">
-    <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img" data-toggle="modal" data-target="#configModal" title="配置"/>
-    <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-  </div>
-</div>
-{% end %}
+    .full-bd .bd {
+      height: 100%;
+      overflow: auto;
+    }
 
-{% block table %}
-<table class="sty-table">
-  <thead>
-  <tr>
-    <th class="name"><span class="sort {{'active' if 'page_code' in order else ''}}" title="page_code">
-      页编码<span class="ion-arrow-down-b {{'toggle' if order == 'page_code' else ''}}"></span>
-    </span></th>
-    <th class="source"><span class="sort {{'active' if 'source' in order else ''}}" title="source">
-      批次<span class="ion-arrow-down-b {{'toggle' if order == 'source' else ''}}"></span>
-    </span></th>
-    <th class="layout"><span class="sort {{'active' if 'layout' in order else ''}}" title="page_code">
-      页面结构<span class="ion-arrow-down-b {{'toggle' if order == 'layout' else ''}}"></span>
-    </span></th>
-    <th class="uni_sutra_code"><span class="sort {{'active' if 'uni_sutra_code' in order else ''}}" title="uni_sutra_code">
-      统一经编码<span class="ion-arrow-down-b {{'toggle' if order == 'uni_sutra_code' else ''}}"></span>
-    </span></th>
-    <th class="reel_code"><span class="sort {{'active' if 'reel_code' in order else ''}}" title="reel_code">
-      卷编码<span class="ion-arrow-down-b {{'toggle' if order == 'reel_code' else ''}}"></span>
-    </span></th>
-    <th class="tasks"><span>已发布任务</span></th>
-    <th class="box_ready"><span class="sort {{'active' if 'box_ready' in order else ''}}" title="box_ready">
-      切分已就绪<span class="ion-arrow-down-b {{'toggle' if order == 'box_ready' else ''}}"></span>
-    </span></th>
-    <th class="level_box"><span class="sort {{'active' if 'level.box' in order else ''}}" title="level.box">
-      切分等级<span class="ion-arrow-down-b {{'toggle' if order == 'level.box' else ''}}"></span>
-    </span></th>
-    <th class="level_text"><span class="sort {{'active' if 'level.text' in order else ''}}" title="level.text">
-      文本等级<span class="ion-arrow-down-b {{'toggle' if order == 'level.text' else ''}}"></span>
-    </span></th>
-    <th class="lock_box"><span class="sort {{'active' if 'lock.box.is_temp' in order else ''}}" title="lock.box.is_temp">
-      切分锁<span class="ion-arrow-down-b {{'toggle' if order == 'lock.box.is_temp' else ''}}"></span>
-    </span></th>
-    <th class="lock_text"><span class="sort {{'active' if 'lock.text.is_temp' in order else ''}}" title="lock.text.is_temp">
-      文本锁<span class="ion-arrow-down-b {{'toggle' if order == 'lock.text.is_temp' else ''}}"></span>
-    </span></th>
-    <th class="blocks"><span>栏框</span></th>
-    <th class="columns"><span>列框</span></th>
-    <th class="chars"><span>字框</span></th>
-    <th class="orders"><span>字序</span></th>
-    <th class="ocr"><span>字框OCR</span></th>
-    <th class="ocr_col"><span>列框OCR</span></th>
-    <th class="text"><span>审定文本</span></th>
-    <th><span>操作</span></th>
-  </tr>
-  </thead>
+    .panel-body {
+      padding: 0;
+    }
 
-  <tbody>
-  {% for d in docs %}
-  <tr id="{{d['_id']}}">
-    <td class="name"><a href="/page/{{d.get('name')}}">{{d.get('name')}}</a></td>
-    <td class="source">{{d.get('source') or ''}}</td>
-    <td class="layout">{{d.get('layout') or ''}}</td>
-    <td class="uni_sutra_code">{{d.get('uni_sutra_code') or ''}}</td>
-    <td class="reel_code">{{d.get('reel_code') or ''}}</td>
-    <td class="tasks">{{'/'.join([handler.get_task_name(p) for p in handler.prop(d, 'tasks', {})])}}</td>
-    <td class="box_ready">{{handler.prop(d, 'box_ready', '')}}</td>
-    <td class="level_box">{{handler.prop(d, 'level.box', '')}}</td>
-    <td class="level_text">{{handler.prop(d, 'level.text', '')}}</td>
-    <td class="lock_box action" title="box">{{'解锁' if handler.prop(d, 'lock.box.is_temp') else ''}}</td>
-    <td class="lock_text action" title="text">{{'解锁' if handler.prop(d, 'lock.text.is_temp') else ''}}</td>
-    <td class="blocks action" title="blocks">{{'修改' if d.get('blocks') else ''}}</td>
-    <td class="columns action" title="columns">{{'修改' if d.get('columns') else ''}}</td>
-    <td class="chars action" title="chars">{{'修改' if d.get('chars') else ''}}</td>
-    <td class="orders action" title="orders">{{'修改' if d.get('chars') else ''}}</td>
-    <td class="ocr action" title="ocr">{{'修改' if d.get('ocr') else ''}}</td>
-    <td class="ocr_col action" title="ocr_col">{{'修改' if d.get('ocr_col') else ''}}</td>
-    <td class="text action">{{'修改' if d.get('text') else ''}}</td>
-    <td class="action">
-      {% set info = {f: handler.prop(d, f.replace('-', '.'), '') for f in info_fields} %}
-      <span class="hide info">{{dumps(info)}}</span>
-      <a href="/data/page/{{d.get('_id')}}">详情</a>
-      <a class="btn-update">修改</a>
-      <a class="btn-remove">删除</a>
-    </td>
-  </tr>
-  {% end %}
-  </tbody>
-</table>
-{% end %}
+    .priority input[type='radio'], .force input[type='radio'] {
+      margin: 0 10px
+    }
 
-{% block custom-modal %}
-<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
-     aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">帮助文档</h4>
-      </div>
-      <div class="modal-body">
-        <div class="title">一、简介</div>
-        <div class="intro">
-          任务管理模块提供管理员对任务进行操作，包括发布、指派、删除、重新发布等，还可以查看任务，或者查看任务详情、历程。
+    .pfread-in .left {
+      flex: 1;
+      width: 50%;
+      border-right: 1px solid var(--Grey_Line);
+    }
+
+    .pfread-in .right {
+      flex: none;
+      width: 50%;
+      background: #fff;
+    }
+
+    .pfread-in .right textarea {
+      border: 0;
+      font-size: 18px;
+    }
+
+    .dropdown-menu > li > a {
+      padding: 0 20px;
+    }
+
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="header-line main-line">
+        <div class="left">
+          <div class="back">
+            <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img" onclick="leave()" title="返回"/>
+          </div>
+          <div class="title" title="{{page['name']}}"><a href="/data/page/info/{{page['name']}}">{{page['name']}}</a></div>
+          <div class="btn-group" style="margin-left: 10px">
+            <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img {{'' if button_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
+            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img {{'' if button_config.get('toggle-right') == -1 else 'active'}}" id="toggle-right" title="显隐文字"/>
+            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img {{'' if button_config.get('toggle-blur') == -1 else 'active'}}" id="toggle-blur" title="模糊"/>
+            <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
+            <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
+            <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img {{'' if button_config.get('toggle-block') == -1 else 'active'}}" id="toggle-block" title="显隐栏框"/>
+            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img {{'' if button_config.get('toggle-column') == -1 else 'active'}}" id="toggle-column" title="显隐列框"/>
+            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img {{'' if button_config.get('toggle-char') == -1 else 'active'}}" id="toggle-char" title="显隐字框"/>
+            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img {{'' if button_config.get('toggle-order') == -1 else 'active'}}" id="toggle-order" title="显隐字序"/>
+            <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" id="btn-update" title="修改"/>
+          </div>
+          <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img" id="toggle-more" title="更多"/>
+          <span class="btn-group hidden" id="more-group">
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-block">栏框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-column">列框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-char">字框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-oder">字序</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-text">审定文本</button>
+        </span>
         </div>
-        <div class="title">二、任务操作</div>
-        <table class="table">
-          <tr>
-            <td>批量指派</td>
-            <td>将「已发布」的任务指派给某个特定的用户</td>
-          </tr>
-          <tr>
-            <td>批量删除</td>
-            <td>可以批量删除所有非「进行中」或「已完成」的任务。如果需要删除「进行中」的任务，请先选择重新发布，然后再删除。</td>
-          </tr>
-          <tr>
-            <td>发布任务</td>
-            <td>
-              任务相关数据已就绪时，可以发布任务。任务管理员在发布任务时，如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置
-              任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；如果有一个前置任务未完成，则发布为「等待前置任务」。该任务的
-              前置任务在完成时，系统会自动检查，如果所有前置任务都已完成，则自动发布为「已发布」。
-              用户可以在任务大厅领取所有「已发布」的任务。领取后可以进行保存、提交，也可以选择退回任务。
-            </td>
-          </tr>
-          <tr>
-            <td>重新发布</td>
-            <td>「进行中」的任务可以重新发布。</td>
-          </tr>
-        </table>
+        <div class="right">
+          <div class="btn-group btn-publish" style="margin-right: 8px">
+            <button class="btn btn-default btn-sm dropdown-toggle waves-effect " data-toggle="dropdown" aria-expanded="false">
+              发布任务 <i class="caret"></i>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              {% for k,name in handler.get_page_tasks().items() %}
+              <li><a title="{{k}}" href="javascript:void(0);">{{name}}</a></li>
+              <li class="divider"></li>
+              {% end %}
+            </ul>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-save">保存文本</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-prev">上一页</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-next">下一页</button>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-<div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
-     aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">配置列表</h4>
-      </div>
-      <div class="modal-body">
-        <div class="select-column">
-          {% for f in table_fields %}
-          <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" checked>{{f['name']}}</label>
+      <div class="header-line sub-line">
+        <div class="left">
+          {% if handler.prop(page, 'lock.box.is_temp') %}
+          <label>切分临时锁：</label><a class="lock box">解锁</a>
+          {% end %}
+          {% if handler.prop(page, 'lock.text.is_temp') %}
+          <label>文本临时锁：</label><a class="lock text">解锁</a>
+          {% end %}
+          {% if page.get('tasks') %}
+          <label>相关任务：</label>
+          <span class="tasks">
+          {% for task, status in page.get('tasks', {}).items() %}
+          <span class="task">{{handler.get_task_name(task)+'/'+handler.get_status_name(status)}}</span>
+          {% end %}
+          {% end %}
+        </span>
+        </div>
+        <div class="right">
+          {% if fields %}
+          <label>显示文本：</label>
+          <span class="ocr-txt">
+            {% set which = button_config.get('sutra-txt') or '' %}
+            {% for i,f in enumerate(fields) %}
+            <input type="radio" name="ocr-txt" value="{{f}}" {{'checked' if (which in fields and f == which) or (which not in fields and i == 0) else ''}}>{{labels[f]}}
+            {% end %}
+          </span>
           {% end %}
         </div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
-      </div>
     </div>
-  </div>
-</div>
-<div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">修改文本</h4>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="page-id">
-        <input type="hidden" id="page-name">
-        <input type="hidden" id="txt-type">
-        <textarea id="txt-content" rows="20" class="form-control"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-      </div>
-    </div>
-  </div>
-</div>
-<div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">综合检索</h4>
-      </div>
-      <div class="modal-body" style="min-height: 560px">
-        <h4 class="col-sm-2 control-label">页编码</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入页编码，支持正则式">
-        </div>
-        <h4 class="col-sm-2 control-label">批次</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入批次，支持正则式">
-        </div>
-        <h4 class="col-sm-2 control-label">页面结构</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control layout" value="{{params.get('layout') or ''}}" placeholder="请输入页面结构，支持正则式">
-        </div>
-        <h4 class="col-sm-2 control-label">切分等级</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control level_box" value="{{params.get('level_box') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
-        </div>
-        <h4 class="col-sm-2 control-label">文本等级</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control level_text" value="{{params.get('level_text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
-        </div>
-        <h4 class="col-sm-2 control-label">切分已就绪</h4>
-        <div class="col-sm-10">
-          <select class="form-control box_ready">
-            {% for v in ['', '是', '否'] %}
-            {% if params.get('box_ready', '') == v %}
-            <option value="{{v}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{v}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">切分校对</h4>
-        <div class="col-sm-10">
-          <select class="form-control cut_proof">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('cut_proof', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">切分审定</h4>
-        <div class="col-sm-10">
-          <select class="form-control cut_review">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('cut_review', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">文字校一</h4>
-        <div class="col-sm-10">
-          <select class="form-control text_proof_1">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('text_proof_1', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">文字校二</h4>
-        <div class="col-sm-10">
-          <select class="form-control text_proof_2">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('text_proof_2', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">文字校三</h4>
-        <div class="col-sm-10">
-          <select class="form-control text_proof_3">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('text_proof_3', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">文字审定</h4>
-        <div class="col-sm-10">
-          <select class="form-control text_review">
-            {% for k,v in task_statuses.items() %}
-            {% if params.get('text_review', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect reset">重置</button>
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-      </div>
-    </div>
-  </div>
-</div>
-{% end %}
 
-{% block custom-js %}
+    <div class="full-bd flex-content pfread-in">
+      <div class="left" id="left-region">
+        <div class="bd" id="holder-container">
+          <div id="holder"></div>
+        </div>
+      </div>
+      {% if fields %}
+      <div class="right{{' hide' if button_config.get('toggle-right') == -1 else ''}}" id="right-region">
+        <div class="bd">
+          {% for i,f in enumerate(fields) %}
+          <div class="sutra-text {{f if (which in fields and f == which) or (which not in fields and i == 0) else f + ' hide'}}">
+            <textarea class="form-control" rows="{{len(texts[f].split('\n'))+1}}" {{'readonly' if f == 'text' else ''}}>{% raw texts[f] %}</textarea>
+          </div>
+          {% end %}
+        </div>
+      </div>
+      {% end %}
+    </div>
+
+  </div>
+</div>
+
+<div class="panel-body">
+  {% module ComModal(modal_fields, 'editModal', '更新基本信息') %}
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档</h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、简介</div>
+          <div class="intro">
+            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+            另外，本页面还可以发布任务。<br/>
+            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+          </div>
+          <div class="title">二、操作</div>
+          <table class="table">
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_back.png') }}"/></td>
+              <td>返回</td>
+            </tr>
+            <tr>
+              <td>页码</td>
+              <td>查看页面详情</td>
+            </tr>
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_pic.png') }}"/></td>
+              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+            </tr>
+            <tr>
+              <td><img src="{{ static_url('imgs/icon_txt.png') }}"/></td>
+              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_blur.png')}}"/></td>
+              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_edit.png')}}"/></td>
+              <td>修改页面基本信息</td>
+            </tr>
+            <tr>
+              <td><img src="{{static_url('imgs/icon_more.png')}}"/></td>
+              <td>更多操作，包括修改栏框、列框、字框、审定文本等</td>
+            </tr>
+            <tr>
+              <td><span type="button" class="btn btn-primary btn-sm">保存文本</span></td>
+              <td>保存当前选中的字框OCR或列框OCR</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">发布任务/{{page['name']}}/<span class="task-type"></span></h4>
+        </div>
+        <div class="modal-body">
+          <input class="task_type" type="hidden" value="">
+          <h4 class="control-label">任务批次</h4>
+          <div>
+            <input type="text" class="form-control batch" placeholder="请输入批次号">
+          </div>
+          <h4 class="control-label">选择前置任务</h4>
+          <div class="pre_tasks">
+            {% for t, v in handler.task_types.items() %}
+            {% if handler.is_mod_enabled(v['name']) %}
+            <label class="checkbox-inline">
+              <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
+            </label>
+            {% end %}
+            {% end %}
+          </div>
+          <h4 class="control-label steps-label">选择子步骤</h4>
+          <div class="steps" id="step-items">
+            <label class="checkbox-inline"><input type="checkbox" title="step1" checked>子步骤1</label>
+          </div>
+          <h4 class="control-label">选择优先级</h4>
+          <div class="priority">
+            <input type="radio" name="priority" value="3" style="margin-right: 10px">高
+            <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
+            <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+          </div>
+
+          <h4 class="control-label">任务已完成时，是否重新发布？</h4>
+          <div class="force">
+            <input type="radio" name="force" value="否" style="margin: 0 10px 0 0" checked>否
+            <input type="radio" name="force" value="是" style="margin: 0 10px">是
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
+       aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="margin: 0 10px">
+        <div class="modal-body">
+          <div class="tips" style="text-align: center"></div>
+        </div>
+        <div class="modal-footer" style="border: 0">
+          <button type="button" class="btn btn-default waves-effect cancel">取消</button>
+          <button type="button" class="btn btn-primary waves-effect modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/l10n.js')}}"></script>
+<script src="{{static_url('js/nav.js')}}"></script>
+<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
+<script src="{{static_url('js/cut/char_order.js')}}"></script>
+<script src="{{static_url('js/com-table.js')}}"></script>
 <script>
-  // 设置显示列
-  var allColumns = decodeJSON('{{[f["id"] for f in table_fields]}}');
-  var columnsName = location.pathname.replace('/', '_');
+  var buttonConfig = decodeJSON('{{button_config}}');
+  // console.log(buttonConfig);
+  $(document).ready(function () {
+    $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === -1 ? 1 : 0.2;
+    $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
+    $('rect.block').css('display', buttonConfig['toggle-block'] === -1 ? 'none' : 'block');
+    $('rect.column').css('display', buttonConfig['toggle-column'] === -1 ? 'none' : 'block');
+    $('rect.char').css('display', buttonConfig['toggle-char'] === -1 ? 'none' : 'block');
+    setOrderStatus(!(buttonConfig['toggle-order'] === -1));
+  });
 
-  function toggleColumns() {
-    var hideColumns = JSON.parse(localStorage.getItem(columnsName) || '[]');
-    allColumns.forEach(function (item) {
-      if (hideColumns.indexOf(item) !== -1) {
-        $('.select-column .' + item).removeAttr('checked');
-        $('.sty-table .' + item).addClass('hide');
-      } else {
-        $('.select-column .' + item).prop('checked', 'true');
-        $('.sty-table .' + item).removeClass('hide');
-      }
-    })
+  // 获取当前按钮状态
+  function getConfig() {
+    var config = {};
+    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
+      'toggle-column', 'toggle-char', 'toggle-order'];
+    buttons.forEach(function (button) {
+      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    });
+    if (sutraTxt)
+      config['sutra-txt'] = sutraTxt;
+    else
+      config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
+    return config;
   }
 
-  $(document).ready(function () {
-    toggleColumns()
+  // 切换文本
+  var sutraTxt = '';
+  $('.ocr-txt input').click(function () {
+    $('.bd .sutra-text').addClass('hide');
+    $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
+    sutraTxt = $(this).val();
   });
 
-  // 列表配置
-  $('#configModal .modal-confirm').click(function () {
-    var hideColumns = $.map($('.select-column :not(:checked)'), function (item) {
-      return $(item).attr('title');
+  // 保存文本
+  $('#btn-save').click(function () {
+    var which = $('.ocr-txt :checked').val();
+    if (which === 'text')
+      return;
+    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
+    data[which] = $('.sutra-text.' + which + ' textarea').val();
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('修改成功');
+      refresh(500);
     });
-    localStorage.setItem(columnsName, JSON.stringify(hideColumns));
-    toggleColumns();
   });
 
-  // 修改栏框、列框、字框、字序
-  $('.blocks, .columns, .chars, .orders').click(function () {
-    if (!$(this).text().length)
-      return;
-    var name = $(this).siblings('.name').text();
-    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('title');
-    location.href = url + '&from=' + location.pathname + location.search;
+</script>
+<script>
+  // 离开页面
+  var from = decodeFrom();
+  window.leave = function () {
+    if (from) {
+      window.location = from;
+    } else {
+      window.location = '/data/page' + location.search.replace(/[&?]to=(next|prev)/, '');
+    }
+  };
+
+  // 修改字框
+  $('#btn-ed-char').click(function () {
+    location = '/data/edit/box/{{page["name"]}}?step=chars&from=' + encodeFrom();
   });
 
-  // 解锁
-  $('.lock_box, .lock_text').click(function () {
-    if (!$(this).text().length)
-      return;
-    var sharedField = $(this).attr('title');
-    var name = $(this).siblings('.name').text();
+  // 修改栏框
+  $('#btn-ed-block').click(function () {
+    location = '/data/edit/box/{{page["name"]}}?step=blocks&from=' + encodeFrom();
+  });
+
+  // 修改列框
+  $('#btn-ed-column').click(function () {
+    location = '/data/edit/box/{{page["name"]}}?step=columns&from=' + encodeFrom();
+  });
+
+  // 修改字序
+  $('#btn-ed-order').click(function () {
+    location = '/data/edit/box/{{page["name"]}}?step=orders&from=' + encodeFrom();
+  });
+
+  // 修改审定文本
+  $('#btn-ed-text').click(function () {
+    location = '/data/edit/text/{{page["name"]}}?from=' + encodeFrom();
+  });
+
+  // 跳转
+  function go(to) {
+    var url = setQueryString('to', to).replace(location.pathname, '/data/page/{{page["name"]}}');
+    var config = getConfig();
+    if (JSON.stringify(buttonConfig) !== JSON.stringify(config)) {
+      postApi('/session/config', {data: {data_page_button: config}}, function (res) {
+        location.href = url;
+      });
+    } else {
+      location.href = url;
+    }
+  }
+
+  // 上一页
+  $('#btn-prev').click(function () {
+    go('prev');
+  });
+
+  // 下一页
+  $('#btn-next').click(function () {
+    go('next');
+  });
+
+  // 解锁临时锁
+  $('.lock').click(function () {
+    var name = '{{page["name"]}}';
+    var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
     var url = '/data/admin/unlock/' + sharedField + '/' + name;
     showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
@@ -403,87 +439,139 @@
     });
   });
 
-  // 修改文本
-  var $txtModal = $('#txtModal');
-  $('.ocr, .ocr_col').click(function () {
-    if (!$(this).text().length)
-      return;
-    var id = $(this).parent().attr('id');
-    var type = $(this).attr('title');
-    var data = getData(id);
-    var trans = {ocr: '字框OCR文本', ocr_col: '列框OCR文本'};
-    $txtModal.find('#page-id').val(data._id);
-    $txtModal.find('#page-name').val(data.name);
-    $txtModal.find('#txt-type').val($(this).attr('title'));
-    $txtModal.find('.modal-title').html(trans[type]);
-    $txtModal.find('#txt-content').html(data[type].replace(/\|/g, '\n'));
-    $txtModal.modal();
+  // 修改基本信息
+  var $modal = $('#editModal');
+  var fields = decodeJSON('{{modal_fields}}').concat({id: '_id'});
+  $('#btn-update').click(function () {
+    var info = decodeJSON('{{info}}');
+    info['_id'] = '{{page["_id"]}}';
+    setModal($modal, info, fields);
+    $modal.modal();
   });
 
-  $txtModal.find('.modal-confirm').click(function () {
-    var _id = $txtModal.find('#page-id').val();
-    var name = $txtModal.find('#page-name').val();
-    var txtType = $txtModal.find('#txt-type').val();
-    var txtContent = $txtModal.find('#txt-content').val();
-    var data = {name: name, _id: _id};
-    data[txtType] = txtContent.replace(/\n/g, '\|');
+  $("#editModal .modal-confirm").click(function () {
+    var data = getModal($modal, fields);
     postApi('/data/page', {data: data}, function () {
-      showSuccess('成功', '已成功修改。');
-      refresh(1000);
+      showSuccess('成功', '数据已提交。');
+      refresh(1500);
     }, function (error) {
-      showError('失败', error.message);
+      showError('提交失败', error.message);
+    });
+  });
+</script>
+
+<script>
+  // 发布任务
+  var taskType = '';
+  var taskTypes = decodeJSON('{{handler.task_types}}');
+  var $publishModal = $('#publishModal');
+  var $publishResultModal = $('#publishResultModal');
+  var publishFields = [
+    {id: 'batch'}, {id: 'task_type'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
+    {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'}
+  ];
+
+  // 设置参数
+  function setPublishParams(taskType) {
+    var params = decodeJSON(localStorage.getItem('publish_' + taskType) || '{}');
+    setModal($publishModal, params, publishFields);
+  }
+
+  // 发布框-弹框
+  $('.btn-publish a').click(function () {
+    taskType = $(this).attr('title');
+    $publishModal.find('.task_type').val(taskType);
+    $publishModal.find('.modal-title .task-type').text(taskTypes[taskType].name);
+    var preTasks = taskTypes[taskType].pre_tasks || [];
+    $.map($publishModal.find('.pre_tasks input[type="checkbox"]'), function (item) {
+      if (preTasks.indexOf($(item).attr('title')) !== -1)
+        $(item).prop('checked', true);
+      else
+        $(item).removeAttr('checked');
+    });
+    var steps = taskTypes[taskType].steps || [];
+    if (steps.length) {
+      $publishModal.find('.steps-label').removeClass('hide');
+    } else {
+      $publishModal.find('.steps-label').addClass('hide');
+    }
+    var html = $.map(steps, function (item) {
+      return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
+    }).join('');
+    $publishModal.find('#step-items').html(html);
+    setPublishParams(taskType);
+    $publishModal.modal();
+  });
+
+
+  // 发布框-提交
+  $publishModal.find(".modal-confirm").click(function () {
+    var data = getModal($publishModal, publishFields);
+    localStorage.setItem('publish_' + taskType, JSON.stringify(data));
+    data['doc_ids'] = ['{{page["name"]}}'];
+    postApi('/task/publish/pages', {data: data}, function (res) {
+      $publishResultModal.find('.tips').text(l10n[Object.keys(res.data)[0]]);
+      $publishResultModal.modal();
+    }, function (error) {
+      return showError('失败', error.message);
     });
   });
 
-  // 综合检索
-  $searchModal = $("#searchModal");
-  $searchModal.find('.modal-confirm').click(function () {
-    var search = '';
-    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
-    fields.forEach(function (field) {
-      var value = $searchModal.find('.' + field).val();
-      if (value)
-        search += '&' + field + '=' + value;
-    });
-    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
-    fields.forEach(function (field) {
-      var value = $searchModal.find('.' + field + ' :selected').val();
-      if (value)
-        search += '&' + field + '=' + value;
-    });
-    if (!search.length)
-      return showWarning('请输入查询条件');
-    location.href = location.pathname + '?' + search.substr(1);
+  // 结果框-确定
+  $publishResultModal.find('.modal-confirm').click(function () {
+    location.reload();
   });
 
-  // 重置
-  $searchModal.find('.reset').click(function () {
-    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
-    fields.forEach(function (field) {
-      $searchModal.find('.' + field).val('');
-    });
-    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
-    fields.forEach(function (field) {
-      $searchModal.find('.' + field + ' :selected').removeAttr('selected');
-    });
+  // 结果框-取消
+  $publishResultModal.find('.cancel').click(function () {
+    $publishModal.modal('hide');
+    $publishResultModal.modal('hide');
   });
-
-  // 浏览切分数据
-  $('#btn-nav-box').click(function () {
-    location.href = '/data/page/box' + location.search;
-  });
-
-  // 浏览文本数据
-  $('#btn-nav-text').click(function () {
-    location.href = '/data/page/text' + location.search;
-  });
-
-  // 发布切分任务
-  $('#btn-pub-box').click(function () {
-    location.href = '/data/page/box?op=pub';
-  });
-
 
 </script>
-{% end %}
 
+<script>
+  function initBoxes(boxesStr, className) {
+    var boxes = decodeJSON(boxesStr);
+    for (var i = 0; i < boxes.length; i++) {
+      boxes[i]['class'] = className;
+    }
+    return boxes;
+  }
+
+  var chars = initBoxes('{{page.get("chars", [])}}', 'char');
+  var columns = initBoxes('{{page.get("columns", [])}}', 'column');
+  var blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
+
+  $.cut.create({
+    readonly: true,
+    scrollContainer: '#holder-container',
+    name: '{{page["name"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    holder: 'holder',
+    image: '{{img_url}}',
+    chars: chars.concat(columns).concat(blocks)
+  });
+  $.cut.switchCurrentBox(null);
+  $.cut.bindKeys();
+  $.cut.bindCharOrderKeys();
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+      return true;
+    }
+    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+      return true;
+    }
+    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+      return true;
+    }
+  };
+
+</script>
+
+</body>
+</html>

@@ -99,6 +99,7 @@ def random_code():
 
 
 def prop(obj, key, default=None):
+    obj = obj or dict()
     for s in key.split('.'):
         obj = obj.get(s) if isinstance(obj, dict) else None
     return default if obj is None else obj

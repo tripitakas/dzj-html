@@ -116,22 +116,6 @@
   margin-right: 10px;
 }
 
-.open > .dropdown-menu {
-  min-width: 96px;
-}
-
-.dropdown-menu > li > a {
-  padding: 5px 20px;
-}
-
-.operation .dropdown-menu > li > a {
-  padding: 0 20px;
-}
-
-.dropdown-menu .divider:last-child {
-  display: none;
-}
-
 .modal-tab .nav.nav-tabs + .tab-content {
   padding: 15px 0 0;
   box-shadow: 0 0 0;

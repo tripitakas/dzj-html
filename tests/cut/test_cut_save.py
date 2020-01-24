@@ -76,8 +76,9 @@ class TestCutSave(APITestCase):
     def test_save_column_proof(self):
         """ 列框校对: 把columns数据传给后台，后台保存columns，然后重新计算序号 """
         page = self._test_save_proof('column')
-        self.assertEqual([c.get('column_id') for c in page['columns']],
-                         ['b1c1', 'b1c2', 'b1c3', 'b1c4', 'b1c5', 'b1c6', 'b1c7', 'b1c8', 'b1c9'])
+        column_ids = [c.get('column_id') for c in page['columns']]
+        should = ['b1c1', 'b1c2', 'b1c3', 'b1c4', 'b1c5', 'b1c6', 'b1c7', 'b1c8', 'b1c9']
+        self.assertEqual(column_ids, should)
 
     def test_save_char_proof(self):
         """ 字框校对：把chars数据传给后台，后台保存chars，如果有增、删字框，则重新计算序号 """
@@ -91,6 +92,7 @@ class TestCutSave(APITestCase):
 
     def test_save_char_order(self):
         """ 字序校对：把chars_col数据传给后台，后台根据chars_col重新计算字序 """
+
         def change(p):
             chars_col.extend(CutTool.char_render(p, 0)['chars_col'])
             # 0 = [1, 2, 3, 4]

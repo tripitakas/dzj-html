@@ -2,12 +2,12 @@ from . import view, api
 
 views = [
     view.TripitakaListHandler, view.TripitakaHandler, view.DataListHandler,
-    view.DataPageHandler, view.DataPageViewHandler,
-    view.DataPageNavBoxHandler, view.DataPageNavTextHandler,
+    view.DataPageInfoHandler, view.DataPageListHandler,
+    view.DataPageHandler,
 ]
 
 handlers = [
-    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi,
+    api.DataAddOrUpdateApi, api.DataDeleteApi, api.DataUploadApi, api.DataPageUpdateSourceApi,
     api.FetchDataTasksApi, api.SubmitDataTasksApi, api.ConfirmFetchDataTasksApi,
     api.DataGenJsApi,
 ]

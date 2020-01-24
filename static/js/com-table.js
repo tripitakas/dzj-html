@@ -50,10 +50,10 @@ $('.pagers .page-size').on("change", function () {
 
 // 列表配置
 $('#configModal .modal-confirm').click(function () {
-  $.map($('#configModal :not(:checked)'), function (item) {
+  $.map($('#configModal :checkbox:not(:checked)'), function (item) {
     $('.sty-table .' + $(item).attr('title')).addClass('hide');
   });
-  $.map($('#configModal :checked'), function (item) {
+  $.map($('#configModal :checkbox:checked'), function (item) {
     $('.sty-table .' + $(item).attr('title')).removeClass('hide');
   });
 
@@ -69,13 +69,24 @@ $('#configModal .modal-confirm').click(function () {
 /*---Modal相关代码---*/
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
-    if ('input_type' in item && item['input_type'] === 'radio') {
-      if (info[item.id])
-        modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
-    } else {
-      modal.find('.' + item.id).val(info[item.id]);
+    if (info[item.id]) { // 如果值为空，则不予设置
+      if ('input_type' in item) {
+        if (item['input_type'] === 'radio')
+          modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
+        else if (item['input_type'] === 'checkbox')
+          console.log(info[item.id]);
+        $.map(modal.find('.' + item.id + ' :checkbox'), function (obj) {
+          console.log($(obj).attr('title'));
+          if (info[item.id].indexOf($(obj).attr('title')) !== -1)
+            $(obj).prop('checked', true);
+          else
+            $(obj).removeAttr('checked');
+        });
+      } else {
+        modal.find('.' + item.id).val(info[item.id]);
+      }
     }
-  })
+  });
 }
 
 function getModal(modal, fields) {
@@ -90,7 +101,7 @@ function getModal(modal, fields) {
     } else if ('input_type' in item && item['input_type'] === 'select') {
       info[item.id] = modal.find('.' + item.id + ' :selected').val();
     } else {
-      info[item.id] = modal.find('.' + item.id).val() || modal.find('.' + item.id + ' input').val();
+      info[item.id] = modal.find('.' + item.id).val();
     }
     if (typeof info[item.id] === 'undefined' || !info[item.id]) {
       delete info[item.id];
@@ -111,7 +122,6 @@ function resetModal(modal, fields) {
       modal.find('.' + item.id + ' :selected').removeAttr('selected');
     } else {
       modal.find('.' + item.id).val('');
-      modal.find('.' + item.id + ' input').val('');
     }
   });
 }
@@ -122,6 +132,7 @@ function toggleModal(modal, fields, disabled) {
     modal.find('.modal-footer').hide();
     fields.forEach(function (item) {
       modal.find('.' + item.id).attr('disabled', 'disabled');
+      modal.find('.' + item.id + ' input').attr('disabled', 'disabled');
     });
   } else {
     modal.find('.modal-footer').show();
@@ -137,12 +148,12 @@ function getData(id) {
   return data;
 }
 
-var $modal = $('#dataModal');
+var $modal = $('#updateModal');
 var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
 // console.log(fields);
 
 // 新增-弹框
-$('.operation #btn-add').click(function () {
+$('.operation .btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('#url').val($(this).attr('url') || location.pathname);
   console.log($(this).attr('url') || location.pathname);
@@ -175,7 +186,7 @@ $('.btn-update').click(function () {
 });
 
 // 新增/修改-提交
-$("#dataModal .modal-confirm").click(function () {
+$("#updateModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
   postApi($modal.find('#url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');
@@ -192,9 +203,13 @@ $('.btn-remove').click(function () {
   var name = 'name' in data ? data.name : '';
   var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
-    postApi(url, {data: {_id: data._id}}, function () {
-      showSuccess('成功', '数据' + name + '已删除');
-      refresh(1000);
+    postApi(url, {data: {_id: data._id}}, function (res) {
+      if (res.count) {
+        showSuccess('成功', '数据' + name + '已删除');
+        refresh(1000);
+      } else {
+        showWarning('未删除', '数据未删除');
+      }
     }, function (err) {
       showError('删除失败', err.message);
     });
@@ -210,9 +225,13 @@ $('.operation .bat-remove').click(function () {
     return showWarning('请选择', '当前没有选中任何记录。');
   var url = $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
-    postApi(url, {data: {_ids: ids}}, function () {
-      showSuccess('删除成功', '数据已删除。');
-      refresh(1000);
+    postApi(url, {data: {_ids: ids}}, function (res) {
+      if (res.count) {
+        showSuccess('成功', '选中' + ids.length + '条记录，已删除' + res.count + '条记录。');
+        refresh(1000);
+      } else {
+        showWarning('未删除', '删除0条数据');
+      }
     }, function (err) {
       showError('删除失败', err.message);
     });

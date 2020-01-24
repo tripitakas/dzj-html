@@ -1,5 +1,13 @@
 {% extends "com_list.html" %}
 
+{% block custom-css %}
+<style>
+  .operation .btn-help {
+    display: none;
+  }
+</style>
+{% end %}
+
 {% block custom-modal %}
 <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
   <div class="modal-dialog">

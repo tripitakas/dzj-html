@@ -1,4 +1,5 @@
 {% raw xsrf_form_html() %}
+
 {% if not debug and 0 %}
 {% include _base_js_.html %}
 {% else %}
@@ -20,5 +21,4 @@
 <script src="{{ static_url('assets/modal-effect/js/modalEffects.js') }}"></script>
 <script src="{{ static_url('js/jquery.app.js') }}"></script>
 <script src="{{ static_url('js/backend.js') }}"></script>
-
 {% end %}

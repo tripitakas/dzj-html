@@ -14,24 +14,26 @@
 """
 
 import re
-from bson.objectid import ObjectId
 from controller import errors as e
 from controller.cut.api import CutTaskApi
 from controller.cut.cuttool import CutTool
+from controller.task.view import PageTask
 from controller.task.base import TaskHandler
 
 
-class CutHandler(TaskHandler):
+class CutHandler(PageTask):
     URL = ['/task/@cut_task/@task_id',
+           '/task/browse/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
     def get(self, task_type, task_id):
         """ 切分校对页面 """
         try:
-            task = self.db.task.find_one(dict(task_type=task_type, _id=ObjectId(task_id)))
+            task = self.get_page_task(task_id)
             if not task:
-                return self.render('_404.html')
+                return
+
             page = self.db.page.find_one({task['id_name']: task['doc_id']})
             if not page:
                 return self.send_error_response(e.no_object, message='页面%s不存在' % task['doc_id'])
@@ -44,6 +46,7 @@ class CutHandler(TaskHandler):
             message = '' if has_lock else str(error[1])
 
             mode = self.get_task_mode()
+            readonly = not has_lock or mode in ['view', 'browse']
             steps = self.init_steps(task, mode, self.get_query_argument('step', ''))
             box_type = (re.findall('(char|column|block)', steps['current']) or ['char'])[0]
             template = 'task_cut_do.html'
@@ -53,7 +56,7 @@ class CutHandler(TaskHandler):
                 template = 'task_char_order.html'
 
             self.render(
-                template, task=task, task_type=task_type, page=page, readonly=not has_lock,
+                template, task=task, task_type=task_type, page=page, readonly=readonly,
                 mode=mode, steps=steps, box_type=box_type, boxes=page.get(box_type + 's'),
                 message=message, get_img=self.get_img, **kwargs
             )

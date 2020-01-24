@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>切分校对-{{page["name"]}}</title>
+  <title>{{handler.get_task_name(task_type) or '切分'}}-{{page["name"]}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
@@ -23,11 +23,12 @@
           <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
         <div class="title" title="{{page['name']}}">
-          切分校对<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
+          {{handler.get_task_name(task_type) or '切分'}}<span class="sub-title">-{{handler.get_step_name(steps["current"])}}</span>
         </div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
           <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+          <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img" id="toggle-blur" title="模糊"/>
           <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img active" id="toggle-box" title="显隐字框"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
@@ -48,23 +49,32 @@
       </div><!--left-->
       <div class="btn-group right">
         <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
-        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly and mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
+        <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly or mode == 'admin' else ''}}" id="save-task" title="保存"/>
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
+        {% if mode == 'browse' %}
+        <div class="btn-txt btn-gap"></div>
+        <img src="{{ static_url('imgs/icon_view.png') }}" class="btn-img" id="view-page" title="查看页面"/>
+        <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注任务"/>
+        <img src="{{ static_url('imgs/icon_prev2.png') }}" class="btn-img" id="prev-task" title="前一个任务"/>
+        <img src="{{ static_url('imgs/icon_next2.png') }}" class="btn-img" id="next-task" title="后一个任务"/>
+        {% end %}
       </div><!--right-->
-      <div class="tips right">{{message or page['name']}}</div>
+      <div class="tips right">{{message}}</div>
     </div>
-
-    <div class="full-bd bd-container">
+    <div class="full-bd">
       <!-- holder为显示切分框和页面图的画布容器 -->
-      <div id="holder"></div>
+      <div class="bd" id="holder-container">
+        <div id="holder"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="panel-body">
-  {% module ComModal(handler.return_modal_fields, 'returnModal', '退回任务') %}
+<div class="panel-body" style="padding: 0">
+  {% module ReturnModal() %}
+  {% module RemarkModal() %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -169,11 +179,11 @@
   var boxes = '{{boxes}}';
   $.cut.create({
     '{{box_type}}Mode': true,
+    scrollContainer: '#holder-container',
     name: '{{box_type}}_{{page["name"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    scrollContainer: '.bd-container',
     image: "{{get_img(page)}}",
     chars: boxes
   });

@@ -71,7 +71,7 @@ role_route_maps = {
             '/tool/search': ['GET'],
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
-            '/task/sample/(box|text|select_compare)': ['GET'],
+            '/task/sample/(box|text|select)': ['GET'],
             '/task/sample/box/@page_name': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/api/task/text_get_compare/@page_name': ['POST'],
@@ -159,7 +159,9 @@ role_route_maps = {
         'routes': {
             '/task/admin/image': ['GET'],
             '/task/admin/page': ['GET'],
+            '/task/page/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
+            '/task/browse/@task_type/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
@@ -167,7 +169,7 @@ role_route_maps = {
             '/api/task/publish/import': ['POST'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
-            '/api/task/(assign|delete|update_batch)': ['POST'],
+            '/api/task/(assign|delete|batch|remark)': ['POST'],
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
@@ -188,8 +190,9 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
-            '/data/page/@page_id': ['GET'],
-            '/data/page/(box|text)': ['GET'],
+            '/data/page/@page_code': ['GET'],
+            '/data/page/info/@page_code': ['GET'],
+            '/api/data/page/source': ['POST'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
@@ -219,6 +222,14 @@ role_route_maps = {
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
         }
+    },
+
+    # 下列角色供其他系统用，SSO登录获取角色
+    'OCR校对员': {
+        'is_assignable': True
+    },
+    'OCR审定员': {
+        'is_assignable': True
     },
 }
 

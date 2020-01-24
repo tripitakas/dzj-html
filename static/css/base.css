@@ -313,11 +313,9 @@ a:hover, a:visited, a:focus {
   padding: 5px;
 }
 
-
 .sub-ul-hidden {
   display: none;
 }
-
 
 .pagers {
   margin: 20px 0 0;
@@ -399,6 +397,10 @@ a:hover, a:visited, a:focus {
 .operation .btn-img {
   width: 22px;
   height: 22px;
+}
+
+.sty-list {
+  margin-bottom: 20px;
 }
 
 .sty-list .search {
@@ -515,6 +517,22 @@ a:hover, a:visited, a:focus {
 
 .sty-table .sort {
   cursor: pointer;
+}
+
+.open > .dropdown-menu {
+  min-width: 96px;
+}
+
+.dropdown-menu > li > a {
+  padding: 5px 20px;
+}
+
+.operation .dropdown-menu > li > a {
+  padding: 0 20px;
+}
+
+.dropdown-menu .divider:last-child {
+  display: none;
 }
 
 .modal-body .progress-lg {
@@ -677,6 +695,10 @@ a:hover, a:visited, a:focus {
   transform: scale(1.2);
 }
 
+.btn-img.active, btn-txt.active {
+  border: 1px solid #999;
+}
+
 .m-header .image {
   margin-left: 40px;
 }
@@ -763,7 +785,13 @@ a:hover, a:visited, a:focus {
 }
 
 .full-bd {
-  padding-top: 45px;
+  height: 100%;
+  padding-top: 40px;
+}
+
+.full-bd .bd {
+  height: 100%;
+  overflow: auto;
 }
 
 .modal {
@@ -774,8 +802,9 @@ a:hover, a:visited, a:focus {
   width: 680px;
 }
 
-.modal .modal-radio {
-  margin-top: 5px
+.modal-radio, .modal-select, .modal-checkbox {
+  margin-top: 5px;
+  background: transparent;
 }
 
 .modal-radio input[type='radio'] {

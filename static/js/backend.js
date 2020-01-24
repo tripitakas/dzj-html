@@ -46,12 +46,14 @@ function showConfirm(title, text, func) {
   return swal(info, func);
 }
 
-function showTips(title, text, reload) {
+function showTips(title, text, reload, timer) {
   if (typeof reload !== 'undefined' && reload) {
     swal({title: title, text: text, type: 'success', confirmButtonText: '确定', showConfirmButton: true, html: true},
         function () {
           window.location.reload();
         });
+  } else if (typeof timer !== 'undefined') {
+    swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true, timer: timer});
   } else {
     swal({title: title, text: text, html: true, showConfirmButton: false, allowOutsideClick: true});
   }
@@ -80,7 +82,7 @@ function getQueryString(name) {
   return '';
 }
 
-function setQueryString(name, value) {
+function setQueryString(name, value, onlySearch) {
   var search = location.search;
   var add = name + '=' + value;
   if (search.indexOf(name + '=') !== -1) {
@@ -91,16 +93,33 @@ function setQueryString(name, value) {
   } else {
     search = '?' + add;
   }
-  return location.pathname + search;
+  if (typeof onlySearch !== 'undefined' && onlySearch)
+    return search;
+  else
+    return location.pathname + search;
 }
 
-function encodeUrl() {
-  var url = location.pathname + location.search;
-  return url.replace(/&/g, '@');
+function deleteQueryString(search, name) {
+  search = search.replace(new RegExp(name + '=.*?&', 'i'), '');
+  search = search.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
+  return search;
 }
 
-function decodeUrl(url) {
-  return url && url.replace(/@/g, '&');
+function encodeFrom() {
+  // 将第一个?替换为&，然后删除to/page等参数
+  var url = location.pathname + location.search.replace('?', '&');
+  return deleteQueryString(url, 'to');
+}
+
+function decodeFrom() {
+  var from = '';
+  var index = location.search.indexOf('from=');
+  if (index !== -1) {
+    from = location.search.substr(index + 5);
+    if (from.indexOf('?') === -1)
+      from = from.replace('&', '?');
+  }
+  return deleteQueryString(from, 'to');
 }
 
 /**

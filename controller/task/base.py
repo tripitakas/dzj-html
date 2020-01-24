@@ -10,7 +10,6 @@ from controller import auth
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.helper import get_date_time
 
 
 class TaskHandler(BaseHandler, Task):
@@ -46,7 +45,7 @@ class TaskHandler(BaseHandler, Task):
         return self.db.task.count_documents(condition)
 
     def get_task_mode(self):
-        return (re.findall('(do|update|edit)/', self.request.path) or ['view'])[0]
+        return (re.findall('(do|update|edit|browse)/', self.request.path) or ['view'])[0]
 
     def get_publish_meta(self, task_type):
         now = datetime.now()
@@ -72,26 +71,6 @@ class TaskHandler(BaseHandler, Task):
         return has_auth, error
 
     @classmethod
-    def format_value(cls, value, key=None):
-        """ 格式化任务信息"""
-        if key == 'task_type':
-            value = cls.get_task_name(value)
-        elif key == 'status':
-            value = cls.get_status_name(value)
-        elif key == 'pre_tasks':
-            value = '/'.join([cls.get_task_name(t) for t in value])
-        elif key == 'steps':
-            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
-        elif key == 'priority':
-            value = cls.get_priority_name(int(value))
-        elif isinstance(value, datetime):
-            value = get_date_time('%Y-%m-%d %H:%M', value)
-        elif isinstance(value, dict):
-            value = value.get('error') or value.get('message') or \
-                    '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-        return value or ''
-
-    @classmethod
     def init_steps(cls, task, mode, current_step=''):
         """ 检查当前任务的步骤，缺省时进行设置，有误时报错 """
         todo = cls.prop(task, 'steps.todo', [])
@@ -100,8 +79,8 @@ class TaskHandler(BaseHandler, Task):
         if not todo:
             return e.task_steps_is_empty
         if current_step and current_step not in todo:
-            return e.task_step_error
-        if not current_step:
+            current_step = todo[0]
+        elif not current_step:
             current_step = un_submitted[0] if mode == 'do' else todo[0]
 
         steps = dict()
@@ -135,6 +114,11 @@ class TaskHandler(BaseHandler, Task):
             if task['status'] == self.STATUS_PENDING and not unfinished:
                 update.update({'status': self.STATUS_PUBLISHED})
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
+        # 更新doc的任务状态
+        if task['doc_id']:
+            collection, id_name = self.get_data_conf(task['task_type'])[:2]
+            update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
 
     """ 数据锁介绍
     1）数据锁的目的：

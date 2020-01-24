@@ -324,8 +324,8 @@ $('#save-doubt').on('click', function () {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubtModal .doubt_input').val(txt);
-  $('#doubtModal .doubt_reason').val('');
+  $('#doubtModal .doubt_input input').val(txt);
+  $('#doubtModal .doubt_reason textarea').val('');
 });
 
 // 切换存疑列表
@@ -345,8 +345,8 @@ $('.doubt-list .tab-view').on('click', function () {
 
 // 存疑确认
 $('#doubtModal .modal-confirm').on('click', function () {
-  var txt = $('#doubtModal .doubt_input').val().trim();
-  var reason = $('#doubtModal .doubt_reason').val().trim();
+  var txt = $('#doubtModal .doubt_input input').val().trim();
+  var reason = $('#doubtModal .doubt_reason textarea').val().trim();
   if (reason.length <= 0)
     return showTips('请填写存疑理由');
   var $span = $('.current-span');
@@ -556,7 +556,6 @@ $('#txtModal .btn-txt').click(function () {
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $(this).toggleClass('active');
   $.fn.mapKey.bindings = {up: {}, down: {}};
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(true);
