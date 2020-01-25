@@ -17,11 +17,11 @@ import re
 from controller import errors as e
 from controller.cut.api import CutTaskApi
 from controller.cut.cuttool import CutTool
-from controller.task.view import PageTask
 from controller.task.base import TaskHandler
+from controller.task.view import PageTaskHandler
 
 
-class CutHandler(PageTask):
+class CutHandler(PageTaskHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/browse/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',

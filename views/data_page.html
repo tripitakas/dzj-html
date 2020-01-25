@@ -121,7 +121,7 @@
         </span>
         </div>
         <div class="right">
-          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img" id="btn-save" title="保存"/>
+          <img src="{{ static_url('imgs/icon_remark.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注"/>
           <img src="{{ static_url('imgs/icon_prev2.png') }}" class="btn-img" id="btn-prev" title="上一页"/>
           <img src="{{ static_url('imgs/icon_next2.png') }}" class="btn-img" id="btn-next" title="下一页"/>
         </div>
@@ -138,7 +138,7 @@
           <label>相关任务：</label>
           <span class="tasks">
           {% for task, status in page.get('tasks', {}).items() %}
-          <span class="task">{{handler.get_task_name(task)+'/'+handler.get_status_name(status)}}</span>
+          <span class="task">{{Th.get_task_name(task)+'/'+Th.get_status_name(status)}}</span>
           {% end %}
           {% end %}
         </span>
@@ -152,6 +152,7 @@
             <input type="radio" name="ocr-txt" value="{{f}}" {{'checked' if (which in fields and f == which) or (which not in fields and i == 0) else ''}}>{{labels[f]}}
             {% end %}
           </span>
+          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img" id="btn-save" title="保存文本" style="margin: 5px 5px 0 10px"/>
           {% end %}
         </div>
       </div>
@@ -180,6 +181,7 @@
 </div>
 
 <div class="panel-body">
+  {% module RemarkModal() %}
   {% module ComModal(modal_fields, 'editModal', '更新基本信息') %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
@@ -245,45 +247,12 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script>
+  var sutraTxt = '';   // 用户选中的当前文本
   var buttonConfig = decodeJSON('{{button_config}}');
-  // console.log(buttonConfig);
-
-  // 获取当前按钮状态
-  function getConfig() {
-    var config = {};
-    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
-      'toggle-column', 'toggle-char', 'toggle-order'];
-    buttons.forEach(function (button) {
-      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
-    });
-    if (sutraTxt)
-      config['sutra-txt'] = sutraTxt;
-    else
-      config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
-    return config;
-  }
-
-  // 切换文本
-  var sutraTxt = '';
-  $('.ocr-txt input').click(function () {
-    $('.bd .sutra-text').addClass('hide');
-    $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
-    sutraTxt = $(this).val();
+  $(document).ready(function () {
+    var remark = '{{page.get("remark") or ""}}' || localStorage.getItem('pageRemark');
+    $("#remarkModal .remark").val(remark);
   });
-
-  // 保存文本
-  $('#btn-save').click(function () {
-    var which = $('.ocr-txt :checked').val();
-    if (which === 'text')
-      return;
-    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
-    data[which] = $('.sutra-text.' + which + ' textarea').val();
-    postApi('/data/page', {data: data}, function () {
-      showSuccess('修改成功');
-      refresh(500);
-    });
-  });
-
 </script>
 <script>
   // 离开页面
@@ -378,8 +347,55 @@
       showError('提交失败', error.message);
     });
   });
-</script>
 
+  // 备注
+  $('#remarkModal .modal-confirm').click(function () {
+    var remark = $('#remarkModal .remark').val().trim();
+    if (!remark.length)
+      return showWarning('请输入备注内容');
+    localStorage.setItem('pageRemark', remark);
+    var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}', remark: remark};
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
+      $('#remarkModal').modal('hide');
+    });
+  });
+
+  // 获取当前按钮状态
+  function getConfig() {
+    var config = {};
+    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
+      'toggle-column', 'toggle-char', 'toggle-order'];
+    buttons.forEach(function (button) {
+      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    });
+    if (sutraTxt)
+      config['sutra-txt'] = sutraTxt;
+    else
+      config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
+    return config;
+  }
+
+  // 切换文本
+  $('.ocr-txt input').click(function () {
+    $('.bd .sutra-text').addClass('hide');
+    $('.bd .sutra-text.' + $(this).val()).removeClass('hide');
+    sutraTxt = $(this).val();
+  });
+
+  // 保存文本
+  $('#btn-save').click(function () {
+    var which = $('.ocr-txt :checked').val();
+    if (which === 'text')
+      return;
+    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
+    data[which] = $('.sutra-text.' + which + ' textarea').val();
+    postApi('/data/page', {data: data}, function () {
+      showSuccess('修改成功');
+      refresh(500);
+    });
+  });
+</script>
 <script>
   function initBoxes(boxesStr, className) {
     var boxes = decodeJSON(boxesStr);
@@ -430,6 +446,5 @@
   setOrderStatus(buttonConfig['toggle-order'] === 1);
 
 </script>
-
 </body>
 </html>

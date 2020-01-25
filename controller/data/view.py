@@ -137,9 +137,7 @@ class DataPageInfoHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class DataPageListHandler(BaseHandler, Page):
-    URL = '/data/page'
-
+class DataPageHandler(BaseHandler, Page):
     page_title = '页数据管理'
     search_tips = '请搜索页名称、分类、页面结构、统一经编码、卷编码'
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
@@ -194,25 +192,6 @@ class DataPageListHandler(BaseHandler, Page):
         {'id': 'remark', 'name': '备注'},
     ]
 
-    task_statuses = {
-        '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
-        'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
-    }
-
-    group_task_statuses = {
-        '': '', 'un_published': '全未发布', 'published': '已发布', 'finished': '全部完成',
-    }
-
-    def get_duplicate_condition(self):
-        pages = list(self.db.page.aggregate([
-            {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
-            {'$match': {'count': {'$gte': 2}}},
-        ]))
-        condition = {'name': {'$in': [p['_id'] for p in pages]}}
-        params = {'duplicate': 'true'}
-        return condition, params
-
-    @staticmethod
     def get_search_condition(self, search_params=None):
         search_params = search_params if search_params else self.request.query
         condition, params = dict(), dict()
@@ -266,6 +245,28 @@ class DataPageListHandler(BaseHandler, Page):
             value = Task.format_value(value, key)
         return value
 
+
+class DataPageListHandler(DataPageHandler):
+    URL = '/data/page'
+
+    task_statuses = {
+        '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
+        'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
+    }
+
+    group_task_statuses = {
+        '': '', 'un_published': '全未发布', 'published': '已发布', 'finished': '全部完成',
+    }
+
+    def get_duplicate_condition(self):
+        pages = list(self.db.page.aggregate([
+            {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
+            {'$match': {'count': {'$gte': 2}}},
+        ]))
+        condition = {'name': {'$in': [p['_id'] for p in pages]}}
+        params = {'duplicate': 'true'}
+        return condition, params
+
     def get(self):
         """ 页数据管理"""
         try:
@@ -277,19 +278,30 @@ class DataPageListHandler(BaseHandler, Page):
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_search_condition(self)
+                condition, params = self.get_search_condition()
             docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, group_task_statuses=self.group_task_statuses,
-                        Th=TaskHandler, format_value=self.format_value,
-                        **kwargs)
+                        Th=TaskHandler, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class DataPageHandler(TaskHandler):
+class DataPageViewHandler(DataPageHandler):
     URL = '/data/page/@page_code'
+
+    modal_fields = [
+        {'id': 'name', 'name': '页编码', 'readonly': True},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
+            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
+        ]},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
+        # {'id': 'remark', 'name': '备注'},
+    ]
 
     def get(self, page_code):
         """ 浏览页面数据"""
@@ -297,7 +309,7 @@ class DataPageHandler(TaskHandler):
             page = self.db.page.find_one({'name': page_code})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
-            condition, params = DataPageListHandler.get_search_condition(self)
+            condition, params = self.get_search_condition()
             to = self.get_query_argument('to', '')
             params['to'] = to
             if to == 'next':
@@ -316,11 +328,10 @@ class DataPageHandler(TaskHandler):
             fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = {f: TextTool.txt2lines(page[f]) for f in fields}
-            modal_fields = Page.modal_fields
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in modal_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config, params=params,
-                        labels=labels, fields=fields, texts=texts, modal_fields=modal_fields,
-                        info=info, img_url=self.get_img(page))
+            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
+            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config,
+                        params=params, labels=labels, fields=fields, texts=texts, Th=TaskHandler,
+                        modal_fields=self.modal_fields, info=info, img_url=self.get_img(page))
 
         except Exception as error:
             return self.send_db_error(error)

@@ -8,12 +8,12 @@ from tornado.web import UIModule
 from controller import errors as e
 from controller.text.diff import Diff
 from controller.cut.cuttool import CutTool
-from controller.task.view import PageTask
+from controller.task.view import PageTaskHandler
 from controller.task.base import TaskHandler
 from controller.text.texttool import TextTool
 
 
-class TextProofHandler(PageTask, TextTool):
+class TextProofHandler(PageTaskHandler, TextTool):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/browse/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
@@ -84,7 +84,7 @@ class TextProofHandler(PageTask, TextTool):
         )
 
 
-class TextReviewHandler(PageTask, TextTool):
+class TextReviewHandler(PageTaskHandler, TextTool):
     URL = ['/task/text_review/@task_id',
            '/task/browse/text_review/@task_id',
            '/task/do/text_review/@task_id',

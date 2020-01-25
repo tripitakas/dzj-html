@@ -13,7 +13,7 @@ from controller import errors as e
 from controller.task.base import TaskHandler
 
 
-class PageTask(TaskHandler):
+class PageTaskHandler(TaskHandler):
     def get_search_condition(self):
         """ 获取查询条件"""
         condition, params = dict(collection='page'), dict()
@@ -75,7 +75,7 @@ class PageTask(TaskHandler):
             return to_task
 
 
-class PageTaskAdminHandler(PageTask):
+class PageTaskAdminHandler(PageTaskHandler):
     URL = '/task/admin/page'
 
     page_title = '页任务管理'
@@ -195,7 +195,7 @@ class TaskAdminImageHandler(TaskHandler):
             return self.send_db_error(error)
 
 
-class PageTaskStatisticHandler(PageTask):
+class PageTaskStatisticHandler(PageTaskHandler):
     URL = '/task/page/statistic'
 
     def get(self):
