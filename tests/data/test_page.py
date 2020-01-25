@@ -32,7 +32,7 @@ class TestPageApi(APITestCase):
         self.assert_code(200, r)
 
     def test_nav_page(self):
-        r = self.fetch('/data/page/JX_165_7_12?name=jx&to=next&_raw=1')
+        r = self.fetch('/data/page/JX_165_7_12?to=next&_raw=1')
         self.assert_code(200, r)
         r = self.fetch('/data/page/JX_165_7_12?to=prev&_raw=1')
         self.assert_code(200, r)

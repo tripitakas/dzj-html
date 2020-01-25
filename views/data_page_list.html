@@ -1,5 +1,6 @@
 {% extends "com_list.html" %}
 {% block custom-css %}
+<link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
 <style>
   #searchModal .modal-body h4, #searchModal .modal-body div {
     margin: 5px 0;
@@ -25,14 +26,15 @@
     width: 180px;
   }
 
-  td.ocr, td.ocr_col {
+  td.ocr, td.ocr_col, td.remark {
     font-size: 12px;
   }
 
   td.blocks, td.columns, td.chars, td.orders, td.text {
+    color: #B8906F;
     font-size: 12px;
     cursor: pointer;
-    color: #B8906F;
+    text-decoration: underline;
   }
 
   .sty-table td a {
@@ -64,8 +66,8 @@
       <div class="modal-body">
         <div class="title">一、简介</div>
         <div class="intro">
-          页数据管理模块提供各种的页面的管理操作，包括批量删除、查找重复、更新分类、综合检索等，还可以针对具体的页面进行
-          浏览、查看详情、更新基础数据、删除等操作。<br/>
+          页数据管理模块提供各种的页面的管理操作，包括批量删除、查找重复、更新分类、综合检索、发布任务等，
+          还可以针对具体的页面进行浏览、查看详情、更新基础数据、删除等操作。<br/>
           注：浏览指的是针对检索结果的浏览，浏览时可以对页面进行具体的操作。
         </div>
         <div class="title">二、操作</div>
@@ -87,6 +89,15 @@
             <td>
               可以对页面的各个字段进行检索。尤其值得注意的是，综合检索设置了“切分任务”、“文字任务”两种字段，包括“全未发布”、
               “已发布”、“全部完成”。比如要检索所有未发布切分任务的页面，就可以通过这个字段进行。
+            </td>
+          </tr>
+          <tr>
+            <td>发布任务</td>
+            <td>
+              如果任务没有前置任务，则系统直接发布为「已发布」。如果有前置任务，则根据前置任务情况：如果都已完成，则发布为「已发布」；
+              如果有一个前置任务未完成，则发布为「等待前置任务」。<br/>
+              该任务的前置任务在完成时，系统会进行检查，如果所有前置任务都已完成，则系统将自动设置为「已发布」。<br/>
+              如果任务数据未就绪或已经发布，则发布失败。已退回的任务可以重新发布。
             </td>
           </tr>
           <tr>
@@ -273,7 +284,7 @@
     </div>
   </div>
 </div>
-<div id="inputModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
+<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-body">
@@ -286,10 +297,95 @@
     </div>
   </div>
 </div>
-
+<div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">发布任务/<span id="task-name"></span></h4>
+      </div>
+      <div class="modal-body">
+        <input class="task_type" type="hidden" value="">
+        <h4 class="control-label">任务批次</h4>
+        <div>
+          <input type="text" class="form-control batch" placeholder="请输入批次号">
+        </div>
+        <h4 class="control-label">选择前置任务</h4>
+        <div class="pre_tasks">
+          {% for t, v in Th.task_types.items() %}
+          {% if handler.is_mod_enabled(v['name']) %}
+          <label class="checkbox-inline">
+            <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
+          </label>
+          {% end %}
+          {% end %}
+        </div>
+        <h4 class="control-label steps-label">选择子步骤</h4>
+        <div class="steps">
+        </div>
+        <h4 class="control-label">选择优先级</h4>
+        <div class="priority">
+          <input type="radio" name="priority" value="3" style="margin-right: 10px">高
+          <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
+          <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+        </div>
+        <h4 class="control-label">任务已完成时，是否重新发布？</h4>
+        <div class="force">
+          <input type="radio" name="force" value="否" style="margin: 0 10px 0 0" checked>否
+          <input type="radio" name="force" value="是" style="margin: 0 10px">是
+        </div>
+        <div class="modal-tab">
+          <h4 class="control-label">选择待发布的任务</h4>
+          <ul class="nav nav-tabs" id="tabContent">
+            <li><a href="#source-search" data-toggle="tab">按检索结果</a></li>
+            <li><a href="#source-prefix" data-toggle="tab">按编码前缀</a></li>
+            <li><a href="#source-file" data-toggle="tab">上传编码文件</a></li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active" id="source-search">
+              <input type="text" class="form-control" id="search-param" placeholder="检索参数" readonly/>
+            </div>
+            <div class="tab-pane" id="source-prefix">
+              <input type="text" class="form-control" id="doc-prefix" placeholder="请输入编码前缀，如GL_2"/>
+            </div>
+            <div class="tab-pane" id="source-file">
+              <i>请选择CSV、TXT或JSON格式的文件，大小不超过10M</i>
+              <input type="file" class="form-control" id="upload" accept=".txt,.csv" style="padding:4px 4px"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">确定</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
+     aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="margin: 0 10px">
+      <div>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">发布结果</h4>
+      </div>
+      <div class="modal-body">
+        <table class="table">
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect waves-light" data-dismiss="modal">继续发布</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">查看结果</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
+<script src="{{static_url('js/l10n.js')}}"></script>
 <script>
   // 批量更新分类
   $('.operation .bat-source').click(function () {
@@ -298,10 +394,10 @@
     });
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
-    $('#inputModal').modal();
+    $('#sourceModal').modal();
   });
-  $('#inputModal .modal-confirm').click(function () {
-    var source = $('#inputModal .modal-body input').val().trim();
+  $('#sourceModal .modal-confirm').click(function () {
+    var source = $('#sourceModal .modal-body input').val().trim();
     if (!source.length)
       return showWarning('请输入分类');
     var ids = $.map($('table tbody :checked'), function (item) {
@@ -364,9 +460,8 @@
   });
 
 </script>
-
 <script>
-  // 综合检索
+  /*---综合检索---*/
   $searchModal = $("#searchModal");
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';
@@ -399,6 +494,91 @@
     });
   });
 
+</script>
+<script>
+  /*---发布任务---*/
+  var docs = [];
+  var taskType = '';
+  var $publishModal = $('#publishModal');
+  var $publishResultModal = $('#publishResultModal');
+  var taskTypes = decodeJSON('{{Th.task_types}}');
+  var publishFields = [
+    {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
+    {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},
+    {id: 'force', input_type: 'radio'}
+  ];
+  // 弹框
+  $('.btn-publish a').click(function () {
+    taskType = $(this).attr('title');
+    $publishModal.find('.task_type').val(taskType);
+    $publishModal.find('#task-name').text(taskTypes[taskType].name);
+    var preTasks = taskTypes[taskType].pre_tasks || [];
+    preTasks.forEach(function (item) {
+      $('.pre_tasks .' + item).prop('checked', true);
+    });
+    var steps = taskTypes[taskType].steps || [];
+    if (steps.length)
+      $publishModal.find('.steps-label').removeClass('hide');
+    else
+      $publishModal.find('.steps-label').addClass('hide');
+    var html = $.map(steps, function (item) {
+      return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
+    }).join('');
+    $publishModal.find('.steps').html(html);
+    $publishModal.find('#search-param').val(location.search);
+    $publishModal.modal();
+  });
+  // 刷新
+  $publishModal.find('.modal-refresh').click(function () {
+    location.reload();
+  });
+  $publishResultModal.find('.modal-confirm').click(function () {
+    location.reload();
+  });
+  // 提交
+  $publishModal.find('.modal-confirm').click(function () {
+    var isFile = false;
+    var formData = new FormData();
+    var data = getModal($publishModal, publishFields);
+    var source = $publishModal.find('.tab-pane.active').attr('id');
+    switch (source) {
+      case 'source-search':
+        var searchParam = $publishModal.find('#search-param').val();
+        if (!searchParam.length)
+          return showError('检索条件不允许为空');
+        data['search'] = searchParam;
+        break;
+      case 'source-prefix':
+        var docPrefix = $('#doc-prefix').val().trim();
+        if (!docPrefix)
+          return showError('请输入页码前缀');
+        data['prefix'] = docPrefix;
+        break;
+      case 'source-file':
+        var idsFile = $('#upload')[0].files[0];
+        if (typeof idsFile === "undefined")
+          return showError('请选择文件');
+        if (!/\.(csv|txt|json)$/.test(idsFile.name))
+          return showError('文件不是CSV或TXT类型');
+        if (idsFile.size > (10 * 1024 * 1024))
+          return showError('文件大小不能超过10M');
+        formData.append('data', JSON.stringify(data));
+        formData.append('ids_file', idsFile);
+        isFile = true;
+        break;
+    }
+    postApi('/task/publish/pages', isFile ? formData : {data: data}, function (res) {
+      console.log(res);
+      var html = '';
+      for (var item in res.data) {
+        var label = l10n[item] + '(' + res.data[item].length + ')';
+        html += '<tr><td class="' + item + '">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
+      }
+      console.log(html);
+      $publishResultModal.find('table').html(html);
+      $publishResultModal.modal();
+    }, null, isFile);
+  });
 </script>
 {% end %}
 
