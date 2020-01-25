@@ -11,6 +11,7 @@ from controller.base import DbError
 from controller import errors as e
 from controller import validate as v
 from controller.task.base import TaskHandler
+from controller.data.view import DataPageListHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishPageTaskBaseHandler
 from .view import TaskLobbyHandler as Lobby
@@ -52,7 +53,7 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
     URL = r'/api/task/publish/pages'
 
     def post(self):
-        """ 发布多个页面的单一类型任务 """
+        """ 发布页面任务 """
         data = self.get_request_data()
         data['doc_ids'] = self.get_doc_ids(data)
         assert isinstance(data['doc_ids'], list)
@@ -93,6 +94,10 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
                 condition = {id_name: {'$regex': data['prefix'], '$options': '$i'}}
                 if input_field:
                     condition[input_field] = {"$nin": [None, '']}
+                doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
+            elif data.get('search'):
+                collection, id_name, input_field, shared_field = self.get_data_conf(data['task_type'])
+                condition = DataPageListHandler.get_search_condition(self, data['search'])[0]
                 doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         return doc_ids
 

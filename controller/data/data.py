@@ -186,57 +186,6 @@ class Page(Model):
     ]
     primary = 'name'
 
-    page_title = '页数据管理'
-    search_tips = '请搜索页名称、分类、页面结构、统一经编码、卷编码'
-    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
-    table_fields = [
-        {'id': 'name', 'name': '页编码'},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'layout', 'name': '页面结构'},
-        {'id': 'img_cloud_path', 'name': '云图路径'},
-        {'id': 'uni_sutra_code', 'name': '统一经编码'},
-        {'id': 'sutra_code', 'name': '经编码'},
-        {'id': 'reel_code', 'name': '卷编码'},
-        {'id': 'tasks', 'name': '任务'},
-        {'id': 'box_ready', 'name': '切分已就绪'},
-        {'id': 'level-box', 'name': '切分等级'},
-        {'id': 'level-text', 'name': '文本等级'},
-        {'id': 'lock-box', 'name': '切分锁'},
-        {'id': 'lock-text', 'name': '文本锁'},
-        {'id': 'blocks', 'name': '栏框'},
-        {'id': 'columns', 'name': '列框'},
-        {'id': 'chars', 'name': '字框'},
-        {'id': 'ocr', 'name': '字框OCR'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'text', 'name': '审定文本'},
-        {'id': 'remark', 'name': '备注'},
-    ]
-    operations = [
-        {'operation': 'bat-remove', 'label': '批量删除'},
-        {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
-    ]
-    actions = [
-        {'action': 'btn-nav', 'label': '浏览'},
-        {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-update', 'label': '更新'},
-        {'action': 'btn-remove', 'label': '删除'},
-    ]
-    info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
-    hide_fields = ['img_cloud_path', 'uni_sutra_code', 'box_ready']
-    modal_fields = [
-        {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
-            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
-        ]},
-        {'id': 'level-box', 'name': '切分等级'},
-        {'id': 'level-text', 'name': '文本等级'},
-        {'id': 'remark', 'name': '备注'},
-    ]
-
     @classmethod
     def metadata(cls):
         return dict(name='', width='', height='', img_suffix='', img_path='', img_cloud_path='',

@@ -5,17 +5,15 @@
 @time: 2019/3/13
 """
 import re
-import json
-from functools import cmp_to_key
 from bson import json_util
-from bson.objectid import ObjectId
-import controller.errors as e
+from functools import cmp_to_key
+from controller import errors as e
 from controller.base import BaseHandler
 from controller.task.task import Task
 from controller.task.base import TaskHandler
 from controller.cut.cuttool import CutTool
 from controller.text.texttool import TextTool
-from controller.helper import cmp_page_code, prop
+from controller.helper import cmp_page_code, prop, get_url_param
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -142,6 +140,60 @@ class DataPageInfoHandler(BaseHandler, Page):
 class DataPageListHandler(BaseHandler, Page):
     URL = '/data/page'
 
+    page_title = '页数据管理'
+    search_tips = '请搜索页名称、分类、页面结构、统一经编码、卷编码'
+    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
+    table_fields = [
+        {'id': 'name', 'name': '页编码'},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'layout', 'name': '页面结构'},
+        {'id': 'img_cloud_path', 'name': '云图路径'},
+        {'id': 'uni_sutra_code', 'name': '统一经编码'},
+        {'id': 'sutra_code', 'name': '经编码'},
+        {'id': 'reel_code', 'name': '卷编码'},
+        {'id': 'tasks', 'name': '任务'},
+        {'id': 'box_ready', 'name': '切分已就绪'},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
+        {'id': 'lock-box', 'name': '切分锁'},
+        {'id': 'lock-text', 'name': '文本锁'},
+        {'id': 'blocks', 'name': '栏框'},
+        {'id': 'columns', 'name': '列框'},
+        {'id': 'chars', 'name': '字框'},
+        {'id': 'ocr', 'name': '字框OCR'},
+        {'id': 'ocr_col', 'name': '列框OCR'},
+        {'id': 'text', 'name': '审定文本'},
+        {'id': 'remark', 'name': '备注'},
+    ]
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'btn-duplicate', 'label': '查找重复'},
+        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
+            {'operation': k, 'label': v} for k, v in TaskHandler.get_page_tasks().items()
+        ]},
+    ]
+    actions = [
+        {'action': 'btn-nav', 'label': '浏览'},
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-update', 'label': '更新'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
+    hide_fields = ['img_cloud_path', 'uni_sutra_code', 'box_ready']
+    modal_fields = [
+        {'id': 'name', 'name': '页编码', 'readonly': True},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
+            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
+        ]},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
+        {'id': 'remark', 'name': '备注'},
+    ]
+
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
@@ -161,40 +213,41 @@ class DataPageListHandler(BaseHandler, Page):
         return condition, params
 
     @staticmethod
-    def get_search_condition(self):
+    def get_search_condition(self, search_params=None):
+        search_params = search_params if search_params else self.request.query
         condition, params = dict(), dict()
         for field in ['name', 'source', 'layout', 'box_ready']:
-            value = self.get_query_argument(field, '')
+            value = get_url_param(field, search_params)
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
         for field in ['level_box', 'level_text']:
-            value = self.get_query_argument(field, '')
+            value = get_url_param(field, search_params)
             m = re.search(r'([><=]+)(\d+)', value)
             if m:
                 params[field] = m.group(0)
                 op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
                 condition.update({field.replace('_', '.'): {op: value} if op else value})
         for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = self.get_query_argument(field, '')
+            value = get_url_param(field, search_params)
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
         if field == 'cut_task':
-            value = self.get_query_argument(field, '')
+            value = get_url_param(field, search_params)
             params[field] = value
             for task_type in ['cut_proof', 'cut_review']:
                 condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
         if field == 'text_task':
-            value = self.get_query_argument(field, '')
+            value = get_url_param(field, search_params)
             params[field] = value
             for task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']:
                 condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
 
         return condition, params
 
-    @staticmethod
-    def format_value(value, key=None):
+    @classmethod
+    def format_value(cls, value, key=None):
         if key == 'tasks':
             value = value or {}
             tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]

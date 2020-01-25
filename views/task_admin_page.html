@@ -167,7 +167,7 @@
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
           {% for t, v in handler.task_types.items() %}
-          {% if is_mod_enabled(v['name']) %}
+          {% if handler.is_mod_enabled(v['name']) %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
           </label>
@@ -659,11 +659,11 @@
   }
 
   // 初始化选择列表
-  $publishModal.on('shown.bs.modal', function () {
-    postApi('/task/ready/' + taskType, {data: {}}, function (res) {
-      docs = res.data.docs;
-      showModal(1, res.data.page_size, res.data.total_count);
-    });
-  });
+  // $publishModal.on('shown.bs.modal', function () {
+  //   postApi('/task/ready/' + taskType, {data: {}}, function (res) {
+  //     docs = res.data.docs;
+  //     showModal(1, res.data.page_size, res.data.total_count);
+  //   });
+  // });
 </script>
 {% end %}

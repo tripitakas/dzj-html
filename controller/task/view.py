@@ -91,9 +91,6 @@ class PageTaskAdminHandler(PageTask):
             {'operation': 'task_type', 'label': '按类型'},
             {'operation': 'status', 'label': '按状态'},
         ]},
-        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in TaskHandler.get_page_tasks().items()
-        ]},
     ]
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
@@ -135,7 +132,7 @@ class PageTaskAdminHandler(PageTask):
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
                 'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                is_mod_enabled=self.is_mod_enabled, **kwargs,
+                **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)

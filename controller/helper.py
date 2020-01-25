@@ -41,23 +41,6 @@ def gen_id(value, salt='', rand=False, length=16):
     return coder.encode(*[ord(c) for c in list(value or [])])[:length]
 
 
-def my_framer():
-    """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
-    f0 = f = old_framer()
-    if f is not None:
-        until = [s[1] for s in inspect.stack() if re.search(r'controller/(view|api)', s[1])]
-        if until:
-            while f.f_code.co_filename != until[0]:
-                f0 = f
-                f = f.f_back
-            return f0
-        f = f.f_back
-        while re.search(r'web\.py|logging', f.f_code.co_filename):
-            f0 = f
-            f = f.f_back
-    return f0
-
-
 def cmp_page_code(a, b):
     """ 比较图片名称大小 """
     al, bl = a.split('_'), b.split('_')
@@ -103,6 +86,29 @@ def prop(obj, key, default=None):
     for s in key.split('.'):
         obj = obj.get(s) if isinstance(obj, dict) else None
     return default if obj is None else obj
+
+
+def get_url_param(key, url_query):
+    regex = r'(^|\?|&)%s=(.*)($|&)' % key
+    r = re.search(regex, url_query, re.I)
+    return r.group(2) if r else ''
+
+
+def my_framer():
+    """ 出错输出日志时原本显示的是底层代码文件，此类沿调用堆栈往上显示更具体的调用者 """
+    f0 = f = old_framer()
+    if f is not None:
+        until = [s[1] for s in inspect.stack() if re.search(r'controller/(view|api)', s[1])]
+        if until:
+            while f.f_code.co_filename != until[0]:
+                f0 = f
+                f = f.f_back
+            return f0
+        f = f.f_back
+        while re.search(r'web\.py|logging', f.f_code.co_filename):
+            f0 = f
+            f = f.f_back
+    return f0
 
 
 old_framer = logging.currentframe
