@@ -10,12 +10,10 @@ def main(db_name='tripitaka', uri='localhost'):
     :param db_name: 数据库名
     :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     """
-    uri = 'mongodb://tripitaka-alpha:sm2019321-321.alpha@47.95.216.233'
-    db_name = 'tripitaka-alpha'
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     fields2index = {
-        'page': ['name', 'page_code'],
+        'page': ['name', 'page_code', 'source'],
         'user': ['name', 'email', 'phone'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }
