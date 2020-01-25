@@ -11,7 +11,7 @@ from controller.base import DbError
 from controller import errors as e
 from controller import validate as v
 from controller.task.base import TaskHandler
-from controller.data.view import DataPageListHandler
+from controller.data.view import DataPageHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishPageTaskBaseHandler
 from .view import TaskLobbyHandler as Lobby
@@ -97,7 +97,7 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
                 doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
             elif data.get('search'):
                 collection, id_name, input_field, shared_field = self.get_data_conf(data['task_type'])
-                condition = DataPageListHandler.get_search_condition(self, data['search'])[0]
+                condition = DataPageHandler.get_data_search_condition(data['search'])[0]
                 doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         return doc_ids
 
@@ -109,15 +109,15 @@ class PublishImportImageTasksApi(PublishPageTaskBaseHandler):
         """ 发布图片导入任务"""
         try:
             data = self.get_request_data()
-            rules = [(v.not_empty, 'batch', 'import_dir', 'priority', 'redo', 'layout')]
+            rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
             errs = v.validate(data, rules)
             if errs:
                 return self.send_error_response(errs)
 
             task = self.get_publish_meta('import_image')
             priority, status = int(data['priority']), self.STATUS_PUBLISHED
-            param = {k: data.get(k) for k in ['batch', 'pan_name', 'import_dir', 'layout', 'redo']}
-            task.update(dict(batch=data['batch'], status=status, priority=priority, input=param))
+            param = {k: data.get(k) for k in ['source', 'pan_name', 'import_dir', 'layout', 'redo']}
+            task.update(dict(status=status, priority=priority, input=param))
             r = self.db.task.insert_one(task)
             if r.inserted_id:
                 message = '%s, %s,%s' % ('import_image', data['import_dir'], data['redo'])

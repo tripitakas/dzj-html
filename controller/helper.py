@@ -11,6 +11,7 @@ import hashlib
 import logging
 import inspect
 from hashids import Hashids
+from urllib.parse import unquote
 from datetime import datetime, timedelta, timezone
 
 
@@ -89,9 +90,9 @@ def prop(obj, key, default=None):
 
 
 def get_url_param(key, url_query):
-    regex = r'(^|\?|&)%s=(.*)($|&)' % key
+    regex = r'(^|\?|&)%s=(.*?)($|&)' % key
     r = re.search(regex, url_query, re.I)
-    return r.group(2) if r else ''
+    return unquote(r.group(2)) if r else ''
 
 
 def my_framer():

@@ -3,6 +3,11 @@
   var from = decodeFrom();
   var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
 
+  $(document).ready(function () {
+    var remark = '{{task.get("remark") or ""}}' || localStorage.getItem('taskRemark');
+    $("#remarkModal .remark").val(remark);
+  });
+
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
@@ -116,6 +121,7 @@
     var remark = $('#remarkModal .remark').val().trim();
     if (!remark.length)
       return showWarning('请输入备注内容');
+    localStorage.setItem('taskRemark', remark);
     var data = {_id: '{{task.get("_id", "")}}', remark: remark};
     postApi('/task/remark', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
