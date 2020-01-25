@@ -170,10 +170,11 @@ class Page(Model):
         {'id': 'txt_html', 'name': '文本HTML'},
         {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'tasks', 'name': '任务'},
-        {'id': 'lock.box', 'name': '切分数据锁'},
-        {'id': 'lock.text', 'name': '文本数据锁'},
-        {'id': 'level.box', 'name': '切分数据等级'},
-        {'id': 'level.text', 'name': '文本数据等级'},
+        {'id': 'lock.box', 'name': '切分锁'},
+        {'id': 'lock.text', 'name': '文本锁'},
+        {'id': 'level.box', 'name': '切分等级'},
+        {'id': 'level.text', 'name': '文本等级'},
+        {'id': 'remark', 'name': '备注'},
     ]
     rules = [
         (v.not_empty, 'name'),
@@ -208,6 +209,7 @@ class Page(Model):
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
+        {'id': 'remark', 'name': '备注'},
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -232,6 +234,7 @@ class Page(Model):
         ]},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
+        {'id': 'remark', 'name': '备注'},
     ]
 
     @classmethod

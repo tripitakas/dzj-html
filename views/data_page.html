@@ -121,20 +121,9 @@
         </span>
         </div>
         <div class="right">
-          <div class="btn-group btn-publish" style="margin-right: 8px">
-            <button class="btn btn-default btn-sm dropdown-toggle waves-effect " data-toggle="dropdown" aria-expanded="false">
-              发布任务 <i class="caret"></i>
-            </button>
-            <ul class="dropdown-menu" role="menu">
-              {% for k,name in handler.get_page_tasks().items() %}
-              <li><a title="{{k}}" href="javascript:void(0);">{{name}}</a></li>
-              <li class="divider"></li>
-              {% end %}
-            </ul>
-          </div>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-save">保存文本</button>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-prev">上一页</button>
-          <button type="button" class="btn btn-primary btn-sm" id="btn-next">下一页</button>
+          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img" id="btn-save" title="保存"/>
+          <img src="{{ static_url('imgs/icon_prev2.png') }}" class="btn-img" id="btn-prev" title="上一页"/>
+          <img src="{{ static_url('imgs/icon_next2.png') }}" class="btn-img" id="btn-next" title="下一页"/>
         </div>
       </div>
       <div class="header-line sub-line">
@@ -246,67 +235,6 @@
       </div>
     </div>
   </div>
-  <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">发布任务/{{page['name']}}/<span class="task-type"></span></h4>
-        </div>
-        <div class="modal-body">
-          <input class="task_type" type="hidden" value="">
-          <h4 class="control-label">任务批次</h4>
-          <div>
-            <input type="text" class="form-control batch" placeholder="请输入批次号">
-          </div>
-          <h4 class="control-label">选择前置任务</h4>
-          <div class="pre_tasks">
-            {% for t, v in handler.task_types.items() %}
-            {% if handler.is_mod_enabled(v['name']) %}
-            <label class="checkbox-inline">
-              <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
-            </label>
-            {% end %}
-            {% end %}
-          </div>
-          <h4 class="control-label steps-label">选择子步骤</h4>
-          <div class="steps" id="step-items">
-            <label class="checkbox-inline"><input type="checkbox" title="step1" checked>子步骤1</label>
-          </div>
-          <h4 class="control-label">选择优先级</h4>
-          <div class="priority">
-            <input type="radio" name="priority" value="3" style="margin-right: 10px">高
-            <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
-            <input type="radio" name="priority" value="1" style="margin: 0 10px">低
-          </div>
-
-          <h4 class="control-label">任务已完成时，是否重新发布？</h4>
-          <div class="force">
-            <input type="radio" name="force" value="否" style="margin: 0 10px 0 0" checked>否
-            <input type="radio" name="force" value="是" style="margin: 0 10px">是
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content" style="margin: 0 10px">
-        <div class="modal-body">
-          <div class="tips" style="text-align: center"></div>
-        </div>
-        <div class="modal-footer" style="border: 0">
-          <button type="button" class="btn btn-default waves-effect cancel">取消</button>
-          <button type="button" class="btn btn-primary waves-effect modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 {% include _base_js.html %}
@@ -318,7 +246,7 @@
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script>
   var buttonConfig = decodeJSON('{{button_config}}');
-  console.log(buttonConfig);
+  // console.log(buttonConfig);
 
   // 获取当前按钮状态
   function getConfig() {
@@ -450,76 +378,6 @@
       showError('提交失败', error.message);
     });
   });
-</script>
-
-<script>
-  // 发布任务
-  var taskType = '';
-  var taskTypes = decodeJSON('{{handler.task_types}}');
-  var $publishModal = $('#publishModal');
-  var $publishResultModal = $('#publishResultModal');
-  var publishFields = [
-    {id: 'batch'}, {id: 'task_type'}, {id: 'force', input_type: 'radio'}, {id: 'priority', input_type: 'radio'},
-    {id: 'pre_tasks', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'}
-  ];
-
-  // 设置参数
-  function setPublishParams(taskType) {
-    var params = decodeJSON(localStorage.getItem('publish_' + taskType) || '{}');
-    setModal($publishModal, params, publishFields);
-  }
-
-  // 发布框-弹框
-  $('.btn-publish a').click(function () {
-    taskType = $(this).attr('title');
-    $publishModal.find('.task_type').val(taskType);
-    $publishModal.find('.modal-title .task-type').text(taskTypes[taskType].name);
-    var preTasks = taskTypes[taskType].pre_tasks || [];
-    $.map($publishModal.find('.pre_tasks input[type="checkbox"]'), function (item) {
-      if (preTasks.indexOf($(item).attr('title')) !== -1)
-        $(item).prop('checked', true);
-      else
-        $(item).removeAttr('checked');
-    });
-    var steps = taskTypes[taskType].steps || [];
-    if (steps.length) {
-      $publishModal.find('.steps-label').removeClass('hide');
-    } else {
-      $publishModal.find('.steps-label').addClass('hide');
-    }
-    var html = $.map(steps, function (item) {
-      return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
-    }).join('');
-    $publishModal.find('#step-items').html(html);
-    setPublishParams(taskType);
-    $publishModal.modal();
-  });
-
-
-  // 发布框-提交
-  $publishModal.find(".modal-confirm").click(function () {
-    var data = getModal($publishModal, publishFields);
-    localStorage.setItem('publish_' + taskType, JSON.stringify(data));
-    data['doc_ids'] = ['{{page["name"]}}'];
-    postApi('/task/publish/pages', {data: data}, function (res) {
-      $publishResultModal.find('.tips').text(l10n[Object.keys(res.data)[0]]);
-      $publishResultModal.modal();
-    }, function (error) {
-      return showError('失败', error.message);
-    });
-  });
-
-  // 结果框-确定
-  $publishResultModal.find('.modal-confirm').click(function () {
-    location.reload();
-  });
-
-  // 结果框-取消
-  $publishResultModal.find('.cancel').click(function () {
-    $publishModal.modal('hide');
-    $publishResultModal.modal('hide');
-  });
-
 </script>
 
 <script>
