@@ -349,6 +349,9 @@
   });
 
   // 备注
+  $("#remarkModal .options :radio").click(function () {
+    $('#remarkModal .remark').val($(this).val());
+  });
   $('#remarkModal .modal-confirm').click(function () {
     var remark = $('#remarkModal .remark').val().trim();
     if (!remark.length)
