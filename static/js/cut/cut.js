@@ -403,7 +403,7 @@
         this.scrollToVisible(el);
         var box = el.getBBox();
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
-            + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
+           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
@@ -530,9 +530,6 @@
           }
           ids.push(b.char_id);
         });
-        if (newId && window.swal) {
-          // showTips('字框编号有缺漏', '字框编号有缺漏，需要校对和保存。');
-        }
       };
 
       self.destroy();
@@ -580,8 +577,14 @@
       }
 
       p.chars.forEach(function (b, idx) {
-        if (p.columnMode) {
+        if (p.columnMode || b.class === 'column') {
           b.char_id = b.column_id;
+        }
+        if (b.class === 'block') {
+          if (!b.block_id && b.block_no) {
+            b.block_id = 'b' + b.block_no;
+          }
+          b.char_id = b.block_id;
         }
         if (b.char_id) {
           var ids = b.char_id.replace('b', 'c').split('c');
@@ -818,19 +821,17 @@
       };
       pageData = pageData || data;
       var chars = pageData.chars.filter(function (c) {
-        return c.w && c.h;
+        return c.w && c.h && c.shape;
       }).map(function (c) {
-        if (c.shape) {
-          var box = c.shape.getBBox();
-          c = $.extend({}, c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
-          delete c.shape;
-        }
+        var box = c.shape.getBBox();
+        var ret = {}, ignoreValues = [null, undefined, ''], ignoreFields = ['shape', 'ch'];
+        $.extend(c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
         Object.keys(c).forEach(function (k) {
-          if (c[k] === null || c[k] === undefined) {
-            delete c[k];
+          if (ignoreValues.indexOf(c[k]) < 0 && ignoreFields.indexOf(k) < 0) {
+            ret[k] = c[k];
           }
         });
-        return c;
+        return ret;
       });
       return chars;
     },
@@ -1027,9 +1028,6 @@
       this.cancelDrag();
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
-      // if (data.blockMode && ratio !== 1) {
-      //   return;
-      // }
 
       data.ratio = ratio || data.ratio;
       ratio = data.ratio * data.ratioInitial;

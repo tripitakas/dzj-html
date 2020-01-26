@@ -127,6 +127,13 @@ function setOrderStatus(active) {
   });
 }
 
+if ($.cut && $.cut.state.onZoomed) {
+  var _onZoomedNav = $.cut.state.onZoomed;
+  $.cut.state.onZoomed = function() {
+    setOrderStatus($('#toggle-order').hasClass('active'));
+  }
+}
+
 $('#toggle-order').click(function () {
   $(this).toggleClass('active');
   setOrderStatus($(this).hasClass('active'));
