@@ -84,7 +84,10 @@
 
   // 保存任务
   $(document).on("click", '#save-task', function () {
-    saveTask(false, location.href);
+    var search = location.search;
+    if ('{{steps["current"]}}' === 'orders')
+      search = deleteQueryString(location.search, 'layout');
+    saveTask(false, location.pathname + search);
   });
 
   // 退回任务
