@@ -10,6 +10,7 @@ from controller import errors
 from controller.base import DbError
 from controller import errors as e
 from controller import validate as v
+from controller.helper import get_url_param
 from controller.task.base import TaskHandler
 from controller.data.view import DataPageHandler
 from controller.auth import can_access, get_all_roles
@@ -98,7 +99,12 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
             elif data.get('search'):
                 collection, id_name, input_field, shared_field = self.get_data_conf(data['task_type'])
                 condition = DataPageHandler.get_data_search_condition(data['search'])[0]
-                doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
+                query = self.db[collection].find(condition)
+                page = get_url_param('page', data['search'])
+                if page:
+                    size = get_url_param('page_size', data['search']) or self.prop(self.config, 'pager.page_size', 10)
+                    query = query.skip((int(page) - 1) * int(size)).limit(int(size))
+                doc_ids = [doc.get(id_name) for doc in list(query)]
         return doc_ids
 
 
