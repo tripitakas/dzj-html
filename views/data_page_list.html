@@ -313,16 +313,16 @@
         <div class="modal-tab">
           <h4 class="control-label">选择待发布的任务</h4>
           <ul class="nav nav-tabs" id="tabContent">
-            <li><a href="#source-search" data-toggle="tab">按检索结果</a></li>
-            <li><a href="#source-prefix" data-toggle="tab">按编码前缀</a></li>
+            <li><a href="#source-search" data-toggle="tab">按检索参数</a></li>
+            <li><a href="#source-select" data-toggle="tab">按选中页码</a></li>
             <li><a href="#source-file" data-toggle="tab">上传编码文件</a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="source-search">
               <input type="text" class="form-control" id="search-param" placeholder="检索参数" readonly/>
             </div>
-            <div class="tab-pane" id="source-prefix">
-              <input type="text" class="form-control" id="doc-prefix" placeholder="请输入编码前缀，如GL_2"/>
+            <div class="tab-pane" id="source-select">
+              <textarea type="text" class="form-control" id="doc-ids" placeholder="选中页码" readonly></textarea>
             </div>
             <div class="tab-pane" id="source-file">
               <i>请选择CSV、TXT或JSON格式的文件，大小不超过10M</i>
@@ -488,10 +488,12 @@
     taskType = $(this).attr('title');
     $publishModal.find('.task_type').val(taskType);
     $publishModal.find('#task-name').text(taskTypes[taskType].name);
+    // 前置任务
     var preTasks = taskTypes[taskType].pre_tasks || [];
     preTasks.forEach(function (item) {
       $('.pre_tasks .' + item).prop('checked', true);
     });
+    // 子步骤
     var steps = taskTypes[taskType].steps || [];
     if (steps.length)
       $publishModal.find('.steps-label').removeClass('hide');
@@ -501,7 +503,13 @@
       return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
     }).join('');
     $publishModal.find('.steps').html(html);
+    // 检索参数
     $publishModal.find('#search-param').val(location.search);
+    // 选中页码
+    var docIds = $.map($('table tbody :checked'), function (item) {
+      return $(item).parent().parent().find('.name').text().trim();
+    });
+    $publishModal.find('#doc-ids').val(docIds);
     $publishModal.modal();
   });
   // 刷新
@@ -524,11 +532,11 @@
           return showError('检索条件不允许为空');
         data['search'] = searchParam;
         break;
-      case 'source-prefix':
-        var docPrefix = $('#doc-prefix').val().trim();
-        if (!docPrefix)
-          return showError('请输入页码前缀');
-        data['prefix'] = docPrefix;
+      case 'source-select':
+        var docIds = $('#doc-ids').val().trim();
+        if (!docIds.length)
+          return showError('请选择页码');
+        data['doc_ids'] = docIds.split(',');
         break;
       case 'source-file':
         var idsFile = $('#upload')[0].files[0];
@@ -544,7 +552,7 @@
         break;
     }
     postApi('/task/publish/pages', isFile ? formData : {data: data}, function (res) {
-      console.log(res);
+      // console.log(res);
       var html = '';
       for (var item in res.data) {
         var label = l10n[item] + '(' + res.data[item].length + ')';
