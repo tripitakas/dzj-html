@@ -403,7 +403,7 @@
         this.scrollToVisible(el);
         var box = el.getBBox();
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
-           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
+            + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
@@ -1044,6 +1044,13 @@
       if (state['onZoomed']) {
         state['onZoomed']();
       }
+    },
+
+    setClass: function (boxes, className) {
+      for (var i = 0; i < boxes.length; i++) {
+        boxes[i]['class'] = className;
+      }
+      return boxes;
     }
 
   };
