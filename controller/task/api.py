@@ -80,6 +80,7 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
             return self.send_db_error(error)
 
     def get_doc_ids(self, data):
+        """ 获取页码。有四种方式：页编码、文件、前缀、检索参数"""
         doc_ids = data.get('doc_ids') or []
         if not doc_ids:
             ids_file = self.request.files.get('ids_file')
@@ -100,11 +101,10 @@ class PublishManyPageTasksApi(PublishPageTaskBaseHandler):
                 collection, id_name, input_field, shared_field = self.get_data_conf(data['task_type'])
                 condition = DataPageHandler.get_data_search_condition(data['search'])[0]
                 query = self.db[collection].find(condition)
-                page = get_url_param('page', data['search'])
-                if page:
-                    size = get_url_param('page_size', data['search']) or self.prop(self.config, 'pager.page_size', 10)
-                    query = query.skip((int(page) - 1) * int(size)).limit(int(size))
-                doc_ids = [doc.get(id_name) for doc in list(query)]
+                page = get_url_param('page', data['search']) or 1
+                size = get_url_param('page_size', data['search']) or self.prop(self.config, 'pager.page_size', 10)
+                docs = list(query.skip((int(page) - 1) * int(size)).limit(int(size)))
+                doc_ids = [doc.get(id_name) for doc in docs]
         return doc_ids
 
 
