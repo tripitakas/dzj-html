@@ -3,7 +3,7 @@ from . import view, api
 views = [
     view.TripitakaListHandler, view.TripitakaHandler, view.DataListHandler,
     view.DataPageInfoHandler, view.DataPageListHandler,
-    view.DataPageHandler,
+    view.DataPageViewHandler,
 ]
 
 handlers = [

@@ -13,8 +13,8 @@ from controller import errors as e
 from controller.task.base import TaskHandler
 
 
-class PageTask(TaskHandler):
-    def get_search_condition(self):
+class PageTaskHandler(TaskHandler):
+    def get_task_search_condition(self):
         """ 获取查询条件"""
         condition, params = dict(collection='page'), dict()
         for field in ['batch', 'task_type', 'doc_id', 'status', 'priority', 'remark']:
@@ -29,22 +29,33 @@ class PageTask(TaskHandler):
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
             condition.update({'picked_user_id': ObjectId(picked_user_id)})
-        finished_start = self.get_query_argument('finished_start', '')
-        if finished_start:
-            params['finished_start'] = finished_start
-            condition.update({'finished_time': {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}})
-        finished_end = self.get_query_argument('finished_end', '')
-        if finished_end:
-            params['finished_end'] = finished_end
-            condition.update({'finished_time': {'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')}})
         publish_start = self.get_query_argument('publish_start', '')
         if publish_start:
             params['publish_start'] = publish_start
-            condition.update({'publish_time': {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}})
+            condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
         publish_end = self.get_query_argument('publish_end', '')
         if publish_end:
             params['publish_end'] = publish_end
-            condition.update({'publish_time': {'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')}})
+            condition['publish_time'] = condition.get('publish_time') or {}
+            condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
+        picked_start = self.get_query_argument('picked_start', '')
+        if picked_start:
+            params['picked_start'] = picked_start
+            condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
+        picked_end = self.get_query_argument('picked_end', '')
+        if picked_end:
+            params['picked_end'] = picked_end
+            condition['picked_time'] = condition.get('picked_time') or {}
+            condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
+        finished_start = self.get_query_argument('finished_start', '')
+        if finished_start:
+            params['finished_start'] = finished_start
+            condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
+        finished_end = self.get_query_argument('finished_end', '')
+        if finished_end:
+            params['finished_end'] = finished_end
+            condition['finished_time'] = condition.get('finished_time') or {}
+            condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
         return condition, params
 
     def get_page_task(self, task_id):
@@ -54,7 +65,7 @@ class PageTask(TaskHandler):
             self.send_error_response(e.no_object, message='没有找到任务%s' % task_id)
             return None
         to = self.get_query_argument('to', '')
-        condition = self.get_search_condition()[0]
+        condition = self.get_task_search_condition()[0]
         if to == 'next':
             condition.update({'_id': {'$lt': ObjectId(task_id)}})
         elif to == 'prev':
@@ -75,7 +86,7 @@ class PageTask(TaskHandler):
             return to_task
 
 
-class PageTaskAdminHandler(PageTask):
+class PageTaskAdminHandler(PageTaskHandler):
     URL = '/task/admin/page'
 
     page_title = '页任务管理'
@@ -128,7 +139,7 @@ class PageTaskAdminHandler(PageTask):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            condition, params = self.get_search_condition()
+            condition, params = self.get_task_search_condition()
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
                 'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
@@ -195,13 +206,13 @@ class TaskAdminImageHandler(TaskHandler):
             return self.send_db_error(error)
 
 
-class PageTaskStatisticHandler(PageTask):
+class PageTaskStatisticHandler(PageTaskHandler):
     URL = '/task/page/statistic'
 
     def get(self):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
-            condition = self.get_search_condition()[0]
+            condition = self.get_task_search_condition()[0]
             kind = self.get_query_argument('kind', '')  # 默认按用户统计
             if kind not in ['picked_user_id', 'task_type', 'status']:
                 return self.send_error_response(e.invalid_statistic_type, message='只能按用户、任务类型或任务状态统计')

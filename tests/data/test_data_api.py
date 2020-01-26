@@ -62,10 +62,10 @@ class TestApi(APITestCase):
     def test_api_import_image(self):
         # 发布任务
         task_type = 'import_image'
-        data = dict(task_type=task_type, import_dir='/srv/test1/abc', redo='1', layout='上下一栏')
+        data = dict(task_type=task_type, import_dir='/srv/test1/abc', redo='1', layout='上下一栏', source='分类')
         r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
-        data = dict(task_type=task_type, import_dir='/srv/test2/def', redo='0', layout='上下一栏')
+        data = dict(task_type=task_type, import_dir='/srv/test2/def', redo='0', layout='上下一栏', source='分类')
         r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
         # 测试领取任务

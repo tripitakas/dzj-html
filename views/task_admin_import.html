@@ -46,12 +46,12 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title" id="modal-title">发布任务-导入图片</h4>
+        <h4 class="modal-title" id="modal-title">发布任务/导入图片</h4>
       </div>
       <div class="modal-body">
-        <div class="batch">
-          <h4 class="control-label">批次</h4>
-          <input type="text" class="form-control" placeholder="批次"/>
+        <h4 class="control-label">分类</h4>
+        <div>
+          <input type="text" class="form-control source" placeholder="请输入图片分类"/>
         </div>
         <div class="modal-tab import_dir">
           <h4 class="control-label">导入哪个文件夹</h4>
@@ -72,21 +72,21 @@
             </div>
           </div>
         </div>
+        <h4 class="control-label">选择优先级</h4>
         <div class="priority">
-          <h4 class="control-label">选择优先级</h4>
           <input type="radio" name="priority" value="3" style="margin-right: 10px">高
           <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
           <input type="radio" name="priority" value="1" style="margin: 0 10px">低
         </div>
+        <h4 class="control-label">版面结构</h4>
         <div class="layout">
-          <h4 class="control-label">版面结构</h4>
           <input type="radio" name="layout" value="上下一栏" style="margin-right: 10px" checked>上下一栏
           <input type="radio" name="layout" value="上下两栏" style="margin: 0 10px">上下两栏
           <input type="radio" name="layout" value="上下三栏" style="margin: 0 10px">上下三栏
           <input type="radio" name="layout" value="左右两栏" style="margin: 0 10px">左右两栏
         </div>
+        <h4 class="control-label">重复时如何处理？</h4>
         <div class="redo">
-          <h4 class="control-label">重复时如何处理？</h4>
           <input type="radio" name="redo" value="否" style="margin-right: 10px" checked>跳过
           <input type="radio" name="redo" value="是" style="margin: 0 10px">重新导入
         </div>
@@ -125,7 +125,7 @@
   // 发布任务
   var $publishModal = $('#publishModal');
   var publishFields = [
-    {id: 'batch'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
+    {id: 'source'}, {id: 'priority', input_type: 'radio'}, {id: 'redo', input_type: 'radio'},
     {id: 'layout', input_type: 'radio'}
   ];
   $publishModal.find(".modal-confirm").click(function () {

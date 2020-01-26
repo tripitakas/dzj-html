@@ -137,7 +137,57 @@ class DataPageInfoHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class DataPageListHandler(BaseHandler, Page):
+class DataPageHandler(BaseHandler, Page):
+
+    @staticmethod
+    def get_data_search_condition(request_query):
+        condition, params = dict(), dict()
+        for field in ['name', 'source', 'remark']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        for field in ['layout', 'box_ready']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+        for field in ['level_box', 'level_text']:
+            value = get_url_param(field, request_query)
+            m = re.search(r'([><=]+)(\d+)', value)
+            if m:
+                params[field] = m.group(0)
+                op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
+                condition.update({field.replace('_', '.'): {op: value} if op else value})
+        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        return condition, params
+
+    @classmethod
+    def format_value(cls, value, key=None):
+        if key == 'tasks':
+            value = value or {}
+            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
+            value = '<br/>'.join(tasks)
+        elif key in ['lock-box', 'lock-text']:
+            if prop(value, 'is_temp') is not None:
+                if prop(value, 'is_temp'):
+                    value = '临时锁<a>解锁</a>'
+                else:
+                    value = '长时锁'
+        elif key in ['blocks', 'columns', 'chars']:
+            value = '%s个' % len(value)
+        elif key in ['ocr', 'ocr_col', 'text']:
+            value = '%s字' % len(value) if len(value) else ''
+        else:
+            value = Task.format_value(value, key)
+        return value
+
+
+class DataPageListHandler(DataPageHandler):
     URL = '/data/page'
 
     page_title = '页数据管理'
@@ -199,10 +249,6 @@ class DataPageListHandler(BaseHandler, Page):
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
 
-    group_task_statuses = {
-        '': '', 'un_published': '全未发布', 'published': '已发布', 'finished': '全部完成',
-    }
-
     def get_duplicate_condition(self):
         pages = list(self.db.page.aggregate([
             {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
@@ -212,60 +258,6 @@ class DataPageListHandler(BaseHandler, Page):
         params = {'duplicate': 'true'}
         return condition, params
 
-    @staticmethod
-    def get_search_condition(self, search_params=None):
-        search_params = search_params if search_params else self.request.query
-        condition, params = dict(), dict()
-        for field in ['name', 'source', 'layout', 'box_ready']:
-            value = get_url_param(field, search_params)
-            if value:
-                params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['level_box', 'level_text']:
-            value = get_url_param(field, search_params)
-            m = re.search(r'([><=]+)(\d+)', value)
-            if m:
-                params[field] = m.group(0)
-                op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
-                condition.update({field.replace('_', '.'): {op: value} if op else value})
-        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = get_url_param(field, search_params)
-            if value:
-                params[field] = value
-                condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        if field == 'cut_task':
-            value = get_url_param(field, search_params)
-            params[field] = value
-            for task_type in ['cut_proof', 'cut_review']:
-                condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
-        if field == 'text_task':
-            value = get_url_param(field, search_params)
-            params[field] = value
-            for task_type in ['text_proof_1', 'text_proof_2', 'text_proof_3', 'text_review']:
-                condition.update({'tasks.' + task_type: None if value == 'un_published' else {'$in': [None, value]}})
-
-        return condition, params
-
-    @classmethod
-    def format_value(cls, value, key=None):
-        if key == 'tasks':
-            value = value or {}
-            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
-            value = '<br/>'.join(tasks)
-        elif key in ['lock-box', 'lock-text']:
-            if prop(value, 'is_temp') is not None:
-                if prop(value, 'is_temp'):
-                    value = '临时锁<a>解锁</a>'
-                else:
-                    value = '长时锁'
-        elif key in ['blocks', 'columns', 'chars']:
-            value = '%s个' % len(value)
-        elif key in ['ocr', 'ocr_col', 'text']:
-            value = '%s字' % len(value) if len(value) else ''
-        else:
-            value = Task.format_value(value, key)
-        return value
-
     def get(self):
         """ 页数据管理"""
         try:
@@ -273,23 +265,32 @@ class DataPageListHandler(BaseHandler, Page):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_search_condition(self)
+                condition, params = self.get_data_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        task_statuses=self.task_statuses, group_task_statuses=self.group_task_statuses,
-                        Th=TaskHandler, format_value=self.format_value,
-                        **kwargs)
+                        task_statuses=self.task_statuses, Th=TaskHandler,
+                        format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class DataPageHandler(TaskHandler):
+class DataPageViewHandler(DataPageHandler):
     URL = '/data/page/@page_code'
+
+    modal_fields = [
+        {'id': 'name', 'name': '页编码', 'readonly': True},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
+            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
+        ]},
+        {'id': 'level-box', 'name': '切分等级'},
+        {'id': 'level-text', 'name': '文本等级'},
+    ]
 
     def get(self, page_code):
         """ 浏览页面数据"""
@@ -297,9 +298,8 @@ class DataPageHandler(TaskHandler):
             page = self.db.page.find_one({'name': page_code})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
-            condition, params = DataPageListHandler.get_search_condition(self)
+            condition = self.get_data_search_condition(self.request.query)[0]
             to = self.get_query_argument('to', '')
-            params['to'] = to
             if to == 'next':
                 condition['page_code'] = {'$gt': page['page_code']}
                 page = self.db.page.find_one(condition, sort=[('page_code', 1)])
@@ -316,11 +316,10 @@ class DataPageHandler(TaskHandler):
             fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = {f: TextTool.txt2lines(page[f]) for f in fields}
-            modal_fields = Page.modal_fields
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in modal_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config, params=params,
-                        labels=labels, fields=fields, texts=texts, modal_fields=modal_fields,
-                        info=info, img_url=self.get_img(page))
+            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
+            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config,
+                        labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
+                        modal_fields=self.modal_fields, img_url=self.get_img(page))
 
         except Exception as error:
             return self.send_db_error(error)
