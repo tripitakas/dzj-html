@@ -351,7 +351,7 @@ class TestTaskApi(APITestCase):
         """ 测试发布图片导入任务"""
         # 发布任务
         task_type = 'import_image'
-        data = dict(task_type=task_type, import_dir='/srv/test/abc', redo='是', layout='上下一栏')
+        data = dict(task_type=task_type, import_dir='/srv/test/abc', redo='是', layout='上下一栏', source='分类')
         r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
 
@@ -362,7 +362,7 @@ class TestTaskApi(APITestCase):
 
         # 发布任务
         task_type = 'import_image'
-        data = dict(task_type=task_type, import_dir='/srv/test/xyz', redo='否', layout='上下一栏')
+        data = dict(task_type=task_type, import_dir='/srv/test/xyz', redo='否', layout='上下一栏', source='分类')
         r = self.fetch('/api/task/publish/import', body={'data': self.init_data(data)})
         self.assert_code(200, r)
 
