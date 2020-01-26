@@ -209,6 +209,7 @@
 
   var chars = $.cut.setClass(decodeJSON('{{page.get("chars", [])}}'), 'char');
   var columns = $.cut.setClass(decodeJSON('{{page.get("columns", [])}}'), 'column');
+  var blocks = $.cut.setClass(decodeJSON('{{page.get("blocks", [])}}'), 'block');
 
   $.cut.create({
     orderMode: true,
@@ -218,7 +219,7 @@
     height: '{{page["height"]}}',
     holder: 'holder',
     image: '{{get_img(page)}}',
-    chars: chars.concat(columns)
+    chars: chars
   });
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
@@ -277,6 +278,10 @@
   setTimeout(function () {
     $.cut.showErrorBoxes();
   }, 100);
+
+  $('#toggle-column').click(function () {
+    $.cut.toggleColumns(columns);
+  });
 
   // 初始化设置
   $.cut.data.image.node.style.opacity = 0.2; // 模糊图片

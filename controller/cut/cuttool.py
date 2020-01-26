@@ -107,6 +107,7 @@ class CutTool(object):
     @classmethod
     def sort_chars(cls, chars, columns, blocks, layout_type=None):
         """根据坐标对字框排序和生成编号"""
+        print('layout_type: ', layout_type)
         if not layout_type:
             zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, 2)
             if zero_char_id:
