@@ -227,7 +227,7 @@
           .initZoom()
           .setAttr({
             stroke: color,
-            'stroke-opacity': zoomed ? 0.4 : 0.6,
+            'stroke-opacity': zoomed ? 0.3 : 0.5,
             'stroke-width': 3 / data.ratioInitial,
             'stroke-linecap': up && !zoomed ? 'butt' : 'round'
           })
@@ -339,7 +339,7 @@
             var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
 
             self.label.push(data.paper.text(cen.x, cen.y, nums[2])
-                .attr({'font-size': (14 * $.cut.data.ratio) + 'px'}));
+                .attr({'font-size': (14 * Math.min($.cut.data.ratio, 1.5)) + 'px'}));
           }
         });
       }
