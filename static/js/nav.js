@@ -105,7 +105,8 @@ $('#toggle-block').click(function () {
 // 显隐列框
 $('#toggle-column').click(function () {
   $(this).toggleClass('active');
-  $.cut.toggleColumns(columns);
+  $.cut.toggleBox('hide', 'column');
+  // $.cut.toggleColumns(columns);
 });
 
 // 显隐字框
