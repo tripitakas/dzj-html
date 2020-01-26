@@ -65,7 +65,7 @@
     var prev = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
     var url = from ? prev + '&from=' + from : prev;
     if ('{{readonly}}' === 'False') {
-      saveTask(true, url);
+      saveTask(false, url);
     } else {
       goto(url, 500);
     }
