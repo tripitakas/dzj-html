@@ -337,7 +337,6 @@
         this.nodes.forEach(function (node) {
           if (node.isValidId()) {
             var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
-
             self.label.push(data.paper.text(cen.x, cen.y, nums[2])
                 .attr({'font-size': (14 * Math.min($.cut.data.ratio, 1.5)) + 'px'}));
           }
@@ -410,6 +409,9 @@
 
     // 鼠标掠过时捕捉和高亮显示. 如果字框没有连线，则捕捉出入点，否则捕捉连线
     mouseHover: function (pt) {
+      if (!cs.state.linkVisible)
+        return;
+
       var hit = this.hitTest(pt, null);
       var links, changed;
 
@@ -734,7 +736,7 @@
 
     addCharOrderLinks: function (chars_col, readonly) {
       if (!cs) {
-        cs = new CharNodes(data.chars.filter(function(c) {
+        cs = new CharNodes(data.chars.filter(function (c) {
           return c.shape && (!c.shape.data('class') || c.shape.data('class') === 'char');
         }));
         cs.buildColumns(chars_col);
@@ -820,6 +822,34 @@
         });
       });
       return {chars_col: chars_col, error: error};
+    },
+
+    // 字框编号
+    setLabel: function (visible) {
+      cs.state.labelVisible = visible;
+      cs.updateLabel();
+    },
+    toggleLabel: function () {
+      cs.state.labelVisible = !cs.state.labelVisible;
+      cs.updateLabel();
+    },
+
+    // 字框连线
+    setLink: function (visible) {
+      cs.state.linkVisible = visible;
+      $('svg path').css('display', visible ? 'inline' : 'none');
+    },
+    resetLink: function () {
+      var visible = cs && cs.state && cs.state.linkVisible;
+      $('svg path').css('display', visible ? 'inline' : 'none');
+    },
+    toggleLink: function () {
+      cs.state.linkVisible = !cs.state.linkVisible;
+      if (cs.state.linkVisible) {
+        $('svg path').css('display', 'inline');
+      } else {
+        $('svg path').css('display', 'none');
+      }
     }
   });
 
@@ -828,18 +858,15 @@
     cs && cs.buildColumns();
   };
 
+  $.cut.state.onZoomed = function () {
+    $.cut.resetLink();
+  };
+
   // Undo/Redo后重新生成图形
   $.cut.onBoxChanged(function (info, box, reason) {
     if (cs && reason === 'undo') {
       cs.buildColumns();
     }
   });
-
-  // 显隐字框编号
-  $('#toggle-char-no').click(function () {
-    cs.state.labelVisible = !cs.state.labelVisible;
-    cs.updateLabel();
-  });
-
 
 }());
