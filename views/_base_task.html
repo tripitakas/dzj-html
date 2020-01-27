@@ -102,21 +102,25 @@
     });
   });
 
+  // 查看页面
+  $(document).on("click", '#view-page', function () {
+    location.href = '/data/page/{{task.get("doc_id", "")}}?from=' + encodeFrom();
+  });
+
+  // 浏览任务
+  function go(to) {
+    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    location.href = path + setQueryString('to', to, true);
+  }
+
   // 前一个任务
   $(document).on("click", '#prev-task', function () {
-    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
-    location.href = path + setQueryString('to', 'prev', true);
+    go('prev');
   });
 
   // 后一个任务
   $(document).on("click", '#next-task', function () {
-    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
-    location.href = path + setQueryString('to', 'next', true);
-  });
-
-  // 查看页面
-  $(document).on("click", '#view-page', function () {
-    location.href = '/data/page/{{task.get("doc_id", "")}}?from=' + encodeFrom();
+    go('next');
   });
 
   // 备注任务
@@ -131,7 +135,7 @@
     var data = {_id: '{{task.get("_id", "")}}', remark: remark};
     postApi('/task/remark', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
-      $('#remarkModal').modal('hide');
+      go(getQueryString('to') || 'next');
     });
   });
 </script>

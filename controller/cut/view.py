@@ -14,6 +14,7 @@
 """
 
 import re
+from bson import json_util
 from controller import errors as e
 from controller.cut.api import CutTaskApi
 from controller.cut.cuttool import CutTool
@@ -54,6 +55,7 @@ class CutHandler(PageTaskHandler):
             if steps['current'] == 'orders':
                 layout_type = int(self.get_query_argument('layout', 0)) or page.get('layout_type')  # 0: 原来的字序类型
                 kwargs = CutTool.char_render(page, layout_type)
+                kwargs['button_config'] = json_util.loads(self.get_secure_cookie('%s_orders' % task_type) or '{}')
                 template = 'task_char_order.html'
 
             self.render(

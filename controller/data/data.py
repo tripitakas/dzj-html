@@ -194,8 +194,20 @@ class Page(Model):
                     ocr='', ocr_col='', text='', txt_html='')
 
     @classmethod
+    def pack_doc(cls, doc):
+        for field in ['level-box', 'level-text']:
+            if doc.get(field):
+                doc[field.replace('-', '.')] = doc[field]
+        for field in ['ocr', 'ocr_col', 'text']:
+            if doc.get(field):
+                doc[field] = re.sub('\n{2,}', '||', doc[field]).replace('\n', '|')
+        if doc.get('text'):
+            doc['txt_html'] = ''
+        return super().pack_doc(doc)
+
+    @classmethod
     def name2pagecode(cls, page_name):
-        """把page的name转换为page_code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
+        """ 把page的name转换为page_code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
         return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
 
     @classmethod

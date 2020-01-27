@@ -4,6 +4,7 @@
 @time: 2019/6/23
 """
 from datetime import datetime
+from bson import json_util
 from bson.objectid import ObjectId
 from tornado.escape import json_decode
 from controller import errors as e
@@ -80,6 +81,10 @@ class CutTaskApi(TaskHandler):
             if data.get('ocr'):
                 update['ocr'] = data['ocr']
             self.db.page.update_one({'name': task['doc_id']}, {'$set': update})
+
+            # 设置cookie
+            if data.get('config'):
+                self.set_secure_cookie('%s_%s' % (task_type, data['step']), json_util.dumps(data['config']))
 
             # 提交任务
             if data.get('submit'):

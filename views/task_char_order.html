@@ -16,11 +16,12 @@
     #info {
       position: fixed;
       bottom: 0;
+      opacity: .9;
       width: 100%;
-      padding: 8px;
+      height: 30px;
+      line-height: 30px;
       background-color: #fff;
       border-top: 1px solid #ddd;
-      opacity: .9;
       color: var(--Brown_Darker);
     }
 
@@ -28,13 +29,18 @@
       margin-left: 8px;
     }
 
+    text tspan {
+      fill: #f00;
+    }
+
+    .full-bd {
+      padding-bottom: 30px;
+    }
+
     .sweet-overlay {
       background-color: transparent;
     }
 
-    text tspan {
-      fill: #f00;
-    }
   </style>
 
 </head>
@@ -53,8 +59,8 @@
         </div>
         <div class="btn-group" style="margin-left: 10px">
           <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-          <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-image" title="显隐图片"/>
-          <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img active" id="toggle-blur" title="模糊"/>
+          <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img {{'' if button_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
+          <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img {{'' if button_config.get('toggle-blur') == -1 else 'active'}}" id="toggle-blur" title="模糊"/>
           <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
           <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
           <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
@@ -62,10 +68,10 @@
           <img src="{{ static_url('imgs/icon_rr.png') }}" class="btn-img" id="redo" title="重做"/>
         </div>
         <div class="btn-group">
-          <button type="button" class="btn btn-default btn-sm" id="toggle-column" title="显隐列框">列框</button>
-          <button type="button" class="btn btn-default btn-sm" id="toggle-char" title="显隐字框">字框</button>
-          <button type="button" class="btn btn-default btn-sm active" id="toggle-order" title="显隐连线">连线</button>
-          <button type="button" class="btn btn-default btn-sm" id="toggle-char-no" title="显隐字框编号">编号</button>
+          <button type="button" class="btn btn-default btn-sm {{'active' if button_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框">列框</button>
+          <button type="button" class="btn btn-default btn-sm {{'active' if button_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框">字框</button>
+          <button type="button" class="btn btn-default btn-sm {{'' if button_config.get('toggle-order') == -1 else 'active'}}" id="toggle-order" title="显隐连线">连线</button>
+          <button type="button" class="btn btn-default btn-sm {{'active' if button_config.get('toggle-char-no') == 1 else ''}}" id="toggle-char-no" title="显隐字框编号">编号</button>
           <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显隐待修正的字框">查漏</button>
         </div>
       </div>
@@ -206,7 +212,8 @@
 <script src="{{ static_url('js/nav.js') }}"></script>
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 <script>
-
+  var buttonConfig = decodeJSON('{{button_config}}');
+  console.log(buttonConfig);
   var chars = $.cut.setClass(decodeJSON('{{page.get("chars", [])}}'), 'char');
   var columns = $.cut.setClass(decodeJSON('{{page.get("columns", [])}}'), 'column');
   var blocks = $.cut.setClass(decodeJSON('{{page.get("blocks", [])}}'), 'block');
@@ -239,6 +246,16 @@
     }
   };
 
+  // 获取当前按钮状态
+  function getConfig() {
+    var config = {};
+    var buttons = ['toggle-image', 'toggle-blur', 'toggle-column', 'toggle-char', 'toggle-order', 'toggle-char-no'];
+    buttons.forEach(function (button) {
+      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    });
+    return config;
+  }
+
   // 获取任务数据
   function getSubmitData(submit) {
     var data = {submit: submit, step: 'orders', box_type: 'chars', boxes: JSON.stringify($.cut.exportBoxes())};
@@ -249,6 +266,7 @@
       data.blocks = blocks;
       data.columns = columns;
     }
+    data.config = getConfig();
     return data;
   }
 
@@ -284,9 +302,13 @@
   });
 
   // 初始化设置
-  $.cut.data.image.node.style.opacity = 0.2; // 模糊图片
-  $('rect.box').css('display', 'none'); // 隐藏字框
-  $.cut.setLink($('#toggle-order').hasClass('active')); // 设置连线的初始状态
+  $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
+  $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === 1 ? 0.2 : 1;
+  $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
+  $.cut.setLabel(buttonConfig['toggle-char-no'] === 1);
+  $.cut.setLink(buttonConfig['toggle-order'] === 1);
+  if (buttonConfig['toggle-column'] === 1)
+    $.cut.toggleColumns(columns);
 
 </script>
 

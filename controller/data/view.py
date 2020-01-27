@@ -230,8 +230,9 @@ class DataPageListHandler(DataPageHandler):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    info_fields = ['name', 'source', 'box_ready', 'layout', 'ocr', 'ocr_col', 'level-box', 'level-text']
-    hide_fields = ['img_cloud_path', 'uni_sutra_code', 'box_ready']
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark']
+    hide_fields = ['img_cloud_path', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
+                   'lock-box', 'lock-level', 'level-box', 'level-text']
     modal_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
