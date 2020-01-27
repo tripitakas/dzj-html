@@ -106,11 +106,11 @@ class CutTool(object):
 
     @classmethod
     def sort_chars(cls, chars, columns, blocks, layout_type=None):
-        """根据坐标对字框排序和生成编号"""
+        """根据坐标对字框排序和生成编号, layout_type: 0-智能选择（在外层调用处为0时已取页面原字序类型）, 1-旧算法, 2-新算法"""
         if not layout_type:
-            zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, 2)
+            zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, 2)  # 先用新算法
             if zero_char_id:
-                zero_char_id2, layout_type = cls.sort_chars(chars, columns, blocks, 1)
+                zero_char_id2, layout_type = cls.sort_chars(chars, columns, blocks, 1)  # 再试旧算法
                 if len(zero_char_id2) < len(zero_char_id):
                     zero_char_id = zero_char_id2
                 else:

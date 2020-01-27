@@ -55,7 +55,8 @@ class CutTaskApi(TaskHandler):
                 chars, chars_col = data['boxes'], data['chars_col']
                 blocks = data.get('blocks') or page.get('blocks')
                 columns = data.get('columns') or page.get('columns')
-                CutTool.calc(blocks, columns, chars, chars_col)
+                layout_type = data.get('layout') or page.get('layout_type')  # 0: 原始字序
+                CutTool.calc(blocks, columns, chars, chars_col, layout_type)
 
             # 字框校对时重新排序
             if data['step'] == 'chars':
@@ -136,7 +137,8 @@ class CutEditApi(TaskHandler):
                 chars, chars_col = data['boxes'], data['chars_col']
                 blocks = data.get('blocks') or page.get('blocks')
                 columns = data.get('columns') or page.get('columns')
-                CutTool.calc(blocks, columns, chars, chars_col)
+                layout_type = data.get('layout') or page.get('layout_type')  # 0: 原始字序
+                CutTool.calc(blocks, columns, chars, chars_col, layout_type)
             else:
                 CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])

@@ -52,7 +52,8 @@ class CutHandler(PageTaskHandler):
             template = 'task_cut_do.html'
             kwargs = dict()
             if steps['current'] == 'orders':
-                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
+                layout_type = int(self.get_query_argument('layout', 0)) or page.get('layout_type')  # 0: 原来的字序类型
+                kwargs = CutTool.char_render(page, layout_type)
                 template = 'task_char_order.html'
 
             self.render(
@@ -93,7 +94,8 @@ class CutEditHandler(TaskHandler):
             kwargs = dict()
             if steps['current'] == 'orders':
                 template = 'task_char_order.html'
-                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
+                layout_type = int(self.get_query_argument('layout', 0)) or page.get('layout_type')  # 0: 原来的字序类型
+                kwargs = CutTool.char_render(page, layout_type)
 
             self.render(
                 template, task_type='', task=dict(), page=page, steps=steps, readonly=not has_lock,
@@ -137,7 +139,8 @@ class CutSampleHandler(TaskHandler):
             kwargs = dict()
             if steps['current'] == 'orders':
                 template = 'task_char_order.html'
-                kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
+                layout_type = int(self.get_query_argument('layout', 0)) or page.get('layout_type')  # 0: 原来的字序类型
+                kwargs = CutTool.char_render(page, layout_type)
 
             self.render(
                 template, task_type='', task=dict(), page=page, steps=steps, readonly=True,

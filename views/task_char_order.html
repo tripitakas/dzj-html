@@ -71,9 +71,9 @@
       </div>
       <div class="btn-group right">
         <div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="margin-top: 4px">
-          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=1'}}">原始字序</a>
-          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=2'}}">重排(旧算法)</a>
-          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=3'}}">重排(新算法)</a>
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders'}}">原始字序</a>
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=1'}}">重排(旧算法)</a>
+          <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=2'}}">重排(新算法)</a>
         </div>
         <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img fl" id="toggle-more" title="更多"/>
         <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
