@@ -206,10 +206,11 @@
 <script src="{{ static_url('js/nav.js') }}"></script>
 <script src="{{ static_url('js/cut/char_order.js') }}"></script>
 <script>
-  // 页面图和切分框
-  var blocks = decodeJSON('{{page["blocks"]}}');
-  var columns = decodeJSON('{{page["columns"]}}');
-  var chars = decodeJSON('{{page["chars"]}}');
+
+  var chars = $.cut.setClass(decodeJSON('{{page.get("chars", [])}}'), 'char');
+  var columns = $.cut.setClass(decodeJSON('{{page.get("columns", [])}}'), 'column');
+  var blocks = $.cut.setClass(decodeJSON('{{page.get("blocks", [])}}'), 'block');
+
   $.cut.create({
     orderMode: true,
     readonly: true,
@@ -217,14 +218,26 @@
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     holder: 'holder',
-    image: "{{get_img(page)}}",
-    version: '1',
+    image: '{{get_img(page)}}',
     chars: chars
   });
+  $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
-  $.cut.toggleBox('hide');
+
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+      return true;
+    }
+    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+      return true;
+    }
+    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+      return true;
+    }
+  };
 
   // 获取任务数据
   function getSubmitData(submit) {
@@ -266,11 +279,14 @@
     $.cut.showErrorBoxes();
   }, 100);
 
-  // 初始设置图片模糊
-  $.cut.data.image.node.style.opacity = 0.2;
+  $('#toggle-column').click(function () {
+    $.cut.toggleColumns(columns);
+  });
 
-  // 设置连线的初始状态
-  $.cut.setLink($('#toggle-order').hasClass('active'));
+  // 初始化设置
+  $.cut.data.image.node.style.opacity = 0.2; // 模糊图片
+  $('rect.box').css('display', 'none'); // 隐藏字框
+  $.cut.setLink($('#toggle-order').hasClass('active')); // 设置连线的初始状态
 
 </script>
 
