@@ -41,6 +41,7 @@
     }
 
     .sub-line label {
+      margin-left: 5px;
       font-weight: 300;
       color: var(--Color_333);
     }
@@ -128,14 +129,18 @@
       </div>
       <div class="header-line sub-line">
         <div class="left">
+          {% if page.get('remark') %}
+          <label>备注:</label>
+          <span>{{page['remark']}}</span>
+          {% end %}
           {% if handler.prop(page, 'lock.box.is_temp') %}
-          <label>切分临时锁：</label><a class="lock box">解锁</a>
+          <label>切分临时锁:</label><a class="lock box">解锁</a>
           {% end %}
           {% if handler.prop(page, 'lock.text.is_temp') %}
-          <label>文本临时锁：</label><a class="lock text">解锁</a>
+          <label>文本临时锁:</label><a class="lock text">解锁</a>
           {% end %}
           {% if page.get('tasks') %}
-          <label>相关任务：</label>
+          <label>相关任务:</label>
           <span class="tasks">
           {% for task, status in page.get('tasks', {}).items() %}
           <span class="task">{{Th.get_task_name(task)+'/'+Th.get_status_name(status)}}</span>
@@ -169,7 +174,7 @@
         <div class="bd">
           {% for i,f in enumerate(fields) %}
           <div class="sutra-text {{f if (which in fields and f == which) or (which not in fields and i == 0) else f + ' hide'}}">
-            <textarea class="form-control" rows="{{len(texts[f].split('\n'))+1}}" {{'readonly' if f == 'text' else ''}}>{% raw texts[f] %}</textarea>
+            <textarea class="form-control" rows="{{len(texts[f].split('\n'))+1}}" {{'readonly' if f == 'text' and page.get('txt_html') else ''}}>{% raw texts[f] %}</textarea>
           </div>
           {% end %}
         </div>
@@ -389,8 +394,6 @@
   // 保存文本
   $('#btn-save').click(function () {
     var which = $('.ocr-txt :checked').val();
-    if (which === 'text')
-      return;
     var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
     data[which] = $('.sutra-text.' + which + ' textarea').val();
     postApi('/data/page', {data: data}, function () {
