@@ -136,14 +136,14 @@
 
   var data = {
     normalColor: '#158815',                   // 正常字框的线色
-    normalColor2: '#434188',                  // 另一列字框的的线色
+    normalColor2: '#AA0000',                  // 另一列字框的的线色
     changedColor: '#C53433',                  // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
     handleColor: '#e3e459',                   // 字框控制点的线色
     handleFill: '#ffffff',                    // 字框控制点的填充色
     activeHandleColor: '#72141d',             // 活动控制点的线色
-    activeHandleFill: '#0000ff',              // 活动控制点的填充色
+    activeHandleFill: '#434188',              // 活动控制点的填充色
     handleSize: 2.2,                          // 字框控制点的半宽
     boxFill: 'rgba(0, 0, 0, .01)',            // 默认的字框填充色，不能全透明
     boxOpacity: 0.7,                          // 字框线半透明度

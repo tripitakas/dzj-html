@@ -783,11 +783,11 @@
       } else {
         var s = data.ratio * data.ratioInitial;
         cs.state.columns = columns.map(function (box, i) {
-          var color = i % 2 ? '#f00' : '#f80';
-          var r = data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s)
-              .attr({stroke: color, fill: color, 'stroke-opacity': 0.4, 'fill-opacity': 0});
-          r.animate({'fill-opacity': 0.1}, 500, '<');
-          return r;
+          var color = i % 2 ? '#AA0000' : '#158815';
+          return data.paper.rect(box.x * s, box.y * s, box.w * s, box.h * s).attr({
+            stroke: color, 'stroke-opacity': 0.4, 'stroke-width': 1.5
+            // stroke: color, 'stroke-opacity': 0.4, 'stroke-width':2, fill: color, 'fill-opacity': 0.2
+          });
         });
       }
     },
