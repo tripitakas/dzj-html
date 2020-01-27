@@ -454,7 +454,7 @@
   $("#searchModal .finished_start").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
   $("#searchModal .finished_end").flatpickr({allowInput: true, locale: 'zh', time_24hr: true});
   // 设置领取人
-  $searchModal.find('#picked_user_id').select2({
+  $searchModal.find('.picked_user_id').select2({
     dropdownParent: $searchModal,
     ajax: {
       type: 'POST', url: "/api/user/list", dataType: 'json', delay: 1000, language: 'zh-CN',
@@ -479,7 +479,7 @@
   });
   // 重置
   $searchModal.find('.reset').click(function () {
-    $searchModal.find('#picked_user_id').val(null).trigger('change');
+    $searchModal.find('.picked_user_id').val(null).trigger('change');
     resetModal($searchModal, searchFields);
   });
 </script>
