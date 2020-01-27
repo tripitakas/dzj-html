@@ -854,12 +854,12 @@
   });
 
   // 放缩后重新生成图形
-  state.onZoomed = function () {
-    cs && cs.buildColumns();
-  };
-
   $.cut.state.onZoomed = function () {
     $.cut.resetLink();
+    if (cs) {
+      cs.buildColumns();
+      this.updateLabel();
+    }
   };
 
   // Undo/Redo后重新生成图形
