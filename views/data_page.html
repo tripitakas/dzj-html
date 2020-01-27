@@ -360,7 +360,7 @@
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}', remark: remark};
     postApi('/data/page', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
-      $('#remarkModal').modal('hide');
+      go(getQueryString('to') || 'next');
     });
   });
 
