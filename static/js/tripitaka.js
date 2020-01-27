@@ -83,8 +83,7 @@ $('#toggle-char').click(function () {
 // 显隐字序
 $('#toggle-char-no').click(function () {
   $(this).toggleClass('active');
-  var style = $.cut.data.image.node.style;
-  style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+  $.cut.toggleLabel();
 });
 
 // 切换文本

@@ -400,17 +400,9 @@
   });
 </script>
 <script>
-  function initBoxes(boxesStr, className) {
-    var boxes = decodeJSON(boxesStr);
-    for (var i = 0; i < boxes.length; i++) {
-      boxes[i]['class'] = className;
-    }
-    return boxes;
-  }
-
-  var chars = initBoxes('{{page.get("chars", [])}}', 'char');
-  var columns = initBoxes('{{page.get("columns", [])}}', 'column');
-  var blocks = initBoxes('{{page.get("blocks", [])}}', 'block');
+  var chars = $.cut.setClass(decodeJSON('{{page.get("chars", [])}}'), 'char');
+  var columns = $.cut.setClass(decodeJSON('{{page.get("columns", [])}}'), 'column');
+  var blocks = $.cut.setClass(decodeJSON('{{page.get("blocks", [])}}'), 'block');
 
   $.cut.create({
     readonly: true,
@@ -446,7 +438,7 @@
   $('rect.block').css('display', buttonConfig['toggle-block'] === 1 ? 'block' : 'none');
   $('rect.column').css('display', buttonConfig['toggle-column'] === 1 ? 'block' : 'none');
   $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
-  setOrderStatus(buttonConfig['toggle-order'] === 1);
+  $.cut.setLink(buttonConfig['toggle-order'] === 1)
 
 </script>
 </body>

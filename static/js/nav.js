@@ -115,29 +115,16 @@ $('#toggle-char').click(function () {
   $.cut.toggleBox('hide', 'char');
 });
 
+// 显隐字框编号
+$('#toggle-char-no').click(function () {
+  $(this).toggleClass('active');
+  $.cut.toggleLabel();
+});
+
 // 显隐字序连线
-function setOrderStatus(active) {
-  $('#holder svg path').each(function (i, path) {
-    var stroke = $(path).css('stroke');
-    if (active) {
-      stroke = stroke.replace(/rgba\((\d+)((,\s?\d+){2})(,\s?\d+)\)/, 'rgb($1$2)');
-    } else {
-      stroke = stroke.replace(/rgb\((.*)\)/, 'rgba($1 ,0)');
-    }
-    $(path).css('stroke', stroke);
-  });
-}
-
-if ($.cut && $.cut.state.onZoomed) {
-  var _onZoomedNav = $.cut.state.onZoomed;
-  $.cut.state.onZoomed = function() {
-    setOrderStatus($('#toggle-order').hasClass('active'));
-  }
-}
-
 $('#toggle-order').click(function () {
   $(this).toggleClass('active');
-  setOrderStatus($(this).hasClass('active'));
+  $.cut.toggleLink();
 });
 
 // 更多操作
