@@ -855,11 +855,11 @@
 
   // 放缩后重新生成图形
   $.cut.state.onZoomed = function () {
-    $.cut.resetLink();
     if (cs) {
       cs.buildColumns();
-      this.updateLabel();
+      cs.updateLabel();
     }
+    $.cut.resetLink();
   };
 
   // Undo/Redo后重新生成图形
