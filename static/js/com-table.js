@@ -70,21 +70,17 @@ $('#configModal .modal-confirm').click(function () {
 function setModal(modal, info, fields) {
   fields.forEach(function (item) {
     if (info[item.id]) { // 如果值为空，则不予设置
-      if ('input_type' in item) {
-        if (item['input_type'] === 'radio')
-          modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
-        else if (item['input_type'] === 'checkbox')
-          console.log(info[item.id]);
+      if ('input_type' in item && item['input_type'] === 'radio') {
+        modal.find(':radio[name=' + item.id + '][value=' + info[item.id] + ']').prop('checked', true);
+      } else if ('input_type' in item && item['input_type'] === 'checkbox') {
         $.map(modal.find('.' + item.id + ' :checkbox'), function (obj) {
-          console.log($(obj).attr('title'));
           if (info[item.id].indexOf($(obj).attr('title')) !== -1)
             $(obj).prop('checked', true);
           else
             $(obj).removeAttr('checked');
         });
-      } else {
+      } else
         modal.find('.' + item.id).val(info[item.id]);
-      }
     }
   });
 }
@@ -177,7 +173,7 @@ $('.btn-view').click(function () {
 $('.btn-update').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
-  var title = 'name' in data ? '修改数据 - ' + data.name : '修改数据';
+  var title = 'name' in data ? '修改数据/' + data.name : '修改数据';
   $modal.find('#url').val($(this).attr('url') || location.pathname);
   $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, false);
