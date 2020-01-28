@@ -261,7 +261,7 @@
   $(document).ready(function () {
     var remark = '{{page.get("remark") or ""}}' || localStorage.getItem('pageRemark');
     $("#remarkModal .remark").val(remark);
-    var operation = localStorage.getItem('pageOperation');
+    var operation = localStorage.getItem('pageOperation') || '附加';
     if (operation) {
       $('#remarkModal .operation [value="' + operation + '"]').prop('checked', true);
     }
@@ -364,13 +364,12 @@
   // 备注
   $("#remarkModal .options :radio").click(function () {
     var node = $('#remarkModal .operation :checked');
-    if (!node.length)
-      return showTips('', '请选择附加或替换');
     var remark = $('#remarkModal .remark');
-    if (node.val() === '附加')
-      remark.val(remark.val() + "，" + $(this).val());
-    else
+    if (node.val() === '替换')
       remark.val($(this).val());
+    else
+      remark.val(remark.val() + "，" + $(this).val());
+
   });
   $('#remarkModal .modal-confirm').click(function () {
     var remark = $('#remarkModal .remark').val().trim();
