@@ -309,10 +309,10 @@
 
   // 初始化设置
   $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === 1 ? 0.2 : 1;
+  $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === -1 ? 1 : 0.2;
   $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
   $.cut.setLabel(buttonConfig['toggle-char-no'] === 1);
-  $.cut.setLink(buttonConfig['toggle-order'] === 1);
+  $.cut.setLink(!(buttonConfig['toggle-order'] === -1));
   if (buttonConfig['toggle-column'] === 1)
     $.cut.toggleColumns(columns);
 
