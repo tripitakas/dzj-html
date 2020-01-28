@@ -312,7 +312,7 @@
       this.linksOfCol = this.chars_col.map(function (ids, colIndex) {
         return (ids.length === 1 ? ids : ids.slice(1)).map(function (id, i) {
           var c1 = self.findNode(ids[i]), c2 = self.findNode(id);
-          if (!c1 || !c2 || !c1.isValidId() || !c2.isValidId()) {
+          if (!c1 || !c2 /*|| !c1.isValidId() || !c2.isValidId()*/) {
             return;
           }
           var link = new Link(c1, c2);
@@ -856,7 +856,14 @@
   // 放缩后重新生成图形
   $.cut.state.onZoomed = function () {
     if (cs) {
-      cs.buildColumns();
+      var routes = [], heads = [], chars_col;
+      cs.checkLinks(routes, heads);
+      chars_col = routes.map(function (route) {
+        return route.map(function (char) {
+          return char.id;
+        });
+      });
+      cs.buildColumns(chars_col);
       cs.updateLabel();
     }
     $.cut.resetLink();

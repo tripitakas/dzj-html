@@ -96,6 +96,7 @@ class CutEditHandler(TaskHandler):
             if steps['current'] == 'orders':
                 template = 'task_char_order.html'
                 kwargs = CutTool.char_render(page, int(self.get_query_argument('layout', 0)))
+                kwargs['button_config'] = {}  # TODO: 取哪种配置呢
 
             self.render(
                 template, task_type='', task=dict(), page=page, steps=steps, readonly=not has_lock,
