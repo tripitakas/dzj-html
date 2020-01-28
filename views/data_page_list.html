@@ -155,6 +155,10 @@
         <div class="col-sm-10">
           <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
         </div>
+        <h4 class="col-sm-2 control-label">文字</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入文字">
+        </div>
         <h4 class="col-sm-2 control-label">备注</h4>
         <div class="col-sm-10">
           <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
@@ -166,18 +170,6 @@
         <h4 class="col-sm-2 control-label">文本等级</h4>
         <div class="col-sm-10">
           <input type="text" class="form-control level_text" value="{{params.get('level_text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
-        </div>
-        <h4 class="col-sm-2 control-label">切分已就绪</h4>
-        <div class="col-sm-10">
-          <select class="form-control box_ready">
-            {% for v in ['', '是', '否'] %}
-            {% if params.get('box_ready', '') == v %}
-            <option value="{{v}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{v}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
         </div>
         <h4 class="col-sm-2 control-label">切分校对</h4>
         <div class="col-sm-10">
@@ -321,7 +313,7 @@
             <div class="tab-pane active" id="source-select">
               <textarea type="text" class="form-control" id="doc-ids" placeholder="所选中的页码"></textarea>
             </div>
-             <div class="tab-pane hide" id="source-search">
+            <div class="tab-pane hide" id="source-search">
               <input type="text" class="form-control" id="search-param" placeholder="检索参数"/>
             </div>
             <div class="tab-pane" id="source-file">
@@ -441,13 +433,13 @@
   $searchModal = $("#searchModal");
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';
-    var fields = ['name', 'source', 'remark', 'level_box', 'level_text'];
+    var fields = ['name', 'source', 'remark', 'txt', 'level_box', 'level_text'];
     fields.forEach(function (field) {
       var value = $searchModal.find('.' + field).val();
       if (value)
         search += '&' + field + '=' + value;
     });
-    fields = ['box_ready', 'cut_task', 'cut_proof', 'cut_review', 'text_task', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
     fields.forEach(function (field) {
       var value = $searchModal.find('.' + field + ' :selected').val();
       if (value)
@@ -460,11 +452,11 @@
 
   // 重置检索条件
   $searchModal.find('.reset').click(function () {
-    var fields = ['name', 'source', 'layout', 'level_box', 'level_text'];
+    var fields = ['name', 'source', 'remark', 'txt', 'level_box', 'level_text'];
     fields.forEach(function (field) {
       $searchModal.find('.' + field).val('');
     });
-    fields = ['box_ready', 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+    fields = [ 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
     fields.forEach(function (field) {
       $searchModal.find('.' + field + ' :selected').removeAttr('selected');
     });

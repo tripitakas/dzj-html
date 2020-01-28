@@ -147,11 +147,6 @@ class DataPageHandler(BaseHandler, Page):
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['layout', 'box_ready']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field: value})
         for field in ['level_box', 'level_text']:
             value = get_url_param(field, request_query)
             m = re.search(r'([><=]+)(\d+)', value)
@@ -164,6 +159,10 @@ class DataPageHandler(BaseHandler, Page):
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        value = get_url_param('txt', request_query)
+        if value:
+            params[field] = value
+            condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
         return condition, params
 
     @classmethod
