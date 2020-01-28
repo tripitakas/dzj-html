@@ -22,8 +22,8 @@
         <div class="wrapper">
           <div class="block">
             <div class="block-head">基本信息</div>
-            {% for k in display_fields %}
-            {% if task.get(k) %}
+            {% for k, v in task.items() %}
+            {% if v and k not in ['input', 'result'] %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw handler.format_value(task[k], k) %}</span>

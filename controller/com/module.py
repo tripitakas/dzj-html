@@ -160,11 +160,13 @@ class DoubtModal(UIModule):
 
 
 class RemarkModal(UIModule):
-    def render(self):
+    def render(self, remark_fields=None):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [
+        fields = [
             {'id': 'remark', 'name': ''},
-            {'id': 'options', 'name': '', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
+            {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
+                '没问题', '还可以', '不合要求'
+            ]},
         ]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+        return self.render_string('com_modal.html', modal_fields=remark_fields or fields, id='remarkModal', title='备注',
                                   buttons=buttons)

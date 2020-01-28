@@ -85,6 +85,10 @@
       padding: 0 20px;
     }
 
+    #remarkModal .modal-content {
+      width: 720px;
+    }
+
   </style>
 </head>
 
@@ -186,7 +190,7 @@
 </div>
 
 <div class="panel-body">
-  {% module RemarkModal() %}
+  {% module RemarkModal(remark_fields) %}
   {% module ComModal(modal_fields, 'editModal', '更新基本信息') %}
   <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
     <div class="modal-dialog">
@@ -257,6 +261,10 @@
   $(document).ready(function () {
     var remark = '{{page.get("remark") or ""}}' || localStorage.getItem('pageRemark');
     $("#remarkModal .remark").val(remark);
+    var operation = localStorage.getItem('pageOperation');
+    if (operation) {
+      $('#remarkModal .operation [value="' + operation + '"]').prop('checked', true);
+    }
   });
 </script>
 <script>
@@ -355,13 +363,21 @@
 
   // 备注
   $("#remarkModal .options :radio").click(function () {
-    $('#remarkModal .remark').val($(this).val());
+    var node = $('#remarkModal .operation :checked');
+    if (!node.length)
+      return showTips('', '请选择附加或替换');
+    var remark = $('#remarkModal .remark');
+    if (node.val() === '附加')
+      remark.val(remark.val() + "，" + $(this).val());
+    else
+      remark.val($(this).val());
   });
   $('#remarkModal .modal-confirm').click(function () {
     var remark = $('#remarkModal .remark').val().trim();
     if (!remark.length)
       return showWarning('请输入备注内容');
     localStorage.setItem('pageRemark', remark);
+    localStorage.setItem('pageOperation', $('#remarkModal .operation :checked').val());
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}', remark: remark};
     postApi('/data/page', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
@@ -381,6 +397,8 @@
       config['sutra-txt'] = sutraTxt;
     else
       config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
+    if ($('#remarkModal :radio[name="operation"]:checked').length)
+      config['operation'] = $('#remarkModal :radio[name="operation"]:checked').val();
     return config;
   }
 
