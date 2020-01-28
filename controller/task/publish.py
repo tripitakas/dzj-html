@@ -27,7 +27,7 @@ class PublishPageTaskBaseHandler(TaskHandler):
         """ 发布某个任务类型的任务。
         :return 格式如下：
             {'un_existed':[], 'un_ready':[], 'published_before':[], 'finished_before':[],
-            'data_is_locked':[], 'lock_level_unqualified':[], 'published':[], 'pending':[]}
+            'data_is_locked':[], 'data_level_unqualified':[], 'published':[], 'pending':[]}
         """
         log = dict()
         assert task_type in self.task_types
@@ -64,8 +64,8 @@ class PublishPageTaskBaseHandler(TaskHandler):
 
         # 去掉数据锁已分配给其它任务或者数据等级不够的任务
         if doc_ids and shared_field:
-            log['data_is_locked'], log['lock_level_unqualified'] = self._check_lock(task_type, doc_ids)
-            doc_ids = set(doc_ids) - log['data_is_locked'] - log['lock_level_unqualified']
+            log['data_is_locked'], log['data_level_unqualified'] = self._check_lock(task_type, doc_ids)
+            doc_ids = set(doc_ids) - log['data_is_locked'] - log['data_level_unqualified']
 
         # 剩下的，发布新任务
         if doc_ids:
@@ -96,18 +96,18 @@ class PublishPageTaskBaseHandler(TaskHandler):
 
     def _check_lock(self, task_type, doc_ids):
         """ 检查数据锁是否已分配给其它任务或数据等级是否小于当前数据等级"""
-        data_is_locked, lock_level_unqualified = set(), set()
+        data_is_locked, data_level_unqualified = set(), set()
         collection, id_name, input_filed, shared_field = self.get_data_conf(task_type)
         conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
         docs = self.db[collection].find({id_name: {'$in': list(doc_ids)}}, {'lock': 1, id_name: 1})
         for doc in list(docs):
             lock = self.prop(doc, 'lock.' + shared_field, {})
-            level = int(self.prop(doc, 'lock.level.' + shared_field, 0))
+            level = int(self.prop(doc, 'level.' + shared_field, 0))
             if lock and self.prop(lock, 'is_temp') is False:
                 data_is_locked.add(doc[id_name])
             elif conf_level < level:
-                lock_level_unqualified.add(doc[id_name])
-        return data_is_locked, lock_level_unqualified
+                data_level_unqualified.add(doc[id_name])
+        return data_is_locked, data_level_unqualified
 
     def _publish_tasks(self, task_type, status, priority, pre_tasks, steps, doc_ids, batch):
         """ 发布新任务 """
