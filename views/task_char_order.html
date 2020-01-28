@@ -45,6 +45,12 @@
 
 </head>
 
+{% try %}
+{% set button_config = button_config %}
+{% except %}
+{% set button_config = {} %}
+{% end %}
+
 <body class="widescreen">
 <div class="app-main">
   <div class="main">
