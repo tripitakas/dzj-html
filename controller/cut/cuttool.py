@@ -106,8 +106,10 @@ class CutTool(object):
 
     @classmethod
     def sort_chars(cls, chars, columns, blocks, layout_type=None):
-        """根据坐标对字框排序和生成编号, layout_type: 0-智能选择（在外层调用处为0时已取页面原字序类型）, 1-旧算法, 2-新算法"""
+        """根据坐标对字框排序和生成编号, layout_type: 1-旧算法, 2-新算法, 3-智能选择"""
         if not layout_type:
+            zero_char_id = cls.get_invalid_char_ids(chars)
+        elif layout_type == 3:
             zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, 2)  # 先用新算法
             if zero_char_id:
                 zero_char_id2, layout_type = cls.sort_chars(chars, columns, blocks, 1)  # 再试旧算法
@@ -139,7 +141,7 @@ class CutTool(object):
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
         kwargs['zero_char_id'], page['layout_type'], kwargs['chars_col'] = CutTool.sort(
-            page['chars'], page['columns'], page['blocks'], layout or page.get('layout_type'))
+            page['chars'], page['columns'], page['blocks'], layout)
         return kwargs
 
     @staticmethod
