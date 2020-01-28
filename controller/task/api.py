@@ -250,7 +250,7 @@ class ReturnTaskApi(TaskHandler):
                 return self.send_error_response(errors.unauthorized, message='您没有该任务的权限')
 
             reason = self.prop(self.get_request_data(), 'reason', '')
-            update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(), 'message': reason}
+            update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(), 'return_reason': reason}
             r = self.db.task.update_one({'_id': task['_id']}, {'$set': update})
             if r.matched_count:
                 self.add_op_log('return_task', context=task_id, target_id=task['_id'])
@@ -276,9 +276,9 @@ class RepublishTaskApi(TaskHandler):
             # 重新发布
             pre_tasks = {k: '' for k in self.prop(task, 'pre_tasks', [])}
             update = {'status': self.STATUS_PUBLISHED, 'pre_tasks': pre_tasks, 'result': {}}
-            unset = {'steps.submitted': '', 'picked_user_id': '', 'picked_by': '', 'picked_time': ''}
+            unset = ['steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason']
             self.db.task.update_one({'_id': task['_id']}, {'$set': update})
-            self.db.task.update_one({'_id': task['_id']}, {'$unset': unset})
+            self.db.task.update_one({'_id': task['_id']}, {'$unset': {k: '' for k in unset}})
             self.add_op_log('republish', target_id=task['_id'], context=task['task_type'])
             # 释放数据锁
             self.release_task_lock(task)
