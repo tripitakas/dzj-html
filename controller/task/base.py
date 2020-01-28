@@ -190,7 +190,7 @@ class TaskHandler(BaseHandler, Task):
         shared_field_meta = self.data_auth_maps[shared_field]
         id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
         doc = self.db[collection].find_one({id_name: doc_id})
-        return self.prop(doc, 'lock.' + shared_field, {}), int(self.prop(doc, 'lock.level.' + shared_field, 0))
+        return self.prop(doc, 'lock.' + shared_field, {}), int(self.prop(doc, 'level.' + shared_field, 0))
 
     def assign_temp_lock(self, doc_id, shared_field):
         """ 将临时数据锁分配给当前用户。成功时返回True，失败时返回错误代码 """
@@ -206,7 +206,7 @@ class TaskHandler(BaseHandler, Task):
             return e.data_lock_unqualified
         conf_level = self.get_qualification_level(shared_field, qualification.get('auth'))
         if conf_level < level:
-            return e.lock_level_unqualified
+            return e.data_level_unqualified
         # 分配数据锁
         r = self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.' + shared_field: {
             'is_temp': True, 'qualification': qualification,
@@ -240,7 +240,7 @@ class TaskHandler(BaseHandler, Task):
             return e.data_lock_unqualified
         conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
         if conf_level < level:
-            return e.lock_level_unqualified
+            return e.data_level_unqualified
         # 分配数据锁并设置数据等级
         qualification = dict(lock_type='task', tasks=task_type)
         shared_field_meta = self.data_auth_maps[shared_field]
@@ -248,7 +248,7 @@ class TaskHandler(BaseHandler, Task):
         lock = {'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
                 'locked_by': self.current_user['name'], 'locked_user_id': self.current_user['_id']}
         r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
-            'lock.' + shared_field: lock, 'lock.level.' + shared_field: conf_level,
+            'lock.' + shared_field: lock, 'level.' + shared_field: conf_level,
         }})
         return True if r.matched_count else e.data_lock_failed
 

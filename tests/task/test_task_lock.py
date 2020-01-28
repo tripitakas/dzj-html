@@ -32,7 +32,7 @@ class TestDataLock(APITestCase):
         if not collection:
             collection, id_name, input_field, shared_field = Th.get_data_conf(task_type)
         doc = self._app.db[collection].find_one({id_name: doc_id}) or {}
-        return Th.prop(doc, 'lock.%s' % shared_field), int(Th.prop(doc, 'lock.level.%s' % shared_field, 0))
+        return Th.prop(doc, 'lock.%s' % shared_field), int(Th.prop(doc, 'level.%s' % shared_field, 0))
 
     def test_data_lock_flow(self):
         """ 测试数据锁 """
@@ -160,11 +160,11 @@ class TestDataLock(APITestCase):
         # 测试用户3数据等级不够，不能修改切分校对任务
         self.login(u.expert3[0], u.expert3[1])
         r = self.fetch('/task/update/cut_proof/%s?_raw=1' % task1['_id'])
-        self.assertEqual(e.lock_level_unqualified[1], self.parse_response(r).get('message'), msg=task_type)
+        self.assertEqual(e.data_level_unqualified[1], self.parse_response(r).get('message'), msg=task_type)
         page = self._app.db.page.find_one({'name': ready_ids[0]})
         data = {'step': 'chars', 'submit': True, 'boxes': json_encode(page['chars'])}
         r = self.fetch('/api/task/update/cut_proof/%s' % task1['_id'], body={'data': data})
-        self.assertEqual(e.lock_level_unqualified[0], self.parse_response(r).get('error')[0], msg=task_type)
+        self.assertEqual(e.data_level_unqualified[0], self.parse_response(r).get('error')[0], msg=task_type)
 
         # 测试用户2可以修改切分审定任务
         self.login(u.expert2[0], u.expert2[1])
