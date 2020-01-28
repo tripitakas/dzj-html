@@ -293,6 +293,16 @@ class DataPageViewHandler(DataPageHandler):
         {'id': 'level-text', 'name': '文本等级'},
     ]
 
+    remark_fields = [
+        {'id': 'remark', 'name': ''},
+        {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
+            '切分没问题', '切分还可以', '切分不合要求', '文字没问题', '文字还可以', '文字不合要求',
+        ]},
+        {'id': 'operation', 'name': '', 'input_type': 'radio', 'options': [
+            '附加', '替换',
+        ]},
+    ]
+
     def get(self, page_code):
         """ 浏览页面数据"""
         try:
@@ -320,7 +330,8 @@ class DataPageViewHandler(DataPageHandler):
             info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
             self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config,
                         labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
-                        modal_fields=self.modal_fields, img_url=self.get_img(page))
+                        modal_fields=self.modal_fields, remark_fields=self.remark_fields,
+                        img_url=self.get_img(page))
 
         except Exception as error:
             return self.send_db_error(error)
