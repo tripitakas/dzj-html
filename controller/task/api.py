@@ -184,10 +184,7 @@ class PickTaskApi(TaskHandler):
             }})
             self.add_op_log('pick_' + task_type, context=task['doc_id'], target_id=task['_id'])
             # 更新doc的任务状态
-            if task['doc_id']:
-                collection, id_name = self.get_data_conf(task_type)[:2]
-                update = {'tasks.' + task['task_type']: self.STATUS_PICKED}
-                self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
+            self.update_doc(task, self.STATUS_PICKED)
 
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
@@ -258,13 +255,7 @@ class ReturnTaskApi(TaskHandler):
             if r.matched_count:
                 self.add_op_log('return_task', context=task_id, target_id=task['_id'])
             self.release_task_lock(task)
-
-            # 更新doc的任务状态
-            if task['doc_id']:
-                collection, id_name = self.get_data_conf(task['task_type'])[:2]
-                update = {'tasks.' + task['task_type']: self.STATUS_RETURNED}
-                self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
-
+            self.update_doc(task, self.STATUS_RETURNED)
             return self.send_data_response()
 
         except DbError as error:
@@ -292,11 +283,7 @@ class RepublishTaskApi(TaskHandler):
             # 释放数据锁
             self.release_task_lock(task)
             # 更新doc的任务状态
-            if task['doc_id']:
-                collection, id_name = self.get_data_conf(task['task_type'])[:2]
-                update = {'tasks.' + task['task_type']: self.STATUS_PUBLISHED}
-                self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
-
+            self.update_doc(task, self.STATUS_PUBLISHED)
             return self.send_data_response()
 
         except DbError as error:
@@ -322,18 +309,9 @@ class DeleteTasksApi(TaskHandler):
             }))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
             self.add_op_log('delete_task', target_id=_ids)
-
             # 更新doc的任务状态
-            task2doc = dict()
-            for t in tasks:
-                doc_ids = task2doc.get(t['task_type']) or []
-                if t['doc_id']:
-                    task2doc[t['task_type']] = doc_ids + [t['doc_id']]
-            for task_type, doc_ids in task2doc.items():
-                if doc_ids:
-                    collection, id_name = self.get_data_conf(task_type)[:2]
-                    self.db[collection].update_many({id_name: {'$in': doc_ids}}, {'$unset': {'tasks.' + task_type: ''}})
-
+            for task in tasks:
+                self.update_doc(task)
             return self.send_data_response({'count': r.deleted_count})
 
         except DbError as error:
@@ -390,10 +368,7 @@ class AssignTasksApi(TaskHandler):
                 }})
                 assigned.append(task['doc_id'])
                 # 更新doc的任务状态
-                if task['doc_id']:
-                    collection, id_name = self.get_data_conf(task['task_type'])[:2]
-                    update = {'tasks.' + task['task_type']: self.STATUS_PICKED}
-                    self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
+                self.update_doc(task, self.STATUS_PICKED)
 
             log['lock_failed'] = lock_failed
             log['assigned'] = assigned

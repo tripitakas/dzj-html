@@ -99,7 +99,7 @@ class TaskHandler(BaseHandler, Task):
         self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         self.add_op_log('submit_%s' % task['task_type'], target_id=task['_id'])
         self.release_task_lock(task, update_level=True)
-        self._update_doc(task)
+        self.update_doc(task, self.STATUS_FINISHED)
         if task['doc_id']:
             collection, id_name = self.get_data_conf(task['task_type'])[:2]
             update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
@@ -117,15 +117,18 @@ class TaskHandler(BaseHandler, Task):
             unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
             if _task['status'] == self.STATUS_PENDING and not unfinished:
                 update.update({'status': self.STATUS_PUBLISHED})
-                self._update_doc(_task)
+                self.update_doc(_task, self.STATUS_PUBLISHED)
             self.db.task.update_one({'_id': _task['_id']}, {'$set': update})
 
-    def _update_doc(self, task):
+    def update_doc(self, task, status=None):
         """ 更新任务所关联数据的任务状态"""
         if task['doc_id']:
             collection, id_name = self.get_data_conf(task['task_type'])[:2]
-            update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
-            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
+            condition = {id_name: task['doc_id']}
+            if status:
+                self.db[collection].update_one(condition, {'$set': {'tasks.' + task['task_type']: status}})
+            else:
+                self.db[collection].update_one(condition, {'$unset': {'tasks.' + task['task_type']: ''}})
 
     """ 数据锁介绍
     1）数据锁的目的：

@@ -13,7 +13,7 @@ def main(db_name='tripitaka', uri='localhost'):
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
     fields2index = {
-        'page': ['name', 'page_code', 'source'],
+        'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
         'user': ['name', 'email', 'phone'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }
