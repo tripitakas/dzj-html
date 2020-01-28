@@ -85,7 +85,7 @@
         <h4 class=" col-sm-2 control-label">任务类型</h4>
         <div class="col-sm-10">
           <select class="form-control task_type">
-            <option value="">所有</option>
+            <option value=""></option>
             {% for k,name in handler.get_page_tasks().items() %}
             {% if params.get('task_type') and params.get('task_type') == k %}
             <option value="{{k}}" selected="selected">{{name}}</option>
@@ -98,7 +98,7 @@
         <h4 class="col-sm-2 control-label">任务状态</h4>
         <div class="col-sm-10">
           <select class="form-control status">
-            <option value="">所有</option>
+            <option value=""></option>
             {% for k,v in handler.task_statuses.items() %}
             {% if params.get('status') and params.get('status') == k %}
             <option value="{{k}}" selected="selected">{{v}}</option>

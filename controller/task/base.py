@@ -98,23 +98,30 @@ class TaskHandler(BaseHandler, Task):
         update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
         self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         self.add_op_log('submit_%s' % task['task_type'], target_id=task['_id'])
-        # 释放数据锁，并更新数据等级
         self.release_task_lock(task, update_level=True)
+        self._update_doc(task)
+        if task['doc_id']:
+            collection, id_name = self.get_data_conf(task['task_type'])[:2]
+            update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
         # 更新后置任务
         condition = dict(collection=task['collection'], id_name=task['id_name'], doc_id=task['doc_id'])
         tasks = list(self.db.task.find(condition))
         finished_types = [t['task_type'] for t in tasks if t['status'] == self.STATUS_FINISHED]
-        for task in tasks:
+        for _task in tasks:
             # 检查任务task的所有前置任务的状态
-            pre_tasks = self.prop(task, 'pre_tasks', {})
+            pre_tasks = self.prop(_task, 'pre_tasks', {})
             pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
             update = {'pre_tasks': pre_tasks}
             # 如果当前任务为悬挂，且所有前置任务均已完成，则修改状态为已发布
             unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
-            if task['status'] == self.STATUS_PENDING and not unfinished:
+            if _task['status'] == self.STATUS_PENDING and not unfinished:
                 update.update({'status': self.STATUS_PUBLISHED})
-            self.db.task.update_one({'_id': task['_id']}, {'$set': update})
-        # 更新doc的任务状态
+                self._update_doc(_task)
+            self.db.task.update_one({'_id': _task['_id']}, {'$set': update})
+
+    def _update_doc(self, task):
+        """ 更新任务所关联数据的任务状态"""
         if task['doc_id']:
             collection, id_name = self.get_data_conf(task['task_type'])[:2]
             update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
