@@ -265,7 +265,7 @@
   // 获取任务数据
   function getSubmitData(submit) {
     var data = {submit: submit, step: 'orders', box_type: 'chars', boxes: JSON.stringify($.cut.exportBoxes())};
-    if ($.cut.isLinkChanged()) {
+    if ($.cut.isLinkChanged() || 1) {
       var r = $.cut.getCharsCol();
       data.error = r.error;
       data.chars_col = r.chars_col;
