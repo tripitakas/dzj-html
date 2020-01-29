@@ -90,7 +90,7 @@
         <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img fl" id="toggle-more" title="更多"/>
         <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
         <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly or mode == 'admin' else ''}}" id="save-task" title="保存"/>
+        <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
         <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
         {% if mode == 'browse' %}
