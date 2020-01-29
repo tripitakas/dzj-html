@@ -15,23 +15,20 @@ class CutTool(object):
     @classmethod
     def sort(cls, chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
-            max_id = max([c.get('id', 0) for c in chars]) if chars else 0
             for c in chars:
-                if not c.get('id'):
-                    max_id += 1
-                    c['id'] = max_id
+                c['cid'] = c.get('cid') or max(int(c1.get('cid', 0)) for c1 in chars) + 1
 
         def find_by_id(id_):
-            return ([c for c in chars if c['id'] == id_] + [None])[0]
+            return ([c for c in chars if c['cid'] == id_] + [None])[0]
 
         zero_char_id = []
         if not chars_col:
             if cls.get_invalid_char_ids(chars):
-                zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, layout_type)
+                zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, layout_type or 2)
             chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
             init_id()
             col_ids = sorted(list(set([c['block_no'] * 100 + c['line_no'] for c in chars])))
-            chars_col = [[c['id'] for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
+            chars_col = [[c['cid'] for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
                          for col_id in col_ids]
         else:
             assert blocks
@@ -137,6 +134,8 @@ class CutTool(object):
     @classmethod
     def char_render(cls, page, layout, **kwargs):
         """ 生成字序编号 """
+        for c in page['chars']:
+            c['cid'] = c.get('cid') or max(int(c1.get('cid', 0)) for c1 in page['chars']) + 1
         need_ren = CutTool.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
@@ -199,3 +198,65 @@ class CutTool(object):
             c.pop('txt', None)
 
         return page
+
+    @staticmethod
+    def merge_narrow_columns(columns):
+        """ 合并窄列"""
+        if len(columns) < 3:
+            return columns
+        ws = [c['w'] for c in columns]
+        ws.sort(reverse=True)
+        max_w = max(ws) * 1.1
+        threshold = ws[2] * 0.75
+        ret_columns = [columns[0]]
+        for cur in columns[1:]:
+            last = ret_columns[-1]
+            x, w = cur['x'], last['x'] + last['w'] - cur['x']
+            b_cur, b_last = cur.get('block_no', 0), last.get('block_no', 0)
+            if b_cur == b_last and w < max_w and cur['w'] < threshold and last['w'] < threshold:
+                y = min([cur['y'], last['y']])
+                h = max([cur['y'] + cur['h'], last['y'] + last['h']]) - y
+                ret_columns[-1].update(dict(x=round(x, 2), y=round(y, 2), w=round(w, 2), h=round(h, 2)))
+            else:
+                ret_columns.append(cur)
+        return ret_columns
+
+    @classmethod
+    def deduplicate_columns(cls, columns):
+        """ 删除冗余的列"""
+        if len(columns) < 3:
+            return columns
+        ws = [c['w'] for c in columns]
+        ws.sort(reverse=True)
+        threshold = ws[2] * 0.75
+        ret_columns = [columns[0]]
+        for cur in columns[1:]:
+            last = ret_columns[-1]
+            ratio1 = cls.box_overlap(last, cur, 1)
+            # 检查上一个字框，如果是窄框且重复度超过0.45，或者是大框且重复度超过0.55时，都将去除
+            if (last['w'] < threshold and ratio1 > 0.45) or (last['w'] >= threshold and ratio1 > 0.55):
+                ret_columns.pop()
+            # 检查当前字框
+            ratio2 = cls.box_overlap(last, cur, 2)
+            if (cur['w'] < threshold and ratio2 < 0.45) or (cur['w'] >= threshold and ratio2 < 0.55):
+                ret_columns.append(cur)
+        return ret_columns
+
+    @staticmethod
+    def box_overlap(box1, box2, ratio=0):
+        """ 计算两个框的交叉面积
+        :param ratio, 0-不计算比例，1-计算和第一个框的比例，2-计算和第二个框的比例"""
+        x1, y1, w1, h1 = box1['x'], box1['y'], box1['w'], box1['h']
+        x2, y2, w2, h2 = box2['x'], box2['y'], box2['w'], box2['h']
+        if x1 > x2 + w2 or x2 > x1 + w1:
+            return 0
+        if y1 > y2 + h2 or y2 > y1 + h1:
+            return 0
+        col = abs(min(x1 + w1, x2 + w2) - max(x1, x2))
+        row = abs(min(y1 + h1, y2 + h2) - max(y1, y2))
+        overlap = col * row
+        if ratio == 1:
+            return round(overlap / (w1 * h1), 2)
+        if ratio == 2:
+            return round(overlap / (w2 * h2), 2)
+        return overlap

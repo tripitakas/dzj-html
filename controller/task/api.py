@@ -357,7 +357,7 @@ class AssignTasksApi(TaskHandler):
                 # 尝试分配数据锁
                 shared_field = self.get_shared_field(task['task_type'])
                 if shared_field and task.get('doc_id'):
-                    r = self.assign_task_lock(task['doc_id'], shared_field, task['task_type'])
+                    r = self.assign_task_lock(task['doc_id'], shared_field, task['task_type'], data['user_id'])
                     if r is not True:
                         lock_failed.append(task['doc_id'] + ':' + r[1])
                         continue

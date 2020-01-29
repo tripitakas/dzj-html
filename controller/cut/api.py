@@ -107,10 +107,11 @@ class CutTaskApi(TaskHandler):
 
     @staticmethod
     def reorder_chars(data, page):
-        columns = char_reorder(data['boxes'], page['blocks'])
-        if columns and len(columns) != len(page['columns']):
-            print(columns)
-        return columns
+        if 0:  # 废弃
+            columns = char_reorder(data['boxes'], page['blocks'])
+            if columns and len(columns) != len(page['columns']):
+                print(columns)
+            return columns
 
 
 class CutEditApi(TaskHandler):
@@ -145,7 +146,7 @@ class CutEditApi(TaskHandler):
                 layout_type = data.get('layout') or page.get('layout_type')  # 0: 原始字序
                 CutTool.calc(blocks, columns, chars, chars_col, layout_type)
             else:
-                CutTaskApi.reorder_chars(data, page)
+                pass  # CutTaskApi.reorder_chars(data, page)
             data_field = CutTaskApi.step2field.get(data['step'])
             self.db.page.update_one({'name': page_name}, {'$set': {data_field: data['boxes']}})
             self.add_op_log('save_edit_%s' % data_field, context=page_name, target_id=page['_id'])

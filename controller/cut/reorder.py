@@ -1,8 +1,8 @@
-from operator import itemgetter
 from .tool import *
+from .v2 import calc
 
 
-def char_reorder(chars, blocks=None, sort=True, remove_outside=True, img_file=''):
+def char_reorder(chars, blocks=None, columns_force=None, sort=True, remove_outside=True, img_file=''):
     columns = []
     blocks = blocks or [0]
     if not chars:
@@ -30,6 +30,8 @@ def char_reorder(chars, blocks=None, sort=True, remove_outside=True, img_file=''
                     char.update(dict(block_no=i + 1, line_no=j + 1, char_no=ci + 1, no=ci + 1,
                                      char_id='b%dc%dc%d' % (i + 1, j + 1, ci + 1)))
                     val['txt'] += char.get('txt', '')
+                if not val['txt']:
+                    val.pop('txt')
     if sort:
         for i, c in enumerate(chars):
             c['index'] = i
@@ -39,7 +41,26 @@ def char_reorder(chars, blocks=None, sort=True, remove_outside=True, img_file=''
                 len(chars) - len(new_chars), len(chars), len(new_chars), img_file))
             if not remove_outside:
                 new_chars = chars
-        new_chars.sort(key=itemgetter('block_no', 'line_no', 'char_no'))
+        sort_chars(new_chars, columns, columns_force or len(blocks) > 1 and [
+            dict(x=b[0], y=b[1], w=b[2] - b[0], h=b[3] - b[1]) for b in blocks] or [])
         chars[:] = new_chars
+        for c in chars:
+            c['cid'] = c.get('cid') or max(int(c1.get('cid', 0)) for c1 in chars) + 1
 
-    return columns
+    return columns_force or columns
+
+
+def sort_chars(chars, columns, blocks):
+    """根据坐标对字框排序和生成编号"""
+    ids0 = {}
+    new_chars = calc(chars, blocks if len(blocks) > 1 else [dict(x=0, y=0, w=10000, h=10000)], columns)
+    assert len(new_chars) == len(chars)
+    for c_i, c in enumerate(new_chars):
+        if not c['column_order']:
+            zero_key = 'b%dc%d' % (c['block_id'], c['column_id'])
+            ids0[zero_key] = ids0.get(zero_key, 100) + 1
+            c['column_order'] = ids0[zero_key]
+        chars[c_i]['char_id'] = 'b%dc%dc%d' % (c['block_id'], c['column_id'], c['column_order'])
+        chars[c_i]['block_no'] = c['block_id']
+        chars[c_i]['line_no'] = c['column_id']
+        chars[c_i]['char_no'] = chars[c_i]['no'] = c['column_order']

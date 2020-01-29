@@ -178,7 +178,7 @@
         <div class="bd">
           {% for i,f in enumerate(fields) %}
           <div class="sutra-text {{f if (which in fields and f == which) or (which not in fields and i == 0) else f + ' hide'}}">
-            <textarea class="form-control" rows="{{len(texts[f].split('\n'))+1}}" {{'readonly' if f == 'text' and page.get('txt_html') else ''}}>{% raw texts[f] %}</textarea>
+            <textarea class="form-control" rows="{{len(texts[f].split('\n'))+3}}" {{'readonly' if f == 'text' and page.get('txt_html') else ''}}>{% raw texts[f] %}</textarea>
           </div>
           {% end %}
         </div>

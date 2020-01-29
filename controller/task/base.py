@@ -6,6 +6,7 @@
 """
 import re
 from datetime import datetime
+from bson.objectid import ObjectId
 from controller import auth
 from controller import errors as e
 from controller.task.task import Task
@@ -237,7 +238,7 @@ class TaskHandler(BaseHandler, Task):
         r = self.db[collection].update_many(condition, {'$set': {'lock.%s' % shared_field: dict()}})
         return r.matched_count
 
-    def assign_task_lock(self, doc_id, shared_field, task_type):
+    def assign_task_lock(self, doc_id, shared_field, task_type, user_id=None):
         """ 将数据的长时数据锁分配给任务。成功时返回True，失败时返回错误代码。
         如果数据锁已经分配给了其它任务，则分配失败。分配任务数据锁时，将忽略临时数据锁。
         """
@@ -255,8 +256,14 @@ class TaskHandler(BaseHandler, Task):
         qualification = dict(lock_type='task', tasks=task_type)
         shared_field_meta = self.data_auth_maps[shared_field]
         id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+        if user_id:
+            user = self.db.user.find_one({'_id': ObjectId(user_id)})
+            if not user:
+                return e.no_user
+        else:
+            user = self.current_user
         lock = {'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
-                'locked_by': self.current_user['name'], 'locked_user_id': self.current_user['_id']}
+                'locked_by': user['name'], 'locked_user_id': user['_id']}
         r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
             'lock.' + shared_field: lock, 'level.' + shared_field: conf_level,
         }})
