@@ -24,7 +24,7 @@ class CutTool(object):
         zero_char_id = []
         if not chars_col:
             if cls.get_invalid_char_ids(chars):
-                zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, layout_type)
+                zero_char_id, layout_type = cls.sort_chars(chars, columns, blocks, layout_type or 2)
             chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
             init_id()
             col_ids = sorted(list(set([c['block_no'] * 100 + c['line_no'] for c in chars])))
