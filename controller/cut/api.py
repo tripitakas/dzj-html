@@ -107,10 +107,11 @@ class CutTaskApi(TaskHandler):
 
     @staticmethod
     def reorder_chars(data, page):
-        columns = char_reorder(data['boxes'], page['blocks'])
-        if columns and len(columns) != len(page['columns']):
-            print(columns)
-        return columns
+        if 0:  # 废弃
+            columns = char_reorder(data['boxes'], page['blocks'])
+            if columns and len(columns) != len(page['columns']):
+                print(columns)
+            return columns
 
 
 class CutEditApi(TaskHandler):
