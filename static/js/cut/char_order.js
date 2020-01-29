@@ -90,7 +90,7 @@
   CharNode.prototype = {
     // 得到编号
     getId: function () {
-      return this.char.char_id + (this.char.id ? '#' + this.char.id : '');
+      return this.char.char_id + (this.char.cid ? '#' + this.char.cid : '');
     },
 
     // 是否为合法的字框编号
@@ -818,7 +818,7 @@
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
-          return char.id;
+          return char.cid;
         });
       });
       return {chars_col: chars_col, error: error};
@@ -860,7 +860,7 @@
       cs.checkLinks(routes, heads);
       chars_col = routes.map(function (route) {
         return route.map(function (char) {
-          return char.id;
+          return char.cid;
         });
       });
       cs.buildColumns(chars_col);
