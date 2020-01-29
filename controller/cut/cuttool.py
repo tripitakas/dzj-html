@@ -15,14 +15,11 @@ class CutTool(object):
     @classmethod
     def sort(cls, chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
-            max_id = max([c.get('id', 0) for c in chars]) if chars else 0
             for c in chars:
-                if not c.get('id'):
-                    max_id += 1
-                    c['id'] = max_id
+                c['cid'] = c.get('cid') or max(int(c1.get('cid', 0)) for c1 in chars) + 1
 
         def find_by_id(id_):
-            return ([c for c in chars if c['id'] == id_] + [None])[0]
+            return ([c for c in chars if c['cid'] == id_] + [None])[0]
 
         zero_char_id = []
         if not chars_col:
@@ -31,7 +28,7 @@ class CutTool(object):
             chars.sort(key=itemgetter('block_no', 'line_no', 'no'))
             init_id()
             col_ids = sorted(list(set([c['block_no'] * 100 + c['line_no'] for c in chars])))
-            chars_col = [[c['id'] for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
+            chars_col = [[c['cid'] for c in chars if c['block_no'] * 100 + c['line_no'] == col_id]
                          for col_id in col_ids]
         else:
             assert blocks
@@ -137,6 +134,8 @@ class CutTool(object):
     @classmethod
     def char_render(cls, page, layout, **kwargs):
         """ 生成字序编号 """
+        for c in page['chars']:
+            c['cid'] = c.get('cid') or max(int(c1.get('cid', 0)) for c1 in page['chars']) + 1
         need_ren = CutTool.get_invalid_char_ids(page['chars']) or layout and layout != page.get('layout_type')
         if need_ren:
             page['chars'][0]['char_id'] = ''  # 强制重新生成编号
