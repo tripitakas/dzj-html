@@ -206,7 +206,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         """ 检查当前用户是否拥有相应的数据锁"""
         if task:
             doc_id, shared_field = task['doc_id'], self.get_shared_field(task['task_type'])
-        mode = self.get_task_mode() if not mode else mode
+        mode = self.mode if not mode else mode
         has_lock, error = False, (None, '')
         if shared_field and mode == 'do':
             lock = self.get_data_lock_and_level(doc_id, shared_field)[0]

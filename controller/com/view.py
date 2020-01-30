@@ -60,7 +60,7 @@ class HomeHandler(TaskHandler):
             last_login = get_date_time(date_time=r[0]['create_time'] if r else None)
 
             # 我的任务
-            my_latest_tasks = self.find_many(order='-picked_time', mine=True, size=4)
+            my_latest_tasks = self.find_mine(order='-picked_time', page_size=4)
             finished_count = self.count_task(status=self.STATUS_FINISHED, mine=True)
             unfinished_count = self.count_task(status=self.STATUS_PICKED, mine=True)
 
@@ -90,4 +90,3 @@ class HomeHandler(TaskHandler):
 
         except Exception as error:
             return self.send_db_error(error)
-
