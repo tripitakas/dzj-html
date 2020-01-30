@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 发布页面任务
+@desc: 发布任务
 1. 任务数据已就绪
 已就绪有两种情况：1. 任务不依赖任何数据；2. 任务依赖的数据已就绪，所依赖数据字段由
 Task.task_types[task_type].input_field定义。
@@ -20,7 +20,7 @@ from datetime import datetime
 from controller.task.base import TaskHandler
 
 
-class PublishPageTaskBaseHandler(TaskHandler):
+class PublishBaseHandler(TaskHandler):
     MAX_PUBLISH_RECORDS = 10000  # 用户单次发布任务最大值
 
     def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids, batch=None):
@@ -32,8 +32,7 @@ class PublishPageTaskBaseHandler(TaskHandler):
         log = dict()
         assert task_type in self.task_types
         collection, id_name, input_field, shared_field = self.get_data_conf(task_type)
-        if isinstance(doc_ids, str):
-            doc_ids = doc_ids.replace(' ', '').split(',')
+        doc_ids = doc_ids.replace(' ', '').split(',') if isinstance(doc_ids, str) else doc_ids
 
         # 去掉不存在的数据
         docs = list(self.db[collection].find({id_name: {'$in': doc_ids}}))
@@ -54,8 +53,7 @@ class PublishPageTaskBaseHandler(TaskHandler):
 
         # 去掉已完成的任务（如果不重新发布）
         if not force and doc_ids:
-            status = [self.STATUS_FINISHED]
-            condition = dict(task_type=task_type, status={'$in': status}, doc_id={'$in': list(doc_ids)})
+            condition = dict(task_type=task_type, status=self.STATUS_FINISHED, doc_id={'$in': list(doc_ids)})
             log['finished_before'] = set(t.get('doc_id') for t in self.db.task.find(condition, {'doc_id': 1}))
             output_field = self.prop(self.task_types, '%s.data.output_field' % task_type)
             if output_field:  # output_field不为空表示任务已完成
@@ -72,15 +70,13 @@ class PublishPageTaskBaseHandler(TaskHandler):
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
                 # 针对前置任务均已完成的情况，发布为OPENED
-                finished_tasks = list(self.db.task.find(
-                    {'collection': collection, 'id_name': id_name, 'status': self.STATUS_FINISHED,
-                     'doc_id': {'$in': list(doc_ids)}, 'task_type': {'$in': pre_tasks}},
-                    {'task_type': 1, 'doc_id': 1}
-                ))
+                status = self.STATUS_FINISHED
+                condition = dict(collection=collection, id_name=id_name, task_type={'$in': pre_tasks},
+                                 status=status, doc_id={'$in': list(doc_ids)})
+                finished_tasks = list(self.db.task.find(condition, {'task_type': 1, 'doc_id': 1}))
                 published = self._select_tasks(finished_tasks, pre_tasks)
-                pre_tasks_status = {t: self.STATUS_FINISHED for t in pre_tasks}
-                self._publish_tasks(task_type, self.STATUS_PUBLISHED, priority, pre_tasks_status, steps, published,
-                                    batch)
+                pre_tasks_status = {t: status for t in pre_tasks}
+                self._publish_tasks(task_type, status, priority, pre_tasks_status, steps, published, batch)
                 log['published'] = published
                 doc_ids = doc_ids - set(log['published'])
 
@@ -125,9 +121,10 @@ class PublishPageTaskBaseHandler(TaskHandler):
         pre_tasks = {t: '' for t in pre_tasks} if isinstance(pre_tasks, list) else pre_tasks
         tasks = [get_meta(d) for d in doc_ids]
         self.db.task.insert_many(tasks, ordered=False)
-        # 更新doc的任务状态
-        collection, id_name = self.get_data_conf(task_type)[:2]
-        self.db[collection].update_many({id_name: {'$in': list(doc_ids)}}, {'$set': {'tasks.' + task_type: status}})
+
+        # 更新doc
+        self.update_docs(doc_ids, task_type, status)
+
         self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
 
     @staticmethod

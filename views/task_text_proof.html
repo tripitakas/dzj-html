@@ -160,7 +160,7 @@
             <button class="btn btn-txt btn-default{{'' if texts.get('base') else ' hide'}}" id="show-base">{{labels.get('base') or ''}}</button>
             <button class="btn btn-txt btn-default{{'' if texts.get('cmp1') else ' hide'}}" id="show-cmp1">{{labels.get('cmp1') or ''}}</button>
             <button class="btn btn-txt btn-default{{'' if texts.get('cmp2') else ' hide'}}" id="show-cmp2">{{labels.get('cmp2') or ''}}</button>
-            {% set count = len([t for t in texts.values() if t]) %}
+            {% set count_task = len([t for t in texts.values() if t]) %}
             <button class="btn btn-txt btn-default{{'' if count > 1 else ' hide'}}" id="show-all">所有</button>
           </div>
         </div>

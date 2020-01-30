@@ -28,7 +28,7 @@
               <tbody>
               {% for c in counts %}
               <tr>
-                <td>{{trans.get(c['_id'])}}</td>
+                <td>{{trans.get(c['_id']) or ''}}</td>
                 <td>{{c['count']}}</td>
               </tr>
               {% end %}

@@ -5,9 +5,8 @@
 @time: 2019/10/16
 """
 from datetime import datetime
-from controller.helper import prop
 from controller.model import Model
-from controller import validate as v
+from controller.helper import prop
 from controller.helper import get_date_time
 
 
@@ -21,13 +20,13 @@ class Task(Model):
         {'id': 'task_type', 'name': '类型'},
         {'id': 'collection', 'name': '数据表'},
         {'id': 'id_name', 'name': '主键名'},
-        {'id': 'doc_id', 'name': '数据编码'},
+        {'id': 'doc_id', 'name': '数据ID'},
         {'id': 'status', 'name': '状态'},
         {'id': 'priority', 'name': '优先级'},
         {'id': 'steps', 'name': '步骤'},
         {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'input', 'name': '任务输入参数'},
-        {'id': 'result', 'name': '任务输出结果'},
+        {'id': 'input', 'name': '输入参数'},
+        {'id': 'result', 'name': '输出结果'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -40,14 +39,11 @@ class Task(Model):
         {'id': 'finished_time', 'name': '完成时间'},
         {'id': 'remark', 'name': '备注'},
     ]
-    rules = [
-        (v.not_empty, 'batch', 'task_type'),
-    ]
 
     # 任务类型定义
     # pre_tasks：默认的前置任务
-    # data.id：数据表的主键名称
     # data.collection：任务所对应数据表
+    # data.id：数据表的主键名称
     # data.input_field：任务所依赖的数据字段。如果该字段不为空，则可以发布任务
     # data.output_field：任务输出的字段。如果该字段不为空，则表示任务已完成
     # data.shared_field：任务共享和保护的数据字段
@@ -114,6 +110,23 @@ class Task(Model):
         },
     }
 
+    # 任务状态表
+    STATUS_PUBLISHED = 'published'
+    STATUS_PENDING = 'pending'
+    STATUS_FETCHED = 'fetched'
+    STATUS_PICKED = 'picked'
+    STATUS_FAILED = 'failed'
+    STATUS_RETURNED = 'returned'
+    STATUS_FINISHED = 'finished'
+    task_statuses = {
+        STATUS_PUBLISHED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
+        STATUS_PICKED: '进行中', STATUS_FAILED: '失败', STATUS_RETURNED: '已退回',
+        STATUS_FINISHED: '已完成',
+    }
+
+    # 任务优先级
+    priorities = {3: '高', 2: '中', 1: '低'}
+
     @classmethod
     def all_task_types(cls):
         task_types = cls.task_types.copy()
@@ -158,6 +171,11 @@ class Task(Model):
         return cls.task_names().get(task_type) or task_type
 
     @classmethod
+    def get_steps(cls, task_type):
+        steps = prop(cls.all_task_types(), '%s.steps' % task_type, [])
+        return [s[0] for s in steps] if steps else []
+
+    @classmethod
     def step_names(cls):
         step_names = dict()
         for t in cls.task_types.values():
@@ -189,26 +207,9 @@ class Task(Model):
                     '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
         return value or ''
 
-    # 任务状态表
-    STATUS_PUBLISHED = 'published'
-    STATUS_PENDING = 'pending'
-    STATUS_FETCHED = 'fetched'
-    STATUS_PICKED = 'picked'
-    STATUS_FAILED = 'failed'
-    STATUS_RETURNED = 'returned'
-    STATUS_FINISHED = 'finished'
-    task_statuses = {
-        STATUS_PUBLISHED: '已发布未领取', STATUS_PENDING: '等待前置任务', STATUS_FETCHED: '已获取',
-        STATUS_PICKED: '进行中', STATUS_FAILED: '失败', STATUS_RETURNED: '已退回',
-        STATUS_FINISHED: '已完成',
-    }
-
     @classmethod
     def get_status_name(cls, status):
         return cls.task_statuses.get(status) or status
-
-    # 任务优先级
-    priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
     def get_priority_name(cls, priority):

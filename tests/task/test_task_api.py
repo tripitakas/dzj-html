@@ -338,7 +338,6 @@ class TestTaskApi(APITestCase):
             self.assertTrue(prop(self.parse_response(r4), 'assigned'), msg=task_type)
             self.assertEqual(str(task2['doc_id']), prop(self.parse_response(r4), 'assigned')[0], msg=task_type)
 
-
     def test_get_user_list(self):
         """ 测试获取用户列表 """
         self.login_as_admin()
@@ -377,7 +376,7 @@ class TestTaskApi(APITestCase):
         self.login_as_admin()
         data = dict(import_dirs=['/home/file/base_dir@abc', '/home/file/base_dir@xyz'],
                     page_names=['GL_1056_5_6', 'YB_22_346'], layout='上下一栏')
-        r = self.fetch('/api/task/init_for_test', body={'data': data})
+        r = self.fetch('/api/task/init', body={'data': data})
         self.assert_code(200, r)
 
         # 测试已有图片导入任务

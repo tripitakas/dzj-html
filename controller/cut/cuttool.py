@@ -13,6 +13,16 @@ from .v2 import calc as calc_new
 
 class CutTool(object):
     @classmethod
+    def reorder_chars(cls, chars_col, chars, page=None):
+        """ 根据连线数据重排字序"""
+        return chars
+
+    @classmethod
+    def resort(cls, boxes, box_type, page=None):
+        """ 重新排序"""
+        return boxes
+
+    @classmethod
     def sort(cls, chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
             for c in chars:

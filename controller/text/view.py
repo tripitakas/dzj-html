@@ -15,15 +15,15 @@ from controller.text.texttool import TextTool
 
 class TextProofHandler(PageTaskHandler, TextTool):
     URL = ['/task/text_proof_@num/@task_id',
-           '/task/browse/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
+           '/task/browse/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
     def get(self, num, task_id):
         """ 文字校对页面 """
         try:
             # 检查参数
-            task = self.get_page_task(task_id)
+            task = self.get_task(task_id)
             if not task:
                 return
             page = self.db.page.find_one({'name': task['doc_id']})
@@ -123,7 +123,7 @@ class TextReviewHandler(PageTaskHandler, TextTool):
     def get(self, task_id):
         """ 文字审定页面"""
         try:
-            task = self.get_page_task(task_id)
+            task = self.get_task(task_id)
             if not task:
                 return
             page = self.db.page.find_one({'name': task['doc_id']})
@@ -163,14 +163,14 @@ class TextReviewHandler(PageTaskHandler, TextTool):
 
 class TextHardHandler(TextReviewHandler):
     URL = ['/task/text_hard/@task_id',
-           '/task/browse/text_hard/@task_id',
            '/task/do/text_hard/@task_id',
+           '/task/browse/text_hard/@task_id',
            '/task/update/text_hard/@task_id']
 
     def get(self, task_id):
         """ 难字审定页面 """
         try:
-            task = self.get_page_task(task_id)
+            task = self.get_task(task_id)
             if not task:
                 return
             page = self.db.page.find_one({'name': task['doc_id']})

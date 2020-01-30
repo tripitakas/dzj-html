@@ -39,6 +39,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
         self.config = self.application.config
+        self.error = None
         self.more = {}  # 给子类记录使用
 
     def set_default_headers(self):
@@ -61,14 +62,17 @@ class BaseHandler(CorsMixin, RequestHandler):
         api = '/api/' in p
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
+            self.error = e.need_login
             return self.send_error_response(e.need_login) if api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         try:
             cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
+                self.error = e.no_user
                 return self.send_error_response(e.no_user) if api else self.redirect(login_url)
         except MongoError as error:
+            self.error = error
             return self.send_db_error(error, render=not self.get_query_argument('_raw', 0) and not api)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
@@ -81,7 +85,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 报错，无权访问
         need_roles = get_route_roles(p, m)
         if not need_roles:
+            self.error = e.url_not_config
             return self.send_error_response(e.url_not_config, render=not api)
+        self.error = e.unauthorized
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
         return self.send_error_response(e.unauthorized, render=not api, message=message)
 
@@ -107,10 +113,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
-        # can_access/dumps/to_date_str传递给页面模板
-        kwargs['can_access'] = self.can_access
         kwargs['dumps'] = json_util.dumps
-        kwargs['prop'] = self.prop
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
         if self._finished:  # check_auth 等处报错返回后就不再渲染

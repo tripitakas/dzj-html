@@ -79,7 +79,6 @@ class TripitakaListHandler(BaseHandler):
         """ 藏经列表 """
         fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
         tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
-
         self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
 
 
@@ -90,10 +89,11 @@ class DataListHandler(BaseHandler):
         """ 数据管理"""
         try:
             model = eval(metadata.capitalize())
-            kwargs = model.get_page_kwargs()
+            kwargs = model.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            kwargs['img_actions'] = ['config']
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
@@ -140,7 +140,7 @@ class DataPageInfoHandler(BaseHandler, Page):
 class DataPageHandler(BaseHandler, Page):
 
     @staticmethod
-    def get_data_search_condition(request_query):
+    def get_search_condition(request_query):
         condition, params = dict(), dict()
         for field in ['name', 'source', 'remark']:
             value = get_url_param(field, request_query)
@@ -176,7 +176,7 @@ class DataPageHandler(BaseHandler, Page):
                 if prop(value, 'is_temp'):
                     value = '临时锁<a>解锁</a>'
                 else:
-                    value = '长时锁'
+                    value = '任务锁'
         elif key in ['blocks', 'columns', 'chars']:
             value = '%s个' % len(value)
         elif key in ['ocr', 'ocr_col', 'text']:
@@ -243,7 +243,6 @@ class DataPageListHandler(DataPageHandler):
         {'id': 'level-text', 'name': '文本等级'},
         {'id': 'remark', 'name': '备注'},
     ]
-
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
@@ -261,14 +260,14 @@ class DataPageListHandler(DataPageHandler):
     def get(self):
         """ 页数据管理"""
         try:
-            kwargs = self.get_page_kwargs()
+            kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_data_search_condition(self.request.query)
+                condition, params = self.get_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, Th=TaskHandler,
@@ -297,9 +296,7 @@ class DataPageViewHandler(DataPageHandler):
         {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
             '切分没问题', '切分还可以', '切分不合要求', '文字没问题', '文字还可以', '文字不合要求',
         ]},
-        {'id': 'operation', 'name': '', 'input_type': 'radio', 'options': [
-            '附加', '替换',
-        ]},
+        {'id': 'operation', 'name': '', 'input_type': 'radio', 'options': ['附加', '替换']},
     ]
 
     def get(self, page_code):
@@ -308,7 +305,7 @@ class DataPageViewHandler(DataPageHandler):
             page = self.db.page.find_one({'name': page_code})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
-            condition = self.get_data_search_condition(self.request.query)[0]
+            condition = self.get_search_condition(self.request.query)[0]
             to = self.get_query_argument('to', '')
             if to == 'next':
                 condition['page_code'] = {'$gt': page['page_code']}
@@ -322,12 +319,12 @@ class DataPageViewHandler(DataPageHandler):
                 ))
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            button_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = {f: TextTool.txt2lines(page[f]) for f in fields}
             info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config,
+            self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
                         labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
                         modal_fields=self.modal_fields, remark_fields=self.remark_fields,
                         img_url=self.get_img(page))

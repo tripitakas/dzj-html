@@ -104,16 +104,16 @@
           <div class="title" title="{{page['name']}}"><a href="/data/page/info/{{page['name']}}">{{page['name']}}</a></div>
           <div class="btn-group" style="margin-left: 10px">
             <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img {{'' if button_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
-            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img {{'' if button_config.get('toggle-right') == -1 else 'active'}}" id="toggle-right" title="显隐文字"/>
-            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img {{'active' if button_config.get('toggle-blur') == 1 else ''}}" id="toggle-blur" title="模糊"/>
+            <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img {{'' if btn_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
+            <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img {{'' if btn_config.get('toggle-right') == -1 else 'active'}}" id="toggle-right" title="显隐文字"/>
+            <img src="{{ static_url('imgs/icon_blur.png') }}" class="btn-img {{'active' if btn_config.get('toggle-blur') == 1 else ''}}" id="toggle-blur" title="模糊"/>
             <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
             <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
             <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
-            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img {{'active' if button_config.get('toggle-block') == 1 else ''}}" id="toggle-block" title="显隐栏框"/>
-            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img {{'active' if button_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框"/>
-            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img {{'active' if button_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框"/>
-            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img {{'active' if button_config.get('toggle-order') == 1 else ''}}" id="toggle-order" title="显隐字序"/>
+            <img src="{{ static_url('imgs/icon_block.png') }}" class="btn-img {{'active' if btn_config.get('toggle-block') == 1 else ''}}" id="toggle-block" title="显隐栏框"/>
+            <img src="{{ static_url('imgs/icon_column.png') }}" class="btn-img {{'active' if btn_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框"/>
+            <img src="{{ static_url('imgs/icon_char.png') }}" class="btn-img {{'active' if btn_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框"/>
+            <img src="{{ static_url('imgs/icon_order.png') }}" class="btn-img {{'active' if btn_config.get('toggle-order') == 1 else ''}}" id="toggle-order" title="显隐字序"/>
             <img src="{{ static_url('imgs/icon_edit.png') }}" class="btn-img" id="btn-update" title="修改"/>
           </div>
           <img src="{{ static_url('imgs/icon_more.png') }}" class="btn-img" id="toggle-more" title="更多"/>
@@ -156,7 +156,7 @@
           {% if fields %}
           <label>显示文本：</label>
           <span class="ocr-txt">
-            {% set which = button_config.get('sutra-txt') or '' %}
+            {% set which = btn_config.get('sutra-txt') or '' %}
             {% for i,f in enumerate(fields) %}
             <input type="radio" name="ocr-txt" value="{{f}}" {{'checked' if (which in fields and f == which) or (which not in fields and i == 0) else ''}}>{{labels[f]}}
             {% end %}
@@ -174,7 +174,7 @@
         </div>
       </div>
       {% if fields %}
-      <div class="right{{' hide' if button_config.get('toggle-right') == -1 else ''}}" id="right-region">
+      <div class="right{{' hide' if btn_config.get('toggle-right') == -1 else ''}}" id="right-region">
         <div class="bd">
           {% for i,f in enumerate(fields) %}
           <div class="sutra-text {{f if (which in fields and f == which) or (which not in fields and i == 0) else f + ' hide'}}">
@@ -257,7 +257,7 @@
 <script src="{{static_url('js/nav.js')}}"></script>
 <script>
   var sutraTxt = '';   // 用户选中的当前文本
-  var buttonConfig = decodeJSON('{{button_config}}');
+  var btnConfig = decodeJSON('{{btn_config}}');
   $(document).ready(function () {
     var remark = '{{page.get("remark") or ""}}' || localStorage.getItem('pageRemark');
     $("#remarkModal .remark").val(remark);
@@ -307,7 +307,7 @@
   function go(to) {
     var url = setQueryString('to', to).replace(location.pathname, '/data/page/{{page["name"]}}');
     var config = getConfig();
-    if (JSON.stringify(buttonConfig) !== JSON.stringify(config)) {
+    if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
       postApi('/session/config', {data: {data_page_button: config}}, function (res) {
         location.href = url;
       });
@@ -395,7 +395,7 @@
     if (sutraTxt)
       config['sutra-txt'] = sutraTxt;
     else
-      config['sutra-txt'] = buttonConfig['sutra-txt'] || '';
+      config['sutra-txt'] = btnConfig['sutra-txt'] || '';
     if ($('#remarkModal :radio[name="operation"]:checked').length)
       config['operation'] = $('#remarkModal :radio[name="operation"]:checked').val();
     return config;
@@ -453,12 +453,12 @@
   };
 
   // 初始化设置
-  $.cut.data.image.node.style.display = buttonConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = buttonConfig['toggle-blur'] === -1 ? 1 : 0.2;
-  $('rect.block').css('display', buttonConfig['toggle-block'] === 1 ? 'block' : 'none');
-  $('rect.column').css('display', buttonConfig['toggle-column'] === 1 ? 'block' : 'none');
-  $('rect.char').css('display', buttonConfig['toggle-char'] === 1 ? 'block' : 'none');
-  $.cut.setLink(!(buttonConfig['toggle-order'] === -1));
+  $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
+  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] === -1 ? 1 : 0.2;
+  $('rect.block').css('display', btnConfig['toggle-block'] === 1 ? 'block' : 'none');
+  $('rect.column').css('display', btnConfig['toggle-column'] === 1 ? 'block' : 'none');
+  $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
+  $.cut.setLink(!(btnConfig['toggle-order'] === -1));
 
 </script>
 </body>

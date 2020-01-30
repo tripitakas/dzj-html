@@ -20,7 +20,7 @@ url_placeholder = {
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'metadata': r'tripitaka|sutra|volume|reel|page',
     'shared_field': r'box|text',
-    'box_type': 'block|column|char',
+    'boxType': 'block|column|char',
     'page_code': r'[A-Z]{2}[fb0-9_]*',
     'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
@@ -177,7 +177,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/api/task/init_for_test': ['POST'],
+            '/api/task/init': ['POST'],
             '/task/(lobby|my)/@data_task': ['GET'],
             '/api/task/pick/@data_task': ['POST'],
             '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],

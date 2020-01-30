@@ -117,7 +117,7 @@
             + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";
       }).join('');
       $('#search-results').html($html);
-      $('#result-count').text(res.matches.length);
+      $('#result-count_task').text(res.matches.length);
       $('.tips').removeClass('hide');
       $this.text("检  索");
     });

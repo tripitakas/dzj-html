@@ -219,8 +219,8 @@ class AddPage(object):
         return pages
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', reorder='v2', source='', check_id=True, reset=True,
+def main(db=None, db_name='tripitaka_test', uri='localhost', json_path='', img_path='img', txt_path='txt',
+         txt_field='ocr', kind='', reorder='', source='', check_id=False, reset=True,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数

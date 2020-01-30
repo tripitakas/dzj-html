@@ -54,9 +54,9 @@ class ApiTableHandler(TaskHandler):
 
         def add_handler(url, idx=0):
             added = 0
-            if '@box_type' in url:
+            if '@boxType' in url:
                 for s, box_type in enumerate(['block', 'char', 'column', 'text']):
-                    sub_url = url.replace('@box_type', box_type)
+                    sub_url = url.replace('@boxType', box_type)
                     roles = get_route_roles(sub_url, method)
                     if roles:
                         added += len(roles)

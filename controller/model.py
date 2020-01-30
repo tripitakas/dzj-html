@@ -4,11 +4,11 @@
 @desc: 数据模型定义类。
 数据库字段(fields)定义格式如下:
 {
-    'id': '',  # 字段id
-    'name': '',  # 字段名称
-    'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-    'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
-    'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
+'id': '',  # 字段id
+'name': '',  # 字段名称
+'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
+'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
+'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
 }
 @time: 2019/12/10
 """
@@ -39,6 +39,7 @@ class Model(object):
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
+    img_actions = ['config', 'help']
     actions = [  # 单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '修改'},
@@ -50,14 +51,6 @@ class Model(object):
     def validate(cls, doc, rules=None):
         rules = cls.rules if not rules else rules
         return v.validate(doc, rules)
-
-    @classmethod
-    def get_page_kwargs(cls, fields=None):
-        fields = fields if fields else [
-            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
-            'info_fields', 'operations', 'actions', 'modal_fields'
-        ]
-        return {f: getattr(cls, f) for f in fields}
 
     @classmethod
     def get_fields(cls):
@@ -83,6 +76,14 @@ class Model(object):
         for f in cls.fields:
             if f['name'] == name:
                 return f['id']
+
+    @classmethod
+    def get_template_kwargs(cls, fields=None):
+        fields = fields if fields else [
+            'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
+            'info_fields', 'operations', 'img_actions', 'actions', 'modal_fields'
+        ]
+        return {f: getattr(cls, f) for f in fields}
 
     @classmethod
     def pack_doc(cls, doc):

@@ -1,28 +1,33 @@
 <script src="{{ static_url('js/pick-task.js') }}"></script>
 <script>
   var from = decodeFrom();
-  var taskType = '{{"text_proof" if "text_proof" in task_type else task_type }}';
+  var mode = '{{handler.mode}}';
+  var readonly = '{{handler.readonly}}' === 'True';
+  var pageName = '{{handler.page.get("name") or ""}}';
+  var oriTaskType = '{{handler.task_type}}';
+  var taskId = '{{handler.task.get("_id") or ""}}';
+  var taskType = oriTaskType.indexOf('text_proof') !== -1 ? 'text_proof' : oriTaskType;
 
   $(document).ready(function () {
-    var remark = '{{task.get("remark") or ""}}' || localStorage.getItem('taskRemark');
-    $("#remarkModal .remark").val(remark);
+    var taskRemark = '{{handler.task.get("remark") or ""}}';
+    $("#remarkModal .remark").val(taskRemark || localStorage.getItem('taskRemark'));
   });
 
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if ('{{not readonly and mode in ["edit", "update"] and "cut" in task_type}}' === 'True') {
-      postApi('/data/unlock/box/{{page["name"]}}', {});
-    }
-    if ('{{not readonly and mode in ["edit", "update"] and "text" in task_type}}' === 'True') {
-      postApi('/data/unlock/text/{{page["name"]}}', {});
+    if (mode in ["edit", "update"] && !readonly) {
+      if (taskType.indexOf("cut") !== -1)
+        postApi('/data/unlock/box/' + pageName, {});
+      else if (taskType.indexOf("text") !== -1)
+        postApi('/data/unlock/text/' + pageName, {});
     }
     // 返回
     if (from) {
       window.location = from;
-    } else if ('{{mode}}' === 'do') {
+    } else if (mode === 'do') {
       window.location = '/task/lobby/' + taskType;
-    } else if ('{{mode}}' === 'update') {
+    } else if (mode === 'update') {
       window.location = '/task/my/' + taskType;
     } else {
       window.history.back();
@@ -36,7 +41,7 @@
       showTips('保存中‧‧‧');
       postApi('{{current_path}}', {data: data}, function () {
         if (!submit)
-          showSuccess('保存成功', '{{page["name"]}} ' + '已保存成功');
+          showSuccess('保存成功', pageName + ' 已保存成功');
         goto(url, 1000);
       });
     }
@@ -50,8 +55,8 @@
       postApi('{{current_path}}', {data: data}, function () {
         showSuccess('成功', '已提交。');
         setTimeout(function () {
-          if ('do' === '{{mode}}') {
-            pick('/task/pick/{{task_type}}');
+          if (mode === 'do') {
+            pick('/task/pick/' + taskType);
           } else {
             window.leave();
           }
@@ -62,9 +67,9 @@
 
   // 上一步
   $(document).on("click", '#prev-step', function () {
-    var prev = '{{"%s?step=%s" % (current_path, steps.get("prev"))}}';
+    var prev = '{{"%s?step=%s" % (current_path, handler.steps.get("prev"))}}';
     var url = from ? prev + '&from=' + from : prev;
-    if ('{{readonly}}' === 'False') {
+    if (!readonly) {
       saveTask(false, url);
     } else {
       goto(url, 500);
@@ -73,9 +78,9 @@
 
   // 下一步
   $(document).on("click", '#next-step', function () {
-    var next = '{{"%s?step=%s" % (current_path, steps.get("next"))}}';
+    var next = '{{"%s?step=%s" % (current_path, handler.steps.get("next"))}}';
     var url = from ? next + '&from=' + from : next;
-    if ('{{readonly}}' === 'False') {
+    if (!readonly) {
       saveTask(true, url);
     } else {
       goto(url, 500);
@@ -85,7 +90,7 @@
   // 保存任务
   $(document).on("click", '#save-task', function () {
     var search = location.search;
-    if ('{{steps["current"]}}' === 'orders')
+    if ('{{handler.steps["current"]}}' === 'orders')
       search = deleteQueryString(location.search, 'layout');
     saveTask(false, location.pathname + search);
   });
@@ -96,20 +101,20 @@
     if (!reason.length) {
       return showError('请填写退回理由', '尚未填写退回理由');
     }
-    postApi('/task/return/{{task.get("_id") or ""}}', {data: {reason: reason}}, function () {
-      showSuccess('退回成功', '{{page["name"]}} ' + '已退回成功。');
+    postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
+      showSuccess('退回成功', pageName + ' 已退回成功。');
       goto('/task/lobby/' + taskType, 1000);
     });
   });
 
   // 查看页面
   $(document).on("click", '#view-page', function () {
-    location.href = '/data/page/{{task.get("doc_id", "")}}?from=' + encodeFrom();
+    location.href = '/data/page/' + pageName + '?from=' + encodeFrom();
   });
 
   // 浏览任务
   function go(to) {
-    var path = '/task/browse/{{task.get("task_type") or ""}}/{{task.get("_id") or ""}}';
+    var path = '/task/browse/' + taskType + '/' + taskId;
     location.href = path + setQueryString('to', to, true);
   }
 
@@ -132,9 +137,9 @@
     if (!remark.length)
       return showWarning('请输入备注内容');
     localStorage.setItem('taskRemark', remark);
-    var data = {_id: '{{task.get("_id", "")}}', remark: remark};
+    var data = {_id: taskId, remark: remark};
     postApi('/task/remark', {data: data}, function () {
-      showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
+      showSuccess('成功', pageName + ' 备注成功。');
       go(getQueryString('to') || 'next');
     });
   });

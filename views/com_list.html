@@ -55,8 +55,8 @@
                 {% end %}
               </div>
               <div style="margin: 5px; display: inline-block; cursor: pointer">
-                <img src="{{ static_url('imgs/icon_config.png') }}" class="btn-img btn-config" data-toggle="modal" data-target="#configModal" title="配置"/>
-                <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img btn-help" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+                <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img btn-config {{'' if 'config' in img_actions else 'hide'}}" data-toggle="modal" data-target="#configModal" title="配置"/>
+                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img btn-help {{'' if 'help' in img_actions else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"/>
               </div>
             </div>
             {% end %}

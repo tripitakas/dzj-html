@@ -1,7 +1,12 @@
-<div class="btn-group right">
-  <img src="{{ static_url('imgs/icon_prev.png') }}" class="btn-img {{'hide' if steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
-  <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-  <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
-  <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
-  <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img {{'' if steps.get('is_last') and not readonly else 'hide'}}" id="submit-task" title="提交"/>
-</div>
+<img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
+<img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if not handler.readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+<img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
+<img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
+<img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
+{% if handler.mode == 'browse' %}
+<div class="btn-txt btn-gap"></div>
+<img src="{{static_url('imgs/icon_view.png')}}" class="btn-img" id="view-page" title="查看页面"/>
+<img src="{{static_url('imgs/icon_remark.png')}}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注"/>
+<img src="{{static_url('imgs/icon_prev2.png')}}" class="btn-img" id="prev-task" title="前一个任务"/>
+<img src="{{static_url('imgs/icon_next2.png')}}" class="btn-img" id="next-task" title="后一个任务"/>
+{% end %}
