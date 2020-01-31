@@ -338,7 +338,7 @@
           if (node.isValidId()) {
             var cen = node.getCenter(), nums = node.getId().replace(/#.+$/, '').split('c');
             self.label.push(data.paper.text(cen.x, cen.y, nums[2])
-                .attr({'font-size': (14 * Math.min($.cut.data.ratio, 2.5)) + 'px'}));
+                .attr({'font-size': (14 * Math.min($.cut.data.ratio, 1.5)) + 'px'}));
           }
         });
       }
