@@ -153,7 +153,7 @@ role_route_maps = {
             '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
-    '任务管理员': {
+    '任务浏览员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
@@ -164,6 +164,12 @@ role_route_maps = {
             '/task/browse/@task_type/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
             '/api/user/list': ['POST'],
+        }
+    },
+    '任务管理员': {
+        'is_assignable': True,
+        'roles': ['普通用户', '任务浏览员'],
+        'routes': {
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/publish/page': ['POST'],
             '/api/task/publish/import': ['POST'],

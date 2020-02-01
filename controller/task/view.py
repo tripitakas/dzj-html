@@ -14,7 +14,6 @@ from controller.task.base import TaskHandler
 class DocTaskAdminHandler(TaskHandler):
     URL = '/task/admin/(page)'
 
-    collection = 'page'
     page_title = '页任务管理'
     search_tips = '请搜索页编码、批次号或备注'
     search_fields = ['doc_id', 'batch', 'remark']
@@ -36,41 +35,37 @@ class DocTaskAdminHandler(TaskHandler):
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布'},
     ]
-    table_fields = [
-        {'id': '_id', 'name': '主键'},
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型', 'filter': TaskHandler.get_doc_tasks(collection)},
-        {'id': 'status', 'name': '状态', 'filter': TaskHandler.task_statuses},
-        {'id': 'priority', 'name': '优先级', 'filter': TaskHandler.priorities},
-        {'id': 'steps', 'name': '步骤'},
-        {'id': 'pre_tasks', 'name': '前置任务'},
-        {'id': 'return_reason', 'name': '退回理由'},
-        {'id': 'create_time', 'name': '创建时间'},
-        {'id': 'updated_time', 'name': '更新时间'},
-        {'id': 'publish_time', 'name': '发布时间'},
-        {'id': 'publish_by', 'name': '发布人'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'picked_by', 'name': '领取人'},
-        {'id': 'finished_time', 'name': '完成时间'},
-        {'id': 'remark', 'name': '备注'},
-    ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
 
     def get(self, collection):
         """ 任务管理-页任务管理"""
         try:
-            self.collection = collection
             # 模板参数
             kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            # 检索条件
-            condition, params = self.get_search_condition(self.request.query)
-            condition.update(dict(collection=collection))
-            # 查询数据
+            kwargs['table_fields'] = [
+                {'id': '_id', 'name': '主键'},
+                {'id': 'doc_id', 'name': '页编码'},
+                {'id': 'batch', 'name': '批次号'},
+                {'id': 'task_type', 'name': '类型', 'filter': TaskHandler.get_task_types(collection)},
+                {'id': 'status', 'name': '状态', 'filter': TaskHandler.task_statuses},
+                {'id': 'priority', 'name': '优先级', 'filter': TaskHandler.priorities},
+                {'id': 'steps', 'name': '步骤'},
+                {'id': 'pre_tasks', 'name': '前置任务'},
+                {'id': 'return_reason', 'name': '退回理由'},
+                {'id': 'create_time', 'name': '创建时间'},
+                {'id': 'updated_time', 'name': '更新时间'},
+                {'id': 'publish_time', 'name': '发布时间'},
+                {'id': 'publish_by', 'name': '发布人'},
+                {'id': 'picked_time', 'name': '领取时间'},
+                {'id': 'picked_by', 'name': '领取人'},
+                {'id': 'finished_time', 'name': '完成时间'},
+                {'id': 'remark', 'name': '备注'},
+            ]
+            condition, params = self.get_task_search_condition(self.request.query, collection)
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
                 'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
@@ -147,8 +142,7 @@ class DocTaskStatisticHandler(TaskHandler):
     def get(self, collection):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
-            condition = self.get_search_condition(self.request.query)[0]
-            condition.update(dict(collection=collection))
+            condition = self.get_task_search_condition(self.request.query, collection)[0]
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status']:
                 return self.send_error_response(e.invalid_statistic_type, message='只能按用户、任务类型或任务状态统计')
@@ -227,19 +221,13 @@ class MyTaskHandler(TaskHandler):
 class TaskDetailHandler(TaskHandler):
     URL = '/task/detail/@task_id'
 
-    display_fields = [
-        'doc_id', 'task_type', 'status', 'priority', 'pre_tasks', 'steps',
-        'publish_time', 'publish_by', 'picked_time', 'picked_by',
-        'updated_time', 'finished_time', 'message'
-    ]
-
     def get(self, task_id):
         """ 页面任务详情"""
         try:
             task = self.db.task.find_one({'_id': ObjectId(task_id)})
             if not task:
                 self.send_error_response(e.no_object, message='没有找到该任务')
-            self.render('task_detail.html', task=task, display_fields=self.display_fields)
+            self.render('task_detail.html', task=task)
 
         except Exception as error:
             return self.send_db_error(error)

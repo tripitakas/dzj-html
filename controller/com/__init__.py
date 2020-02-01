@@ -15,5 +15,5 @@ handlers = [
 modules = {
     'ComLeft': module.ComLeft, 'ComHead': module.ComHead, 'Pager': module.Pager, 'ComTable': module.ComTable,
     'ComModal': module.ComModal, 'ReturnModal': module.ReturnModal, 'DoubtModal': module.DoubtModal,
-    'RemarkModal': module.RemarkModal,
+    'TaskRemarkModal': module.TaskRemarkModal, 'PageRemarkModal': module.PageRemarkModal,
 }

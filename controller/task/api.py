@@ -100,7 +100,7 @@ class PublishDocTasksApi(PublishBaseHandler):
                 condition[input_field] = {"$nin": [None, '']}
             doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         elif data.get('search'):
-            condition = DataPageHandler.get_search_condition(data['search'])[0]
+            condition = DataPageHandler.get_page_search_condition(data['search'])[0]
             query = self.db[collection].find(condition)
             page = get_url_param('page', data['search'])
             if page:
@@ -201,12 +201,16 @@ class UpdateTaskApi(TaskHandler):
             errs = v.validate(data, rules)
             if errs:
                 self.send_error_response(errs)
+
+            update = {field: data[field]}
             if data.get('_id'):
-                r = self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': {field: data[field]}})
+                if data.get('is_sample'):
+                    update['is_sample'] = True if data['is_sample'] == '是' else False
+                r = self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': update})
                 self.add_op_log('update_task', context=data[field], target_id=data['_id'])
             else:
                 _ids = [ObjectId(t) for t in data['_ids']]
-                r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': {field: data[field]}})
+                r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
                 self.add_op_log('update_task', context=data[field], target_id=_ids)
             self.send_data_response(dict(count=r.matched_count))
 

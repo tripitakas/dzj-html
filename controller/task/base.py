@@ -89,7 +89,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if not to:
             return task, None
         # 查找目标任务。to为prev时，查找前一个任务，即_id比task_id大的任务
-        condition = self.get_search_condition(self.request.query)[0]
+        condition = self.get_task_search_condition(self.request.query)[0]
         condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
         to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
         if not to_task:
@@ -317,9 +317,9 @@ class TaskHandler(BaseHandler, Task, Lock):
         return has_lock, error
 
     @staticmethod
-    def get_search_condition(request_query):
+    def get_task_search_condition(request_query, collection=None):
         """ 获取任务的查询条件"""
-        condition, params = dict(), dict()
+        condition, params = dict(collection=collection) if collection else dict(), dict()
         for field in ['task_type', 'collection', 'status', 'priority']:
             value = get_url_param(field, request_query)
             if value:

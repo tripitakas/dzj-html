@@ -33,6 +33,7 @@
         {% end %}
       </div>
       <div class="right">
+        <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#autoPickModal" title="自动领任务"/>
         <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
         <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if not handler.readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
         <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
@@ -55,8 +56,9 @@
 </div>
 
 <div class="panel-body" style="padding: 0">
+  {% module ComModal([{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}], 'autoPickModal', '提交后是否自动领取新任务？') %}
   {% module ReturnModal() %}
-  {% module RemarkModal() %}
+  {% module TaskRemarkModal() %}
   {% block custom-modal %}
   {% end %}
 </div>

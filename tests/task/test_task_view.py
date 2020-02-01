@@ -34,7 +34,7 @@ class TestTaskView(APITestCase):
         """ 测试任务管理、任务大厅、我的任务列表页面 """
         # 发布任务
         self.login_as_admin()
-        task_types = Th.get_doc_tasks('page')
+        task_types = Th.get_task_types('page')
         docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         for task_type in task_types:
             r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))

@@ -161,12 +161,25 @@ class DoubtModal(UIModule):
                                   buttons=buttons)
 
 
-class RemarkModal(UIModule):
-    def render(self, remark_fields=None):
+class TaskRemarkModal(UIModule):
+    def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        fields = [
-            {'id': 'remark', 'name': ''},
-            {'id': 'options', 'name': '', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
+        modal_fields = [
+            {'id': 'is_sample', 'name': '示例任务', 'input_type': 'radio', 'options': ['是', '否']},
+            {'id': 'remark', 'name': '备注内容'},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
-        return self.render_string('com_modal.html', modal_fields=remark_fields or fields, id='remarkModal', title='备注',
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+                                  buttons=buttons)
+
+
+class PageRemarkModal(UIModule):
+    def render(self):
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        modal_fields = [
+            {'id': 'fields', 'name': '备注字段', 'input_type': 'radio', 'options': ['切分', '文本']},
+            {'id': 'remark', 'name': '备注内容'},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
+        ]
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)

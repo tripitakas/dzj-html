@@ -29,7 +29,7 @@ class Tripitaka(Model):
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                         options=f.get('options', [])) for f in fields]
+                          options=f.get('options', [])) for f in fields]
 
 
 class Sutra(Model):
@@ -60,7 +60,7 @@ class Sutra(Model):
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                         options=f.get('options', [])) for f in fields]
+                          options=f.get('options', [])) for f in fields]
 
 
 class Reel(Model):
@@ -90,7 +90,7 @@ class Reel(Model):
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                         options=f.get('options', [])) for f in fields]
+                          options=f.get('options', [])) for f in fields]
 
     @classmethod
     def ignore_existed_check(cls, doc):
@@ -126,7 +126,7 @@ class Volume(Model):
                     ['content_pages', 'front_cover_pages', 'back_cover_pages']]
     info_fields = [f['id'] for f in fields]
     update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                         options=f.get('options', [])) for f in fields]
+                          options=f.get('options', [])) for f in fields]
 
     @classmethod
     def pack_doc(cls, doc):
@@ -174,7 +174,8 @@ class Page(Model):
         {'id': 'lock.text', 'name': '文本锁'},
         {'id': 'level.box', 'name': '切分等级'},
         {'id': 'level.text', 'name': '文本等级'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark.box', 'name': '切分备注'},
+        {'id': 'remark.text', 'name': '文本备注'},
     ]
     rules = [
         (v.not_empty, 'name'),

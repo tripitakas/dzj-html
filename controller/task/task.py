@@ -37,6 +37,7 @@ class Task(Model):
         {'id': 'picked_user_id', 'name': '领取人id'},
         {'id': 'picked_by', 'name': '领取人'},
         {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'is_sample', 'name': '示例任务'},
         {'id': 'remark', 'name': '备注'},
     ]
 
@@ -138,8 +139,9 @@ class Task(Model):
         return 'groups' in prop(cls.all_task_types(), task_type)
 
     @classmethod
-    def get_doc_tasks(cls, collection):
-        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
+    def get_task_types(cls, collection=None):
+        return {t: v['name'] for t, v in cls.task_types.items() if
+                prop(v, 'data.collection') == collection or not collection}
 
     @classmethod
     def get_task_meta(cls, task_type):
@@ -209,7 +211,7 @@ class Task(Model):
         elif isinstance(value, dict):
             value = value.get('error') or value.get('message') or \
                     '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-        return value or ''
+        return value
 
     @classmethod
     def get_status_name(cls, status):

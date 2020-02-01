@@ -139,7 +139,7 @@ class DataPageInfoHandler(BaseHandler, Page):
 class DataPageHandler(BaseHandler, Page):
 
     @staticmethod
-    def get_search_condition(request_query):
+    def get_page_search_condition(request_query):
         condition, params = dict(), dict()
         for field in ['name', 'source', 'remark']:
             value = get_url_param(field, request_query)
@@ -219,7 +219,7 @@ class DataPageListHandler(DataPageHandler):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in TaskHandler.get_doc_tasks('page').items()
+            {'operation': k, 'label': v} for k, v in TaskHandler.get_task_types('page').items()
         ]},
     ]
     actions = [
@@ -266,7 +266,7 @@ class DataPageListHandler(DataPageHandler):
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_search_condition(self.request.query)
+                condition, params = self.get_page_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, Th=TaskHandler,
@@ -279,32 +279,23 @@ class DataPageListHandler(DataPageHandler):
 class DataPageViewHandler(DataPageHandler):
     URL = '/data/page/@page_code'
 
-    update_fields = [
-        {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
-            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
-        ]},
-        {'id': 'level-box', 'name': '切分等级'},
-        {'id': 'level-text', 'name': '文本等级'},
-    ]
-
-    remark_fields = [
-        {'id': 'remark', 'name': ''},
-        {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
-            '切分没问题', '切分还可以', '切分不合要求', '文字没问题', '文字还可以', '文字不合要求',
-        ]},
-        {'id': 'operation', 'name': '', 'input_type': 'radio', 'options': ['附加', '替换']},
-    ]
-
     def get(self, page_code):
         """ 浏览页面数据"""
+        layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
+        edit_fields = [
+            {'id': 'name', 'name': '页编码', 'readonly': True},
+            {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layouts},
+            {'id': 'source', 'name': '分类'},
+            {'id': 'level-box', 'name': '切分等级'},
+            {'id': 'level-text', 'name': '文本等级'},
+        ]
+
         try:
             page = self.db.page.find_one({'name': page_code})
             if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
-            condition = self.get_search_condition(self.request.query)[0]
+            condition = self.get_page_search_condition(self.request.query)[0]
             to = self.get_query_argument('to', '')
             if to == 'next':
                 condition['page_code'] = {'$gt': page['page_code']}
@@ -313,19 +304,16 @@ class DataPageViewHandler(DataPageHandler):
                 condition['page_code'] = {'$lt': page['page_code']}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s的%s' % (
-                    page_code, '上一页' if to == 'prev' else '下一页'
-                ))
+                message = '没有找到页面%s的%s' % (page_code, '上一页' if to == 'prev' else '下一页')
+                return self.send_error_response(e.no_object, message=message)
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
             btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
-            fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-            texts = {f: page[f].replace('|', '\n') for f in fields}
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.update_fields}
+            texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
             self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
-                        labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
-                        update_fields=self.update_fields, remark_fields=self.remark_fields,
+                        texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))
 
         except Exception as error:

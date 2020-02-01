@@ -9,10 +9,21 @@
   var readonly = '{{handler.readonly}}' === 'True';
   var step = '{{handler.steps.get("current") or ""}}';
   var remark = '{{handler.task.get("remark") or ""}}';
+  var isSample = '{{handler.task.get("is_sample")}}';
   var groupTask = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
 
   $(document).ready(function () {
+    // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
+    var autoPick = localStorage.getItem('autoPick');
+    if (autoPick.length) {
+      $('#autoPickModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
+    }
+    if (isSample === 'True') {
+      $('#remarkModal .is_sample :radio[value="是"]').prop('checked', true);
+    } else if (isSample === 'False') {
+      $('#remarkModal .is_sample :radio[value="否"]').prop('checked', true);
+    }
   });
 
   // 离开页面
@@ -61,12 +72,13 @@
   // 完成任务提交
   $(document).on("click", '#submit-task', function () {
     var data = getSubmitData(true);
+    var autoPick = localStorage.getItem('autoPick') || '是';
     if (data && !data.error) {
       showTips('提交中‧‧‧');
       postApi(location.pathname, {data: data}, function () {
         showSuccess('成功', '已提交');
         setTimeout(function () {
-          if (mode === 'do') {
+          if (mode === 'do' && autoPick === '是') {
             pick('/task/pick/' + groupTask);
           } else {
             window.leave();
@@ -92,7 +104,7 @@
   // 保存任务提交
   $(document).on("click", '#save-task', function () {
     var search = location.search;
-    if ('{{handler.steps["current"]}}' === 'orders')
+    if (step === 'orders')
       search = deleteQueryString(location.search, 'layout');
     saveTask(false, location.pathname + search);
   });
@@ -104,14 +116,14 @@
       return showError('请填写退回理由', '尚未填写退回理由');
     }
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
-      showSuccess('退回成功', pageName + ' 已退回成功。');
+      showSuccess('退回成功', docId + ' 已退回成功。');
       goto('/task/lobby/' + taskType, 1000);
     });
   });
 
   // 查看页面
   $(document).on("click", '#view-page', function () {
-    location.href = '/data/page/' + pageName + '?from=' + encodeFrom();
+    location.href = '/data/page/' + docId + '?from=' + encodeFrom();
   });
 
   // 浏览任务
@@ -141,10 +153,23 @@
       return showWarning('请输入备注内容');
     localStorage.setItem('taskRemark', remark);
     var data = {_id: taskId, remark: remark};
+    var is_sample = $('#remarkModal .is_sample :checked').val();
+    if (typeof is_sample !== 'undefined')
+      data.is_sample = is_sample;
     postApi('/task/remark', {data: data}, function () {
       showSuccess('成功', '已备注');
       navigate(getQueryString('to') || 'next');
     });
   });
+
+  // 是否自动领取新任务
+  $('#autoPickModal .modal-confirm').click(function () {
+    var autoPick = $('#autoPickModal .auto-pick :checked');
+    if (!autoPick.length)
+      return showWarning('请进行选择');
+    localStorage.setItem('autoPick', autoPick.val());
+    $('#autoPickModal').modal('hide');
+  });
+
 </script>
 
