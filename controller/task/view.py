@@ -286,7 +286,10 @@ class TaskLobbyHandler(TaskHandler):
         try:
             q = self.get_query_argument('q', '')
             tasks, total_count = self.get_lobby_tasks_by_type(self, task_type, q=q)
-            self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count)
+            finish_count = self.db.task.count_documents({
+                'task_type': {'$regex': task_type}, 'status': self.STATUS_FINISHED})
+            self.render('task_lobby.html', tasks=tasks, task_type=task_type,
+                        total_count=total_count, finish_count=finish_count)
         except Exception as error:
             return self.send_db_error(error)
 
