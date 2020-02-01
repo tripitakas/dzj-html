@@ -9,15 +9,15 @@ import re
 import json
 from os import path
 
-_cache = {}
+cache = {}
 
 
 def load_rare():
-    if 'rare' not in _cache:
+    if 'rare' not in cache:
         with open(path.join(path.dirname(__file__), 'gaiji.json'), 'r') as f:
             gaiji = json.load(f)
-        _cache['rare'] = {v.get('zzs'): v for v in gaiji.values() if v.get('zzs')}
-    return _cache['rare']
+        cache['rare'] = {v.get('zzs'): v for v in gaiji.values() if v.get('zzs')}
+    return cache['rare']
 
 
 def format_rare(txt):

@@ -8,11 +8,10 @@ import re
 from bson import json_util
 from functools import cmp_to_key
 from controller import errors as e
-from controller.base import BaseHandler
 from controller.task.task import Task
-from controller.task.base import TaskHandler
+from controller.base import BaseHandler
 from controller.cut.cuttool import CutTool
-from controller.text.texttool import TextTool
+from controller.task.base import TaskHandler
 from controller.helper import cmp_page_code, prop, get_url_param
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
@@ -93,7 +92,7 @@ class DataListHandler(BaseHandler):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            kwargs['img_actions'] = ['config']
+            kwargs['img_operations'] = ['config']
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
@@ -220,7 +219,7 @@ class DataPageListHandler(DataPageHandler):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in TaskHandler.get_page_tasks().items()
+            {'operation': k, 'label': v} for k, v in TaskHandler.get_doc_tasks('page').items()
         ]},
     ]
     actions = [
@@ -232,7 +231,7 @@ class DataPageListHandler(DataPageHandler):
     info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark']
     hide_fields = ['img_cloud_path', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
                    'lock-box', 'lock-text', 'level-box', 'level-text']
-    modal_fields = [
+    update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
         {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
@@ -280,7 +279,7 @@ class DataPageListHandler(DataPageHandler):
 class DataPageViewHandler(DataPageHandler):
     URL = '/data/page/@page_code'
 
-    modal_fields = [
+    update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
         {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
@@ -322,11 +321,11 @@ class DataPageViewHandler(DataPageHandler):
             btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-            texts = {f: TextTool.txt2lines(page[f]) for f in fields}
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
+            texts = {f: page[f].replace('|', '\n') for f in fields}
+            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.update_fields}
             self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
                         labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
-                        modal_fields=self.modal_fields, remark_fields=self.remark_fields,
+                        update_fields=self.update_fields, remark_fields=self.remark_fields,
                         img_url=self.get_img(page))
 
         except Exception as error:

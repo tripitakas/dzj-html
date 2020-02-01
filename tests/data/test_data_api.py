@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from os import path
-from glob2 import glob
 from tests.testcase import APITestCase
-import controller.errors as e
 
 
 class TestApi(APITestCase):
@@ -18,6 +14,7 @@ class TestApi(APITestCase):
         super(TestApi, self).tearDown()
 
     def test_api_data_task(self):
+        """ 测试小欧的数据处理任务"""
         for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
             # 发布任务
             docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']

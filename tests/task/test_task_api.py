@@ -6,7 +6,6 @@ from bson.objectid import ObjectId
 from tests import users as u
 from tests.testcase import APITestCase
 from tests.task.conf import ready_ids, unready_ids, task_types
-
 from controller import errors
 from controller.helper import prop
 from controller.task.base import TaskHandler as Th
@@ -126,14 +125,14 @@ class TestTaskApi(APITestCase):
             t = Th.task_types.get(task_type)
             pre_tasks = t.get('pre_tasks') or []
             body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0', batch='0')
-            r = self.fetch('/api/task/publish/pages', files=dict(ids_file=filename), body=dict(data=body))
+            r = self.fetch('/api/task/publish/page', files=dict(ids_file=filename), body=dict(data=body))
             data = self.parse_response(r)
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, data, msg=task_type)
             self.assertEqual(set(data.get(status)), set(ready_ids), msg=task_type)
 
             # 测试文件为空
-            data = self.parse_response(self.fetch('/api/task/publish/pages', files=dict(), body=body))
+            data = self.parse_response(self.fetch('/api/task/publish/page', files=dict(), body=body))
             self.assertIn('error', data, msg=task_type)
 
     def test_publish_tasks_by_prefix(self):
@@ -245,7 +244,7 @@ class TestTaskApi(APITestCase):
                     self.assert_code(200, r1)
                     # 完成前置任务
                     task = self._app.db.task.find_one(dict(task_type=pre_task, doc_id=ready_ids[0]))
-                    r2 = self.fetch('/api/task/finish/%s/%s' % (pre_task, task['_id']), body={'data': {}})
+                    r2 = self.fetch('/api/task/finish/%s' % task['_id'], body={'data': {}})
                     self.assert_code(200, r2)
 
                 # 当前任务状态应该已发布

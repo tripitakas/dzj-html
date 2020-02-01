@@ -6,20 +6,18 @@
 import re
 import json
 from datetime import datetime
-from controller import errors
-from controller.base import DbError
+from bson.objectid import ObjectId
 from controller import errors as e
+from controller.base import DbError
 from controller import validate as v
 from controller.helper import get_url_param
 from controller.task.base import TaskHandler
 from controller.data.view import DataPageHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
-from .view import TaskLobbyHandler as Lobby
-from bson.objectid import ObjectId
 
 
-class GetReadyTasksApi(TaskHandler):
+class GetReadyDocsApi(TaskHandler):
     URL = '/api/task/ready/@task_type'
 
     def post(self, task_type):
@@ -43,19 +41,19 @@ class GetReadyTasksApi(TaskHandler):
             page_size = int(self.config['pager']['page_size'])
             count = self.db[collection].count_documents(condition)
             docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
-            response = {'docs': [d[id_name] for d in list(docs)], 'page_size': page_size,
-                        'page_no': page_no, 'total_count': count}
+            doc_ids = [d[id_name] for d in list(docs)]
+            response = {'docs': doc_ids, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             return self.send_data_response(response)
 
         except DbError as error:
             return self.send_db_error(error)
 
 
-class PublishManyPagesApi(PublishBaseHandler):
-    URL = r'/api/task/publish/pages'
+class PublishDocTasksApi(PublishBaseHandler):
+    URL = r'/api/task/publish/(page)'
 
-    def post(self):
-        """ 发布页面任务"""
+    def post(self, collection):
+        """ 发布任务"""
         data = self.get_request_data()
         data['doc_ids'] = self.get_doc_ids(data)
         assert isinstance(data['doc_ids'], list)
@@ -65,16 +63,18 @@ class PublishManyPagesApi(PublishBaseHandler):
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
         ]
-        err = v.validate(data, rules)
-        if err:
-            return self.send_error_response(err)
+        errs = v.validate(data, rules)
+        if errs:
+            return self.send_error_response(errs)
 
         try:
-            max_count = self.MAX_PUBLISH_RECORDS
-            if len(data['doc_ids']) > max_count:
-                return self.send_error_response(e.task_count_exceed_max, message='任务数量不能超过%s' % max_count)
-            log = self.publish_many(data['task_type'], data.get('pre_tasks', []), data.get('steps', []),
-                                    data['priority'], data['force'] == '是', data['doc_ids'], data['batch'])
+            if len(data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
+                message = '任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS
+                return self.send_error_response(e.task_count_exceed, message=message)
+            log = self.publish_many(
+                data['task_type'], data.get('pre_tasks', []), data.get('steps', []), data['priority'],
+                data['force'] == '是', data['doc_ids'], data['batch']
+            )
             return self.send_data_response({k: value for k, value in log.items() if value})
 
         except DbError as error:
@@ -110,7 +110,7 @@ class PublishManyPagesApi(PublishBaseHandler):
         return doc_ids
 
 
-class PublishImportImageTasksApi(TaskHandler):
+class PublishImageTasksApi(TaskHandler):
     URL = r'/api/task/publish/import'
 
     def post(self):
@@ -121,15 +121,15 @@ class PublishImportImageTasksApi(TaskHandler):
             errs = v.validate(data, rules)
             if errs:
                 return self.send_error_response(errs)
+
             task = self.get_publish_meta('import_image')
             priority, status = int(data['priority']), self.STATUS_PUBLISHED
             param = {k: data.get(k) for k in ['source', 'pan_name', 'import_dir', 'layout', 'redo']}
             task.update(dict(status=status, priority=priority, input=param))
             r = self.db.task.insert_one(task)
-            if r.inserted_id:
-                message = '%s, %s,%s' % ('import_image', data['import_dir'], data['redo'])
-                self.add_op_log('publish_task', context=message, target_id=r.inserted_id)
-                self.send_data_response(dict(_id=r.inserted_id))
+            message = '%s, %s,%s' % ('import_image', data['import_dir'], data['redo'])
+            self.add_op_log('publish_task', context=message, target_id=r.inserted_id)
+            self.send_data_response(dict(_id=r.inserted_id))
 
         except DbError as error:
             return self.send_db_error(error)
@@ -157,12 +157,12 @@ class PickTaskApi(TaskHandler):
                     return self.send_error_response(e.no_object, message='没有找到该任务')
                 if task['status'] != self.STATUS_PUBLISHED:
                     return self.send_error_response(e.task_not_published)
-            else:  # 如果task_id为空，则从任务大厅任取一个
-                tasks = Lobby.get_lobby_tasks_by_type(self, task_type, page_size=1)[0]
-                if not tasks:
-                    return self.send_error_response(errors.no_task_to_pick)
-                else:
-                    task = tasks[0]
+            else:
+                # 如果task_id为空，则从任务大厅任取一个
+                task = self.find_lobby(task_type, page_size=1)[0]
+                if not task:
+                    return self.send_error_response(e.no_task_to_pick)
+
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
             if self.is_group(task_type) and self.db.task.find_one(dict(
                     task_type=task_filter, collection=task['collection'], id_name=task['id_name'],
@@ -214,7 +214,7 @@ class UpdateTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class TaskStatisticApi(TaskHandler):
+class StatisticTaskApi(TaskHandler):
     URL = '/api/task/statistic'
 
     def post(self):
@@ -238,7 +238,7 @@ class ReturnTaskApi(TaskHandler):
         """ 退回任务 """
         try:
             if self.task['picked_user_id'] != self.current_user['_id']:
-                return self.send_error_response(errors.unauthorized, message='您没有该任务的权限')
+                return self.send_error_response(e.unauthorized, message='您没有该任务的权限')
             reason = self.prop(self.get_request_data(), 'reason', '')
             update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(), 'return_reason': reason}
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
@@ -365,9 +365,9 @@ class AssignTasksApi(TaskHandler):
 
 
 class FinishTaskApi(TaskHandler):
-    URL = '/api/task/finish/@task_type/@task_id'
+    URL = '/api/task/finish/@task_id'
 
-    def post(self, task_type, task_id):
+    def post(self, task_id):
         """ 提交任务，释放数据锁，并且更新后置任务状态"""
         try:
             self.finish_task(self.task)
@@ -377,14 +377,14 @@ class FinishTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class LockTaskDataApi(TaskHandler):
+class LockTaskApi(TaskHandler):
     URL = '/api/data/lock/@shared_field/@doc_id'
 
     def post(self, shared_field, doc_id):
         """ 获取临时数据锁"""
         assert shared_field in self.data_auth_maps
         try:
-            r = self.assign_temp_lock(self.current_user, doc_id, shared_field)
+            r = self.assign_temp_lock(doc_id, shared_field, self.current_user)
             if r is True:
                 return self.send_data_response()
             else:
@@ -394,7 +394,7 @@ class LockTaskDataApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class UnlockTaskDataApi(TaskHandler):
+class UnlockTaskApi(TaskHandler):
     URL = ['/api/data/admin/unlock/@shared_field/@doc_id',
            '/api/data/unlock/@shared_field/@doc_id']
 
@@ -409,7 +409,7 @@ class UnlockTaskDataApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class InitTasksForTestApi(TaskHandler):
+class InitTestTasksApi(TaskHandler):
     URL = '/api/task/init'
 
     def post(self):

@@ -82,6 +82,7 @@
         </div>
       </div>
       <div class="btn-group right">
+        <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
         <div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="margin-top: 4px">
           <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders'}}">原始字序</a>
           <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=1'}}">重排(旧算法)</a>
@@ -212,13 +213,13 @@
   var columns = $.cut.setClass(decodeJSON('{{handler.page.get("columns") or []}}'), 'column');
 
   $.cut.create({
-    orderMode: true,
     readonly: true,
-    name: '{{handler.page["name"]}}',
+    orderMode: true,
+    name: canvasName,
+    holder: 'holder',
     width: '{{handler.page["width"]}}',
     height: '{{handler.page["height"]}}',
     image: '{{handler.get_img(handler.page)}}',
-    holder: 'holder',
     chars: chars
   });
   $.cut.switchCurrentBox(null);

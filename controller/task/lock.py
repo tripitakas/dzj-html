@@ -87,7 +87,7 @@ class Lock(object):
         doc = self.db[collection].find_one({id_name: doc_id})
         return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field, 0))
 
-    def assign_temp_lock(self, user, doc_id, shared_field):
+    def assign_temp_lock(self, doc_id, shared_field, user):
         """ 将临时数据锁分配给用户。成功时返回True，失败时返回错误代码 """
         lock, level = self.get_data_lock_and_level(doc_id, shared_field)
         # 检查是否已有数据锁

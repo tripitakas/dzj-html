@@ -153,8 +153,10 @@ class ReturnModal(UIModule):
 class DoubtModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'doubt_input', 'name': '存疑文本'},
-                        {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'}]
+        modal_fields = [
+            {'id': 'doubt_input', 'name': '存疑文本'},
+            {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'}
+        ]
         return self.render_string('com_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
                                   buttons=buttons)
 
@@ -164,9 +166,7 @@ class RemarkModal(UIModule):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         fields = [
             {'id': 'remark', 'name': ''},
-            {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
-                '没问题', '还可以', '不合要求'
-            ]},
+            {'id': 'options', 'name': '', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
         return self.render_string('com_modal.html', modal_fields=remark_fields or fields, id='remarkModal', title='备注',
                                   buttons=buttons)

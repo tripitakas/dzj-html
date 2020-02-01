@@ -55,8 +55,9 @@
                 {% end %}
               </div>
               <div style="margin: 5px; display: inline-block; cursor: pointer">
-                <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img btn-config {{'' if 'config' in img_actions else 'hide'}}" data-toggle="modal" data-target="#configModal" title="配置"/>
-                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img btn-help {{'' if 'help' in img_actions else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+                <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img btn-config {{'' if 'config' in img_operations else 'hide'}}" data-toggle="modal" data-target="#configModal"
+                     title="配置"/>
+                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img btn-help {{'' if 'help' in img_operations else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"/>
               </div>
             </div>
             {% end %}
@@ -69,11 +70,11 @@
             {% end %}
 
             {% block table %}
-              {% try %}
-                {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=format_value) %}
-              {% except %}
-                {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order) %}
-              {% end %}
+            {% try %}
+            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=handler.format_value) %}
+            {% except %}
+            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order) %}
+            {% end %}
             {% end %}
 
             {% module Pager(pager) %}
@@ -85,7 +86,7 @@
 </div>
 
 <div class="panel-body">
-  {% module ComModal(modal_fields, 'updateModal', '更新数据') %}
+  {% module ComModal(update_fields, 'updateModal', '更新数据') %}
   <div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
        aria-hidden="true">
     <div class="modal-dialog">

@@ -42,7 +42,7 @@ class TestTextTask(APITestCase):
             self.assert_code(200, r)
 
             # 测试获取比对本
-            r = self.fetch('/api/task/text_get_compare/%s' % docs_ready[0], body={'data': {'num': 1}})
+            r = self.fetch('/api/task/text_select/%s' % docs_ready[0], body={'data': {'num': 1}})
             data = self.parse_response(r)
             self.assertTrue(data.get('cmp'))
             self.assertTrue(data.get('hit_page_codes'))
@@ -119,7 +119,7 @@ class TestTextTask(APITestCase):
         # 测试获取比对本
         page_name = 'QL_25_16'
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/task/text_get_compare/%s' % page_name, body={'data': {'num': 1}})
+        r = self.fetch('/api/task/text_select/%s' % page_name, body={'data': {'num': 1}})
         d = self.parse_response(r)
         self.assertTrue(d.get('cmp'))
         self.assertTrue(d.get('hit_page_codes'))
@@ -127,12 +127,12 @@ class TestTextTask(APITestCase):
 
         # 测试获取上一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'prev'}}
-        d = self.parse_response(self.fetch('/api/task/text_compare_neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/task/text_neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
         # 测试获取下一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'next'}}
-        d = self.parse_response(self.fetch('/api/task/text_compare_neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/task/text_neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
     def test_text_mode(self):

@@ -138,21 +138,25 @@ class Task(Model):
         return 'groups' in prop(cls.all_task_types(), task_type)
 
     @classmethod
-    def get_page_tasks(cls):
-        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == 'page'}
+    def get_doc_tasks(cls, collection):
+        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
 
     @classmethod
     def get_task_meta(cls, task_type):
         return cls.all_task_types().get(task_type)
 
     @classmethod
+    def get_data_conf(cls, task_type):
+        d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
+        return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
+
+    @classmethod
     def get_shared_field(cls, task_type):
         return prop(cls.task_types, '%s.data.shared_field' % task_type)
 
     @classmethod
-    def get_data_conf(cls, task_type):
-        d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
-        return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
+    def get_data_collection(cls, task_type):
+        return prop(cls.task_types, '%s.data.collection' % task_type)
 
     @classmethod
     def get_task_steps(cls, task_type):

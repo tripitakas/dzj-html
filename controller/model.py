@@ -39,13 +39,13 @@ class Model(object):
         {'operation': 'btn-add', 'label': '新增记录'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
-    img_actions = ['config', 'help']
+    img_operations = ['config', 'help']
     actions = [  # 单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    modal_fields = [dict(id='', name='', input_type='', options=[])]  # 模态框包含哪些字段
+    update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
 
     @classmethod
     def validate(cls, doc, rules=None):
@@ -81,7 +81,7 @@ class Model(object):
     def get_template_kwargs(cls, fields=None):
         fields = fields if fields else [
             'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
-            'info_fields', 'operations', 'img_actions', 'actions', 'modal_fields'
+            'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
         ]
         return {f: getattr(cls, f) for f in fields}
 

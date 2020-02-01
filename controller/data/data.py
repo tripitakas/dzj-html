@@ -28,7 +28,7 @@ class Tripitaka(Model):
     search_tips = '请搜索藏经名称和编码'
     search_fields = ['name', 'tripitaka_code']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
-    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                          options=f.get('options', [])) for f in fields]
 
 
@@ -59,7 +59,7 @@ class Sutra(Model):
     search_tips = '请搜索统一经编码、经编码、经名'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
-    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                          options=f.get('options', [])) for f in fields]
 
 
@@ -89,7 +89,7 @@ class Reel(Model):
     search_tips = '请搜索统一经编码、经编码、经名和卷编码'
     search_fields = ['uni_sutra_code', 'sutra_code', 'sutra_name']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
-    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                          options=f.get('options', [])) for f in fields]
 
     @classmethod
@@ -125,7 +125,7 @@ class Volume(Model):
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in
                     ['content_pages', 'front_cover_pages', 'back_cover_pages']]
     info_fields = [f['id'] for f in fields]
-    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
                          options=f.get('options', [])) for f in fields]
 
     @classmethod

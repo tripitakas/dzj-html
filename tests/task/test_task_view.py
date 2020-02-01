@@ -34,7 +34,7 @@ class TestTaskView(APITestCase):
         """ 测试任务管理、任务大厅、我的任务列表页面 """
         # 发布任务
         self.login_as_admin()
-        task_types = Th.get_page_tasks()
+        task_types = Th.get_doc_tasks('page')
         docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         for task_type in task_types:
             r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
@@ -47,7 +47,7 @@ class TestTaskView(APITestCase):
             task = self._app.db.task.find_one({'task_type': {'$regex': task_type + '.*'}, 'doc_id': docs_ready[0]})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
             self.assert_code(200, r, msg=task_type)
-            r = self.fetch('/api/task/finish/%s/%s' % (task['task_type'], task['_id']), body={'data': {}})
+            r = self.fetch('/api/task/finish/%s' % task['_id'], body={'data': {}})
             self.assert_code(200, r, msg=task_type)
 
         # 任务管理页面

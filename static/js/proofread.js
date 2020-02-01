@@ -324,29 +324,21 @@ $('#save-doubt').on('click', function () {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubtModal .doubt_input input').val(txt);
-  $('#doubtModal .doubt_reason textarea').val('');
+  $('#doubtModal .doubt_input').val(txt);
+  $('#doubtModal .doubt_reason').val('');
 });
 
 // 切换存疑列表
-$('.doubt-list .tab-editable').on('click', function () {
-  $(this).siblings().removeClass('active');
-  $(this).addClass('active');
-  $('#doubt-table-view').addClass('hide');
-  $('#doubt-table-editable').removeClass('hide');
-});
-
-$('.doubt-list .tab-view').on('click', function () {
-  $(this).siblings().removeClass('active');
-  $(this).addClass('active');
-  $('#doubt-table-editable').addClass('hide');
-  $('#doubt-table-view').removeClass('hide');
+$('.doubt-list .toggle-tab').on('click', function () {
+  $(this).addClass('active').siblings().removeClass('active');
+  var index = $('.doubt-list .toggle-tab').index($(this));
+  $('.doubt-list .char-list-table').removeClass('active').eq(index).addClass('active');
 });
 
 // 存疑确认
 $('#doubtModal .modal-confirm').on('click', function () {
-  var txt = $('#doubtModal .doubt_input input').val().trim();
-  var reason = $('#doubtModal .doubt_reason textarea').val().trim();
+  var txt = $('#doubtModal .doubt_input').val().trim();
+  var reason = $('#doubtModal .doubt_reason').val().trim();
   if (reason.length <= 0)
     return showTips('请填写存疑理由');
   var $span = $('.current-span');
@@ -356,17 +348,17 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
-      "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
+      "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png'></td></tr>";
 
   //提交之后底部以列表自动展开
-  $('#doubt-table-editable').append(line).removeClass('hidden');
+  $('.doubt-list .char-list-table.active').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
 });
 
 $('#toggle-arrow').on('click', function () {
   $(this).toggleClass('active');
-  $('#doubt-table-editable').toggleClass('hidden');
+  $('.doubt-list .char-list-table.active').toggleClass('hidden');
 });
 
 // 关闭对话框时，清空输入框内容
@@ -484,7 +476,7 @@ function checkMismatch(report) {
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
-      boxes.forEach(function(c, i) {
+      boxes.forEach(function (c, i) {
         write_back_txt[c.char_id] = text[i];
       });
     }
@@ -514,8 +506,7 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    var href = window.location.href.replace(/[?&]re_compare=true/g, '');
-    window.location = href + (href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
+    window.location = setQueryString('re_compare', 'true');
   });
 });
 
@@ -542,14 +533,15 @@ $('#txtModal .modal-header').on('mousedown', function (downEvt) {
   });
 });
 
+// 切换弹出文本
 $('#txtModal .btn-txt').click(function () {
   $(this).removeClass('btn-default').addClass('btn-primary');
   $(this).siblings().removeClass('btn-primary').addClass('btn-default');
   var txtType = $(this).attr('id').replace('show-', '');
   if (txtType === 'all')
-    $('#txtModal textarea').show();
+    $('#txtModal textarea').removeClass('hide');
   else
-    $('#txtModal #' + txtType).show().siblings().hide();
+    $('#txtModal #' + txtType).removeClass('hide').siblings().addClass('hide');
 });
 
 

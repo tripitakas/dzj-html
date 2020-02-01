@@ -31,15 +31,12 @@ class User(Model):
     search_tips = '请搜索用户名、手机和邮箱'
     search_fields = ['name', 'email', 'phone']
     table_fields = [dict(id=f['id'], name=f['name']) for f in fields if f['id'] not in ['img', 'password']]
-    modal_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
-                         options=f.get('options', []))
-                    for f in fields if f['id'] not in ['img', 'create_time', 'updated_time']]
-
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'), options=f.get('options'))
+                     for f in fields if f['id'] not in ['img', 'create_time', 'updated_time']]
     operations = [  # 列表包含哪些批量操作
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},
     ]
-
     actions = [  # 列表单条记录包含哪些操作
         {'action': 'btn-update', 'label': '修改'},
         {'action': 'btn-remove', 'label': '删除'},

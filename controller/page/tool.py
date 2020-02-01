@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 文字整理工具
+@desc: 页
 @time: 2019/6/3
 """
 import re
@@ -9,18 +9,28 @@ from operator import itemgetter
 from tornado.escape import url_escape
 
 
-class TextTool(object):
+class PageTool(object):
+
+    @classmethod
+    def reorder_chars(cls, chars_col, chars, page=None):
+        """ 根据连线数据排列字序"""
+        return chars
+
+    @classmethod
+    def sort_boxes(cls, boxes, box_type, page=None):
+        """ 切分框重新排序"""
+        if box_type == 'block':
+            return cls.sort_blocks(boxes)
+        return boxes
+
     @classmethod
     def txt2html(cls, txt):
         """ 把文本转换为html，文本以空行或者||为分栏"""
         if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
             return txt
-
         txt = '|'.join(txt) if isinstance(txt, list) else txt
         assert isinstance(txt, str)
-
-        html = ''
-        blocks = txt.split('||')
+        html, blocks = '', txt.split('||')
         line = '<li class="line"><span contenteditable="true" class="same" base="%s">%s</span></li>'
         for block in blocks:
             lines = block.split('|')
@@ -38,8 +48,36 @@ class TextTool(object):
         return ''.join(lines).rstrip('\n')
 
     @classmethod
-    def txt2lines(cls, txt):
-        return txt.replace('|', '\n')
+    def get_ocr(cls, page, chars=None):
+        """ 获取页面的ocr文本"""
+        ocr = page.get('ocr') or ''
+        chars = chars if chars else page.get('chars')
+        if not ocr and len(chars) > 1:
+            pre, txt = chars[0], ''
+            for c in chars[1:]:
+                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:
+                    txt += '||'
+                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:
+                    txt += '|'
+                txt += c.get('ocr_txt', '')
+            ocr = txt.strip('|')
+        return ocr
+
+    @classmethod
+    def get_ocr_col(cls, page, columns=None):
+        """ 获取页面的ocr_col文本"""
+        ocr_col = page.get('ocr_col') or ''
+        columns = columns if columns else page.get('columns')
+        if not ocr_col and len(columns) > 1:
+            pre, txt = columns[0], ''
+            for c in columns[1:]:
+                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:
+                    txt += '||'
+                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:
+                    txt += '|'
+                txt += c.get('ocr_txt', '')
+            ocr_col = txt.strip('|')
+        return ocr_col
 
     @classmethod
     def check_segments(cls, segments, chars, params=None):

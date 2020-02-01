@@ -114,7 +114,7 @@
   flex: 1 1 auto;
 }
 
-.right .sutra-text.active{
+.right .sutra-text.active {
   display: block;
 }
 
@@ -260,10 +260,18 @@
   transition: all ease 0.3s 0s;
 }
 
+.char-list-table {
+  display: none;
+}
+
+.char-list-table.active {
+  display: inline-table;
+}
+
 .char-list-table td {
-  text-align: center;
   height: 30px;
   line-height: 30px;
+  text-align: center;
   vertical-align: middle;
 }
 

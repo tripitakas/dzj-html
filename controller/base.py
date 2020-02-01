@@ -39,7 +39,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
         self.config = self.application.config
-        self.error = None
+        self.error = self.is_api = None
         self.more = {}  # 给子类记录使用
 
     def set_default_headers(self):
@@ -52,6 +52,7 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/post 前的准备 """
         p, m = self.request.path, self.request.method
+        self.is_api = '/api/' in p
         # 单元测试
         if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
             return
@@ -59,21 +60,20 @@ class BaseHandler(CorsMixin, RequestHandler):
         if can_access('访客', p, m):
             return
         # 检查用户是否已登录
-        api = '/api/' in p
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
             self.error = e.need_login
-            return self.send_error_response(e.need_login) if api else self.redirect(login_url)
+            return self.send_error_response(e.need_login) if self.is_api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         try:
             cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
                 self.error = e.no_user
-                return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+                return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
         except MongoError as error:
             self.error = error
-            return self.send_db_error(error, render=not self.get_query_argument('_raw', 0) and not api)
+            return self.send_db_error(error)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -86,10 +86,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         need_roles = get_route_roles(p, m)
         if not need_roles:
             self.error = e.url_not_config
-            return self.send_error_response(e.url_not_config, render=not api)
+            return self.send_error_response(e.url_not_config)
         self.error = e.unauthorized
         message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
-        return self.send_error_response(e.unauthorized, render=not api, message=message)
+        return self.send_error_response(e.unauthorized, message=message)
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -181,7 +181,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
+        render = not self.is_api and not self.get_query_argument('_raw', 0)
         if response.pop('render', render):  # 如果是页面渲染请求，则返回错误页面
             return self.render('_error.html', **response)
 
@@ -216,7 +216,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response((e.mongo_error[0] + code, message))
         return self.send_error_response((status_code, message), **kwargs)
 
-    def send_db_error(self, error, render=False):
+    def send_db_error(self, error):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
         if not isinstance(code, int):
             code = 0
@@ -227,7 +227,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
                 e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
             )
-            return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
+            return self.send_error_response((e.mongo_error[0] + code, reason))
 
         if code:
             logging.error(error.args[1])
@@ -241,7 +241,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
-        return self.send_error_response((default_error[0] + code, reason), render=render)
+        return self.send_error_response((default_error[0] + code, reason))
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from controller.page.diff import Diff
 from tests.testcase import APITestCase
-from controller.text.diff import Diff
 
 
 class TestDiff(APITestCase):

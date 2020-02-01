@@ -1,5 +1,5 @@
-/*
- * task.js
+/**
+ * 领任务。需提前设置好groupTask变量
  */
 
 // 领新任务
@@ -15,8 +15,6 @@ function pick(url, task_id) {
 }
 
 function error_callback(res) {
-  var taskType = window.location.pathname.split('/')[3];
-  taskType = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
   if (res.code === 3002) {  // error.task_uncompleted
     if (location.pathname.indexOf('/task/do') !== -1)
       window.location = res.url;
@@ -25,11 +23,10 @@ function error_callback(res) {
         window.location = res.url;
       });
   } else if (res.code === 3003) { // error.no_task_to_pick
-    window.location = '/task/lobby/' + taskType;
-    // showWarning('暂无新任务', res.message);
+    window.location = '/task/lobby/' + groupTask;
   } else if (res.code !== 500) {
     showConfirm("是否领取其它任务？", res.message, function () {
-      pick("/task/pick/" + taskType);
+      pick("/task/pick/" + groupTask);
     });
   } else {
     showError('发生错误', res.message);

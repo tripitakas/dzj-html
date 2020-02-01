@@ -2,12 +2,12 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title>文字校对-{{page["name"]}}</title>
+  <title>{{handler.page_title()}}</title>
   {% include _base_meta.html %}
   {% include _base_css.html %}
-  <link href="{{ static_url('assets/modal-effect/css/component.css') }}" rel="stylesheet">
-  <link href="{{ static_url('css/cut.css') }}" rel="stylesheet"/>
-  <link href="{{ static_url('css/proofread.css') }}" rel="stylesheet"/>
+  <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -69,33 +69,26 @@
     <div class="pfread">
       <header class="m-header">
         <div class="back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if mode == 'do' else ('返回', 'icon_back') %}
-          <img src="{{ static_url('imgs/%s.png' % img) }}" class="btn-img" onclick="leave()" title="{{title}}"/>
+          {% set title, img = ('任务大厅', 'icon_lobby') if handler.mode == 'do' else ('返回', 'icon_back') %}
+          <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
-        <div class="title" title='{{page["name"]}}'>文字校对<span class="sub-title">-选择比对文本</span></div>
+        <div class="title" title="{{handler.page['name']}}">
+          {{handler.task_name()}}<span class="sub-title">-{{handler.step_name()}}</span>
+        </div>
         <div class="btn-group" style="margin-left: 10px">
-          <img src="{{ static_url('imgs/icon_hlp.png') }}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-          <img src="{{ static_url('imgs/icon_pic.png') }}" class="btn-img active" id="toggle-left" title="显隐图片"/>
-          <img src="{{ static_url('imgs/icon_txt.png') }}" class="btn-img active" id="toggle-right" title="显隐文字"/>
-          <img src="{{ static_url('imgs/icon_zoom1.png') }}" class="btn-img" id="zoom-out" title="放大"/>
-          <img src="{{ static_url('imgs/icon_zoom0.png') }}" class="btn-img" id="zoom-reset" title="原始"/>
-          <img src="{{ static_url('imgs/icon_zoom2.png') }}" class="btn-img" id="zoom-in" title="缩小"/>
+          <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+          <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
+          <img src="{{static_url('imgs/icon_txt.png')}}" class="btn-img active" id="toggle-right" title="显隐文字"/>
+          <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
+          <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
+          <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
         </div>
         <div class="btn-group right">
-          <img src="{{ static_url('imgs/icon_select.png') }}" class="btn-img" id="select-txt" title="选中"/>
-          <img src="{{ static_url('imgs/icon_txts.png') }}" class="btn-img" data-toggle="modal" data-target="#ocrModal" title="OCR文本"/>
-          <img src="{{ static_url('imgs/icon_return.png') }}" class="btn-img {{'' if not readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-          <img src="{{ static_url('imgs/icon_save.png') }}" class="btn-img {{'hide' if readonly else ''}}" id="save-task" title="保存"/>
-          <img src="{{ static_url('imgs/icon_next.png') }}" class="btn-img {{'hide' if steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
-          {% if mode == 'browse' %}
-          <div class="btn-txt btn-gap"></div>
-          <img src="{{ static_url('imgs/icon_view.png') }}" class="btn-img" id="view-page" title="查看页面"/>
-          <img src="{{ static_url('imgs/icon_remark.png') }}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注"/>
-          <img src="{{ static_url('imgs/icon_prev2.png') }}" class="btn-img" id="prev-task" title="前一个任务"/>
-          <img src="{{ static_url('imgs/icon_next2.png') }}" class="btn-img" id="next-task" title="后一个任务"/>
-          {% end %}
+          <img src="{{static_url('imgs/icon_select.png')}}" class="btn-img" id="select-txt" title="选中"/>
+          <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img" data-toggle="modal" data-target="#ocrModal" title="OCR文本"/>
+          {% include _task_nav.html %}
         </div>
-        <div class="tips right">{{message}}</div>
+        <div class="tips right">{{handler.message}}</div>
       </header>
 
       <div class="flex-content pfread-in">
@@ -112,7 +105,7 @@
               <span class="cmp-more" id="next" title="更多">···</span>
             </div>
             <div id="pagination" class="search-pagination ms-search-pagination"></div>
-            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if mode=='view' else ''}}>{{cmp or ''}}</textarea>
+            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if handler.readonly else ''}}>{{cmp or ''}}</textarea>
           </div>
         </div><!--right-->
       </div>
@@ -130,7 +123,7 @@
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
         <div class="modal-header">OCR</div>
         <div class="modal-body">
-          {% raw ocr.replace('|', '<br>') %}
+          {% raw handler.get_ocr(handler.page).replace('|', '<br>') %}
         </div>
       </div>
     </div>
@@ -153,7 +146,7 @@
           <div class="title">二、功能按钮</div>
           <table class="table">
             <tr>
-              <td><img src="{{ static_url('imgs/icon_toggle.png') }}"/></td>
+              <td><img src="{{static_url('imgs/icon_toggle.png')}}"/></td>
               <td>返回任务大厅</td>
             </tr>
             <tr>
@@ -186,26 +179,22 @@
 {% include _font.html %}
 {% include _base_js.html %}
 {% include _base_cut.html %}
-<script src="{{ static_url('js/nav.js') }}"></script>
-<script src="{{ static_url('js/cut/proof_keys.js') }}"></script>
-<script src="{{ static_url('js/proofread.js') }}"></script>
 {% include _base_task.html %}
+<script src="{{static_url('js/nav.js')}}"></script>
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
+<script src="{{static_url('js/proofread.js')}}"></script>
 <script>
   // 页面图和切分框
-  var char_data = decodeJSON('{{page.get("chars", [])}}');
-  var columns = decodeJSON('{{page.get("columns", [])}}');
-  var blocks = decodeJSON('{{page.get("blocks", [])}}');
-
   function createPage() {
     $.cut.create({
       readonly: true,
-      scrollContainer: '#holder-container',
-      name: '{{page["name"]}}',
-      width: '{{page["width"]}}',
-      height: '{{page["height"]}}',
+      name: canvasName,
       holder: 'holder',
-      image: '{{get_img(page)}}',
-      chars: char_data
+      width: '{{handler.page["width"]}}',
+      height: '{{handler.page["height"]}}',
+      scrollContainer: '#holder-container',
+      image: '{{handler.get_img(handler.page)}}',
+      chars: []
     });
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
@@ -223,16 +212,16 @@
       showError('请选择文本', '尚未选择文本');
       return false;
     }
-    return {submit: submit, name: '{{page["name"]}}', step: 'select', cmp: $selectedTxt};
+    return {submit: submit, name: pageName, step: 'select', cmp: $selectedTxt};
   }
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_get_compare/{{page["name"]}}', {data: {}}, function (data) {
+    postApi('/task/text_select/' + pageName, {data: {}}, function (data) {
       // 设置文本
       $('#cmp').html(data.cmp);
       // 设置分页
-      var count_task = data.hit_page_codes.length;
+      var count = data.hit_page_codes.length;
       var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
       for (var i = 2; i <= count; i++) {
         html += "<a title='" + data.hit_page_codes[i] + "'>" + i + "</a>";
@@ -245,7 +234,7 @@
   // 选择第n个比对本
   $(document).on('click', '#pagination a', function () {
     var $this = $(this);
-    postApi('/task/text_get_compare/{{page["name"]}}', {data: {num: $this.text()}}, function (res) {
+    postApi('/task/text_select/' + pageName, {data: {num: $this.text()}}, function (res) {
       $('#pagination a').removeClass('cur');
       $this.addClass('cur').attr('title', res.cmp_page_code);
       $('#cmp').html(res.cmp);
@@ -258,7 +247,7 @@
   $(document).on('click', '.selectable #prev', function () {
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'prev'};
-    postApi('/task/text_compare_neighbor', {data: data}, function (res) {
+    postApi('/task/text_neighbor', {data: data}, function (res) {
       $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
       $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
     });
@@ -268,7 +257,7 @@
   $(document).on('click', '.selectable #next', function () {
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'next'};
-    postApi('/task/text_compare_neighbor', {data: data}, function (res) {
+    postApi('/task/text_neighbor', {data: data}, function (res) {
       $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
       $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
     });

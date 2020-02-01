@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from tests.testcase import APITestCase
-from controller import validate as v
 from controller import auth
+from controller import validate as v
+from tests.testcase import APITestCase
 
 
 class TestRole(APITestCase):
     def test_role_func(self):
-        self.assertTrue(auth.can_access('切分专家', '/api/task/pick/cut_proof', 'POST'))
         self.assertFalse(auth.can_access('', '/api/task/pick/cut_proof', 'POST'))
+        self.assertTrue(auth.can_access('切分专家', '/api/task/pick/cut_proof', 'POST'))
         self.assertEqual(auth.get_route_roles('/api/task/pick/cut_proof', 'POST'), ['切分校对员', '切分专家'])
 
     def test_validate(self):

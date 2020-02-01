@@ -50,7 +50,7 @@ def merge_css_js(name, html_lines):
 
     filename = css and merge_files(name, css)
     if filename:
-        css = '<link href="{{ static_url(\'built/%s\') }}" rel="stylesheet" type="text/css" />' % filename
+        css = '<link href="{{static_url(\'built/%s\')}}" rel="stylesheet" type="text/css" />' % filename
         if js_i >= 0:
             lines.insert(js_i, css)
         else:
@@ -58,7 +58,7 @@ def merge_css_js(name, html_lines):
 
     filename = js and merge_files(name, js)
     if filename:
-        js = '<script src="{{ static_url(\'built/%s\') }}"></script>' % filename
+        js = '<script src="{{static_url(\'built/%s\')}}"></script>' % filename
         if js_i >= 0:
             lines.insert(js_i, js)
         else:

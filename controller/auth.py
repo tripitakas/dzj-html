@@ -41,7 +41,7 @@ role_route_maps = {
         'routes': {
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/finish/@task_type/@task_id': ['POST'],
+            '/api/task/finish/@task_id': ['POST'],
             '/api/data/lock/@shared_field/@doc_id': ['POST'],
         }
     },
@@ -74,8 +74,8 @@ role_route_maps = {
             '/task/sample/(box|text|select)': ['GET'],
             '/task/sample/box/@page_name': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/task/text_get_compare/@page_name': ['POST'],
-            '/api/task/text_compare_neighbor': ['POST'],
+            '/api/task/text_select/@page_name': ['POST'],
+            '/api/task/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
 
         }
@@ -165,7 +165,7 @@ role_route_maps = {
             '/task/resume/page/@page_name': ['GET'],
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/publish/pages': ['POST'],
+            '/api/task/publish/page': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],

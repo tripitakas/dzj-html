@@ -71,7 +71,7 @@
     <header class="m-header">
       <div class="back">
         <a href="/">
-          <img src="{{ static_url('imgs/home.png') }}" class="btn-img"/>
+          <img src="{{static_url('imgs/home.png')}}" class="btn-img"/>
         </a>
       </div>
       <div class="title">检索CBETA</div>
@@ -117,7 +117,7 @@
             + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";
       }).join('');
       $('#search-results').html($html);
-      $('#result-count_task').text(res.matches.length);
+      $('#result-count').text(res.matches.length);
       $('.tips').removeClass('hide');
       $this.text("检  索");
     });

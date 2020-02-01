@@ -9,19 +9,20 @@ from .variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher
-except ImportError:  # Windows上跳过安装cdifflib
+except ImportError:
+    # Windows上跳过安装cdifflib
     def CSequenceMatcher(is_junk, a, b, auto_junk):
         return [is_junk, a, b, auto_junk] and []
 
 
 class Diff(object):
-    junk_ocr_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
+    junk_base_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
     junk_cmp_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
 
     @classmethod
     def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):
-        """
-        文本比对，换行以base的换行为准，自动过滤掉cmp1/cmp2/cmp3的换行符
+        """ 文本比对。
+        换行以base的换行为准，自动过滤掉cmp1/cmp2/cmp3的换行符
         :param base: 基础比对文本
         :param check_variant: 是否检查异体字
         :param label: {'base': '...', 'cmp1': '...', 'cmp2': '...', 'cmp3': '...'}
@@ -30,22 +31,25 @@ class Diff(object):
         if label:
             _label.update(label)
 
-        base = Diff.pre_ocr(base)
+        base = Diff.pre_base(base)
 
         if not cmp1 and not cmp2 and not cmp3:
             return Diff._diff_one(base, {'base': _label['base']}), []
 
         ret, err = [], []
         if cmp1:
-            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant, {'base': _label['base'], 'cmp': _label['cmp1']})
+            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant,
+                                  {'base': _label['base'], 'cmp': _label['cmp1']})
             ret, _err = Diff._merge_by_combine(ret, ret1, base_key=_label['base'])
             err.extend(_err)
         if cmp2:
-            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant, {'base': _label['base'], 'cmp': _label['cmp2']})
+            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant,
+                                  {'base': _label['base'], 'cmp': _label['cmp2']})
             ret, _err = Diff._merge_by_combine(ret, ret2, base_key=_label['base'])
             err.extend(_err)
         if cmp3:
-            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant, {'base': _label['base'], 'cmp': _label['cmp3']})
+            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant,
+                                  {'base': _label['base'], 'cmp': _label['cmp3']})
             ret, _err = Diff._merge_by_combine(ret, ret3, base_key=_label['base'])
             err.extend(_err)
         return ret, err
@@ -252,11 +256,11 @@ class Diff(object):
         return _ret
 
     @classmethod
-    def pre_ocr(cls, ocr):
-        """OCR预处理"""
-        return re.sub(Diff.junk_ocr_str, '', ocr)
+    def pre_base(cls, base):
+        """ base预处理。保留换行符"""
+        return re.sub(Diff.junk_base_str, '', base.replace('|', '\n'))
 
     @classmethod
     def pre_cmp(cls, cmp):
-        """比对本预处理，过滤其中的非中文字符"""
+        """ 比对本预处理，过滤换行符以及非中文字符"""
         return re.sub(Diff.junk_cmp_str, '', cmp)

@@ -3,9 +3,9 @@
 
 import re
 from tornado.options import options
-from controller.text.diff import Diff
+from controller.page.diff import Diff
 from elasticsearch import Elasticsearch
-from controller.text.variant import normalize
+from controller.page.variant import normalize
 from controller.app import Application as App
 
 
@@ -39,7 +39,7 @@ def find(q, index='cb4ocr-ik'):
 
 def find_one(ocr, num=1):
     """ 从ES中寻找与ocr最匹配的document，返回第num个结果 """
-    ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
+    ocr = ''.join(ocr) if isinstance(ocr, list) else ocr.replace('|', '')
     ret = find(ocr)
     if not ret or num - 1 not in range(0, len(ret)):
         return '', []

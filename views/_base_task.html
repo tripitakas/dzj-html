@@ -1,62 +1,74 @@
-<script src="{{ static_url('js/pick-task.js') }}"></script>
+<script src="{{static_url('js/pick-task.js')}}"></script>
 <script>
   var from = decodeFrom();
   var mode = '{{handler.mode}}';
+  var docId = '{{handler.doc_id}}';
+  var taskId = '{{handler.task_id}}';
+  var taskType = '{{handler.task_type}}';
+  var steps = decodeJSON('{{handler.steps}}');
   var readonly = '{{handler.readonly}}' === 'True';
-  var pageName = '{{handler.page.get("name") or ""}}';
-  var oriTaskType = '{{handler.task_type}}';
-  var taskId = '{{handler.task.get("_id") or ""}}';
-  var taskType = oriTaskType.indexOf('text_proof') !== -1 ? 'text_proof' : oriTaskType;
+  var step = '{{handler.steps.get("current") or ""}}';
+  var remark = '{{handler.task.get("remark") or ""}}';
+  var groupTask = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
+  var canvasName = taskType + step + docId;
 
   $(document).ready(function () {
-    var taskRemark = '{{handler.task.get("remark") or ""}}';
-    $("#remarkModal .remark").val(taskRemark || localStorage.getItem('taskRemark'));
+    $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
   });
 
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if (mode in ["edit", "update"] && !readonly) {
-      if (taskType.indexOf("cut") !== -1)
-        postApi('/data/unlock/box/' + pageName, {});
-      else if (taskType.indexOf("text") !== -1)
-        postApi('/data/unlock/text/' + pageName, {});
+    if (mode in ['edit', 'update'] && !readonly) {
+      if (taskType.indexOf('cut_') !== -1)
+        postApi('/data/unlock/box/' + docId, {});
+      else if (taskType.indexOf('text_') !== -1)
+        postApi('/data/unlock/text/' + docId, {});
     }
     // 返回
     if (from) {
       window.location = from;
     } else if (mode === 'do') {
-      window.location = '/task/lobby/' + taskType;
+      window.location = '/task/lobby/' + groupTask;
     } else if (mode === 'update') {
-      window.location = '/task/my/' + taskType;
+      window.location = '/task/my/' + groupTask;
     } else {
       window.history.back();
     }
   };
 
-  // 保存任务函数
-  function saveTask(submit, url) {
-    var data = getSubmitData(submit);
-    if (data && !data.error) {
-      showTips('保存中‧‧‧');
-      postApi('{{current_path}}', {data: data}, function () {
-        if (!submit)
-          showSuccess('保存成功', pageName + ' 已保存成功');
-        goto(url, 1000);
-      });
+  // 步骤导航
+  function navigate(to) {
+    var url = location.pathname + '?step=' + steps[to];
+    if (from)
+      url = url + '&from=' + from;
+    if (!readonly) {
+      saveTask(false, url);
+    } else {
+      goto(url, 500);
     }
   }
 
-  // 提交任务
+  // 上一步
+  $(document).on("click", '#prev-step', function () {
+    navigate('prev');
+  });
+
+  // 下一步
+  $(document).on("click", '#next-step', function () {
+    navigate('next');
+  });
+
+  // 完成任务提交
   $(document).on("click", '#submit-task', function () {
     var data = getSubmitData(true);
     if (data && !data.error) {
       showTips('提交中‧‧‧');
-      postApi('{{current_path}}', {data: data}, function () {
-        showSuccess('成功', '已提交。');
+      postApi(location.pathname, {data: data}, function () {
+        showSuccess('成功', '已提交');
         setTimeout(function () {
           if (mode === 'do') {
-            pick('/task/pick/' + taskType);
+            pick('/task/pick/' + groupTask);
           } else {
             window.leave();
           }
@@ -65,29 +77,20 @@
     }
   });
 
-  // 上一步
-  $(document).on("click", '#prev-step', function () {
-    var prev = '{{"%s?step=%s" % (current_path, handler.steps.get("prev"))}}';
-    var url = from ? prev + '&from=' + from : prev;
-    if (!readonly) {
-      saveTask(false, url);
-    } else {
-      goto(url, 500);
-    }
-  });
-
-  // 下一步
-  $(document).on("click", '#next-step', function () {
-    var next = '{{"%s?step=%s" % (current_path, handler.steps.get("next"))}}';
-    var url = from ? next + '&from=' + from : next;
-    if (!readonly) {
-      saveTask(true, url);
-    } else {
-      goto(url, 500);
-    }
-  });
-
   // 保存任务
+  function saveTask(submit, url) {
+    var data = getSubmitData(submit);
+    if (data && !data.error) {
+      showTips('保存中‧‧‧');
+      postApi(location.pathname, {data: data}, function () {
+        if (!submit)
+          showSuccess('成功', '已保存');
+        goto(url, 1000);
+      });
+    }
+  }
+
+  // 保存任务提交
   $(document).on("click", '#save-task', function () {
     var search = location.search;
     if ('{{handler.steps["current"]}}' === 'orders')
@@ -95,7 +98,7 @@
     saveTask(false, location.pathname + search);
   });
 
-  // 退回任务
+  // 退回任务提交
   $(document).on('click', '#returnModal .modal-confirm', function () {
     var reason = $('#returnModal .return_reason').val().trim();
     if (!reason.length) {
@@ -113,34 +116,35 @@
   });
 
   // 浏览任务
-  function go(to) {
+  function browse(to) {
     var path = '/task/browse/' + taskType + '/' + taskId;
     location.href = path + setQueryString('to', to, true);
   }
 
   // 前一个任务
   $(document).on("click", '#prev-task', function () {
-    go('prev');
+    browse('prev');
   });
 
   // 后一个任务
   $(document).on("click", '#next-task', function () {
-    go('next');
+    browse('next');
   });
 
   // 备注任务
-  $("#remarkModal .options :radio").click(function () {
+  var $remarkModal = $('#remarkModal');
+  $remarkModal.find('.options :radio').click(function () {
     $('#remarkModal .remark').val($(this).val());
   });
-  $('#remarkModal .modal-confirm').click(function () {
+  $remarkModal.find('.modal-confirm').click(function () {
     var remark = $('#remarkModal .remark').val().trim();
     if (!remark.length)
       return showWarning('请输入备注内容');
     localStorage.setItem('taskRemark', remark);
     var data = {_id: taskId, remark: remark};
     postApi('/task/remark', {data: data}, function () {
-      showSuccess('成功', pageName + ' 备注成功。');
-      go(getQueryString('to') || 'next');
+      showSuccess('成功', '已备注');
+      navigate(getQueryString('to') || 'next');
     });
   });
 </script>

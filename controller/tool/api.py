@@ -5,7 +5,7 @@
 """
 import re
 from .esearch import find
-from controller.text.variant import normalize
+from controller.page.variant import normalize
 from controller.base import BaseHandler, DbError
 
 try:
