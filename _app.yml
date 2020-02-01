@@ -30,7 +30,7 @@ module:
 
 # 角色
 role:
-  init: 切字校对员,文字校对员
+  init:
   disabled:
 
 # 任务

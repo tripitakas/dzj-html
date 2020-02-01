@@ -5,13 +5,12 @@
  */
 
 /*-----------切分字框相关代码----------------*/
-
+var showText = false;                     // 是否显示字框对应文字
+var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
-var showOrder = false;                    // 是否显示字框对应序号
-var showText = false;                     // 是否显示字框对应文字
-var currentSpan = [null];                 // $(当前span)，是否第一个
 var offsetInSpan;                         // 当前选中范围的开始位置
+var currentSpan = [null];                 // $(当前span)，是否第一个
 
 function getBlock(blockNo) {
   return $('#sutra-text .block').eq(blockNo - 1);
@@ -209,7 +208,6 @@ $.cut.onBoxChanged(function (char, box, reason) {
 
 
 /*-----------文本区域相关代码----------------*/
-
 // 设置当前span和line
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
@@ -225,12 +223,6 @@ $('.same, .diff').on('click', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
-
-// 双击同文，设置为可编辑。
-// $('.same').on('dblclick', function () {
-//   $(".same").attr("contentEditable", "false");
-//   $(this).attr("contentEditable", "true");
-// });
 
 // 双击异文，弹框提供选择
 $('.diff').on('dblclick', function (e) {
@@ -253,7 +245,7 @@ $('.diff').on('dblclick', function (e) {
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
 
   // 当弹框超出文字框时，向上弹出
-  var r_h = $(".pfread-in .right").height();
+  var r_h = $(".pfread .right").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
@@ -287,7 +279,7 @@ $('.diff').on('dblclick', function (e) {
 });
 
 // 单击文本区的空白区域
-$('.pfread-in .right').on('click', function (e) {
+$('.pfread .right').on('click', function (e) {
   // 隐藏对话框
   var dlg = $('#pfread-dialog');
   if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
@@ -316,7 +308,6 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
 
 
 /*-----------存疑相关代码----------------*/
-
 // 存疑对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -345,6 +336,7 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
+  console.log(lineId);
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
@@ -426,20 +418,6 @@ $(document).ready(function () {
 });
 
 /*------------其它功能---------------*/
-
-// 高度自适应
-function heightAdaptive() {
-  var h = $(document.body).height();
-  $(".pfread .bd").height(h - 55);
-}
-
-$(document).ready(function () {
-  heightAdaptive();
-});
-$(window).resize(function () {
-  heightAdaptive();
-});
-
 var write_back_txt = {};
 
 // 图文匹配
@@ -689,7 +667,6 @@ $('#toggle-txts').on('click', function () {
   $('#txtModal').modal();
 });
 
-
 // 缩小图片
 $('#zoom-in').on('click', function () {
   highlightBox();
@@ -706,22 +683,21 @@ $('#zoom-reset').on('click', function () {
 });
 
 // 修改字框
-var pageName = $('#page-name').val();
 $('#ed-char-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=chars&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=chars&from=' + location.pathname + location.search;
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=blocks&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=blocks&from=' + location.pathname + location.search;
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=columns&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=columns&from=' + location.pathname + location.search;
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=orders&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=orders&from=' + location.pathname + location.search;
 });

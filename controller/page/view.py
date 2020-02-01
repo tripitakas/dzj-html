@@ -8,6 +8,7 @@ from tornado.web import UIModule
 from controller import errors as e
 from controller.page.diff import Diff
 from controller.page.base import PageHandler
+from controller.cut.cuttool import CutTool
 
 
 class CutTaskHandler(PageHandler):

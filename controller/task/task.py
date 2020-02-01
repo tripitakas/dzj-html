@@ -76,17 +76,17 @@ class Task(Model):
         'text_proof_1': {
             'name': '文字校一', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '校对']],
         },
         'text_proof_2': {
             'name': '文字校二', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '校对']],
         },
         'text_proof_3': {
             'name': '文字校三', 'pre_tasks': ['ocr_text'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '校对']],
         },
         'text_review': {
             'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
@@ -105,7 +105,7 @@ class Task(Model):
         'text_proof': {
             'name': '文字校对',
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '文字校对']],
+            'steps': [['select', '选择比对文本'], ['proof', '校对']],
             'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
     }

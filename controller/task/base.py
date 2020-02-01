@@ -286,7 +286,7 @@ class TaskHandler(BaseHandler, Task, Lock):
     def check_task_auth(self, task, mode=None):
         """ 检查当前用户是否拥有相应的任务权限"""
         mode = self.get_task_mode() if not mode else mode
-        error = (None, '')
+        error = None
         if mode in ['do', 'update']:
             if task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_unauthorized_locked
@@ -294,7 +294,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 error = e.task_can_only_do_picked
             elif mode == 'update' and task['status'] != self.STATUS_FINISHED:
                 error = e.task_can_only_update_finished
-        has_auth = error[0] is None
+        has_auth = error is None
         return has_auth, error
 
     def check_data_lock(self, doc_id=None, shared_field=None, mode=None):
@@ -302,7 +302,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         has_lock为None表示不需要数据锁，False表示获取失败，True表示获取成功
         """
         mode = self.mode if not mode else mode
-        has_lock, error = None, (None, '')
+        has_lock, error = None, None
         # do模式下，检查是否有任务锁
         if shared_field and mode == 'do':
             lock = self.get_data_lock_and_level(doc_id, shared_field)[0]
@@ -313,7 +313,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if shared_field and mode in ['update', 'edit']:
             r = self.assign_temp_lock(doc_id, shared_field, self.current_user)
             has_lock = r is True
-            error = (None, '') if has_lock else r
+            error = None if has_lock else r
         return has_lock, error
 
     @staticmethod

@@ -1,190 +1,161 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <title>{{handler.page_title()}}</title>
-  {% include _base_meta.html %}
-  {% include _base_css.html %}
-  <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
-  <!--[if lt IE 9]>
-  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-  <![endif]-->
+{% extends "task_do_template.html" %}
 
-  <style>
-    .right .bd .selectable {
-      height: 50%;
-      font-size: 18px;
-      margin: 0 20px;
-      overflow-y: auto;
-      border-bottom: 1px solid #ccc;
-    }
+{% block custom-css %}
+<link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+<link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+<style>
+  .right .bd .selectable {
+    height: 50%;
+    font-size: 18px;
+    overflow-y: auto;
+    margin-left: 20px;
+    border-bottom: 1px solid #ccc;
+  }
 
-    .right .bd .selectable .more {
-      display: block;
-    }
+  .right .bd .selectable .more {
+    display: block;
+  }
 
-    .right .bd .selected {
-      height: 40%;
-      max-height: 40%;
-      width: calc(100% - 40px);
-      font-size: 18px;
-      margin: 0 20px 10px;
-      overflow-y: auto;
-    }
+  .right .bd .selected {
+    height: 40%;
+    max-height: 40%;
+    width: calc(100% - 40px);
+    font-size: 18px;
+    margin: 0 20px 10px;
+    overflow-y: auto;
+  }
 
-    .right .bd kw {
-      color: var(--Brown_Darker);
-    }
+  .right .bd kw {
+    color: var(--Brown_Darker);
+  }
 
-    .right .bd .cmp-more {
-      cursor: pointer;
-      line-height: 20px;
-      user-select: none;
-      background-color: rgba(207, 207, 207, 0.6);
-      letter-spacing: 4px;
-      display: none;
-      text-align: center;
-      color: white;
-    }
+  .right .bd .cmp-more {
+    cursor: pointer;
+    line-height: 20px;
+    user-select: none;
+    background-color: rgba(207, 207, 207, 0.6);
+    letter-spacing: 4px;
+    display: none;
+    text-align: center;
+    color: white;
+  }
 
-    .right .bd .search-pagination {
-      margin-left: 8px;
-      font-size: 16px;
-      padding: 5px 0;
-    }
+  .right .bd .search-pagination {
+    margin-left: 8px;
+    font-size: 16px;
+    padding: 5px 0;
+  }
 
-    #ocrModal {
-      font-size: 18px;
-    }
+  #ocrModal {
+    font-size: 18px;
+  }
 
-  </style>
-</head>
+</style>
+{% end %}
 
-<body class="widescreen" style="overflow: hidden">
-<div class="app-main">
-  <div class="main">
-    <div class="pfread">
-      <header class="m-header">
-        <div class="back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if handler.mode == 'do' else ('返回', 'icon_back') %}
-          <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
-        </div>
-        <div class="title" title="{{handler.page['name']}}">
-          {{handler.task_name()}}<span class="sub-title">-{{handler.step_name()}}</span>
-        </div>
-        <div class="btn-group" style="margin-left: 10px">
-          <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-          <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
-          <img src="{{static_url('imgs/icon_txt.png')}}" class="btn-img active" id="toggle-right" title="显隐文字"/>
-          <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
-          <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
-          <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
-        </div>
-        <div class="btn-group right">
-          <img src="{{static_url('imgs/icon_select.png')}}" class="btn-img" id="select-txt" title="选中"/>
-          <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img" data-toggle="modal" data-target="#ocrModal" title="OCR文本"/>
-          {% include _task_nav.html %}
-        </div>
-        <div class="tips right">{{handler.message}}</div>
-      </header>
+{% block buttons %}
+<div class="btn-group">
+  <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+  <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
+  <img src="{{static_url('imgs/icon_txt.png')}}" class="btn-img active" id="toggle-right" title="显隐文字"/>
+  <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
+  <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
+  <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
+</div>
+<div class="btn-group right">
+  <img src="{{static_url('imgs/icon_select.png')}}" class="btn-img" id="select-txt" title="选中"/>
+  <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img" data-toggle="modal" data-target="#ocrModal" title="OCR文本"/>
+</div>
+{% end %}
 
-      <div class="flex-content pfread-in">
-        <div class="left fl" id="left-region">
-          <div class="bd" id="holder-container">
-            <div id="holder"></div>
-          </div>
-        </div><!--left-->
-        <div class="right fr" id="right-region">
-          <div class="bd">
-            <div class="selectable" id="selectable">
-              <span class="cmp-more" id="prev" title="更多">···</span>
-              <span class="cmp" id="cmp">加载中···</span>
-              <span class="cmp-more" id="next" title="更多">···</span>
-            </div>
-            <div id="pagination" class="search-pagination ms-search-pagination"></div>
-            <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if handler.readonly else ''}}>{{cmp or ''}}</textarea>
-          </div>
-        </div><!--right-->
+{% block full-bd %}
+<div class="left fl" id="left-region">
+  <div class="bd" id="holder-container">
+    <div id="holder"></div>
+  </div>
+</div><!--left-->
+<div class="right fr" id="right-region">
+  <div class="bd">
+    <div class="selectable" id="selectable">
+      <span class="cmp-more" id="prev" title="更多">···</span>
+      <span class="cmp" id="cmp">加载中···</span>
+      <span class="cmp-more" id="next" title="更多">···</span>
+    </div>
+    <div id="pagination" class="search-pagination ms-search-pagination"></div>
+    <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if handler.readonly else ''}}>{{cmp or ''}}</textarea>
+  </div>
+</div><!--right-->
+{% end %}
+
+{% block custom-modal %}
+<div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <div class="modal-header">OCR</div>
+      <div class="modal-body">
+        {% raw handler.get_ocr(handler.page).replace('|', '<br>') %}
       </div>
-
     </div>
   </div>
 </div>
-
-<div class="panel-body">
-  {% module ReturnModal() %}
-  {% module RemarkModal() %}
-  <div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <div class="modal-header">OCR</div>
-        <div class="modal-body">
-          {% raw handler.get_ocr(handler.page).replace('|', '<br>') %}
-        </div>
+        <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
       </div>
-    </div>
-  </div>
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+      <div class="modal-body">
+        <div class="title">一、工作目标</div>
+        <div class="intro">
+          从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
+          请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
+          右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
+          为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
         </div>
-        <div class="modal-body">
-          <div class="title">一、工作目标</div>
-          <div class="intro">
-            从右侧文本区域，选择与左侧图片最相似的文本，作为下一步文字校对的比对文本。
-            请用先用光标选中文本，然后点击<img src="{{static_url('imgs/icon_select.png')}}"/>按钮，将选中的文本拷贝至结果输入框中。<br/>
-            右侧文本是从已有的古籍文库中，根据图片的OCR文本，找到的最匹配的文本。您只需要选择文本而无需修改，下一步可以做更准确的文字校对工作。
-            为了帮助您迅速的找到与图片最相似的文本，系统将高亮显示与OCR文本匹配的文字。
-          </div>
-          <div class="title">二、功能按钮</div>
-          <table class="table">
-            <tr>
-              <td><img src="{{static_url('imgs/icon_toggle.png')}}"/></td>
-              <td>返回任务大厅</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_select.png')}}"/></td>
-              <td>将当前选中的文本拷贝至文本输入框中</td>
-            </tr>
-            <tr>
-              <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
-              <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
-            </tr>
-            {% include _task_help.html %}
-          </table>
-          <div class="title">三、快捷键</div>
-          <table class="table" id="hot-key">
-            <tr>
-              <td>1/2/3/4/5</td>
-              <td>图片放大1~5倍</td>
-            </tr>
-            <tr>
-              <td>6/7/8/9</td>
-              <td>图片缩小至60%~90%</td>
-            </tr>
-          </table>
-        </div>
+        <div class="title">二、功能按钮</div>
+        <table class="table">
+          <tr>
+            <td><img src="{{static_url('imgs/icon_toggle.png')}}"/></td>
+            <td>返回任务大厅</td>
+          </tr>
+          <tr>
+            <td><img src="{{static_url('imgs/icon_select.png')}}"/></td>
+            <td>将当前选中的文本拷贝至文本输入框中</td>
+          </tr>
+          <tr>
+            <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
+            <td>显示OCR文本面板。该面板展示了当前OCR的文本内容</td>
+          </tr>
+          {% include _task_help.html %}
+        </table>
+        <div class="title">三、快捷键</div>
+        <table class="table" id="hot-key">
+          <tr>
+            <td>1/2/3/4/5</td>
+            <td>图片放大1~5倍</td>
+          </tr>
+          <tr>
+            <td>6/7/8/9</td>
+            <td>图片缩小至60%~90%</td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
 </div>
+{% end %}
 
+{% block custom-js %}
 {% include _font.html %}
-{% include _base_js.html %}
 {% include _base_cut.html %}
-{% include _base_task.html %}
-<script src="{{static_url('js/nav.js')}}"></script>
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/proofread.js')}}"></script>
 <script>
   // 页面图和切分框
+  var canvasName = taskType + step + docId;
+
   function createPage() {
     $.cut.create({
       readonly: true,
@@ -212,12 +183,12 @@
       showError('请选择文本', '尚未选择文本');
       return false;
     }
-    return {submit: submit, name: pageName, step: 'select', cmp: $selectedTxt};
+    return {submit: submit, name: docId, step: 'select', cmp: $selectedTxt};
   }
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_select/' + pageName, {data: {}}, function (data) {
+    postApi('/task/text_select/' + docId, {data: {}}, function (data) {
       // 设置文本
       $('#cmp').html(data.cmp);
       // 设置分页
@@ -234,7 +205,7 @@
   // 选择第n个比对本
   $(document).on('click', '#pagination a', function () {
     var $this = $(this);
-    postApi('/task/text_select/' + pageName, {data: {num: $this.text()}}, function (res) {
+    postApi('/task/text_select/' + docId, {data: {num: $this.text()}}, function (res) {
       $('#pagination a').removeClass('cur');
       $this.addClass('cur').attr('title', res.cmp_page_code);
       $('#cmp').html(res.cmp);
@@ -275,6 +246,4 @@
   });
 
 </script>
-
-</body>
-</html>
+{% end %}

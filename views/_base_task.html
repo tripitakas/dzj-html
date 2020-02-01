@@ -10,7 +10,6 @@
   var step = '{{handler.steps.get("current") or ""}}';
   var remark = '{{handler.task.get("remark") or ""}}';
   var groupTask = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
-  var canvasName = taskType + step + docId;
 
   $(document).ready(function () {
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));

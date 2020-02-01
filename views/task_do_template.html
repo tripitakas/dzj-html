@@ -6,11 +6,12 @@
   {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
-  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  {% block custom-css %}
+  {% end %}
 </head>
 
 <body class="widescreen">
@@ -18,19 +19,20 @@
   <div class="main">
     <div class="m-header">
       <div class="left">
-        <div class="back">
+        <div class="btn-group back">
           {% set title, img = ('任务大厅', 'icon_lobby') if handler.mode == 'do' else ('返回', 'icon_back') %}
           <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
-        <div class="title" title="{{handler.page['name']}}">
+        <div class="btn-group title" title="{{handler.page['name']}}">
           {{handler.task_name()}}
           <span class="sub-title {{'' if handler.step_name() else 'hide'}}">-{{handler.step_name()}}</span>
         </div>
       </div><!--left-->
-      {% block buttons %}
-      {% end %}
+      <div class="center">
+        {% block buttons %}
+        {% end %}
+      </div>
       <div class="right">
-        <div class="tips">{{handler.message}}</div>
         <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
         <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if not handler.readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
         <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
@@ -45,8 +47,8 @@
         {% end %}
       </div><!--right-->
     </div>
-    <div class="task-body">
-      {% block task-body %}
+    <div class="full-bd flex-content pfread">
+      {% block full-bd %}
       {% end %}
     </div>
   </div>
@@ -63,6 +65,6 @@
 {% include _base_task.html %}
 {% block custom-js %}
 {% end %}
-
+<script src="{{static_url('js/nav.js')}}"></script>
 </body>
 </html>
