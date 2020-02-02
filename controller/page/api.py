@@ -24,9 +24,7 @@ class CutTaskApi(PageHandler):
             data = self.get_request_data()
             steps = list(self.step2box.keys())
             rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
             # 更新page
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
@@ -57,9 +55,7 @@ class CutEditApi(PageHandler):
             data = self.get_request_data()
             steps = list(self.step2box.keys())
             rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
@@ -93,9 +89,7 @@ class TextProofApi(PageHandler):
                 (v.not_both_empty, 'cmp', 'txt_html'),
                 (v.in_list, 'step', self.get_steps(self.task_type)),
             ]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             if data['step'] == 'select':
                 return self.save_select(data)
@@ -202,9 +196,7 @@ class TextEditApi(PageHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'txt_html')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
             # 更新page
             txt_html = data.get('txt_html', '').strip('\n')
             self.update_page_txt_html(txt_html)
