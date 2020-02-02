@@ -66,31 +66,28 @@ class PageHandler(TaskHandler, PageTool):
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
             proof_doubt = ''
-            condition = dict(task_type={'$regex': 'text_proof'}, doc_id=self.page['name'], status=self.STATUS_FINISHED)
+            condition = dict(task_type={'$regex': 'text_proof'}, doc_id=self.page_name, status=self.STATUS_FINISHED)
             for task in list(self.db.task.find(condition)):
                 txt = self.html2txt(self.prop(task, 'result.txt_html', ''))
                 texts.append([txt, self.get_task_name(task['task_type'])])
-                doubt += self.prop(task, 'result.doubt', '')
+                proof_doubt += self.prop(task, 'result.doubt', '')
             if proof_doubt:
                 doubts.append([proof_doubt, '校对存疑'])
         elif self.task_type == 'text_hard':
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '难字列表'])
             condition = dict(task_type='text_review', doc_id=self.page['name'], status=self.STATUS_FINISHED)
-            task = self.db.task.find_one(condition)
-            txt = self.html2txt(self.prop(task, 'result.txt_html', ''))
-            texts.append([txt, self.get_task_name(task['task_type'])])
-            review_doubt = self.prop(task, 'result.doubt', '')
+            review_task = self.db.task.find_one(condition)
+            review_txt = self.html2txt(self.prop(review_task, 'result.txt_html', ''))
+            texts.append([review_txt, self.get_task_name(review_task['task_type'])])
+            review_doubt = self.prop(review_task, 'result.doubt', '')
             if review_doubt:
                 doubts.append([review_doubt, '审定存疑'])
         return texts, doubts
 
     def submit_task(self, data):
         """ 提交任务"""
-        submitted = self.prop(self.task, 'steps.submitted', [])
-        if data['step'] not in submitted:
-            submitted.append(data['step'])
-        update = {'updated_time': datetime.now(), 'steps.submitted': submitted}
+        update = {'updated_time': datetime.now(), 'steps.submitted': self.get_submitted(data['step'])}
         self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
         self.add_op_log('submit_%s' % self.task_type, target_id=self.task_id)
         steps_todo = self.prop(self.task, 'steps.todo', [])
@@ -99,3 +96,10 @@ class PageHandler(TaskHandler, PageTool):
                 self.finish_task(self.task)
             else:
                 self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
+
+    def get_submitted(self, step):
+        """ 更新task的submit字段"""
+        submitted = self.prop(self.task, 'steps.submitted', [])
+        if step not in submitted:
+            submitted.append(step)
+        return submitted

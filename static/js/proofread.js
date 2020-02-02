@@ -211,21 +211,21 @@ $.cut.onBoxChanged(function (char, box, reason) {
 // 设置当前span和line
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
-    $('.current-span').removeClass("current-span");
-    $(span).addClass("current-span");
+    $('.current-span').removeClass('current-span');
+    $(span).addClass('current-span');
     $('.current-line').removeClass('current-line');
     span.parent().addClass('current-line');
   }
 }
 
 // 单击同文、异文，设置当前span
-$('.same, .diff').on('click', function () {
+$(document).on('click', '.same, .diff', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
 
 // 双击异文，弹框提供选择
-$('.diff').on('dblclick', function (e) {
+$(document).on('dblclick', '.diff', function (e) {
   e.stopPropagation();
 
   setCurrent($(this));
@@ -336,14 +336,14 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
-  console.log(lineId);
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png'></td></tr>";
 
-  //提交之后底部以列表自动展开
-  $('.doubt-list .char-list-table.active').append(line).removeClass('hidden');
+  // 提交之后底部列表自动展开
+  $('.doubt-list .toggle-tab').eq(0).click();
+  $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
 });
@@ -526,14 +526,7 @@ $('#txtModal .btn-txt').click(function () {
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $.fn.mapKey.bindings = {up: {}, down: {}};
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(true);
-    $.cut.bindKeys();
-  } else {
-    $.cut.toggleBox(false);
-    $.cut.bindMatchingKeys();
-  }
+  $.cut.toggleBox('hide');
 });
 
 // 显隐浮动列框序号

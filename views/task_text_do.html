@@ -35,9 +35,9 @@
   <img src="{{static_url('imgs/icon_delete.png')}}" class="btn-img" id="delete-line" title="删除该行"/>
   <img src="{{static_url('imgs/icon_add_up.png')}}" class="btn-img" id="add-up-line" title="向上增行"/>
   <img src="{{static_url('imgs/icon_add_down.png')}}" class="btn-img" id="add-down-line" title="向下增行"/>
-  <img src="{{static_url('imgs/icon_doubt.png')}}" class="btn-img" id="save-doubt" title="存疑"/>
+  <img src="{{static_url('imgs/icon_doubt.png')}}" class="btn-img {{'hide' if 'text_hard' in handler.task_type else ''}}" id="save-doubt" title="存疑"/>
   <img src="{{static_url('imgs/icon_match.png')}}" class="btn-img" id="check-match" title="检查图文匹配"/>
-  <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img" id="re-compare" title="重新比对"/>
+  <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img {{'' if 'text_proof' in handler.task_type else 'hide'}}" id="re-compare" title="重新比对"/>
   <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img {{'' if handler.texts else 'hide'}}" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
 </div>
 {% end %}
@@ -70,14 +70,14 @@
         </div>
       </div>
       {% for i, doubt in enumerate(handler.doubts) %}
-      <table class="char-list-table {{'' if i else 'active'}}">
+      <table class="char-list-table {{'' if i else 'editable active'}}">
         <thead>
         <tr>
           <td>行号</td>
           <td>字序号</td>
           <td>存疑文本</td>
           <td>存疑理由</td>
-          <td class="{{'' if i else 'hide'}}">操作</td>
+          <td class="del-doubt">操作</td>
         </tr>
         </thead>
         <tbody>
@@ -90,16 +90,16 @@
     <div class="pfread-dialog" id="pfread-dialog">
       <div class="dialog-common dialog-abs">
         <div class="dlg-before"></div>
-        {% for txt in handler.texts %}
+        {% for i, txt in enumerate(handler.texts) %}
         <dl class="item">
           <dt>{{txt[1]}}</dt>
-          <dd class="text option" id="pfread-dialog-base">&nbsp;</dd>
+          <dd class="text option" id="pfread-dialog-{{'cmp%s' % i if i else 'base'}}"></dd>
         </dl>
         {% end %}
         <dl class="item">
           <dt>选择结果</dt>
           <dd class="text">
-            <span id="pfread-dialog-slct" contenteditable="true" placeholder="请选择或输入……"></span>
+            <span id="pfread-dialog-slct" contenteditable="true"></span>
           </dd>
         </dl>
         <div class="dlg-after"></div>
@@ -256,7 +256,7 @@
   // 获取任务数据
   function getSubmitData(submit) {
     var txt_html = $('#sutra-text').html();
-    var doubt = $('#doubt-table-editable tbody').html();
+    var doubt = $('.char-list-table.editable tbody').html();
     return {submit: submit, step: step, name: docId, doubt: doubt, txt_html: txt_html};
   }
 </script>

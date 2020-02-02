@@ -80,7 +80,9 @@ class TextReviewHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 文字审定、难字审定页面"""
         try:
-            cmp_data = self.prop(self.task, 'result.txt_html')
+            cmp_data = self.prop(self.page, 'txt_html')
+            if not cmp_data:
+                cmp_data = Diff.diff(*[t[0] for t in self.texts])[0]
             self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:

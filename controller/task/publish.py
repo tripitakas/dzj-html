@@ -70,13 +70,14 @@ class PublishBaseHandler(TaskHandler):
             if pre_tasks:
                 pre_tasks = [pre_tasks] if isinstance(pre_tasks, str) else pre_tasks
                 # 针对前置任务均已完成的情况，发布为OPENED
-                status = self.STATUS_FINISHED
-                condition = dict(collection=collection, id_name=id_name, task_type={'$in': pre_tasks},
-                                 status=status, doc_id={'$in': list(doc_ids)})
-                finished_tasks = list(self.db.task.find(condition, {'task_type': 1, 'doc_id': 1}))
+                finished_tasks = list(self.db.task.find(
+                    {'collection': collection, 'id_name': id_name, 'status': self.STATUS_FINISHED,
+                     'doc_id': {'$in': list(doc_ids)}, 'task_type': {'$in': pre_tasks}},
+                    {'task_type': 1, 'doc_id': 1}
+                ))
                 published = self._select_tasks(finished_tasks, pre_tasks)
-                pre_tasks_status = {t: status for t in pre_tasks}
-                self._publish_tasks(task_type, status, priority, pre_tasks_status, steps, published, batch)
+                pre_status = {t: self.STATUS_FINISHED for t in pre_tasks}
+                self._publish_tasks(task_type, self.STATUS_PUBLISHED, priority, pre_status, steps, published, batch)
                 log['published'] = published
                 doc_ids = doc_ids - set(log['published'])
 

@@ -53,7 +53,7 @@
     if (from)
       url = url + '&from=' + from;
     if (!readonly) {
-      saveTask(false, url);
+      saveTask(to === 'next', url);
     } else {
       goto(url, 500);
     }

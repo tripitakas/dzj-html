@@ -265,6 +265,10 @@
   vertical-align: middle;
 }
 
+.char-list-table:not(.editable) .del-doubt {
+  display: none;
+}
+
 .char-list-table td img {
   width: 16px;
   height: 16px;

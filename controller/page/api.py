@@ -180,10 +180,7 @@ class TextProofApi(PageHandler):
     def save_select(self, data):
         update = {'result.cmp': data['cmp'].strip('\n'), 'updated_time': datetime.now()}
         if data.get('submit'):
-            submitted = self.prop(self.task, 'steps.submitted', [])
-            if data['step'] not in submitted:
-                submitted.append(data['step'])
-            update.update({'steps.submitted': submitted})
+            update.update({'steps.submitted': self.get_submitted(data['step'])})
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
         self.add_op_log('save_%s' % self.task_type, context=self.task['doc_id'], target_id=self.task['_id'])
 

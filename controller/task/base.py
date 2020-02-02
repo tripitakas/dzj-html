@@ -9,8 +9,9 @@
 4. browse。管理员可以通过browse模式来逐条浏览任务
 5. edit。edit提供给专家用户修改数据使用
 二、 url
-如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
-或  /task/@task_type/5e3139c6a197150011d65e9d
+1. do/update/browse 如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
+2. view 如：/task/@task_type/5e3139c6a197150011d65e9d
+3. edit 如 /data/edit/box/@page_name
 
 @time: 2019/10/16
 """
@@ -55,6 +56,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             self.task, self.error = self.get_task(self.task_id)
             if not self.task:
                 return self.send_error_response(self.error)
+            self.task_id = str(self.task['_id'])
             # do和update模式下，检查任务权限
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
@@ -229,19 +231,27 @@ class TaskHandler(BaseHandler, Task, Lock):
         """ 检查当前任务的步骤，缺省时自动填充默认设置，有误时报错"""
         steps = dict()
         current_step = self.get_query_argument('step', '')
-        todo = self.prop(task, 'steps.todo') or self.get_steps(task_type) or ['']
-        submitted = self.prop(task, 'steps.submitted') or ['']
+        default_steps = self.get_steps(task_type)
+        todo = self.prop(task, 'steps.todo') or default_steps
+        submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
-        if not current_step:
-            current_step = un_submitted[0] if self.mode == 'do' else todo[0]
-        elif current_step and current_step not in todo:
-            current_step = todo[0]
-        index = todo.index(current_step)
-        steps['current'] = current_step
-        steps['is_first'] = index == 0
-        steps['is_last'] = index == len(todo) - 1
-        steps['prev'] = todo[index - 1] if index > 0 else None
-        steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
+        if todo:
+            if current_step and current_step not in todo:
+                current_step = todo[0]
+            if not current_step:
+                current_step = un_submitted[0] if self.mode == 'do' else todo[0]
+            index = todo.index(current_step)
+            steps['current'] = current_step
+            steps['is_first'] = index == 0
+            steps['is_last'] = index == len(todo) - 1
+            steps['prev'] = todo[index - 1] if index > 0 else None
+            steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
+        else:
+            steps['current'] = current_step
+            steps['is_first'] = True
+            steps['is_last'] = True
+            steps['prev'] = None
+            steps['next'] = None
         return steps
 
     def finish_task(self, task):
@@ -308,7 +318,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             lock = self.get_data_lock_and_level(doc_id, shared_field)[0]
             assert lock
             has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
-            error = e.data_is_locked
+            if not has_lock:
+                error = e.data_is_locked
         # update/模式下，尝试分配临时数据锁
         if shared_field and mode in ['update', 'edit']:
             r = self.assign_temp_lock(doc_id, shared_field, self.current_user)
