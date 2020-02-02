@@ -173,6 +173,15 @@ class TaskRemarkModal(UIModule):
                                   buttons=buttons)
 
 
+class AutoPickModal(UIModule):
+    def render(self):
+        title = '提交后是否自动领取新任务？'
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        modal_fields = [{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}]
+        return self.render_string('com_modal.html', modal_fields=modal_fields, id='autoPickModal', title=title,
+                                  buttons=buttons)
+
+
 class PageRemarkModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]

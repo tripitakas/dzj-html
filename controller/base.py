@@ -62,17 +62,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 检查用户是否已登录
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
-            self.error = e.need_login
             return self.send_error_response(e.need_login) if self.is_api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         try:
             cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
-                self.error = e.no_user
                 return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
         except MongoError as error:
-            self.error = error
             return self.send_db_error(error)
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
@@ -82,14 +79,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
         if can_access(self.current_user['roles'], p, m):
             return
-        # 报错，无权访问
+        # 检查URL是否配置
         need_roles = get_route_roles(p, m)
         if not need_roles:
-            self.error = e.url_not_config
             return self.send_error_response(e.url_not_config)
-        self.error = e.unauthorized
-        message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
-        return self.send_error_response(e.unauthorized, message=message)
+        # 报错，无权访问
+        else:
+            message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
+            return self.send_error_response(e.unauthorized, message=message)
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -171,6 +168,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
+        self.error = error
+
         _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
         _error = list(error.values())[0] if _type == 'multiple' else error
         code, message = _error

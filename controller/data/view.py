@@ -12,17 +12,17 @@ from controller.task.task import Task
 from controller.base import BaseHandler
 from controller.cut.cuttool import CutTool
 from controller.task.base import TaskHandler
-from controller.helper import cmp_page_code, prop, get_url_param
+from controller.helper import cmp_page_code, get_url_param
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
 class TripitakaHandler(BaseHandler):
-    URL = '/page/@page_code'
+    URL = '/page/@page_name'
 
-    def get(self, page_code='GL'):
+    def get(self, page_name='GL'):
         """ 藏经阅读 """
         try:
-            m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
+            m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_name)
             if not m:
                 return self.send_error_response(e.page_code_error)
             tripitaka_code = m.group(1)
@@ -32,13 +32,13 @@ class TripitakaHandler(BaseHandler):
             elif tripitaka.get('img_available') == '否':
                 return self.send_error_response(e.img_unavailable)
 
-            # 根据存储模式补齐page_code
-            name_slice = page_code.split('_')
+            # 根据存储模式补齐page_name
+            name_slice = page_name.split('_')
             store_pattern = tripitaka.get('store_pattern')
             gap = len(store_pattern.split('_')) - len(name_slice)
             for i in range(gap):
                 name_slice.append('1')
-            page_code = '_'.join(name_slice)
+            page_name = '_'.join(name_slice)
 
             # 获取当前册信息
             cur_volume = self.db.volume.find_one({'volume_code': '_'.join(name_slice[:-1])})
@@ -48,12 +48,12 @@ class TripitakaHandler(BaseHandler):
                 cur_volume = r and r[0] or {}
 
             # 生成册导航信息
-            nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_code)
+            nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_name)
             content_pages = cur_volume.get('content_pages')
             if content_pages:
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 first, last = content_pages[0], content_pages[-1]
-                cur_page = first if gap else page_code
+                cur_page = first if gap else page_name
                 name_slice = cur_page.split('_')
                 next = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) + 1)
                 prev = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) - 1)
@@ -107,15 +107,15 @@ class DataListHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class DataPageInfoHandler(BaseHandler, Page):
-    URL = '/data/page/info/@page_code'
+class DataPageInfoHandler(BaseHandler):
+    URL = '/data/page/info/@page_name'
 
-    def get(self, page_code):
+    def get(self, page_name):
         """ 页面详情"""
         try:
-            page = self.db.page.find_one({'name': page_code})
+            page = self.db.page.find_one({'name': page_name})
             if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
             fields = ['name', 'width', 'height', 'source', 'layout', 'img_cloud_path', 'page_code',
                       'uni_sutra_code', 'sutra_code', 'reel_code']
@@ -171,8 +171,8 @@ class DataPageHandler(BaseHandler, Page):
             tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
             value = '<br/>'.join(tasks)
         elif key in ['lock-box', 'lock-text']:
-            if prop(value, 'is_temp') is not None:
-                if prop(value, 'is_temp'):
+            if cls.prop(value, 'is_temp') is not None:
+                if cls.prop(value, 'is_temp'):
                     value = '临时锁<a>解锁</a>'
                 else:
                     value = '任务锁'
@@ -220,7 +220,7 @@ class DataPageListHandler(DataPageHandler):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in TaskHandler.get_task_types('page').items()
+            {'operation': k, 'label': v} for k, v in Task.get_task_types('page').items()
         ]},
     ]
     actions = [
@@ -236,9 +236,7 @@ class DataPageListHandler(DataPageHandler):
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
         {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
-            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
-        ]},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': Page.layouts},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
         {'id': 'remark-box', 'name': '切分备注'},
@@ -279,24 +277,23 @@ class DataPageListHandler(DataPageHandler):
 
 
 class DataPageViewHandler(DataPageHandler):
-    URL = '/data/page/@page_code'
+    URL = '/data/page/@page_name'
 
-    def get(self, page_code):
+    def get(self, page_name):
         """ 浏览页面数据"""
-        layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']
         edit_fields = [
             {'id': 'name', 'name': '页编码', 'readonly': True},
             {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': layouts},
+            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': self.layouts},
             {'id': 'source', 'name': '分类'},
             {'id': 'level-box', 'name': '切分等级'},
             {'id': 'level-text', 'name': '文本等级'},
         ]
 
         try:
-            page = self.db.page.find_one({'name': page_code})
+            page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             condition = self.get_page_search_condition(self.request.query)[0]
             to = self.get_query_argument('to', '')
             if to == 'next':
@@ -306,14 +303,14 @@ class DataPageViewHandler(DataPageHandler):
                 condition['page_code'] = {'$lt': page['page_code']}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
-                message = '没有找到页面%s的%s' % (page_code, '上一页' if to == 'prev' else '下一页')
+                message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
                 return self.send_error_response(e.no_object, message=message)
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
             btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
+            info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
             self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
                         texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))

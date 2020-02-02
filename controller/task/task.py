@@ -144,6 +144,11 @@ class Task(Model):
                 prop(v, 'data.collection') == collection or not collection}
 
     @classmethod
+    def get_ocr_tasks(cls):
+        """ 获取OCR任务类型，即小欧处理的任务"""
+        return ['import_image', 'upload_cloud', 'ocr_box', 'ocr_text']
+
+    @classmethod
     def get_task_meta(cls, task_type):
         return cls.all_task_types().get(task_type)
 

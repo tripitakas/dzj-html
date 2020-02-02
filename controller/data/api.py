@@ -50,7 +50,7 @@ class DataUploadApi(BaseHandler):
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
                 self.send_data_response(r)
-                self.add_op_log('upload_%s' % collection, context=r.get('message'))
+                self.add_op_log('upload_' + collection, context=r.get('message'))
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 
@@ -88,10 +88,10 @@ class DataDeleteApi(BaseHandler):
 
             if data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(data['_id'])})
-                self.add_op_log('delete_%s' % collection, target_id=data['_id'])
+                self.add_op_log('delete_' + collection, target_id=data['_id'])
             else:
                 r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}})
-                self.add_op_log('delete_%s' % collection, target_id=data['_ids'])
+                self.add_op_log('delete_' + collection, target_id=data['_ids'])
             self.send_data_response(dict(deleted_count=r.deleted_count))
 
         except DbError as error:
@@ -112,11 +112,11 @@ class DataPageUpdateSourceApi(BaseHandler):
 
             if data.get('_id'):
                 r = self.db.page.update_one({'_id': ObjectId(data['_id'])}, {'$set': {'source': data['source']}})
-                self.add_op_log('update_page_source', target_id=data['_id'])
+                self.add_op_log('update_page', target_id=data['_id'])
             else:
                 r = self.db.page.update_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}},
                                              {'$set': {'source': data['source']}})
-                self.add_op_log('update_page_source', target_id=data['_ids'])
+                self.add_op_log('update_page', target_id=data['_ids'])
             self.send_data_response(dict(matched_count=r.matched_count))
 
         except DbError as error:

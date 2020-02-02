@@ -261,7 +261,6 @@ class TaskHandler(BaseHandler, Task, Lock):
         self.db.task.update_one({'_id': task['_id']}, {'$set': update})
         self.release_task_lock(task, self.current_user, update_level=True)
         self.update_doc(task, self.STATUS_FINISHED)
-        self.add_op_log('finish_%s' % task['task_type'], target_id=task['_id'])
         # 更新后置任务
         condition = dict(collection=task['collection'], id_name=task['id_name'], doc_id=task['doc_id'])
         tasks = list(self.db.task.find(condition))
@@ -327,11 +326,18 @@ class TaskHandler(BaseHandler, Task, Lock):
             error = None if has_lock else r
         return has_lock, error
 
-    @staticmethod
-    def get_task_search_condition(request_query, collection=None):
+    @classmethod
+    def get_task_search_condition(cls, request_query, collection=None, mode=None):
         """ 获取任务的查询条件"""
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        for field in ['task_type', 'collection', 'status', 'priority']:
+        value = get_url_param('task_type', request_query)
+        if value:
+            params['task_type'] = value
+            condition.update({'task_type': value})
+        elif mode == 'browse':
+            # 浏览模式过滤掉小欧任务
+            condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
+        for field in ['collection', 'status', 'priority']:
             value = get_url_param(field, request_query)
             if value:
                 params[field] = value

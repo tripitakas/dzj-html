@@ -42,7 +42,9 @@ class CutTaskApi(PageHandler):
             # 提交任务
             if data.get('submit'):
                 self.submit_task(data)
-            return self.send_data_response()
+
+            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
@@ -69,12 +71,13 @@ class CutEditApi(PageHandler):
             else:
                 update[data['step']] = self.sort_boxes(data['boxes'], data['step'], page=self.page)
             self.db.page.update_one({'name': self.page_name}, {'$set': update})
-            self.add_op_log('edit_box', context=page_name, target_id=self.page['_id'])
+            self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
 
             if data.get('submit'):
                 self.release_temp_lock(page_name, 'box', self.current_user)
 
-            return self.send_data_response()
+            self.add_op_log('edit_box', target_id=page_name)
+            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
@@ -98,9 +101,11 @@ class TextProofApi(PageHandler):
                 return self.send_error_response(errs)
 
             if data['step'] == 'select':
-                return self.save_select(data)
+                self.save_select(data)
             else:
-                return self.save_proof(data)
+                self.save_proof(data)
+
+            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
 
         except DbError as error:
             return self.send_db_error(error)
@@ -110,14 +115,14 @@ class TextProofApi(PageHandler):
         if data.get('submit'):
             update.update({'steps.submitted': self.get_submitted(data['step'])})
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-        self.add_op_log('save_%s' % self.task_type, context=self.task['doc_id'], target_id=self.task['_id'])
+        self.add_op_log('save_task', target_id=self.task['_id'], context=self.task['doc_id'])
 
     def save_proof(self, data):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
         update = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-        self.add_op_log('save_%s' % self.task_type, context=self.task['doc_id'], target_id=self.task['_id'])
+        self.add_op_log('save_task', target_id=self.task['_id'], context=self.task['doc_id'])
         if data.get('submit'):
             if self.mode == 'do':
                 self.finish_task(self.task)
@@ -142,7 +147,7 @@ class TextReviewApi(PageHandler):
                     publish_user_id=self.current_user['_id'],
                     publish_by=self.current_user['name'])
         r = self.db.task.insert_one(task)
-        self.add_op_log('publish_text_hard', context=str(review_task['_id']), target_id=r.inserted_id)
+        self.add_op_log('publish_task', target_id=r.inserted_id, context=str(review_task['_id']))
         return r.inserted_id
 
     def post(self, task_id):
@@ -162,6 +167,8 @@ class TextReviewApi(PageHandler):
             # 更新page
             txt_html = data.get('txt_html', '').strip('\n')
             self.update_page_txt_html(txt_html)
+
+            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
         except DbError as error:
@@ -188,6 +195,8 @@ class TextHardApi(PageHandler):
             # 更新page
             txt_html = data.get('txt_html', '').strip('\n')
             self.update_page_txt_html(txt_html)
+
+            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
         except DbError as error:
@@ -210,6 +219,8 @@ class TextEditApi(PageHandler):
             self.update_page_txt_html(txt_html)
             if data.get('submit'):
                 self.release_temp_lock(page_name, 'text', self.current_user)
+
+            self.add_op_log('edit_text', target_id=page_name)
             self.send_data_response()
 
         except DbError as error:

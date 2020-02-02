@@ -126,8 +126,6 @@ class PublishBaseHandler(TaskHandler):
         # 更新doc
         self.update_docs(doc_ids, task_type, status)
 
-        self.add_op_log('publish_' + task_type, context='发布了%d个任务: %s' % (len(doc_ids), ','.join(doc_ids)))
-
     @staticmethod
     def _select_tasks(tasks_finished, pre_tasks):
         """ 在已完成的任务列表中，过滤出前置任务全部完成的任务"""

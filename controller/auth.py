@@ -11,27 +11,27 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'article_id': r'[^/]{6,}',
+    'page_name': r'[a-zA-Z]{2}_[fb0-9_]+',
+    'task_id': r'[A-Za-z0-9]{24}',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
-    'task_id': r'[A-Za-z0-9]{24}',
-    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'shared_field': r'box|text',
+    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'metadata': r'tripitaka|sutra|volume|reel|page',
     'boxType': 'block|column|char',
-    'page_code': r'[A-Z]{2}[fb0-9_]*',
-    'page_name': r'[a-zA-Z]{2}_[0-9_]+',
     'img_file': '[A-Za-z0-9._-]+',
     'user_code': '[A-Za-z0-9]+',
 }
 
-""" 角色权限对应表，定义系统中的所有角色以及对应的route权限。
-    将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
-    角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-    routes：角色可以访问的权限集合；
-    roles：角色所继承的父角色；
-    is_assignable：角色是否可被分配。
+""" 
+角色权限对应表，定义系统中的所有角色以及对应的route权限。
+将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
+角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
+routes：角色可以访问的权限集合；
+roles：角色所继承的父角色；
+is_assignable：角色是否可被分配。
 """
 role_route_maps = {
     '单元测试用户': {
@@ -62,7 +62,6 @@ role_route_maps = {
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka/list': ['GET'],
-            '/page/@page_code': ['GET'],
             '/api/session/config': ['POST'],
             '/tool/punctuate': ['GET'],
             '/api/tool/punctuate': ['POST'],
@@ -153,13 +152,13 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
+            '/api/user/list': ['POST'],
             '/task/admin/image': ['GET'],
             '/task/admin/page': ['GET'],
             '/task/page/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
-            '/task/browse/@task_type/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
-            '/api/user/list': ['POST'],
+            '/task/browse/@task_type/@task_id': ['GET'],
         }
     },
     '任务管理员': {
@@ -192,8 +191,8 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
-            '/data/page/@page_code': ['GET'],
-            '/data/page/info/@page_code': ['GET'],
+            '/data/page/@page_name': ['GET'],
+            '/data/page/info/@page_name': ['GET'],
             '/api/data/page/source': ['POST'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],

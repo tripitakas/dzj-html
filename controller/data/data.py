@@ -186,6 +186,7 @@ class Page(Model):
         (v.is_digit, 'reel_page_no')
     ]
     primary = 'name'
+    layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']  # 图片的版面结构
 
     @classmethod
     def metadata(cls):

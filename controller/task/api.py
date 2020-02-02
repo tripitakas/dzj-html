@@ -128,7 +128,7 @@ class PublishImageTasksApi(TaskHandler):
             task.update(dict(status=status, priority=priority, input=param))
             r = self.db.task.insert_one(task)
             message = '%s, %s,%s' % ('import_image', data['import_dir'], data['redo'])
-            self.add_op_log('publish_task', context=message, target_id=r.inserted_id)
+            self.add_op_log('publish_task', target_id=r.inserted_id, context=message)
             self.send_data_response(dict(_id=r.inserted_id))
 
         except DbError as error:
@@ -180,7 +180,7 @@ class PickTaskApi(TaskHandler):
                 'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': user_name,
                 'picked_time': now, 'updated_time': now,
             }})
-            self.add_op_log('pick_' + task_type, context=task['doc_id'], target_id=task['_id'])
+            self.add_op_log('pick_task', target_id=task['_id'], context=task['task_type'])
             # 更新doc
             self.update_doc(task, self.STATUS_PICKED)
             # 设置返回参数
@@ -208,11 +208,11 @@ class UpdateTaskApi(TaskHandler):
                 if data.get('is_sample'):
                     update['is_sample'] = True if data['is_sample'] == '是' else False
                 r = self.db.task.update_one({'_id': ObjectId(data['_id'])}, {'$set': update})
-                self.add_op_log('update_task', context=data[field], target_id=data['_id'])
+                self.add_op_log('update_task', target_id=data['_id'], context=data[field])
             else:
                 _ids = [ObjectId(t) for t in data['_ids']]
                 r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
-                self.add_op_log('update_task', context=data[field], target_id=_ids)
+                self.add_op_log('update_task', target_id=_ids, context=data[field])
             self.send_data_response(dict(count=r.matched_count))
 
         except DbError as error:
@@ -247,7 +247,7 @@ class ReturnTaskApi(TaskHandler):
             reason = self.prop(self.get_request_data(), 'reason', '')
             update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(), 'return_reason': reason}
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-            self.add_op_log('return_task', context=task_id, target_id=self.task['_id'])
+            self.add_op_log('return_task', target_id=self.task['_id'])
             self.release_task_lock(self.task, self.current_user)
             self.update_doc(self.task, self.STATUS_RETURNED)
             return self.send_data_response()
@@ -271,7 +271,7 @@ class RepublishTaskApi(TaskHandler):
             }})
             unset = ['steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason']
             self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in unset}})
-            self.add_op_log('republish', target_id=self.task['_id'], context=self.task['task_type'])
+            self.add_op_log('republish_task', target_id=self.task['_id'])
             # 释放数据锁
             self.release_task_lock(self.task, self.current_user)
             # 更新doc

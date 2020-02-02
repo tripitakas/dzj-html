@@ -24,19 +24,20 @@ class PageHandler(TaskHandler, PageTool):
         self.page_name, self.page = self.doc_id, self.doc
         if not self.is_api:
             # 设置切分任务参数
-            if self.task_type in ['cut_proof', 'cut_review', 'ocr_box']:
+            if self.task_type in ['cut_proof', 'cut_review']:
                 self.box_type = self.step2box.get(self.steps['current'])
                 self.boxes = self.page.get(self.box_type + 's')
             # 设置文字任务参数
-            if 'text' in self.task_type:
+            if 'text_' in self.task_type:
                 self.texts, self.doubts = self.get_cmp_txt()
 
     def get_task_type(self):
         """ 重载父类函数"""
         task_type = super().get_task_type()
-        if not task_type:  # task_type缺省设置(如edit模式或sample示例时)
+        if not task_type:
+            # edit模式时，设置task_type
             p = self.request.path
-            return 'cut_proof' if '/box' in p else 'text_proof_1' if '/text' in p else ''
+            return 'cut_proof' if '/edit/box' in p else 'text_proof_1' if '/edit/text' in p else ''
 
     def get_doc_id(self):
         """ 重载父类函数"""
@@ -56,14 +57,7 @@ class PageHandler(TaskHandler, PageTool):
     def get_cmp_txt(self):
         """ 获取比对文本、存疑文本"""
         texts, doubts = [], []
-        if self.task_type == 'ocr_text':
-            ocr = self.get_ocr()
-            if ocr:
-                texts.append([ocr, '字框OCR'])
-            ocr_col = self.get_ocr_col()
-            if ocr_col:
-                texts.append([ocr_col, '列框OCR'])
-        elif 'text_proof_' in self.task_type:
+        if 'text_proof_' in self.task_type:
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
             ocr = self.get_ocr()
@@ -100,7 +94,6 @@ class PageHandler(TaskHandler, PageTool):
         """ 提交任务"""
         update = {'updated_time': datetime.now(), 'steps.submitted': self.get_submitted(data['step'])}
         self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
-        self.add_op_log('submit_%s' % self.task_type, target_id=self.task_id)
         steps_todo = self.prop(self.task, 'steps.todo', [])
         if data['step'] == steps_todo[-1]:
             if self.mode == 'do':

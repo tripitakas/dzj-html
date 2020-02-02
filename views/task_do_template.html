@@ -56,8 +56,8 @@
 </div>
 
 <div class="panel-body" style="padding: 0">
-  {% module ComModal([{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}], 'autoPickModal', '提交后是否自动领取新任务？') %}
   {% module ReturnModal() %}
+  {% module AutoPickModal() %}
   {% module TaskRemarkModal() %}
   {% block custom-modal %}
   {% end %}
