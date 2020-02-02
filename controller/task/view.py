@@ -50,9 +50,9 @@ class DocTaskAdminHandler(TaskHandler):
                 {'id': '_id', 'name': '主键'},
                 {'id': 'doc_id', 'name': '页编码'},
                 {'id': 'batch', 'name': '批次号'},
-                {'id': 'task_type', 'name': '类型', 'filter': TaskHandler.get_task_types(collection)},
-                {'id': 'status', 'name': '状态', 'filter': TaskHandler.task_statuses},
-                {'id': 'priority', 'name': '优先级', 'filter': TaskHandler.priorities},
+                {'id': 'task_type', 'name': '类型', 'filter': self.get_task_types(collection)},
+                {'id': 'status', 'name': '状态', 'filter': self.task_statuses},
+                {'id': 'priority', 'name': '优先级', 'filter': self.priorities},
                 {'id': 'steps', 'name': '步骤'},
                 {'id': 'pre_tasks', 'name': '前置任务'},
                 {'id': 'return_reason', 'name': '退回理由'},
@@ -69,7 +69,7 @@ class DocTaskAdminHandler(TaskHandler):
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
                 'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                **kwargs,
+                collection=collection, **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)

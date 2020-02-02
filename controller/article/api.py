@@ -46,7 +46,9 @@ class ArticleAddOrUpdateApi(BaseHandler):
         """ 保存文章"""
         try:
             data = self.get_request_data()
-            fields = ['title', 'article_id', 'category', 'active', 'content'] + (['_id'] if mode == 'update' else [])
+            fields = ['title', 'article_id', 'category', 'active', 'content']
+            if mode == 'update':
+                fields.append('_id')
             rules = [(v.not_empty, *fields), (v.is_article, 'article_id')]
             v.validate(data, rules, self)
 

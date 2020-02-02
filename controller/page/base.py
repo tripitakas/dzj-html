@@ -19,8 +19,6 @@ class PageHandler(TaskHandler, PageTool):
 
     def prepare(self):
         super().prepare()
-        if self.error:
-            return
         self.page_name, self.page = self.doc_id, self.doc
         if not self.is_api:
             # 设置切分任务参数
@@ -35,9 +33,8 @@ class PageHandler(TaskHandler, PageTool):
         """ 重载父类函数"""
         task_type = super().get_task_type()
         if not task_type:
-            # edit模式时，设置task_type
             p = self.request.path
-            return 'cut_proof' if '/edit/box' in p else 'text_proof_1' if '/edit/text' in p else ''
+            return 'cut_proof' if '/box' in p else 'text_proof_1' if '/text' in p else ''
 
     def get_doc_id(self):
         """ 重载父类函数"""

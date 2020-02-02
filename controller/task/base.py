@@ -44,8 +44,6 @@ class TaskHandler(BaseHandler, Task, Lock):
         prepare函数中将会根据task_type/doc_id这两个参数设置任务步骤、数据以及检查数据锁。
         """
         super().prepare()
-        if self.error:
-            return
         self.task = {}
         self.has_lock = None
         self.mode = self.get_task_mode()
@@ -65,6 +63,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
+        if self.mode and not self.task_type:
+            return self.send_error_response(e.task_type_error, message='需配置请求的任务类型')
         collection, id_name, input_field, shared_field = self.get_data_conf(self.task_type)
         if self.doc_id:
             # 数据是否存在
@@ -115,7 +115,11 @@ class TaskHandler(BaseHandler, Task, Lock):
         return s.group(2) if s else ''
 
     def get_task_mode(self):
-        return (re.findall('/(do|update|edit|browse)/', self.request.path) or ['view'])[0]
+        r = re.findall('/(do|update|edit|browse)/', self.request.path)
+        mode = r[0] if r else ''
+        if not mode and self.get_task_id():
+            mode = 'view'
+        return mode
 
     def get_task_id(self):
         s = re.search(r'/([0-9a-z]{24})(\?|$|\/)', self.request.path)
@@ -325,57 +329,3 @@ class TaskHandler(BaseHandler, Task, Lock):
             has_lock = r is True
             error = None if has_lock else r
         return has_lock, error
-
-    @classmethod
-    def get_task_search_condition(cls, request_query, collection=None, mode=None):
-        """ 获取任务的查询条件"""
-        condition, params = dict(collection=collection) if collection else dict(), dict()
-        value = get_url_param('task_type', request_query)
-        if value:
-            params['task_type'] = value
-            condition.update({'task_type': value})
-        elif mode == 'browse':
-            # 浏览模式过滤掉小欧任务
-            condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
-        for field in ['collection', 'status', 'priority']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field: value})
-        for field in ['batch', 'doc_id', 'remark']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
-        picked_user_id = get_url_param('picked_user_id', request_query)
-        if picked_user_id:
-            params['picked_user_id'] = picked_user_id
-            condition.update({'picked_user_id': ObjectId(picked_user_id)})
-        publish_start = get_url_param('publish_start', request_query)
-        if publish_start:
-            params['publish_start'] = publish_start
-            condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
-        publish_end = get_url_param('publish_end', request_query)
-        if publish_end:
-            params['publish_end'] = publish_end
-            condition['publish_time'] = condition.get('publish_time') or {}
-            condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
-        picked_start = get_url_param('picked_start', request_query)
-        if picked_start:
-            params['picked_start'] = picked_start
-            condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
-        picked_end = get_url_param('picked_end', request_query)
-        if picked_end:
-            params['picked_end'] = picked_end
-            condition['picked_time'] = condition.get('picked_time') or {}
-            condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
-        finished_start = get_url_param('finished_start', request_query)
-        if finished_start:
-            params['finished_start'] = finished_start
-            condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
-        finished_end = get_url_param('finished_end', request_query)
-        if finished_end:
-            params['finished_end'] = finished_end
-            condition['finished_time'] = condition.get('finished_time') or {}
-            condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
-        return condition, params

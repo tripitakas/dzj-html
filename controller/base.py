@@ -183,7 +183,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
         render = not self.is_api and not self.get_query_argument('_raw', 0)
         if response.pop('render', render):  # 如果是页面渲染请求，则返回错误页面
-            return self.render('_error.html', **response)
+            self.render('_error.html', **response)
+            raise Finish()
 
         user_name = self.current_user and self.current_user['name']
         class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]

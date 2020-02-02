@@ -5,9 +5,9 @@
 @time: 2019/10/16
 """
 from datetime import datetime
+from bson.objectid import ObjectId
 from controller.model import Model
-from controller.helper import prop
-from controller.helper import get_date_time
+from controller.helper import prop, get_date_time, get_url_param
 
 
 class Task(Model):
@@ -139,9 +139,8 @@ class Task(Model):
         return 'groups' in prop(cls.all_task_types(), task_type)
 
     @classmethod
-    def get_task_types(cls, collection=None):
-        return {t: v['name'] for t, v in cls.task_types.items() if
-                prop(v, 'data.collection') == collection or not collection}
+    def get_task_types(cls, collection):
+        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
 
     @classmethod
     def get_ocr_tasks(cls):
@@ -225,3 +224,57 @@ class Task(Model):
     @classmethod
     def get_priority_name(cls, priority):
         return cls.priorities.get(priority) or priority
+
+    @classmethod
+    def get_task_search_condition(cls, request_query, collection=None, mode=None):
+        """ 获取任务的查询条件"""
+        condition, params = dict(collection=collection) if collection else dict(), dict()
+        value = get_url_param('task_type', request_query)
+        if value:
+            params['task_type'] = value
+            condition.update({'task_type': value})
+        elif mode == 'browse':
+            # 浏览模式过滤掉小欧任务
+            condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
+        for field in ['collection', 'status', 'priority']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+        for field in ['batch', 'doc_id', 'remark']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        picked_user_id = get_url_param('picked_user_id', request_query)
+        if picked_user_id:
+            params['picked_user_id'] = picked_user_id
+            condition.update({'picked_user_id': ObjectId(picked_user_id)})
+        publish_start = get_url_param('publish_start', request_query)
+        if publish_start:
+            params['publish_start'] = publish_start
+            condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
+        publish_end = get_url_param('publish_end', request_query)
+        if publish_end:
+            params['publish_end'] = publish_end
+            condition['publish_time'] = condition.get('publish_time') or {}
+            condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
+        picked_start = get_url_param('picked_start', request_query)
+        if picked_start:
+            params['picked_start'] = picked_start
+            condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
+        picked_end = get_url_param('picked_end', request_query)
+        if picked_end:
+            params['picked_end'] = picked_end
+            condition['picked_time'] = condition.get('picked_time') or {}
+            condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
+        finished_start = get_url_param('finished_start', request_query)
+        if finished_start:
+            params['finished_start'] = finished_start
+            condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
+        finished_end = get_url_param('finished_end', request_query)
+        if finished_end:
+            params['finished_end'] = finished_end
+            condition['finished_time'] = condition.get('finished_time') or {}
+            condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
+        return condition, params

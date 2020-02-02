@@ -13,10 +13,9 @@ Task.task_types[task_type].input_field定义。
 3. 发布任务
 一次只能发布一种类型的任务，发布参数包括：任务类型、前置任务（可选）、优先级、文档集合（doc_ids）。
 可以发布已就绪、已退回的任务。不可以发布已发布、悬挂或进行中的任务。已完成的任务，根据参数，也可以重新发布。
-
 @time: 2018/12/27
 """
-from datetime import datetime
+
 from controller.task.base import TaskHandler
 
 
