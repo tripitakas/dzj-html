@@ -63,9 +63,7 @@ class PublishDocTasksApi(PublishBaseHandler):
             (v.in_list, 'task_type', list(self.task_types.keys())),
             (v.in_list, 'pre_tasks', list(self.task_types.keys())),
         ]
-        errs = v.validate(data, rules)
-        if errs:
-            return self.send_error_response(errs)
+        v.validate(data, rules, self)
 
         try:
             if len(data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
@@ -118,9 +116,7 @@ class PublishImageTasksApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             task = self.get_publish_meta('import_image')
             priority, status = int(data['priority']), self.STATUS_PUBLISHED
@@ -199,9 +195,7 @@ class UpdateTaskApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_ids', '_id'), (v.not_both_empty, 'batch', 'remark')]
-            errs = v.validate(data, rules)
-            if errs:
-                self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             update = {field: data[field]}
             if data.get('_id'):
@@ -227,10 +221,7 @@ class StatisticTaskApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'kind', 'search')]
-            errs = v.validate(data, rules)
-            if errs:
-                self.send_error_response(errs)
-            self.send_data_response()
+            v.validate(data, rules, self)
 
         except DbError as error:
             return self.send_db_error(error)
@@ -290,9 +281,7 @@ class DeleteTasksApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_ids', '_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             _ids = data['_ids'] if data.get('_ids') else [data['_id']]
             status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_RETURNED]
@@ -324,9 +313,7 @@ class AssignTasksApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'tasks', 'user_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
             user = self.db.user.find_one({'_id': ObjectId(data['user_id'])})
             if not user:
                 return self.send_error_response(e.no_user)
@@ -421,9 +408,7 @@ class InitTestTasksApi(TaskHandler):
         """ 初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
         data = self.get_request_data()
         rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
-        errs = v.validate(data, rules)
-        if errs:
-            return self.send_error_response(errs)
+        v.validate(data, rules, self)
 
         try:
             tasks, task_types = [], ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']
