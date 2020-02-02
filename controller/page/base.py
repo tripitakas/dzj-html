@@ -24,11 +24,11 @@ class PageHandler(TaskHandler, PageTool):
         self.page_name, self.page = self.doc_id, self.doc
         if not self.is_api:
             # 设置切分任务参数
-            if 'cut_' in self.task_type:
+            if self.task_type in ['cut_proof', 'cut_review', 'ocr_box']:
                 self.box_type = self.step2box.get(self.steps['current'])
                 self.boxes = self.page.get(self.box_type + 's')
             # 设置文字任务参数
-            if 'text_' in self.task_type:
+            if 'text' in self.task_type:
                 self.texts, self.doubts = self.get_cmp_txt()
 
     def get_task_type(self):
@@ -56,7 +56,14 @@ class PageHandler(TaskHandler, PageTool):
     def get_cmp_txt(self):
         """ 获取比对文本、存疑文本"""
         texts, doubts = [], []
-        if 'text_proof' in self.task_type:
+        if self.task_type == 'ocr_text':
+            ocr = self.get_ocr()
+            if ocr:
+                texts.append([ocr, '字框OCR'])
+            ocr_col = self.get_ocr_col()
+            if ocr_col:
+                texts.append([ocr_col, '列框OCR'])
+        elif 'text_proof_' in self.task_type:
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
             ocr = self.get_ocr()

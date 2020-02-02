@@ -71,13 +71,11 @@ role_route_maps = {
             '/tool/search': ['GET'],
             '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
-            '/task/sample/(box|text|select)': ['GET'],
-            '/task/sample/box/@page_name': ['GET'],
+            '/task/sample/@task_type': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/api/task/text_select/@page_name': ['POST'],
             '/api/task/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-
         }
     },
     '切分校对员': {

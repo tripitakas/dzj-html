@@ -14,6 +14,7 @@ from controller.cut.cuttool import CutTool
 class CutTaskHandler(PageHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
+           '/task/browse/ocr_box/@task_id',
            '/task/browse/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
@@ -52,6 +53,7 @@ class CutEditHandler(PageHandler):
 class TextProofHandler(PageHandler):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
+           '/task/browse/ocr_text/@task_id',
            '/task/browse/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
