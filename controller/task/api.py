@@ -159,9 +159,10 @@ class PickTaskApi(TaskHandler):
                     return self.send_error_response(e.task_not_published)
             else:
                 # 如果task_id为空，则从任务大厅任取一个
-                task = self.find_lobby(task_type, page_size=1)[0]
-                if not task:
+                tasks = self.find_lobby(task_type, page_size=1)[0]
+                if not tasks:
                     return self.send_error_response(e.no_task_to_pick)
+                task = tasks[0]
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
             if self.is_group(task_type) and self.db.task.find_one(dict(
