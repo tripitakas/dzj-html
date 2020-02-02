@@ -33,7 +33,7 @@ class CutTaskHandler(PageHandler):
 
 
 class CutEditHandler(PageHandler):
-    URL = '/data/edit/box/@page_name'
+    URL = '/page/edit/box/@page_name'
 
     def get(self, page_name):
         """ 切分框修改页面"""
@@ -90,7 +90,7 @@ class TextReviewHandler(PageHandler):
 
 
 class TextEditHandler(PageHandler):
-    URL = '/data/edit/text/@page_name'
+    URL = '/page/edit/text/@page_name'
 
     def get(self, page_name):
         """ 文字修改页面"""

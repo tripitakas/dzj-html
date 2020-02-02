@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from bson.objectid import ObjectId
-from controller import errors
+from controller import errors as e
 from controller.base import DbError
+from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
-from controller.helper import is_box_changed
 
 
-class SubmitDataTaskApi(TaskHandler):
+class SubmitDataTaskHandler(TaskHandler):
     def submit_one(self, task):
-        tsk = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
-        if not tsk:
-            return errors.task_not_existed
-        elif tsk['picked_user_id'] != self.current_user['_id']:
-            return errors.task_unauthorized_locked
+        _task = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
+        if not _task:
+            return e.task_not_existed
+        elif _task['picked_user_id'] != self.current_user['_id']:
+            return e.task_unauthorized_locked
         page_name = self.prop(task, 'page_name')
-        if page_name and page_name != tsk.get('doc_id'):
-            return errors.doc_id_not_equal
+        if page_name and page_name != _task.get('doc_id'):
+            return e.doc_id_not_equal
 
         try:
             if task['task_type'] in ['ocr_box', 'ocr_text']:
@@ -40,28 +40,29 @@ class SubmitDataTaskApi(TaskHandler):
         else:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return errors.no_object
+                return e.no_object
             # ocr_text任务不允许修改切分信息
-            box_changed = task['task_type'] == 'ocr_text' and is_box_changed(result, page)
+            box_changed = task['task_type'] == 'ocr_text' and PageTool.is_box_changed(result, page)
             if box_changed:
-                return errors.box_not_identical[0], '(%s)切分信息不一致' % box_changed
+                return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
             # 更新task
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             })
-            # 更新page，并释放数据锁
+            # 更新page，释放数据锁，更新任务状态
             ocr, ocr_col = result.get('ocr', ''), result.get('ocr_col', '')
             ocr = '|'.join(ocr) if isinstance(ocr, list) else ocr
             ocr_col = '|'.join(ocr_col) if isinstance(ocr_col, list) else ocr_col
             width = result.get('width') or page.get('width')
             height = result.get('height') or page.get('height')
+            chars = result.get('chars') or page.get('chars')
             blocks = result.get('blocks') or page.get('blocks')
             columns = result.get('columns') or page.get('columns')
-            chars = result.get('chars') or page.get('chars')
             self.db.page.update_one({'name': page_name}, {'$set': {
-                'width': width, 'height': height, 'ocr': ocr, 'ocr_col': ocr_col,
-                'chars': chars, 'blocks': blocks, 'columns': columns, 'lock.box': {}}
-            })
+                'width': width, 'height': height, 'chars': chars, 'blocks': blocks, 'columns': columns,
+                'ocr': ocr, 'ocr_col': ocr_col, 'tasks.%s' % task['task_type']: self.STATUS_FINISHED,
+                'lock.box': {},
+            }})
         return True
 
     def submit_upload_cloud(self, task):
@@ -75,10 +76,9 @@ class SubmitDataTaskApi(TaskHandler):
         else:
             page = self.db.page.find_one({'name': page_name})
             if not page:
-                return errors.no_object
+                return e.no_object
             task_update.update({'status': self.STATUS_FINISHED, 'finished_time': now})
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-
             page_update = dict(img_cloud_path=self.prop(task, 'result.img_cloud_path'))
             self.db.page.update_one({'name': page_name}, {'$set': page_update})
         return True
@@ -93,5 +93,4 @@ class SubmitDataTaskApi(TaskHandler):
         else:
             task_update = {'status': self.STATUS_FINISHED, 'finished_time': now, 'updated_time': now}
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': task_update})
-
         return True

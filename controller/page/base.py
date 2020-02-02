@@ -47,16 +47,22 @@ class PageHandler(TaskHandler, PageTool):
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
 
+    def get_ocr(self):
+        return self.page.get('ocr') or self.get_ocr_txt(self.page.get('chars'))
+
+    def get_ocr_col(self):
+        return self.page.get('ocr_col') or self.get_ocr_txt(self.page.get('columns'))
+
     def get_cmp_txt(self):
         """ 获取比对文本、存疑文本"""
         texts, doubts = [], []
         if 'text_proof' in self.task_type:
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
-            ocr = self.get_ocr(self.page)
+            ocr = self.get_ocr()
             if ocr:
                 texts.append([ocr, '字框OCR'])
-            ocr_col = self.get_ocr_col(self.page)
+            ocr_col = self.get_ocr_col()
             if ocr_col:
                 texts.append([ocr_col, '列框OCR'])
             cmp = self.prop(self.task, 'result.cmp')
@@ -78,8 +84,6 @@ class PageHandler(TaskHandler, PageTool):
             doubts.append([doubt, '难字列表'])
             condition = dict(task_type='text_review', doc_id=self.page['name'], status=self.STATUS_FINISHED)
             review_task = self.db.task.find_one(condition)
-            review_txt = self.html2txt(self.prop(review_task, 'result.txt_html', ''))
-            texts.append([review_txt, self.get_task_name(review_task['task_type'])])
             review_doubt = self.prop(review_task, 'result.doubt', '')
             if review_doubt:
                 doubts.append([review_doubt, '审定存疑'])
@@ -103,3 +107,12 @@ class PageHandler(TaskHandler, PageTool):
         if step not in submitted:
             submitted.append(step)
         return submitted
+
+    def update_page_txt_html(self, txt_html):
+        """ 更新page的txt_html字段"""
+        text = self.html2txt(txt_html)
+        is_match = self.check_match(self.page.get('chars'), text)
+        update = {'text': text, 'txt_html': txt_html, 'is_match': is_match}
+        if is_match:
+            update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
+        self.db.page.update_one({'name': self.page_name}, {'$set': update})

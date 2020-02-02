@@ -11,7 +11,7 @@
 二、 url
 1. do/update/browse 如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
 2. view 如：/task/@task_type/5e3139c6a197150011d65e9d
-3. edit 如 /data/edit/box/@page_name
+3. edit 如 /page/edit/box/@page_name
 
 @time: 2019/10/16
 """

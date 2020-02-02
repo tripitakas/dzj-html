@@ -367,7 +367,7 @@
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    location.href = '/data/edit/text/' + name + '?from=' + encodeFrom();
+    location.href = '/page/edit/text/' + name + '?from=' + encodeFrom();
   });
 
   // 修改栏框、列框、字框、字序
@@ -375,7 +375,7 @@
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('class');
+    var url = '/page/edit/box/' + name + '?step=' + $(this).attr('class');
     location.href = url + '&from=' + encodeFrom();
   });
 

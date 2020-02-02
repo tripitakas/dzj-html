@@ -11,6 +11,21 @@ from tornado.escape import url_escape
 
 class PageTool(object):
 
+    @staticmethod
+    def is_box_changed(page_a, page_b, ignore_none=True):
+        """ 检查两个页面的切分信息是否发生了修改"""
+        for field in ['blocks', 'columns', 'chars']:
+            a, b = page_a.get(field), page_b.get(field)
+            if ignore_none and (not a or not b):
+                continue
+            if len(a) != len(b):
+                return field + '.len'
+            for i in range(len(a)):
+                for j in ['x', 'y', 'w', 'h']:
+                    if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
+                        return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
+        return None
+
     @classmethod
     def reorder_chars(cls, chars_col, chars, page=None):
         """ 根据连线数据排列字序"""
@@ -44,40 +59,22 @@ class PageTool(object):
         for line in regex.findall(html or ''):
             if 'delete' not in line:
                 txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
-                lines.append(txt + '\n')
-        return ''.join(lines).rstrip('\n')
+                lines.append(txt + '|')
+        return ''.join(lines).rstrip('|')
 
     @classmethod
-    def get_ocr(cls, page, chars=None):
-        """ 获取页面的ocr文本"""
-        ocr = page.get('ocr') or ''
-        chars = chars if chars else page.get('chars')
-        if not ocr and len(chars) > 1:
-            pre, txt = chars[0], ''
-            for c in chars[1:]:
-                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:
-                    txt += '||'
-                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:
-                    txt += '|'
-                txt += c.get('ocr_txt', '')
-            ocr = txt.strip('|')
-        return ocr
-
-    @classmethod
-    def get_ocr_col(cls, page, columns=None):
-        """ 获取页面的ocr_col文本"""
-        ocr_col = page.get('ocr_col') or ''
-        columns = columns if columns else page.get('columns')
-        if not ocr_col and len(columns) > 1:
-            pre, txt = columns[0], ''
-            for c in columns[1:]:
-                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:
-                    txt += '||'
-                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:
-                    txt += '|'
-                txt += c.get('ocr_txt', '')
-            ocr_col = txt.strip('|')
-        return ocr_col
+    def get_ocr_txt(cls, boxes):
+        """ 获取chars或columns里的ocr文本"""
+        if not boxes:
+            return ''
+        pre, txt = boxes[0], ''
+        for b in boxes[1:]:
+            if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
+                txt += '||'
+            elif pre.get('line_no') and b.get('line_no') and pre['line_no'] != b['line_no']:
+                txt += '|'
+            txt += b.get('ocr_txt', '')
+        return txt.strip('|')
 
     @classmethod
     def check_segments(cls, segments, chars, params=None):
@@ -135,3 +132,42 @@ class PageTool(object):
         for c in page.get('columns', []):
             c.pop('char_id', 0)
             c.pop('char_no', 0)
+
+    @staticmethod
+    def check_match(chars, txt):
+        """ 检查图文是否匹配，包括总行数和每行字数"""
+        pre, num, char_line_num = chars[0], 0, []
+        for c in chars[1:]:
+            if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:  # 换栏
+                char_line_num.append(num)
+                num = 1
+            elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:  # 换行
+                char_line_num.append(num)
+                num = 1
+            else:
+                num += 1
+        char_line_num.append(num)
+
+        txt_lines = re.sub(r'[\|\n]+', '|', txt).split('|')
+        txt_line_num = [len(line) for line in txt_lines]
+
+        mis_match = []
+        for i, num in enumerate(char_line_num):
+            if num != txt_line_num[i]:
+                mis_match.append([i, num, txt_line_num[i]])
+        for i in range(len(char_line_num), len(txt_line_num)):
+            mis_match.append([i, 0, txt_line_num[i]])
+
+        r = len(char_line_num) == len(txt_line_num) and not mis_match
+
+        return r, mis_match, char_line_num, txt_line_num
+
+    @staticmethod
+    def update_chars_txt(chars, txt):
+        """ 将txt回写到chars中。假定图文匹配"""
+        txt = re.sub(r'[\|\n]+', '', txt)
+        if len(chars) != len(txt):
+            return False
+        for i, c in enumerate(chars):
+            c['txt'] = txt[i]
+        return chars

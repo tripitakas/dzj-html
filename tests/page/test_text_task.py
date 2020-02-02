@@ -105,11 +105,11 @@ class TestTextTask(APITestCase):
         self.assert_code(200, r)
 
         # 测试文字编辑
-        r = self.fetch('/data/edit/text/%s?_raw=1' % docs_ready[0])
+        r = self.fetch('/page/edit/text/%s?_raw=1' % docs_ready[0])
         self.assert_code(200, r)
 
         # 保存文字编辑
-        r = self.fetch('/api/data/edit/text/%s' % docs_ready[0],
+        r = self.fetch('/api/page/edit/text/%s' % docs_ready[0],
                        body={'data': dict(submit=True, txt_html=json_encode(page1.get('ocr')))})
         self.assert_code(200, r)
 
@@ -160,7 +160,7 @@ class TestTextTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为可写
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/text/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/text/QL_25_16?_raw=1'))
         self.assertEqual(False, r.get('readonly'))
 
         # 测试用户expert1进入update页面时为只读
@@ -180,7 +180,7 @@ class TestTextTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为只读
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/text/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/text/QL_25_16?_raw=1'))
         self.assertEqual(True, r.get('readonly'))
 
         # 用户expert1离开时解锁
@@ -190,5 +190,5 @@ class TestTextTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为可写
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/text/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/text/QL_25_16?_raw=1'))
         self.assertEqual(False, r.get('readonly'))

@@ -62,7 +62,7 @@ class TestCutTask(APITestCase):
         for step in steps:
             data_field = self.step2field.get(step)
             data = {'step': step, 'boxes': json_encode(page[data_field])}
-            r = self.fetch('/api/data/edit/box/QL_25_16', body={'data': data})
+            r = self.fetch('/api/page/edit/box/QL_25_16', body={'data': data})
             self.assert_code(200, r, msg=step)
 
     def test_cut_mode(self):
@@ -88,7 +88,7 @@ class TestCutTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为可写
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/box/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/box/QL_25_16?_raw=1'))
         self.assertEqual(False, r.get('readonly'))
 
         # 测试用户expert1进入update页面时为只读
@@ -108,7 +108,7 @@ class TestCutTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为只读
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/box/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/box/QL_25_16?_raw=1'))
         self.assertEqual(True, r.get('readonly'))
 
         # 用户expert1离开时解锁
@@ -118,7 +118,7 @@ class TestCutTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为可写
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/edit/box/QL_25_16?_raw=1'))
+        r = self.parse_response(self.fetch('/page/edit/box/QL_25_16?_raw=1'))
         self.assertEqual(False, r.get('readonly'))
 
     def test_gen_char_id(self):
