@@ -241,9 +241,9 @@
         });
       } else if (up && !zoomed) {
         line.setAttr({
-          stroke: '#f00',
+          stroke: a.x < b.x ? '#f00' : color,  // 向右上的标红
           'stroke-dasharray': '.',
-          'stroke-width': 2 / data.ratioInitial
+          'stroke-width': (a.x < b.x ? 3 : 2) / data.ratioInitial
         })
         .data('up', 1);
       }
