@@ -19,6 +19,7 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado.httpclient import HTTPError
 from tornado.options import options
 from tornado.web import RequestHandler
+from tornado.web import Finish
 from tornado_cors import CorsMixin
 from controller import errors as e
 from controller.op_type import get_op_name
@@ -194,6 +195,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.set_header('Content-Type', 'application/json; charset=UTF-8')
             self.write(json_util.dumps(response))
             self.finish()
+        raise Finish()
 
     def send_error(self, status_code=500, **kwargs):
         """拦截系统错误，不允许API调用"""

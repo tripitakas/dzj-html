@@ -48,9 +48,7 @@ class ArticleAddOrUpdateApi(BaseHandler):
             data = self.get_request_data()
             fields = ['title', 'article_id', 'category', 'active', 'content'] + (['_id'] if mode == 'update' else [])
             rules = [(v.not_empty, *fields), (v.is_article, 'article_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             article_id = data['article_id'].strip()
             images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content'])

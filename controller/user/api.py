@@ -34,9 +34,7 @@ class LoginApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'phone_or_email', 'password')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             # 检查是否多次登录失败
             gap = datetime.now() + timedelta(seconds=-1800)
@@ -132,9 +130,7 @@ class RegisterApi(BaseHandler):
             if not options.testing and data.get('phone'):
                 rules.append((v.not_empty, 'phone_code'))
                 rules.append((v.code_verify_timeout, self.db.verify, 'phone', 'phone_code'))
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             roles = self.config.get('role', {}).get('init', '')
             data['roles'] = '用户管理员' if not self.db.user.find_one() else roles  # 如果是第一个用户，则设置为用户管理员
@@ -173,9 +169,7 @@ class ForgetPasswordApi(BaseHandler):
             (v.not_empty, 'name', 'phone_or_email'),
             (v.is_phone_or_email, 'phone_or_email'),
         ]
-        errs = v.validate(data, rules)
-        if errs:
-            return self.send_error_response(errs)
+        v.validate(data, rules, self)
 
         phone_or_email = data['phone_or_email']
         user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
@@ -210,9 +204,7 @@ class ChangeMyPasswordApi(BaseHandler):
                 (v.not_equal, 'password', 'old_password'),
                 (v.is_password, 'password')
             ]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             user = self.db.user.find_one(dict(_id=self.current_user['_id']))
             if user.get('password') != helper.gen_id(data['old_password']):
@@ -241,9 +233,7 @@ class ChangeMyProfileApi(BaseHandler):
                 (v.is_phone, 'phone'),
                 (v.not_existed, self.db.user, self.current_user['_id'], 'phone', 'email')
             ]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             fields, update = ['name', 'gender', 'email', 'phone'], dict()
             for field in fields:
@@ -290,9 +280,7 @@ class SendUserEmailCodeApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'email')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             code = helper.random_code()
             if not self.send_email(self, data['email'], code):
@@ -343,9 +331,7 @@ class SendUserPhoneCodeApi(BaseHandler):
         """用户注册时，发送手机验证码"""
         data = self.get_request_data()
         rules = [(v.not_empty, 'phone')]
-        errs = v.validate(data, rules)
-        if errs:
-            return self.send_error_response(errs)
+        v.validate(data, rules, self)
 
         code = "%04d" % random.randint(1000, 9999)
         if not self.send_sms(self, data['phone'], code):
@@ -414,9 +400,7 @@ class ChangeUserRoleApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, '_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             user = self.db.user.find_one(dict(_id=ObjectId(data['_id'])))
             if not user:
@@ -441,9 +425,7 @@ class ResetUserPasswordApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, '_id')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             pwd = self.reset_pwd(self, data)
             if pwd:
@@ -479,9 +461,7 @@ class DeleteUserApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_id', '_ids')]
-            errs = v.validate(data, rules)
-            if errs:
-                return self.send_error_response(errs)
+            v.validate(data, rules, self)
 
             _ids = [data['_id']] if data.get('_id') else data['_ids']
             if str(self.current_user['_id']) in _ids:
