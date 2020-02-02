@@ -1,4 +1,4 @@
-from . import api, view
+from . import api, ocr, view
 
 views = [
     view.CutTaskHandler, view.CutEditHandler,
@@ -9,7 +9,7 @@ handlers = [
     api.CutTaskApi, api.CutEditApi, api.GenCharIdApi,
     api.SelectTextApi, api.NeighborTextApi,
     api.TextProofApi, api.TextReviewApi, api.TextHardApi, api.TextEditApi,
-    api.FetchDataTasksApi, api.SubmitDataTasksApi, api.ConfirmFetchDataTasksApi,
+    ocr.FetchOcrTasksApi, ocr.SubmitOcrTasksApi, ocr.ConfirmFetchOcrTasksApi,
 ]
 
 modules = {'TextArea': view.TextArea}

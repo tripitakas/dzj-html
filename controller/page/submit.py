@@ -8,7 +8,7 @@ from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
-class SubmitDataTaskHandler(TaskHandler):
+class SubmitOcrTaskHandler(TaskHandler):
     def submit_one(self, task):
         _task = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
         if not _task:

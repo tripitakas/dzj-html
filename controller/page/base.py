@@ -109,7 +109,7 @@ class PageHandler(TaskHandler, PageTool):
                 self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
     def get_submitted(self, step):
-        """ 更新task的submit字段"""
+        """ 更新task.steps.submitted字段"""
         submitted = self.prop(self.task, 'steps.submitted', [])
         if step not in submitted:
             submitted.append(step)

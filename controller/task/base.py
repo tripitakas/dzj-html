@@ -35,7 +35,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         """
         super(TaskHandler, self).__init__(application, request, **kwargs)
         self.task_type = self.task_id = self.doc_id = self.message = ''
-        self.mode = self.has_lock = self.readonly = self.is_api = None
+        self.mode = self.has_lock = self.readonly = None
         self.task = self.steps = self.doc = {}
 
     def prepare(self):
@@ -107,7 +107,7 @@ class TaskHandler(BaseHandler, Task, Lock):
 
     def get_doc_id(self):
         """ 获取数据id。供子类重载，以便prepare函数调用"""
-        pass
+        return ''
 
     def get_task_type(self):
         """ 设置任务类型。子类可以重载本函数来设置task_type"""
@@ -279,7 +279,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             self.db.task.update_one({'_id': _task['_id']}, {'$set': update})
 
     def update_doc(self, task, status=None):
-        """ 更新任务所关联的数据"""
+        """ 更新任务所关联数据的tasks字段"""
         if task['doc_id']:
             collection, id_name = self.get_data_conf(task['task_type'])[:2]
             condition = {id_name: task['doc_id']}
@@ -289,7 +289,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.db[collection].update_one(condition, {'$unset': {'tasks.' + task['task_type']: ''}})
 
     def update_docs(self, doc_ids, task_type, status):
-        """ 更新数据的任务状态"""
+        """ 更新数据的tasks字段"""
         collection, id_name = self.get_data_conf(task_type)[:2]
         self.db[collection].update_many({id_name: {'$in': list(doc_ids)}}, {'$set': {'tasks.' + task_type: status}})
 
