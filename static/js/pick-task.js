@@ -1,5 +1,5 @@
 /**
- * 领任务。需提前设置好groupTask变量
+ * 领任务。需提前设置好lobbyTaskType变量
  */
 
 // 领新任务
@@ -23,10 +23,10 @@ function error_callback(res) {
         window.location = res.url;
       });
   } else if (res.code === 3003) { // error.no_task_to_pick
-    window.location = '/task/lobby/' + groupTask;
+    window.location = '/task/lobby/' + lobbyTaskType;
   } else if (res.code !== 500) {
     showConfirm("是否领取其它任务？", res.message, function () {
-      pick("/task/pick/" + groupTask);
+      pick("/task/pick/" + lobbyTaskType);
     });
   } else {
     showError('发生错误', res.message);

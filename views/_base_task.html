@@ -10,7 +10,7 @@
   var step = '{{handler.steps.get("current") or ""}}';
   var remark = '{{handler.task.get("remark") or ""}}';
   var isSample = '{{handler.task.get("is_sample")}}';
-  var groupTask = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
+  var lobbyTaskType = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
 
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
@@ -39,9 +39,9 @@
     if (from) {
       window.location = from;
     } else if (mode === 'do') {
-      window.location = '/task/lobby/' + groupTask;
+      window.location = '/task/lobby/' + lobbyTaskType;
     } else if (mode === 'update') {
-      window.location = '/task/my/' + groupTask;
+      window.location = '/task/my/' + lobbyTaskType;
     } else {
       window.history.back();
     }
@@ -79,7 +79,7 @@
         showSuccess('成功', '已提交');
         setTimeout(function () {
           if (mode === 'do' && autoPick === '是') {
-            pick('/task/pick/' + groupTask);
+            pick('/task/pick/' + lobbyTaskType);
           } else {
             window.leave();
           }

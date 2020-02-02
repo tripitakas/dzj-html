@@ -141,12 +141,12 @@ class DataPageHandler(BaseHandler, Page):
     @staticmethod
     def get_page_search_condition(request_query):
         condition, params = dict(), dict()
-        for field in ['name', 'source', 'remark']:
+        for field in ['name', 'source', 'remark-box', 'remark-text']:
             value = get_url_param(field, request_query)
             if value:
                 params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['level_box', 'level_text']:
+                condition.update({field.replace('-', '.'): {'$regex': value, '$options': '$i'}})
+        for field in ['level-box', 'level-text']:
             value = get_url_param(field, request_query)
             m = re.search(r'([><=]+)(\d+)', value)
             if m:
@@ -211,7 +211,8 @@ class DataPageListHandler(DataPageHandler):
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark-box', 'name': '切分备注'},
+        {'id': 'remark-text', 'name': '文字备注'},
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -228,7 +229,7 @@ class DataPageListHandler(DataPageHandler):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark']
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark-box', 'remark-text']
     hide_fields = ['img_cloud_path', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
                    'lock-box', 'lock-text', 'level-box', 'level-text']
     update_fields = [
@@ -240,7 +241,8 @@ class DataPageListHandler(DataPageHandler):
         ]},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark-box', 'name': '切分备注'},
+        {'id': 'remark-text', 'name': '文本备注'},
     ]
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',

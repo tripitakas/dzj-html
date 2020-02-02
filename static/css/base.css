@@ -457,12 +457,30 @@ a:hover, a:visited, a:focus {
 }
 
 .sty-table td {
+  font-size: 14px;
+  color: #13171c;
   text-align: center;
+  word-break: break-all;
+}
+
+.sty-table a {
+  cursor: pointer;
 }
 
 .sty-table td a {
   color: #B8906F;
   cursor: pointer;
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+.sty-table td a:hover {
+  color: #b33c2b;
+}
+
+.sty-table a.disabled, .sty-table a.disabled:hover {
+  color: #797979;
+  cursor: not-allowed
 }
 
 .sty-table td.action a {
@@ -470,19 +488,22 @@ a:hover, a:visited, a:focus {
   margin-left: 2px;
 }
 
-.sty-table td a:hover {
-  color: #b33c2b;
+.sty-table .action {
+  color: #B8906F !important;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.sty-table .action:hover {
+  color: #b33c2b !important;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 .sty-table tbody tr {
   background: rgba(255, 255, 255, 0.85);
   height: 44px;
   border: 1px solid #ebebeb;
-}
-
-.sty-table td {
-  font-size: 14px;
-  color: #13171c;
 }
 
 .sty-table td span {

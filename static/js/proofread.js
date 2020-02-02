@@ -684,20 +684,20 @@ $('#zoom-reset').on('click', function () {
 
 // 修改字框
 $('#ed-char-box').click(function () {
-  location = '/data/edit/box/' + docId + '?step=chars&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=chars&from=' + encodeFrom();
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/data/edit/box/' + docId + '?step=blocks&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=blocks&from=' + encodeFrom();
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/data/edit/box/' + docId + '?step=columns&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=columns&from=' + encodeFrom();
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/data/edit/box/' + docId + '?step=orders&from=' + location.pathname + location.search;
+  location = '/data/edit/box/' + docId + '?step=orders&from=' + encodeFrom();
 });
