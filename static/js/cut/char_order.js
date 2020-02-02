@@ -241,9 +241,11 @@
         });
       } else if (up && !zoomed) {
         line.setAttr({
+          stroke: '#f00',
           'stroke-dasharray': '.',
           'stroke-width': 2 / data.ratioInitial
-        });
+        })
+        .data('up', 1);
       }
       if (zoomed && !remove) {
         line.animate({'stroke-width': 6 * data.ratio}, 500, 'elastic');
