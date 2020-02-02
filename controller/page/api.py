@@ -272,9 +272,8 @@ class NeighborTextApi(PageHandler):
         from controller.tool.esearch import find_neighbor
         try:
             data = self.get_request_data()
-            errs = v.validate(data, [(v.not_empty, 'cmp_page_code', 'neighbor')])
-            if errs:
-                return self.send_error_response(errs)
+            rules = [(v.not_empty, 'cmp_page_code', 'neighbor')]
+            v.validate(data, rules, self)
 
             neighbor = find_neighbor(data.get('cmp_page_code'), data.get('neighbor'))
             if neighbor:

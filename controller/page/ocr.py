@@ -75,9 +75,7 @@ class ConfirmFetchOcrTasksApi(TaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'tasks')]
-            err = v.validate(data, rules)
-            if err:
-                self.send_error_response(err)
+            v.validate(data, rules, self)
 
             task_ids = [ObjectId(t['task_id']) for t in data['tasks']]
             if task_ids:
@@ -104,9 +102,7 @@ class SubmitOcrTasksApi(SubmitOcrTaskHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'tasks')]
-            err = v.validate(data, rules)
-            if err:
-                self.send_error_response(err)
+            v.validate(data, rules, self)
 
             tasks = []
             for task in data['tasks']:
