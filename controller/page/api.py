@@ -20,12 +20,8 @@ class CutTaskApi(PageHandler):
 
     def post(self, task_type, task_id):
         """ 提交切分任务"""
-        try:
-            data = self.get_request_data()
-            steps = list(self.step2box.keys())
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            self.validate(data, rules)
-            # 更新page
+
+        def get_doc_update():
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
             if data['step'] == 'orders':
@@ -33,13 +29,19 @@ class CutTaskApi(PageHandler):
                 update['chars'] = self.reorder_chars(data['chars_col'], self.page['chars'], page=self.page)
             else:
                 update[data['step']] = self.sort_boxes(data['boxes'], data['step'], page=self.page)
-            self.db.page.update_one({'name': self.task['doc_id']}, {'$set': update})
-            # 检查config
+            return update
+
+        try:
+            data = self.get_request_data()
+            steps = list(self.step2box.keys())
+            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
+            self.validate(data, rules)
+
+            self.submit_task(submit=data.get('submit'))
+            self.submit_doc(get_doc_update(), data.get('submit'))
+
             if data.get('config'):
                 self.set_secure_cookie('%s_%s' % (task_type, data['step']), json_util.dumps(data['config']))
-            # 提交任务
-            if data.get('submit'):
-                self.submit_task(data)
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -53,12 +55,8 @@ class CutEditApi(PageHandler):
 
     def post(self, page_name):
         """ 修改切分数据"""
-        try:
-            data = self.get_request_data()
-            steps = list(self.step2box.keys())
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            self.validate(data, rules)
 
+        def get_doc_update():
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
             if data['step'] == 'orders':
@@ -66,13 +64,19 @@ class CutEditApi(PageHandler):
                 update['chars'] = self.reorder_chars(data['chars_col'], self.page['chars'], page=self.page)
             else:
                 update[data['step']] = self.sort_boxes(data['boxes'], data['step'], page=self.page)
-            self.db.page.update_one({'name': self.page_name}, {'$set': update})
+            return update
+
+        try:
+            data = self.get_request_data()
+            steps = list(self.step2box.keys())
+            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
+            self.validate(data, rules)
+
+            info = get_doc_update()
+            release_lock = data.get('submit') and self.steps['is_last']
+            self.update_edit_doc(self.task_type, doc_id=page_name, release_lock=release_lock, info=info)
+
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
-
-            if data.get('submit'):
-                self.release_temp_lock(page_name, 'box', self.current_user)
-
-            self.add_op_log('edit_box', target_id=page_name)
             self.send_data_response()
 
         except DbError as error:
@@ -94,12 +98,13 @@ class TextProofApi(PageHandler):
             ]
             self.validate(data, rules)
 
-            if data['step'] == 'select':
+            if self.steps['current'] == 'select':
                 self.save_select(data)
             else:
                 self.save_proof(data)
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
@@ -109,20 +114,14 @@ class TextProofApi(PageHandler):
         if data.get('submit'):
             update.update({'steps.submitted': self.get_submitted(data['step'])})
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-        self.add_op_log('save_task', target_id=self.task['_id'], context=self.task['doc_id'])
 
     def save_proof(self, data):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
-        update = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
-        self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-        self.add_op_log('save_task', target_id=self.task['_id'], context=self.task['doc_id'])
-        if data.get('submit'):
-            if self.mode == 'do':
-                self.finish_task(self.task)
-            else:
-                self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
-        self.send_data_response()
+        info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
+        self.submit_task(info, data.get('submit'))
+        if data.get('submit') and self.mode == 'update':
+            self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
 
 class TextReviewApi(PageHandler):
@@ -148,19 +147,17 @@ class TextReviewApi(PageHandler):
         """ 文字审定提交 """
         try:
             data = self.get_request_data()
-            # 更新任务
             doubt = data.get('doubt', '').strip('\n')
-            update = {'result.doubt': doubt, 'updated_time': datetime.now()}
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-            if data.get('submit'):
-                if self.mode == 'do':
-                    self.publish_hard_task(self.task, doubt)
-                    self.finish_task(self.task)
-                else:
-                    self.release_temp_lock(self.page_name, 'text', self.current_user)
-            # 更新page
+            # 发布难字任务
+            if data.get('submit') and self.mode == 'do':
+                self.publish_hard_task(self.task, doubt)
+            # 更新当前任务
+            info = {'result.doubt': doubt, 'updated_time': datetime.now()}
+            self.submit_task(info, data.get('submit'))
+            # 更新数据
             txt_html = data.get('txt_html', '').strip('\n')
-            self.update_page_txt_html(txt_html)
+            info = self.get_txt_html_update(txt_html)
+            self.submit_doc(info, data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -179,16 +176,12 @@ class TextHardApi(PageHandler):
             # 更新任务
             data = self.get_request_data()
             doubt = data.get('doubt', '').strip('\n')
-            update = {'result.doubt': doubt, 'updated_time': datetime.now()}
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-            if data.get('submit'):
-                if self.mode == 'do':
-                    self.finish_task(self.task)
-                else:
-                    self.release_temp_lock(self.page_name, 'text', self.current_user)
-            # 更新page
+            info = {'result.doubt': doubt, 'updated_time': datetime.now()}
+            self.submit_task(info, data.get('submit'))
+            # 更新数据
             txt_html = data.get('txt_html', '').strip('\n')
-            self.update_page_txt_html(txt_html)
+            info = self.get_txt_html_update(txt_html)
+            self.submit_doc(info, data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -206,11 +199,10 @@ class TextEditApi(PageHandler):
             data = self.get_request_data()
             rules = [(v.not_empty, 'txt_html')]
             self.validate(data, rules)
-            # 更新page
+
             txt_html = data.get('txt_html', '').strip('\n')
-            self.update_page_txt_html(txt_html)
-            if data.get('submit'):
-                self.release_temp_lock(page_name, 'text', self.current_user)
+            info = self.get_txt_html_update(txt_html)
+            self.update_edit_doc(self.task_type, doc_id=page_name, release_lock=data.get('submit'), info=info)
 
             self.add_op_log('edit_text', target_id=page_name)
             self.send_data_response()

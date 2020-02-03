@@ -41,7 +41,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
         self.config = self.application.config
         self.error = self.is_api = None
-        self.more = {}  # 给子类记录使用
+        self.more = {}  # 给子类使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -51,8 +51,9 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
     def prepare(self):
-        """ 调用 get/post 前的准备 """
+        """ 调用 get/post 前的准备"""
         p, m = self.request.path, self.request.method
+        # 设置参数
         self.is_api = '/api/' in p
         # 单元测试
         if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):

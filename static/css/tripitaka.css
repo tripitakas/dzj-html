@@ -63,11 +63,19 @@
 }
 
 .main-left .menu {
-  padding-top: 15px;
 }
 
 .menu .menu-item {
   margin: 8px 0 8px 10px;
+}
+
+.menu .menu-item:hover {
+  background-color: var(--Brown);
+}
+
+.main-left .menu-title.has-sub:before {
+  content: "+";
+  padding-right: 4px;
 }
 
 .menu-item .sub-ul li {
@@ -79,9 +87,13 @@
   margin-top: 5px;
 }
 
-.main-left .menu-title.has-sub:before {
-  content: "+";
-  padding-right: 4px;
+.menu-item .sub-item:hover {
+  background-color: var(--Brown);
+}
+
+.menu-item .sub-item:before {
+  content: "-";
+  padding-right: 2px;
 }
 
 /* 右侧区域 */

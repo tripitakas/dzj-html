@@ -80,7 +80,7 @@ class PublishDocTasksApi(PublishBaseHandler):
             return self.send_db_error(error)
 
     def get_doc_ids(self, data, model):
-        """ 获取页码。有四种方式：页编码、文件、前缀、检索参数"""
+        """ 获取页码，有四种方式：页编码、文件、前缀、检索参数"""
         doc_ids = data.get('doc_ids') or []
         if doc_ids:
             return doc_ids
@@ -179,7 +179,7 @@ class PickTaskApi(TaskHandler):
             }})
             self.add_op_log('pick_task', target_id=task['_id'], context=task['task_type'])
             # 更新doc
-            self.update_doc(task, self.STATUS_PICKED)
+            self.update_task_doc(task, release_lock=False, status=self.STATUS_PICKED)
             # 设置返回参数
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
@@ -214,20 +214,6 @@ class UpdateTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class StatisticTaskApi(TaskHandler):
-    URL = '/api/task/statistic'
-
-    def post(self):
-        """ 统计任务"""
-        try:
-            data = self.get_request_data()
-            rules = [(v.not_empty, 'kind', 'search')]
-            self.validate(data, rules)
-
-        except DbError as error:
-            return self.send_db_error(error)
-
-
 class ReturnTaskApi(TaskHandler):
     URL = '/api/task/return/@task_id'
 
@@ -236,12 +222,13 @@ class ReturnTaskApi(TaskHandler):
         try:
             if self.task['picked_user_id'] != self.current_user['_id']:
                 return self.send_error_response(e.unauthorized, message='您没有该任务的权限')
-            reason = self.prop(self.get_request_data(), 'reason', '')
-            update = {'status': self.STATUS_RETURNED, 'updated_time': datetime.now(), 'return_reason': reason}
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'return_reason': self.prop(self.get_request_data(), 'reason', ''),
+                'status': self.STATUS_RETURNED, 'updated_time': datetime.now(),
+            }})
+            self.update_task_doc(self.task, status=self.STATUS_RETURNED)
+
             self.add_op_log('return_task', target_id=self.task['_id'])
-            self.release_task_lock(self.task, self.current_user)
-            self.update_doc(self.task, self.STATUS_RETURNED)
             return self.send_data_response()
 
         except DbError as error:
@@ -256,18 +243,16 @@ class RepublishTaskApi(TaskHandler):
         try:
             if self.task.get('status') not in [self.STATUS_PICKED, self.STATUS_FAILED]:
                 self.send_error_response(e.republish_only_picked_or_failed, message='只能重新发布进行中或失败的任务')
-            # 重新发布
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'pre_tasks': {k: '' for k in self.prop(self.task, 'pre_tasks', [])},
                 'status': self.STATUS_PUBLISHED, 'result': {}
             }})
-            unset = ['steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason']
-            self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in unset}})
+            self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
+                'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
+            ]}})
+            self.update_task_doc(self.task, self.STATUS_PUBLISHED)
+
             self.add_op_log('republish_task', target_id=self.task['_id'])
-            # 释放数据锁
-            self.release_task_lock(self.task, self.current_user)
-            # 更新doc
-            self.update_doc(self.task, self.STATUS_PUBLISHED)
             return self.send_data_response()
 
         except DbError as error:
@@ -291,7 +276,7 @@ class DeleteTasksApi(TaskHandler):
             self.add_op_log('delete_task', target_id=_ids)
             # 更新doc
             for task in tasks:
-                self.update_doc(task)
+                self.update_task_doc(task, status='')
             return self.send_data_response({'count': r.deleted_count})
 
         except DbError as error:
@@ -346,7 +331,7 @@ class AssignTasksApi(TaskHandler):
                 }})
                 assigned.append(task['doc_id'])
                 # 更新doc的任务状态
-                self.update_doc(task, self.STATUS_PICKED)
+                self.update_task_doc(task, status=self.STATUS_PICKED)
 
             log['lock_failed'] = lock_failed
             log['assigned'] = assigned

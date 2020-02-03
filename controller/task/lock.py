@@ -52,12 +52,17 @@ class Lock(object):
         """ 获取数据等级"""
         return prop(cls.data_auth_maps, '%s.level.%s' % (shared_field, task_type))
 
+    @classmethod
+    def get_collection_and_id(cls, shared_field):
+        shared_field_meta = cls.data_auth_maps[shared_field]
+        return shared_field_meta['collection'], shared_field_meta['id']
+
     def get_user_qualification(self, user, doc_id, shared_field):
         """ 检查用户是否有数据锁资质并返回资质 """
         shared_field_meta = self.data_auth_maps[shared_field]
         id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
 
-        # 检查用户是否有数据锁对应的专家角色
+        # 检查用户是否数据锁对应的专家角色
         user_roles = auth.get_all_roles(user['roles'])
         roles = set(user_roles) & set(shared_field_meta['roles'])
         if roles:
@@ -82,8 +87,7 @@ class Lock(object):
     def get_data_lock_and_level(self, doc_id, shared_field):
         """ 获取数据的当前锁及数据等级"""
         assert shared_field in self.data_auth_maps
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+        collection, id_name = self.get_collection_and_id(shared_field)
         doc = self.db[collection].find_one({id_name: doc_id})
         return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field, 0))
 
@@ -94,8 +98,7 @@ class Lock(object):
         if lock:
             return True if lock.get('locked_user_id') == user['_id'] else e.data_is_locked
         # 检查数据资质及数据等级
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+        collection, id_name = self.get_collection_and_id(shared_field)
         qualification = self.get_user_qualification(user, doc_id, shared_field)
         if not qualification:
             return e.data_lock_unqualified
@@ -114,8 +117,7 @@ class Lock(object):
     def release_temp_lock(self, doc_id, shared_field, user=None):
         """ 释放用户的临时数据锁 """
         assert shared_field in self.data_auth_maps
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+        collection, id_name = self.get_collection_and_id(shared_field)
         condition = {id_name: doc_id, 'lock.%s.is_temp' % shared_field: True}
         if user:
             condition.update({'lock.%s.locked_user_id' % shared_field: user['_id']})
@@ -141,27 +143,10 @@ class Lock(object):
             return e.data_level_unqualified
         # 分配数据锁并设置数据等级
         qualification = dict(lock_type='task', tasks=task_type)
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
+        collection, id_name = self.get_collection_and_id(shared_field)
         lock = {'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
                 'locked_by': user['name'], 'locked_user_id': user['_id']}
         r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
             'lock.' + shared_field: lock, 'level.' + shared_field: conf_level,
         }})
         return True if r.matched_count else e.data_lock_failed
-
-    def release_task_lock(self, task, user, update_level=False):
-        """ 释放任务的数据锁 """
-        shared_field = Task.get_shared_field(task['task_type'])
-        if not shared_field:
-            return
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        condition = {'lock.%s.locked_user_id' % shared_field: user['_id'], id_name: task['doc_id'],
-                     'lock.%s.is_temp' % shared_field: False}
-        update = {'lock.%s' % shared_field: dict()}
-        if update_level:  # 更新数据等级
-            conf_level = prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task['task_type']), 0)
-            update.update({'level.%s' % shared_field: conf_level})
-        r = self.db[collection].update_many(condition, {'$set': update})
-        return r.matched_count

@@ -87,29 +87,11 @@ class PageHandler(TaskHandler, PageTool):
                 doubts.append([review_doubt, '审定存疑'])
         return texts, doubts
 
-    def submit_task(self, data):
-        """ 提交任务"""
-        update = {'updated_time': datetime.now(), 'steps.submitted': self.get_submitted(data['step'])}
-        self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
-        steps_todo = self.prop(self.task, 'steps.todo', [])
-        if data['step'] == steps_todo[-1]:
-            if self.mode == 'do':
-                self.finish_task(self.task)
-            else:
-                self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
-
-    def get_submitted(self, step):
-        """ 更新task.steps.submitted字段"""
-        submitted = self.prop(self.task, 'steps.submitted', [])
-        if step not in submitted:
-            submitted.append(step)
-        return submitted
-
-    def update_page_txt_html(self, txt_html):
-        """ 更新page的txt_html字段"""
+    def get_txt_html_update(self, txt_html):
+        """ 获取page的txt_html字段的更新"""
         text = self.html2txt(txt_html)
         is_match = self.check_match(self.page.get('chars'), text)
         update = {'text': text, 'txt_html': txt_html, 'is_match': is_match}
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
-        self.db.page.update_one({'name': self.page_name}, {'$set': update})
+        return update

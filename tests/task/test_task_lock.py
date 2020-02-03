@@ -111,7 +111,7 @@ class TestDataLock(APITestCase):
         r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=ready_ids, pre_tasks=[]))
         self.assert_code(200, r, msg=task_type)
 
-        # 用户3领取切分校对任务
+        # 用户1领取切分校对任务
         self.login(u.user1[0], u.user1[1])
         task1 = self.get_one_task(task_type, ready_ids[0])
         r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task1['_id']}})
@@ -127,7 +127,7 @@ class TestDataLock(APITestCase):
         r = self.publish_page_tasks(dict(task_type='cut_review', doc_ids=ready_ids, pre_tasks=[]))
         self.assertIn(ready_ids[0], self.parse_response(r).get('data_is_locked'))
 
-        # 用户3完成任务
+        # 用户1完成任务
         self.login(u.user1[0], u.user1[1])
         r = self.fetch('/api/task/finish/%s' % task1['_id'], body={'data': {}})
         self.assert_code(200, r, msg=task_type)
@@ -140,7 +140,7 @@ class TestDataLock(APITestCase):
         r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=ready_ids, pre_tasks=[]))
         self.assert_code(200, r, msg=task_type)
 
-        # 用户2领取切分审定任务
+        # 专家2领取切分审定任务
         self.login(u.expert2[0], u.expert2[1])
         task2 = self.get_one_task(task_type, ready_ids[0])
         r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task2['_id']}})
@@ -149,13 +149,13 @@ class TestDataLock(APITestCase):
         lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
         self.assertListEqual([lock.get('locked_by'), lock.get('is_temp'), level], [u.expert2[2], False, conf_level])
 
-        # 用户2完成任务
+        # 专家2完成任务
         r = self.fetch('/api/task/finish/%s' % task2['_id'], body={'data': {}})
         self.assert_code(200, r, msg=task_type)
         lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
         self.assertEqual(lock, {}, msg=task_type)
 
-        # 测试用户3数据等级不够，不能修改切分校对任务
+        # 测试用户1数据等级不够，不能修改切分校对任务
         self.login(u.user1[0], u.user1[1])
         r = self.fetch('/task/update/cut_proof/%s?_raw=1' % task1['_id'])
         self.assertEqual(e.data_level_unqualified[0], self.parse_response(r).get('code'), msg=task_type)
@@ -164,7 +164,7 @@ class TestDataLock(APITestCase):
         r = self.fetch('/api/task/update/cut_proof/%s' % task1['_id'], body={'data': data})
         self.assertEqual(e.data_level_unqualified[0], self.parse_response(r).get('code'), msg=task_type)
 
-        # 测试用户2可以修改切分审定任务
+        # 测试专家2可以修改切分审定任务
         self.login(u.expert2[0], u.expert2[1])
         r = self.fetch('/task/update/cut_review/%s?_raw=1' % task2['_id'])
         self.assert_code(200, r, msg=task_type)

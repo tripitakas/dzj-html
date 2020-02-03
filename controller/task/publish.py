@@ -123,7 +123,8 @@ class PublishBaseHandler(TaskHandler):
         self.db.task.insert_many(tasks, ordered=False)
 
         # 更新doc
-        self.update_docs(doc_ids, task_type, status)
+        collection, id_name = self.get_data_conf(task_type)[:2]
+        self.db[collection].update_many({id_name: {'$in': list(doc_ids)}}, {'$set': {'tasks.' + task_type: status}})
 
     @staticmethod
     def _select_tasks(tasks_finished, pre_tasks):
