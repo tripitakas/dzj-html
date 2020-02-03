@@ -16,13 +16,13 @@ from bson.errors import BSONError
 from pymongo.errors import PyMongoError
 
 sys.path.append(path.dirname(path.dirname(__file__)))
-from controller.app import Application as App
+from controller.helper import load_config
 
 MongoError = (PyMongoError, BSONError)
 
 
 def connect_db():
-    cfg = App.load_config().get('database')
+    cfg = load_config()['database']
     if cfg.get('user'):
         uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
         uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))

@@ -14,6 +14,48 @@ from hashids import Hashids
 from urllib.parse import unquote
 from datetime import datetime, timedelta, timezone
 
+from tornado.util import PY3
+from os import path
+from yaml import load as load_yml, SafeLoader
+import pymongo
+
+BASE_DIR = path.dirname(path.dirname(__file__))
+
+
+def load_config():
+    param = dict(encoding='utf-8') if PY3 else {}
+    cfg_base = path.join(BASE_DIR, '_app.yml')
+    cfg_file = path.join(BASE_DIR, 'app.yml')
+    config = {}
+
+    with open(cfg_base, **param) as f:
+        config_base = load_yml(f, Loader=SafeLoader)
+    if path.exists(cfg_file):
+        with open(cfg_file, **param) as f:
+            config = load_yml(f, Loader=SafeLoader)
+    else:
+        with open(cfg_file, 'w') as f:
+            f.write('todo:')
+    for k, v in config_base.items():
+        if k not in config:
+            config[k] = v
+
+    return config
+
+
+def connect_db(cfg, db_name_ext=''):
+    if cfg.get('user'):
+        uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
+            cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
+        )
+    else:
+        uri = 'mongodb://{0}:{1}/'.format(cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
+    conn = pymongo.MongoClient(
+        uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
+        maxPoolSize=10, waitQueueTimeoutMS=5000
+    )
+    return conn[cfg['name'] + db_name_ext], uri
+
 
 def md5_encode(page_code, salt):
     md5 = hashlib.md5()

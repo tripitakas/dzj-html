@@ -6,11 +6,11 @@ from tornado.options import options
 from controller.page.diff import Diff
 from elasticsearch import Elasticsearch
 from controller.page.variant import normalize
-from controller.app import Application as App
+from controller.helper import load_config
 
 
 def get_hosts():
-    config = App.load_config()
+    config = load_config()
     return [dict(host='dev.tripitakas.net')] if options.testing else [config.get('esearch', {})]
 
 
