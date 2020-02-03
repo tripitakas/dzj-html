@@ -128,4 +128,4 @@ class TextArea(UIModule):
                     items.append(item)
             item['block_no'] = blocks[-1]['block_no']
 
-        return dict(blocks=blocks) if raw else self.render_string('task_text_area.html', blocks=blocks)
+        return dict(blocks=blocks) if raw else self.render_string('_text_area.html', blocks=blocks)
