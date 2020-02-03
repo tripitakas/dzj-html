@@ -3,20 +3,18 @@
 """
 @time: 2018/6/23
 """
-import math
 from datetime import datetime
 from operator import itemgetter
 from controller.base import BaseHandler
 from controller.helper import get_date_time
 from controller.task.base import TaskHandler
-from controller.task.view import MyTaskHandler
 
 
 class HomeHandler(TaskHandler):
     URL = ['/', '/home']
 
     def get(self):
-        """ 首页 """
+        """ 首页"""
 
         def get_month_star():
             """ 每种任务类型，选出前三名，作为本月校勘之星 """
@@ -90,3 +88,19 @@ class HomeHandler(TaskHandler):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class CbetaSearchHandler(BaseHandler):
+    URL = '/tool/search'
+
+    def get(self):
+        """ 检索cbeta"""
+        self.render('tool_search.html')
+
+
+class PunctuationHandler(BaseHandler):
+    URL = '/tool/punctuate'
+
+    def get(self):
+        """ 自动标点"""
+        self.render('tool_punctuate.html')

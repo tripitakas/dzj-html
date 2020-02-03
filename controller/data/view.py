@@ -17,7 +17,7 @@ from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
 class TripitakaHandler(BaseHandler):
-    URL = '/page/@page_name'
+    URL = '/page/@page_prefix'
 
     def get(self, page_name='GL'):
         """ 藏经阅读 """

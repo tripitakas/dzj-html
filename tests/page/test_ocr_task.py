@@ -13,7 +13,7 @@ class TestApi(APITestCase):
     def tearDown(self):
         super(TestApi, self).tearDown()
 
-    def test_api_data_task(self):
+    def test_ocr_task(self):
         """ 测试小欧的数据处理任务"""
         for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
             # 发布任务
@@ -56,7 +56,7 @@ class TestApi(APITestCase):
                 else:
                     self.assertEqual('failed', d[0]['status'])
 
-    def test_api_import_image(self):
+    def test_import_image(self):
         # 发布任务
         task_type = 'import_image'
         data = dict(task_type=task_type, import_dir='/srv/test1/abc', redo='1', layout='上下一栏', source='分类')

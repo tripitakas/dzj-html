@@ -30,7 +30,7 @@ class TestTaskView(APITestCase):
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(set(pages), set(_pages), msg=msg)
 
-    def test_view_task(self):
+    def test_task_list(self):
         """ 测试任务管理、任务大厅、我的任务列表页面 """
         # 发布任务
         self.login_as_admin()
@@ -75,7 +75,7 @@ class TestTaskView(APITestCase):
             self.assertIn('docs', d, msg=task_type)
 
     def test_lobby_order(self):
-        """测试任务大厅的任务显示顺序"""
+        """ 测试任务大厅的任务显示顺序"""
         self.login_as_admin()
         self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2, pre_tasks=[]))
         self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3, pre_tasks=[]))
@@ -90,18 +90,3 @@ class TestTaskView(APITestCase):
             self.assertEqual(set(docs), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
             self.assertEqual(len(docs), len(set(docs)))  # 不同校次的同名页面只列出一个
             self.assertEqual(docs, ['JX_165_7_12', 'GL_1056_5_6', 'JX_165_7_30'])  # 按优先级顺序排列
-
-    def add_local_statistic(self):
-        docs = []
-        users = list(self._app.db.user.find({}))
-        task_types = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
-                      'text_proof_2', 'text_proof_3', 'text_review', 'text_hard']
-
-        today = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
-        for task_type in task_types:
-            for i in range(10):
-                day = today - timedelta(days=i)
-                user = users[random.randint(0, len(users) - 1)]
-                meta = dict(day=day, user_id=user['_id'], task_type=task_type, count=random.randint(0, 1000))
-                docs.append(meta)
-        self._app.db.statistic.insert_many(docs)

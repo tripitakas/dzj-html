@@ -13,14 +13,7 @@ class TestUserCommonApi(APITestCase):
     def setUp(self):
         super(TestUserCommonApi, self).setUp()
 
-    def test_api_404(self):
-        """不存在的API接口"""
-        r = self.fetch('/api/xyz')
-        self.assert_code(404, r)
-        data = self.parse_response(r)
-        self.assertEqual(data.get('code'), 404)
-
-    def test_api_login(self):
+    def test_user_login(self):
         """ 登录api """
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
@@ -33,7 +26,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/login', body={'data': dict(phone_or_email=u.user1[0], password=u.user1[1])})
         self.assert_code(200, r)
 
-    def test_api_logout(self):
+    def test_user_logout(self):
         """ 登出api """
         self.add_first_user_as_admin_then_login()
         self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
@@ -46,7 +39,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/user/my/profile')
         self.assertNotIn(u.user1[0], self.parse_response(r))
 
-    def test_api_register(self):
+    def test_user_register(self):
         """ 用户注册 """
         self._app.db.user.drop()
         # 姓名为空
@@ -91,7 +84,7 @@ class TestUserCommonApi(APITestCase):
         data = self.parse_response(r)
         self.assertEqual(u.user1[0], data['email'])
 
-    def test_api_change_my_pwd(self):
+    def test_user_change_my_pwd(self):
         """修改个人密码"""
         self.add_first_user_as_admin_then_login()
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
@@ -113,7 +106,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/my/pwd', body={'data': data})
         self.assert_code(200, r)
 
-    def test_api_change_my_profile(self):
+    def test_user_change_my_profile(self):
         """修改个人信息"""
         self.add_first_user_as_admin_then_login()
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
@@ -145,7 +138,7 @@ class TestUserCommonApi(APITestCase):
         r = self.fetch('/api/user/my/profile', body={'data': data})
         self.assert_code(200, r)
 
-    def test_api_upload_user_image(self):
+    def test_user_upload_image(self):
         img_path = path.join(self._app.IMAGE_PATH, '..', 'imgs', 'ava1.png')
         self.assertTrue(path.exists(img_path))
         r = self.register_and_login(dict(email=u.user1[0], password=u.user1[1], name=u.user1[2]))

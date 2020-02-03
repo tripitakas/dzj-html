@@ -5,11 +5,11 @@
 from . import module, view, api
 
 views = [
-    view.HomeHandler,
+    view.HomeHandler, view.CbetaSearchHandler, view.PunctuationHandler
 ]
 
 handlers = [
-    api.SessionConfigApi
+    api.CbetaSearchApi, api.PunctuationApi, api.SessionConfigApi,
 ]
 
 modules = {

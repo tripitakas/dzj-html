@@ -10,9 +10,9 @@ from bson.objectid import ObjectId
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
+from controller.data.data import Page
 from controller.helper import get_url_param
 from controller.task.base import TaskHandler
-from controller.data.view import DataPageHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
 
@@ -55,7 +55,8 @@ class PublishDocTasksApi(PublishBaseHandler):
     def post(self, collection):
         """ 发布任务"""
         data = self.get_request_data()
-        data['doc_ids'] = self.get_doc_ids(data)
+        model = eval(collection.capitalize())
+        data['doc_ids'] = self.get_doc_ids(data, model)
         assert isinstance(data['doc_ids'], list)
         rules = [
             (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),
@@ -78,13 +79,13 @@ class PublishDocTasksApi(PublishBaseHandler):
         except DbError as error:
             return self.send_db_error(error)
 
-    def get_doc_ids(self, data):
+    def get_doc_ids(self, data, model):
         """ 获取页码。有四种方式：页编码、文件、前缀、检索参数"""
         doc_ids = data.get('doc_ids') or []
         if doc_ids:
             return doc_ids
         ids_file = self.request.files.get('ids_file')
-        collection, id_name, input_field, shared_field = self.get_data_conf(data['task_type'])
+        collection, id_name, input_field = self.get_data_conf(data['task_type'])[:3]
         if ids_file:
             ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
             try:
@@ -98,7 +99,7 @@ class PublishDocTasksApi(PublishBaseHandler):
                 condition[input_field] = {"$nin": [None, '']}
             doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         elif data.get('search'):
-            condition = DataPageHandler.get_page_search_condition(data['search'])[0]
+            condition = model.get_page_search_condition(data['search'])[0]
             query = self.db[collection].find(condition)
             page = get_url_param('page', data['search'])
             if page:

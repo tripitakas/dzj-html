@@ -3,16 +3,10 @@
 from tests.testcase import APITestCase
 
 
-class TestArticle(APITestCase):
-    def setUp(self):
-        super(TestArticle, self).setUp()
+class TestAdmin(APITestCase):
+
+    def test_admin_show_api(self):
         self.add_first_user_as_admin_then_login()
-
-    def test_view_404(self):
-        """测试不存在的页面"""
-        self.assert_code(404, self.fetch('/xyz'))
-
-    def test_view_show_api(self):
         r = self.parse_response(self.fetch('/api?_raw=1'))
         self.assertIn('handlers', r)
         for url, func, repeat, file, comment, auth in r['handlers']:

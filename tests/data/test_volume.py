@@ -16,7 +16,7 @@ class TestVolumeApi(APITestCase):
     def tearDown(self):
         super(TestVolumeApi, self).tearDown()
 
-    def test_api_volume__upload(self):
+    def test_volume__upload(self):
         # 测试上传csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(META_DIR, 'Volume-*.csv'))
@@ -28,7 +28,7 @@ class TestVolumeApi(APITestCase):
             r = self.fetch('/api/data/volume/upload', files={'csv': file}, body={})
             self.assert_code(200, r)
 
-    def test_api_volume_add_or_update(self):
+    def test_volume_add_or_update(self):
         volume = self._app.db.volume.find_one()
         # 测试修改一条信息
         volume['remark'] = '测试数据'
@@ -47,7 +47,7 @@ class TestVolumeApi(APITestCase):
         r = self.fetch('/api/data/volume', body={'data': volume})
         self.assert_code(e.invalid_volume_code, r)
 
-    def test_api_volume_delete(self):
+    def test_volume_delete(self):
         volumes = list(self._app.db.volume.find().limit(5))
         # 测试删除一条记录
         _id = volumes[0].get('_id')

@@ -13,7 +13,7 @@ class TestUserAdminApi(APITestCase):
         super(TestUserAdminApi, self).setUp()
         self.add_first_user_as_admin_then_login()
 
-    def test_api_admin_roles(self):
+    def test_user_admin_roles(self):
         """ 给用户授予角色 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         r = self.fetch('/api/user/admin/role', body={'data': dict(_id=users[0]['_id'], email=u.user1[0], roles='切分校对员')})
@@ -21,7 +21,7 @@ class TestUserAdminApi(APITestCase):
         data = self.parse_response(r)
         self.assertIn('切分校对员', data['roles'])
 
-    def test_api_admin_reset_password(self):
+    def test_user_admin_reset_password(self):
         """ 重置用户密码 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         r = self.fetch('/api/user/admin/reset_pwd', body={'data': dict(_id=users[0]['_id'])})
@@ -29,7 +29,7 @@ class TestUserAdminApi(APITestCase):
         data = self.parse_response(r)
         self.assertIsNotNone(data['password'])
 
-    def test_api_admin_change_profile(self):
+    def test_user_admin_change_profile(self):
         """ 修改用户profile """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         user1 = users[0]
@@ -50,7 +50,7 @@ class TestUserAdminApi(APITestCase):
         r = self.fetch('/api/user/admin', body={'data': data})
         self.assert_code(200, r)
 
-    def test_api_delete_user(self):
+    def test_user_admin_delete_user(self):
         """ 测试删除用户 """
         users = self.add_users_by_admin([dict(email=u.user1[0], password=u.user1[1], name=u.user1[2])])
         r = self.fetch('/api/user/admin/delete', body={'data': dict(_id=users[0]['_id'])})

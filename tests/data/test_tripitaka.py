@@ -16,7 +16,7 @@ class TestTripitakaApi(APITestCase):
     def tearDown(self):
         super(TestTripitakaApi, self).tearDown()
 
-    def test_api_tripitaka__upload(self):
+    def test_tripitaka__upload(self):
         # 测试上传csv文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         tripitaka_file = path.join(META_DIR, 'Tripitaka.csv')
@@ -24,7 +24,7 @@ class TestTripitakaApi(APITestCase):
             r = self.fetch('/api/data/tripitaka/upload', files={'csv': tripitaka_file}, body={})
             self.assert_code(200, r)
 
-    def test_api_tripitaka_add_or_update(self):
+    def test_tripitaka_add_or_update(self):
         tripitaka = self._app.db.tripitaka.find_one()
         # 测试修改一条信息
         tripitaka['tripitaka_code'] = 'CS'
@@ -42,7 +42,7 @@ class TestTripitakaApi(APITestCase):
         r = self.fetch('/api/data/tripitaka', body={'data': tripitaka})
         self.assert_code(e.invalid_tripitaka_code, r)
 
-    def test_api_tripitaka_delete(self):
+    def test_tripitaka_delete(self):
         tripitakas = list(self._app.db.tripitaka.find().limit(5))
         # 测试删除一条记录
         _id = tripitakas[0].get('_id')
@@ -54,7 +54,7 @@ class TestTripitakaApi(APITestCase):
         r = self.fetch('/api/data/tripitaka/delete', body={'data': {'_ids': _ids}})
         self.assert_code(200, r)
 
-    def test_view_tripitaka(self):
+    def test_tripitaka_view(self):
         """ 测试藏经阅读 """
         tripitakas = []
         for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
