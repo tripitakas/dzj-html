@@ -73,7 +73,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 return self.send_error_response(e.no_object, message='数据%s不存在' % self.doc_id)
             # do/update/edit模式下，检查数据锁
             if self.mode in ['do', 'update', 'edit']:
-                self.has_lock, error = self.check_data_lock(self.doc_id, self.get_shared_field(self.task_type))
+                self.has_lock, error = self.check_my_lock()
                 # 获取数据锁失败，直接报错返回
                 if self.has_lock is False:
                     return self.send_error_response(error)
@@ -252,7 +252,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             steps['prev'] = todo[index - 1] if index > 0 else None
             steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
         else:
-            steps['todo'] = None
+            steps['todo'] = []
             steps['current'] = None
             steps['is_first'] = True
             steps['is_last'] = True
@@ -274,22 +274,22 @@ class TaskHandler(BaseHandler, Task, Lock):
         has_auth = error is None
         return has_auth, error
 
-    def check_data_lock(self, doc_id=None, shared_field=None, mode=None):
-        """ 检查当前用户是否拥有相应的数据锁。
+    def check_my_lock(self):
+        """ 检查当前用户是否拥有相应的数据锁并进行分配
         has_lock为None表示不需要数据锁，False表示获取失败，True表示获取成功
         """
-        mode = self.mode if not mode else mode
+        shared_field = self.get_shared_field(self.task_type)
         has_lock, error = None, None
         # do模式下，检查是否有任务锁
-        if shared_field and mode == 'do':
-            lock = self.get_data_lock_and_level(doc_id, shared_field)[0]
+        if shared_field and self.mode == 'do':
+            lock = self.prop(self.doc, 'lock.' + shared_field)
             assert lock
             has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
             if not has_lock:
                 error = e.data_is_locked
         # update/模式下，尝试分配临时数据锁
-        if shared_field and mode in ['update', 'edit']:
-            r = self.assign_temp_lock(doc_id, shared_field, self.current_user)
+        if shared_field and self.mode in ['update', 'edit']:
+            r = self.assign_temp_lock(self.doc_id, shared_field, self.current_user, self.doc)
             has_lock = r is True
             error = None if has_lock else r
         return has_lock, error
@@ -378,8 +378,10 @@ class TaskHandler(BaseHandler, Task, Lock):
         # 设置数据的任务状态
         if status:
             info['tasks.' + task['task_type']] = status
+        # 更新数据库
         collection, id_name = self.get_data_conf(task['task_type'])[:2]
-        self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
+        if info:
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
         if status == '':
             self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task['task_type']: ''}})
 

@@ -9,8 +9,8 @@ import re
 from os import path
 from operator import itemgetter
 from tornado import web
-from tornado.options import define, options
 from tornado.log import access_log
+from tornado.options import define, options
 from controller.auth import url_placeholder
 from controller.helper import BASE_DIR, load_config, connect_db
 

@@ -32,9 +32,17 @@ class PageHandler(TaskHandler, PageTool):
     def get_task_type(self):
         """ 重载父类函数"""
         task_type = super().get_task_type()
-        if not task_type:  # 如数据修改请求
-            p = self.request.path
-            return 'cut_proof' if '/box' in p else 'text_proof_1' if '/text' in p else ''
+        if task_type:
+            return task_type
+        if '/box' in self.request.path:
+            return 'cut_proof'  # 切分校对任务将检查box字段的数据锁
+        elif '/text' in self.request.path:
+            if self.mode == 'edit':
+                return 'text_review'  # 文字审定任务将检查text字段的数据锁
+            else:
+                return 'text_proof_1'  # 文字校对任务不检查数据锁
+        else:
+            return ''
 
     def get_doc_id(self):
         """ 重载父类函数"""
@@ -90,7 +98,7 @@ class PageHandler(TaskHandler, PageTool):
     def get_txt_html_update(self, txt_html):
         """ 获取page的txt_html字段的更新"""
         text = self.html2txt(txt_html)
-        is_match = self.check_match(self.page.get('chars'), text)
+        is_match = self.check_match(self.page.get('chars'), text)[0]
         update = {'text': text, 'txt_html': txt_html, 'is_match': is_match}
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)

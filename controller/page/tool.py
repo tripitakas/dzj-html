@@ -136,27 +136,36 @@ class PageTool(object):
     @staticmethod
     def check_match(chars, txt):
         """ 检查图文是否匹配，包括总行数和每行字数"""
-        pre, num, char_line_num = chars[0], 0, []
-        for c in chars[1:]:
-            if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:  # 换栏
-                char_line_num.append(num)
-                num = 1
-            elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:  # 换行
-                char_line_num.append(num)
-                num = 1
-            else:
-                num += 1
-        char_line_num.append(num)
+        char_line_num = []
+        if chars:
+            pre, num = chars[0], 1
+            for c in chars[1:]:
+                if pre.get('block_no') and c.get('block_no') and pre['block_no'] != c['block_no']:  # 换栏
+                    char_line_num.append(num)
+                    num = 1
+                elif pre.get('line_no') and c.get('line_no') and pre['line_no'] != c['line_no']:  # 换行
+                    char_line_num.append(num)
+                    num = 1
+                else:
+                    num += 1
+            char_line_num.append(num)
 
         txt_lines = re.sub(r'[\|\n]+', '|', txt).split('|')
         txt_line_num = [len(line) for line in txt_lines]
 
         mis_match = []
-        for i, num in enumerate(char_line_num):
-            if num != txt_line_num[i]:
-                mis_match.append([i, num, txt_line_num[i]])
-        for i in range(len(char_line_num), len(txt_line_num)):
-            mis_match.append([i, 0, txt_line_num[i]])
+        if len(char_line_num) < len(txt_line_num):
+            for i, num in enumerate(char_line_num):
+                if num != txt_line_num[i]:
+                    mis_match.append([i, num, txt_line_num[i]])
+            for i in range(len(char_line_num), len(txt_line_num)):
+                mis_match.append([i, 0, txt_line_num[i]])
+        else:
+            for i, num in enumerate(txt_line_num):
+                if num != char_line_num[i]:
+                    mis_match.append([i, char_line_num[i], num])
+            for i in range(len(txt_line_num), len(char_line_num)):
+                mis_match.append([i, char_line_num[i], 0])
 
         r = len(char_line_num) == len(txt_line_num) and not mis_match
 

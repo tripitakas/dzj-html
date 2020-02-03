@@ -45,9 +45,8 @@ def load_config():
 
 def connect_db(cfg, db_name_ext=''):
     if cfg.get('user'):
-        uri = 'mongodb://{0}:{1}@{2}:{3}/admin'.format(
-            cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017)
-        )
+        uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
+        uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
     else:
         uri = 'mongodb://{0}:{1}/'.format(cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
     conn = pymongo.MongoClient(
