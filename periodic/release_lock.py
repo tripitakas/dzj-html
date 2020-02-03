@@ -10,8 +10,8 @@ from controller.helper import prop
 from datetime import datetime, timedelta
 
 sys.path.append(path.dirname(path.dirname(__file__)))
-from controller.app import Application as App
 from periodic.worker import Worker
+from controller.helper import load_config
 
 
 class ReleaseTimeoutLock(Worker):
@@ -20,7 +20,7 @@ class ReleaseTimeoutLock(Worker):
 
     def work(self, timeout_hours=None, **kwargs):
         if not timeout_hours:
-            timeout_hours = prop(App.load_config(), 'task.temp_lock_timeout_hours', 1)
+            timeout_hours = prop(load_config(), 'task.temp_lock_timeout_hours', 1)
         from_time = datetime.now() - timedelta(hours=int(timeout_hours))
         self.db.page.update_many({'lock.box.is_temp': True, 'lock.box.locked_time': {'$lt': from_time}},
                                  {'$set': {'lock.box': dict()}})
