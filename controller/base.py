@@ -22,7 +22,7 @@ from tornado.web import RequestHandler
 from tornado.web import Finish
 from tornado_cors import CorsMixin
 from controller import errors as e
-from controller.op_type import get_op_name
+from controller import validate as v
 from controller.auth import get_route_roles, can_access
 from controller.helper import get_date_time, prop, md5_encode
 
@@ -250,8 +250,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
-        op_name = get_op_name(op_type) or op_type
-        assert op_name, op_type + ' need add into op_type.py'
         target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')
         username = username or self.current_user and self.current_user.get('name')
@@ -281,6 +279,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(page_name.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+    def validate(self, data, rules):
+        errs = v.validate(data, rules)
+        if errs:
+            self.send_error_response(errs)
 
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')

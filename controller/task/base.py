@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 任务Handler。
+@desc: 任务Handler
 一、mode 任务模式
-1. do。用户做任务时，进入该模式
-2. update。用户完成任务后，可以通过update模式进行修改
-3. view。非任务所有者可以通过view模式来查看任务
-4. browse。管理员可以通过browse模式来逐条浏览任务
-5. edit。edit提供给专家用户修改数据使用
+1. do，做任务：用户做任务时，进入该模式
+2. update，更新任务：用户完成任务后，可以通过update模式进行修改
+3. view，查看任务：非任务所有者可以通过view模式来查看任务
+4. browse，浏览任务：管理员可以通过browse模式来逐条浏览任务
+5. edit，修改数据：专家用户修改数据使用
+5. None，非任务、非数据修改请求
 二、 url
-1. do/update/browse 如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
-2. view 如：/task/@task_type/5e3139c6a197150011d65e9d
-3. edit 如 /page/edit/box/@page_name
+1. do/update/browse，如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
+2. edit，如：/page/edit/box/@page_name。需重载get_task_type函数，以便进行数据检查
+3. view，如：/task/@task_type/5e3139c6a197150011d65e9d
+4. 非任务、非数据修改请求，如/task/admin/page
 
 @time: 2019/10/16
 """
@@ -23,15 +25,14 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.task.lock import Lock
 from controller.base import BaseHandler
-from controller.helper import get_url_param
 
 
 class TaskHandler(BaseHandler, Task, Lock):
     def __init__(self, application, request, **kwargs):
         """ 参数说明
-        :param mode: 包括do/update/view/browse等几种模式，如前述
-        :param readonly: 是否只读。view/browse模式下，默认是只读。update模式下，如果没有数据锁，也是只读
+        :param readonly: 是否只读。view/browse模式为只读
         :param has_lock: 是否有数据锁。详见controller.task.lock
+        :param mode: 包括do/update/view/browse/edit或空等几种模式
         """
         super(TaskHandler, self).__init__(application, request, **kwargs)
         self.task_type = self.task_id = self.doc_id = self.message = ''
@@ -39,13 +40,12 @@ class TaskHandler(BaseHandler, Task, Lock):
         self.task = self.steps = self.doc = {}
 
     def prepare(self):
-        """ 设置任务相关参数，检查任务是否存在、任务权限以及任务锁
-        如果非任务的url请求需要使用该handler，则需要重载get_doc_id/get_task_type函数。
-        prepare函数中将会根据task_type/doc_id这两个参数设置任务步骤、数据以及检查数据锁。
+        """
+        根据task_id参数，检查任务是否存在、任务权限，设置任务相关参数
+        根据doc_id/task_type参数，检查数据是否存在、数据锁以及数据等级
+        如果非任务的url请求需要使用该handler，则需要重载get_doc_id/get_task_type函数
         """
         super().prepare()
-        self.task = {}
-        self.has_lock = None
         self.mode = self.get_task_mode()
         self.task_id = self.get_task_id()
         # 检查任务
@@ -63,11 +63,11 @@ class TaskHandler(BaseHandler, Task, Lock):
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
-        if self.mode and not self.task_type:
-            return self.send_error_response(e.task_type_error, message='需配置请求的任务类型')
-        collection, id_name, input_field, shared_field = self.get_data_conf(self.task_type)
         if self.doc_id:
             # 数据是否存在
+            if not self.task_type:
+                return self.send_error_response(e.task_type_error, message='需配置请求的任务类型')
+            collection, id_name = self.get_data_conf(self.task_type)[:2]
             self.doc = self.db[collection].find_one({id_name: self.doc_id})
             if not self.doc:
                 return self.send_error_response(e.no_object, message='数据%s不存在' % self.doc_id)

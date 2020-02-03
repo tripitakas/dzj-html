@@ -199,7 +199,7 @@ class Task(Model):
 
     @classmethod
     def format_value(cls, value, key=None):
-        """ 格式化任务信息"""
+        """ 格式化task表的字段输出"""
         if key == 'task_type':
             value = cls.get_task_name(value)
         elif key == 'status':

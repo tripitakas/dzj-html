@@ -11,8 +11,8 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
 from controller.cut.cuttool import CutTool
+from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
-from controller.helper import cmp_page_code, get_url_param
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
@@ -136,56 +136,7 @@ class DataPageInfoHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class DataPageHandler(BaseHandler, Page):
-
-    @staticmethod
-    def get_page_search_condition(request_query):
-        condition, params = dict(), dict()
-        for field in ['name', 'source', 'remark-box', 'remark-text']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field.replace('-', '.'): {'$regex': value, '$options': '$i'}})
-        for field in ['level-box', 'level-text']:
-            value = get_url_param(field, request_query)
-            m = re.search(r'([><=]+)(\d+)', value)
-            if m:
-                params[field] = m.group(0)
-                op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
-                condition.update({field.replace('_', '.'): {op: value} if op else value})
-        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        value = get_url_param('txt', request_query)
-        if value:
-            params[field] = value
-            condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
-        return condition, params
-
-    @classmethod
-    def format_value(cls, value, key=None):
-        if key == 'tasks':
-            value = value or {}
-            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
-            value = '<br/>'.join(tasks)
-        elif key in ['lock-box', 'lock-text']:
-            if cls.prop(value, 'is_temp') is not None:
-                if cls.prop(value, 'is_temp'):
-                    value = '临时锁<a>解锁</a>'
-                else:
-                    value = '任务锁'
-        elif key in ['blocks', 'columns', 'chars']:
-            value = '%s个' % len(value)
-        elif key in ['ocr', 'ocr_col', 'text']:
-            value = '%s字' % len(value) if len(value) else ''
-        else:
-            value = Task.format_value(value, key)
-        return value
-
-
-class DataPageListHandler(DataPageHandler):
+class DataPageListHandler(BaseHandler, Page):
     URL = '/data/page'
 
     page_title = '页数据管理'
@@ -276,7 +227,7 @@ class DataPageListHandler(DataPageHandler):
             return self.send_db_error(error)
 
 
-class DataPageViewHandler(DataPageHandler):
+class DataPageViewHandler(BaseHandler, Page):
     URL = '/data/page/@page_name'
 
     def get(self, page_name):

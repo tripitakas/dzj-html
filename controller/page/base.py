@@ -22,7 +22,7 @@ class PageHandler(TaskHandler, PageTool):
         self.page_name, self.page = self.doc_id, self.doc
         if not self.is_api:
             # 设置切分任务参数
-            if self.task_type in ['cut_proof', 'cut_review']:
+            if 'cut_' in self.task_type:
                 self.box_type = self.step2box.get(self.steps['current'])
                 self.boxes = self.page.get(self.box_type + 's')
             # 设置文字任务参数
@@ -32,7 +32,7 @@ class PageHandler(TaskHandler, PageTool):
     def get_task_type(self):
         """ 重载父类函数"""
         task_type = super().get_task_type()
-        if not task_type:
+        if not task_type:  # 如数据修改请求
             p = self.request.path
             return 'cut_proof' if '/box' in p else 'text_proof_1' if '/text' in p else ''
 

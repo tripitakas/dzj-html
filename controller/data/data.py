@@ -5,7 +5,8 @@ import json
 import controller.validate as v
 from functools import cmp_to_key
 from controller.model import Model
-from controller.helper import cmp_page_code
+from controller.task.task import Task
+from controller.helper import prop, cmp_page_code, get_url_param
 
 
 class Tripitaka(Model):
@@ -240,3 +241,48 @@ class Page(Model):
         message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (len(page_names), len(pages), len(existed_pages))
         print(message)
         return dict(status='success', message=message, inserted_ids=r.inserted_ids if pages else [])
+
+    @staticmethod
+    def get_page_search_condition(request_query):
+        condition, params = dict(), dict()
+        for field in ['name', 'source', 'remark-box', 'remark-text']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field.replace('-', '.'): {'$regex': value, '$options': '$i'}})
+        for field in ['level-box', 'level-text']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                m = re.search(r'([><=]?)(\d+)', value)
+                if m:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
+                    condition.update({field.replace('_', '.'): {op: value} if op else value})
+        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({'tasks.' + field: None if value == 'un_published' else value})
+        value = get_url_param('txt', request_query)
+        if value:
+            params[field] = value
+            condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
+        return condition, params
+
+    @staticmethod
+    def format_value(value, key=None):
+        """ 格式化page表的字段输出"""
+        if key == 'tasks':
+            value = value or {}
+            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
+            value = '<br/>'.join(tasks)
+        elif key in ['lock-box', 'lock-text']:
+            if prop(value, 'is_temp') is not None:
+                value = '临时锁<a>解锁</a>' if prop(value, 'is_temp') else '任务锁'
+        elif key in ['blocks', 'columns', 'chars']:
+            value = '%s个' % len(value)
+        elif key in ['ocr', 'ocr_col', 'text']:
+            value = '%s字' % len(value) if len(value) else ''
+        else:
+            value = Task.format_value(value, key)
+        return value

@@ -24,7 +24,7 @@ class CutTaskApi(PageHandler):
             data = self.get_request_data()
             steps = list(self.step2box.keys())
             rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
             # 更新page
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
@@ -57,7 +57,7 @@ class CutEditApi(PageHandler):
             data = self.get_request_data()
             steps = list(self.step2box.keys())
             rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', steps)]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             update = dict()
             data['boxes'] = json_decode(data['boxes']) if isinstance(data['boxes'], str) else data['boxes']
@@ -92,7 +92,7 @@ class TextProofApi(PageHandler):
                 (v.not_both_empty, 'cmp', 'txt_html'),
                 (v.in_list, 'step', self.get_steps(self.task_type)),
             ]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             if data['step'] == 'select':
                 self.save_select(data)
@@ -205,7 +205,7 @@ class TextEditApi(PageHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'txt_html')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
             # 更新page
             txt_html = data.get('txt_html', '').strip('\n')
             self.update_page_txt_html(txt_html)
@@ -273,7 +273,7 @@ class NeighborTextApi(PageHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'cmp_page_code', 'neighbor')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             neighbor = find_neighbor(data.get('cmp_page_code'), data.get('neighbor'))
             if neighbor:

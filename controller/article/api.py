@@ -23,7 +23,7 @@ class ArticleDeleteApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_id', '_ids')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             if data.get('_id'):
                 r = self.db.article.delete_one({'_id': ObjectId(data['_id'])})
@@ -48,7 +48,7 @@ class ArticleAddOrUpdateApi(BaseHandler):
             if mode == 'update':
                 fields.append('_id')
             rules = [(v.not_empty, *fields), (v.is_article, 'article_id')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             article_id = data['article_id'].strip()
             images = re.findall(r'<img src="http[^"]+?upload/([^"]+)".+?>', data['content'])

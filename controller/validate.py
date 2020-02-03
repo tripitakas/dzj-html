@@ -11,7 +11,7 @@ from bson.objectid import ObjectId
 from datetime import datetime, timedelta
 
 
-def validate(data, rules, handler=None):
+def validate(data, rules):
     """
     数据校验主控函数
     :param data:  待校验的数据，一般是指从页面POST的dict类型的数据
@@ -29,8 +29,6 @@ def validate(data, rules, handler=None):
         ret = func(*args, **kw)
         if ret:
             errs.update(ret)
-    if errs and handler:
-        handler.send_error_response(errs)
     return errs or None
 
 

@@ -82,7 +82,7 @@ class DataDeleteApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_both_empty, '_id', '_ids')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             if data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(data['_id'])})
@@ -104,7 +104,7 @@ class DataPageUpdateSourceApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             if data.get('_id'):
                 r = self.db.page.update_one({'_id': ObjectId(data['_id'])}, {'$set': {'source': data['source']}})
@@ -127,7 +127,7 @@ class DataGenJsApi(BaseHandler):
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'collection', 'tripitaka_code')]
-            v.validate(data, rules, self)
+            self.validate(data, rules)
 
             if data['tripitaka_code'] == '所有':
                 build_js(self.db, data['collection'])
