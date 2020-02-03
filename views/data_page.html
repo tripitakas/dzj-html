@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>{{page['name']}}</title>
-  {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
@@ -135,14 +134,18 @@
     </div>
     <div class="m-header sub-line">
       <div class="left">
-        {% if page.get('remark') %}
-        <label>备注:</label>
-        <span>{{page['remark']}}</span>
+        {% if prop(page, 'remark.box') %}
+        <label>切分备注:</label>
+        <span>{{prop(page, 'remark.box')}}</span>
         {% end %}
-        {% if handler.prop(page, 'lock.box.is_temp') %}
+        {% if prop(page, 'remark.text') %}
+        <label>文字备注:</label>
+        <span>{{prop(page, 'remark.text')}}</span>
+        {% end %}
+        {% if prop(page, 'lock.box.is_temp') %}
         <label>切分临时锁:</label><a class="lock box">解锁</a>
         {% end %}
-        {% if handler.prop(page, 'lock.text.is_temp') %}
+        {% if prop(page, 'lock.text.is_temp') %}
         <label>文本临时锁:</label><a class="lock text">解锁</a>
         {% end %}
         {% if page.get('tasks') %}

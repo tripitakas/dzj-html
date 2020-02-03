@@ -30,12 +30,14 @@ class UserProfileHandler(BaseHandler):
 
     def get(self):
         """ 个人中心 """
-        self.render('my_profile.html')
+        self.render('user_profile.html')
 
 
-class UsersAdminHandler(BaseHandler):
+class UsersAdminHandler(BaseHandler, User):
     URL = '/user/admin'
+
     search_tips = '请搜索用户名、手机和邮箱'
+    img_operations = ['config']
     operations = [
         {'operation': 'btn-add', 'label': '新增用户'},
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -44,28 +46,26 @@ class UsersAdminHandler(BaseHandler):
     def get(self):
         """ 用户管理页面 """
         try:
-            kwargs = User.get_template_kwargs()
-            kwargs['operations'] = self.operations
-            kwargs['search_tips'] = self.search_tips
-            docs, pager, q, order = User.find_by_page(self)
+            kwargs = self.get_template_kwargs()
+            docs, pager, q, order = self.find_by_page(self)
             self.render('user_list.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class UserRolesHandler(BaseHandler):
+class UserRolesHandler(BaseHandler, User):
     URL = '/user/admin/role'
+
     operations = []
+    img_operations = []
     search_tips = '请搜索用户名'
 
     def get(self):
         """ 角色管理页面 """
         try:
-            kwargs = User.get_template_kwargs()
-            kwargs['operations'] = self.operations
-            kwargs['search_tips'] = self.search_tips
-            docs, pager, q, order = User.find_by_page(self)
+            kwargs = self.get_template_kwargs()
+            docs, pager, q, order = self.find_by_page(self)
             init_roles = self.prop(self.config, 'role.init')
             disabled_roles = self.prop(self.config, 'role.disabled', [])
             roles = [r for r in auth.get_assignable_roles() if r not in disabled_roles]

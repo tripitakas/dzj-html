@@ -246,7 +246,7 @@ class SelectTextApi(PageHandler):
 
     def post(self, page_name):
         """ 获取比对本。根据OCR文本，从CBETA库中获取相似的文本作为比对本"""
-        from controller.tool.esearch import find_one
+        from controller.com.esearch import find_one
         try:
             ocr = self.get_ocr()
             num = self.prop(self.get_request_data(), 'num', 1)
@@ -269,7 +269,7 @@ class NeighborTextApi(PageHandler):
         """ 获取比对文本的前后页文本"""
         # param page_code: 当前cmp文本的page_code（对应于es库中的page_code）
         # param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
-        from controller.tool.esearch import find_neighbor
+        from controller.com.esearch import find_neighbor
         try:
             data = self.get_request_data()
             rules = [(v.not_empty, 'cmp_page_code', 'neighbor')]

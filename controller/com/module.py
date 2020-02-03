@@ -80,12 +80,12 @@ class ComLeft(UIModule):
                     item['sub_items'] = sub_items
                     display_items.append(item)
 
-        return self.render_string('com_left.html', display_items=display_items, active_id=active_id)
+        return self.render_string('_left.html', display_items=display_items, active_id=active_id)
 
 
 class ComHead(UIModule):
     def render(self):
-        return self.render_string('com_head.html')
+        return self.render_string('_head.html')
 
 
 class Pager(UIModule):
@@ -118,7 +118,7 @@ class Pager(UIModule):
             end = pager['page_count'] if end > pager['page_count'] else end
             pager['display_range'] = range(start, end + 1)
 
-        return self.render_string('com_pager.html', get_page_uri=self.get_page_uri, **pager)
+        return self.render_string('_pager.html', get_page_uri=self.get_page_uri, **pager)
 
 
 class ComTable(UIModule):
@@ -130,7 +130,7 @@ class ComTable(UIModule):
         format_value = Task.format_value if not format_value else format_value
         info_fields = [d['id'] for d in table_fields] if not info_fields else info_fields
         return self.render_string(
-            'com_table.html', docs=docs, order=order, actions=actions, table_fields=table_fields,
+            '_table.html', docs=docs, order=order, actions=actions, table_fields=table_fields,
             info_fields=info_fields, hide_fields=hide_fields, format_value=format_value,
             pack=pack, prop=prop
         )
@@ -139,14 +139,14 @@ class ComTable(UIModule):
 class ComModal(UIModule):
     def render(self, modal_fields, id='', title='', buttons=None):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')] if buttons is None else buttons
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id=id, title=title, buttons=buttons)
+        return self.render_string('_modal.html', modal_fields=modal_fields, id=id, title=title, buttons=buttons)
 
 
 class ReturnModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         modal_fields = [{'id': 'return_reason', 'name': '退回理由', 'input_type': 'textarea'}]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='returnModal', title='退回任务',
                                   buttons=buttons)
 
 
@@ -157,7 +157,7 @@ class DoubtModal(UIModule):
             {'id': 'doubt_input', 'name': '存疑文本'},
             {'id': 'doubt_reason', 'name': '存疑理由', 'input_type': 'textarea'}
         ]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='doubtModal', title='存疑',
                                   buttons=buttons)
 
 
@@ -169,7 +169,7 @@ class TaskRemarkModal(UIModule):
             {'id': 'remark', 'name': '备注内容'},
             {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)
 
 
@@ -178,7 +178,7 @@ class AutoPickModal(UIModule):
         title = '提交后是否自动领取新任务？'
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         modal_fields = [{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='autoPickModal', title=title,
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='autoPickModal', title=title,
                                   buttons=buttons)
 
 
@@ -190,5 +190,5 @@ class PageRemarkModal(UIModule):
             {'id': 'remark', 'name': '备注内容'},
             {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
-        return self.render_string('com_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)

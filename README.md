@@ -19,7 +19,7 @@
   常用变量见 `controller/base.py render()` 和相应的响应Handler中的参数。
   在网页中可使用`{{dumps(your_obj)}}` 或 `{{your_obj}}`显示数据结构辅助编码。
 
-- 使用 `{% include %}` 提取公共网页部分，例如 `_base_css.html`、`_base_js.html`、`_base_meta.html`。
+- 使用 `{% include %}` 提取公共网页部分，例如 `_base_css.html`、`_base_js.html`。
 
 - 可调用 `getApi`、`postApi` 函数调用后端接口，执行操作和填充页面数据。
 

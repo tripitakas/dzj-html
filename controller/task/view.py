@@ -212,7 +212,7 @@ class MyTaskHandler(TaskHandler):
             }
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
             kwargs = self.get_template_kwargs()
-            self.render('my_task.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
+            self.render('task_my.html', docs=docs, pager=pager, q=q, order=order, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

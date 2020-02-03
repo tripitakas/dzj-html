@@ -12,7 +12,7 @@ class PageHandler(TaskHandler, PageTool):
     step2box = dict(chars='char', columns='column', blocks='block', orders='char')
 
     def __init__(self, application, request, **kwargs):
-        super(TaskHandler, self).__init__(application, request, **kwargs)
+        super(PageHandler, self).__init__(application, request, **kwargs)
         self.boxes = self.texts = self.doubts = []
         self.box_type = self.page_name = ''
         self.page = {}

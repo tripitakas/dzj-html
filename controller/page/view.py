@@ -25,7 +25,7 @@ class CutTaskHandler(PageHandler):
             if self.steps['current'] == 'orders':
                 kwargs = CutTool.char_render(self.page, int(self.get_query_argument('layout', 0)))
                 kwargs['btn_config'] = json_util.loads(self.get_secure_cookie('%s_orders' % task_type) or '{}')
-                template = 'task_char_order.html'
+                template = 'task_cut_order.html'
             self.render(template, **kwargs)
 
         except Exception as error:
@@ -42,7 +42,7 @@ class CutEditHandler(PageHandler):
             kwargs = dict()
             if self.steps['current'] == 'orders':
                 kwargs = CutTool.char_render(self.page, int(self.get_query_argument('layout', 0)))
-                template = 'task_char_order.html'
+                template = 'task_cut_order.html'
             self.render(template, **kwargs)
 
         except Exception as error:

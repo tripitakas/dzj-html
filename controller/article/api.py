@@ -31,7 +31,7 @@ class ArticleDeleteApi(BaseHandler):
             else:
                 r = self.db.article.delete_many({'_id': {'$in': [ObjectId(i) for i in data['_ids']]}})
                 self.add_op_log('delete_article', target_id=data['_ids'])
-            self.send_data_response(dict(deleted_count=r.deleted_count))
+            self.send_data_response(dict(count=r.deleted_count))
 
         except DbError as error:
             return self.send_db_error(error)

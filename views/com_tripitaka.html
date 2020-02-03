@@ -3,7 +3,6 @@
 
 <head>
   <title>{{tripitaka.get('name')}}</title>
-  {% include _base_meta.html %}
   {% include _base_css.html %}
   <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" rel="stylesheet">
   <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
@@ -89,45 +88,47 @@
       <div class="main-right" id="main-right">
         <!-- 顶部导航 -->
         <div class="m-header">
-          <div class="header-line main-line">
-            <div class="left">
-              <div id="toggle-menu">
-                <img class="btn-img" src="{{static_url('imgs/icon_toggle.png')}}"/>
+          <div class="left">
+            <div class="btn-group" id="toggle-menu">
+              <img class="btn-img" src="{{static_url('imgs/icon_toggle.png')}}"/>
+            </div>
+            <div class="btn-group title">{{tripitaka.get('name')}}</div>
+          </div>
+          <div class="center">
+            <div class="btn-group">
+              <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+              <img src="{{static_url('imgs/icon_hme.png')}}" class="btn-img" title="首页" onclick="javascript:location='/tripitaka/list';"/>
+              <img src="{{static_url('imgs/icon_panel.png')}}" class="btn-img" data-toggle="modal" data-target="#sutraNavModal" title="经目查询"/>
+              <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
+              <img src="{{static_url('imgs/icon_txt.png')}}" class="btn-img active" id="toggle-text" title="显隐文字"/>
+              <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
+              <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
+              <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
+              <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
+            </div>
+            <div class="btn-group m-pager" style="margin: -4px 0 0 8px">
+              <input id="cur-volume" type="hidden" value="{{nav.get('cur_volume')}}">
+              <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" title="{{nav.get('first')}}">首页</div>
+              <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" title="{{nav.get('prev')}}"><</div>
+              <div class="btn-page to">
+                <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
+                <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '').split('_')[-1]}}</span>
               </div>
-              <div class="title">{{tripitaka.get('name')}}</div>
-              <div class="btn-group">
-                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-                <img src="{{static_url('imgs/icon_hme.png')}}" class="btn-img" title="首页" onclick="javascript:location='/tripitaka/list';"/>
-                <img src="{{static_url('imgs/icon_panel.png')}}" class="btn-img" data-toggle="modal" data-target="#sutraNavModal" title="经目查询"/>
-                <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
-                <img src="{{static_url('imgs/icon_txt.png')}}" class="btn-img active" id="toggle-text" title="显隐文字"/>
-                <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
-                <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
-                <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
-                <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
-              </div>
-              <div class="btn-group m-pager" style="padding: 0 5px">
-                <input id="cur-volume" type="hidden" value="{{nav.get('cur_volume')}}">
-                <div class="btn-page first{{'' if nav.get('first') else ' hide'}}" title="{{nav.get('first')}}">首页</div>
-                <div class="btn-page prev{{'' if nav.get('prev') else ' hide'}}" title="{{nav.get('prev')}}"><</div>
-                <div class="btn-page to">
-                  <input type="text" title="{{nav.get('cur_page')}}" value="{{nav.get('cur_page').split('_')[-1]}}"/>
-                  <span class="tips{{'' if nav.get('last') else ' hide'}}">/ {{nav.get('last', '').split('_')[-1]}}</span>
-                </div>
-                <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" title="{{nav.get('next')}}">></div>
-                <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" title="{{nav.get('last')}}">末页</div>
-              </div>
-              <div class="btn-group{{'' if page else ' hide'}}">
-                <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img" id="toggle-more" title="更多"/>
-                <span class="btn-group right hidden" id="more-group">
-                  <button type="button" class="btn btn-default btn-sm" id="toggle-image">图片</button>
-                  <button type="button" class="btn btn-default btn-sm" id="toggle-block">栏框</button>
-                  <button type="button" class="btn btn-default btn-sm" id="toggle-column">列框</button>
-                  <button type="button" class="btn btn-default btn-sm" id="toggle-char">字框</button>
-                  <button type="button" class="btn btn-default btn-sm" id="toggle-char-no">字序</button>
-                </span>
+              <div class="btn-page next{{'' if nav.get('next') else ' hide'}}" title="{{nav.get('next')}}">></div>
+              <div class="btn-page last{{'' if nav.get('last') else ' hide'}}" title="{{nav.get('last')}}">末页</div>
+            </div>
+            <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img" id="toggle-more" title="更多"/>
+            <div class="btn-group{{'' if page else ' hide'}}">
+              <div class="btn-group right hidden" id="more-group">
+                <button type="button" class="btn btn-default btn-sm" id="toggle-image">图片</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-block">栏框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-column">列框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-char">字框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-char-no">字序</button>
               </div>
             </div>
+          </div>
+          <div class="right">
             <div class="btn-group right{{'' if page_text else ' hide'}}">
               <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
               <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>

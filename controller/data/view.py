@@ -64,7 +64,7 @@ class TripitakaHandler(BaseHandler):
             page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
             img_url = self.get_img(page or dict(name=nav.get('cur_page')))
 
-            self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
+            self.render('com_tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=img_url, page_text=page_text, page=page)
 
         except Exception as error:
@@ -78,7 +78,7 @@ class TripitakaListHandler(BaseHandler):
         """ 藏经列表 """
         fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
         tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
-        self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
+        self.render('com_tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
 
 
 class DataListHandler(BaseHandler):

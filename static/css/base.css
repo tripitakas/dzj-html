@@ -677,12 +677,6 @@ a:hover, a:visited, a:focus {
   margin-right: 10px;
 }
 
-.m-header .tips {
-  color: var(--Brown_Darker);
-  font-size: 14px;
-  margin: 10px 20px;
-}
-
 .m-header .help img {
   margin-right: 20px;
   margin-top: 8px;
@@ -704,7 +698,11 @@ a:hover, a:visited, a:focus {
 }
 
 .m-header .m-pager {
-  margin-top: 8px;
+  color: var(--Brown_Darker);
+}
+
+.m-header .tips {
+  margin: 0 5px;
 }
 
 .m-header .btn-group {

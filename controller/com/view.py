@@ -80,7 +80,7 @@ class HomeHandler(TaskHandler):
             # 通知公告
             articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
 
-            self.render('home.html', version=self.application.version, get_task_info=get_task_info,
+            self.render('com_home.html', version=self.application.version, get_task_info=get_task_info,
                         time_slot=get_time_slot(), visit_count=visit_count + 1, last_login=last_login,
                         my_latest_tasks=my_latest_tasks, finished_count=finished_count,
                         unfinished_count=unfinished_count, latest_tasks=latest_tasks,
@@ -95,7 +95,7 @@ class CbetaSearchHandler(BaseHandler):
 
     def get(self):
         """ 检索cbeta"""
-        self.render('tool_search.html')
+        self.render('com_search.html')
 
 
 class PunctuationHandler(BaseHandler):
@@ -103,4 +103,4 @@ class PunctuationHandler(BaseHandler):
 
     def get(self):
         """ 自动标点"""
-        self.render('tool_punctuate.html')
+        self.render('com_punctuate.html')

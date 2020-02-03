@@ -469,7 +469,7 @@ class DeleteUserApi(BaseHandler):
 
             r = self.db.user.delete_many({'_id': {'$in': [ObjectId(i) for i in _ids]}})
             self.add_op_log('delete_user', target_id=_ids)
-            self.send_data_response(dict(deleted_count=r.deleted_count))
+            self.send_data_response(dict(count=r.deleted_count))
 
         except DbError as error:
             return self.send_db_error(error)

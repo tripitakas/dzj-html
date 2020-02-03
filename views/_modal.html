@@ -7,9 +7,9 @@
         <h4 class="modal-title">{{title or '新增数据'}}</h4>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="fields" class="fields" value="{{modal_fields}}"/>
-        <input type="hidden" id="_id" class="_id">
-        <input type="hidden" id="url" class="url">
+        <input type="hidden" class="fields" value="{{modal_fields}}"/>
+        <input type="hidden" class="update-url">
+        <input type="hidden" class="_id">
         <form class="form-horizontal">
           {% for f in modal_fields %}
           {% set input_type, fid, name = f.get('input_type') or '', f.get('id') or '', f.get('name') or '' %}

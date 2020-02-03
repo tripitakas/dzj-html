@@ -46,6 +46,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         如果非任务的url请求需要使用该handler，则需要重载get_doc_id/get_task_type函数
         """
         super().prepare()
+        self.task = {}
         self.mode = self.get_task_mode()
         self.task_id = self.get_task_id()
         # 检查任务
@@ -110,7 +111,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         return ''
 
     def get_task_type(self):
-        """ 设置任务类型。子类可以重载本函数来设置task_type"""
+        """ 设置任务类型。供子类重载，以便prepare函数调用"""
         s = re.search(r'/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         return s.group(2) if s else ''
 
@@ -126,7 +127,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         return s.group(1) if s else ''
 
     def task_name(self):
-        return self.get_task_name(self.task_type)
+        return self.get_task_name(self.task_type) or self.task_type
 
     def step_name(self):
         return self.get_step_name(self.steps.get('current')) or ''
