@@ -7,7 +7,6 @@
 import sys
 import time
 import logging
-import pymongo
 import traceback
 from random import randint
 from os import path, remove
@@ -16,26 +15,14 @@ from bson.errors import BSONError
 from pymongo.errors import PyMongoError
 
 sys.path.append(path.dirname(path.dirname(__file__)))
-from controller.helper import load_config
+from controller.helper import connect_db, load_config
 
 MongoError = (PyMongoError, BSONError)
 
 
-def connect_db():
-    cfg = load_config()['database']
-    if cfg.get('user'):
-        uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-        uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
-    else:
-        uri = 'mongodb://{0}:{1}/'.format(cfg.get('host'), cfg.get('port', 27017))
-    conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
-                               maxPoolSize=10, waitQueueTimeoutMS=5000)
-    return conn[cfg['name']]
-
-
 class Worker(object):
     def __init__(self, db=None):
-        self.db = db or connect_db()
+        self.db = db or connect_db(load_config()['database'])
 
     def add_log(self, op_type, target_id='', context=''):
         logging.info('%s,context=%s' % (op_type, context))
