@@ -42,6 +42,7 @@ class CutEditHandler(PageHandler):
             kwargs = dict()
             if self.steps['current'] == 'orders':
                 kwargs = CutTool.char_render(self.page, int(self.get_query_argument('layout', 0)))
+                kwargs['btn_config'] = {}
                 template = 'task_cut_order.html'
             self.render(template, **kwargs)
 

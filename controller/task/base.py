@@ -204,7 +204,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             # 去掉同组的我的任务
             my_tasks = self.find_mine(task_type)
             if my_tasks:
-                condition.update({'doc_id': {'$nin': [t['doc_id'] for t in my_tasks]}})
+                condition['doc_id'] = condition.get('doc_id') or {}
+                condition['doc_id'].update({'$nin': [t['doc_id'] for t in my_tasks]})
             total_count = self.db.task.count_documents(condition)
             skip_no = get_random_skip()
             # 按3倍量查询后去重
@@ -254,12 +255,10 @@ class TaskHandler(BaseHandler, Task, Lock):
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
         if todo:
-            print(1, current_step)
             if current_step and current_step not in todo:
                 current_step = todo[0]
             if not current_step:
                 current_step = un_submitted[0] if self.mode == 'do' else todo[0]
-            print(2, current_step)
             index = todo.index(current_step)
             steps['todo'] = todo
             steps['current'] = current_step
@@ -326,7 +325,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             # 如果任务没有子步骤，或一个步骤，或多个步骤的最后一步
             else:
                 if self.mode == 'do':
-                    self.finish_task(self.task)
+                    self.finish_task(self.task, info)
                 elif self.mode == 'update':
                     self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
 
@@ -337,12 +336,12 @@ class TaskHandler(BaseHandler, Task, Lock):
             submitted.append(step)
         return submitted
 
-    def finish_task(self, task):
+    def finish_task(self, task, info=None):
         """ 完成任务"""
         # 更新当前任务
-        self.db.task.update_one({'_id': task['_id']}, {'$set': {
-            'status': self.STATUS_FINISHED, 'finished_time': datetime.now()
-        }})
+        info = info or {}
+        info.update({'status': self.STATUS_FINISHED, 'finished_time': datetime.now()})
+        self.db.task.update_one({'_id': task['_id']}, {'$set': info})
         # 更新后置任务
         doc_tasks = list(self.db.task.find({
             'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']

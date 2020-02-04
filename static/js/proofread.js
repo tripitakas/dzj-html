@@ -176,7 +176,6 @@ $.cut.onBoxChanged(function (char, box, reason) {
     var currentLineNo = getLineNo($('.current-span').parent());
     if (currentLineNo !== char.line_no) {
       var $firstSpan = $line.find('span:first-child');
-      setCurrent($firstSpan);
       currentSpan = [$firstSpan, true];
     }
 
@@ -208,6 +207,7 @@ $.cut.onBoxChanged(function (char, box, reason) {
 
 
 /*-----------文本区域相关代码----------------*/
+
 // 设置当前span和line
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {

@@ -120,6 +120,7 @@ class TextProofApi(PageHandler):
         txt_html = data.get('txt_html', '').strip('\n')
         info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': datetime.now()}
         self.submit_task(info, data.get('submit'))
+        self.submit_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 

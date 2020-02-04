@@ -5,7 +5,6 @@
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 <style>
   .right .bd .selectable {
-    height: 50%;
     font-size: 18px;
     overflow-y: auto;
     margin-left: 20px;
@@ -17,11 +16,10 @@
   }
 
   .right .bd .selected {
-    height: 40%;
-    max-height: 40%;
+    min-height: 40%;
     width: calc(100% - 40px);
     font-size: 18px;
-    margin: 0 0 10px 20px;
+    margin: 10px 0 10px 20px;
     overflow-y: auto;
   }
 
@@ -188,18 +186,23 @@
 
   // 初始化加载比对本
   $(document).ready(function () {
-    postApi('/task/text_select/' + docId, {data: {}}, function (data) {
-      // 设置文本
-      $('#cmp').html(data.cmp);
-      // 设置分页
-      var count = data.hit_page_codes.length;
-      var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
-      for (var i = 2; i <= count; i++) {
-        html += "<a title='" + data.hit_page_codes[i] + "'>" + i + "</a>";
-      }
-      $('#pagination').html(html);
-      $('.cmp-more').css('display', 'inline-block');
-    });
+    if (mode === 'do' || mode === 'update') {
+      postApi('/task/text_select/' + docId, {data: {}}, function (data) {
+        // 设置文本
+        $('#cmp').html(data.cmp);
+        // 设置分页
+        var count = data.hit_page_codes.length;
+        var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
+        for (var i = 2; i <= count; i++) {
+          html += "<a title='" + data.hit_page_codes[i] + "'>" + i + "</a>";
+        }
+        $('#pagination').html(html);
+        $('.cmp-more').css('display', 'inline-block');
+      });
+    } else {
+      $('.selectable').addClass('hide');
+      $('.search-pagination').addClass('hide');
+    }
   });
 
   // 选择第n个比对本
