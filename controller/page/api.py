@@ -51,7 +51,7 @@ class CutTaskApi(PageHandler):
 
 
 class CutEditApi(PageHandler):
-    URL = '/api/page/edit/box/@page_name'
+    URL = '/api/task/cut_edit/@page_name'
 
     def post(self, page_name):
         """ 修改切分数据"""
@@ -191,7 +191,7 @@ class TextHardApi(PageHandler):
 
 
 class TextEditApi(PageHandler):
-    URL = '/api/page/edit/text/@page_name'
+    URL = '/api/task/text_edit/@page_name'
 
     def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
@@ -240,6 +240,9 @@ class SelectTextApi(PageHandler):
         """ 获取比对本。根据OCR文本，从CBETA库中获取相似的文本作为比对本"""
         from controller.com.esearch import find_one
         try:
+            self.page = self.db.page.find_one({'name': page_name})
+            if not self.page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             ocr = self.get_ocr()
             num = self.prop(self.get_request_data(), 'num', 1)
             cmp, hit_page_codes = find_one(ocr, int(num))

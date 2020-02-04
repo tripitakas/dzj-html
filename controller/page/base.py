@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-import re
-from datetime import datetime
-from bson.objectid import ObjectId
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
@@ -28,27 +24,6 @@ class PageHandler(TaskHandler, PageTool):
             # 设置文字任务参数
             if 'text_' in self.task_type:
                 self.texts, self.doubts = self.get_cmp_txt()
-
-    def get_task_type(self):
-        """ 重载父类函数"""
-        task_type = super().get_task_type()
-        if task_type:
-            return task_type
-        if '/box' in self.request.path:
-            return 'cut_proof'  # 切分校对任务将检查box字段的数据锁
-        elif '/text' in self.request.path:
-            if self.mode == 'edit':
-                return 'text_review'  # 文字审定任务将检查text字段的数据锁
-            else:
-                return 'text_proof_1'  # 文字校对任务不检查数据锁
-        else:
-            return ''
-
-    def get_doc_id(self):
-        """ 重载父类函数"""
-        regex = r'/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)'
-        s = re.search(regex, self.request.path)
-        return s.group(1) if s else ''
 
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')

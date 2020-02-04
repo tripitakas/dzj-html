@@ -11,7 +11,7 @@
 5. None，非任务、非数据修改请求
 二、 url
 1. do/update/browse，如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
-2. edit，如：/page/edit/box/@page_name。需重载get_task_type函数，以便进行数据检查
+2. edit，如：/task/cut_edit/@page_name，task_type为cut_edit，伪任务类型
 3. view，如：/task/@task_type/5e3139c6a197150011d65e9d
 4. 非任务、非数据修改请求，如/task/admin/page
 
@@ -41,8 +41,8 @@ class TaskHandler(BaseHandler, Task, Lock):
 
     def prepare(self):
         """
-        根据task_id参数，检查任务是否存在、任务权限，设置任务相关参数
-        根据doc_id/task_type参数，检查数据是否存在、数据锁以及数据等级
+        根据task_id参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数
+        根据doc_id/task_type参数，检查数据是否存在并设置数据，检查数据锁以及数据等级
         如果非任务的url请求需要使用该handler，则需要重载get_doc_id/get_task_type函数
         """
         super().prepare()
@@ -63,23 +63,21 @@ class TaskHandler(BaseHandler, Task, Lock):
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
-        if self.doc_id:
-            # 数据是否存在
-            if not self.task_type:
-                return self.send_error_response(e.task_type_error, message='需配置请求的任务类型')
+        if self.doc_id and self.task_type:
             collection, id_name = self.get_data_conf(self.task_type)[:2]
+            # 检查数据是否存在
+            assert collection
             self.doc = self.db[collection].find_one({id_name: self.doc_id})
             if not self.doc:
                 return self.send_error_response(e.no_object, message='数据%s不存在' % self.doc_id)
             # do/update/edit模式下，检查数据锁
             if self.mode in ['do', 'update', 'edit']:
                 self.has_lock, error = self.check_my_lock()
-                # 获取数据锁失败，直接报错返回
                 if self.has_lock is False:
                     return self.send_error_response(error)
         # 设置其它参数
         self.steps = self.init_steps(self.task, self.task_type)
-        self.readonly = self.mode in ['view', 'browse']
+        self.readonly = self.mode in ['view', 'browse', '']
 
     def get_task(self, task_id):
         """ 根据task_id/to以及相关条件查找任务"""
@@ -109,21 +107,28 @@ class TaskHandler(BaseHandler, Task, Lock):
         s = re.search(r'/([0-9a-z]{24})(\?|$|\/)', self.request.path)
         return s.group(1) if s else ''
 
+    def get_doc_id(self):
+        """ 获取数据id。子类可重载，以便prepare函数调用"""
+        s = re.search(r'/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+        return s.group(1) if s else ''
+
     def get_task_type(self):
-        """ 设置任务类型。供子类重载，以便prepare函数调用"""
-        s = re.search(r'/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
-        return s.group(2) if s else ''
+        """ 获取任务类型。子类可重载，以便prepare函数调用"""
+        # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
+        s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
+        task_type = s.group(2) if s else ''
+        if not task_type:
+            # eg. /task/cut_edit/@page_name
+            s = re.search(r'/task/([a-z_]+_edit)/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+            task_type = s.group(1) if s else ''
+        return task_type
 
     def get_task_mode(self):
-        r = re.findall('/(do|update|edit|browse)/', self.request.path)
+        r = re.findall('(do|update|edit|browse)/', self.request.path)
         mode = r[0] if r else ''
         if not mode and self.get_task_id():
             mode = 'view'
         return mode
-
-    def get_doc_id(self):
-        """ 获取数据id。供子类重载，以便prepare函数调用"""
-        return ''
 
     def task_name(self):
         return self.get_task_name(self.task_type) or self.task_type

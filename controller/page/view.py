@@ -33,10 +33,10 @@ class CutTaskHandler(PageHandler):
 
 
 class CutEditHandler(PageHandler):
-    URL = '/page/edit/box/@page_name'
+    URL = '/task/cut_edit/@page_name'
 
     def get(self, page_name):
-        """ 切分框修改页面"""
+        """ 切分编辑页面"""
         try:
             template = 'task_cut_do.html'
             kwargs = dict()
@@ -90,7 +90,7 @@ class TextReviewHandler(PageHandler):
 
 
 class TextEditHandler(PageHandler):
-    URL = '/page/edit/text/@page_name'
+    URL = '/task/text_edit/@page_name'
 
     def get(self, page_name):
         """ 文字修改页面"""

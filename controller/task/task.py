@@ -99,16 +99,26 @@ class Task(Model):
         },
     }
 
-    # 任务组定义。对于同一数据的一组任务而言，用户只能领取其中的一个。
-    # 在任务大厅和我的任务中，任务组中的任务将合并显示。
-    # 任务组仅在以上两处起作用，不影响其他任务管理功能。
-    task_groups = {
+    # 其它任务定义
+    # 1. groups表示组任务，对于同一数据的一组任务而言，用户只能领取其中的一个。
+    #    在任务大厅和我的任务中，任务组中的任务将合并显示。 组任务仅在以上两处起作用，不影响其他任务管理功能。
+    # 2. 数据编辑伪任务。数据编辑需要仿照任务，按照一定的步骤进行。在这里定义。
+    task_extras = {
         'text_proof': {
             'name': '文字校对',
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
             'steps': [['select', '选择比对文本'], ['proof', '校对']],
             'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
+        'cut_edit': {
+            'name': '切分编辑',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
+            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
+        },
+        'text_edit': {
+            'name': '文字编辑',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        }
     }
 
     # 任务状态表
@@ -131,7 +141,7 @@ class Task(Model):
     @classmethod
     def all_task_types(cls):
         task_types = cls.task_types.copy()
-        task_types.update(cls.task_groups)
+        task_types.update(cls.task_extras)
         return task_types
 
     @classmethod
@@ -139,13 +149,13 @@ class Task(Model):
         return 'groups' in prop(cls.all_task_types(), task_type)
 
     @classmethod
-    def get_task_types(cls, collection):
-        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
-
-    @classmethod
     def get_ocr_tasks(cls):
         """ 获取OCR任务类型，即小欧处理的任务"""
         return ['import_image', 'upload_cloud', 'ocr_box', 'ocr_text']
+
+    @classmethod
+    def get_task_types(cls, collection):
+        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
 
     @classmethod
     def get_task_meta(cls, task_type):
@@ -158,15 +168,11 @@ class Task(Model):
 
     @classmethod
     def get_shared_field(cls, task_type):
-        return prop(cls.task_types, '%s.data.shared_field' % task_type)
+        return prop(cls.all_task_types(), '%s.data.shared_field' % task_type)
 
     @classmethod
     def get_data_collection(cls, task_type):
-        return prop(cls.task_types, '%s.data.collection' % task_type)
-
-    @classmethod
-    def get_task_steps(cls, task_type):
-        return prop(cls.all_task_types(), task_type + '.steps', [])
+        return prop(cls.all_task_types(), '%s.data.collection' % task_type)
 
     @classmethod
     def get_pre_tasks(cls, task_type):
@@ -198,6 +204,14 @@ class Task(Model):
         return cls.step_names().get(step) or step
 
     @classmethod
+    def get_status_name(cls, status):
+        return cls.task_statuses.get(status) or status
+
+    @classmethod
+    def get_priority_name(cls, priority):
+        return cls.priorities.get(priority) or priority
+
+    @classmethod
     def format_value(cls, value, key=None):
         """ 格式化task表的字段输出"""
         if key == 'task_type':
@@ -216,14 +230,6 @@ class Task(Model):
             value = value.get('error') or value.get('message') or \
                     '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
         return value
-
-    @classmethod
-    def get_status_name(cls, status):
-        return cls.task_statuses.get(status) or status
-
-    @classmethod
-    def get_priority_name(cls, priority):
-        return cls.priorities.get(priority) or priority
 
     @classmethod
     def get_task_search_condition(cls, request_query, collection=None, mode=None):
