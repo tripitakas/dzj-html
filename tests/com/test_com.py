@@ -52,14 +52,14 @@ class TestCom(APITestCase):
 
     def test_com_search(self):
         q = '夫宗極絕於稱謂賢聖以之沖默玄旨非言'
-        r = self.fetch('/api/tool/search', body={'data': {'q': q}})
+        r = self.fetch('/api/com/search', body={'data': {'q': q}})
         self.assert_code(200, r)
         r = self.parse_response(r)
         self.assertIn('matches', r)
 
     def test_com_punctuate(self):
         q = '初靜慮地受生諸天即受彼地離生喜樂第二靜慮地諸天受定生喜樂'
-        r = self.fetch('/api/tool/punctuate', body={'data': {'q': q}})
+        r = self.fetch('/api/com/punctuate', body={'data': {'q': q}})
         self.assert_code(200, r)
 
     def _test_url_validate(self):

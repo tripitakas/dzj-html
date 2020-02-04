@@ -134,7 +134,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         """ 获取当前步骤"""
         current_step = self.get_query_argument('step', '')
         if self.is_api and not current_step:
-            current_step = self.prop(self.get_request_data(), 'step')
+            current_step = self.prop(self.data, 'step')
         return current_step
 
     def task_name(self):
@@ -161,7 +161,7 @@ class TaskHandler(BaseHandler, Task, Lock):
     def find_mine(self, task_type=None, page_size=None, order=None, status=None):
         """ 查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
-        condition = {'picked_user_id': self.current_user['_id']}
+        condition = {'picked_user_id': self.user_id}
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
         if status:
@@ -230,18 +230,18 @@ class TaskHandler(BaseHandler, Task, Lock):
             con_status = condition.get('status') or {}
             con_status.update({'$ne': self.STATUS_RETURNED})
             condition.update({'status': con_status})
-            condition.update({'picked_user_id': self.current_user['_id']})
+            condition.update({'picked_user_id': self.user_id})
         return self.db.task.count_documents(condition)
 
     def get_publish_meta(self, task_type):
-        now = datetime.now()
+        now = self.now()
         collection, id_name = self.get_data_conf(task_type)[:2]
         return dict(
             task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
             status='', priority='', steps={}, pre_tasks=[], input=None, result={},
             create_time=now, updated_time=now, publish_time=now,
-            publish_user_id=self.current_user['_id'],
-            publish_by=self.current_user['name']
+            publish_user_id=self.user_id,
+            publish_by=self.username
         )
 
     def init_steps(self, task, task_type=None):
@@ -299,7 +299,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if shared_field and self.mode == 'do':
             lock = self.prop(self.doc, 'lock.' + shared_field)
             assert lock
-            has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
+            has_lock = self.user_id == self.prop(lock, 'locked_user_id')
             if not has_lock:
                 error = e.data_is_locked
         # update/模式下，尝试分配临时数据锁
@@ -316,7 +316,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': info})
         else:
             update = info if info else {}
-            update.update({'updated_time': datetime.now()})
+            update.update({'updated_time': self.now()})
             if self.steps['todo']:
                 update['steps.submitted'] = self.get_submitted(self.steps['current'])
             # 如果是任务多个子步骤的中间步骤
@@ -340,7 +340,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         """ 完成任务"""
         # 更新当前任务
         info = info or {}
-        info.update({'status': self.STATUS_FINISHED, 'finished_time': datetime.now()})
+        info.update({'status': self.STATUS_FINISHED, 'finished_time': self.now()})
         self.db.task.update_one({'_id': task['_id']}, {'$set': info})
         # 更新后置任务
         doc_tasks = list(self.db.task.find({
@@ -370,8 +370,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             self.update_task_doc(self.task, info=info)
 
     def update_task_doc(self, task, update_level=False, release_lock=False, status=None, info=None):
-        """ 更新任务的doc数据，释放数据锁
-        :param task, 待更新的任务
+        """ 更新任务的doc数据
+        :param task, 数据所属的任务
         :param update_level, 是否更新doc的level.task_type
         :param release_lock, 是否释放任务锁
         :param status, doc的tasks.task_type的状态
@@ -380,23 +380,25 @@ class TaskHandler(BaseHandler, Task, Lock):
         if not task.get('doc_id'):
             return
         info = {} if not info else info
-        # 释放数据锁
-        shared_field = self.get_shared_field(task['task_type'])
-        if release_lock and shared_field:
-            info['lock.' + shared_field] = dict()
-        # 更新数据等级
-        config_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task['task_type']))
-        if update_level and config_level:
-            info['level.' + shared_field] = config_level
-        # 设置数据的任务状态
+        task_type = task['task_type']
+        collection, id_name = self.get_data_conf(task_type)[:2]
+        # 检查共享字段
+        shared_field = self.get_shared_field(task_type)
+        if shared_field:
+            # 释放数据锁
+            if release_lock:
+                info['lock.' + shared_field] = dict()
+            # 更新数据等级
+            lock_level = self.get_lock_level(shared_field, task_type)
+            if update_level and lock_level:
+                info['level.' + shared_field] = lock_level
+        # 更新任务状态
         if status:
-            info['tasks.' + task['task_type']] = status
-        # 更新数据库
-        collection, id_name = self.get_data_conf(task['task_type'])[:2]
+            info['tasks.' + task_type] = status
+        if status == '':
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
         if info:
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
-        if status == '':
-            self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task['task_type']: ''}})
 
     def update_edit_doc(self, task_type, doc_id, release_lock=False, info=None):
         """ 更新数据编辑的doc数据

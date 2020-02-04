@@ -47,13 +47,12 @@ class HomeHandler(TaskHandler):
 
         try:
             # 今日访问次数
-            user_id = self.current_user['_id']
             today_begin = datetime.strptime(get_date_time('%Y-%m-%d'), '%Y-%m-%d')
-            condition = {'create_time': {'$gte': today_begin}, 'user_id': user_id, 'op_type': 'visit'}
+            condition = {'create_time': {'$gte': today_begin}, 'user_id': self.user_id, 'op_type': 'visit'}
             visit_count = self.db.log.count_documents(condition)
 
             # 最后登录时间
-            condition = {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}}
+            condition = {'user_id': self.user_id, 'op_type': {'$in': ['login_ok', 'register']}}
             r = list(self.db.log.find(condition).sort('create_time', -1).limit(2))
             last_login = get_date_time(date_time=r[0]['create_time'] if r else None)
 
@@ -91,7 +90,7 @@ class HomeHandler(TaskHandler):
 
 
 class CbetaSearchHandler(BaseHandler):
-    URL = '/tool/search'
+    URL = '/com/search'
 
     def get(self):
         """ 检索cbeta"""
@@ -99,7 +98,7 @@ class CbetaSearchHandler(BaseHandler):
 
 
 class PunctuationHandler(BaseHandler):
-    URL = '/tool/punctuate'
+    URL = '/com/punctuate'
 
     def get(self):
         """ 自动标点"""

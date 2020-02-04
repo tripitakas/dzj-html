@@ -27,9 +27,9 @@ class FetchOcrTasksApi(TaskHandler):
                 self.db.page.update_many(condition, {'$set': {'lock.box': {
                     'is_temp': False,
                     'lock_type': dict(tasks=data_task),
-                    'locked_by': self.current_user['name'],
-                    'locked_user_id': self.current_user['_id'],
-                    'locked_time': datetime.now()
+                    'locked_by': self.username,
+                    'locked_user_id': self.user_id,
+                    'locked_time': self.now()
                 }}})
             # ocr_box、ocr_text时，把layout/blocks/columns/chars等参数传过去
             if data_task in ['ocr_box', 'ocr_text']:
@@ -45,8 +45,7 @@ class FetchOcrTasksApi(TaskHandler):
                          input=t.get('input')) for t in tasks]
 
         try:
-            data = self.get_request_data()
-            size = int(data.get('size') or 1)
+            size = int(self.data.get('size') or 1)
             condition = {'task_type': data_task, 'status': self.STATUS_PUBLISHED}
             tasks = list(self.db.task.find(condition).limit(size))
             if not tasks:
@@ -55,8 +54,8 @@ class FetchOcrTasksApi(TaskHandler):
             # 批量获取任务
             condition.update({'_id': {'$in': [t['_id'] for t in tasks]}})
             r = self.db.task.update_many(condition, {'$set': dict(
-                status=self.STATUS_FETCHED, picked_time=datetime.now(), updated_time=datetime.now(),
-                picked_user_id=self.current_user['_id'], picked_by=self.current_user['name']
+                status=self.STATUS_FETCHED, picked_time=self.now(), updated_time=self.now(),
+                picked_user_id=self.user_id, picked_by=self.username
             )})
             if r.matched_count:
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
@@ -73,11 +72,10 @@ class ConfirmFetchOcrTasksApi(TaskHandler):
         """ 确认批量领取任务成功 """
 
         try:
-            data = self.get_request_data()
             rules = [(v.not_empty, 'tasks')]
-            self.validate(data, rules)
+            self.validate(self.data, rules)
 
-            task_ids = [ObjectId(t['task_id']) for t in data['tasks']]
+            task_ids = [ObjectId(t['task_id']) for t in self.data['tasks']]
             if task_ids:
                 self.db.task.update_many({'_id': {'$in': task_ids}}, {'$set': {'status': self.STATUS_PICKED}})
                 self.send_data_response()
@@ -100,12 +98,11 @@ class SubmitOcrTasksApi(SubmitOcrTaskHandler):
         result是成功时的数据，message为失败时的错误信息。
         """
         try:
-            data = self.get_request_data()
             rules = [(v.not_empty, 'tasks')]
-            self.validate(data, rules)
+            self.validate(self.data, rules)
 
             tasks = []
-            for task in data['tasks']:
+            for task in self.data['tasks']:
                 r = self.submit_one(task)
                 message = '' if r is True else r
                 status = 'success' if r is True else 'failed'

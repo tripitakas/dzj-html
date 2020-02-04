@@ -18,13 +18,12 @@ except Exception:
 
 
 class PunctuationApi(BaseHandler):
-    URL = '/api/tool/punctuate'
+    URL = '/api/com/punctuate'
 
     def post(self):
         """ 自动标点 """
         try:
-            data = self.get_request_data()
-            q = data.get('q', '').strip()
+            q = self.data.get('q', '').strip()
             res = punc_str(q) if q else ''
             self.send_data_response(dict(res=res))
 
@@ -33,7 +32,7 @@ class PunctuationApi(BaseHandler):
 
 
 class CbetaSearchApi(BaseHandler):
-    URL = '/api/tool/search'
+    URL = '/api/com/search'
 
     def post(self):
         """ CBETA检索 """
@@ -46,8 +45,7 @@ class CbetaSearchApi(BaseHandler):
             txt = re.sub('</kw><kw>', '', txt)
             return txt
 
-        data = self.get_request_data()
-        q = data.get('q', '').strip()
+        q = self.data.get('q', '').strip()
         try:
             matches = find(q)
         except Exception as error:
@@ -70,8 +68,7 @@ class SessionConfigApi(BaseHandler):
     def post(self):
         """ 配置后台cookie"""
         try:
-            data = self.get_request_data()
-            for k, v in data.items():
+            for k, v in self.data.items():
                 self.set_secure_cookie(k, json_util.dumps(v))
             return self.send_data_response()
 

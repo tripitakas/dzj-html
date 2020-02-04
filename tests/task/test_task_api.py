@@ -208,6 +208,8 @@ class TestTaskApi(APITestCase):
     def test_pick_task_of_group(self):
         """ 测试领取组任务 """
         for group_task, v in Th.task_extras.items():
+            if not v.get('groups'):
+                continue
             num = 1
             for task_type in v.get('groups'):
                 # 发布任务

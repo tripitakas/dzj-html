@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.base import DbError
@@ -13,7 +12,7 @@ class SubmitOcrTaskHandler(TaskHandler):
         _task = self.db.task.find_one({'_id': ObjectId(task['task_id']), 'task_type': task['task_type']})
         if not _task:
             return e.task_not_existed
-        elif _task['picked_user_id'] != self.current_user['_id']:
+        elif _task['picked_user_id'] != self.user_id:
             return e.task_unauthorized_locked
         page_name = self.prop(task, 'page_name')
         if page_name and page_name != _task.get('doc_id'):
@@ -31,12 +30,12 @@ class SubmitOcrTaskHandler(TaskHandler):
 
     def submit_ocr(self, task):
         """ 提交OCR任务 """
-        now = datetime.now()
+        now = self.now()
         page_name, result, message = task.get('page_name'), task['result'], task.get('message')
         if task['status'] == 'failed' or result.get('status') == 'failed':
             self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
-                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}
-            })
+                'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message
+            }})
         else:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -67,7 +66,7 @@ class SubmitOcrTaskHandler(TaskHandler):
 
     def submit_upload_cloud(self, task):
         """ 提交upload_cloud任务。page中包含有云端路径img_cloud_path """
-        now = datetime.now()
+        now = self.now()
         page_name, result, message = task.get('page_name'), task['result'], task.get('message')
         task_update = {'updated_time': now, 'result': result, 'message': message}
         if task['status'] == 'failed' or result.get('status') == 'failed':
@@ -85,7 +84,7 @@ class SubmitOcrTaskHandler(TaskHandler):
 
     def submit_import_image(self, task):
         """ 提交import_image任务 """
-        now = datetime.now()
+        now = self.now()
         result, message = task.get('result') or {}, task.get('message')
         if task['status'] == 'failed' or result.get('status') == 'failed':
             task_update = {'status': self.STATUS_FAILED, 'updated_time': now, 'result': result, 'message': message}

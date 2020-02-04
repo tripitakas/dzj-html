@@ -9,18 +9,18 @@ import re
 import logging
 import traceback
 from os import path
-from datetime import datetime
 from bson import json_util
 from bson.errors import BSONError
+from datetime import datetime
 from pymongo.errors import PyMongoError
 from tornado import gen
-from tornado.escape import to_basestring
-from tornado.httpclient import AsyncHTTPClient
-from tornado.httpclient import HTTPError
-from tornado.options import options
-from tornado.web import RequestHandler
 from tornado.web import Finish
 from tornado_cors import CorsMixin
+from tornado.options import options
+from tornado.web import RequestHandler
+from tornado.httpclient import HTTPError
+from tornado.escape import to_basestring
+from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
@@ -39,9 +39,9 @@ class BaseHandler(CorsMixin, RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
+        self.error = self.is_api = self.user = self.user_id = self.username = None
         self.config = self.application.config
-        self.error = self.is_api = None
-        self.more = {}  # 给子类使用
+        self.more = self.data = {}  # 给子类使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -53,8 +53,8 @@ class BaseHandler(CorsMixin, RequestHandler):
     def prepare(self):
         """ 调用 get/post 前的准备"""
         p, m = self.request.path, self.request.method
-        # 设置参数
         self.is_api = '/api/' in p
+        self.data = self.get_request_data() if self.is_api else {}
         # 单元测试
         if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
             return
@@ -73,6 +73,8 @@ class BaseHandler(CorsMixin, RequestHandler):
                 return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
         except MongoError as error:
             return self.send_db_error(error)
+        # 设置参数
+        self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -188,7 +190,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.render('_error.html', **response)
             raise Finish()
 
-        user_name = self.current_user and self.current_user['name']
+        user_name = self.current_user and self.username
         class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]
         logging.error('%d %s in %s [%s %s]' % (code, message, class_name, user_name, self.get_ip()))
 
@@ -259,7 +261,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             self.db.log.insert_one(dict(
                 op_type=op_type, username=username, user_id=user_id, target_id=target_id,
-                context=str(context), ip=self.get_ip(), create_time=datetime.now(),
+                context=str(context), ip=self.get_ip(), create_time=self.now(),
             ))
         except MongoError:
             pass
@@ -290,6 +292,10 @@ class BaseHandler(CorsMixin, RequestHandler):
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
+
+    @staticmethod
+    def now():
+        return datetime.now()
 
     @classmethod
     def prop(cls, obj, key, default=None):

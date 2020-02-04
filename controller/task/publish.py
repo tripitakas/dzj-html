@@ -94,14 +94,14 @@ class PublishBaseHandler(TaskHandler):
         """ 检查数据锁是否已分配给其它任务或数据等级是否小于当前数据等级"""
         data_is_locked, data_level_unqualified = set(), set()
         collection, id_name, input_filed, shared_field = self.get_data_conf(task_type)
-        conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
+        lock_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
         docs = self.db[collection].find({id_name: {'$in': list(doc_ids)}}, {'lock': 1, id_name: 1})
         for doc in list(docs):
             lock = self.prop(doc, 'lock.' + shared_field, {})
             level = int(self.prop(doc, 'level.' + shared_field, 0))
             if lock and self.prop(lock, 'is_temp') is False:
                 data_is_locked.add(doc[id_name])
-            elif conf_level < level:
+            elif lock_level < level:
                 data_level_unqualified.add(doc[id_name])
         return data_is_locked, data_level_unqualified
 

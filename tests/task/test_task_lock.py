@@ -49,9 +49,8 @@ class TestDataLock(APITestCase):
             task1 = self.get_one_task(task_type, ready_ids[0])
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task1['_id']}})
             self.assert_code(200, r, msg=task_type)
-            conf_level = Th.get_conf_level(shared_field, task_type)
-            lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
-            self.assertListEqual([lock.get('locked_by'), lock.get('is_temp'), level], [u.expert1[2], False, conf_level])
+            lock = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)[0]
+            self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert1[2], False])
 
             # 测试专家获得该数据锁时，提示已被其他人锁定
             self.login(u.expert2[0], u.expert2[1])
@@ -118,9 +117,8 @@ class TestDataLock(APITestCase):
         self.assert_code(200, r, msg=task_type)
 
         # 测试系统分配长时数据锁
-        conf_level = Th.get_conf_level(shared_field, task_type)
-        lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
-        self.assertListEqual([lock.get('locked_by'), lock.get('is_temp'), level], [u.user1[2], False, conf_level])
+        lock = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)[0]
+        self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.user1[2], False])
 
         # 测试不能发布切分审定任务
         self.login_as_admin()
@@ -145,15 +143,15 @@ class TestDataLock(APITestCase):
         task2 = self.get_one_task(task_type, ready_ids[0])
         r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task2['_id']}})
         self.assert_code(200, r, msg=task_type)
-        conf_level = Th.get_conf_level(shared_field, task_type)
-        lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
-        self.assertListEqual([lock.get('locked_by'), lock.get('is_temp'), level], [u.expert2[2], False, conf_level])
+        lock = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)[0]
+        self.assertListEqual([lock.get('locked_by'), lock.get('is_temp')], [u.expert2[2], False])
 
         # 专家2完成任务
         r = self.fetch('/api/task/finish/%s' % task2['_id'], body={'data': {}})
         self.assert_code(200, r, msg=task_type)
+        lock_level = Th.get_lock_level(shared_field, task_type)
         lock, level = self.get_data_lock_and_level(ready_ids[0], task_type=task_type)
-        self.assertEqual(lock, {}, msg=task_type)
+        self.assertEqual([lock, level], [{}, lock_level], msg=task_type)
 
         # 测试用户1数据等级不够，不能修改切分校对任务
         self.login(u.user1[0], u.user1[1])

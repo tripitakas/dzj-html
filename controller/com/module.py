@@ -57,8 +57,8 @@ class ComLeft(UIModule):
                 dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
             ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='自动标点', icon='icon_subitem', link='/tool/punctuate'),
-                dict(name='CBeta检索', icon='icon_subitem', link='/tool/search'),
+                dict(name='自动标点', icon='icon_subitem', link='/com/punctuate'),
+                dict(name='CBeta检索', icon='icon_subitem', link='/com/search'),
             ]),
             dict(name='帮助中心', icon='icon_help', link='/help'),
         ]

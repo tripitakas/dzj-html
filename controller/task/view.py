@@ -208,7 +208,7 @@ class MyTaskHandler(TaskHandler):
             condition = {
                 'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type,
                 'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]},
-                'picked_user_id': self.current_user['_id']
+                'picked_user_id': self.user_id
             }
             docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
             kwargs = self.get_template_kwargs()

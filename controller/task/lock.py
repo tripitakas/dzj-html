@@ -49,7 +49,7 @@ class Lock(object):
     }
 
     @classmethod
-    def get_conf_level(cls, shared_field, task_type):
+    def get_lock_level(cls, shared_field, task_type):
         """ 获取数据等级"""
         return prop(cls.data_auth_maps, '%s.level.%s' % (shared_field, task_type))
 
@@ -71,8 +71,7 @@ class Lock(object):
 
         # 检查当前用户是否有该数据的同阶或高阶任务
         user_tasks = self.db.task.find({
-            'collection': collection, 'id_name': id_name, 'doc_id': doc_id,
-            'picked_user_id': user['_id'],
+            'collection': collection, 'id_name': id_name, 'doc_id': doc_id, 'picked_user_id': user['_id'],
             'status': {'$ne': Task.STATUS_RETURNED}
         })
         tasks = set(t['task_type'] for t in user_tasks) & set(shared_field_meta['tasks'])
@@ -103,15 +102,13 @@ class Lock(object):
         qualification = self.get_user_qualification(user, doc_id, shared_field)
         if not qualification:
             return e.data_lock_unqualified
-        conf_level = self.get_qualification_level(shared_field, qualification.get('auth'))
-        if conf_level < level:
+        lock_level = self.get_qualification_level(shared_field, qualification.get('auth'))
+        if lock_level < level:
             return e.data_level_unqualified
         # 分配数据锁
         r = self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.' + shared_field: {
-            'is_temp': True, 'qualification': qualification,
-            'locked_user_id': user['_id'],
-            'locked_by': user['name'],
-            'locked_time': datetime.now(),
+            'is_temp': True, 'qualification': qualification, 'locked_time': datetime.now(),
+            'locked_user_id': user['_id'], 'locked_by': user['name'],
         }}})
         return True if r.matched_count else e.data_lock_failed
 
@@ -139,8 +136,8 @@ class Lock(object):
         # 检查数据资质及数据等级
         if task_type not in prop(self.data_auth_maps, '%s.tasks' % shared_field):
             return e.data_lock_unqualified
-        conf_level = prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
-        if conf_level < level:
+        lock_level = prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
+        if lock_level < level:
             return e.data_level_unqualified
         # 分配数据锁
         qualification = dict(lock_type='task', tasks=task_type)
