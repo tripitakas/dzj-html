@@ -6,9 +6,8 @@
 from bson import json_util
 from tornado.web import UIModule
 from controller import errors as e
-from controller.page.diff import Diff
-from controller.page.base import PageHandler
 from controller.cut.cuttool import CutTool
+from controller.page.base import PageHandler
 
 
 class CutTaskHandler(PageHandler):
@@ -65,7 +64,7 @@ class TextProofHandler(PageHandler):
             else:
                 cmp_data = self.prop(self.task, 'result.txt_html')
                 if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
-                    cmp_data = Diff.diff(*[t[0] for t in self.texts])[0]
+                    cmp_data = self.diff(*[t[0] for t in self.texts])
                 return self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
@@ -83,7 +82,7 @@ class TextReviewHandler(PageHandler):
         try:
             cmp_data = self.prop(self.page, 'txt_html')
             if not cmp_data:
-                cmp_data = Diff.diff(*[t[0] for t in self.texts])[0]
+                cmp_data = self.diff(*[t[0] for t in self.texts])
             self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
@@ -101,7 +100,7 @@ class TextEditHandler(PageHandler):
                 self.send_error_response(e.no_object, message='没有找到审定文本')
 
             if not cmp_data and text:
-                cmp_data = Diff.diff(text)[0]
+                cmp_data = self.diff(text)
             self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
@@ -111,22 +110,5 @@ class TextEditHandler(PageHandler):
 class TextArea(UIModule):
     """文字校对的文字区"""
 
-    def render(self, segments, raw=False):
-        cur_line_no, items, lines = 0, [], []
-        blocks = [dict(block_no=1, lines=lines)]
-        for item in segments:
-            if 'block_no' in item and item['block_no'] != blocks[-1]['block_no']:
-                lines = []
-                blocks.append(dict(block_no=blocks[-1]['block_no'] + 1, lines=lines))
-            if item['line_no'] != cur_line_no:
-                cur_line_no = item['line_no']
-                items = [item]
-                lines.append(dict(line_no=cur_line_no, items=items))
-                item['offset'] = 0
-            elif items:
-                item['offset'] = items[-1]['offset'] + len(items[-1]['base'])
-                if item['base'] != '\n':
-                    items.append(item)
-            item['block_no'] = blocks[-1]['block_no']
-
-        return dict(blocks=blocks) if raw else self.render_string('_text_area.html', blocks=blocks)
+    def render(self, cmp_data):
+        return self.render_string('_text_area.html', blocks=cmp_data)

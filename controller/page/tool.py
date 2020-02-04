@@ -7,6 +7,7 @@
 import re
 from operator import itemgetter
 from tornado.escape import url_escape
+from controller.page.diff import Diff
 
 
 class PageTool(object):
@@ -81,9 +82,44 @@ class PageTool(object):
         return txt.strip('|')
 
     @classmethod
-    def gen_segments(cls, texts):
-        """ 根据texts列表，生成文字校对的segment"""
-        pass
+    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
+        """ 生成文字校对的segment"""
+        # 生成segments
+        segments = []
+        block_no, line_no = 1, 1
+        pre_empty_line_no = 0  # 当前segment之前有几个空行
+        diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
+        for seg in diff_segments:
+            s = seg.copy()
+            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
+                if not pre_empty_line_no:  # 连续空行仅保留第一个
+                    s['block_no'], s['line_no'] = block_no, line_no
+                    segments.append(s)
+                    line_no += 1
+                pre_empty_line_no += 1
+            else:  # 当前非空行
+                if pre_empty_line_no == 0:  # 当前segment之前没有空行
+                    pass
+                elif pre_empty_line_no == 1:  # 当前segment之前有一个为空行
+                    pass
+                else:  # 当前segment之前有多个空行，即换栏
+                    line_no = 1
+                    block_no += 1
+                s['block_no'], s['line_no'] = block_no, line_no
+                segments.append(s)
+                pre_empty_line_no = 0
+        # 结构化，以便页面输出
+        blocks = {}
+        for s in segments:
+            b_no, l_no = s['block_no'], s['line_no']
+            if not blocks.get(b_no):
+                blocks[b_no] = {}
+            if not blocks[b_no].get(l_no):
+                blocks[b_no][l_no] = []
+            if not (s['is_same'] and s['base'] == '\n'):
+                s['offset'] = s['range'][0]
+                blocks[b_no][l_no].append(s)
+        return blocks
 
     @classmethod
     def check_segments(cls, segments, chars, params=None):

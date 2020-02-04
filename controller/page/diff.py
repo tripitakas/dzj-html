@@ -62,7 +62,8 @@ class Diff(object):
             _label.update(label)
         ret, line_no = [], 1
         for line in base.split('\n'):
-            ret.append({'line_no': line_no, 'is_same': True, _label['base']: line})
+            if line:
+                ret.append({'line_no': line_no, 'is_same': True, _label['base']: line})
             ret.append({'line_no': line_no, 'is_same': True, _label['base']: '\n'})
             line_no += 1
 

@@ -55,7 +55,7 @@
       {% if isinstance(cmp_data, str) %}
       {% raw cmp_data %}
       {% else %}
-      {% module TextArea(segments=cmp_data) %}
+      {% module TextArea(cmp_data=cmp_data) %}
       {% end %}
     </div>
     <!--/.sutra-text-->
