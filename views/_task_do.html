@@ -94,11 +94,12 @@
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if (mode in ['edit', 'update'] && !readonly) {
-      if (taskType.indexOf('cut_') !== -1)
+    if (['edit', 'update'].indexOf(mode) !== -1 && !readonly) {
+      if (taskType.indexOf('cut_') !== -1) {
         postApi('/data/unlock/box/' + docId, {});
-      else if (taskType.indexOf('text_') !== -1)
+      } else if (taskType.indexOf('text_') !== -1) {
         postApi('/data/unlock/text/' + docId, {});
+      }
     }
     // 返回
     if (from) {

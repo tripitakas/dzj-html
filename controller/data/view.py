@@ -129,8 +129,7 @@ class DataPageInfoHandler(BaseHandler):
             page_tasks = self.prop(page, 'tasks') or {}
 
             self.render('data_page_info.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
-                        page_box=page_box, page_tasks=page_tasks, page=page,
-                        Th=TaskHandler)
+                        page_box=page_box, page_tasks=page_tasks, page=page, Task=Task, Page=Page)
 
         except Exception as error:
             return self.send_db_error(error)

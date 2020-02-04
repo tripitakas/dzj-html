@@ -130,6 +130,13 @@ class TaskHandler(BaseHandler, Task, Lock):
             mode = 'view'
         return mode
 
+    def get_current_step(self):
+        """ 获取当前步骤"""
+        current_step = self.get_query_argument('step', '')
+        if self.is_api and not current_step:
+            current_step = self.prop(self.get_request_data(), 'step')
+        return current_step
+
     def task_name(self):
         return self.get_task_name(self.task_type) or self.task_type
 
@@ -237,18 +244,22 @@ class TaskHandler(BaseHandler, Task, Lock):
         )
 
     def init_steps(self, task, task_type=None):
-        """ 检查当前任务的步骤，缺省时自动填充默认设置，有误时报错"""
+        """ 检查当前任务的步骤，缺省时自动填充默认设置，有误时报错
+        当前步骤可以在url中申明，或者在api的请求体中给出。
+        """
         steps = dict()
-        current_step = self.get_query_argument('step', '')
+        current_step = self.get_current_step()
         default_steps = self.get_steps(task_type)
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
         if todo:
+            print(1, current_step)
             if current_step and current_step not in todo:
                 current_step = todo[0]
             if not current_step:
                 current_step = un_submitted[0] if self.mode == 'do' else todo[0]
+            print(2, current_step)
             index = todo.index(current_step)
             steps['todo'] = todo
             steps['current'] = current_step
@@ -327,13 +338,11 @@ class TaskHandler(BaseHandler, Task, Lock):
         return submitted
 
     def finish_task(self, task):
-        """ 完成任务 """
+        """ 完成任务"""
         # 更新当前任务
         self.db.task.update_one({'_id': task['_id']}, {'$set': {
             'status': self.STATUS_FINISHED, 'finished_time': datetime.now()
         }})
-        # 释放当前数据
-        self.update_task_doc(task, update_level=True, status=self.STATUS_FINISHED)
         # 更新后置任务
         doc_tasks = list(self.db.task.find({
             'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']
@@ -356,12 +365,12 @@ class TaskHandler(BaseHandler, Task, Lock):
         """ 更新本任务的数据提交"""
         # 如果是完成任务，则更新数据内容、数据等级和数据任务状态
         if submit and self.mode == 'do' and self.steps['is_last']:
-            self.update_task_doc(self.task, update_level=True, status=self.STATUS_FINISHED, info=info)
+            self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, info)
         # 非完成任务，仅更新数据内容
         else:
             self.update_task_doc(self.task, info=info)
 
-    def update_task_doc(self, task, update_level=False, release_lock=True, status=None, info=None):
+    def update_task_doc(self, task, update_level=False, release_lock=False, status=None, info=None):
         """ 更新任务的doc数据，释放数据锁
         :param task, 待更新的任务
         :param update_level, 是否更新doc的level.task_type

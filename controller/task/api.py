@@ -179,7 +179,7 @@ class PickTaskApi(TaskHandler):
             }})
             self.add_op_log('pick_task', target_id=task['_id'], context=task['task_type'])
             # 更新doc
-            self.update_task_doc(task, release_lock=False, status=self.STATUS_PICKED)
+            self.update_task_doc(task, status=self.STATUS_PICKED)
             # 设置返回参数
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
@@ -226,7 +226,7 @@ class ReturnTaskApi(TaskHandler):
                 'return_reason': self.prop(self.get_request_data(), 'reason', ''),
                 'status': self.STATUS_RETURNED, 'updated_time': datetime.now(),
             }})
-            self.update_task_doc(self.task, status=self.STATUS_RETURNED)
+            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_RETURNED)
 
             self.add_op_log('return_task', target_id=self.task['_id'])
             return self.send_data_response()
@@ -250,7 +250,7 @@ class RepublishTaskApi(TaskHandler):
             self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
                 'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
             ]}})
-            self.update_task_doc(self.task, self.STATUS_PUBLISHED)
+            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_PUBLISHED)
 
             self.add_op_log('republish_task', target_id=self.task['_id'])
             return self.send_data_response()
@@ -276,7 +276,7 @@ class DeleteTasksApi(TaskHandler):
             self.add_op_log('delete_task', target_id=_ids)
             # 更新doc
             for task in tasks:
-                self.update_task_doc(task, status='')
+                self.update_task_doc(task, release_lock=True, status='')
             return self.send_data_response({'count': r.deleted_count})
 
         except DbError as error:
@@ -346,7 +346,7 @@ class FinishTaskApi(TaskHandler):
     URL = '/api/task/finish/@task_id'
 
     def post(self, task_id):
-        """ 提交任务，释放数据锁，并且更新后置任务状态"""
+        """ 提交任务，释放数据锁，并且更新后置任务状态。仅供测试使用"""
         try:
             self.finish_task(self.task)
             return self.send_data_response()

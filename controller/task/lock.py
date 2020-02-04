@@ -142,12 +142,11 @@ class Lock(object):
         conf_level = prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
         if conf_level < level:
             return e.data_level_unqualified
-        # 分配数据锁并设置数据等级
+        # 分配数据锁
         qualification = dict(lock_type='task', tasks=task_type)
         collection, id_name = self.get_collection_and_id(shared_field)
-        lock = {'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
-                'locked_by': user['name'], 'locked_user_id': user['_id']}
-        r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
-            'lock.' + shared_field: lock, 'level.' + shared_field: conf_level,
-        }})
+        r = self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.' + shared_field: {
+            'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
+            'locked_by': user['name'], 'locked_user_id': user['_id']
+        }}})
         return True if r.matched_count else e.data_lock_failed
