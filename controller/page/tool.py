@@ -54,13 +54,17 @@ class PageTool(object):
 
     @classmethod
     def html2txt(cls, html):
-        lines = []
-        regex = re.compile("<li.*?>.*?</li>", re.M | re.S)
-        for line in regex.findall(html or ''):
-            if 'delete' not in line:
-                txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
-                lines.append(txt + '|')
-        return ''.join(lines).rstrip('|')
+        """ 从html中获取txt文本，换行用|、换栏用||表示"""
+        txt = ''
+        regex1 = re.compile("<ul.*?>.*?</ul>", re.M | re.S)
+        regex2 = re.compile("<li.*?>.*?</li>", re.M | re.S)
+        for block in regex1.findall(html or ''):
+            for line in regex2.findall(block or ''):
+                if 'delete' not in line:
+                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
+                    txt += line_txt + '|'
+            txt += '|'
+        return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
 
     @classmethod
     def get_ocr_txt(cls, boxes):
@@ -75,6 +79,11 @@ class PageTool(object):
                 txt += '|'
             txt += b.get('ocr_txt', '')
         return txt.strip('|')
+
+    @classmethod
+    def gen_segments(cls, texts):
+        """ 根据texts列表，生成文字校对的segment"""
+        pass
 
     @classmethod
     def check_segments(cls, segments, chars, params=None):

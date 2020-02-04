@@ -195,8 +195,9 @@ class TextEditApi(PageHandler):
 
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
+            if not self.page.get('txt_html'):  # 如果页面原先没有txt_html字段，则去掉这个字段
+                info.pop('txt_html', 0)
             self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), info)
-
             self.add_op_log('edit_text', target_id=page_name)
             self.send_data_response()
 
