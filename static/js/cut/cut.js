@@ -557,7 +557,7 @@
       data.orderMode = p.orderMode;
       data.ratioInitial = $(data.holder).width() / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      if (h) {
+      if (h && !p.widthFull) {
         data.ratioInitial = Math.min(data.ratioInitial, (h - 6) / p.height);
       }
       if (p.minRatio) {
