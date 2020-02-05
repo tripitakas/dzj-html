@@ -52,11 +52,13 @@
 <div class="right" id="right-region">
   <div class="bd">
     <div class="sutra-text active" id="sutra-text">
-      {% if isinstance(cmp_data, str) %}
-      {% raw cmp_data %}
-      {% else %}
-      {% module TextArea(cmp_data=cmp_data) %}
-      {% end %}
+      <div class="blocks">
+        {% if isinstance(cmp_data, str) %}
+        {% raw cmp_data %}
+        {% else %}
+        {% module TextArea(cmp_data=cmp_data) %}
+        {% end %}
+      </div>
     </div>
     <!--/.sutra-text-->
     <div class="char-list doubt-list">
