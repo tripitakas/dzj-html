@@ -87,11 +87,7 @@ class TextProofApi(PageHandler):
     def post(self, num, task_id):
         """ 保存或提交文字校对任务"""
         try:
-            rules = [
-                (v.not_empty, 'step'),
-                (v.not_both_empty, 'cmp', 'txt_html'),
-                (v.in_list, 'step', self.get_steps(self.task_type)),
-            ]
+            rules = [(v.not_empty, 'step'), (v.in_list, 'step', self.get_steps(self.task_type))]
             self.validate(self.data, rules)
 
             if self.steps['current'] == 'select':
@@ -106,7 +102,7 @@ class TextProofApi(PageHandler):
             return self.send_db_error(error)
 
     def save_select(self, data):
-        update = {'result.cmp': data['cmp'].strip('\n'), 'updated_time': self.now()}
+        update = {'result.cmp': data.get('cmp', '').strip('\n'), 'updated_time': self.now()}
         if data.get('submit'):
             update.update({'steps.submitted': self.get_submitted(data['step'])})
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})

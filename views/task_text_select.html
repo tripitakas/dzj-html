@@ -178,10 +178,14 @@
   function getSubmitData(submit) {
     var $selectedTxt = $('#selected').val().trim();
     if (!$selectedTxt.length) {
-      showError('请选择文本', '尚未选择文本');
-      return false;
+      if (confirm('选择文本为空。您确定不选择任何文本吗？')) {
+        return {submit: submit, name: docId, step: 'select'};
+      } else {
+        return false;
+      }
+    } else {
+      return {submit: submit, name: docId, step: 'select', cmp: $selectedTxt};
     }
-    return {submit: submit, name: docId, step: 'select', cmp: $selectedTxt};
   }
 
   // 初始化加载比对本

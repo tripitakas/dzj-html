@@ -187,6 +187,7 @@ class MyTaskHandler(TaskHandler):
     search_tips = '请搜索页编码'
     search_fields = ['doc_id']
     operations = []
+    img_operations = []
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
         {'action': 'my-task-do', 'label': '继续'},

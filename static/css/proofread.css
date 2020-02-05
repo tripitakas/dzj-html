@@ -109,10 +109,11 @@
 
 .sutra-text .blocks {
   margin-left: 10px;
+  font-size: 0;
 }
 
 .sutra-text .block {
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .sutra-text .block:last-child {
