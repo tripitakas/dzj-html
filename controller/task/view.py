@@ -66,7 +66,8 @@ class DocTaskAdminHandler(TaskHandler):
                 {'id': 'remark', 'name': '备注'},
             ]
             condition, params = self.get_task_search_condition(self.request.query, collection)
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
+            p = {f: 0 for f in ['input', 'result']}
+            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id', p)
             self.render(
                 'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
                 collection=collection, **kwargs,

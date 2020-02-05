@@ -10,7 +10,7 @@
     font-size: 12px;
   }
 
-  td.blocks, td.columns, td.chars, td.orders, td.text {
+  td.blocks, td.columns, td.chars, td.orders, td.text, td.cut-edit {
     color: #B8906F;
     font-size: 12px;
     cursor: pointer;
@@ -371,11 +371,11 @@
   });
 
   // 修改栏框、列框、字框、字序
-  $('td.blocks, td.columns, td.chars, td.orders').click(function () {
+  $('td.cut-edit').click(function () {
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    var url = '/task/cut_edit/' + name + '?step=' + $(this).attr('class');
+    var url = '/task/cut_edit/' + name + '?step=blocks';
     location.href = url + '&from=' + encodeFrom();
   });
 
