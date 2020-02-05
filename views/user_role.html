@@ -1,6 +1,6 @@
-{% extends "com_list.html" %}
+{% extends "_list.html" %}
 {% block custom-css %}
-<link href="{{ static_url('assets/responsive-table/rwd-table.min.css') }}" rel="stylesheet" media="screen"/>
+<link href="{{static_url('assets/responsive-table/rwd-table.min.css')}}" rel="stylesheet" media="screen"/>
 <style>
   table th a {
     cursor: pointer;
@@ -45,7 +45,7 @@
       <th><a onclick="modify('{{dumps(user)}}')">修改</a></th>
       <td>{{user.get('name') or ''}}</td>
       <td>{{user.get('phone') or ''}}</td>
-      <td>{{user.get('email', '') }}</td>
+      <td>{{user.get('email', '')}}</td>
       {% for r in roles %}
       <td>{{r if r in (user.get('roles') or '') else '否'}}</td>
       {% end %}
@@ -102,7 +102,7 @@
 
 {% block custom-js %}
 <!-- responsive-table-->
-<script src="{{ static_url('assets/responsive-table/rwd-table.min.js') }}" type="text/javascript"></script>
+<script src="{{static_url('assets/responsive-table/rwd-table.min.js')}}" type="text/javascript"></script>
 
 <script type="text/javascript">
   $('.table-responsive').responsiveTable({addFocusBtn: false, addDisplayAllBtn: true});

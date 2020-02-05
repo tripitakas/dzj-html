@@ -11,7 +11,7 @@ def sub_static_file(m):
     url = m.group(2)
     rel_name = re.sub(r'^[./]+', '', url)
     if path.exists(path.join(static_path, rel_name)):
-        text = text.replace(url, "{{ static_url('%s') }}" % rel_name)
+        text = text.replace(url, "{{static_url('%s')}}" % rel_name)
     return text
 
 

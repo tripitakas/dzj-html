@@ -6,7 +6,6 @@ from bson.objectid import ObjectId
 from tests import users as u
 from tests.testcase import APITestCase
 from tests.task.conf import ready_ids, unready_ids, task_types
-
 from controller import errors
 from controller.helper import prop
 from controller.task.base import TaskHandler as Th
@@ -126,14 +125,14 @@ class TestTaskApi(APITestCase):
             t = Th.task_types.get(task_type)
             pre_tasks = t.get('pre_tasks') or []
             body = dict(task_type=task_type, priority=1, pre_tasks=pre_tasks, force='0', batch='0')
-            r = self.fetch('/api/task/publish/pages', files=dict(ids_file=filename), body=dict(data=body))
+            r = self.fetch('/api/task/publish/page', files=dict(ids_file=filename), body=dict(data=body))
             data = self.parse_response(r)
             status = 'published' if not t.get('pre_tasks') else 'pending'
             self.assertIn(status, data, msg=task_type)
             self.assertEqual(set(data.get(status)), set(ready_ids), msg=task_type)
 
             # 测试文件为空
-            data = self.parse_response(self.fetch('/api/task/publish/pages', files=dict(), body=body))
+            data = self.parse_response(self.fetch('/api/task/publish/page', files=dict(), body=body))
             self.assertIn('error', data, msg=task_type)
 
     def test_publish_tasks_by_prefix(self):
@@ -208,7 +207,9 @@ class TestTaskApi(APITestCase):
 
     def test_pick_task_of_group(self):
         """ 测试领取组任务 """
-        for group_task, v in Th.task_groups.items():
+        for group_task, v in Th.task_extras.items():
+            if not v.get('groups'):
+                continue
             num = 1
             for task_type in v.get('groups'):
                 # 发布任务
@@ -245,7 +246,7 @@ class TestTaskApi(APITestCase):
                     self.assert_code(200, r1)
                     # 完成前置任务
                     task = self._app.db.task.find_one(dict(task_type=pre_task, doc_id=ready_ids[0]))
-                    r2 = self.fetch('/api/task/finish/%s/%s' % (pre_task, task['_id']), body={'data': {}})
+                    r2 = self.fetch('/api/task/finish/%s' % task['_id'], body={'data': {}})
                     self.assert_code(200, r2)
 
                 # 当前任务状态应该已发布
@@ -338,7 +339,6 @@ class TestTaskApi(APITestCase):
             self.assertTrue(prop(self.parse_response(r4), 'assigned'), msg=task_type)
             self.assertEqual(str(task2['doc_id']), prop(self.parse_response(r4), 'assigned')[0], msg=task_type)
 
-
     def test_get_user_list(self):
         """ 测试获取用户列表 """
         self.login_as_admin()
@@ -377,7 +377,7 @@ class TestTaskApi(APITestCase):
         self.login_as_admin()
         data = dict(import_dirs=['/home/file/base_dir@abc', '/home/file/base_dir@xyz'],
                     page_names=['GL_1056_5_6', 'YB_22_346'], layout='上下一栏')
-        r = self.fetch('/api/task/init_for_test', body={'data': data})
+        r = self.fetch('/api/task/init', body={'data': data})
         self.assert_code(200, r)
 
         # 测试已有图片导入任务

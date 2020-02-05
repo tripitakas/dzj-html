@@ -8,22 +8,21 @@ import re
 from bson import json_util
 from functools import cmp_to_key
 from controller import errors as e
-from controller.base import BaseHandler
 from controller.task.task import Task
-from controller.task.base import TaskHandler
+from controller.base import BaseHandler
 from controller.cut.cuttool import CutTool
-from controller.text.texttool import TextTool
-from controller.helper import cmp_page_code, prop, get_url_param
+from controller.helper import cmp_page_code
+from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
 
 
 class TripitakaHandler(BaseHandler):
-    URL = '/page/@page_code'
+    URL = '/page/@page_prefix'
 
-    def get(self, page_code='GL'):
+    def get(self, page_name='GL'):
         """ 藏经阅读 """
         try:
-            m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_code)
+            m = re.match(r'^([A-Z]{1,2})([fb0-9_]*)?$', page_name)
             if not m:
                 return self.send_error_response(e.page_code_error)
             tripitaka_code = m.group(1)
@@ -33,13 +32,13 @@ class TripitakaHandler(BaseHandler):
             elif tripitaka.get('img_available') == '否':
                 return self.send_error_response(e.img_unavailable)
 
-            # 根据存储模式补齐page_code
-            name_slice = page_code.split('_')
+            # 根据存储模式补齐page_name
+            name_slice = page_name.split('_')
             store_pattern = tripitaka.get('store_pattern')
             gap = len(store_pattern.split('_')) - len(name_slice)
             for i in range(gap):
                 name_slice.append('1')
-            page_code = '_'.join(name_slice)
+            page_name = '_'.join(name_slice)
 
             # 获取当前册信息
             cur_volume = self.db.volume.find_one({'volume_code': '_'.join(name_slice[:-1])})
@@ -49,12 +48,12 @@ class TripitakaHandler(BaseHandler):
                 cur_volume = r and r[0] or {}
 
             # 生成册导航信息
-            nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_code)
+            nav = dict(cur_volume=cur_volume.get('volume_code'), cur_page=page_name)
             content_pages = cur_volume.get('content_pages')
             if content_pages:
                 content_pages.sort(key=cmp_to_key(cmp_page_code))
                 first, last = content_pages[0], content_pages[-1]
-                cur_page = first if gap else page_code
+                cur_page = first if gap else page_name
                 name_slice = cur_page.split('_')
                 next = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) + 1)
                 prev = '%s_%s' % ('_'.join(name_slice[:-1]), int(name_slice[-1]) - 1)
@@ -65,7 +64,7 @@ class TripitakaHandler(BaseHandler):
             page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
             img_url = self.get_img(page or dict(name=nav.get('cur_page')))
 
-            self.render('tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
+            self.render('com_tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=img_url, page_text=page_text, page=page)
 
         except Exception as error:
@@ -79,8 +78,7 @@ class TripitakaListHandler(BaseHandler):
         """ 藏经列表 """
         fields = {'tripitaka_code': 1, 'name': 1, 'cover_img': 1, '_id': 0}
         tripitakas = list(self.db.tripitaka.find({'img_available': '是'}, fields))
-
-        self.render('tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
+        self.render('com_tripitaka_list.html', tripitakas=tripitakas, get_img=self.get_img)
 
 
 class DataListHandler(BaseHandler):
@@ -90,10 +88,11 @@ class DataListHandler(BaseHandler):
         """ 数据管理"""
         try:
             model = eval(metadata.capitalize())
-            kwargs = model.get_page_kwargs()
+            kwargs = model.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            kwargs['img_operations'] = ['config']
             kwargs['operations'] = [
                 {'operation': 'btn-add', 'label': '新增记录'},
                 {'operation': 'bat-remove', 'label': '批量删除'},
@@ -108,15 +107,15 @@ class DataListHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class DataPageInfoHandler(BaseHandler, Page):
-    URL = '/data/page/info/@page_code'
+class DataPageInfoHandler(BaseHandler):
+    URL = '/data/page/info/@page_name'
 
-    def get(self, page_code):
+    def get(self, page_name):
         """ 页面详情"""
         try:
-            page = self.db.page.find_one({'name': page_code})
+            page = self.db.page.find_one({'name': page_name})
             if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
             fields = ['name', 'width', 'height', 'source', 'layout', 'img_cloud_path', 'page_code',
                       'uni_sutra_code', 'sutra_code', 'reel_code']
@@ -130,63 +129,13 @@ class DataPageInfoHandler(BaseHandler, Page):
             page_tasks = self.prop(page, 'tasks') or {}
 
             self.render('data_page_info.html', metadata=metadata, data_lock=data_lock, page_txt=page_txt,
-                        page_box=page_box, page_tasks=page_tasks, page=page,
-                        Th=TaskHandler)
+                        page_box=page_box, page_tasks=page_tasks, page=page, Task=Task, Page=Page)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class DataPageHandler(BaseHandler, Page):
-
-    @staticmethod
-    def get_data_search_condition(request_query):
-        condition, params = dict(), dict()
-        for field in ['name', 'source', 'remark']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({field: {'$regex': value, '$options': '$i'}})
-        for field in ['level_box', 'level_text']:
-            value = get_url_param(field, request_query)
-            m = re.search(r'([><=]+)(\d+)', value)
-            if m:
-                params[field] = m.group(0)
-                op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
-                condition.update({field.replace('_', '.'): {op: value} if op else value})
-        for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = get_url_param(field, request_query)
-            if value:
-                params[field] = value
-                condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        value = get_url_param('txt', request_query)
-        if value:
-            params[field] = value
-            condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
-        return condition, params
-
-    @classmethod
-    def format_value(cls, value, key=None):
-        if key == 'tasks':
-            value = value or {}
-            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
-            value = '<br/>'.join(tasks)
-        elif key in ['lock-box', 'lock-text']:
-            if prop(value, 'is_temp') is not None:
-                if prop(value, 'is_temp'):
-                    value = '临时锁<a>解锁</a>'
-                else:
-                    value = '长时锁'
-        elif key in ['blocks', 'columns', 'chars']:
-            value = '%s个' % len(value)
-        elif key in ['ocr', 'ocr_col', 'text']:
-            value = '%s字' % len(value) if len(value) else ''
-        else:
-            value = Task.format_value(value, key)
-        return value
-
-
-class DataPageListHandler(DataPageHandler):
+class DataPageListHandler(BaseHandler, Page):
     URL = '/data/page'
 
     page_title = '页数据管理'
@@ -212,7 +161,8 @@ class DataPageListHandler(DataPageHandler):
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark-box', 'name': '切分备注'},
+        {'id': 'remark-text', 'name': '文字备注'},
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
@@ -220,7 +170,7 @@ class DataPageListHandler(DataPageHandler):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in TaskHandler.get_page_tasks().items()
+            {'operation': k, 'label': v} for k, v in Task.get_task_types('page').items()
         ]},
     ]
     actions = [
@@ -229,21 +179,19 @@ class DataPageListHandler(DataPageHandler):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark']
+    info_fields = ['name', 'source', 'box_ready', 'layout', 'level-box', 'level-text', 'remark-box', 'remark-text']
     hide_fields = ['img_cloud_path', 'uni_sutra_code', 'sutra_code', 'reel_code', 'box_ready',
                    'lock-box', 'lock-text', 'level-box', 'level-text']
-    modal_fields = [
+    update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
         {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
-            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
-        ]},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': Page.layouts},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark-box', 'name': '切分备注'},
+        {'id': 'remark-text', 'name': '文本备注'},
     ]
-
     task_statuses = {
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
@@ -261,14 +209,14 @@ class DataPageListHandler(DataPageHandler):
     def get(self):
         """ 页数据管理"""
         try:
-            kwargs = self.get_page_kwargs()
+            kwargs = self.get_template_kwargs()
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_data_search_condition(self.request.query)
+                condition, params = self.get_page_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, Th=TaskHandler,
@@ -278,37 +226,25 @@ class DataPageListHandler(DataPageHandler):
             return self.send_db_error(error)
 
 
-class DataPageViewHandler(DataPageHandler):
-    URL = '/data/page/@page_code'
+class DataPageViewHandler(BaseHandler, Page):
+    URL = '/data/page/@page_name'
 
-    modal_fields = [
-        {'id': 'name', 'name': '页编码', 'readonly': True},
-        {'id': 'source', 'name': '分类'},
-        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': [
-            '上下一栏', '上下两栏', '上下三栏', '左右两栏'
-        ]},
-        {'id': 'level-box', 'name': '切分等级'},
-        {'id': 'level-text', 'name': '文本等级'},
-    ]
-
-    remark_fields = [
-        {'id': 'remark', 'name': ''},
-        {'id': 'options', 'name': '', 'input_type': 'radio', 'options': [
-            '切分没问题', '切分还可以', '切分不合要求', '文字没问题', '文字还可以', '文字不合要求',
-        ]},
-        {'id': 'operation', 'name': '', 'input_type': 'radio', 'options': [
-            '附加', '替换',
-        ]},
-    ]
-
-    def get(self, page_code):
+    def get(self, page_name):
         """ 浏览页面数据"""
+        edit_fields = [
+            {'id': 'name', 'name': '页编码', 'readonly': True},
+            {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': self.layouts},
+            {'id': 'source', 'name': '分类'},
+            {'id': 'level-box', 'name': '切分等级'},
+            {'id': 'level-text', 'name': '文本等级'},
+        ]
+
         try:
-            page = self.db.page.find_one({'name': page_code})
+            page = self.db.page.find_one({'name': page_name})
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_code)
-            condition = self.get_data_search_condition(self.request.query)[0]
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            condition = self.get_page_search_condition(self.request.query)[0]
             to = self.get_query_argument('to', '')
             if to == 'next':
                 condition['page_code'] = {'$gt': page['page_code']}
@@ -317,19 +253,16 @@ class DataPageViewHandler(DataPageHandler):
                 condition['page_code'] = {'$lt': page['page_code']}
                 page = self.db.page.find_one(condition, sort=[('page_code', -1)])
             if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s的%s' % (
-                    page_code, '上一页' if to == 'prev' else '下一页'
-                ))
+                message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
+                return self.send_error_response(e.no_object, message=message)
 
             r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            button_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
-            fields = [f for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-            texts = {f: TextTool.txt2lines(page[f]) for f in fields}
-            info = {f['id']: prop(page, f['id'].replace('-', '.'), '') for f in self.modal_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], button_config=button_config,
-                        labels=labels, fields=fields, texts=texts, Th=TaskHandler, info=info,
-                        modal_fields=self.modal_fields, remark_fields=self.remark_fields,
+            texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
+            self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
+                        texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))
 
         except Exception as error:

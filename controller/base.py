@@ -9,19 +9,20 @@ import re
 import logging
 import traceback
 from os import path
-from datetime import datetime
 from bson import json_util
 from bson.errors import BSONError
+from datetime import datetime
 from pymongo.errors import PyMongoError
 from tornado import gen
-from tornado.escape import to_basestring
-from tornado.httpclient import AsyncHTTPClient
-from tornado.httpclient import HTTPError
+from tornado.web import Finish
+from tornado_cors import CorsMixin
 from tornado.options import options
 from tornado.web import RequestHandler
-from tornado_cors import CorsMixin
+from tornado.httpclient import HTTPError
+from tornado.escape import to_basestring
+from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
-from controller.op_type import get_op_name
+from controller import validate as v
 from controller.auth import get_route_roles, can_access
 from controller.helper import get_date_time, prop, md5_encode
 
@@ -38,8 +39,9 @@ class BaseHandler(CorsMixin, RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
+        self.error = self.is_api = self.user = self.user_id = self.username = None
         self.config = self.application.config
-        self.more = {}  # 给子类记录使用
+        self.more = self.data = {}  # 给子类使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
@@ -49,8 +51,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
     def prepare(self):
-        """ 调用 get/post 前的准备 """
+        """ 调用 get/post 前的准备"""
         p, m = self.request.path, self.request.method
+        self.is_api = '/api/' in p
+        self.data = self.get_request_data() if self.is_api else {}
         # 单元测试
         if options.testing and (self.get_query_argument('_no_auth', 0) == '1' or can_access('单元测试用户', p, m)):
             return
@@ -58,18 +62,19 @@ class BaseHandler(CorsMixin, RequestHandler):
         if can_access('访客', p, m):
             return
         # 检查用户是否已登录
-        api = '/api/' in p
         login_url = self.get_login_url() + '?next=' + self.request.uri
         if not self.current_user:
-            return self.send_error_response(e.need_login) if api else self.redirect(login_url)
+            return self.send_error_response(e.need_login) if self.is_api else self.redirect(login_url)
         # 检查数据库中是否有该用户
         try:
             cond = [{f: self.current_user[f]} for f in ['email', 'phone'] if self.current_user.get(f)]
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
-                return self.send_error_response(e.no_user) if api else self.redirect(login_url)
+                return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
         except MongoError as error:
-            return self.send_db_error(error, render=not self.get_query_argument('_raw', 0) and not api)
+            return self.send_db_error(error)
+        # 设置参数
+        self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -78,12 +83,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
         if can_access(self.current_user['roles'], p, m):
             return
-        # 报错，无权访问
+        # 检查URL是否配置
         need_roles = get_route_roles(p, m)
         if not need_roles:
-            return self.send_error_response(e.url_not_config, render=not api)
-        message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
-        return self.send_error_response(e.unauthorized, render=not api, message=message)
+            return self.send_error_response(e.url_not_config)
+        # 报错，无权访问
+        else:
+            message = '无权访问，需要申请%s%s角色' % ('、'.join(need_roles), '中某一种' if len(need_roles) > 1 else '')
+            return self.send_error_response(e.unauthorized, message=message)
 
     def can_access(self, req_path, method='GET'):
         """检查当前用户是否能访问某个(req_path, method)"""
@@ -107,10 +114,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
-        # can_access/dumps/to_date_str传递给页面模板
-        kwargs['can_access'] = self.can_access
-        kwargs['dumps'] = json_util.dumps
         kwargs['prop'] = self.prop
+        kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
         if self._finished:  # check_auth 等处报错返回后就不再渲染
@@ -168,6 +173,8 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 错误的具体上下文参数，例如 message、render、page_name
         :return: None
         """
+        self.error = error
+
         _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
         _error = list(error.values())[0] if _type == 'multiple' else error
         code, message = _error
@@ -178,11 +185,12 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs.pop('exc_info', 0)
         response.update(kwargs)
 
-        render = '/api' not in self.request.path and not self.get_query_argument('_raw', 0)
+        render = not self.is_api and not self.get_query_argument('_raw', 0)
         if response.pop('render', render):  # 如果是页面渲染请求，则返回错误页面
-            return self.render('_error.html', **response)
+            self.render('_error.html', **response)
+            raise Finish()
 
-        user_name = self.current_user and self.current_user['name']
+        user_name = self.current_user and self.username
         class_name = re.sub(r"^.+controller\.|'>", '', str(self.__class__)).split('.')[-1]
         logging.error('%d %s in %s [%s %s]' % (code, message, class_name, user_name, self.get_ip()))
 
@@ -191,6 +199,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             self.set_header('Content-Type', 'application/json; charset=UTF-8')
             self.write(json_util.dumps(response))
             self.finish()
+        raise Finish()
 
     def send_error(self, status_code=500, **kwargs):
         """拦截系统错误，不允许API调用"""
@@ -213,7 +222,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_error_response((e.mongo_error[0] + code, message))
         return self.send_error_response((status_code, message), **kwargs)
 
-    def send_db_error(self, error, render=False):
+    def send_db_error(self, error):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
         if not isinstance(code, int):
             code = 0
@@ -224,7 +233,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
                 e.mongo_error[1], error.__class__.__name__, ': ' + (reason or '')
             )
-            return self.send_error_response((e.mongo_error[0] + code, reason), render=render)
+            return self.send_error_response((e.mongo_error[0] + code, reason))
 
         if code:
             logging.error(error.args[1])
@@ -238,15 +247,13 @@ class BaseHandler(CorsMixin, RequestHandler):
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
-        return self.send_error_response((default_error[0] + code, reason), render=render)
+        return self.send_error_response((default_error[0] + code, reason))
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
-        op_name = get_op_name(op_type) or op_type
-        assert op_name, op_type + ' need add into op_type.py'
         target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')
         username = username or self.current_user and self.current_user.get('name')
@@ -254,7 +261,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         try:
             self.db.log.insert_one(dict(
                 op_type=op_type, username=username, user_id=user_id, target_id=target_id,
-                context=str(context), ip=self.get_ip(), create_time=datetime.now(),
+                context=str(context), ip=self.get_ip(), create_time=self.now(),
             ))
         except MongoError:
             pass
@@ -277,9 +284,18 @@ class BaseHandler(CorsMixin, RequestHandler):
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
+    def validate(self, data, rules):
+        errs = v.validate(data, rules)
+        if errs:
+            self.send_error_response(errs)
+
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
+
+    @staticmethod
+    def now():
+        return datetime.now()
 
     @classmethod
     def prop(cls, obj, key, default=None):

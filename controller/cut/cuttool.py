@@ -13,6 +13,18 @@ from .v2 import calc as calc_new
 
 class CutTool(object):
     @classmethod
+    def reorder_chars(cls, chars_col, chars, page=None):
+        """ 根据连线数据排列字序"""
+        return chars
+
+    @classmethod
+    def sort_boxes(cls, boxes, box_type, page=None):
+        """ 切分框重新排序"""
+        if box_type == 'block':
+            return cls.sort_blocks(boxes)
+        return boxes
+
+    @classmethod
     def sort(cls, chars, columns, blocks, layout_type=None, chars_col=None):
         def init_id():
             for c in chars:
@@ -59,6 +71,17 @@ class CutTool(object):
             blk['no'] = blk['block_no'] = i + 1
             blk['block_id'] = 'b%d' % blk['no']
         return blocks
+
+    @staticmethod
+    def get_box_belong(box, boxes):
+        """ 计算box在boxes中的哪个框中"""
+        b_no, dist = 0, 1e5  # 0表示默认属于第一栏，防止单栏列高度太大找不到栏
+        for i, b in enumerate(boxes):  # 假定栏是上下分离的，只需要比较框中心Y的偏差
+            d = math.hypot(box['x'] + box['w'] / 2 - b['x'] - b['w'] / 2,
+                           box['y'] + box['h'] / 2 - b['y'] - b['h'] / 2)
+            if dist > d:
+                b_no, dist = i, d
+        return boxes[b_no]
 
     @staticmethod
     def get_block_index(column, blocks):

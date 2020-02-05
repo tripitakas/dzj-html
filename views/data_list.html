@@ -1,12 +1,4 @@
-{% extends "com_list.html" %}
-
-{% block custom-css %}
-<style>
-  .operation .btn-help {
-    display: none;
-  }
-</style>
-{% end %}
+{% extends "_list.html" %}
 
 {% block custom-modal %}
 <div id="uploadModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
@@ -21,7 +13,7 @@
         <input type="file" class="form-control" id="upload" style="padding:4px 4px"/>
       </div>
       <div class="modal-footer">
-        <img src="{{ static_url('imgs/loading.gif') }}" class="btn-img hide" id="progress" title="进行中" style="margin: 6px 6px;"/>
+        <img src="{{static_url('imgs/loading.gif')}}" class="btn-img hide" id="progress" title="进行中" style="margin: 6px 6px;"/>
         <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">上传</button>
         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
       </div>

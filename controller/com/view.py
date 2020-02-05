@@ -3,20 +3,18 @@
 """
 @time: 2018/6/23
 """
-import math
 from datetime import datetime
 from operator import itemgetter
 from controller.base import BaseHandler
 from controller.helper import get_date_time
 from controller.task.base import TaskHandler
-from controller.task.view import MyTaskHandler
 
 
 class HomeHandler(TaskHandler):
     URL = ['/', '/home']
 
     def get(self):
-        """ 首页 """
+        """ 首页"""
 
         def get_month_star():
             """ 每种任务类型，选出前三名，作为本月校勘之星 """
@@ -49,18 +47,17 @@ class HomeHandler(TaskHandler):
 
         try:
             # 今日访问次数
-            user_id = self.current_user['_id']
             today_begin = datetime.strptime(get_date_time('%Y-%m-%d'), '%Y-%m-%d')
-            condition = {'create_time': {'$gte': today_begin}, 'user_id': user_id, 'op_type': 'visit'}
+            condition = {'create_time': {'$gte': today_begin}, 'user_id': self.user_id, 'op_type': 'visit'}
             visit_count = self.db.log.count_documents(condition)
 
             # 最后登录时间
-            condition = {'user_id': user_id, 'op_type': {'$in': ['login_ok', 'register']}}
+            condition = {'user_id': self.user_id, 'op_type': {'$in': ['login_ok', 'register']}}
             r = list(self.db.log.find(condition).sort('create_time', -1).limit(2))
             last_login = get_date_time(date_time=r[0]['create_time'] if r else None)
 
             # 我的任务
-            my_latest_tasks = self.find_many(order='-picked_time', mine=True, size=4)
+            my_latest_tasks = self.find_mine(order='-picked_time', page_size=4)
             finished_count = self.count_task(status=self.STATUS_FINISHED, mine=True)
             unfinished_count = self.count_task(status=self.STATUS_PICKED, mine=True)
 
@@ -82,7 +79,7 @@ class HomeHandler(TaskHandler):
             # 通知公告
             articles = list(self.db.article.find({'category': '通知', 'active': '是'}, {'content': 0}))
 
-            self.render('home.html', version=self.application.version, get_task_info=get_task_info,
+            self.render('com_home.html', version=self.application.version, get_task_info=get_task_info,
                         time_slot=get_time_slot(), visit_count=visit_count + 1, last_login=last_login,
                         my_latest_tasks=my_latest_tasks, finished_count=finished_count,
                         unfinished_count=unfinished_count, latest_tasks=latest_tasks,
@@ -91,3 +88,18 @@ class HomeHandler(TaskHandler):
         except Exception as error:
             return self.send_db_error(error)
 
+
+class CbetaSearchHandler(BaseHandler):
+    URL = '/com/search'
+
+    def get(self):
+        """ 检索cbeta"""
+        self.render('com_search.html')
+
+
+class PunctuationHandler(BaseHandler):
+    URL = '/com/punctuate'
+
+    def get(self):
+        """ 自动标点"""
+        self.render('com_punctuate.html')

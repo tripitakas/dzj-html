@@ -3,7 +3,6 @@
 <head>
   {% set title = '更新文章' if article_id else '新建文章' %}
   <title>{{title}}</title>
-  {% include _base_meta.html %}
   {% include _base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -73,12 +72,12 @@
   <div class="main">
     <header class="m-header">
       <div class="back">
-        <a href="/article"><img src="{{ static_url('imgs/home.png') }}" class="btn-img"/></a>
+        <a href="/article"><img src="{{static_url('imgs/home.png')}}" class="btn-img"/></a>
       </div>
       <div class="title">{{title}}</div>
       <div class="btn-group right">
-        <img src="{{ static_url('imgs/icon_preview.png') }}" class="btn-img" id="btn-preview" title="预览"/>
-        <img src="{{ static_url('imgs/icon_submit.png') }}" class="btn-img" id="btn-submit" title="保存"/>
+        <img src="{{static_url('imgs/icon_preview.png')}}" class="btn-img" id="btn-preview" title="预览"/>
+        <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img" id="btn-submit" title="保存"/>
       </div><!--right-->
     </header>
     <div class="content">
@@ -119,12 +118,12 @@
 {% include _base_js.html %}
 
 <!-- UM Editor -->
-<link href="{{ static_url('editor/themes/default/_css/umeditor.css') }}" rel="stylesheet"/>
-<script src="{{ static_url('editor/third-party/template.min.js') }}"></script>
-<script src="{{ static_url('editor/editor.config.js') }}"></script>
-<script src="{{ static_url('editor/editor.api.js') }}"></script>
-<script src="{{ static_url('editor/lang/zh-cn/zh-cn.js') }}"></script>
-<script src="{{ static_url('js/editor.js') }}"></script>
+<link href="{{static_url('editor/themes/default/_css/umeditor.css')}}" rel="stylesheet"/>
+<script src="{{static_url('editor/third-party/template.min.js')}}"></script>
+<script src="{{static_url('editor/editor.config.js')}}"></script>
+<script src="{{static_url('editor/editor.api.js')}}"></script>
+<script src="{{static_url('editor/lang/zh-cn/zh-cn.js')}}"></script>
+<script src="{{static_url('js/editor.js')}}"></script>
 
 <!-- CUSTOM JS -->
 <script>

@@ -94,8 +94,8 @@ Raphael.el.setZoom = function(zoom) {
 
 // set element zoomed attributes
 Raphael.el.setAttr = function() {
+  var attr = {};
   if (typeof arguments[0] == "string") {
-    attr = {};
     attr[arguments[0]] = arguments[1];
   } else {
     attr = arguments[0];

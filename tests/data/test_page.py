@@ -17,8 +17,8 @@ class TestPageApi(APITestCase):
     def tearDown(self):
         super(TestPageApi, self).tearDown()
 
-    def test_api_page_upload(self):
-        # 测试上传页面json文件
+    def test_page_upload(self):
+        # 测试上传文件
         filename = path.join(self._app.BASE_DIR, 'meta', 'meta', 'pages.json')
         if not path.exists(filename):
             return
@@ -31,7 +31,7 @@ class TestPageApi(APITestCase):
         r = self.fetch('/api/data/page/upload', files={'json': filename}, body={'data': {'layout': '上下一栏'}})
         self.assert_code(200, r)
 
-    def test_nav_page(self):
+    def test_page_nav(self):
         r = self.fetch('/data/page/JX_165_7_12?to=next&_raw=1')
         self.assert_code(200, r)
         r = self.fetch('/data/page/JX_165_7_12?to=prev&_raw=1')

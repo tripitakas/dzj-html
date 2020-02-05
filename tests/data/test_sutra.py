@@ -16,8 +16,8 @@ class TestSutraApi(APITestCase):
     def tearDown(self):
         super(TestSutraApi, self).tearDown()
 
-    def test_api_sutra__upload(self):
-        # 测试上传经csv文件
+    def test_sutra__upload(self):
+        # 测试上传文件
         META_DIR = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(META_DIR, 'Sutra-*.csv'))
         if files:
@@ -28,7 +28,7 @@ class TestSutraApi(APITestCase):
             r = self.fetch('/api/data/sutra/upload', files={'csv': file}, body={})
             self.assert_code(200, r)
 
-    def test_api_sutra_add_or_update(self):
+    def test_sutra_add_or_update(self):
         sutra = self._app.db.sutra.find_one()
         # 测试修改一条信息
         sutra['remark'] = '测试数据'
@@ -46,7 +46,7 @@ class TestSutraApi(APITestCase):
         r = self.fetch('/api/data/sutra', body={'data': sutra})
         self.assert_code(e.invalid_sutra_code, r)
 
-    def test_api_sutra_delete(self):
+    def test_sutra_delete(self):
         sutras = list(self._app.db.sutra.find().limit(5))
         # 测试删除一条记录
         _id = sutras[0].get('_id')

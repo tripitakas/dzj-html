@@ -5,13 +5,12 @@
  */
 
 /*-----------切分字框相关代码----------------*/
-
+var showText = false;                     // 是否显示字框对应文字
+var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
-var showOrder = false;                    // 是否显示字框对应序号
-var showText = false;                     // 是否显示字框对应文字
-var currentSpan = [null];                 // $(当前span)，是否第一个
 var offsetInSpan;                         // 当前选中范围的开始位置
+var currentSpan = [null];                 // $(当前span)，是否第一个
 
 function getBlock(blockNo) {
   return $('#sutra-text .block').eq(blockNo - 1);
@@ -177,7 +176,6 @@ $.cut.onBoxChanged(function (char, box, reason) {
     var currentLineNo = getLineNo($('.current-span').parent());
     if (currentLineNo !== char.line_no) {
       var $firstSpan = $line.find('span:first-child');
-      setCurrent($firstSpan);
       currentSpan = [$firstSpan, true];
     }
 
@@ -213,27 +211,21 @@ $.cut.onBoxChanged(function (char, box, reason) {
 // 设置当前span和line
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
-    $('.current-span').removeClass("current-span");
-    $(span).addClass("current-span");
+    $('.current-span').removeClass('current-span');
+    $(span).addClass('current-span');
     $('.current-line').removeClass('current-line');
     span.parent().addClass('current-line');
   }
 }
 
 // 单击同文、异文，设置当前span
-$('.same, .diff').on('click', function () {
+$(document).on('click', '.same, .diff', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
 
-// 双击同文，设置为可编辑。
-// $('.same').on('dblclick', function () {
-//   $(".same").attr("contentEditable", "false");
-//   $(this).attr("contentEditable", "true");
-// });
-
 // 双击异文，弹框提供选择
-$('.diff').on('dblclick', function (e) {
+$(document).on('dblclick', '.diff', function (e) {
   e.stopPropagation();
 
   setCurrent($(this));
@@ -243,17 +235,20 @@ $('.diff').on('dblclick', function (e) {
   $(this).addClass('current-diff');
 
   // 设置弹框文本
-  $("#pfread-dialog-base").text($(this).attr("base"));
+  var baseText = $(this).attr("base");
+  $("#pfread-dialog-base").text(baseText);
   $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
   $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
   $("#pfread-dialog-slct").text($(this).text());
+  $("#pfread-dialog-cmp1").toggleClass('same-base', baseText && baseText === $(this).attr("cmp1"));
+  $("#pfread-dialog-cmp2").toggleClass('same-base', baseText && baseText === $(this).attr("cmp2"));
 
   // 设置弹框位置
   var $dlg = $("#pfread-dialog");
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
 
   // 当弹框超出文字框时，向上弹出
-  var r_h = $(".pfread-in .right").height();
+  var r_h = $(".pfread .right").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
@@ -287,7 +282,7 @@ $('.diff').on('dblclick', function (e) {
 });
 
 // 单击文本区的空白区域
-$('.pfread-in .right').on('click', function (e) {
+$('.pfread .right').on('click', function (e) {
   // 隐藏对话框
   var dlg = $('#pfread-dialog');
   if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
@@ -316,7 +311,6 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
 
 
 /*-----------存疑相关代码----------------*/
-
 // 存疑对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -324,29 +318,21 @@ $('#save-doubt').on('click', function () {
     return showError('请先选择存疑文字', '');
   }
   $('#doubtModal').modal();
-  $('#doubtModal .doubt_input input').val(txt);
-  $('#doubtModal .doubt_reason textarea').val('');
+  $('#doubtModal .doubt_input').val(txt);
+  $('#doubtModal .doubt_reason').val('');
 });
 
 // 切换存疑列表
-$('.doubt-list .tab-editable').on('click', function () {
-  $(this).siblings().removeClass('active');
-  $(this).addClass('active');
-  $('#doubt-table-view').addClass('hide');
-  $('#doubt-table-editable').removeClass('hide');
-});
-
-$('.doubt-list .tab-view').on('click', function () {
-  $(this).siblings().removeClass('active');
-  $(this).addClass('active');
-  $('#doubt-table-editable').addClass('hide');
-  $('#doubt-table-view').removeClass('hide');
+$('.doubt-list .toggle-tab').on('click', function () {
+  $(this).addClass('active').siblings().removeClass('active');
+  var index = $('.doubt-list .toggle-tab').index($(this));
+  $('.doubt-list .char-list-table').removeClass('active').eq(index).addClass('active');
 });
 
 // 存疑确认
 $('#doubtModal .modal-confirm').on('click', function () {
-  var txt = $('#doubtModal .doubt_input input').val().trim();
-  var reason = $('#doubtModal .doubt_reason textarea').val().trim();
+  var txt = $('#doubtModal .doubt_input').val().trim();
+  var reason = $('#doubtModal .doubt_reason').val().trim();
   if (reason.length <= 0)
     return showTips('请填写存疑理由');
   var $span = $('.current-span');
@@ -356,17 +342,18 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
-      "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png')></td></tr>";
+      "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png'></td></tr>";
 
-  //提交之后底部以列表自动展开
-  $('#doubt-table-editable').append(line).removeClass('hidden');
+  // 提交之后底部列表自动展开
+  $('.doubt-list .toggle-tab').eq(0).click();
+  $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
 });
 
 $('#toggle-arrow').on('click', function () {
   $(this).toggleClass('active');
-  $('#doubt-table-editable').toggleClass('hidden');
+  $('.doubt-list .char-list-table.active').toggleClass('hidden');
 });
 
 // 关闭对话框时，清空输入框内容
@@ -434,20 +421,6 @@ $(document).ready(function () {
 });
 
 /*------------其它功能---------------*/
-
-// 高度自适应
-function heightAdaptive() {
-  var h = $(document.body).height();
-  $(".pfread .bd").height(h - 55);
-}
-
-$(document).ready(function () {
-  heightAdaptive();
-});
-$(window).resize(function () {
-  heightAdaptive();
-});
-
 var write_back_txt = {};
 
 // 图文匹配
@@ -484,7 +457,7 @@ function checkMismatch(report) {
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
-      boxes.forEach(function(c, i) {
+      boxes.forEach(function (c, i) {
         write_back_txt[c.char_id] = text[i];
       });
     }
@@ -498,7 +471,7 @@ function checkMismatch(report) {
       text = '<ul class="tips">' + text + '</ul>';
       showWarning("图文不匹配", text);
     } else {
-      showTips("图文匹配");
+      showTips("成功", "图文匹配");
     }
   }
 }
@@ -514,8 +487,7 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    var href = window.location.href.replace(/[?&]re_compare=true/g, '');
-    window.location = href + (href.indexOf('?') < 0 ? '?' : '&') + 're_compare=true';
+    window.location = setQueryString('re_compare', 'true');
   });
 });
 
@@ -542,28 +514,22 @@ $('#txtModal .modal-header').on('mousedown', function (downEvt) {
   });
 });
 
+// 切换弹出文本
 $('#txtModal .btn-txt').click(function () {
   $(this).removeClass('btn-default').addClass('btn-primary');
   $(this).siblings().removeClass('btn-primary').addClass('btn-default');
   var txtType = $(this).attr('id').replace('show-', '');
   if (txtType === 'all')
-    $('#txtModal textarea').show();
+    $('#txtModal textarea').removeClass('hide');
   else
-    $('#txtModal #' + txtType).show().siblings().hide();
+    $('#txtModal #' + txtType).removeClass('hide').siblings().addClass('hide');
 });
 
 
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $.fn.mapKey.bindings = {up: {}, down: {}};
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(true);
-    $.cut.bindKeys();
-  } else {
-    $.cut.toggleBox(false);
-    $.cut.bindMatchingKeys();
-  }
+  $.cut.toggleBox('hide');
 });
 
 // 显隐浮动列框序号
@@ -697,7 +663,6 @@ $('#toggle-txts').on('click', function () {
   $('#txtModal').modal();
 });
 
-
 // 缩小图片
 $('#zoom-in').on('click', function () {
   highlightBox();
@@ -714,22 +679,21 @@ $('#zoom-reset').on('click', function () {
 });
 
 // 修改字框
-var pageName = $('#page-name').val();
 $('#ed-char-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=chars&from=' + location.pathname + location.search;
+  location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=blocks&from=' + location.pathname + location.search;
+  location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=columns&from=' + location.pathname + location.search;
+  location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/data/edit/box/' + pageName + '?step=orders&from=' + location.pathname + location.search;
+  location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
 });

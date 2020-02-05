@@ -1,29 +1,155 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 任务基础Handler。
+@desc: 任务Handler
+一、mode 任务模式
+1. do，做任务：用户做任务时，进入该模式
+2. update，更新任务：用户完成任务后，可以通过update模式进行修改
+3. view，查看任务：非任务所有者可以通过view模式来查看任务
+4. browse，浏览任务：管理员可以通过browse模式来逐条浏览任务
+5. edit，修改数据：专家用户修改数据使用
+5. None，非任务、非数据修改请求
+二、 url
+1. do/update/browse，如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
+2. edit，如：/task/cut_edit/@page_name，task_type为cut_edit，伪任务类型
+3. view，如：/task/@task_type/5e3139c6a197150011d65e9d
+4. 非任务、非数据修改请求，如/task/admin/page
+
 @time: 2019/10/16
 """
 import re
+import random
 from datetime import datetime
 from bson.objectid import ObjectId
-from controller import auth
 from controller import errors as e
 from controller.task.task import Task
+from controller.task.lock import Lock
 from controller.base import BaseHandler
 
 
-class TaskHandler(BaseHandler, Task):
-    def find_many(self, task_type=None, status=None, mine=False, size=None, order=None):
-        """ 查找任务。(mine参数存在时，status参数将失效) """
+class TaskHandler(BaseHandler, Task, Lock):
+    def __init__(self, application, request, **kwargs):
+        """ 参数说明
+        :param readonly: 是否只读。view/browse模式为只读
+        :param has_lock: 是否有数据锁。详见controller.task.lock
+        :param mode: 包括do/update/view/browse/edit或空等几种模式
+        """
+        super(TaskHandler, self).__init__(application, request, **kwargs)
+        self.task_type = self.task_id = self.doc_id = self.message = ''
+        self.mode = self.has_lock = self.readonly = None
+        self.task = self.steps = self.doc = {}
+
+    def prepare(self):
+        """
+        根据task_id参数，检查任务是否存在并设置任务，检查任务权限，设置任务相关参数
+        根据doc_id/task_type参数，检查数据是否存在并设置数据，检查数据锁以及数据等级
+        如果非任务的url请求需要使用该handler，则需要重载get_doc_id/get_task_type函数
+        """
+        super().prepare()
+        self.mode = self.get_task_mode()
+        self.task_id = self.get_task_id()
+        # 检查任务
+        if self.task_id:
+            # 任务是否存在
+            self.task, self.error = self.get_task(self.task_id)
+            if not self.task:
+                return self.send_error_response(self.error)
+            self.task_id = str(self.task['_id'])
+            # do和update模式下，检查任务权限
+            if self.mode in ['do', 'update']:
+                has_auth, self.error = self.check_task_auth(self.task)
+                if not has_auth:
+                    return self.send_error_response(self.error)
+        # 检查数据
+        self.doc_id = self.task.get('doc_id') or self.get_doc_id()
+        self.task_type = self.task.get('task_type') or self.get_task_type()
+        if self.doc_id and self.task_type:
+            collection, id_name = self.get_data_conf(self.task_type)[:2]
+            # 检查数据是否存在
+            assert collection
+            self.doc = self.db[collection].find_one({id_name: self.doc_id})
+            if not self.doc:
+                return self.send_error_response(e.no_object, message='数据%s不存在' % self.doc_id)
+            # do/update/edit模式下，检查数据锁
+            if self.mode in ['do', 'update', 'edit']:
+                self.has_lock, error = self.check_my_lock()
+                if self.has_lock is False:
+                    return self.send_error_response(error)
+        # 设置其它参数
+        self.steps = self.init_steps(self.task, self.task_type)
+        self.readonly = self.mode in ['view', 'browse', '']
+
+    def get_task(self, task_id):
+        """ 根据task_id/to以及相关条件查找任务"""
+        # 查找当前任务
+        task = self.db.task.find_one({'_id': ObjectId(task_id)})
+        if not task:
+            return None, (e.task_not_existed[0], '没有找到任务%s' % task_id)
+        to = self.get_query_argument('to', '')
+        if not to:
+            return task, None
+        # 查找目标任务。to为prev时，查找前一个任务，即_id比task_id大的任务
+        condition = self.get_task_search_condition(self.request.query)[0]
+        condition.update({'_id': {'$gt' if to == 'prev' else '$lt': ObjectId(task_id)}})
+        to_task = self.db.task.find_one(condition, sort=[('_id', 1 if to == 'prev' else -1)])
+        if not to_task:
+            error = e.task_not_existed[0], '没有找到任务%s的%s任务' % (task_id, '前一个' if to == 'prev' else '后一个')
+            return None, error
+        elif task['task_type'] != to_task['task_type']:
+            # 如果task和to_task任务类型不一致，则切换url
+            query = re.sub('[?&]to=(prev|next)', '', self.request.query)
+            url = '/task/browse/%s/%s?' % (to_task['task_type'], to_task['_id']) + query
+            self.redirect(url.rstrip('?'))
+            return None, e.task_type_error
+        return to_task, None
+
+    def get_task_id(self):
+        s = re.search(r'/([0-9a-z]{24})(\?|$|\/)', self.request.path)
+        return s.group(1) if s else ''
+
+    def get_doc_id(self):
+        """ 获取数据id。子类可重载，以便prepare函数调用"""
+        s = re.search(r'/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+        return s.group(1) if s else ''
+
+    def get_task_type(self):
+        """ 获取任务类型。子类可重载，以便prepare函数调用"""
+        # eg. /task/do/cut_proof/5e3139c6a197150011d65e9d
+        s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
+        task_type = s.group(2) if s else ''
+        if not task_type:
+            # eg. /task/cut_edit/@page_name
+            s = re.search(r'/task/([a-z_]+_edit)/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+            task_type = s.group(1) if s else ''
+        return task_type
+
+    def get_task_mode(self):
+        r = re.findall('(do|update|edit|browse)/', self.request.path)
+        mode = r[0] if r else ''
+        if not mode and self.get_task_id():
+            mode = 'view'
+        return mode
+
+    def get_current_step(self):
+        """ 获取当前步骤"""
+        current_step = self.get_query_argument('step', '')
+        if self.is_api and not current_step:
+            current_step = self.prop(self.data, 'step')
+        return current_step
+
+    def task_name(self):
+        return self.get_task_name(self.task_type) or self.task_type
+
+    def step_name(self):
+        return self.get_step_name(self.steps.get('current')) or ''
+
+    def find_many(self, task_type=None, status=None, size=None, order=None):
+        """ 查找任务"""
         condition = dict()
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
         if status:
             condition.update({'status': status if isinstance(status, str) else {'$in': status}})
-        if mine:
-            condition.update({'status': {'$ne': self.STATUS_RETURNED}})
-            condition.update({'picked_user_id': self.current_user['_id']})
         query = self.db.task.find(condition)
         if size:
             query.limit(size)
@@ -32,7 +158,69 @@ class TaskHandler(BaseHandler, Task):
             query.sort(o, asc)
         return list(query)
 
+    def find_mine(self, task_type=None, page_size=None, order=None, status=None):
+        """ 查找我的任务"""
+        assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
+        condition = {'picked_user_id': self.user_id}
+        if task_type:
+            condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
+        if status:
+            condition.update({'status': status})
+        else:
+            condition.update({'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]}})
+        query = self.db.task.find(condition)
+        if page_size:
+            query.limit(page_size)
+        if order:
+            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            query.sort(o, asc)
+        return list(query)
+
+    def find_lobby(self, task_type, page_size=None, q=None):
+        """ 按优先级排序后随机获取任务大厅的任务列表"""
+
+        def get_random_skip():
+            condition.update(dict(priority=3))
+            n3 = self.db.task.count_documents(condition)
+            condition.update(dict(priority=2))
+            n2 = self.db.task.count_documents(condition)
+            condition.pop('priority', 0)
+            skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
+            return random.randint(1, skip - page_size) if skip > page_size else 0
+
+        def de_duplicate():
+            """ 组任务去重"""
+            _tasks, _doc_ids = [], []
+            for task in tasks:
+                if task.get('doc_id') not in _doc_ids:
+                    _tasks.append(task)
+                    _doc_ids.append(task.get('doc_id'))
+            return _tasks[:page_size]
+
+        page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
+        condition = {'doc_id': {'$regex': q, '$options': '$i'}} if q else {}
+        if self.is_group(task_type):
+            condition.update({'task_type': {'$regex': task_type}, 'status': self.STATUS_PUBLISHED})
+            # 去掉同组的我的任务
+            my_tasks = self.find_mine(task_type)
+            if my_tasks:
+                condition['doc_id'] = condition.get('doc_id') or {}
+                condition['doc_id'].update({'$nin': [t['doc_id'] for t in my_tasks]})
+            total_count = self.db.task.count_documents(condition)
+            skip_no = get_random_skip()
+            # 按3倍量查询后去重
+            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
+            tasks = de_duplicate()
+        else:
+            condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
+            total_count = self.db.task.count_documents(condition)
+            skip_no = get_random_skip()
+            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
+
+        return tasks, total_count
+
     def count_task(self, task_type=None, status=None, mine=False):
+        """ 统计任务数量"""
         condition = dict()
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
@@ -42,23 +230,53 @@ class TaskHandler(BaseHandler, Task):
             con_status = condition.get('status') or {}
             con_status.update({'$ne': self.STATUS_RETURNED})
             condition.update({'status': con_status})
-            condition.update({'picked_user_id': self.current_user['_id']})
+            condition.update({'picked_user_id': self.user_id})
         return self.db.task.count_documents(condition)
 
-    def get_task_mode(self):
-        return (re.findall('(do|update|edit|browse)/', self.request.path) or ['view'])[0]
-
     def get_publish_meta(self, task_type):
-        now = datetime.now()
+        now = self.now()
         collection, id_name = self.get_data_conf(task_type)[:2]
-        return dict(task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
-                    status='', priority='', steps={}, pre_tasks=[], input=None, result={},
-                    create_time=now, updated_time=now, publish_time=now,
-                    publish_user_id=self.current_user['_id'],
-                    publish_by=self.current_user['name'])
+        return dict(
+            task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
+            status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+            create_time=now, updated_time=now, publish_time=now,
+            publish_user_id=self.user_id,
+            publish_by=self.username
+        )
+
+    def init_steps(self, task, task_type=None):
+        """ 检查当前任务的步骤，缺省时自动填充默认设置，有误时报错
+        当前步骤可以在url中申明，或者在api的请求体中给出。
+        """
+        steps = dict()
+        current_step = self.get_current_step()
+        default_steps = self.get_steps(task_type)
+        todo = self.prop(task, 'steps.todo') or default_steps
+        submitted = self.prop(task, 'steps.submitted') or []
+        un_submitted = [s for s in todo if s not in submitted]
+        if todo:
+            if current_step and current_step not in todo:
+                current_step = todo[0]
+            if not current_step:
+                current_step = un_submitted[0] if self.mode == 'do' else todo[0]
+            index = todo.index(current_step)
+            steps['todo'] = todo
+            steps['current'] = current_step
+            steps['is_first'] = index == 0
+            steps['is_last'] = index == len(todo) - 1
+            steps['prev'] = todo[index - 1] if index > 0 else None
+            steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
+        else:
+            steps['todo'] = []
+            steps['current'] = None
+            steps['is_first'] = True
+            steps['is_last'] = True
+            steps['prev'] = None
+            steps['next'] = None
+        return steps
 
     def check_task_auth(self, task, mode=None):
-        """ 检查当前用户是否拥有相应的任务权限 """
+        """ 检查当前用户是否拥有相应的任务权限"""
         mode = self.get_task_mode() if not mode else mode
         error = None
         if mode in ['do', 'update']:
@@ -71,233 +289,129 @@ class TaskHandler(BaseHandler, Task):
         has_auth = error is None
         return has_auth, error
 
-    @classmethod
-    def init_steps(cls, task, mode, current_step=''):
-        """ 检查当前任务的步骤，缺省时进行设置，有误时报错 """
-        todo = cls.prop(task, 'steps.todo', [])
-        submitted = cls.prop(task, 'steps.submitted', [])
-        un_submitted = [s for s in todo if s not in submitted]
-        if not todo:
-            return e.task_steps_is_empty
-        if current_step and current_step not in todo:
-            current_step = todo[0]
-        elif not current_step:
-            current_step = un_submitted[0] if mode == 'do' else todo[0]
-
-        steps = dict()
-        index = todo.index(current_step)
-        steps['current'] = current_step
-        steps['is_first'] = index == 0
-        steps['is_last'] = index == len(todo) - 1
-        steps['prev'] = todo[index - 1] if index > 0 else None
-        steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
-        return steps
-
-    def finish_task(self, task):
-        """ 任务提交 """
-        # 更新当前任务
-        update = {'status': self.STATUS_FINISHED, 'finished_time': datetime.now()}
-        self.db.task.update_one({'_id': task['_id']}, {'$set': update})
-        self.add_op_log('submit_%s' % task['task_type'], target_id=task['_id'])
-        self.release_task_lock(task, update_level=True)
-        self.update_doc(task, self.STATUS_FINISHED)
-        if task['doc_id']:
-            collection, id_name = self.get_data_conf(task['task_type'])[:2]
-            update = {'tasks.' + task['task_type']: self.STATUS_FINISHED}
-            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': update})
-        # 更新后置任务
-        condition = dict(collection=task['collection'], id_name=task['id_name'], doc_id=task['doc_id'])
-        tasks = list(self.db.task.find(condition))
-        finished_types = [t['task_type'] for t in tasks if t['status'] == self.STATUS_FINISHED]
-        for _task in tasks:
-            # 检查任务task的所有前置任务的状态
-            pre_tasks = self.prop(_task, 'pre_tasks', {})
-            pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
-            update = {'pre_tasks': pre_tasks}
-            # 如果当前任务为悬挂，且所有前置任务均已完成，则修改状态为已发布
-            unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
-            if _task['status'] == self.STATUS_PENDING and not unfinished:
-                update.update({'status': self.STATUS_PUBLISHED})
-                self.update_doc(_task, self.STATUS_PUBLISHED)
-            self.db.task.update_one({'_id': _task['_id']}, {'$set': update})
-
-    def update_doc(self, task, status=None):
-        """ 更新任务所关联数据的任务状态"""
-        if task['doc_id']:
-            collection, id_name = self.get_data_conf(task['task_type'])[:2]
-            condition = {id_name: task['doc_id']}
-            if status:
-                self.db[collection].update_one(condition, {'$set': {'tasks.' + task['task_type']: status}})
-            else:
-                self.db[collection].update_one(condition, {'$unset': {'tasks.' + task['task_type']: ''}})
-
-    """ 数据锁介绍
-    1）数据锁的目的：
-      通过数据锁对共享的数据字段进行写保护，以下两种情况可以分配字段对应的数据锁：
-      1.tasks。同一数据的同阶任务（如cut_proof对chars而言）或高阶任务（如text_proof对chars而言）
-      2.roles。数据专家角色对所有page的授权字段
-    2）数据锁的时效：
-      1.长时数据锁，由系统在领取任务时自动分配，在提交或退回任务时自动释放；
-      2.临时数据锁，用户自己提交任务后update数据或者高阶任务用户以及专家edit数据时分配临时数据锁，在窗口离开时解锁，或定时自动回收。
-    3）数据锁的配置：
-      1.首先在task_shared_data_fields中注册需要共享的数据字段；
-      2.然后在data_auth_maps中配置，授权给相关的tasks或者roles访问。
-    4) 数据锁的分配策略：
-      1.长时数据锁权限高于临时数据锁。分配长时数据锁时，将忽略临时数据锁的存在，以便任务的正常开展
-      2.分配数据锁时，只有申请者的数据等级大于等于数据的当前等级时，才能分配数据锁
-    """
-    # 数据锁权限配置表。在对共享数据进行写操作时，需要检查数据锁资质，以这个表来判断。
-    # tasks: 共享字段授权的任务，仅对任务关联的数据有效。
-    # roles: 共享字段授权的角色，对所有数据有效。
-    # level: 数据等级
-    data_auth_maps = {
-        'box': {
-            'collection': 'page', 'id': 'name', 'protect_fields': ['chars', 'columns', 'blocks'],
-            'tasks': ['cut_proof', 'cut_review', 'ocr_text', 'text_proof', 'text_review', 'text_hard'],
-            'roles': ['切分专家'],
-            'level': dict(cut_proof=1, cut_review=10, ocr_text=10, text_proof=10, text_review=100,
-                          text_hard=100, 切分专家=100),
-        },
-        'text': {
-            'collection': 'page', 'id': 'name', 'protect_fields': ['text', 'txt_html'],
-            'tasks': ['text_review', 'text_hard'],
-            'roles': ['文字专家'],
-            'level': dict(text_review=1, text_hard=1, 文字专家=10),
-        },
-    }
-
-    @classmethod
-    def get_conf_level(cls, shared_field, task_type):
-        return cls.prop(cls.data_auth_maps, '%s.level.%s' % (shared_field, task_type))
-
-    def get_user_qualification(self, doc_id, shared_field):
-        """ 检查用户是否有数据锁资质并返回资质 """
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-
-        # 检查当前用户是否有数据锁对应的专家角色
-        user_roles = auth.get_all_roles(self.current_user['roles'])
-        roles = set(user_roles) & set(shared_field_meta['roles'])
-        if roles:
-            return dict(lock_type='role', auth=list(roles))
-
-        # 检查当前用户是否有该数据的同阶或高阶任务
-        user_tasks = self.db.task.find({
-            'collection': collection, 'id_name': id_name, 'doc_id': doc_id,
-            'picked_user_id': self.current_user['_id'],
-            'status': {'$ne': self.STATUS_RETURNED}
-        })
-        tasks = set(t['task_type'] for t in user_tasks) & set(shared_field_meta['tasks'])
-        if tasks:
-            return dict(lock_type='task', auth=list(tasks))
-
-    def get_qualification_level(self, shared_field, qualifications):
-        level_conf = self.prop(self.data_auth_maps, shared_field + '.level')
-        return max([int(self.prop(level_conf, q, 0)) for q in qualifications])
-
-    def get_data_lock_and_level(self, doc_id, shared_field):
-        """ 获取当前数据锁及数据等级"""
-        assert shared_field in self.data_auth_maps
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        doc = self.db[collection].find_one({id_name: doc_id})
-        return self.prop(doc, 'lock.' + shared_field, {}), int(self.prop(doc, 'level.' + shared_field, 0))
-
-    def assign_temp_lock(self, doc_id, shared_field):
-        """ 将临时数据锁分配给当前用户。成功时返回True，失败时返回错误代码 """
-        lock, level = self.get_data_lock_and_level(doc_id, shared_field)
-        # 检查是否已有数据锁
-        if lock:
-            return True if lock.get('locked_user_id') == self.current_user['_id'] else e.data_is_locked
-        # 检查数据资质及数据等级
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        qualification = self.get_user_qualification(doc_id, shared_field)
-        if not qualification:
-            return e.data_lock_unqualified
-        conf_level = self.get_qualification_level(shared_field, qualification.get('auth'))
-        if conf_level < level:
-            return e.data_level_unqualified
-        # 分配数据锁
-        r = self.db[collection].update_one({id_name: doc_id}, {'$set': {'lock.' + shared_field: {
-            'is_temp': True, 'qualification': qualification,
-            'locked_user_id': self.current_user['_id'],
-            'locked_by': self.current_user['name'],
-            'locked_time': datetime.now(),
-        }}})
-        return True if r.matched_count else e.data_lock_failed
-
-    def release_temp_lock(self, doc_id, shared_field, by_admin=False):
-        """ 释放用户的数据锁 """
-        assert shared_field in self.data_auth_maps
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        condition = {id_name: doc_id, 'lock.%s.is_temp' % shared_field: True}
-        if not by_admin:
-            condition.update({'lock.%s.locked_user_id' % shared_field: self.current_user['_id']})
-        r = self.db[collection].update_many(condition, {'$set': {'lock.%s' % shared_field: dict()}})
-        return r.matched_count
-
-    def assign_task_lock(self, doc_id, shared_field, task_type, user_id=None):
-        """ 将数据的长时数据锁分配给任务。成功时返回True，失败时返回错误代码。
-        如果数据锁已经分配给了其它任务，则分配失败。分配任务数据锁时，将忽略临时数据锁。
+    def check_my_lock(self):
+        """ 检查当前用户是否拥有相应的数据锁并进行分配
+        has_lock为None表示不需要数据锁，False表示获取失败，True表示获取成功
         """
-        lock, level = self.get_data_lock_and_level(doc_id, shared_field)
-        # 检查数据锁是否已分配给其它任务
-        if lock and lock.get('is_temp') is False:
-            return e.data_is_locked
-        # 检查数据资质及数据等级
-        if task_type not in self.prop(self.data_auth_maps, '%s.tasks' % shared_field):
-            return e.data_lock_unqualified
-        conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task_type), 0)
-        if conf_level < level:
-            return e.data_level_unqualified
-        # 分配数据锁并设置数据等级
-        qualification = dict(lock_type='task', tasks=task_type)
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        if user_id:
-            user = self.db.user.find_one({'_id': ObjectId(user_id)})
-            if not user:
-                return e.no_user
-        else:
-            user = self.current_user
-        lock = {'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
-                'locked_by': user['name'], 'locked_user_id': user['_id']}
-        r = self.db[collection].update_one({id_name: doc_id}, {'$set': {
-            'lock.' + shared_field: lock, 'level.' + shared_field: conf_level,
-        }})
-        return True if r.matched_count else e.data_lock_failed
-
-    def release_task_lock(self, task, update_level=False):
-        """ 释放任务的数据锁 """
-        shared_field = self.get_shared_field(task['task_type'])
-        if not shared_field:
-            return
-        shared_field_meta = self.data_auth_maps[shared_field]
-        id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
-        condition = {'lock.%s.locked_user_id' % shared_field: self.current_user['_id'],
-                     id_name: task['doc_id'], 'lock.%s.is_temp' % shared_field: False}
-        update = {'lock.%s' % shared_field: dict()}
-        if update_level:
-            conf_level = self.prop(self.data_auth_maps, '%s.level.%s' % (shared_field, task['task_type']), 0)
-            update.update({'level.%s' % shared_field: conf_level})
-        r = self.db[collection].update_many(condition, {'$set': update})
-        return r.matched_count
-
-    def check_data_lock(self, task=None, doc_id=None, shared_field=None, mode=None):
-        """ 检查当前用户是否拥有相应的数据锁 """
-        if task:
-            doc_id, shared_field = task['doc_id'], self.get_shared_field(task['task_type'])
-        mode = self.get_task_mode() if not mode else mode
-        has_lock, error = True, None
-        if shared_field and mode == 'do':
-            lock = self.get_data_lock_and_level(doc_id, shared_field)[0]
-            if lock:
-                has_lock = self.current_user['_id'] == self.prop(lock, 'locked_user_id')
+        shared_field = self.get_shared_field(self.task_type)
+        has_lock, error = None, None
+        # do模式下，检查是否有任务锁
+        if shared_field and self.mode == 'do':
+            lock = self.prop(self.doc, 'lock.' + shared_field)
+            assert lock
+            has_lock = self.user_id == self.prop(lock, 'locked_user_id')
+            if not has_lock:
                 error = e.data_is_locked
-        if shared_field and mode in ['update', 'edit']:
-            r = self.assign_temp_lock(doc_id, shared_field)
+        # update/模式下，尝试分配临时数据锁
+        if shared_field and self.mode in ['update', 'edit']:
+            r = self.assign_temp_lock(self.doc_id, shared_field, self.current_user, self.doc)
             has_lock = r is True
             error = None if has_lock else r
         return has_lock, error
+
+    def submit_task(self, info=None, submit=False):
+        """ 更新任务提交"""
+        if not submit:
+            if info:
+                self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': info})
+        else:
+            update = info if info else {}
+            update.update({'updated_time': self.now()})
+            if self.steps['todo']:
+                update['steps.submitted'] = self.get_submitted(self.steps['current'])
+            # 如果是任务多个子步骤的中间步骤
+            if len(self.steps['todo']) > 1 and not self.steps['is_last']:
+                self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
+            # 如果任务没有子步骤，或一个步骤，或多个步骤的最后一步
+            else:
+                if self.mode == 'do':
+                    self.finish_task(self.task, info)
+                elif self.mode == 'update':
+                    self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': update})
+
+    def get_submitted(self, step):
+        """ 更新task.steps.submitted字段"""
+        submitted = self.prop(self.task, 'steps.submitted', [])
+        if step not in submitted:
+            submitted.append(step)
+        return submitted
+
+    def finish_task(self, task, info=None):
+        """ 完成任务"""
+        # 更新当前任务
+        info = info or {}
+        info.update({'status': self.STATUS_FINISHED, 'finished_time': self.now()})
+        self.db.task.update_one({'_id': task['_id']}, {'$set': info})
+        # 更新后置任务
+        doc_tasks = list(self.db.task.find({
+            'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']
+        }))
+        finished_types = [t['task_type'] for t in doc_tasks if t['status'] == self.STATUS_FINISHED]
+        for _task in doc_tasks:
+            # 更新_task的pre_tasks
+            pre_tasks = self.prop(_task, 'pre_tasks', {})
+            pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
+            _update = {'pre_tasks': pre_tasks}
+            # 如果_task状态为悬挂，且pre_tasks均已完成，则修改状态为已发布
+            unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
+            if _task['status'] == self.STATUS_PENDING and not unfinished:
+                _update.update({'status': self.STATUS_PUBLISHED})
+                # 更新_task关联数据的tasks字段
+                self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
+            self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
+
+    def submit_doc(self, info, submit=False):
+        """ 更新本任务的数据提交"""
+        # 如果是完成任务，则更新数据内容、数据等级和数据任务状态
+        if submit and self.mode == 'do' and self.steps['is_last']:
+            self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, info)
+        # 非完成任务，仅更新数据内容
+        else:
+            self.update_task_doc(self.task, info=info)
+
+    def update_task_doc(self, task, update_level=False, release_lock=False, status=None, info=None):
+        """ 更新任务的doc数据
+        :param task, 数据所属的任务
+        :param update_level, 是否更新doc的level.task_type
+        :param release_lock, 是否释放任务锁
+        :param status, doc的tasks.task_type的状态
+        :param info, doc的其它字段
+        """
+        if not task.get('doc_id'):
+            return
+        info = {} if not info else info
+        task_type = task['task_type']
+        collection, id_name = self.get_data_conf(task_type)[:2]
+        # 检查共享字段
+        shared_field = self.get_shared_field(task_type)
+        if shared_field:
+            # 释放数据锁
+            if release_lock:
+                info['lock.' + shared_field] = dict()
+            # 更新数据等级
+            lock_level = self.get_lock_level(shared_field, task_type)
+            if update_level and lock_level:
+                info['level.' + shared_field] = lock_level
+        # 更新任务状态
+        if status:
+            info['tasks.' + task_type] = status
+        if status == '':
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
+        if info:
+            self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
+
+    def update_edit_doc(self, task_type, doc_id, release_lock=False, info=None):
+        """ 更新数据编辑的doc数据
+        :param task_type, 以哪种任务类型进行数据编辑
+        :param doc_id, doc的id值
+        :param release_lock, 是否释放临时锁
+        :param info, doc的其它字段
+        """
+        info = {} if not info else info
+        # 释放数据锁
+        shared_field = self.get_shared_field(task_type)
+        if release_lock and shared_field:
+            info['lock.' + shared_field] = dict()
+        # 更新数据库
+        collection, id_name = self.get_data_conf(task_type)[:2]
+        self.db[collection].update_one({id_name: doc_id}, {'$set': info})

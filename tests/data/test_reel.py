@@ -16,8 +16,8 @@ class TestReelApi(APITestCase):
     def tearDown(self):
         super(TestReelApi, self).tearDown()
 
-    def test_api_reel__upload(self):
-        # 测试上传卷csv文件
+    def test_reel__upload(self):
+        # 测试上传文件
         meta_dir = path.join(self._app.BASE_DIR, 'meta', 'meta')
         files = glob(path.join(meta_dir, 'Reel-*.csv'))
         if files:
@@ -28,7 +28,7 @@ class TestReelApi(APITestCase):
             r = self.fetch('/api/data/reel/upload', files={'csv': file}, body={})
             self.assert_code(200, r)
 
-    def test_api_reel_add_or_update(self):
+    def test_reel_add_or_update(self):
         reel = self._app.db.reel.find_one()
         # 测试修改一条信息
         reel['remark'] = '测试数据'
@@ -46,7 +46,7 @@ class TestReelApi(APITestCase):
         r = self.fetch('/api/data/reel', body={'data': reel})
         self.assert_code(e.invalid_reel_code, r)
 
-    def test_api_reel_delete(self):
+    def test_reel_delete(self):
         reels = list(self._app.db.reel.find().limit(5))
         # 测试删除一条记录
         _id = reels[0].get('_id')

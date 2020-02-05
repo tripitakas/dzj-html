@@ -1,27 +1,7 @@
-{% extends "com_list.html" %}
+{% extends "_list.html" %}
 {% block custom-css %}
-<link href="{{ static_url('css/task-admin.css') }}" rel="stylesheet"/>
+<link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 <style>
-  #searchModal .modal-body h4, #searchModal .modal-body div {
-    margin: 5px 0;
-  }
-
-  .select2-container {
-    width: 100% !important;
-  }
-
-  .sty-table .action {
-    color: #B8906F !important;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
-  .sty-table .action:hover {
-    color: #b33c2b !important;
-    cursor: pointer;
-    font-size: 12px;
-  }
-
   .sty-table .tasks {
     width: 180px;
   }
@@ -37,15 +17,12 @@
     text-decoration: underline;
   }
 
-  .sty-table td a {
-    font-size: 12px;
-    margin-left: 5px;
-    cursor: pointer;
+  .select2-container {
+    width: 100% !important;
   }
 
-  .operation .btn-img {
-    width: 22px;
-    height: 22px;
+  #searchModal .modal-body h4, #searchModal .modal-body div {
+    margin: 5px 0;
   }
 
   #txt-content {
@@ -146,7 +123,7 @@
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-body" style="min-height: 630px; padding: 0">
+      <div class="modal-body" style="min-height: 680px; padding: 0">
         <h4 class="col-sm-2 control-label">页编码</h4>
         <div class="col-sm-10">
           <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入页编码">
@@ -155,21 +132,25 @@
         <div class="col-sm-10">
           <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
         </div>
-        <h4 class="col-sm-2 control-label">文字</h4>
+        <h4 class="col-sm-2 control-label">文本</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入文字">
+          <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入文本">
         </div>
-        <h4 class="col-sm-2 control-label">备注</h4>
+        <h4 class="col-sm-2 control-label">切分备注</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+          <input type="text" class="form-control remark-box" value="{{params.get('remark-box') or ''}}" placeholder="请输入备注">
+        </div>
+        <h4 class="col-sm-2 control-label">文字备注</h4>
+        <div class="col-sm-10">
+          <input type="text" class="form-control remark-text" value="{{params.get('remark-text') or ''}}" placeholder="请输入备注">
         </div>
         <h4 class="col-sm-2 control-label">切分等级</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control level_box" value="{{params.get('level_box') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
+          <input type="text" class="form-control level-box" value="{{params.get('level-box') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
         </div>
         <h4 class="col-sm-2 control-label">文本等级</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control level_text" value="{{params.get('level_text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
+          <input type="text" class="form-control level-text" value="{{params.get('level-text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
         </div>
         <h4 class="col-sm-2 control-label">切分校对</h4>
         <div class="col-sm-10">
@@ -386,7 +367,7 @@
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    location.href = '/data/edit/text/' + name + '?from=' + location.pathname + location.search;
+    location.href = '/task/text_edit/' + name + '?from=' + encodeFrom();
   });
 
   // 修改栏框、列框、字框、字序
@@ -394,8 +375,8 @@
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    var url = '/data/edit/box/' + name + '?step=' + $(this).attr('class');
-    location.href = url + '&from=' + location.pathname + location.search;
+    var url = '/task/cut_edit/' + name + '?step=' + $(this).attr('class');
+    location.href = url + '&from=' + encodeFrom();
   });
 
   // 解锁
@@ -430,17 +411,17 @@
 </script>
 <script>
   /*---综合检索---*/
-  $searchModal = $("#searchModal");
+  var $searchModal = $("#searchModal");
+  var inputFields = ['name', 'source', 'txt', 'remark-box', 'remark-text', 'level-box', 'level-text'];
+  var selectFields = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';
-    var fields = ['name', 'source', 'remark', 'txt', 'level_box', 'level_text'];
-    fields.forEach(function (field) {
+    inputFields.forEach(function (field) {
       var value = $searchModal.find('.' + field).val();
       if (value)
         search += '&' + field + '=' + value;
     });
-    fields = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
-    fields.forEach(function (field) {
+    selectFields.forEach(function (field) {
       var value = $searchModal.find('.' + field + ' :selected').val();
       if (value)
         search += '&' + field + '=' + value;
@@ -452,12 +433,10 @@
 
   // 重置检索条件
   $searchModal.find('.reset').click(function () {
-    var fields = ['name', 'source', 'remark', 'txt', 'level_box', 'level_text'];
-    fields.forEach(function (field) {
+    inputFields.forEach(function (field) {
       $searchModal.find('.' + field).val('');
     });
-    fields = [ 'cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
-    fields.forEach(function (field) {
+    selectFields.forEach(function (field) {
       $searchModal.find('.' + field + ' :selected').removeAttr('selected');
     });
   });
@@ -543,7 +522,7 @@
         isFile = true;
         break;
     }
-    postApi('/task/publish/pages', isFile ? formData : {data: data}, function (res) {
+    postApi('/task/publish/page', isFile ? formData : {data: data}, function (res) {
       // console.log(res);
       var html = '';
       for (var item in res.data) {

@@ -5,15 +5,16 @@
 from . import module, view, api
 
 views = [
-    view.HomeHandler,
+    view.HomeHandler, view.CbetaSearchHandler, view.PunctuationHandler
 ]
 
 handlers = [
-    api.SessionConfigApi
+    api.CbetaSearchApi, api.PunctuationApi, api.SessionConfigApi,
 ]
 
 modules = {
     'ComLeft': module.ComLeft, 'ComHead': module.ComHead, 'Pager': module.Pager, 'ComTable': module.ComTable,
     'ComModal': module.ComModal, 'ReturnModal': module.ReturnModal, 'DoubtModal': module.DoubtModal,
-    'RemarkModal': module.RemarkModal,
+    'TaskRemarkModal': module.TaskRemarkModal, 'AutoPickModal': module.AutoPickModal,
+    'PageRemarkModal': module.PageRemarkModal,
 }

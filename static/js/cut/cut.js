@@ -215,7 +215,7 @@
       }
     },
     redo: function () {
-      if (this.d.level < this.d.stack.length) {
+      if (this.d.stack && this.d.level < this.d.stack.length) {
         var cid = $.cut.getCurrentCharID();
         this.d.level++;
         this.apply(this.d.stack[this.d.level - 1]);
@@ -229,7 +229,7 @@
       return this.d.level > 1;
     },
     canRedo: function () {
-      return this.d.level < this.d.stack.length;
+      return this.d.stack && this.d.level < this.d.stack.length;
     }
   };
 
@@ -290,6 +290,7 @@
         state.hoverHandle.index = -1;
         state.hoverStroke = box.attr('stroke');
         state.hoverHandle.fill = box.attr('fill');
+        state.hoverHandle.fillOpacity = box.attr('fill-opacity');
         state.hoverHandle.hidden = box.node.style.display === 'none';
         box.attr({
           stroke: data.hoverColor,
@@ -300,13 +301,13 @@
 
     hoverOut: function (box) {
       if (box && state.hover === box && state.hoverHandle.fill) {
-        box.attr({stroke: state.hoverStroke, fill: state.hoverHandle.fill});
+        box.attr({stroke: state.hoverStroke, fill: state.hoverHandle.fill, 'fill-opacity': state.hoverHandle.fillOpacity});
         state.hoverHandle.fill = 0;   // 设置此标志，暂不清除 box 变量，以便在框外也可点控制点
         if (state.hoverHandle.hidden) {
           box.hide();
         }
       } else if (box && state.edit === box && state.editHandle.fill) {
-        box.attr({stroke: state.editStroke, fill: state.editHandle.fill});
+        box.attr({stroke: state.editStroke, fill: state.editHandle.fill, 'fill-opacity': state.editHandle.fillOpacity});
         if (state.editHandle.hidden) {
           box.hide();
         }
@@ -388,6 +389,7 @@
       if (el) {
         state.editStroke = el.attr('stroke');
         state.editHandle.fill = el.attr('fill');
+        state.editHandle.fillOpacity = el.attr('fill-opacity');
         state.editHandle.hidden = el.node && el.node.style.display === 'none';
         el.attr({
           stroke: data.changedColor,
@@ -403,7 +405,7 @@
         this.scrollToVisible(el);
         var box = el.getBBox();
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
-            + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
+           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
@@ -555,8 +557,11 @@
       data.orderMode = p.orderMode;
       data.ratioInitial = $(data.holder).width() / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
-      if (h) {
+      if (h && !p.widthFull) {
         data.ratioInitial = Math.min(data.ratioInitial, (h - 6) / p.height);
+      }
+      if (p.minRatio) {
+        data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);
       }
       if (p.blockMode || p.columnMode || p.charMode || p.orderMode) {
         data.activeFillOpacity = 0.3;
@@ -837,8 +842,14 @@
     },
 
     // callback: function(info, box, reason)
-    onBoxChanged: function (callback) {
+    onBoxChanged: function (callback, fire) {
       data.boxObservers.push(callback);
+      if (fire) {
+        setTimeout(function() {
+          var c = state.edit && findCharById(state.edit.data('cid'));
+          callback(c || {}, state.edit && state.edit.getBBox(), 'navigate');
+        }, 0);
+      }
     },
 
     cancelDrag: function () {
@@ -854,7 +865,8 @@
       } else if (state.edit && state.editHandle.fill) {
         state.edit.attr({
           stroke: state.editStroke,
-          fill: state.editHandle.fill
+          fill: state.editHandle.fill,
+          'fill-opacity': state.editHandle.fillOpacity
         });
         if (state.editHandle.hidden) {
           state.edit.hide();
@@ -1041,6 +1053,7 @@
         window.scrollTo(box2.x + box2.width / 2 - box.x - box.width / 2 + pos[0],
             box2.y + box2.width / 2 - box.y - box.width / 2 + pos[1]);
       }
+      notifyChanged(null, 'zoomed');
       if (state['onZoomed']) {
         state['onZoomed']();
       }

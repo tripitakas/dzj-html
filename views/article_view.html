@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
   <title>{{article['title']}}</title>
-  {% include _base_meta.html %}
   {% include _base_css.html %}
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -72,7 +71,7 @@
 <div class="app-main">
   <header class="m-header">
     <div class="back">
-      <img src="{{ static_url('imgs/icon_back.png') }}" class="btn-img" onclick="leave()"/>
+      <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()"/>
     </div>
   </header>
   <div class="article">

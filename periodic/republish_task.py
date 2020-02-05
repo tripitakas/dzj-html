@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 
 sys.path.append(path.dirname(path.dirname(__file__)))
 from controller.helper import prop
-from controller.app import Application as App
 from controller.task.base import TaskHandler as Th
 from periodic.worker import Worker
+from controller.helper import load_config
 
 
 class RepublishTimeoutTasks(Worker):
@@ -21,7 +21,7 @@ class RepublishTimeoutTasks(Worker):
 
     def work(self, timeout_days=None, **kwargs):
         if not timeout_days:
-            timeout_days = prop(App.load_config(), 'task.task_timeout_days', 1)
+            timeout_days = prop(load_config(), 'task.task_timeout_days', 1)
         from_time = datetime.now() - timedelta(days=int(timeout_days))
         condition = {'status': Th.STATUS_PICKED, 'picked_time': {'$lt': from_time}}
         tasks = list(self.db.task.find(condition))

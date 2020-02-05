@@ -133,7 +133,7 @@ class AddPage(object):
                 meta.pop('width')
                 meta.pop('height')
 
-            for field in ['source', 'create_time', 'ocr_col', 'img_name']:
+            for field in ['source', 'create_time', 'ocr_col', 'img_name', 'char_ocr']:
                 if info.get(field):
                     meta[field] = info[field]
             if info.get('ocr'):
@@ -220,7 +220,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', reorder='v2', source='', check_id=True, reset=True,
+         txt_field='ocr', kind='', reorder='', source='', check_id=False, reset=True,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数

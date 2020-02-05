@@ -3,21 +3,21 @@
 """
 @time: 2018/12/22
 """
-from tornado.escape import to_basestring, native_str
-from tornado.testing import AsyncHTTPTestCase
-from tornado.httpclient import HTTPRequest
-from tornado.options import options
-from functools import partial
-from tornado.util import PY3
-from bson import json_util
-import uuid
 import re
+import uuid
 import mimetypes
+from bson import json_util
+from tornado.util import PY3
+from functools import partial
+from tornado.options import options
+from tornado.httpclient import HTTPRequest
+from tornado.testing import AsyncHTTPTestCase
+from tornado.escape import to_basestring, native_str
 import controller as c
-from tests.users import admin
 import controller.auth as auth
 from controller.app import Application
 from controller.task.base import TaskHandler as Th
+from tests.users import admin
 
 if PY3:
     import http.cookies as Cookie
@@ -64,12 +64,11 @@ def body_producer(boundary, files, params, write):
 class APITestCase(AsyncHTTPTestCase):
 
     def get_app(self, testing=True, debug=False):
-        options.testing = testing
         options.debug = debug
+        options.testing = testing
         options.port = self.get_http_port()
-        return Application(
-            c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules, default_handler_class=c.InvalidPageHandler
-        )
+        return Application(c.handlers + c.views, db_name_ext='_test', ui_modules=c.modules,
+                           default_handler_class=c.InvalidPageHandler)
 
     def tearDown(self):
         super(APITestCase, self).tearDown()
@@ -204,7 +203,7 @@ class APITestCase(AsyncHTTPTestCase):
     def publish_page_tasks(self, data):
         """ 发布页面任务"""
         assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        return self.fetch('/api/task/publish/pages', body={'data': self.init_data(data)})
+        return self.fetch('/api/task/publish/page', body={'data': self.init_data(data)})
 
     def delete_tasks_and_locks(self):
         """ 清空任务以及数据锁 """

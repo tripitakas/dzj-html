@@ -1,9 +1,10 @@
 {% if not debug and 0 %}
-{% include _base_cut_.html %}
+<script src="{{static_url('built/base_cut-d4f8279b.js')}}"></script>
 {% else %}
-<script src="{{ static_url('js/cut/raphael.js') }}"></script>
-<script src="{{ static_url('js/cut/raphael.zoom.js') }}"></script>
-<script src="{{ static_url('js/cut/jquery.mapkey.js') }}"></script>
-<script src="{{ static_url('js/cut/cut.js') }}"></script>
-<script src="{{ static_url('js/cut/cut_keys.js') }}"></script>
+<script src="{{static_url('js/cut/raphael.js')}}"></script>
+<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/cut/jquery.mapkey.js')}}"></script>
+<script src="{{static_url('js/cut/cut.js')}}"></script>
+<script src="{{static_url('js/cut/cut_keys.js')}}"></script>
+<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 {% end %}

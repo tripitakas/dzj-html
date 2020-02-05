@@ -1,0 +1,57 @@
+<!--相关变量：docs、table_fields、actions、info_fields，相关函数format_value-->
+<table class="sty-table">
+  <thead>
+  <tr>
+    <th><input id="check-all" type="checkbox"/></th>
+    {% for f in table_fields %}
+    {% set fid = f['id'].replace('-', '.') %}
+    {% if f.get('filter') %}
+    <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
+      <span class="btn-group">
+        <span class="filter" title="{{f['id']}}" data-toggle="dropdown" aria-expanded="false">
+          {% raw f['name'] %}<span class="ion-android-sort"></span>
+        </span>
+        <ul class="dropdown-menu" role="menu">
+          {% for k, v in f.get('filter').items() %}
+          <li><a class="btn-filter" title="{{'%s=%s' % (f['id'], k)}}">{{v}}</a></li>
+          {% end %}
+        </ul>
+      </span>
+    </th>
+    {% else %}
+    <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
+      <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
+      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == fid else ''}}"></span>
+      </span>
+    </th>
+    {% end %}
+    {% end %}
+    {% if len(actions) %}
+    <th><span>操作</span></th>
+    {% end %}
+  </tr>
+  </thead>
+  <tbody>
+  {% for d in docs %}
+  <tr id="{{d['_id']}}">
+    <td><input type="checkbox"/></td>
+    {% for f in table_fields %}
+    <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
+      {% raw format_value(prop(d, f['id'].replace('-', '.')), f['id']) or '' %}
+    </td>
+    {% end %}
+    <td class="action">
+      {% set info = {f: prop(d, f.replace('-', '.'), '') for f in info_fields} %}
+      <span class="hide info">{{pack(info)}}</span>
+      {% for a in actions %}
+      {% if a.get('title') %}
+      <a class="{{a['action']}}" title="{{a['title']}}">{{a['label']}}</a>
+      {% else %}
+      <a class="{{a['action']}}">{{a['label']}}</a>
+      {% end %}
+      {% end %}
+    </td>
+  </tr>
+  {% end %}
+  </tbody>
+</table>

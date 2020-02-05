@@ -13,7 +13,7 @@ class TestUserProductApi(APITestCase):
     def setUp(self):
         super(TestUserProductApi, self).setUp()
 
-    def test_api_send_email_code(self):
+    def test_user_send_email_code(self):
         account = prop(self._app.config, 'email.account')
         if account and '待配置' not in account:
             email = 'lqs.xiandu@qq.com'
@@ -35,7 +35,7 @@ class TestUserProductApi(APITestCase):
                 })
                 self.assert_code(200, r)
 
-    def test_api_send_phone_code(self):
+    def test_user_send_phone_code(self):
         account = prop(self._app.config, 'phone.accessKey')
         if account and '待配置' not in account:
             phone = '13810916830'

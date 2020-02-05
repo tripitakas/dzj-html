@@ -6,24 +6,19 @@
 """
 
 import re
-import os
-import shutil
-import pymongo
 from os import path
-from yaml import load as load_yml, SafeLoader
-from operator import itemgetter
 from tornado import web
-from tornado.options import define, options
-from tornado.util import PY3
+from operator import itemgetter
 from tornado.log import access_log
+from tornado.options import define, options
 from controller.auth import url_placeholder
+from controller.helper import BASE_DIR, load_config, connect_db
 
-__version__ = '0.1.79.200201'
-BASE_DIR = path.dirname(path.dirname(__file__))
+__version__ = '0.1.78.200129'
 
-define('testing', default=False, help='the testing mode', type=bool)
-define('debug', default=True, help='the debug mode', type=bool)
 define('port', default=8000, help='run port', type=int)
+define('debug', default=True, help='the debug mode', type=bool)
+define('testing', default=False, help='the testing mode', type=bool)
 
 
 class Application(web.Application):
@@ -74,51 +69,20 @@ class Application(web.Application):
             log_method = access_log.info if s < 400 else access_log.warning if s < 500 else access_log.error
             log_method("%d %s %.2fms%s", s, summary, request_time, username and ' [%s]' % username or '')
 
-    @staticmethod
-    def load_config():
-        param = dict(encoding='utf-8') if PY3 else {}
-        cfg_base = path.join(BASE_DIR, '_app.yml')
-        cfg_file = path.join(BASE_DIR, 'app.yml')
-        if not os.path.exists(cfg_file):
-            shutil.copy(cfg_base, cfg_file)
-        with open(cfg_base, **param) as f:
-            config_base = load_yml(f, Loader=SafeLoader)
-        with open(cfg_file, **param) as f:
-            config = load_yml(f, Loader=SafeLoader)
-        for k, v in config_base.items():
-            if k not in config:
-                config[k] = v
-        return config
-
     @property
     def db(self):
         if not self._db:
-            cfg = self.config['database']
-            uri = cfg['host']
-            if cfg.get('user'):
-                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-                uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
-            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
-                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
-            self._db = conn[cfg['name']]
-            self.db_uri = uri
+            self._db, self.db_uri = connect_db(self.config['database'])
         return self._db
 
     @property
     def db_test(self):
         if not self._db_test:
-            cfg = self.config['database']
-            uri = cfg['host']
-            if cfg.get('user'):
-                uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-                uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
-            conn = pymongo.MongoClient(uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
-                                       maxPoolSize=10, waitQueueTimeoutMS=5000)
-            self._db_test = conn[cfg['name'] + '_test']
+            self._db_test, uri = connect_db(self.config['database'], '_test')
         return self._db_test
 
     def init_config(self, db_name_ext=None):
-        self.config = self.load_config()
+        self.config = load_config()
         self.site = self.config['site']
         self.site['url'] = 'localhost:{0}'.format(options.port)
         if db_name_ext and not self.config['database']['name'].endswith('_test'):

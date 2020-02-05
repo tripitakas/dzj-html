@@ -99,16 +99,20 @@ function setQueryString(name, value, onlySearch) {
     return location.pathname + search;
 }
 
-function deleteQueryString(search, name) {
-  search = search.replace(new RegExp(name + '=.*?&', 'i'), '');
-  search = search.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
-  return search;
+function deleteQueryString(name) {
+  return deleteParam(location.href, name);
+}
+
+function deleteParam(query, name) {
+  query = query.replace(new RegExp(name + '=.*?&', 'i'), '');
+  query = query.replace(new RegExp('[?&]' + name + '=.*?$', 'i'), '');
+  return query;
 }
 
 function encodeFrom() {
   // 将第一个?替换为&，然后删除to/page等参数
   var url = location.pathname + location.search.replace('?', '&');
-  return deleteQueryString(url, 'to');
+  return deleteParam(url, 'to');
 }
 
 function decodeFrom() {
@@ -119,7 +123,7 @@ function decodeFrom() {
     if (from.indexOf('?') === -1)
       from = from.replace('&', '?');
   }
-  return deleteQueryString(from, 'to');
+  return deleteParam(from, 'to');
 }
 
 /**

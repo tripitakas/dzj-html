@@ -11,29 +11,28 @@ import re
 url_placeholder = {
     'num': r'\d+',
     'article_id': r'[^/]{6,}',
-    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
+    'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
+    'page_name': r'[a-zA-Z]{2}_[fb0-9_]+',
+    'task_id': r'[A-Za-z0-9]{24}',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
-    'data_task': r'ocr_box|ocr_text|upload_cloud|import_image',
-    'task_id': r'[A-Za-z0-9]{24}',
-    'page_id': r'[A-Za-z0-9]{24}',
+    'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
+    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
+    'shared_field': r'box|text',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'metadata': r'tripitaka|sutra|volume|reel|page',
-    'shared_field': r'box|text',
-    'box_type': 'block|column|char',
-    'page_code': r'[A-Z]{2}[fb0-9_]*',
-    'page_name': r'[a-zA-Z]{2}_[0-9_]+',
-    'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
+    'boxType': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
     'user_code': '[A-Za-z0-9]+',
 }
 
-""" 角色权限对应表，定义系统中的所有角色以及对应的route权限。
-    将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
-    角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-    routes：角色可以访问的权限集合；
-    roles：角色所继承的父角色；
-    is_assignable：角色是否可被分配。
+""" 
+角色权限对应表，定义系统中的所有角色以及对应的route权限。
+将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
+角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
+routes：角色可以访问的权限集合；
+roles：角色所继承的父角色；
+is_assignable：角色是否可被分配。
 """
 role_route_maps = {
     '单元测试用户': {
@@ -41,7 +40,7 @@ role_route_maps = {
         'routes': {
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/finish/@task_type/@task_id': ['POST'],
+            '/api/task/finish/@task_id': ['POST'],
             '/api/data/lock/@shared_field/@doc_id': ['POST'],
         }
     },
@@ -64,20 +63,18 @@ role_route_maps = {
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka/list': ['GET'],
-            '/page/@page_code': ['GET'],
+            '/page/@page_prefix': ['GET'],
+            '/com/punctuate': ['GET'],
+            '/api/com/punctuate': ['POST'],
+            '/com/search': ['GET'],
+            '/api/com/search': ['POST'],
             '/api/session/config': ['POST'],
-            '/tool/punctuate': ['GET'],
-            '/api/tool/punctuate': ['POST'],
-            '/tool/search': ['GET'],
-            '/api/tool/search': ['POST'],
             '/api/cut/gen_char_id': ['POST'],
-            '/task/sample/(box|text|select)': ['GET'],
-            '/task/sample/box/@page_name': ['GET'],
+            '/task/sample/@task_type': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/task/text_get_compare/@page_name': ['POST'],
-            '/api/task/text_compare_neighbor': ['POST'],
+            '/api/task/text_select/@page_name': ['POST'],
+            '/api/task/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-
         }
     },
     '切分校对员': {
@@ -106,8 +103,8 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/data/edit/box/@page_name': ['GET'],
-            '/api/data/edit/box/@page_name': ['POST'],
+            '/task/cut_edit/@page_name': ['GET'],
+            '/api/task/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
@@ -120,8 +117,8 @@ role_route_maps = {
             '/api/task/pick/text_proof_@num': ['POST'],
             '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
-            '/data/edit/box/@page_name': ['GET'],
-            '/api/data/edit/box/@page_name': ['POST'],
+            '/task/cut_edit/@page_name': ['GET'],
+            '/api/task/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
@@ -134,8 +131,8 @@ role_route_maps = {
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
-            '/data/edit/box/@page_name': ['GET'],
-            '/api/data/edit/box/@page_name': ['POST'],
+            '/task/cut_edit/@page_name': ['GET'],
+            '/api/task/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
@@ -148,24 +145,30 @@ role_route_maps = {
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@task_id': ['GET'],
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
-            '/data/edit/text/@page_name': ['GET'],
-            '/api/data/edit/text/@page_name': ['POST'],
+            '/task/text_edit/@page_name': ['GET'],
+            '/api/task/text_edit/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
-    '任务管理员': {
+    '任务浏览员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
+            '/api/user/list': ['POST'],
             '/task/admin/image': ['GET'],
             '/task/admin/page': ['GET'],
             '/task/page/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
-            '/task/browse/@task_type/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
-            '/api/user/list': ['POST'],
+            '/task/browse/@task_type/@task_id': ['GET'],
+        }
+    },
+    '任务管理员': {
+        'is_assignable': True,
+        'roles': ['普通用户', '任务浏览员'],
+        'routes': {
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/publish/pages': ['POST'],
+            '/api/task/publish/page': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],
@@ -177,11 +180,11 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/api/task/init_for_test': ['POST'],
-            '/task/(lobby|my)/@data_task': ['GET'],
-            '/api/task/pick/@data_task': ['POST'],
-            '/api/task/(fetch_many|confirm_fetch)/@data_task': ['POST'],
-            '/api/task/submit/@data_task': ['POST'],
+            '/api/task/init': ['POST'],
+            '/task/(lobby|my)/@ocr_task': ['GET'],
+            '/api/task/pick/@ocr_task': ['POST'],
+            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
+            '/api/task/submit/@ocr_task': ['POST'],
             '/api/data/@metadata/upload': ['POST'],
         }
     },
@@ -190,8 +193,8 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
-            '/data/page/@page_code': ['GET'],
-            '/data/page/info/@page_code': ['GET'],
+            '/data/page/@page_name': ['GET'],
+            '/data/page/info/@page_name': ['GET'],
             '/api/data/page/source': ['POST'],
             '/api/data/gen_js': ['POST'],
             '/api/data/@metadata': ['POST'],
@@ -266,12 +269,12 @@ def can_access(role, path, method):
                     if (p == ps or re.match('^%s$' % ps, p) or re.match('^%s$' % p, ps)) and method in _method:
                         return True
 
-    if re.search('./$', path):
-        path = path[:-1]
     if match_exclude(path, []):
         return True
     if match_exclude(path, ['page_name', 'num']):
         return True
+    if re.search('./$', path):
+        return can_access(role, path[:-1], method)
     return False
 
 

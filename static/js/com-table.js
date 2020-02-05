@@ -56,7 +56,6 @@ $('#configModal .modal-confirm').click(function () {
   $.map($('#configModal :checkbox:checked'), function (item) {
     $('.sty-table .' + $(item).attr('title')).removeClass('hide');
   });
-
   var data = {};
   var key = location.pathname.substr(1).replace(/[\/\-]/g, '_');
   data[key] = $.map($('#configModal :not(:checked)'), function (item) {
@@ -145,13 +144,12 @@ function getData(id) {
 }
 
 var $modal = $('#updateModal');
-var fields = decodeJSON($('#fields').val() || '[]').concat({id: '_id'});
-// console.log(fields);
+var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
 $('.operation .btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
-  $modal.find('#url').val($(this).attr('url') || location.pathname);
+  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
   console.log($(this).attr('url') || location.pathname);
   toggleModal($modal, fields, false);
   resetModal($modal, fields);
@@ -174,7 +172,7 @@ $('.btn-update').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var title = 'name' in data ? '修改数据/' + data.name : '修改数据';
-  $modal.find('#url').val($(this).attr('url') || location.pathname);
+  $modal.find('.update-url').val($(this).attr('url') || location.pathname);
   $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, false);
   setModal($modal, data, fields);
@@ -184,7 +182,7 @@ $('.btn-update').click(function () {
 // 新增/修改-提交
 $("#updateModal .modal-confirm").click(function () {
   var data = getModal($modal, fields);
-  postApi($modal.find('#url').val().trim(), {data: data}, function () {
+  postApi($modal.find('.update-url').val().trim(), {data: data}, function () {
     showSuccess('成功', '数据已提交。');
     refresh(1500);
   }, function (error) {

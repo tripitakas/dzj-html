@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import tests.users as u
 from tests.task.conf import ready_ids
 from tests.testcase import APITestCase
 from datetime import datetime, timedelta
+from periodic.statistic import statistic_tasks
 from controller.helper import prop
 from controller.task.base import TaskHandler as Th
-from periodic.statistic import statistic_tasks
 from periodic.release_lock import release_timeout_lock
 from periodic.republish_task import republish_timeout_tasks
 

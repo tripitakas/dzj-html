@@ -30,11 +30,11 @@ class TestTaskView(APITestCase):
             _pages = data.get(status, []) or data.get(task_type, {}).get(status, [])
             self.assertEqual(set(pages), set(_pages), msg=msg)
 
-    def test_view_task(self):
+    def test_task_list(self):
         """ 测试任务管理、任务大厅、我的任务列表页面 """
         # 发布任务
         self.login_as_admin()
-        task_types = Th.get_page_tasks()
+        task_types = Th.get_task_types('page')
         docs_ready = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
         for task_type in task_types:
             r = self.publish_page_tasks(dict(task_type=task_type, doc_ids=docs_ready, pre_tasks=[]))
@@ -47,7 +47,7 @@ class TestTaskView(APITestCase):
             task = self._app.db.task.find_one({'task_type': {'$regex': task_type + '.*'}, 'doc_id': docs_ready[0]})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
             self.assert_code(200, r, msg=task_type)
-            r = self.fetch('/api/task/finish/%s/%s' % (task['task_type'], task['_id']), body={'data': {}})
+            r = self.fetch('/api/task/finish/%s' % task['_id'], body={'data': {}})
             self.assert_code(200, r, msg=task_type)
 
         # 任务管理页面
@@ -75,7 +75,7 @@ class TestTaskView(APITestCase):
             self.assertIn('docs', d, msg=task_type)
 
     def test_lobby_order(self):
-        """测试任务大厅的任务显示顺序"""
+        """ 测试任务大厅的任务显示顺序"""
         self.login_as_admin()
         self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['GL_1056_5_6'], priority=2, pre_tasks=[]))
         self.publish_page_tasks(dict(task_type='text_proof_1', doc_ids=['JX_165_7_12'], priority=3, pre_tasks=[]))
@@ -90,18 +90,3 @@ class TestTaskView(APITestCase):
             self.assertEqual(set(docs), {'GL_1056_5_6', 'JX_165_7_12', 'JX_165_7_30'})
             self.assertEqual(len(docs), len(set(docs)))  # 不同校次的同名页面只列出一个
             self.assertEqual(docs, ['JX_165_7_12', 'GL_1056_5_6', 'JX_165_7_30'])  # 按优先级顺序排列
-
-    def add_local_statistic(self):
-        docs = []
-        users = list(self._app.db.user.find({}))
-        task_types = ['upload_cloud', 'ocr_box', 'cut_proof', 'cut_review', 'ocr_text', 'text_proof_1',
-                      'text_proof_2', 'text_proof_3', 'text_review', 'text_hard']
-
-        today = datetime.strptime(datetime.now().strftime('%Y-%m-%d'), '%Y-%m-%d')
-        for task_type in task_types:
-            for i in range(10):
-                day = today - timedelta(days=i)
-                user = users[random.randint(0, len(users) - 1)]
-                meta = dict(day=day, user_id=user['_id'], task_type=task_type, count=random.randint(0, 1000))
-                docs.append(meta)
-        self._app.db.statistic.insert_many(docs)

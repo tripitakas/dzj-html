@@ -17,7 +17,7 @@ class ArticleAdminHandler(BaseHandler):
         try:
             model = Article
             docs, pager, q, order = model.find_by_page(self)
-            kwargs = model.get_page_kwargs()
+            kwargs = model.get_template_kwargs()
             self.render('article_admin.html', docs=docs, pager=pager, order=order, q=q, **kwargs)
 
         except Exception as error:
@@ -68,7 +68,7 @@ class ArticleListHandler(BaseHandler):
 
         try:
             model = Article
-            kwargs = model.get_page_kwargs()
+            kwargs = model.get_template_kwargs()
             kwargs['search_tips'] = ''
             kwargs['operations'] = []
             kwargs['page_title'] = '帮助中心' if category == 'help' else '通知中心'

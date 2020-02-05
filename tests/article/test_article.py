@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from tests.testcase import APITestCase
-from controller.text.diff import Diff
 
 
 class TestArticle(APITestCase):

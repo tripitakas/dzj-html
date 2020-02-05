@@ -1,18 +1,8 @@
 .pfread {
-  width: 100%;
-  height: 100%;
+  padding: 42px 2px 2px;
 }
 
-.pfread-in {
-  padding: 45px 5px 0;
-}
-
-.pfread-in .bd {
-  position: relative;
-  height: calc(100% - 55px);
-}
-
-.pfread-in .left {
+.pfread .left {
   flex: 1;
   width: 50%;
   border: 1px solid #ccc;
@@ -21,13 +11,13 @@
   background: var(--Grey_Content);
 }
 
-.pfread-in .left .hd {
+.pfread .left .hd {
   line-height: 45px;
   border-bottom: 1px solid #ccc;
   padding: 0 10px;
 }
 
-.pfread-in .left .hd span i {
+.pfread .left .hd span i {
   top: 8px;
   display: block;
   background-position: center;
@@ -36,11 +26,11 @@
   height: 25px;
 }
 
-.pfread-in .left .hd .btns {
+.pfread .left .hd .btns {
   display: inline-block;
 }
 
-.pfread-in .left .hd .btns span {
+.pfread .left .hd .btns span {
   display: inline-block;
   width: auto;
   border-radius: 18px;
@@ -52,27 +42,27 @@
   color: #2e363f;
 }
 
-.pfread-in .left .bd {
+.pfread .left .bd {
   overflow: auto;
 }
 
-.pfread-in .right {
+.pfread .right {
   flex: 1;
-  margin-left: 1%;
+  margin-left: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
   background: var(--Grey_Content);
 }
 
-.pfread-in .right .hd {
+.pfread .right .hd {
   line-height: 45px;
   border-bottom: 1px solid #ccc;
   padding: 0 10px;
   color: #2e363f;
 }
 
-.pfread-in .right .hd span i {
+.pfread .right .hd span i {
   top: 8px;
   display: block;
   background-position: center;
@@ -81,11 +71,11 @@
   height: 25px;
 }
 
-.pfread-in .right .hd .btns {
+.pfread .right .hd .btns {
   display: inline-block;
 }
 
-.pfread-in .right .hd .btns span {
+.pfread .right .hd .btns span {
   display: inline-block;
   width: auto;
   border-radius: 18px;
@@ -97,7 +87,7 @@
   color: #2e363f;
 }
 
-.pfread-in .right .bd {
+.pfread .right .bd {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -106,20 +96,24 @@
 /* 文本区域 */
 .right .sutra-text {
   /*font-size: 0;*/
-  display: none;
-  padding-top: 5px;
-  margin-left: 10px;
-  height: 100%;
   overflow: auto;
+  padding-top: 5px;
+  height: 100%;
+  display: none;
   flex: 1 1 auto;
 }
 
-.right .sutra-text.active{
+.right .sutra-text.active {
   display: block;
 }
 
+.sutra-text .blocks {
+  margin-left: 10px;
+  font-size: 0;
+}
+
 .sutra-text .block {
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .sutra-text .block:last-child {
@@ -260,11 +254,23 @@
   transition: all ease 0.3s 0s;
 }
 
+.char-list-table {
+  display: none;
+}
+
+.char-list-table.active {
+  display: inline-table;
+}
+
 .char-list-table td {
-  text-align: center;
   height: 30px;
   line-height: 30px;
+  text-align: center;
   vertical-align: middle;
+}
+
+.char-list-table:not(.editable) .del-doubt {
+  display: none;
 }
 
 .char-list-table td img {
@@ -340,6 +346,10 @@
   white-space: normal;
   font-size: 20px;
   word-break: break-all;
+}
+
+.pfread .pfread-dialog .same-base {
+  color: #0f0;
 }
 
 .dialog-common {
