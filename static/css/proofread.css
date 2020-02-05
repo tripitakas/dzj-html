@@ -347,6 +347,10 @@
   word-break: break-all;
 }
 
+.pfread .pfread-dialog .same-base {
+  color: #0f0;
+}
+
 .dialog-common {
   top: 0;
   left: 0;

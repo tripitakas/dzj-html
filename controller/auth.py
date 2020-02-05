@@ -269,12 +269,12 @@ def can_access(role, path, method):
                     if (p == ps or re.match('^%s$' % ps, p) or re.match('^%s$' % p, ps)) and method in _method:
                         return True
 
-    if re.search('./$', path):
-        path = path[:-1]
     if match_exclude(path, []):
         return True
     if match_exclude(path, ['page_name', 'num']):
         return True
+    if re.search('./$', path):
+        return can_access(role, path[:-1], method)
     return False
 
 

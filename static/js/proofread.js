@@ -235,10 +235,13 @@ $(document).on('dblclick', '.diff', function (e) {
   $(this).addClass('current-diff');
 
   // 设置弹框文本
-  $("#pfread-dialog-base").text($(this).attr("base"));
+  var baseText = $(this).attr("base");
+  $("#pfread-dialog-base").text(baseText);
   $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
   $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
   $("#pfread-dialog-slct").text($(this).text());
+  $("#pfread-dialog-cmp1").toggleClass('same-base', baseText && baseText === $(this).attr("cmp1"));
+  $("#pfread-dialog-cmp2").toggleClass('same-base', baseText && baseText === $(this).attr("cmp2"));
 
   // 设置弹框位置
   var $dlg = $("#pfread-dialog");
