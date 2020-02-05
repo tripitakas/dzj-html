@@ -3,6 +3,7 @@
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+{% include _font_css.html %}
 {% end %}
 
 {% block buttons %}
@@ -223,7 +224,6 @@
 {% end %}
 
 {% block custom-js %}
-{% include _font.html %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/proofread.js')}}"></script>

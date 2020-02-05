@@ -80,7 +80,7 @@
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
-    var autoPick = localStorage.getItem('autoPick');
+    var autoPick = localStorage.getItem('autoPick') || '是';
     if (autoPick.length) {
       $('#autoPickModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
     }
