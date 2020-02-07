@@ -63,24 +63,27 @@
 </div>
 
 {% include _base_js.html %}
+<script>
+  // 任务类型，放在pick-task.js之前
+  var taskType = '{{handler.task_type}}';
+  var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
+</script>
 <script src="{{static_url('js/pick-task.js')}}"></script>
 <script>
   var from = decodeFrom();
   var mode = '{{handler.mode}}';
   var docId = '{{handler.doc_id}}';
   var taskId = '{{handler.task_id}}';
-  var taskType = '{{handler.task_type}}';
   var steps = decodeJSON('{{handler.steps}}');
   var readonly = '{{handler.readonly}}' === 'True';
+  var isSample = '{{handler.task.get("is_sample")}}';
   var step = '{{handler.steps.get("current") or ""}}';
   var remark = '{{handler.task.get("remark") or ""}}';
-  var isSample = '{{handler.task.get("is_sample")}}';
-  var lobbyTaskType = taskType.indexOf('text_proof') !== -1 ? 'text_proof' : taskType;
 
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
-    var autoPick = localStorage.getItem('autoPick');
+    var autoPick = localStorage.getItem('autoPick') || '是';
     if (autoPick.length) {
       $('#autoPickModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
     }
@@ -170,8 +173,10 @@
   // 保存任务提交
   $(document).on("click", '#save-task', function () {
     var search = location.search;
-    if (step === 'orders')
+    // 字序校对保存后，刷新的url中删除layout参数
+    if (step === 'orders') {
       search = deleteQueryString(location.search, 'layout');
+    }
     saveTask(false, location.pathname + search);
   });
 

@@ -133,7 +133,7 @@ class AddPage(object):
                 meta.pop('width')
                 meta.pop('height')
 
-            for field in ['source', 'create_time', 'ocr_col', 'img_name']:
+            for field in ['source', 'create_time', 'ocr_col', 'img_name', 'char_ocr']:
                 if info.get(field):
                     meta[field] = info[field]
             if info.get('ocr'):

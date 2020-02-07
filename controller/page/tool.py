@@ -79,6 +79,7 @@ class PageTool(object):
             elif pre.get('line_no') and b.get('line_no') and pre['line_no'] != b['line_no']:
                 txt += '|'
             txt += b.get('ocr_txt', '')
+            pre = b
         return txt.strip('|')
 
     @classmethod

@@ -93,13 +93,16 @@ class Model(object):
         return d
 
     @classmethod
-    def find_by_page(cls, self, condition=None, search_fields=None, default_order=''):
+    def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
         condition = condition or {}
         q = self.get_query_argument('q', '')
         search_fields = search_fields or cls.search_fields
         if q:
             condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in search_fields]
-        query = self.db[cls.collection].find(condition)
+        if projection:
+            query = self.db[cls.collection].find(condition, projection)
+        else:
+            query = self.db[cls.collection].find(condition)
         order = self.get_query_argument('order', default_order)
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)

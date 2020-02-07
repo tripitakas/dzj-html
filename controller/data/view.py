@@ -150,17 +150,12 @@ class DataPageListHandler(BaseHandler, Page):
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'tasks', 'name': '任务'},
+        {'id': 'cut-edit', 'name': '切分框'},
         {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
         {'id': 'lock-box', 'name': '切分锁'},
         {'id': 'lock-text', 'name': '文本锁'},
-        {'id': 'blocks', 'name': '栏框'},
-        {'id': 'columns', 'name': '列框'},
-        {'id': 'chars', 'name': '字框'},
-        {'id': 'ocr', 'name': '字框OCR'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'text', 'name': '审定文本'},
         {'id': 'remark-box', 'name': '切分备注'},
         {'id': 'remark-text', 'name': '文字备注'},
     ]
@@ -217,7 +212,8 @@ class DataPageListHandler(BaseHandler, Page):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = self.get_page_search_condition(self.request.query)
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
+            p = {f: 0 for f in ['chars', 'columns', 'blocks', 'ocr', 'ocr_col', 'text', 'txt_html', 'char_ocr']}
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code', projection=p)
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, Th=TaskHandler,
                         format_value=self.format_value, **kwargs)

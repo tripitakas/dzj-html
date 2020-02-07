@@ -137,8 +137,7 @@ class PickTaskApi(TaskHandler):
         try:
             # 检查是否有未完成的任务
             task_type = 'text_proof' if 'text_proof' in task_type else task_type
-            task_filter = {'$regex': task_type} if self.is_group(task_type) else task_type
-            uncompleted = self.find_mine(task_type=task_type, status=self.STATUS_PICKED, page_size=1)
+            uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
                 return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
@@ -159,8 +158,8 @@ class PickTaskApi(TaskHandler):
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
             if self.is_group(task_type) and self.db.task.find_one(dict(
-                    task_type=task_filter, collection=task['collection'], id_name=task['id_name'],
-                    doc_id=task['doc_id'], picked_user_id=self.user_id
+                    status=self.STATUS_FINISHED, doc_id=task['doc_id'], picked_user_id=self.user_id,
+                    task_type={'$regex': task_type} if self.is_group(task_type) else task_type,
             )):
                 message = '您曾领取过本页面组任务中的一个，不能再领取其它任务'
                 return self.send_error_response(e.group_task_duplicated, message=message)
