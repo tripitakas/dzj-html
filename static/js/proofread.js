@@ -339,6 +339,8 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
+  if (!lineId)
+    return showTips('请先在文本区内选择文本');
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
@@ -349,6 +351,7 @@ $('#doubtModal .modal-confirm').on('click', function () {
   $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
+  markChanged();
 });
 
 $('#toggle-arrow').on('click', function () {
@@ -615,7 +618,7 @@ $('#delete-line').on('click', function () {
   var $currentLine = $curSpan.parent(".line");
   $currentLine.fadeOut(500).fadeIn(500);
   setTimeout(function () {
-    $currentLine.remove()
+    $currentLine.remove();
   }, 500);
 });
 
@@ -703,3 +706,10 @@ $('#ed-column-box').click(function () {
 $('#ed-char-order').click(function () {
   location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
 });
+
+$('#sutra-text').on('DOMSubtreeModified', markChanged);
+
+// 设置改动标记，自动本地缓存
+function markChanged() {
+  workChanged++;
+}

@@ -67,6 +67,7 @@
   // 任务类型，放在pick-task.js之前
   var taskType = '{{handler.task_type}}';
   var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
+  var workChanged = 0;
 </script>
 <script src="{{static_url('js/pick-task.js')}}"></script>
 <script>
@@ -91,6 +92,15 @@
       $('#remarkModal .is_sample :radio[value="是"]').prop('checked', true);
     } else if (isSample === 'False') {
       $('#remarkModal .is_sample :radio[value="否"]').prop('checked', true);
+    }
+  });
+
+  // 离开页面前的提醒
+  window.addEventListener('beforeunload', function(e) {
+    if (workChanged) {
+      var confirmationMessage = '改动内容还未保存，确定要离开本页吗？';
+      (e || window.event).returnValue = confirmationMessage; // 兼容 Gecko + IE
+      return confirmationMessage; // 兼容 Gecko + Webkit, Safari, Chrome
     }
   });
 
@@ -163,6 +173,7 @@
     if (data && !data.error) {
       showTips('保存中‧‧‧');
       postApi(location.pathname, {data: data}, function () {
+        workChanged = 0;
         if (!submit)
           showSuccess('成功', '已保存');
         goto(url, 1000);
