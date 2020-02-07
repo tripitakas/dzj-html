@@ -48,10 +48,10 @@ function getLineText($line) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
     }
+    var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
-      chars.push($(el).text());
+      chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
-      var text = $(el).text().replace(/\s/g, '');
       var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
       var mb4Map = {}, order = 'a', c;
 
@@ -427,12 +427,15 @@ var write_back_txt = {};
 function checkMismatch(report) {
   var mismatch = [];
   var lineCountMisMatch = '', ocrColumns = [];
+
+  // 文本区每行的栏号和列号
   var lineNos = $('#sutra-text .line').map(function (i, line) {
     var blockNo = getBlockNo($(line).parent());
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
 
+  // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.line_no) {
       var t = c.block_no + ',' + c.line_no;
@@ -442,6 +445,7 @@ function checkMismatch(report) {
     }
   });
 
+  // 先检查行列数是否匹配
   if (lineNos.length !== ocrColumns.length) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
     mismatch.splice(0, 0, lineCountMisMatch);
@@ -458,7 +462,9 @@ function checkMismatch(report) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
       boxes.forEach(function (c, i) {
-        write_back_txt[c.char_id] = text[i];
+        if (text[i].length === 1 && text[i].charCodeAt(0) > 256) {
+          write_back_txt[c.char_id] = text[i];
+        }
       });
     }
   });

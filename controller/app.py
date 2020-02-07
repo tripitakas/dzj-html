@@ -14,7 +14,7 @@ from tornado.options import define, options
 from controller.auth import url_placeholder
 from controller.helper import BASE_DIR, load_config, connect_db
 
-__version__ = '0.1.78.200129'
+__version__ = '0.1.79.200207'
 
 define('testing', default=False, help='the testing mode', type=bool)
 define('debug', default=True, help='the debug mode', type=bool)
