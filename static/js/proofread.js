@@ -496,7 +496,9 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    window.location = setQueryString('re_compare', 'true');
+    autoSave(function() {
+      window.location = setQueryString('re_compare', 'true');
+    });
   });
 });
 
@@ -689,22 +691,30 @@ $('#zoom-reset').on('click', function () {
 
 // 修改字框
 $('#ed-char-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+  });
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
+  });
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
+  });
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+  });
 });
 
 $('#sutra-text').on('DOMSubtreeModified', markChanged);
@@ -712,4 +722,12 @@ $('#sutra-text').on('DOMSubtreeModified', markChanged);
 // 设置改动标记，自动本地缓存
 function markChanged() {
   workChanged++;
+}
+
+function autoSave(ended) {
+  if (workChanged) {
+    saveTask(false, null, function() {
+      ended && ended();
+    });
+  }
 }

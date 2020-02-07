@@ -168,15 +168,19 @@
   });
 
   // 保存任务
-  function saveTask(submit, url) {
+  function saveTask(submit, url, ended) {
     var data = getSubmitData(submit);
     if (data && !data.error) {
       showTips('保存中‧‧‧');
       postApi(location.pathname, {data: data}, function () {
         workChanged = 0;
-        if (!submit)
-          showSuccess('成功', '已保存');
-        goto(url, 1000);
+        if (ended) {
+          ended();
+        } else {
+          if (!submit)
+            showSuccess('成功', '已保存');
+          goto(url, 1000);
+        }
       });
     }
   }
