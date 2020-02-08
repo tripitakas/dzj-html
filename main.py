@@ -25,8 +25,7 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     opt.parse_command_line()
     routes = c.handlers + c.views
-    app = Application(routes, default_handler_class=c.InvalidPageHandler, ui_modules=c.modules,
-                      xsrf_cookies=True, static_hash_cache=False)
+    app = Application(routes, default_handler_class=c.InvalidPageHandler, ui_modules=c.modules, xsrf_cookies=True)
     try:
         ssl_options = not opt.debug and app.site.get('https') or None
         server = HTTPServer(app, xheaders=True, ssl_options=ssl_options)
