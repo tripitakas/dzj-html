@@ -702,28 +702,28 @@ $('#zoom-reset').on('click', function () {
 // 修改字框
 $('#ed-char-box').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+    location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom(['step']);
   });
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
+    location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom(['step']);
   });
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
+    location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom(['step']);
   });
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+    location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom(['step']);
   });
 });
 

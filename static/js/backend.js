@@ -110,10 +110,15 @@ function deleteParam(query, name) {
   return query;
 }
 
-function encodeFrom() {
+function encodeFrom(paramsDel) {
   // 将第一个?替换为&，然后删除to/page等参数
   var url = location.pathname + location.search.replace('?', '&');
-  return deleteParam(url, 'to');
+  if (Array.isArray(paramsDel)) {
+    paramsDel.forEach(function(p) {
+      url = deleteParam(url, p);
+    });
+  }
+  return deleteParam(deleteParam(url, 'from'), 'to');
 }
 
 function decodeFrom() {
