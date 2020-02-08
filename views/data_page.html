@@ -291,22 +291,22 @@
 
   // 修改字框
   $('#btn-ed-char').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=chars&from=' + encodeFrom();
+    location = '/task/cut_edit/{{page["name"]}}?step=chars&from=' + encodeFrom(['step']);
   });
 
   // 修改栏框
   $('#btn-ed-block').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=blocks&from=' + encodeFrom();
+    location = '/task/cut_edit/{{page["name"]}}?step=blocks&from=' + encodeFrom(['step']);
   });
 
   // 修改列框
   $('#btn-ed-column').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=columns&from=' + encodeFrom();
+    location = '/task/cut_edit/{{page["name"]}}?step=columns&from=' + encodeFrom(['step']);
   });
 
   // 修改字序
   $('#btn-ed-order').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=orders&from=' + encodeFrom();
+    location = '/task/cut_edit/{{page["name"]}}?step=orders&from=' + encodeFrom(['step']);
   });
 
   // 修改审定文本
