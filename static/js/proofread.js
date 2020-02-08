@@ -729,5 +729,7 @@ function autoSave(ended) {
     saveTask(false, null, function() {
       ended && ended();
     });
+  } else {
+    ended();
   }
 }
