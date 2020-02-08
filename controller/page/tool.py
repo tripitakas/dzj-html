@@ -107,7 +107,7 @@ class PageTool(object):
                     line_no = 1
                     block_no += 1
                 s['block_no'], s['line_no'] = block_no, line_no
-                segments.append(s)
+                segments.append(cls.check_utf8mb4(s))
                 pre_empty_line_no = 0
         # 结构化，以便页面输出
         blocks = {}
@@ -119,8 +119,15 @@ class PageTool(object):
                 blocks[b_no][l_no] = []
             if not (s['is_same'] and s['base'] == '\n'):
                 s['offset'] = s['range'][0]
-                blocks[b_no][l_no].append(s)
+                blocks[b_no][l_no].append(cls.check_utf8mb4(s))
         return blocks
+
+    @classmethod
+    def check_utf8mb4(cls, seg):
+        column_strip = re.sub(r'\s', '', seg.get('base', ''))
+        char_codes = [(c, url_escape(c)) for c in list(column_strip)]
+        seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
+        return seg
 
     @classmethod
     def check_segments(cls, segments, chars, params=None):
