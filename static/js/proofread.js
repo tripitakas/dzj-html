@@ -593,8 +593,7 @@ function previousDiff() {
 
   $diff.eq(idx - 1).click();
   $diff.eq(idx - 1).dblclick();
-  var off = $('.dialog-abs').offset();
-  if ((off ? off.top : 0) < 50) {
+  if ($('.dialog-abs').offset().top < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
   }
 }
@@ -609,8 +608,7 @@ function nextDiff() {
   var idx = $diff.index(current);
   $diff.eq(idx + 1).click();
   $diff.eq(idx + 1).dblclick();
-  var off = $('.dialog-abs').offset();
-  if ((off ? off.top : 0) + $('.dialog-abs').height() > $('.bd').height()) {
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
   }
 }
@@ -618,6 +616,10 @@ function nextDiff() {
 $('#next-diff').on('click', nextDiff);
 $.mapKey('shift+tab', nextDiff);
 
+if ($('.pfread .right .diff').length < 1) {
+  $('#previous-diff').remove();
+  $('#next-diff').remove();
+}
 
 // 删除当前行
 $('#delete-line').on('click', function () {
