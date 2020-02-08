@@ -454,13 +454,18 @@ function checkMismatch(report) {
     mismatch.splice(0, 0, lineCountMisMatch);
   }
   write_back_txt = {};
+  workChanged -= 100000;
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = getLine(no.blockNo, no.lineNo);
     var text = getLineText($line);
     var len = text.length;
     $line.toggleClass('mismatch', boxes.length !== len);
-    $line.attr({mismatch: boxes.length + '!=' + len});
+    if (boxes.length === len) {
+      $line.removeAttr('mismatch');
+    } else {
+      $line.attr({mismatch: boxes.length + '!=' + len});
+    }
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
@@ -471,6 +476,7 @@ function checkMismatch(report) {
       });
     }
   });
+  workChanged += 100000;
   if (report) {
     if (mismatch.length) {
       var text = mismatch.map(function (t) {
@@ -587,7 +593,8 @@ function previousDiff() {
 
   $diff.eq(idx - 1).click();
   $diff.eq(idx - 1).dblclick();
-  if ($('.dialog-abs').offset().top < 50) {
+  var off = $('.dialog-abs').offset();
+  if ((off ? off.top : 0) < 50) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
   }
 }
@@ -602,7 +609,8 @@ function nextDiff() {
   var idx = $diff.index(current);
   $diff.eq(idx + 1).click();
   $diff.eq(idx + 1).dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
+  var off = $('.dialog-abs').offset();
+  if ((off ? off.top : 0) + $('.dialog-abs').height() > $('.bd').height()) {
     $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
   }
 }
@@ -721,7 +729,9 @@ $('#sutra-text').on('DOMSubtreeModified', markChanged);
 
 // 设置改动标记，自动本地缓存
 function markChanged() {
-  workChanged++;
+  if (workChanged > 0) {
+    workChanged++;
+  }
 }
 
 function autoSave(ended) {
