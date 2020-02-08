@@ -30,7 +30,7 @@ function showError(title, text, timer) {
 }
 
 function showWarning(title, text) {
-  showError(title, text, 'warning');
+  showError(title, text);
 }
 
 function showSuccess(title, text, timer) {
