@@ -424,8 +424,8 @@ class PageTool(object):
         return blocks
 
     @classmethod
-    def check_utf8mb4(cls, seg):
-        column_strip = re.sub(r'\s', '', seg.get('base', ''))
+    def check_utf8mb4(cls, seg, base=None):
+        column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
         char_codes = [(c, url_escape(c)) for c in list(column_strip)]
         seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
         return seg

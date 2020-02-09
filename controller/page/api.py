@@ -7,6 +7,7 @@ from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
 from controller.page.diff import Diff
+from controller.page.tool import PageTool
 from controller.page.base import PageHandler
 from elasticsearch.exceptions import ConnectionTimeout
 
@@ -170,6 +171,18 @@ class TextEditApi(PageHandler):
             self.send_data_response()
 
         except DbError as error:
+            return self.send_db_error(error)
+
+
+class DetectWideCharsApi(PageHandler):
+    URL = '/api/task/detect_chars'
+
+    def post(self):
+        """根据文本行内容识别宽字符"""
+        try:
+            mb4 = [[PageTool.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
+            self.send_data_response(mb4)
+        except Exception as error:
             return self.send_db_error(error)
 
 

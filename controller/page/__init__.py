@@ -6,7 +6,7 @@ views = [
 ]
 
 handlers = [
-    api.CutTaskApi, api.CutEditApi,
+    api.CutTaskApi, api.CutEditApi, api.DetectWideCharsApi,
     api.SelectTextApi, api.NeighborTextApi,
     api.TextProofApi, api.TextReviewApi, api.TextHardApi, api.TextEditApi,
     ocr.FetchOcrTasksApi, ocr.SubmitOcrTasksApi, ocr.ConfirmFetchOcrTasksApi,
