@@ -14,16 +14,16 @@ from controller.page.diff import Diff
 class PageTool(object):
 
     @staticmethod
-    def clear(boxes, fields=None):
+    def pop_fields(boxes, fields):
         """ 清空boxes中的fields字段"""
-        assert fields and type(fields) in [str, list]
+        assert type(fields) in [str, list]
         fields = fields.replace(' ', '').split(',') if isinstance(fields, str) else fields
         for b in boxes:
             for field in fields:
                 b.pop(field, 0)
 
     @staticmethod
-    def in_box(point, box):
+    def point_in_box(point, box):
         """ 判断point是否在box内"""
         return (box['x'] <= point[0] <= box['x'] + box['w']) and (box['y'] <= point[1] <= box['y'] + box['h'])
 
@@ -88,6 +88,23 @@ class PageTool(object):
         return ret
 
     @classmethod
+    def boxes_in_boxes(cls, boxes1, boxes2, ratio=0.9, only_check=True):
+        """ 检查boxes1是否都在boxes2中"""
+        not_in = []
+        for b1 in boxes1:
+            is_in = False
+            for b2 in boxes2:
+                overlap, ratio1, ratio2 = cls.box_overlap(b1, b2)
+                if ratio1 > ratio:
+                    is_in = True
+                    break
+            if not is_in:
+                not_in.append(b1)
+                if only_check:
+                    return False
+        return True if only_check else not_in
+
+    @classmethod
     def horizontal_scan_and_order(cls, boxes, field='', ratio=0.75):
         """ 水平扫描（从右到左，从上到下）boxes并进行排序
         :param boxes: list, 待排序的boxes
@@ -102,7 +119,6 @@ class PageTool(object):
             else:
                 return b['y'] - a['y']
 
-        cls.clear(boxes, field)
         boxes.sort(key=cmp_to_key(cmp), reverse=True)
         for i, box in enumerate(boxes):
             box[field] = i + 1
@@ -111,30 +127,36 @@ class PageTool(object):
     @classmethod
     def calc_block_id(cls, blocks):
         """ 计算并设置栏序号，包括block_no/block_id"""
-        ret = cls.horizontal_scan_and_order(blocks, 'block_no')
-        for r in ret:
-            r['block_id'] = 'b%s' % r['block_no']
-        return ret
+        cls.pop_fields(blocks, ['block_no', 'block_id'])
+        cls.horizontal_scan_and_order(blocks, 'block_no')
+        for b in blocks:
+            b['block_id'] = 'b%s' % b['block_no']
+        return blocks
 
     @classmethod
-    def calc_column_id(cls, columns, blocks):
+    def calc_column_id(cls, columns, blocks, auto_filter=False):
         """ 计算和设置列序号，包括column_no/column_id。假定blocks已排好序"""
-        ret = []
+        cls.pop_fields(columns, ['block_no', 'column_no', 'column_id'])
         for block in blocks:
             block_columns = []
             for c in columns:
                 point = c['x'] + c['w'] / 2, c['y'] + c['h'] / 2
-                if cls.in_box(point, block):
+                if cls.point_in_box(point, block):
                     c['block_no'] = block['block_no']
                     block_columns.append(c)
-            block_columns = cls.horizontal_scan_and_order(block_columns, 'column_no')
-            ret.extend(block_columns)
-        for r in ret:
-            r['column_id'] = 'b%sc%s' % (r['block_no'], r['column_no'])
-        return ret
+            cls.horizontal_scan_and_order(block_columns, 'column_no')
+        for i, c in enumerate([c for c in columns if c.get('block_no') is None]):
+            c['block_no'] = 0
+            c['column_no'] = i + 1
+        for c in columns:
+            c['column_id'] = 'b%sc%s' % (c['block_no'], c['column_no'])
+        if auto_filter:
+            return [c for c in columns if not c['block_no']]
+        else:
+            return columns
 
     @classmethod
-    def calc_char_id(cls, chars, columns, small_direction='vertical'):
+    def calc_char_id(cls, chars, columns, small_direction='vertical', auto_filter=False):
         """ 计算字序号，包括char_no/char_id
         :param chars: list, 待排序的chars
         :param columns: list, chars所属的columns。假定已排好序并设置好序号
@@ -194,13 +216,14 @@ class PageTool(object):
             for c in chars:
                 in_columns = [col for col in columns if cls.box_overlap(c, col, True)]
                 if not in_columns:
-                    c['column_id'] = None
+                    # 列框之外的chars统一设置为'b0c0'
+                    c['column_id'] = 'b0c0'
                 elif len(in_columns) == 1:
                     c['column_id'] = in_columns[0]['column_id']
                 else:
                     for col in in_columns:
                         center = c['x'] + c['w'] / 2, c['y'] + c['h'] / 2
-                        if cls.in_box(center, col):
+                        if cls.point_in_box(center, col):
                             c['column'] = col
                             c['column_id'] = col['column_id']
                         else:
@@ -222,7 +245,7 @@ class PageTool(object):
                         l_boxes = [b for b in h_boxes if b['x'] < c['x'] and is_big(b)]
                         if l_boxes:
                             c['column_id'] = c['column_id2']
-            cls.clear(chars, ['column', 'column_id2'])
+            cls.pop_fields(chars, ['column', 'column_id2'])
 
         def divide_by_column_id():
             col_chars = dict()
@@ -230,11 +253,13 @@ class PageTool(object):
                 if not col_chars.get(c['column_id']):
                     col_chars[c['column_id']] = []
                 col_chars[c['column_id']].append(c)
+            if auto_filter:
+                col_chars.pop('b0c0', 0)
             return col_chars
 
         def check_small():
             """ 检查并设置大小字属性"""
-            cls.clear(column_chars, 'is_small')
+            cls.pop_fields(column_chars, 'is_small')
             center = column['x'] + column['w'] * 0.5
             is_prev_small = False
             while True:
@@ -292,7 +317,7 @@ class PageTool(object):
             return res
 
         assert chars
-        cls.clear(chars, ['block_no', 'column_no', 'char_no', 'column_id'])
+        cls.pop_fields(chars, ['block_no', 'column_no', 'char_no', 'column_id'])
         normal_w, normal_h, normal_a = pre_params()
 
         ret_chars = []
@@ -313,7 +338,7 @@ class PageTool(object):
         for r in ret_chars:
             if r.get('column_id'):
                 r['block_no'] = r['column_id'][1]
-                r['column_no'] = r['column_id'][2:]
+                r['column_no'] = r['column_id'][3:]
                 r['char_id'] = '%sc%s' % (r['column_id'], r['char_no'])
 
         return ret_chars
@@ -335,7 +360,7 @@ class PageTool(object):
         return ret
 
     @classmethod
-    def reorder_chars(cls, chars, chars_col):
+    def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
         for col_no, col in enumerate(chars_col):
             for char_no, cid in enumerate(col):
@@ -541,7 +566,7 @@ if __name__ == '__main__':
     page = db.page.find_one({'name': name})
     blocks = PageTool.calc_block_id(page['blocks'])
     columns = PageTool.calc_column_id(page['columns'], blocks)
-    PageTool.clear(page['chars'], ['char_id', 'block_no', 'column_no', 'char_no', 'no'])
+    PageTool.pop_fields(page['chars'], ['char_id', 'block_no', 'column_no', 'char_no', 'no'])
     chars = PageTool.calc_char_id(page['chars'], columns)
     # chars = PageTool.calc_char_id(chars, columns, small_direction='horizontal')
     db.page.update_one({'name': name}, {'$set': {'blocks': blocks, 'columns': columns, 'chars': chars}})

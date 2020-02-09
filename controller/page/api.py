@@ -17,20 +17,42 @@ class CutTaskApi(PageHandler):
            '/api/task/update/@cut_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交切分任务"""
+        """ 提交切分校对任务
+        1. 检查栏框外、列框外是否有字框，如果有，则将提示用户是否自动过滤
+        2. 如果有auto_filter参数，则自动过滤掉栏外、列外的字框
+        3. 无参数order_confirmed时，将自动计算block_id/column_id/char_id等，有，则不自动计算
+        4. 检查字框的小字个数并返回给用户
+        """
 
         try:
-            fields = ['blocks', 'columns', 'chars'] if self.steps['current'] == 'box' else ['chars_col']
-            rules = [(v.not_empty, *fields)]
+            if self.data.get('target') == 'order':
+                return self.save_order(self)
+
+            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
             self.validate(self.data, rules)
+            auto_filter = self.data.get('auto_filter') or False
+            if not auto_filter:
+                valid, message = self.check_box_cover()
+                if not valid:
+                    return self.send_data_response(dict(valid=False, message=message))
 
             self.submit_task()
-            self.submit_doc(self.get_doc_update())
+            calc_id = False if self.page.get('order_confirmed') else True
+            update = self.get_cut_submit(calc_id, auto_filter)
+            self.submit_doc(update)
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
-            self.send_data_response()
+            small_count = len([c for c in update['chars'] if c.get('is_small')])
+            self.send_data_response(dict(valid=True, small_count=small_count))
 
         except DbError as error:
             return self.send_db_error(error)
+
+    @staticmethod
+    def save_order(self):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        self.submit_doc(dict(chars=chars, order_confirmed=True))
+        self.send_data_response()
 
 
 class CutEditApi(PageHandler):
@@ -40,14 +62,24 @@ class CutEditApi(PageHandler):
         """ 修改切分数据"""
 
         try:
-            fields = ['blocks', 'columns', 'chars'] if self.steps['current'] == 'box' else ['chars_col']
-            rules = [(v.not_empty, *fields)]
-            self.validate(self.data, rules)
+            if self.data.get('target') == 'order':
+                return CutTaskApi.save_order(self)
 
-            release_lock = self.data.get('submit') and self.steps['is_last']
-            self.update_edit_doc(self.task_type, page_name, release_lock, self.get_doc_update())
+            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+            self.validate(self.data, rules)
+            auto_filter = self.data.get('auto_filter') or False
+            if not auto_filter:
+                valid, message = self.check_box_cover()
+                if not valid:
+                    return self.send_error_response(e.box_not_covered, message=message)
+
+            calc_id = False if self.page.get('order_confirmed') else True
+            update = self.get_cut_submit(calc_id, auto_filter)
+            release_lock = self.data.get('submit')
+            self.update_edit_doc(self.task_type, page_name, release_lock, update)
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
-            self.send_data_response()
+            small_count = len([c for c in update['chars'] if c.get('is_small')])
+            self.send_data_response(dict(small_count=small_count))
 
         except DbError as error:
             return self.send_db_error(error)

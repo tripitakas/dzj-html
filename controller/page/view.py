@@ -17,11 +17,14 @@ class CutTaskHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 切分校对页面"""
         try:
+            btn_config = {}
             template = 'task_cut_do.html'
-            if self.steps['current'] == 'order':
+            if self.get_query_argument('target', '') == 'order':
                 template = 'task_cut_order.html'
-                self.chars_col = self.get_chars_col(self.page.get('chars'))
-            self.render(template)
+                if self.get_query_argument('re-order', '') == 'true':
+                    self.reorder()
+                self.chars_col = self.get_chars_col(self.page['chars'])
+            self.render(template, btn_config=btn_config)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -33,11 +36,14 @@ class CutEditHandler(PageHandler):
     def get(self, page_name):
         """ 切分编辑页面"""
         try:
+            btn_config = {}
             template = 'task_cut_do.html'
-            if self.steps['current'] == 'order':
+            if self.get_query_argument('target', '') == 'order':
                 template = 'task_cut_order.html'
-                self.chars_col = self.get_chars_col(self.page.get('chars'))
-            self.render(template)
+                if self.get_query_argument('re-order', '') == 'true':
+                    self.reorder()
+                self.chars_col = self.get_chars_col(self.page['chars'])
+            self.render(template, btn_config=btn_config)
 
         except Exception as error:
             return self.send_db_error(error)

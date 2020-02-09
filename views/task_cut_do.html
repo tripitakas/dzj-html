@@ -2,11 +2,21 @@
 
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+<style>
+  .m-bottom > span {
+    margin-left: 8px;
+  }
+
+  .full-bd {
+    padding-bottom: 20px;
+  }
+</style>
 {% end %}
 
 {% block buttons %}
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+  <img src="{{static_url('imgs/icon_char_no.png')}}" class="btn-img" id="view-order" title="查看字序"/>
   <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-image" title="显隐图片"/>
   <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img" id="toggle-blur" title="模糊"/>
   <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
@@ -16,7 +26,7 @@
   <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
   <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-block" title="显隐栏框"/>
   <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-column" title="显隐列框"/>
-  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box" id="toggle-char" title="显隐字框"/>
+  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-char" title="显隐字框"/>
 </div>
 <div class="btn-group hl-box" style="margin-left: 10px">
   <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐字框">所有<sup class="s-count"></sup></button>
@@ -31,6 +41,10 @@
 {% block full-bd %}
 <div class="bd" id="holder-container">
   <div id="holder"></div>
+</div>
+<div class="m-bottom" id="cut-info">
+  <span class="cur-char"></span>
+  <span class="char-info"></span>
 </div>
 {% end %}
 
@@ -132,7 +146,7 @@
 {% block custom-js %}
 {% include _base_cut.html %}
 <script>
-  // 页面图和切分框
+  // 页面图
   var canvasName = taskType + step + docId;
   $.cut.create({
     holder: 'holder',
@@ -147,34 +161,33 @@
   });
   $.cut.bindKeys();
 
+  // 初始设置
+  $.cut.toggleBox(false, 'block');
+  $.cut.toggleBox(false, 'column');
 
-  // 获取任务数据
-  function getSubmitData(submit) {
-    return {
-      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), submit: submit, step: step
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (reason === 'added') {
+      var cls = '';
+      if ($('#toggle-char').hasClass('active'))
+        cls += 'char';
+      if ($('#toggle-column').hasClass('active'))
+        cls += 'column';
+      if ($('#toggle-block').hasClass('active'))
+        cls += 'block';
+      if (cls && cls.length < 7) {
+        $.cut.setClass([info], cls);
+      } else {
+        showWarning('无法创建新框', '当前显示有多种切分框，请仅选择其中一个，然后再创建');
+        setTimeout(function () {
+          $.cut.removeBox();
+        }, 100);
+      }
     }
-  }
+  }, true);
 
-  // 更新Undo
-  function updateUndo() {
-    var root = '{{static_url("imgs")}}';
-    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
-    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
-  }
+</script>
 
-  updateUndo();
-
-  $('#undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  $('#redo').click(function () {
-    $.cut.redo();
-    updateUndo();
-  });
-
+<script>
   // 显示各种类型字框数量
   function showHighLightCount() {
     $('.hl-box > button').each(function (i, btn) {
@@ -209,11 +222,42 @@
 
   $.cut.onBoxChanged(onBoxChanged);
 
-  // 显隐切分框
-  $('#toggle-box').click(function () {
-    $(this).toggleClass('active');
-    $('svg rect').css('display', $(this).hasClass('active') ? 'block' : 'none');
-  });
+  function getSubmitData(submit) {
+    return {
+      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
+      chars: $.cut.exportBoxes('char'), submit: submit
+    };
+  }
+
+  // 成功提交之后
+  function successSubmitted() {
+    var autoPick = localStorage.getItem('autoPick') || '是';
+    setTimeout(function () {
+      if (mode === 'do' && autoPick === '是') {
+        pick('/task/pick/' + lobbyTaskType);
+      } else {
+        window.leave();
+      }
+    }, 1000);
+  }
+
+  // 重写函数
+  afterSubmitted = function (res) {
+    if (!res.valid) {
+      showConfirm('是否自动过滤？', res.message, function () {
+        var data = getSubmitData(true);
+        data.auto_filter = true;
+        postApi(location.pathname, {data: data}, function () {
+          showSuccess('成功', '已提交');
+          successSubmitted();
+        });
+      });
+    } else {
+      showSuccess('成功', '已提交');
+      successSubmitted();
+    }
+  };
 
 </script>
+
 {% end %}

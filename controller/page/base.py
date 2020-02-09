@@ -70,16 +70,49 @@ class PageHandler(TaskHandler, PageTool):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
-    def get_doc_update(self):
-        update = dict()
-        if self.steps['current'] == 'box':
-            update['chars'] = self.decode_box(self.data['chars'])
-            update['blocks'] = self.decode_box(self.data['blocks'])
-            update['columns'] = self.decode_box(self.data['columns'])
-        else:
-            update['chars'] = self.reorder_chars(self.page.get('chars'), self.data['chars_col'])
-        return update
-
     @staticmethod
     def decode_box(boxes):
         return json_decode(boxes) if isinstance(boxes, str) else boxes
+
+    def check_box_cover(self):
+        chars = self.decode_box(self.data['chars'])
+        blocks = self.decode_box(self.data['blocks'])
+        columns = self.decode_box(self.data['columns'])
+        char_in_block = self.boxes_in_boxes(chars, blocks)
+        column_in_block = self.boxes_in_boxes(columns, blocks)
+        char_in_column = self.boxes_in_boxes(chars, columns)
+        message = []
+        if not char_in_block:
+            message.append('字框不在栏框内')
+        if not column_in_block:
+            message.append('列框不在栏框内')
+        if not char_in_column:
+            message.append('字框不在列框内')
+        valid = char_in_block and column_in_block and char_in_column
+        return valid, '检测到有%s' % ','.join(message)
+
+    def get_cut_submit(self, calc_id=None, auto_filter=False):
+        """ 获取切分校对的提交
+        :param calc_id: 是否重新计算id
+        :param auto_filter: 是否自动过滤掉栏外的列框和字框。只有calc_id为True时，参数才有效
+        """
+        if calc_id is None and not self.page.get('order_confirmed'):
+            calc_id = True
+        chars = self.decode_box(self.data['chars'])
+        blocks = self.decode_box(self.data['blocks'])
+        columns = self.decode_box(self.data['columns'])
+        if calc_id:
+            blocks = self.calc_block_id(blocks)
+            columns = self.calc_column_id(columns, blocks, auto_filter)
+            chars = self.calc_char_id(chars, columns, auto_filter)
+        return dict(chars=chars, blocks=blocks, columns=columns)
+
+    def reorder(self):
+        """ 重排序号"""
+        blocks, columns, chars = self.page['blocks'], self.page['columns'], self.page['chars']
+        blocks = self.calc_block_id(blocks)
+        columns = self.calc_column_id(columns, blocks)
+        chars = self.calc_char_id(chars, columns)
+        self.page['blocks'] = blocks
+        self.page['columns'] = columns
+        self.page['chars'] = chars

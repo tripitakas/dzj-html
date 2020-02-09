@@ -1,24 +1,22 @@
 {% extends "_task_do.html" %}
 
-{% try %}
-{% set btn_config = btn_config %}
-{% except %}
-{% set btn_config = {} %}
+{% block task-actions %}
+<img src="{{static_url('imgs/icon_save.png')}}" class="btn-img" id="save-task" title="保存"/>
 {% end %}
 
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <style>
-  .m-bottom > span + span {
+  .m-bottom > span {
     margin-left: 8px;
-  }
-
-  text tspan {
-    fill: #f00;
   }
 
   .full-bd {
     padding-bottom: 20px;
+  }
+
+  text tspan {
+    fill: #f00;
   }
 
   .sweet-overlay {
@@ -49,12 +47,8 @@
 </div>
 
 <div class="btn-group right">
-  <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
-  <div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="margin-top: 4px">
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders'}}">原始字序</a>
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=1'}}">重排(旧算法)</a>
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=2'}}">重排(新算法)</a>
-  </div>
+  <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img" id="view-box" title="查看字框"/>
+  <img src="{{static_url('imgs/icon_refresh.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="re-order" title="重新计算字序"/>
 </div>
 {% end %}
 
@@ -64,9 +58,7 @@
 </div>
 <div class="m-bottom" id="cut-info">
   <span class="cur-char"></span>
-  <span class="col-info"></span>
   <span class="char-info"></span>
-  <span class="target-char"></span>
 </div>
 {% end %}
 
@@ -201,27 +193,8 @@
   // 获取任务数据
   function getSubmitData(submit) {
     var r = $.cut.getCharsCol();
-    return {submit: submit, step: 'order', error: r.error, chars_col: r.chars_col};
+    return {submit: submit, target: 'order', chars_col: r.chars_col, error: r.error};
   }
-
-  // 更新Undo
-  function updateUndo() {
-    var root = '{{static_url("imgs")}}';
-    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
-    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
-  }
-
-  updateUndo();
-
-  $('#undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  $('#redo').click(function () {
-    $.cut.redo();
-    updateUndo();
-  });
 
   // 显示字序待修正的字框
   $('#show-err-box').click(function () {
@@ -242,6 +215,10 @@
   $.cut.setLabel(false);
   $.cut.setLink(true);
 
+  // 重新计算字序
+  $('#re-order').click(function () {
+    location.href = setQueryString('re-order', 'true');
+  });
 
 </script>
 {% end %}
