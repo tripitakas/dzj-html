@@ -48,10 +48,10 @@ function getLineText($line) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
     }
+    var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
-      chars.push($(el).text());
+      chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
-      var text = $(el).text().replace(/\s/g, '');
       var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
       var mb4Map = {}, order = 'a', c;
 
@@ -339,6 +339,8 @@ $('#doubtModal .modal-confirm').on('click', function () {
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
+  if (!lineId)
+    return showTips('请先在文本区内选择文本');
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
@@ -349,6 +351,7 @@ $('#doubtModal .modal-confirm').on('click', function () {
   $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
+  markChanged();
 });
 
 $('#toggle-arrow').on('click', function () {
@@ -427,12 +430,15 @@ var write_back_txt = {};
 function checkMismatch(report) {
   var mismatch = [];
   var lineCountMisMatch = '', ocrColumns = [];
+
+  // 文本区每行的栏号和列号
   var lineNos = $('#sutra-text .line').map(function (i, line) {
     var blockNo = getBlockNo($(line).parent());
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
 
+  // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.line_no) {
       var t = c.block_no + ',' + c.line_no;
@@ -442,26 +448,35 @@ function checkMismatch(report) {
     }
   });
 
+  // 先检查行列数是否匹配
   if (lineNos.length !== ocrColumns.length) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
     mismatch.splice(0, 0, lineCountMisMatch);
   }
   write_back_txt = {};
+  workChanged -= 100000;
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = getLine(no.blockNo, no.lineNo);
     var text = getLineText($line);
     var len = text.length;
     $line.toggleClass('mismatch', boxes.length !== len);
-    $line.attr({mismatch: boxes.length + '!=' + len});
+    if (boxes.length === len) {
+      $line.removeAttr('mismatch');
+    } else {
+      $line.attr({mismatch: boxes.length + '!=' + len});
+    }
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     } else {  // 只要字数匹配就回写txt到字框，需要审校者仔细核对每个字
       boxes.forEach(function (c, i) {
-        write_back_txt[c.char_id] = text[i];
+        if (text[i].length === 1 && text[i].charCodeAt(0) > 256) {
+          write_back_txt[c.char_id] = text[i];
+        }
       });
     }
   });
+  workChanged += 100000;
   if (report) {
     if (mismatch.length) {
       var text = mismatch.map(function (t) {
@@ -487,7 +502,9 @@ $('#check-match').on('click', function () {
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    window.location = setQueryString('re_compare', 'true');
+    autoSave(function() {
+      window.location = setQueryString('re_compare', 'true');
+    });
   });
 });
 
@@ -599,6 +616,10 @@ function nextDiff() {
 $('#next-diff').on('click', nextDiff);
 $.mapKey('shift+tab', nextDiff);
 
+if ($('.pfread .right .diff').length < 1) {
+  $('#previous-diff').remove();
+  $('#next-diff').remove();
+}
 
 // 删除当前行
 $('#delete-line').on('click', function () {
@@ -609,7 +630,7 @@ $('#delete-line').on('click', function () {
   var $currentLine = $curSpan.parent(".line");
   $currentLine.fadeOut(500).fadeIn(500);
   setTimeout(function () {
-    $currentLine.remove()
+    $currentLine.remove();
   }, 500);
 });
 
@@ -680,20 +701,47 @@ $('#zoom-reset').on('click', function () {
 
 // 修改字框
 $('#ed-char-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+  });
 });
 
 // 修改栏框
 $('#ed-block-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
+  });
 });
 
 // 修改列框
 $('#ed-column-box').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
+  });
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+  autoSave(function() {
+    location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+  });
 });
+
+$('#sutra-text').on('DOMSubtreeModified', markChanged);
+
+// 设置改动标记，自动本地缓存
+function markChanged() {
+  if (workChanged > 0) {
+    workChanged++;
+  }
+}
+
+function autoSave(ended) {
+  if (workChanged) {
+    saveTask(false, null, function() {
+      ended && ended();
+    });
+  } else {
+    ended();
+  }
+}

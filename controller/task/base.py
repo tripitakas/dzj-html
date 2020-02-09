@@ -130,9 +130,10 @@ class TaskHandler(BaseHandler, Task, Lock):
             mode = 'view'
         return mode
 
-    def get_current_step(self):
+    def get_current_step(self, valid_steps):
         """ 获取当前步骤"""
-        current_step = self.get_query_argument('step', '')
+        current_step = [v for v in self.get_query_arguments('step') if v in valid_steps]
+        current_step = current_step and current_step[0] or ''
         if self.is_api and not current_step:
             current_step = self.prop(self.data, 'step')
         return current_step
@@ -249,8 +250,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         当前步骤可以在url中申明，或者在api的请求体中给出。
         """
         steps = dict()
-        current_step = self.get_current_step()
         default_steps = self.get_steps(task_type)
+        current_step = self.get_current_step(default_steps)
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
@@ -280,7 +281,9 @@ class TaskHandler(BaseHandler, Task, Lock):
         mode = self.get_task_mode() if not mode else mode
         error = None
         if mode in ['do', 'update']:
-            if task.get('picked_user_id') != self.current_user.get('_id'):
+            if not task:
+                error = e.task_not_existed
+            elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_unauthorized_locked
             elif mode == 'do' and task['status'] != self.STATUS_PICKED:
                 error = e.task_can_only_do_picked
