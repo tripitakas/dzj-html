@@ -427,7 +427,7 @@ $(document).ready(function () {
 var write_back_txt = {};
 
 // 图文匹配
-function checkMismatch(report) {
+function checkMismatch(report, fromApi) {
   var mismatch = [];
   var lineCountMisMatch = '', ocrColumns = [];
 
@@ -437,6 +437,12 @@ function checkMismatch(report) {
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
+
+  if (!fromApi) {
+    return updateWideChars(lineNos, function() {
+      checkMismatch(report, true);
+    });
+  }
 
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
@@ -489,6 +495,35 @@ function checkMismatch(report) {
       showTips("成功", "图文匹配");
     }
   }
+}
+
+// 调用后台API，根据文本行内容识别宽字符
+function updateWideChars(lineNos, ended) {
+  var texts = [];
+  lineNos.forEach(function (no) {
+    var $line = getLine(no.blockNo, no.lineNo);
+    var spans = [];
+    texts.push(spans);
+    $line.find('span').each(function (i, el) {
+      if ($(el).parent().prop('tagName') === 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
+        var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
+        spans.push(text);
+      }
+    });
+  });
+
+  postApi('/task/detect_chars', {data: {texts: texts}}, function(res) {
+    lineNos.forEach(function (no, lineIdx) {
+      var $line = getLine(no.blockNo, no.lineNo);
+      $line.find('span').each(function (i, el) {
+        if ($(el).parent().prop('tagName') === 'LI') {
+          var mb4 = res.data[lineIdx][i];
+          $(el).attr('utf8mb4', mb4);
+        }
+      });
+    });
+    ended();
+  }, ended);
 }
 
 $(document).ready(function () {
