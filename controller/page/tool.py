@@ -7,6 +7,7 @@
 import re
 from operator import itemgetter
 from functools import cmp_to_key
+from tornado.escape import url_escape
 from controller.page.diff import Diff
 
 
@@ -390,7 +391,7 @@ class PageTool(object):
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):
         """ 生成文字校对的segment"""
-        # 生成segments
+        # 1. 生成segments
         segments = []
         pre_empty_line_no = 0
         block_no, line_no = 1, 1
@@ -403,17 +404,13 @@ class PageTool(object):
                     line_no += 1
                 pre_empty_line_no += 1
             else:  # 当前非空行
-                if pre_empty_line_no == 0:  # 当前segment之前没有空行
-                    pass
-                elif pre_empty_line_no == 1:  # 当前segment之前有一个为空行
-                    pass
-                else:  # 当前segment之前有多个空行，即换栏
+                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
                     line_no = 1
                     block_no += 1
                 s['block_no'], s['line_no'] = block_no, line_no
                 segments.append(s)
                 pre_empty_line_no = 0
-        # 结构化，以便页面输出
+        # 2. 结构化，以便页面输出
         blocks = {}
         for s in segments:
             b_no, l_no = s['block_no'], s['line_no']
@@ -432,63 +429,6 @@ class PageTool(object):
         char_codes = [(c, url_escape(c)) for c in list(column_strip)]
         seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
         return seg
-
-    @classmethod
-    def check_segments(cls, segments, chars, params=None):
-        """ 检查segments """
-        params = params or {}
-
-        # 按列对字框分组，提取列号
-        cls.normalize_boxes(dict(chars=chars, columns=params.get('columns') or []))
-        column_ids = sorted(list(set((c['block_no'], c['line_no']) for c in chars)))
-
-        # 然后逐行对应并分配栏列号，匹配时不做文字比较
-        # 输入参数txt与字框的OCR文字通常是顺序一致的，假定文字的行分布与字框的列分布一致
-        line_no = 0
-        matched_boxes = []
-        for seg in segments:
-            if seg['line_no'] > len(column_ids):
-                break
-            if line_no != seg['line_no']:
-                line_no = seg['line_no']
-                boxes = [c for c in chars if (c['block_no'], c['line_no']) == column_ids[line_no - 1]]
-                column_txt = ''.join(s.get('base', '') for s in segments if s['line_no'] == line_no)
-                column_strip = re.sub(r'\s', '', column_txt)
-
-                if len(boxes) != len(column_strip) and 'mismatch_lines' in params:
-                    params['mismatch_lines'].append('b%dc%d' % (boxes[0]['block_no'], boxes[0]['line_no']))
-                for i, c in enumerate(sorted(boxes, key=itemgetter('no'))):
-                    c['txt'] = column_strip[i] if i < len(column_strip) else '?'
-                    matched_boxes.append(c)
-
-            seg['txt_line_no'] = seg.get('txt_line_no', seg['line_no'])
-            seg['block_no'], seg['line_no'] = column_ids[line_no - 1]
-
-            column_strip = re.sub(r'\s', '', seg.get('base', ''))
-            char_codes = [(c, url_escape(c)) for c in list(column_strip)]
-            seg['utf8mb4'] = ','.join([c for c, es in char_codes if len(es) > 9])
-
-        for c in chars:
-            if c not in matched_boxes:
-                c.pop('txt', 0)
-
-        return segments
-
-    @staticmethod
-    def normalize_boxes(page):
-        for c in page.get('chars', []):
-            cid = c.get('char_id', '')[1:].split('c')
-            if len(cid) == 3:
-                c['no'] = c['char_no'] = int(cid[2])
-                c['block_no'], c['line_no'] = int(cid[0]), int(cid[1])
-            else:
-                c['no'] = c['char_no'] = c.get('char_no') or c.get('no', 0)
-                c['block_no'] = c.get('block_no', 0)
-                c['line_no'] = c.get('line_no', 0)
-                c['char_id'] = 'b%dc%dc%d' % (c.get('block_no'), c.get('line_no'), c.get('no'))
-        for c in page.get('columns', []):
-            c.pop('char_id', 0)
-            c.pop('char_no', 0)
 
     @staticmethod
     def check_match(chars, txt):
@@ -604,7 +544,6 @@ if __name__ == '__main__':
     PageTool.clear(page['chars'], ['char_id', 'block_no', 'column_no', 'char_no', 'no'])
     chars = PageTool.calc_char_id(page['chars'], columns)
     # chars = PageTool.calc_char_id(chars, columns, small_direction='horizontal')
-    # print(chars)
     db.page.update_one({'name': name}, {'$set': {'blocks': blocks, 'columns': columns, 'chars': chars}})
 
     print('finished.')

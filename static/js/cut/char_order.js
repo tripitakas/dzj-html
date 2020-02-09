@@ -245,7 +245,7 @@
           'stroke-dasharray': '.',
           'stroke-width': (a.x < b.x ? 3 : 2) / data.ratioInitial
         })
-            .data('up', 1);
+        .data('up', 1);
       }
       if (zoomed && !remove) {
         line.animate({'stroke-width': 6 * data.ratio}, 500, 'elastic');
@@ -454,7 +454,7 @@
     },
 
     _updateCharInfo: function (link) {
-      $('#cut-info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
+      $('#info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
           (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? this.hover.line ? '，可改起点' : '，起点' : '')));
     },
 

@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2019-12-07
+ * Date: 2020-02-06
  */
 (function () {
   'use strict';
@@ -89,7 +89,6 @@
             stroke: data.changedColor,
             'stroke-opacity': data.boxOpacity,
             'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-            , fill: (data.blockMode || data.columnMode) && data.hoverFill
             , 'fill-opacity': 0.1
           });
     }
@@ -97,12 +96,12 @@
 
   function findCharById(id) {
     return id && data.chars.filter(function (box) {
-      return box.char_id === id || box.cid === id;
+      return box.char_id === id || box.cid == id;
     })[0];
   }
 
   function notifyChanged(el, reason) {
-    var c = el && findCharById(el.data('cid'));
+    var c = el && findCharById(el.data('char_id'));
     data.boxObservers.forEach(function (func) {
       func(c || {}, el && el.getBBox(), reason);
     });
@@ -409,6 +408,7 @@
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
+      return el;
     },
 
     // 创建校对画布和各个框
@@ -539,22 +539,13 @@
       data.holder = document.getElementById(p.holder);
       data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       state.focus = true;
-      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {
-      };
+      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {};
 
       data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
           .attr({'stroke': 'transparent', fill: data.boxFill, cursor: 'crosshair'});
 
       state.readonly = p.readonly;
-      if (p.blockMode || p.columnMode) {
-        data.activeFillOpacity = 0.3;
-      }
-
-      data.blockMode = p.blockMode;
-      data.columnMode = p.columnMode;
-      data.charMode = p.charMode;
-      data.orderMode = p.orderMode;
       data.ratioInitial = $(data.holder).width() / p.width;
       var h = data.scrollContainer ? data.scrollContainer.height() : $(data.holder).height();
       if (h && !p.widthFull) {
@@ -562,10 +553,6 @@
       }
       if (p.minRatio) {
         data.ratioInitial = Math.max(data.ratioInitial, p.minRatio);
-      }
-      if (p.blockMode || p.columnMode || p.charMode || p.orderMode) {
-        data.activeFillOpacity = 0.3;
-        data.ratioInitial = Math.min(data.ratioInitial, (document.documentElement.clientHeight - 40) / p.height)
       }
 
       $(data.holder)
@@ -580,32 +567,32 @@
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
+      if (p.blocks || p.columns) {
+        self.setClass(p.chars, 'char');
+        if (p.blocks) {
+          p.blocks = typeof p.blocks === 'string' ? self.decodeJSON(p.blocks) : p.blocks;
+          p.chars = p.chars.concat(self.setClass(p.blocks, 'block'));
+        }
+        if (p.columns) {
+          p.columns = typeof p.columns === 'string' ? self.decodeJSON(p.columns) : p.columns;
+          p.chars = p.chars.concat(self.setClass(p.columns, 'column'));
+        }
+      }
 
       p.chars.forEach(function (b, idx) {
-        if (p.columnMode || b.class === 'column') {
+        if (b.class === 'column') {
           b.char_id = b.column_id;
         }
-        if (b.class === 'block') {
+        else if (b.class === 'block') {
           if (!b.block_id && b.block_no) {
             b.block_id = 'b' + b.block_no;
           }
           b.char_id = b.block_id;
         }
-        if (b.char_id) {
-          var ids = b.char_id.replace('b', 'c').split('c');
-          if (ids.length > 2) {
-            b.block_no = parseInt(ids[1]);
-            b.column_no = parseInt(ids[2]);
-            b.char_no = parseInt(ids[3]);
-          }
-        }
-        if (b.block_no && b.column_no && b.char_no && !b.char_id) {
-          b.char_id = (b.block_no * 1000 + b.column_no) + 'n' + (b.char_no > 9 ? b.char_no : '0' + b.char_no);
-        }
         if (!b.char_id) {
           b.char_id = 'org' + idx;
         }
-        b.ch = b.ch || b.txt;
+        b.txt = b.txt || b.ch;
       });
       data.width = p.width;
       data.height = p.height;
@@ -672,7 +659,7 @@
         }
       });
       chars.forEach(function (b) {
-        if (data.removeSmall && b.ch !== '一' && (
+        if (data.removeSmall && b.txt !== '一' && (
             b.w < data.removeSmall[0] / 2 && b.h < data.removeSmall[1] / 2
             || b.w < data.removeSmall[0] / 3 || b.h < data.removeSmall[1] / 3)) {
           return;
@@ -687,24 +674,14 @@
               stroke: (b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor,
               'stroke-opacity': data.boxOpacity,
               'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
-              , fill: (data.blockMode || data.columnMode) && data.hoverFill
               , 'fill-opacity': 0.1
               , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
             })
             .data('class', b.class)
-            .data('uid', b.id)
-            .data('cid', b.char_id)
-            .data('char', b.ch);
+            .data('cid', b.cid)
+            .data('char_id', b.char_id)
+            .data('char', b.txt);
         c.shape.node.id = b.char_id;
-
-        if (b.char_id && parseInt(b.char_id.split('c')[2]) > 100) {
-          setTimeout(function () {
-            if (c.shape) {
-              // c.shape.attr({fill: data.hoverFill, 'fill-opacity': 0.8});
-              // c.shape.show();
-            }
-          }, 100);
-        }
       });
       var c = this.findCharById(cid);
       this.switchCurrentBox(c && c.shape);
@@ -721,7 +698,7 @@
         return;
       }
 
-      var info = src && this.findCharById(src.data('cid')) || {};
+      var info = src && this.findCharById(src.data('char_id')) || {};
       var added = !info.char_id;
 
       if (added) {
@@ -737,7 +714,9 @@
       } else {
         info.changed = true;
       }
-      dst.data('cid', info.char_id).data('char', dst.ch);
+      dst.data('char_id', info.char_id).data('char', dst.txt);
+      dst.data('class', info.class).data('cid', dst.cid);
+
       info.shape = dst;
       if (added) {
         notifyChanged(dst, 'added');
@@ -757,8 +736,8 @@
     },
 
     getCurrentCharID: function (withId) {
-      var uid = withId && state.edit && state.edit.data('uid');
-      return state.edit && state.edit.data('cid') + (uid ? '#' + uid : '');
+      var cid = withId && state.edit && state.edit.data('cid');
+      return state.edit && state.edit.data('char_id') + (cid ? '#' + cid : '');
     },
 
     getCurrentChar: function () {
@@ -767,13 +746,13 @@
 
     findCharById: findCharById,
 
-    findCharsByOffset: function (block_no, column_no, offset) {
+    findCharsByOffset: function (block_no, line_no, offset) {
       for (var i = 0, index = 0; i < data.chars.length; i++) {
-        var box = data.chars[i];
-        if (box.block_no === block_no && box.column_no === column_no) {
+        var c = data.chars[i];
+        if (c.block_no === block_no && c.column_no === line_no) {
           index++;
           if (index === offset) {
-            return [box];
+            return [c];
           }
         }
       }
@@ -782,9 +761,9 @@
 
     findCharsByLine: function (block_no, line_no, cmp) {
       var i = 0;
-      return data.chars.filter(function (box) {
-        if (box.block_no === block_no && box.column_no === line_no) {
-          return !cmp || cmp(box.ch, box, i++);
+      return data.chars.filter(function (c) {
+        if (c.block_no === block_no && c.column_no === line_no) {
+          return !cmp || cmp(c.txt, c, i++);
         }
       }).sort(function (a, b) {
         return a.char_no - b.char_no;
@@ -820,25 +799,55 @@
       return ret;
     },
 
-    exportBoxes: function (pageData) {
+    exportBoxes: function (boxType) {
       var r = function (v) {
-        return Math.round(v * 10 / pageData.ratio / pageData.ratioInitial) / 10;
+        return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       };
-      pageData = pageData || data;
-      var chars = pageData.chars.filter(function (c) {
-        return c.w && c.h && c.shape;
+      var chars = data.chars.filter(function (c) {
+        return c.w && c.h && c.shape && (!boxType || boxType === c.class);
       }).map(function (c) {
         var box = c.shape.getBBox();
-        var ret = {}, ignoreValues = [null, undefined, ''], ignoreFields = ['shape', 'ch'];
-        $.extend(c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.ch || ''});
+        var ret = {}, ignoreValues = [null, undefined, ''], ignoreFields = ['shape', 'ch', 'class'];
+        $.extend(c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.txt || ''});
         Object.keys(c).forEach(function (k) {
-          if (ignoreValues.indexOf(c[k]) < 0 && ignoreFields.indexOf(k) < 0) {
+          if (ignoreValues.indexOf(c[k]) < 0 && ignoreFields.indexOf(k) < 0 && k[0] !== '_'
+              || k === 'class' && !boxType) {
             ret[k] = c[k];
           }
         });
+        if (c.class === 'block' || c.class === 'column') {
+          delete ret.char_id;
+          delete ret.char_no;
+        }
+        if (c.class === 'block') {
+          delete ret.column_no;
+        }
         return ret;
       });
+
+      chars.sort(function(a, b) {
+        return (a.block_no || 0) - (b.block_no || 0)
+          || (a.column_no || 0) - (b.column_no || 0)
+          || (a.char_no || 0) - (b.char_no || 0);
+      });
+
       return chars;
+    },
+
+    // 导出每个列的字框 [[char_dict, ...], chars_of_2nd_column, ...]
+    exportColChars: function() {
+      var chars = this.exportBoxes('char');
+      var columns = [], curColId = [0, 0], colChars;
+
+      chars.forEach(function(c) {
+        if (curColId[0] !== c.block_no || curColId[1] !== c.column_no) {
+          curColId = [c.block_no, c.column_no];
+          colChars = [];
+          columns.push(colChars);
+        }
+        colChars.push(c);
+      });
+      return columns;
     },
 
     // callback: function(info, box, reason)
@@ -846,8 +855,8 @@
       data.boxObservers.push(callback);
       if (fire) {
         setTimeout(function() {
-          var c = state.edit && findCharById(state.edit.data('cid'));
-          callback(c || {}, state.edit && state.edit.getBBox(), 'navigate');
+          var c = state.edit && findCharById(state.edit.data('char_id'));
+          callback(c || {}, state.edit && state.edit.getBBox(), 'initial');
         }, 0);
       }
     },
@@ -883,7 +892,7 @@
       this.cancelDrag();
       if (state.edit && !state.readonly) {
         var el = state.edit;
-        var info = this.findCharById(el.data('cid'));
+        var info = this.findCharById(el.data('char_id'));
         var hi = /small|narrow|flat/.test(data.hlType) && this.switchNextHighlightBox;
         var next = hi ? this.switchNextHighlightBox(1) : this.navigate('down');
 
@@ -979,7 +988,7 @@
       if (ret) {
         this.cancelDrag();
         this.switchCurrentBox(ret);
-        return ret.data('cid');
+        return ret.data('char_id');
       }
     },
 
@@ -1031,6 +1040,10 @@
       });
     },
 
+    setFocus: function (id) {
+      return this.switchCurrentBox((this.findCharById(id) || {}).shape);
+    },
+
     setRatio: function (ratio) {
       var el = state.edit || state.hover;
       var box = el && el.getBBox();
@@ -1062,6 +1075,15 @@
     setClass: function (boxes, className) {
       for (var i = 0; i < boxes.length; i++) {
         boxes[i]['class'] = className;
+        var el = boxes[i].shape;
+        if (el) {
+          el.data('class', className);
+          if (el.data('class')) {
+            el.node.style.display = 'block';
+          } else {
+            el.show();
+          }
+        }
       }
       return boxes;
     }

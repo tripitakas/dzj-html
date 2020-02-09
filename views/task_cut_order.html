@@ -166,7 +166,6 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
   var canvasName = taskType + step + docId;
-  var btnConfig = decodeJSON('{{btn_config}}');
   var chars = $.cut.setClass(decodeJSON('{{handler.page.get("chars") or []}}'), 'char');
   var blocks = $.cut.setClass(decodeJSON('{{handler.page.get("blocks") or []}}'), 'block');
   var columns = $.cut.setClass(decodeJSON('{{handler.page.get("columns") or []}}'), 'column');
@@ -184,7 +183,7 @@
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+  $.cut.addCharOrderLinks(decodeJSON('{{handler.chars_col}}'));
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
@@ -199,28 +198,10 @@
     }
   };
 
-  // 获取当前按钮状态
-  function getConfig() {
-    var config = {};
-    var buttons = ['toggle-image', 'toggle-blur', 'toggle-column', 'toggle-char', 'toggle-order', 'toggle-char-no'];
-    buttons.forEach(function (button) {
-      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
-    });
-    return config;
-  }
-
   // 获取任务数据
   function getSubmitData(submit) {
-    var data = {submit: submit, step: 'orders', box_type: 'chars', boxes: JSON.stringify($.cut.exportBoxes())};
-    if ($.cut.isLinkChanged() || 1) {
-      var r = $.cut.getCharsCol();
-      data.error = r.error;
-      data.chars_col = r.chars_col;
-      data.blocks = blocks;
-      data.columns = columns;
-    }
-    data.config = getConfig();
-    return data;
+    var r = $.cut.getCharsCol();
+    return {submit: submit, step: 'order', error: r.error, chars_col: r.chars_col};
   }
 
   // 更新Undo
@@ -255,13 +236,12 @@
   });
 
   // 初始化设置
-  $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] === -1 ? 1 : 0.2;
-  $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
-  $.cut.setLabel(btnConfig['toggle-char-no'] === 1);
-  $.cut.setLink(!(btnConfig['toggle-order'] === -1));
-  if (btnConfig['toggle-column'] === 1)
-    $.cut.toggleColumns(columns);
+  $.cut.data.image.node.style.display = 'block';
+  $.cut.data.image.node.style.opacity = 0.2;
+  $('rect.char').css('display', 'none');
+  $.cut.setLabel(false);
+  $.cut.setLink(true);
+
 
 </script>
 {% end %}

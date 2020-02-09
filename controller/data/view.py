@@ -10,7 +10,6 @@ from functools import cmp_to_key
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.cut.cuttool import CutTool
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
