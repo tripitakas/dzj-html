@@ -120,13 +120,3 @@ class TestCutTask(APITestCase):
         self.login(u.expert2[0], u.expert2[1])
         r = self.parse_response(self.fetch('/task/cut_edit/QL_25_16?_raw=1'))
         self.assertEqual(False, r.get('readonly'))
-
-    def test_gen_char_id(self):
-        """测试生成字序"""
-        r = self.parse_response(self.fetch('/api/cut/gen_char_id', body={}))
-        self.assertIn('KeyError', r.get('message'))
-        r = self.fetch('/api/cut/gen_char_id', body={'data': dict(blocks=[], columns=[], chars=[])})
-        self.assert_code(200, r)
-
-        p = self._app.db.page.find_one({'name': 'GL_924_2_35'})
-        self.assertIsNotNone(p)

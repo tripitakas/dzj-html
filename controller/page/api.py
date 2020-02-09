@@ -3,8 +3,6 @@
 """
 @time: 2019/5/13
 """
-from bson import json_util
-from tornado.escape import json_decode
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
@@ -20,27 +18,13 @@ class CutTaskApi(PageHandler):
     def post(self, task_type, task_id):
         """ 提交切分任务"""
 
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
-
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
+            fields = ['blocks', 'columns', 'chars'] if self.steps['current'] == 'box' else ['chars_col']
+            rules = [(v.not_empty, *fields)]
             self.validate(self.data, rules)
 
-            self.submit_task(submit=self.data.get('submit'))
-            self.submit_doc(get_doc_update(), self.data.get('submit'))
-
-            if self.data.get('config'):
-                self.set_secure_cookie('%s_%s' % (task_type, self.data['step']), json_util.dumps(self.data['config']))
-
+            self.submit_task()
+            self.submit_doc(self.get_doc_update())
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
@@ -54,25 +38,13 @@ class CutEditApi(PageHandler):
     def post(self, page_name):
         """ 修改切分数据"""
 
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
-
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
+            fields = ['blocks', 'columns', 'chars'] if self.steps['current'] == 'box' else ['chars_col']
+            rules = [(v.not_empty, *fields)]
             self.validate(self.data, rules)
 
-            info = get_doc_update()
             release_lock = self.data.get('submit') and self.steps['is_last']
-            self.update_edit_doc(self.task_type, doc_id=page_name, release_lock=release_lock, info=info)
-
+            self.update_edit_doc(self.task_type, page_name, release_lock, self.get_doc_update())
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
             self.send_data_response()
 
@@ -199,27 +171,6 @@ class TextEditApi(PageHandler):
 
         except DbError as error:
             return self.send_db_error(error)
-
-
-class GenCharIdApi(PageHandler):
-    URL = '/api/cut/gen_char_id'
-
-    def post(self):
-        """ 根据坐标重新生成栏、列、字框的编号"""
-        chars = self.data['chars']
-        blocks = self.data['blocks']
-        columns = self.data['columns']
-        # 每列字框的序号 [[char_index_of_col1, ...], col2...]
-        chars_col = self.data.get('chars_col')
-        zero_char_id, layout_type = [], self.data.get('layout_type')
-        r = self.calc(blocks, columns, chars, chars_col, layout_type)
-        if r:
-            zero_char_id, layout_type, chars_col = r
-
-        return self.send_data_response(dict(
-            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-            zero_char_id=zero_char_id, layout_type=layout_type
-        ))
 
 
 class SelectTextApi(PageHandler):

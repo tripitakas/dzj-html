@@ -69,7 +69,6 @@ role_route_maps = {
             '/com/search': ['GET'],
             '/api/com/search': ['POST'],
             '/api/session/config': ['POST'],
-            '/api/cut/gen_char_id': ['POST'],
             '/task/sample/@task_type': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/api/task/text_select/@page_name': ['POST'],

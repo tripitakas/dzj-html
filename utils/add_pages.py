@@ -113,6 +113,14 @@ class AddPage(object):
                 if not path.exists(dst_file) or update:
                     shutil.copy(path.join(root, fn), dst_file)
 
+    @staticmethod
+    def line_no_2_column_no(boxes):
+        for b in boxes:
+            if b.get('line_no') and not b.get('column_no'):
+                b['column_no'] = b.get('line_no')
+                b.pop('line_no', 0)
+        return boxes
+
     def add_box(self, name, info):
         """ 导入切分信息 """
         exist = self.db.page.find_one(dict(name=name))
@@ -122,11 +130,12 @@ class AddPage(object):
         if self.update or not exist:
             width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
             height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
+            chars = self.line_no_2_column_no(prop(info, 'chars', []))
+            columns = self.line_no_2_column_no(prop(info, 'columns', []))
             meta = Page.metadata()
             meta.update(dict(
                 name=name, width=width, height=height, page_code=Page.name2pagecode(name),
-                blocks=prop(info, 'blocks', []), columns=prop(info, 'columns', []),
-                chars=prop(info, 'chars', []),
+                blocks=prop(info, 'blocks', []), columns=columns, chars=chars,
             ))
             if not width or not height:
                 assert exist

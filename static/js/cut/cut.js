@@ -595,12 +595,12 @@
           var ids = b.char_id.replace('b', 'c').split('c');
           if (ids.length > 2) {
             b.block_no = parseInt(ids[1]);
-            b.line_no = parseInt(ids[2]);
+            b.column_no = parseInt(ids[2]);
             b.char_no = parseInt(ids[3]);
           }
         }
-        if (b.block_no && b.line_no && b.char_no && !b.char_id) {
-          b.char_id = (b.block_no * 1000 + b.line_no) + 'n' + (b.char_no > 9 ? b.char_no : '0' + b.char_no);
+        if (b.block_no && b.column_no && b.char_no && !b.char_id) {
+          b.char_id = (b.block_no * 1000 + b.column_no) + 'n' + (b.char_no > 9 ? b.char_no : '0' + b.char_no);
         }
         if (!b.char_id) {
           b.char_id = 'org' + idx;
@@ -684,7 +684,7 @@
         }
         c.shape = data.paper.rect(b.x * s, b.y * s, b.w * s, b.h * s).initZoom()
             .setAttr({
-              stroke: (b.line_no || 0) % 2 ? data.normalColor2 : data.normalColor,
+              stroke: (b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor,
               'stroke-opacity': data.boxOpacity,
               'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
               , fill: (data.blockMode || data.columnMode) && data.hoverFill
@@ -767,10 +767,10 @@
 
     findCharById: findCharById,
 
-    findCharsByOffset: function (block_no, line_no, offset) {
+    findCharsByOffset: function (block_no, column_no, offset) {
       for (var i = 0, index = 0; i < data.chars.length; i++) {
         var box = data.chars[i];
-        if (box.block_no === block_no && box.line_no === line_no) {
+        if (box.block_no === block_no && box.column_no === column_no) {
           index++;
           if (index === offset) {
             return [box];
@@ -783,7 +783,7 @@
     findCharsByLine: function (block_no, line_no, cmp) {
       var i = 0;
       return data.chars.filter(function (box) {
-        if (box.block_no === block_no && box.line_no === line_no) {
+        if (box.block_no === block_no && box.column_no === line_no) {
           return !cmp || cmp(box.ch, box, i++);
         }
       }).sort(function (a, b) {

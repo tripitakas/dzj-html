@@ -1,29 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from tornado.escape import json_decode
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, PageTool):
-    step2box = dict(chars='char', columns='column', blocks='block', orders='char')
-
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
-        self.boxes = self.texts = self.doubts = []
-        self.box_type = self.page_name = ''
+        self.chars_col = self.texts = self.doubts = []
+        self.page_name = ''
         self.page = {}
 
     def prepare(self):
         super().prepare()
         self.page_name, self.page = self.doc_id, self.doc
-        if not self.is_api:
-            # 设置切分任务参数
-            if 'cut_' in self.task_type:
-                self.box_type = self.step2box.get(self.steps['current'])
-                self.boxes = self.page.get(self.box_type + 's')
-            # 设置文字任务参数
-            if 'text_' in self.task_type:
-                self.texts, self.doubts = self.get_cmp_txt()
 
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
@@ -78,3 +69,17 @@ class PageHandler(TaskHandler, PageTool):
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
+
+    def get_doc_update(self):
+        update = dict()
+        if self.steps['current'] == 'box':
+            update['chars'] = self.decode_box(self.data['chars'])
+            update['blocks'] = self.decode_box(self.data['blocks'])
+            update['columns'] = self.decode_box(self.data['columns'])
+        else:
+            update['chars'] = self.reorder_chars(self.page.get('chars'), self.data['chars_col'])
+        return update
+
+    @staticmethod
+    def decode_box(boxes):
+        return json_decode(boxes) if isinstance(boxes, str) else boxes

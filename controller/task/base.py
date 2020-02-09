@@ -309,8 +309,9 @@ class TaskHandler(BaseHandler, Task, Lock):
             error = None if has_lock else r
         return has_lock, error
 
-    def submit_task(self, info=None, submit=False):
+    def submit_task(self, info=None, submit=None):
         """ 更新任务提交"""
+        submit = self.data.get('submit') if submit is None else submit
         if not submit:
             if info:
                 self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': info})
@@ -360,8 +361,9 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
             self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
 
-    def submit_doc(self, info, submit=False):
+    def submit_doc(self, info, submit=None):
         """ 更新本任务的数据提交"""
+        submit = self.data.get('submit') if submit is None else submit
         # 如果是完成任务，则更新数据内容、数据等级和数据任务状态
         if submit and self.mode == 'do' and self.steps['is_last']:
             self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, info)

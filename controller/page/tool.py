@@ -5,6 +5,7 @@
 @time: 2019/6/3
 """
 import re
+from operator import itemgetter
 from functools import cmp_to_key
 from controller.page.diff import Diff
 
@@ -331,6 +332,17 @@ class PageTool(object):
         if cids:
             ret.append(cids)
         return ret
+
+    @classmethod
+    def reorder_chars(cls, chars, chars_col):
+        """ 按照chars_col重排chars"""
+        for col_no, col in enumerate(chars_col):
+            for char_no, cid in enumerate(col):
+                c = chars[cid - 1]
+                c['column_no'] = col_no + 1
+                c['char_no'] = char_no + 1
+                c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
+        return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
     @classmethod
     def txt2html(cls, txt):

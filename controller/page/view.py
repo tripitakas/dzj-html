@@ -3,10 +3,8 @@
 """
 @time: 2019/5/13
 """
-from bson import json_util
 from tornado.web import UIModule
 from controller import errors as e
-from controller.cut.cuttool import CutTool
 from controller.page.base import PageHandler
 
 
@@ -20,12 +18,10 @@ class CutTaskHandler(PageHandler):
         """ 切分校对页面"""
         try:
             template = 'task_cut_do.html'
-            kwargs = dict()
-            if self.steps['current'] == 'orders':
-                kwargs = CutTool.char_render(self.page, int(self.get_query_argument('layout', 0)))
-                kwargs['btn_config'] = json_util.loads(self.get_secure_cookie('%s_orders' % task_type) or '{}')
+            if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-            self.render(template, **kwargs)
+                self.chars_col = self.get_chars_col(self.page.get('chars'))
+            self.render(template)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -38,12 +34,10 @@ class CutEditHandler(PageHandler):
         """ 切分编辑页面"""
         try:
             template = 'task_cut_do.html'
-            kwargs = dict()
-            if self.steps['current'] == 'orders':
-                kwargs = CutTool.char_render(self.page, int(self.get_query_argument('layout', 0)))
-                kwargs['btn_config'] = {}
+            if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-            self.render(template, **kwargs)
+                self.chars_col = self.get_chars_col(self.page.get('chars'))
+            self.render(template)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -58,6 +52,7 @@ class TextProofHandler(PageHandler):
     def get(self, num, task_id):
         """ 文字校对页面"""
         try:
+            self.texts, self.doubts = self.get_cmp_txt()
             if self.steps['current'] == 'select':
                 cmp = self.prop(self.task, 'result.cmp')
                 return self.render('task_text_select.html', cmp=cmp)
@@ -80,6 +75,7 @@ class TextReviewHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 文字审定、难字审定页面"""
         try:
+            self.texts, self.doubts = self.get_cmp_txt()
             cmp_data = self.prop(self.page, 'txt_html')
             if not cmp_data:
                 cmp_data = self.diff(*[t[0] for t in self.texts])
@@ -95,6 +91,7 @@ class TextEditHandler(PageHandler):
     def get(self, page_name):
         """ 文字修改页面"""
         try:
+            self.texts, self.doubts = self.get_cmp_txt()
             cmp_data, text = self.page.get('txt_html') or '', self.page.get('text') or ''
             if not cmp_data and not text:
                 self.send_error_response(e.no_object, message='没有找到审定文本')

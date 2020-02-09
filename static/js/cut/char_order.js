@@ -245,7 +245,7 @@
           'stroke-dasharray': '.',
           'stroke-width': (a.x < b.x ? 3 : 2) / data.ratioInitial
         })
-        .data('up', 1);
+            .data('up', 1);
       }
       if (zoomed && !remove) {
         line.animate({'stroke-width': 6 * data.ratio}, 500, 'elastic');
