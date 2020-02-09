@@ -281,6 +281,13 @@ $(document).on('dblclick', '.diff', function (e) {
   }
 });
 
+// 粘貼時自動把格式去掉
+$(document).on('paste', 'span', function (e) {
+  e.preventDefault();
+  var text = e.originalEvent.clipboardData.getData('text/plain');
+  document.execCommand('insertHTML', false, text);
+});
+
 // 单击文本区的空白区域
 $('.pfread .right').on('click', function (e) {
   // 隐藏对话框
