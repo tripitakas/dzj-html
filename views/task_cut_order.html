@@ -37,6 +37,7 @@
   <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
   <img src="{{static_url('imgs/icon_lr.png')}}" class="btn-img" id="undo" title="撤销"/>
   <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
+  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img {{'active' if btn_config.get('toggle-block') == 1 else ''}}" id="toggle-block" title="显隐栏框"/>
   <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img {{'active' if btn_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框"/>
   <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img {{'active' if btn_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框"/>
   <img src="{{static_url('imgs/icon_char_no.png')}}" class="btn-img {{'active' if btn_config.get('toggle-char-no') == 1 else ''}}" id="toggle-char-no" title="显隐字序"/>
@@ -157,37 +158,30 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
   var canvasName = taskType + step + docId;
-  var chars = $.cut.setClass(decodeJSON('{{handler.page.get("chars") or []}}'), 'char');
-  var blocks = $.cut.setClass(decodeJSON('{{handler.page.get("blocks") or []}}'), 'block');
-  var columns = $.cut.setClass(decodeJSON('{{handler.page.get("columns") or []}}'), 'column');
-
   $.cut.create({
     readonly: true,
     orderMode: true,
     name: canvasName,
+    widthFull: false,
     holder: 'holder',
     width: '{{handler.page["width"]}}',
     height: '{{handler.page["height"]}}',
     image: '{{handler.get_img(handler.page)}}',
-    chars: chars
+    chars: '{{handler.page["chars"]}}',
+    blocks: '{{handler.page["blocks"]}}',
+    columns: '{{handler.page["columns"]}}'
   });
   $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{handler.chars_col}}'));
 
-  $.cut.state.canHitBox = function (el) {
-    var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char') {
-      return true;
-    }
-    if ($('#toggle-column').hasClass('active') && cls === 'column') {
-      return true;
-    }
-    if ($('#toggle-block').hasClass('active') && cls === 'block') {
-      return true;
-    }
-  };
+  // 初始化设置
+  $.cut.data.image.node.style.display = 'block';
+  $.cut.data.image.node.style.opacity = 0.2;
+  $.cut.toggleBox(false);
+  $.cut.setLabel(false);
+  $.cut.setLink(true);
 
   // 获取任务数据
   function getSubmitData(submit) {
@@ -201,25 +195,14 @@
   });
   setTimeout(function () {
     $.cut.showErrorBoxes();
-  }, 100);
-
-  $('#toggle-column').click(function () {
-    $.cut.toggleColumns(columns);
-  });
-
-  // 初始化设置
-  $.cut.data.image.node.style.display = 'block';
-  $.cut.data.image.node.style.opacity = 0.2;
-  $('rect.char').css('display', 'none');
-  $.cut.setLabel(false);
-  $.cut.setLink(true);
+  }, 1000);
 
   // 重新计算字序
   $('#re-order').click(function () {
     location.href = setQueryString('re-order', 'true');
   });
 
-  //
+  // 显示原始字序
   $('#old-order').click(function () {
     location.href = deleteQueryString('re-order');
   });

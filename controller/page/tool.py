@@ -260,7 +260,7 @@ class PageTool(object):
         def check_small():
             """ 检查并设置大小字属性"""
             cls.pop_fields(column_chars, 'is_small')
-            center = column['x'] + column['w'] * 0.5
+            center = int(column['x']) + int(column['w']) * 0.5
             is_prev_small = False
             while True:
                 current_chars = [c for c in column_chars if c.get('is_small') is None]
@@ -324,6 +324,8 @@ class PageTool(object):
         set_column_id()
         columns_chars = divide_by_column_id()
         for column_id, column_chars in columns_chars.items():
+            if column_id == 'b0c0':
+                continue
             # 针对每列，从上到下扫描（有交叉时，即小字，从右到左）
             column_chars.sort(key=cmp_to_key(cmp))
             for i, c in enumerate(column_chars):
@@ -337,26 +339,37 @@ class PageTool(object):
 
         for r in ret_chars:
             if r.get('column_id'):
-                r['block_no'] = r['column_id'][1]
-                r['column_no'] = r['column_id'][3:]
+                r['block_no'] = int(r['column_id'][1])
+                r['column_no'] = int(r['column_id'][3:])
                 r['char_id'] = '%sc%s' % (r['column_id'], r['char_no'])
 
         return ret_chars
 
     @classmethod
+    def re_calc_id(cls, chars=None, columns=None, blocks=None, page=None, auto_filter=False):
+        if not chars and page:
+            chars, columns, blocks = page.get('chars') or [], page.get('columns') or [], page.get('blocks') or []
+        blocks = cls.calc_block_id(blocks)
+        columns = cls.calc_column_id(columns, blocks, auto_filter=auto_filter)
+        chars = cls.calc_char_id(chars, columns, auto_filter=auto_filter)
+        return blocks, columns, chars
+
+    @classmethod
     def get_chars_col(cls, chars):
         """ 按照column_no对chars分组并设置cid。假定chars已排序"""
         ret = []
-        cids = []  # cid表示第几个字，从1开始
+        cid_col = []  # cid表示第几个字，从1开始
         for i, c in enumerate(chars):
             c['cid'] = i + 1
-            if i > 1 and c['column_no'] != chars[i - 1]['column_no']:  # 换行
-                ret.append(cids)
-                cids = [c['cid']]
+            column_no1 = c.get('column_no')
+            column_no2 = chars[i - 1].get('column_no')
+            if i > 1 and column_no1 and column_no2 and column_no1 != column_no2:  # 换行
+                ret.append(cid_col)
+                cid_col = [c['cid']]
             else:
-                cids.append(c['cid'])
-        if cids:
-            ret.append(cids)
+                cid_col.append(c['cid'])
+        if cid_col:
+            ret.append(cid_col)
         return ret
 
     @classmethod

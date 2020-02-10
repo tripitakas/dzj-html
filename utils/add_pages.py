@@ -19,17 +19,19 @@ sys.path.append(BASE_DIR)
 
 from controller.helper import prop
 from controller.data.data import Page
+from controller.page.tool import PageTool
 
 
 class AddPage(object):
-    def __init__(self, db, source='', update=False, check_only=False,
-                 use_local_img=False, check_id=False):
+    def __init__(self, db, source='', update=False, check_only=False, use_local_img=False,
+                 check_id=False, re_order=True):
         self.db = db
         self.source = source
         self.update = update
         self.check_only = check_only
         self.use_local_img = use_local_img
         self.check_id = check_id
+        self.re_order = re_order
 
     @staticmethod
     def load_json(filename):
@@ -171,8 +173,11 @@ class AddPage(object):
 
             info.pop('id', 0)
             message = '%s:\t%d x %d blocks=%d columns=%d chars=%d'
-            chars, columns, blocks = meta['chars'], meta['columns'], meta['blocks']
-            print(message % (name, width, height, len(blocks), len(columns), len(chars)))
+            print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
+
+            if self.re_order:
+                meta['blocks'], meta['columns'], meta['chars'] = PageTool.re_calc_id(page=meta)
+
             if exist and self.update:
                 meta.pop('create_time', 0)
                 r = self.db.page.update_one(dict(name=name), {'$set': meta})
@@ -216,8 +221,8 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', source='', check_id=False, reset=True,
-         use_local_img=False, update=False, check_only=False):
+         txt_field='ocr', kind='', source='', check_id=False, re_order=True,
+         reset=True, use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
     :param db: 数据库链接
@@ -230,6 +235,7 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     :param kind: 可指定要导入的藏别
     :param source: 导入批次名称
     :param check_id: 是否检查切分框的id
+    :param re_order: 是否重新计算序号
     :param reset: 是否先清空page表
     :param use_local_img: 是否强制使用本地的页面图，默认使用OSS上的高清图（如果在app.yml配置了OSS）
     :param update: 已存在的页面是否更新
@@ -243,7 +249,7 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
 
-    add = AddPage(db, source, update, check_only, use_local_img, check_id)
+    add = AddPage(db, source, update, check_only, use_local_img, check_id, re_order)
     pages = add.add_many_from_dir(json_path, kind)
     add.copy_img_files(pages, img_path)
     add.add_text(pages, txt_path, txt_field)
