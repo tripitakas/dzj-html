@@ -185,8 +185,7 @@
 
   // 保存任务提交
   $(document).on('click', '#save-task', function () {
-    var url = deleteQueryString(location.search, 'reorder');
-    saveTask(false, url);
+    saveTask(false, deleteQueryString('re-order'));
   });
 
   // 退回任务提交

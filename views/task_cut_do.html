@@ -184,32 +184,26 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
-      var cls = '';
-      if ($('#toggle-char-only').hasClass('active'))
-        cls += 'char';
-      if ($('#toggle-column-only').hasClass('active'))
-        cls += 'column';
-      if ($('#toggle-block-only').hasClass('active'))
-        cls += 'block';
-      if (cls && cls.length < 7) {
-        $.cut.setClass([info], cls);
-      } else {
+      if ($('#toggle-three').hasClass('active')) {
         showWarning('无法创建新框', '当前显示有多种切分框，请仅选择其中一个，然后再创建');
         setTimeout(function () {
           $.cut.removeBox();
         }, 100);
+      } else {
+        var active = $('#toggle-char-only').hasClass('active') ? 'char' : $('#toggle-column-only').hasClass('active') ? 'column' : 'block';
+        $.cut.setClass([info], active);
       }
     } else if (reason === 'removed' || reason === 'changed') {
-      var type = $.cut.data.hlType;
-      if (type) {
+      if ($.cut.data.hlType) {
         $.cut.clearHighlight();
-        $.cut.highlightBoxes(type, false, true);
+        $.cut.highlightBoxes($.cut.data.hlType, false, true);
       }
       showHighLightCount();
+      updateUndo();
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
     }
-    updateUndo();
+
   }, true);
 
 </script>
