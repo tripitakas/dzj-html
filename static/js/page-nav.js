@@ -117,7 +117,7 @@ $(document).on('click', '#toggle-three', function () {
   $(this).toggleClass('active');
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(true);
-    $('.toggle-box:not(#toggle-chars)').removeClass('active');
+    $('.toggle-box:not(#toggle-three)').removeClass('active');
   } else {
     $.cut.toggleBox(false);
   }
