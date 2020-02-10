@@ -82,6 +82,7 @@
   var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
 </script>
 <script src="{{static_url('js/pick-task.js')}}"></script>
+<script src="{{static_url('js/page-nav.js')}}"></script>
 <script>
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
@@ -253,6 +254,5 @@
 </script>
 {% block custom-js %}
 {% end %}
-<script src="{{static_url('js/nav.js')}}"></script>
 </body>
 </html>

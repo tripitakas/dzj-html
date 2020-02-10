@@ -44,7 +44,8 @@
   <img src="{{static_url('imgs/icon_check2.png')}}" class="btn-img" id="show-err-box" title="查漏"/>
 </div>
 
-<div class="btn-group right" style="margin-top: 5px">
+<img src="{{static_url('imgs/icon_more.png')}}" class="btn-img right {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
+<div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="float: right; margin-top: 5px">
   <button type="button" class="btn btn-primary btn-sm" id="re-order">重新计算<sup class="s-count"></sup></button>
   <button type="button" class="btn btn-primary btn-sm" id="old-order">原始字序<sup class="s-count"></sup></button>
 </div>
