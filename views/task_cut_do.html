@@ -25,9 +25,9 @@
   <img src="{{static_url('imgs/icon_lr.png')}}" class="btn-img" id="undo" title="撤销"/>
   <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
   <img src="{{static_url('imgs/icon_boxes.png')}}" class="btn-img toggle-box" id="toggle-three" title="显隐所有"/>
-  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-blocks" title="显隐栏框"/>
-  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-columns" title="显隐列框"/>
-  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-chars" title="显隐字框"/>
+  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-block-only" title="仅显隐栏框"/>
+  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-column-only" title="仅显隐列框"/>
+  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-char-only" title="仅显隐字框"/>
 </div>
 <div class="btn-group hl-box" style="margin-left: 10px">
   <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐字框">所有<sup class="s-count"></sup></button>
@@ -145,7 +145,6 @@
 
 {% block custom-js %}
 {% include _base_cut.html %}
-<script src="{{static_url('js/toggle-box.js')}}"></script>
 <script>
   // 页面图
   var canvasName = taskType + step + docId;
@@ -161,24 +160,36 @@
     image: "{{handler.get_img(handler.page)}}"
   });
   $.cut.bindKeys();
-</script>
-<script>
-  // 初始设置
-  $.cut.toggleBox(false);
-  $.cut.switchCurrentBox(null);
-  $('.toggle-box').removeClass('active');
-  {% if 'blocks' in handler.steps['step_args'] %} $('#toggle-blocks').click(); {% end %}
-  {% if 'columns' in handler.steps['step_args'] %} $('#toggle-columns').click(); {% end %}
-  {% if 'chars' in handler.steps['step_args'] %} $('#toggle-chars').click(); {% end %}
+
+  // 初始化设置
+  $.cut.toggleBox(false, 'block');
+  $.cut.toggleBox(false, 'column');
+
+  $.cut.state.canHitBox = function (el) {
+    var cls = el.data('class');
+    var blockActive = $('#toggle-block-only').hasClass('active');
+    var columnActive = $('#toggle-column-only').hasClass('active');
+    var charActive = $('#toggle-char-only').hasClass('active');
+    var threeActive = $('#toggle-three-only').hasClass('active');
+    if ((charActive || threeActive) && cls === 'char') {
+      return true;
+    }
+    if ((columnActive || threeActive) && cls === 'column') {
+      return true;
+    }
+    if ((blockActive || threeActive) && cls === 'block') {
+      return true;
+    }
+  };
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
       var cls = '';
-      if ($('#toggle-chars').hasClass('active'))
+      if ($('#toggle-char-only').hasClass('active'))
         cls += 'char';
-      if ($('#toggle-columns').hasClass('active'))
+      if ($('#toggle-column-only').hasClass('active'))
         cls += 'column';
-      if ($('#toggle-blocks').hasClass('active'))
+      if ($('#toggle-block-only').hasClass('active'))
         cls += 'block';
       if (cls && cls.length < 7) {
         $.cut.setClass([info], cls);
@@ -188,7 +199,17 @@
           $.cut.removeBox();
         }, 100);
       }
+    } else if (reason === 'removed' || reason === 'changed') {
+      var type = $.cut.data.hlType;
+      if (type) {
+        $.cut.clearHighlight();
+        $.cut.highlightBoxes(type, false, true);
+      }
+      showHighLightCount();
+    } else if (reason === 'navigate') {
+      $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
     }
+    updateUndo();
   }, true);
 
 </script>
@@ -211,22 +232,6 @@
     $.cut.switchHighlightBoxes(type);
   });
 
-  // 操作切分框
-  function onBoxChanged(char, box, reason) {
-    if (reason === 'removed' || reason === 'added' || reason === 'changed') {
-      var type = $.cut.data.hlType;
-      if (type) {
-        $.cut.clearHighlight();
-        $.cut.highlightBoxes(type, false, true);
-      }
-      showHighLightCount();
-    } else if (reason === 'navigate') {
-      $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
-    }
-    updateUndo();
-  }
-
-  $.cut.onBoxChanged(onBoxChanged);
 
   function getSubmitData(submit) {
     return {

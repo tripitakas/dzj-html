@@ -56,7 +56,7 @@ class CutTaskApi(PageHandler):
 
 
 class CutEditApi(PageHandler):
-    URL = '/api/task/cut_edit/@page_name'
+    URL = '/api/data/cut_edit/@page_name'
 
     def post(self, page_name):
         """ 修改切分数据"""
@@ -186,7 +186,7 @@ class TextHardApi(PageHandler):
 
 
 class TextEditApi(PageHandler):
-    URL = '/api/task/text_edit/@page_name'
+    URL = '/api/data/text_edit/@page_name'
 
     def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""

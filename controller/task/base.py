@@ -11,7 +11,7 @@
 5. None，非任务、非数据修改请求
 二、 url
 1. do/update/browse，如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
-2. edit，如：/task/cut_edit/@page_name，task_type为cut_edit，伪任务类型
+2. edit，如：/data/cut_edit/@page_name，task_type为cut_edit，伪任务类型
 3. view，如：/task/@task_type/5e3139c6a197150011d65e9d
 4. 非任务、非数据修改请求，如/task/admin/page
 
@@ -118,8 +118,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         task_type = s.group(2) if s else ''
         if not task_type:
-            # eg. /task/cut_edit/@page_name
-            s = re.search(r'/task/([a-z_]+_edit)/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+            # eg. /data/cut_edit/@page_name
+            s = re.search(r'/data/([a-z_]+_edit)/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
             task_type = s.group(1) if s else ''
         return task_type
 
@@ -250,7 +250,6 @@ class TaskHandler(BaseHandler, Task, Lock):
         当前步骤可以在url中申明，或者在api的请求体中给出。
         """
         steps = dict()
-        steps['step_args'] = self.get_query_arguments('step')
         default_steps = self.get_steps(task_type)
         current_step = self.get_current_step(default_steps)
         todo = self.prop(task, 'steps.todo') or default_steps

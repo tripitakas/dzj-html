@@ -31,7 +31,7 @@ class CutTaskHandler(PageHandler):
 
 
 class CutEditHandler(PageHandler):
-    URL = '/task/cut_edit/@page_name'
+    URL = '/data/cut_edit/@page_name'
 
     def get(self, page_name):
         """ 切分编辑页面"""
@@ -92,7 +92,7 @@ class TextReviewHandler(PageHandler):
 
 
 class TextEditHandler(PageHandler):
-    URL = '/task/text_edit/@page_name'
+    URL = '/data/text_edit/@page_name'
 
     def get(self, page_name):
         """ 文字修改页面"""

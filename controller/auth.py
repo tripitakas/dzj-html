@@ -103,8 +103,8 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/task/cut_edit/@page_name': ['GET'],
-            '/api/task/cut_edit/@page_name': ['POST'],
+            '/data/cut_edit/@page_name': ['GET'],
+            '/api/data/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
@@ -117,8 +117,8 @@ role_route_maps = {
             '/api/task/pick/text_proof_@num': ['POST'],
             '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
-            '/task/cut_edit/@page_name': ['GET'],
-            '/api/task/cut_edit/@page_name': ['POST'],
+            '/data/cut_edit/@page_name': ['GET'],
+            '/api/data/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
@@ -131,8 +131,8 @@ role_route_maps = {
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
-            '/task/cut_edit/@page_name': ['GET'],
-            '/api/task/cut_edit/@page_name': ['POST'],
+            '/data/cut_edit/@page_name': ['GET'],
+            '/api/data/cut_edit/@page_name': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
@@ -145,8 +145,8 @@ role_route_maps = {
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@task_id': ['GET'],
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
-            '/task/text_edit/@page_name': ['GET'],
-            '/api/task/text_edit/@page_name': ['POST'],
+            '/data/text_edit/@page_name': ['GET'],
+            '/api/data/text_edit/@page_name': ['POST'],
             '/api/data/unlock/text/@page_name': ['POST'],
         }
     },

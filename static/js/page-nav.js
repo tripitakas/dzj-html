@@ -59,54 +59,54 @@ $(document).on('click', '#toggle-blur', function () {
 });
 
 // 显隐栏框
-$(document).on('click', '#toggle-blocks', function () {
+$(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'block');
 });
 
 // 显隐列框
-$(document).on('click', '#toggle-columns', function () {
+$(document).on('click', '#toggle-column', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'column');
 });
 
 // 显隐字框
-$(document).on('click', '#toggle-chars', function () {
+$(document).on('click', '#toggle-char', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'char');
 });
 
 // 仅显隐栏框
-$(document).on('click', '#toggle-blocks', function () {
+$(document).on('click', '#toggle-block-only', function () {
   $(this).toggleClass('active');
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(false);
     $.cut.toggleBox(true, 'block');
-    $('.toggle-box:not(#toggle-blocks)').removeClass('active');
+    $('.toggle-box:not(#toggle-block-only)').removeClass('active');
   } else {
     $.cut.toggleBox(false, 'block');
   }
 });
 
 // 仅显隐列框
-$(document).on('click', '#toggle-columns', function () {
+$(document).on('click', '#toggle-column-only', function () {
   $(this).toggleClass('active');
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(false);
     $.cut.toggleBox(true, 'column');
-    $('.toggle-box:not(#toggle-columns)').removeClass('active');
+    $('.toggle-box:not(#toggle-column-only)').removeClass('active');
   } else {
     $.cut.toggleBox(false, 'column');
   }
 });
 
 // 仅显隐字框
-$(document).on('click', '#toggle-chars', function () {
+$(document).on('click', '#toggle-char-only', function () {
   $(this).toggleClass('active');
   if ($(this).hasClass('active')) {
     $.cut.toggleBox(false);
     $.cut.toggleBox(true, 'char');
-    $('.toggle-box:not(#toggle-chars)').removeClass('active');
+    $('.toggle-box:not(#toggle-char-only)').removeClass('active');
   } else {
     $.cut.toggleBox(false, 'char');
   }
@@ -124,7 +124,7 @@ $(document).on('click', '#toggle-three', function () {
 });
 
 // 显隐字框编号
-$(document).on('click', '#toggle-chars-no', function () {
+$(document).on('click', '#toggle-char-no', function () {
   $(this).toggleClass('active');
   $.cut.toggleLabel();
 });

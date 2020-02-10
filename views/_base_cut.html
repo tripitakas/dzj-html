@@ -10,18 +10,6 @@
 {% end %}
 
 <script>
-  $.cut.state.canHitBox = function (el) {
-    var cls = el.data('class');
-    if ($('#toggle-chars').hasClass('active') && cls === 'char') {
-      return true;
-    }
-    if ($('#toggle-columns').hasClass('active') && cls === 'column') {
-      return true;
-    }
-    if ($('#toggle-blocks').hasClass('active') && cls === 'block') {
-      return true;
-    }
-  };
 
   function updateUndo() {
     var root = '/static/imgs';
