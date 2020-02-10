@@ -148,9 +148,7 @@
 
   // 步骤导航
   function navigate(to) {
-    var url = location.pathname + '?step=' + steps[to];
-    if (from)
-      url = url + '&from=' + from;
+    var url = setQueryString('step', steps[to]);
     if (!readonly) {
       var submit = to === 'next';
       saveTask(submit, url, afterSaved);

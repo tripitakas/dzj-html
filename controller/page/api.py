@@ -26,15 +26,14 @@ class CutTaskApi(PageHandler):
 
         try:
             if self.steps['current'] == 'order':
-                self.save_order(self)
+                self.save_order()
             else:
-                self.save_box(self)
+                self.save_box()
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
 
         except DbError as error:
             return self.send_db_error(error)
 
-    @staticmethod
     def save_box(self):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
@@ -49,7 +48,6 @@ class CutTaskApi(PageHandler):
         self.update_doc(self.get_cut_submit(calc_id, auto_filter))
         self.send_data_response(dict(valid=True, message=message, out_boxes=out_boxes))
 
-    @staticmethod
     def save_order(self):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         self.update_task(self.data.get('submit'))
@@ -66,13 +64,34 @@ class CutEditApi(PageHandler):
 
         try:
             if self.steps['current'] == 'order':
-                CutTaskApi.save_order(self)
+                self.save_order(page_name)
             else:
-                CutTaskApi.save_box(self)
-            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+                self.save_box(page_name)
+            self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
 
         except DbError as error:
             return self.send_db_error(error)
+
+    def save_box(self, page_name):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        auto_filter = self.data.get('auto_filter') or False
+        valid, message, out_boxes = self.check_box_cover()
+        if not auto_filter and not valid:
+            return self.send_data_response(dict(valid=False, message=message, out_boxes=out_boxes))
+
+        calc_id = self.page.get('order_confirmed')
+        update = self.get_cut_submit(calc_id, auto_filter)
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+        self.send_data_response(dict(valid=True, message=message, out_boxes=out_boxes))
+
+    def save_order(self, page_name):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        update = dict(chars=chars, order_confirmed=True)
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+        self.send_data_response()
 
 
 class TextProofApi(PageHandler):

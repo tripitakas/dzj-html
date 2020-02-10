@@ -87,10 +87,10 @@ function setQueryString(name, value, onlySearch) {
   var search = location.search;
   var add = name + '=' + value;
   if (search.indexOf(name + '=') !== -1) {
-    search = search.replace(new RegExp(name + '=.*?&', 'i'), add + '&');
-    search = search.replace(new RegExp(name + '=.*?$', 'i'), add);
+    search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
+    search = search.replace(/&$/, '');
   } else if (search) {
-    search += '&' + add;
+    search = '?' + add + '&' + search.substr(1);
   } else {
     search = '?' + add;
   }
