@@ -109,9 +109,9 @@
           <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
           <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
           <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
-          <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img {{'active' if btn_config.get('toggle-block') == 1 else ''}}" id="toggle-block" title="显隐栏框"/>
-          <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img {{'active' if btn_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框"/>
-          <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img {{'active' if btn_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框"/>
+          <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img {{'active' if btn_config.get('toggle-blocks') == 1 else ''}}" id="toggle-blocks" title="显隐栏框"/>
+          <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img {{'active' if btn_config.get('toggle-columns') == 1 else ''}}" id="toggle-columns" title="显隐列框"/>
+          <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img {{'active' if btn_config.get('toggle-chars') == 1 else ''}}" id="toggle-chars" title="显隐字框"/>
           <img src="{{static_url('imgs/icon_order.png')}}" class="btn-img {{'active' if btn_config.get('toggle-order') == 1 else ''}}" id="toggle-order" title="显隐字序"/>
           <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img" id="btn-update" title="修改"/>
         </div>
@@ -397,8 +397,8 @@
   // 获取当前按钮状态
   function getConfig() {
     var config = {};
-    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
-      'toggle-column', 'toggle-char', 'toggle-order'];
+    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-blocks',
+      'toggle-columns', 'toggle-chars', 'toggle-order'];
     buttons.forEach(function (button) {
       config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
     });
@@ -451,13 +451,13 @@
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+    if ($('#toggle-chars').hasClass('active') && cls === 'char') {
       return true;
     }
-    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+    if ($('#toggle-columns').hasClass('active') && cls === 'column') {
       return true;
     }
-    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+    if ($('#toggle-blocks').hasClass('active') && cls === 'block') {
       return true;
     }
   };
@@ -465,9 +465,9 @@
   // 初始化设置
   $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
   $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
-  $('rect.block').css('display', btnConfig['toggle-block'] === 1 ? 'block' : 'none');
-  $('rect.column').css('display', btnConfig['toggle-column'] === 1 ? 'block' : 'none');
-  $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
+  $('rect.block').css('display', btnConfig['toggle-blocks'] === 1 ? 'block' : 'none');
+  $('rect.column').css('display', btnConfig['toggle-columns'] === 1 ? 'block' : 'none');
+  $('rect.char').css('display', btnConfig['toggle-chars'] === 1 ? 'block' : 'none');
   $.cut.setLink(btnConfig['toggle-order'] === 1);
 
 </script>

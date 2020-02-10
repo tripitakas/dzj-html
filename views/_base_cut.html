@@ -12,13 +12,13 @@
 <script>
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+    if ($('#toggle-chars').hasClass('active') && cls === 'char') {
       return true;
     }
-    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+    if ($('#toggle-columns').hasClass('active') && cls === 'column') {
       return true;
     }
-    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+    if ($('#toggle-blocks').hasClass('active') && cls === 'block') {
       return true;
     }
   };

@@ -587,7 +587,7 @@ $('#txtModal .btn-txt').click(function () {
 
 /*-----------导航条----------------*/
 // 显隐字框
-$('#toggle-char').on('click', function () {
+$('#toggle-chars').on('click', function () {
   $.cut.toggleBox('hide');
 });
 

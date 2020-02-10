@@ -145,6 +145,7 @@
 
 {% block custom-js %}
 {% include _base_cut.html %}
+<script src="{{static_url('js/toggle-box.js')}}"></script>
 <script>
   // 页面图
   var canvasName = taskType + step + docId;
@@ -160,19 +161,24 @@
     image: "{{handler.get_img(handler.page)}}"
   });
   $.cut.bindKeys();
-
+</script>
+<script>
   // 初始设置
-  $.cut.toggleBox(false, 'block');
-  $.cut.toggleBox(false, 'column');
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
+  $('.toggle-box').removeClass('active');
+  {% if 'blocks' in handler.steps['step_args'] %} $('#toggle-blocks').click(); {% end %}
+  {% if 'columns' in handler.steps['step_args'] %} $('#toggle-columns').click(); {% end %}
+  {% if 'chars' in handler.steps['step_args'] %} $('#toggle-chars').click(); {% end %}
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
       var cls = '';
-      if ($('#toggle-char').hasClass('active'))
+      if ($('#toggle-chars').hasClass('active'))
         cls += 'char';
-      if ($('#toggle-column').hasClass('active'))
+      if ($('#toggle-columns').hasClass('active'))
         cls += 'column';
-      if ($('#toggle-block').hasClass('active'))
+      if ($('#toggle-blocks').hasClass('active'))
         cls += 'block';
       if (cls && cls.length < 7) {
         $.cut.setClass([info], cls);

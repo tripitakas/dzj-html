@@ -59,19 +59,19 @@ $(document).on('click', '#toggle-blur', function () {
 });
 
 // 显隐栏框
-$(document).on('click', '#toggle-block', function () {
+$(document).on('click', '#toggle-blocks', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'block');
 });
 
 // 显隐列框
-$(document).on('click', '#toggle-column', function () {
+$(document).on('click', '#toggle-columns', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'column');
 });
 
 // 显隐字框
-$(document).on('click', '#toggle-char', function () {
+$(document).on('click', '#toggle-chars', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'char');
 });
@@ -124,7 +124,7 @@ $(document).on('click', '#toggle-three', function () {
 });
 
 // 显隐字框编号
-$(document).on('click', '#toggle-char-no', function () {
+$(document).on('click', '#toggle-chars-no', function () {
   $(this).toggleClass('active');
   $.cut.toggleLabel();
 });

@@ -121,10 +121,10 @@
             <div class="btn-group{{'' if page else ' hide'}}">
               <div class="btn-group right hidden" id="more-group">
                 <button type="button" class="btn btn-default btn-sm" id="toggle-image">图片</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-block">栏框</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-column">列框</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-char">字框</button>
-                <button type="button" class="btn btn-default btn-sm" id="toggle-char-no">字序</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-blocks">栏框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-columns">列框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-chars">字框</button>
+                <button type="button" class="btn btn-default btn-sm" id="toggle-chars-no">字序</button>
               </div>
             </div>
           </div>
@@ -315,6 +315,7 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/page-nav.js')}}"></script>
 <script src="{{static_url('js/tripitaka.js')}}"></script>
+<script src="{{static_url('js/toggle-box.js')}}"></script>
 
 {% if page %}
 <script>
@@ -347,13 +348,13 @@
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+    if ($('#toggle-chars').hasClass('active') && cls === 'char') {
       return true;
     }
-    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+    if ($('#toggle-columns').hasClass('active') && cls === 'column') {
       return true;
     }
-    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+    if ($('#toggle-blocks').hasClass('active') && cls === 'block') {
       return true;
     }
   };
