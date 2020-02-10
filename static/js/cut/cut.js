@@ -524,16 +524,6 @@
         }
       };
 
-      var check_char_ids = function () {
-        var ids = [], newId = 0;
-        p.chars.forEach(function (b) {
-          if (!b.char_id || b.char_id.indexOf('b0c0') === 0 || ids.indexOf(b.char_id) >= 0) {
-            b.char_id = 'new' + (++newId);
-          }
-          ids.push(b.char_id);
-        });
-      };
-
       self.destroy();
       data.paper = Raphael(p.holder, p.width, p.height).initZoom();
       data.holder = document.getElementById(p.holder);
@@ -579,26 +569,10 @@
         }
       }
 
-      p.chars.forEach(function (b, idx) {
-        if (b.class === 'column') {
-          b.char_id = b.column_id;
-        }
-        else if (b.class === 'block') {
-          if (!b.block_id && b.block_no) {
-            b.block_id = 'b' + b.block_no;
-          }
-          b.char_id = b.block_id;
-        }
-        if (!b.char_id) {
-          b.char_id = 'org' + idx;
-        }
-        b.txt = b.txt || b.ch;
-      });
       data.width = p.width;
       data.height = p.height;
       data.chars = p.chars;
       data.removeSmall = p.removeSmallBoxes && [40, 40];
-      check_char_ids();
       self._apply(p.chars, 1);
 
       p.chars.forEach(function (b) {
@@ -647,11 +621,39 @@
       this.navigate('left');
     },
 
+    _check_char_ids: function (chars) {
+      var ids = [], newId = 0;
+
+      chars.forEach(function (b, idx) {
+        if (b.class === 'column') {
+          b.char_id = b.column_id;
+        }
+        else if (b.class === 'block') {
+          if (!b.block_id && b.block_no) {
+            b.block_id = 'b' + b.block_no;
+          }
+          b.char_id = b.block_id;
+        }
+        if (!b.char_id) {
+          b.char_id = 'org' + idx;
+        }
+        b.txt = b.txt || b.ch;
+      });
+
+      chars.forEach(function (b) {
+        if (!b.char_id || b.char_id.indexOf('b0c0') === 0 || ids.indexOf(b.char_id) >= 0) {
+          b.char_id = 'new' + (++newId);
+        }
+        ids.push(b.char_id);
+      });
+    },
+
     _apply: function (chars, ratio) {
       var self = this;
       var s = ratio || data.ratio * data.ratioInitial;
       var cid = this.getCurrentCharID();
 
+      this._check_char_ids(chars);
       data.chars.forEach(function (b) {
         if (b.shape) {
           b.shape.remove();

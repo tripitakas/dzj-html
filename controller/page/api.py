@@ -31,10 +31,9 @@ class CutTaskApi(PageHandler):
             rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
             self.validate(self.data, rules)
             auto_filter = self.data.get('auto_filter') or False
-            if not auto_filter:
-                valid, message, not_in_boxes = self.check_box_cover()
-                if not valid:
-                    return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
+            valid, message, not_in_boxes = self.check_box_cover()
+            if not auto_filter and not valid and self.data.get('submit'):
+                return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
 
             self.submit_task()
             calc_id = False if self.page.get('order_confirmed') else True
@@ -42,7 +41,8 @@ class CutTaskApi(PageHandler):
             self.submit_doc(update)
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             small_count = len([c for c in update['chars'] if c.get('is_small')])
-            self.send_data_response(dict(valid=True, small_count=small_count))
+            self.send_data_response(dict(valid=True, small_count=small_count,
+                                         box_cover=dict(valid=valid, message=message, not_in_boxes=not_in_boxes)))
 
         except DbError as error:
             return self.send_db_error(error)
@@ -68,10 +68,9 @@ class CutEditApi(PageHandler):
             rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
             self.validate(self.data, rules)
             auto_filter = self.data.get('auto_filter') or False
-            if not auto_filter:
-                valid, message, not_in_boxes = self.check_box_cover()
-                if not valid:
-                    return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
+            valid, message, not_in_boxes = self.check_box_cover()
+            if not auto_filter and not valid and self.data.get('submit'):
+                return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
 
             calc_id = False if self.page.get('order_confirmed') else True
             update = self.get_cut_submit(calc_id, auto_filter)
@@ -79,7 +78,8 @@ class CutEditApi(PageHandler):
             self.update_edit_doc(self.task_type, page_name, release_lock, update)
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
             small_count = len([c for c in update['chars'] if c.get('is_small')])
-            self.send_data_response(dict(small_count=small_count))
+            self.send_data_response(dict(small_count=small_count,
+                                         box_cover=dict(valid=valid, message=message, not_in_boxes=not_in_boxes)))
 
         except DbError as error:
             return self.send_db_error(error)

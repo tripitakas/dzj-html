@@ -76,51 +76,38 @@ $(document).on('click', '#toggle-char', function () {
   $.cut.toggleBox($(this).hasClass('active'), 'char');
 });
 
+function updateBoxesVisibleFromButtons() {
+  var blockActive = $('#toggle-block-only').hasClass('active');
+  var columnActive = $('#toggle-column-only').hasClass('active');
+  var charActive = $('#toggle-char-only').hasClass('active');
+  var threeActive = $('#toggle-three').hasClass('active');
+  $.cut.toggleBox(threeActive || blockActive, 'block');
+  $.cut.toggleBox(threeActive || columnActive, 'column');
+  $.cut.toggleBox(threeActive || charActive, 'char');
+}
+
 // 仅显隐栏框
 $(document).on('click', '#toggle-block-only', function () {
   $(this).toggleClass('active');
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(false);
-    $.cut.toggleBox(true, 'block');
-    $('.toggle-box:not(#toggle-block-only)').removeClass('active');
-  } else {
-    $.cut.toggleBox(false, 'block');
-  }
+  updateBoxesVisibleFromButtons();
 });
 
 // 仅显隐列框
 $(document).on('click', '#toggle-column-only', function () {
   $(this).toggleClass('active');
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(false);
-    $.cut.toggleBox(true, 'column');
-    $('.toggle-box:not(#toggle-column-only)').removeClass('active');
-  } else {
-    $.cut.toggleBox(false, 'column');
-  }
+  updateBoxesVisibleFromButtons();
 });
 
 // 仅显隐字框
 $(document).on('click', '#toggle-char-only', function () {
   $(this).toggleClass('active');
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(false);
-    $.cut.toggleBox(true, 'char');
-    $('.toggle-box:not(#toggle-char-only)').removeClass('active');
-  } else {
-    $.cut.toggleBox(false, 'char');
-  }
+  updateBoxesVisibleFromButtons();
 });
 
 // 显隐所有
 $(document).on('click', '#toggle-three', function () {
   $(this).toggleClass('active');
-  if ($(this).hasClass('active')) {
-    $.cut.toggleBox(true);
-    $('.toggle-box:not(#toggle-three)').removeClass('active');
-  } else {
-    $.cut.toggleBox(false);
-  }
+  updateBoxesVisibleFromButtons();
 });
 
 // 显隐字框编号
