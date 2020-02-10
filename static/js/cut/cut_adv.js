@@ -56,13 +56,21 @@
           var degree = 0;
 
           if (kind === 'large') {
-            degree = r.width * r.height / mean - 1;
+            if (r.is_small !== undefined) {
+              degree = r.is_small ? 0 : 1;
+            } else {
+              degree = r.width * r.height / mean - 1;
+            }
             if (degree < 0.5) {
               return;
             }
           }
           else if (kind === 'small') {
-            degree = mean / (r.width * r.height) - 1;
+            if (r.is_small !== undefined) {
+              degree = r.is_small ? 1 : 0;
+            } else {
+              degree = mean / (r.width * r.height) - 1;
+            }
             if (degree < 0.5 || c.ch === '一') {
               return;
             }
