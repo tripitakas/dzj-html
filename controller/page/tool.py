@@ -88,7 +88,7 @@ class PageTool(object):
         return ret
 
     @classmethod
-    def boxes_in_boxes(cls, boxes1, boxes2, ratio=0.9, only_check=True):
+    def boxes_not_in_boxes(cls, boxes1, boxes2, ratio=0.25, only_check=False):
         """ 检查boxes1是否都在boxes2中"""
         not_in = []
         for b1 in boxes1:
@@ -101,8 +101,8 @@ class PageTool(object):
             if not is_in:
                 not_in.append(b1)
                 if only_check:
-                    return False
-        return True if only_check else not_in
+                    return True
+        return False if only_check else not_in
 
     @classmethod
     def horizontal_scan_and_order(cls, boxes, field='', ratio=0.75):
@@ -570,18 +570,3 @@ class PageTool(object):
                 ret_columns.append(cur)
         return ret_columns
 
-
-if __name__ == '__main__':
-    import pymongo
-
-    db = pymongo.MongoClient('mongodb://localhost')['tripitaka']
-    name = 'GL_924_2_35'
-    page = db.page.find_one({'name': name})
-    blocks = PageTool.calc_block_id(page['blocks'])
-    columns = PageTool.calc_column_id(page['columns'], blocks)
-    PageTool.pop_fields(page['chars'], ['char_id', 'block_no', 'column_no', 'char_no', 'no'])
-    chars = PageTool.calc_char_id(page['chars'], columns)
-    # chars = PageTool.calc_char_id(chars, columns, small_direction='horizontal')
-    db.page.update_one({'name': name}, {'$set': {'blocks': blocks, 'columns': columns, 'chars': chars}})
-
-    print('finished.')

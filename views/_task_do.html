@@ -83,6 +83,8 @@
 </script>
 <script src="{{static_url('js/pick-task.js')}}"></script>
 <script src="{{static_url('js/page-nav.js')}}"></script>
+{% block custom-js %}
+{% end %}
 <script>
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
@@ -251,7 +253,5 @@
   });
 
 </script>
-{% block custom-js %}
-{% end %}
 </body>
 </html>

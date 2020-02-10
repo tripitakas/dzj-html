@@ -32,9 +32,9 @@ class CutTaskApi(PageHandler):
             self.validate(self.data, rules)
             auto_filter = self.data.get('auto_filter') or False
             if not auto_filter:
-                valid, message = self.check_box_cover()
+                valid, message, not_in_boxes = self.check_box_cover()
                 if not valid:
-                    return self.send_data_response(dict(valid=False, message=message))
+                    return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
 
             self.submit_task()
             calc_id = False if self.page.get('order_confirmed') else True
@@ -69,9 +69,9 @@ class CutEditApi(PageHandler):
             self.validate(self.data, rules)
             auto_filter = self.data.get('auto_filter') or False
             if not auto_filter:
-                valid, message = self.check_box_cover()
+                valid, message, not_in_boxes = self.check_box_cover()
                 if not valid:
-                    return self.send_error_response(e.box_not_covered, message=message)
+                    return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
 
             calc_id = False if self.page.get('order_confirmed') else True
             update = self.get_cut_submit(calc_id, auto_filter)

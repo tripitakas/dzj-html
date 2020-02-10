@@ -78,18 +78,15 @@ class PageHandler(TaskHandler, PageTool):
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
-        char_in_block = self.boxes_in_boxes(chars, blocks)
-        column_in_block = self.boxes_in_boxes(columns, blocks)
-        char_in_column = self.boxes_in_boxes(chars, columns)
-        message = []
-        if not char_in_block:
-            message.append('字框不在栏框内')
-        if not column_in_block:
-            message.append('列框不在栏框内')
-        if not char_in_column:
-            message.append('字框不在列框内')
-        valid = char_in_block and column_in_block and char_in_column
-        return valid, '检测到有%s' % ','.join(message)
+        char_not_in_block = self.boxes_not_in_boxes(chars, blocks)
+        if not char_not_in_block:
+            return False, '检测到有字框不在栏框内', [c['char_id'] for c in char_not_in_block]
+        column_not_in_block = self.boxes_not_in_boxes(columns, blocks)
+        if not column_not_in_block:
+            return False, '检测到有列框不在栏框内', [c['column_id'] for c in column_not_in_block]
+        char_not_in_column = self.boxes_not_in_boxes(chars, columns)
+        if not char_not_in_column:
+            return False, '检测到有字框不在列框内', [c['char_id'] for c in char_not_in_column]
 
     def get_cut_submit(self, calc_id=None, auto_filter=False):
         """ 获取切分校对的提交
