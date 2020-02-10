@@ -131,13 +131,29 @@
     }
   };
 
+  // 允许页面重载判断
+  var beforeSave = null;
+
+  // 保存任务
+  function saveTask(submit, url, saveEnded) {
+    var data = getSubmitData(submit);
+    var valid = !beforeSave || beforeSave(data) !== false;
+    if (data && !data.error && valid) {
+      postApi(location.pathname, {data: data}, function (res) {
+        workChanged = 0;
+        saveEnded(submit, res, url);
+      });
+    }
+  }
+
   // 步骤导航
   function navigate(to) {
     var url = location.pathname + '?step=' + steps[to];
     if (from)
       url = url + '&from=' + from;
     if (!readonly) {
-      saveTask(to === 'next', url);
+      var submit = to === 'next';
+      saveTask(submit, url, afterSaved);
     } else {
       goto(url, 500);
     }
@@ -153,8 +169,25 @@
     navigate('next');
   });
 
+  // 任务保存
+  $(document).on('click', '#save-task', function () {
+    saveTask(false, deleteQueryString('reorder'), afterSaved);
+  });
+
+  // 保存之后
+  function afterSaved(submit, res, url) {
+    if (!submit)
+      showSuccess('成功', '已保存');
+    goto(url, 1000);
+  }
+
+  // 任务提交
+  $(document).on('click', '#submit-task', function () {
+    saveTask(true, null, afterSubmitted);
+  });
+
   // 提交之后
-  function afterSubmitted(res) {
+  function afterSubmitted(submit, res, url) {
     var autoPick = localStorage.getItem('autoPick') || '是';
     setTimeout(function () {
       if (mode === 'do' && autoPick === '是') {
@@ -164,35 +197,6 @@
       }
     }, 1000);
   }
-
-  // 保存前允许页面重载判断，参数为data，返回为false时中断保存
-  var beforeSave = null;
-  var saveEnded = null;
-
-  // 保存任务
-  function saveTask(submit, url, ended) {
-    var data = getSubmitData(submit);
-    if (data && !data.error && !data.skipPost && (!beforeSave || beforeSave(data) !== false)) {
-      postApi(location.pathname, {data: data}, function (res) {
-        workChanged = 0;
-        if (ended)
-          return ended(res, url);
-        if (!submit)
-          showSuccess('成功', '已保存');
-        goto(url, 1000);
-      });
-    }
-  }
-
-  // 完成任务提交
-  $(document).on('click', '#submit-task', function () {
-    saveTask(true, null, afterSubmitted);
-  });
-
-  // 保存任务
-  $(document).on('click', '#save-task', function () {
-    saveTask(false, deleteQueryString('reorder'), saveEnded);
-  });
 
   // 退回任务提交
   $(document).on('click', '#returnModal .modal-confirm', function () {
@@ -255,8 +259,10 @@
     localStorage.setItem('autoPick', autoPick.val());
     $('#autoPickModal').modal('hide');
   });
-
-{% block final-js %}{% end %}
 </script>
+
+{% block final-js %}
+{% end %}
+
 </body>
 </html>

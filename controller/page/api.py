@@ -25,33 +25,36 @@ class CutTaskApi(PageHandler):
         """
 
         try:
-            if self.data.get('target') == 'order':
-                return self.save_order(self)
-
-            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
-            self.validate(self.data, rules)
-            auto_filter = self.data.get('auto_filter') or False
-            valid, message, not_in_boxes = self.check_box_cover()
-            if not auto_filter and not valid and self.data.get('submit'):
-                return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
-
-            self.submit_task()
-            calc_id = False if self.page.get('order_confirmed') else True
-            update = self.get_cut_submit(calc_id, auto_filter)
-            self.submit_doc(update)
+            if self.steps['current'] == 'order':
+                self.save_order(self)
+            else:
+                self.save_box(self)
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
-            small_count = len([c for c in update['chars'] if c.get('is_small')])
-            self.send_data_response(dict(valid=True, small_count=small_count,
-                                         box_cover=dict(valid=valid, message=message, not_in_boxes=not_in_boxes)))
 
         except DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
+    def save_box(self):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        auto_filter = self.data.get('auto_filter') or False
+        valid, message, out_boxes = self.check_box_cover()
+        if not auto_filter and not valid:
+            return self.send_data_response(dict(valid=False, message=message, out_boxes=out_boxes))
+
+        self.update_task(self.data.get('submit'))
+        calc_id = False if self.page.get('order_confirmed') else True
+        self.update_doc(self.get_cut_submit(calc_id, auto_filter))
+        self.send_data_response(dict(valid=True, message=message, out_boxes=out_boxes))
+
+    @staticmethod
     def save_order(self):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
+        self.update_task(self.data.get('submit'))
         chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
-        self.submit_doc(dict(chars=chars, order_confirmed=True))
+        self.update_doc(dict(chars=chars, order_confirmed=True))
         self.send_data_response()
 
 
@@ -62,24 +65,11 @@ class CutEditApi(PageHandler):
         """ 修改切分数据"""
 
         try:
-            if self.data.get('target') == 'order':
-                return CutTaskApi.save_order(self)
-
-            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
-            self.validate(self.data, rules)
-            auto_filter = self.data.get('auto_filter') or False
-            valid, message, not_in_boxes = self.check_box_cover()
-            if not auto_filter and not valid and self.data.get('submit'):
-                return self.send_data_response(dict(valid=False, message=message, not_in_boxes=not_in_boxes))
-
-            calc_id = False if self.page.get('order_confirmed') else True
-            update = self.get_cut_submit(calc_id, auto_filter)
-            release_lock = self.data.get('submit')
-            self.update_edit_doc(self.task_type, page_name, release_lock, update)
-            self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
-            small_count = len([c for c in update['chars'] if c.get('is_small')])
-            self.send_data_response(dict(small_count=small_count,
-                                         box_cover=dict(valid=valid, message=message, not_in_boxes=not_in_boxes)))
+            if self.steps['current'] == 'order':
+                CutTaskApi.save_order(self)
+            else:
+                CutTaskApi.save_box(self)
+            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
 
         except DbError as error:
             return self.send_db_error(error)
@@ -116,8 +106,8 @@ class TextProofApi(PageHandler):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
         info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': self.now()}
-        self.submit_task(info, data.get('submit'))
-        self.submit_doc({}, data.get('submit'))
+        self.update_task(data.get('submit'), info)
+        self.update_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
@@ -149,11 +139,11 @@ class TextReviewApi(PageHandler):
                 self.publish_hard_task(self.task, doubt)
             # 更新当前任务
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -172,11 +162,11 @@ class TextHardApi(PageHandler):
             # 更新任务
             doubt = self.data.get('doubt', '').strip('\n')
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()

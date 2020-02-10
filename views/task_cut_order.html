@@ -196,7 +196,7 @@
   // 获取任务数据
   function getSubmitData(submit) {
     var r = $.cut.getCharsCol();
-    return {submit: submit, target: 'order', chars_col: r.chars_col, error: r.error};
+    return {submit: submit, step: steps.current, chars_col: r.chars_col, error: r.error};
   }
 
   // 显示字序待修正的字框

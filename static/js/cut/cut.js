@@ -178,7 +178,7 @@
     load: function (name, version, apply) {
       console.assert(name && name.length > 1);
       this.apply = apply;
-      this.d = JSON.parse(localStorage.getItem('cutUndo') || '{}');
+      this.d = {};
       name += version || '';
       if (this.d.name !== name) {
         this.d = {name: name, level: 1};

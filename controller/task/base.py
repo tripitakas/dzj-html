@@ -130,14 +130,6 @@ class TaskHandler(BaseHandler, Task, Lock):
             mode = 'view'
         return mode
 
-    def get_current_step(self, valid_steps):
-        """ 获取当前步骤"""
-        current_step = [v for v in self.get_query_arguments('step') if v in valid_steps]
-        current_step = current_step and current_step[0] or ''
-        if self.is_api and not current_step:
-            current_step = self.prop(self.data, 'step')
-        return current_step
-
     def task_name(self):
         return self.get_task_name(self.task_type) or self.task_type
 
@@ -251,15 +243,15 @@ class TaskHandler(BaseHandler, Task, Lock):
         """
         steps = dict()
         default_steps = self.get_steps(task_type)
-        current_step = self.get_current_step(default_steps)
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
+        current_step = self.get_query_argument('step', '') or self.prop(self.data, 'step', '')
         if todo:
             if current_step and current_step not in todo:
                 current_step = todo[0]
             if not current_step:
-                current_step = un_submitted[0] if self.mode == 'do' else todo[0]
+                current_step = un_submitted[0] if self.mode == 'do' and not self.is_api else todo[0]
             index = todo.index(current_step)
             steps['todo'] = todo
             steps['current'] = current_step
@@ -312,9 +304,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             error = None if has_lock else r
         return has_lock, error
 
-    def submit_task(self, info=None, submit=None):
+    def update_task(self, submit, info=None):
         """ 更新任务提交"""
-        submit = self.data.get('submit') if submit is None else submit
         if not submit:
             if info:
                 self.db.task.update_one({'_id': ObjectId(self.task_id)}, {'$set': info})
@@ -364,7 +355,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
             self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
 
-    def submit_doc(self, info, submit=None):
+    def update_doc(self, info, submit=None):
         """ 更新本任务的数据提交"""
         submit = self.data.get('submit') if submit is None else submit
         # 如果是完成任务，则更新数据内容、数据等级和数据任务状态

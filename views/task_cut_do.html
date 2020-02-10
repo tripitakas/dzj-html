@@ -24,9 +24,9 @@
   <img src="{{static_url('imgs/icon_lr.png')}}" class="btn-img" id="undo" title="撤销"/>
   <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
   <img src="{{static_url('imgs/icon_boxes.png')}}" class="btn-img toggle-box" id="toggle-three" title="显隐所有"/>
-  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-block-only" title="仅显隐栏框"/>
-  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-column-only" title="仅显隐列框"/>
-  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-char-only" title="仅显隐字框"/>
+  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-block" title="显隐栏框"/>
+  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-column" title="显隐列框"/>
+  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-char" title="显隐字框"/>
 </div>
 <div class="btn-group hl-box" style="margin-left: 10px">
   <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐字框">所有<sup class="s-count"></sup></button>
@@ -166,9 +166,9 @@
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    var blockActive = $('#toggle-block-only').hasClass('active');
-    var columnActive = $('#toggle-column-only').hasClass('active');
-    var charActive = $('#toggle-char-only').hasClass('active');
+    var blockActive = $('#toggle-block').hasClass('active');
+    var columnActive = $('#toggle-column').hasClass('active');
+    var charActive = $('#toggle-char').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
     if ((charActive || threeActive) && cls === 'char') {
       return true;
@@ -183,14 +183,19 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
-      if ($('#toggle-three').hasClass('active')) {
+      var charActive = $('#toggle-char').hasClass('active');
+      var blockActive = $('#toggle-block').hasClass('active');
+      var columnActive = $('#toggle-column').hasClass('active');
+      var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
+      if (active.length > 6) {
+        $.cut.removeBox();
         showWarning('无法创建新框', '当前显示有多种切分框，请仅选择其中一个，然后再创建');
-        setTimeout(function () {
-          $.cut.removeBox();
-        }, 100);
+      } else if (!active.length) {
+        $.cut.removeBox();
+        showWarning('无法创建新框', '当前没有显示任何切分框，请仅选择其中一个，然后再创建');
       } else {
-        var active = $('#toggle-char-only').hasClass('active') ? 'char' : $('#toggle-column-only').hasClass('active') ? 'column' : 'block';
         $.cut.setClass([info], active);
+        updateUndo();
       }
     } else if (reason === 'removed' || reason === 'changed') {
       if ($.cut.data.hlType) {
@@ -202,7 +207,6 @@
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
     } else if (reason === 'undo') {
-      updateBoxesVisibleFromButtons();
     }
 
   }, true);
@@ -231,51 +235,36 @@
   function getSubmitData(submit) {
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), submit: submit
+      chars: $.cut.exportBoxes('char'), submit: submit, step: steps.current
     };
   }
 
-  // 成功提交之后
-  function successSubmitted() {
-    var autoPick = localStorage.getItem('autoPick') || '是';
-    setTimeout(function () {
-      if (mode === 'do' && autoPick === '是') {
-        pick('/task/pick/' + lobbyTaskType);
-      } else {
-        window.leave();
-      }
-    }, 1000);
-  }
-
-  // 重写函数
-  afterSubmitted = function (res) {
-    if (!res.valid) {
-      showConfirm('是否自动过滤？', res.message, function () {
-        var data = getSubmitData(true);
-        data.auto_filter = true;
-        postApi(location.pathname, {data: data}, function () {
-          showSuccess('成功', '已提交');
-          successSubmitted();
-        });
-      });
-    } else {
-      showSuccess('成功', '已提交');
-      successSubmitted();
-    }
-  };
-
 </script>
-
 {% end %}
 
 {% block final-js %}
-  // 保存前检查是否有框在外面
-  saveEnded = function(res, url) {
-    if (res.data.box_cover.valid) {
+<script>
+  // 成功保存
+  function successSaved(submit, res, url) {
+    if (!submit)
       showSuccess('成功', '已保存');
-      goto(url, 1000);
+    goto(url, 1000);
+  }
+
+  // 保存之后
+  afterSaved = function (submit, res, url) {
+    if (!res.valid) {
+      showConfirm('是否自动过滤？', res.message, function () {
+        var data = getSubmitData(submit);
+        data.auto_filter = true;
+        postApi(location.pathname, {data: data}, function () {
+          successSaved(submit, res, url);
+        });
+      });
     } else {
-      showWarning('警告', '已保存，请检查：' + res.data.box_cover.message);
+      successSaved(submit, res, url);
     }
   };
+</script>
+
 {% end %}

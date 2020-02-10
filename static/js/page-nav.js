@@ -58,56 +58,47 @@ $(document).on('click', '#toggle-blur', function () {
   style.opacity = $(this).hasClass('active') ? 0.2 : 1;
 });
 
+function updateThreeButton() {
+  var charActive = $('#toggle-char').hasClass('active');
+  var blockActive = $('#toggle-block').hasClass('active');
+  var columnActive = $('#toggle-column').hasClass('active');
+  if (charActive && blockActive && columnActive)
+    $('#toggle-three').addClass('active');
+  else if (!charActive && !blockActive && !columnActive)
+    $('#toggle-three').removeClass('active');
+}
+
 // 显隐栏框
 $(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'block');
+  updateThreeButton();
 });
 
 // 显隐列框
 $(document).on('click', '#toggle-column', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'column');
+  updateThreeButton();
 });
 
 // 显隐字框
 $(document).on('click', '#toggle-char', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'char');
-});
-
-function updateBoxesVisibleFromButtons() {
-  var blockActive = $('#toggle-block-only').hasClass('active');
-  var columnActive = $('#toggle-column-only').hasClass('active');
-  var charActive = $('#toggle-char-only').hasClass('active');
-  var threeActive = $('#toggle-three').hasClass('active');
-  $.cut.toggleBox(threeActive || blockActive, 'block');
-  $.cut.toggleBox(threeActive || columnActive, 'column');
-  $.cut.toggleBox(threeActive || charActive, 'char');
-}
-
-// 仅显隐栏框
-$(document).on('click', '#toggle-block-only', function () {
-  $(this).toggleClass('active');
-  updateBoxesVisibleFromButtons();
-});
-
-// 仅显隐列框
-$(document).on('click', '#toggle-column-only', function () {
-  $(this).toggleClass('active');
-  updateBoxesVisibleFromButtons();
-});
-
-// 仅显隐字框
-$(document).on('click', '#toggle-char-only', function () {
-  $(this).toggleClass('active');
-  updateBoxesVisibleFromButtons();
+  updateThreeButton();
 });
 
 // 显隐所有
 $(document).on('click', '#toggle-three', function () {
   $(this).toggleClass('active');
-  updateBoxesVisibleFromButtons();
+  if ($(this).hasClass('active')) {
+    $('.toggle-box').addClass('active');
+    $.cut.toggleBox(true);
+  } else {
+    $('.toggle-box').removeClass('active');
+    $.cut.toggleBox(false);
+  }
 });
 
 // 显隐字框编号

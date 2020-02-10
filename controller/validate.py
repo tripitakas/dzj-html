@@ -67,6 +67,9 @@ def i18n(key):
         'title': '标题',
         'category': '分类',
         'content': '内容',
+        'blocks': '栏框',
+        'columns': '列框',
+        'chars': '字框',
     }
     return maps[key] if key in maps else key
 

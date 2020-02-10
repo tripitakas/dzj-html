@@ -88,9 +88,9 @@ class PageTool(object):
         return ret
 
     @classmethod
-    def boxes_not_in_boxes(cls, boxes1, boxes2, ratio=0.1, only_check=False):
-        """ 检查boxes1是否都在boxes2中"""
-        not_in = []
+    def boxes_out_boxes(cls, boxes1, boxes2, ratio=0.1, only_check=False):
+        """ 检查boxes1中所有不在boxes2的box"""
+        out_boxes = []
         for b1 in boxes1:
             is_in = False
             for b2 in boxes2:
@@ -99,10 +99,10 @@ class PageTool(object):
                     is_in = True
                     break
             if not is_in:
-                not_in.append(b1)
+                out_boxes.append(b1)
                 if only_check:
                     return True
-        return False if only_check else not_in
+        return False if only_check else out_boxes
 
     @classmethod
     def horizontal_scan_and_order(cls, boxes, field='', ratio=0.75):
@@ -151,7 +151,7 @@ class PageTool(object):
         for c in columns:
             c['column_id'] = 'b%sc%s' % (c['block_no'], c['column_no'])
         if auto_filter:
-            return [c for c in columns if not c['block_no']]
+            return [c for c in columns if c['block_no']]
         else:
             return columns
 
