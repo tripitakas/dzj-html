@@ -722,6 +722,7 @@ a:hover, a:visited, a:focus {
 
 .btn-img.active, btn-txt.active {
   border: 1px solid #999;
+  padding: 1px;
 }
 
 .m-header .image {

@@ -464,11 +464,11 @@
 
   // 初始化设置
   $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] === -1 ? 1 : 0.2;
+  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
   $('rect.block').css('display', btnConfig['toggle-block'] === 1 ? 'block' : 'none');
   $('rect.column').css('display', btnConfig['toggle-column'] === 1 ? 'block' : 'none');
   $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
-  $.cut.setLink(!(btnConfig['toggle-order'] === -1));
+  $.cut.setLink(btnConfig['toggle-order'] === 1);
 
 </script>
 </body>
