@@ -62,6 +62,17 @@ function jump(page) {
   }
 }
 
+// 显隐所有框
+$('#toggle-boxes').click(function () {
+  var active = !$('#toggle-char').hasClass('active');
+  $('#toggle-block').toggleClass('active', active);
+  $('#toggle-column').toggleClass('active', active);
+  $('#toggle-char').toggleClass('active', active);
+  $.cut.toggleBox(active, 'block');
+  $.cut.toggleBox(active, 'column');
+  $.cut.toggleBox(active, 'char');
+});
+
 // 显隐栏框
 $('#toggle-block').click(function () {
   $(this).toggleClass('active');
