@@ -202,6 +202,8 @@
       updateUndo();
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
+    } else if (reason === 'undo') {
+      updateBoxesVisibleFromButtons();
     }
 
   }, true);
