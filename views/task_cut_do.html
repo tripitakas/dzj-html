@@ -268,3 +268,15 @@
 </script>
 
 {% end %}
+
+{% block final-js %}
+  // 保存前检查是否有框在外面
+  saveEnded = function(res, url) {
+    if (res.data.box_cover.valid) {
+      showSuccess('成功', '已保存');
+      goto(url, 1000);
+    } else {
+      showWarning('警告', '已保存，请检查：' + res.data.box_cover.message);
+    }
+  };
+{% end %}

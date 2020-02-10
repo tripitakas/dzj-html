@@ -165,14 +165,18 @@
     }, 1000);
   }
 
+  // 保存前允许页面重载判断，参数为data，返回为false时中断保存
+  var beforeSave = null;
+  var saveEnded = null;
+
   // 保存任务
   function saveTask(submit, url, ended) {
     var data = getSubmitData(submit);
-    if (data && !data.error && !data.skipPost) {
+    if (data && !data.error && !data.skipPost && (!beforeSave || beforeSave(data) !== false)) {
       postApi(location.pathname, {data: data}, function (res) {
         workChanged = 0;
         if (ended)
-          return ended(res);
+          return ended(res, url);
         if (!submit)
           showSuccess('成功', '已保存');
         goto(url, 1000);
@@ -185,9 +189,9 @@
     saveTask(true, null, afterSubmitted);
   });
 
-  // 保存任务提交
+  // 保存任务
   $(document).on('click', '#save-task', function () {
-    saveTask(false, deleteQueryString('re-order'));
+    saveTask(false, deleteQueryString('re-order'), saveEnded);
   });
 
   // 退回任务提交
@@ -252,6 +256,7 @@
     $('#autoPickModal').modal('hide');
   });
 
+{% block final-js %}{% end %}
 </script>
 </body>
 </html>

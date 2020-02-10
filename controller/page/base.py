@@ -87,6 +87,7 @@ class PageHandler(TaskHandler, PageTool):
         char_not_in_column = self.boxes_not_in_boxes(chars, columns)
         if not char_not_in_column:
             return False, '检测到有字框不在列框内', [c['char_id'] for c in char_not_in_column]
+        return True, None, []
 
     def get_cut_submit(self, calc_id=None, auto_filter=False):
         """ 获取切分校对的提交
