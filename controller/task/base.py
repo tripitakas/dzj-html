@@ -250,6 +250,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         当前步骤可以在url中申明，或者在api的请求体中给出。
         """
         steps = dict()
+        steps['step_args'] = self.get_query_arguments('step')
         default_steps = self.get_steps(task_type)
         current_step = self.get_current_step(default_steps)
         todo = self.prop(task, 'steps.todo') or default_steps
