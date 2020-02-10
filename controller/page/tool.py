@@ -230,13 +230,13 @@ class PageTool(object):
                             c['column_id2'] = col['column_id']
             # 然后检查小字落在多个列框的情况，更新column_id
             for c in chars:
-                if c.get('column_id2') and maybe_small(c):
+                if c.get('column_id2') and c['column']['w'] > normal_w * 0.75 and maybe_small(c):
                     center = c['column']['x'] + c['column']['w'] * 0.5
                     side = 'right' if (c['x'] + c['w'] * 0.5) > center else 'left'
                     col_chars = [ch for ch in chars if ch.get('column_id') == c.get('column_id')]
                     h_chars = sorted([ch['y'] for ch in col_chars])
                     top_boxes = cls.get_boxes_of_interval(col_chars, (c['y'] - normal_h, c['y']), 'y', 0.1)
-                    # 当前不是本列第一个字且上面无字时，要移动至另一个列框
+                    # 当前不是本列第一个字且上面无字时，尝试移动至另一个列框
                     if (len(h_chars) > 2 and c['y'] > h_chars[1]) and not top_boxes:
                         c['column_id'] = c['column_id2']
                     # 小字在右边，但左边是大字

@@ -10,6 +10,7 @@ from functools import cmp_to_key
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
+from controller.page.tool import PageTool
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
@@ -149,7 +150,6 @@ class DataPageListHandler(BaseHandler, Page):
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'tasks', 'name': '任务'},
-        {'id': 'cut-edit', 'name': '切分框'},
         {'id': 'box_ready', 'name': '切分已就绪'},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
@@ -170,6 +170,7 @@ class DataPageListHandler(BaseHandler, Page):
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-box', 'label': '修改字框'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
@@ -251,12 +252,12 @@ class DataPageViewHandler(BaseHandler, Page):
                 message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
                 return self.send_error_response(e.no_object, message=message)
 
-            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            chars_col = PageTool.get_chars_col(page['chars'])
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
+            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            self.render('data_page.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))
 

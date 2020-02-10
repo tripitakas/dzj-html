@@ -370,13 +370,11 @@
     location.href = '/task/text_edit/' + name + '?from=' + encodeFrom();
   });
 
-  // 修改栏框、列框、字框、字序
-  $('td.cut-edit').click(function () {
-    if (!$(this).text().length)
-      return;
-    var name = $(this).siblings('.name').text();
-    var url = '/task/cut_edit/' + name + '?step=blocks';
-    location.href = url + '&from=' + encodeFrom();
+  // 修改字框
+  $('.action .btn-box').click(function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/task/cut_edit/' + name;
+    location.href = url + '?from=' + encodeFrom();
   });
 
   // 解锁

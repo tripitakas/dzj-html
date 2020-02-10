@@ -61,7 +61,7 @@ $(document).on('click', '#toggle-blur', function () {
 // 显隐栏框
 $(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
-  $.cut.toggleBox('hide', 'block');
+  $.cut.toggleBox($(this).hasClass('active'), 'block');
 });
 
 // 显隐列框
