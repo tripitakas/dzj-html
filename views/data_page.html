@@ -118,6 +118,7 @@
         <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img" id="toggle-more" title="更多"/>
         <div class="btn-group hidden" id="more-group">
           <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改字框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">修改字序</button>
           <button type="button" class="btn btn-default btn-sm" id="btn-ed-text">审定文本</button>
         </div>
       </div>
@@ -289,6 +290,11 @@
   // 修改字框
   $('#btn-ed-box').click(function () {
     location = '/data/cut_edit/{{page["name"]}}?from=' + encodeFrom();
+  });
+
+  // 修改字序
+  $('#btn-ed-order').click(function () {
+    location = '/data/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
   });
 
   // 修改审定文本

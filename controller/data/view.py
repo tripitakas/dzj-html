@@ -170,7 +170,8 @@ class DataPageListHandler(BaseHandler, Page):
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-box', 'label': '修改字框'},
+        {'action': 'btn-box', 'label': '字框'},
+        {'action': 'btn-order', 'label': '字序'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]

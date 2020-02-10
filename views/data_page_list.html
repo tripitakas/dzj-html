@@ -377,6 +377,13 @@
     location.href = url + '?from=' + encodeFrom();
   });
 
+  // 修改字序
+  $('.action .btn-order').click(function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/data/cut_edit/' + name;
+    location.href = url + '?step=order&from=' + encodeFrom();
+  });
+
   // 解锁
   $('.lock-box a, .lock-text a').click(function () {
     if (!$(this).text().length)

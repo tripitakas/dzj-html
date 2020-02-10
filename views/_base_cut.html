@@ -10,7 +10,6 @@
 {% end %}
 
 <script>
-
   function updateUndo() {
     var root = '/static/imgs';
     $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
@@ -28,15 +27,4 @@
     $.cut.redo();
     updateUndo();
   });
-
-  // 查看字序
-  $('#view-order').click(function () {
-    location.href = setQueryString('target', 'order');
-  });
-
-  // 查看字框
-  $('#view-box').click(function () {
-    location.href = deleteQueryString('target');
-  });
-
 </script>

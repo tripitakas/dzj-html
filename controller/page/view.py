@@ -19,9 +19,9 @@ class CutTaskHandler(PageHandler):
         try:
             btn_config = {}
             template = 'task_cut_do.html'
-            if self.get_query_argument('target', '') == 'order':
+            if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-                if self.get_query_argument('re-order', '') == 'true':
+                if self.get_query_argument('reorder', '') == 'true':
                     self.reorder()
                 self.chars_col = self.get_chars_col(self.page['chars'])
             self.render(template, btn_config=btn_config)
@@ -38,9 +38,9 @@ class CutEditHandler(PageHandler):
         try:
             btn_config = {}
             template = 'task_cut_do.html'
-            if self.get_query_argument('target', '') == 'order':
+            if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-                if self.get_query_argument('re-order', '') == 'true':
+                if self.get_query_argument('reorder', '') == 'true':
                     self.reorder()
                 self.chars_col = self.get_chars_col(self.page['chars'])
             self.render(template, btn_config=btn_config)

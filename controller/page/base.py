@@ -106,10 +106,4 @@ class PageHandler(TaskHandler, PageTool):
 
     def reorder(self):
         """ 重排序号"""
-        blocks, columns, chars = self.page['blocks'], self.page['columns'], self.page['chars']
-        blocks = self.calc_block_id(blocks)
-        columns = self.calc_column_id(columns, blocks)
-        chars = self.calc_char_id(chars, columns)
-        self.page['blocks'] = blocks
-        self.page['columns'] = columns
-        self.page['chars'] = chars
+        self.page['blocks'], self.page['columns'], self.page['chars'] = self.re_calc_id(page=self.page)

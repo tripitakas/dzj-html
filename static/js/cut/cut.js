@@ -804,7 +804,7 @@
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       };
       var chars = data.chars.filter(function (c) {
-        return c.w && c.h && c.shape && (!boxType || boxType === c.class);
+        return c.w && c.h && c.shape && c.shape.getBBox() && (!boxType || boxType === c.class);
       }).map(function (c) {
         var box = c.shape.getBBox();
         var ret = {}, ignoreValues = [null, undefined, ''], ignoreFields = ['shape', 'ch', 'class'];

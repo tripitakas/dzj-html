@@ -88,7 +88,7 @@ class PageTool(object):
         return ret
 
     @classmethod
-    def boxes_not_in_boxes(cls, boxes1, boxes2, ratio=0.25, only_check=False):
+    def boxes_not_in_boxes(cls, boxes1, boxes2, ratio=0.1, only_check=False):
         """ 检查boxes1是否都在boxes2中"""
         not_in = []
         for b1 in boxes1:
@@ -161,6 +161,7 @@ class PageTool(object):
         :param chars: list, 待排序的chars
         :param columns: list, chars所属的columns。假定已排好序并设置好序号
         :param small_direction: str, 夹注小字的排序规则，vertical表示先下后左，horizontal则表示先左后下
+        :param auto_filter: bool, 是否自动过滤掉栏框外的字框和列框、以及列框外的字框
         """
 
         def pre_params():
