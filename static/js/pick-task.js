@@ -1,5 +1,5 @@
 /**
- * 领任务。需提前设置好lobbyTaskType变量
+ * 领任务。需设置好lobbyTaskType变量
  */
 
 // 领新任务
