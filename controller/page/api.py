@@ -3,14 +3,12 @@
 """
 @time: 2019/5/13
 """
-from bson import json_util
-from tornado.escape import json_decode
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
 from controller.page.diff import Diff
-from controller.page.base import PageHandler
 from controller.page.tool import PageTool
+from controller.page.base import PageHandler
 from elasticsearch.exceptions import ConnectionTimeout
 
 
@@ -19,66 +17,79 @@ class CutTaskApi(PageHandler):
            '/api/task/update/@cut_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交切分任务"""
-
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
+        """ 提交切分校对任务
+        1. 检查栏框外、列框外是否有字框，如果有，则将提示用户是否自动过滤
+        2. 如果有auto_filter参数，则自动过滤掉栏外、列外的字框
+        3. 无参数order_confirmed时，将自动计算block_id/column_id/char_id等，有，则不自动计算
+        4. 检查字框的小字个数并返回给用户
+        """
 
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
-            self.validate(self.data, rules)
-
-            self.submit_task(submit=self.data.get('submit'))
-            self.submit_doc(get_doc_update(), self.data.get('submit'))
-
-            if self.data.get('config'):
-                self.set_secure_cookie('%s_%s' % (task_type, self.data['step']), json_util.dumps(self.data['config']))
-
+            if self.steps['current'] == 'order':
+                self.save_order()
+            else:
+                self.save_box()
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
-            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
 
+    def save_box(self):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        self.update_task(self.data.get('submit'))
+
+        auto_filter = self.data.get('auto_filter') or False
+        # 要在get_box_updated之前检查check_box_cover，检查才有效
+        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        update = self.get_box_updated(not self.page.get('order_confirmed'))
+        self.update_doc(update)
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+
+    def save_order(self):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        self.update_task(self.data.get('submit'))
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        self.update_doc(dict(chars=chars, order_confirmed=True))
+        self.send_data_response()
+
 
 class CutEditApi(PageHandler):
-    URL = '/api/task/cut_edit/@page_name'
+    URL = '/api/data/cut_edit/@page_name'
 
     def post(self, page_name):
         """ 修改切分数据"""
 
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
-
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
-            self.validate(self.data, rules)
-
-            info = get_doc_update()
-            release_lock = self.data.get('submit') and self.steps['is_last']
-            self.update_edit_doc(self.task_type, doc_id=page_name, release_lock=release_lock, info=info)
-
+            if self.steps['current'] == 'order':
+                self.save_order(page_name)
+            else:
+                self.save_box(page_name)
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
-            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
+
+    def save_box(self, page_name):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        auto_filter = self.data.get('auto_filter') or False
+        # 要在get_box_updated之前检查check_box_cover，检查才有效
+        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        update = self.get_box_updated(not self.page.get('order_confirmed'))
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+
+    def save_order(self, page_name):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        update = dict(chars=chars, order_confirmed=True)
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+        self.send_data_response()
 
 
 class TextProofApi(PageHandler):
@@ -112,8 +123,8 @@ class TextProofApi(PageHandler):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
         info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': self.now()}
-        self.submit_task(info, data.get('submit'))
-        self.submit_doc({}, data.get('submit'))
+        self.update_task(data.get('submit'), info)
+        self.update_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
@@ -145,11 +156,11 @@ class TextReviewApi(PageHandler):
                 self.publish_hard_task(self.task, doubt)
             # 更新当前任务
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -168,11 +179,11 @@ class TextHardApi(PageHandler):
             # 更新任务
             doubt = self.data.get('doubt', '').strip('\n')
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -182,7 +193,7 @@ class TextHardApi(PageHandler):
 
 
 class TextEditApi(PageHandler):
-    URL = '/api/task/text_edit/@page_name'
+    URL = '/api/data/text_edit/@page_name'
 
     def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
@@ -212,27 +223,6 @@ class DetectWideCharsApi(PageHandler):
             self.send_data_response(mb4)
         except Exception as error:
             return self.send_db_error(error)
-
-
-class GenCharIdApi(PageHandler):
-    URL = '/api/cut/gen_char_id'
-
-    def post(self):
-        """ 根据坐标重新生成栏、列、字框的编号"""
-        chars = self.data['chars']
-        blocks = self.data['blocks']
-        columns = self.data['columns']
-        # 每列字框的序号 [[char_index_of_col1, ...], col2...]
-        chars_col = self.data.get('chars_col')
-        zero_char_id, layout_type = [], self.data.get('layout_type')
-        r = self.calc(blocks, columns, chars, chars_col, layout_type)
-        if r:
-            zero_char_id, layout_type, chars_col = r
-
-        return self.send_data_response(dict(
-            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-            zero_char_id=zero_char_id, layout_type=layout_type
-        ))
 
 
 class SelectTextApi(PageHandler):

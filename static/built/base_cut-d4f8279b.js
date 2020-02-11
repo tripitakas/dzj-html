@@ -9796,7 +9796,7 @@ Enjoy!
     toggleBox: function(visible) {
       data.chars.forEach(function(box) {
         if (box.shape) {
-          $(box.shape.node).toggle(visible);
+          $(box.shape.node).toggle(!!visible);
         }
       });
     },

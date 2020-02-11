@@ -28,10 +28,10 @@ function getLineNo(line) {
   return line.parent().find('.line').index(line) + 1;
 }
 
-function findBestBoxes(offset, block_no, line_no, cmp) {
+function findBestBoxes(offset, block_no, column_no, cmp) {
   var minNo = 10;
   var ret;
-  $.cut.findCharsByLine(block_no, line_no, function (ch, box) {
+  $.cut.findCharsByLine(block_no, column_no, function (ch, box) {
     if (cmp(ch)) {
       if (minNo > Math.abs(offset + 1 - box.char_no)) {
         minNo = Math.abs(offset + 1 - box.char_no);
@@ -166,15 +166,15 @@ function highlightBox($span, first) {
 
 // 点击切分框
 $.cut.onBoxChanged(function (char, box, reason) {
-  if (reason === 'navigate' && char) {
+  if (reason === 'navigate' && char.column_no) {
     // 按字序号浮动亮显当前行的字框
-    var $line = getLine(char.block_no, char.line_no);
+    var $line = getLine(char.block_no, char.column_no);
     var text = getLineText($line);
-    var all = $.cut.findCharsByLine(char.block_no, char.line_no);
+    var all = $.cut.findCharsByLine(char.block_no, char.column_no);
 
     // 如果字框对应的文本行不是当前行，则更新相关设置
     var currentLineNo = getLineNo($('.current-span').parent());
-    if (currentLineNo !== char.line_no) {
+    if (currentLineNo !== char.column_no) {
       var $firstSpan = $line.find('span:first-child');
       currentSpan = [$firstSpan, true];
     }
@@ -453,8 +453,8 @@ function checkMismatch(report, fromApi) {
 
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
-    if (c.shape && c.line_no) {
-      var t = c.block_no + ',' + c.line_no;
+    if (c.shape && c.column_no) {
+      var t = c.block_no + ',' + c.column_no;
       if (ocrColumns.indexOf(t) < 0) {
         ocrColumns.push(t);
       }
@@ -588,7 +588,7 @@ $('#txtModal .btn-txt').click(function () {
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $.cut.toggleBox('hide');
+  $.cut.toggleBox(!$(this).hasClass('active'));
 });
 
 // 显隐浮动列框序号
@@ -744,28 +744,15 @@ $('#zoom-reset').on('click', function () {
 // 修改字框
 $('#ed-char-box').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=chars&from=' + encodeFrom();
+    location = '/data/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
   });
 });
 
-// 修改栏框
-$('#ed-block-box').click(function () {
-  autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=blocks&from=' + encodeFrom();
-  });
-});
-
-// 修改列框
-$('#ed-column-box').click(function () {
-  autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=columns&from=' + encodeFrom();
-  });
-});
 
 // 修改字序
 $('#ed-char-order').click(function () {
   autoSave(function() {
-    location = '/task/cut_edit/' + docId + '?step=orders&from=' + encodeFrom();
+    location = '/data/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
   });
 });
 

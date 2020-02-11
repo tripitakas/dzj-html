@@ -62,30 +62,6 @@ function jump(page) {
   }
 }
 
-// 显隐栏框
-$('#toggle-block').click(function () {
-  $(this).toggleClass('active');
-  $('rect.block').css('display', $(this).hasClass('active') ? 'block' : 'none');
-});
-
-// 显隐列框
-$('#toggle-column').click(function () {
-  $(this).toggleClass('active');
-  $('rect.column').css('display', $(this).hasClass('active') ? 'block' : 'none');
-});
-
-// 显隐字框
-$('#toggle-char').click(function () {
-  $(this).toggleClass('active');
-  $('rect.char').css('display', $(this).hasClass('active') ? 'block' : 'none');
-});
-
-// 显隐字序
-$('#toggle-char-no').click(function () {
-  $(this).toggleClass('active');
-  $.cut.toggleLabel();
-});
-
 // 切换文本
 $('#txtModal .btn-txt').click(function () {
   $(this).removeClass('btn-default').addClass('btn-primary');

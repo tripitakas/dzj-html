@@ -66,6 +66,7 @@ republish_only_picked_or_failed = 3017, '仅可重新发布已领取或失败的
 box_not_identical = 3018, '切分信息不一致'
 box_un_ready = 3019, '切分数据未就绪'
 invalid_statistic_type = 3020, '无效的统计类型'
+box_not_covered = 3021, '切分框涵盖不完整'
 
 data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'

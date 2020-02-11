@@ -29,8 +29,8 @@ function showError(title, text, timer) {
     });
 }
 
-function showWarning(title, text) {
-  showError(title, text);
+function showWarning(title, text, timer) {
+  showError(title, text, timer);
 }
 
 function showSuccess(title, text, timer) {
@@ -41,7 +41,7 @@ function showSuccess(title, text, timer) {
 function showConfirm(title, text, func) {
   var info = {
     type: 'warning', title: title, text: text, confirmButtonText: '确定', cancelButtonText: '取消',
-    showCancelButton: true, closeOnConfirm: false
+    showCancelButton: true, closeOnConfirm: false, timer: 1000000
   };
   return swal(info, func);
 }
@@ -87,10 +87,10 @@ function setQueryString(name, value, onlySearch) {
   var search = location.search;
   var add = name + '=' + value;
   if (search.indexOf(name + '=') !== -1) {
-    search = search.replace(new RegExp(name + '=.*?&', 'i'), add + '&');
-    search = search.replace(new RegExp(name + '=.*?$', 'i'), add);
+    search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
+    search = search.replace(/&$/, '');
   } else if (search) {
-    search += '&' + add;
+    search = '?' + add + '&' + search.substr(1);
   } else {
     search = '?' + add;
   }

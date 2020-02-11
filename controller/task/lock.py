@@ -89,7 +89,7 @@ class Lock(object):
         assert shared_field in self.data_auth_maps
         collection, id_name = self.get_collection_and_id(shared_field)
         doc = self.db[collection].find_one({id_name: doc_id}) if not doc else doc
-        return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field, 0))
+        return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field) or 0)
 
     def assign_temp_lock(self, doc_id, shared_field, user, doc=None):
         """ 将临时数据锁分配给用户。成功时返回True，失败时返回错误代码 """
