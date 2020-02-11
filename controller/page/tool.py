@@ -391,10 +391,12 @@ class PageTool(object):
         """ 按照chars_col重排chars"""
         for col_no, col in enumerate(chars_col):
             for char_no, cid in enumerate(col):
-                c = chars[cid - 1]
-                c['column_no'] = col_no + 1
-                c['char_no'] = char_no + 1
-                c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
+                cs = [c for c in chars if c['cid'] == cid]
+                if cs:
+                    c = cs[0]
+                    c['column_no'] = col_no + 1
+                    c['char_no'] = char_no + 1
+                    c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
     @classmethod
