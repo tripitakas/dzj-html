@@ -588,7 +588,7 @@ $('#txtModal .btn-txt').click(function () {
 /*-----------导航条----------------*/
 // 显隐字框
 $('#toggle-char').on('click', function () {
-  $.cut.toggleBox('hide');
+  $.cut.toggleBox(!$(this).hasClass('active'));
 });
 
 // 显隐浮动列框序号
