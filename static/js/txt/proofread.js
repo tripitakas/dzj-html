@@ -326,10 +326,15 @@ $('.sutra-text-mode .html-edit').click(function () {
 
 // 点击保存，保存后进入html模式
 $('.sutra-text-mode .save-txt').click(function () {
+  if ($('#raw-txt').text().trim() === $('#raw-txt').val().trim()) {
+    $('.bd.sutra-html').removeClass('hide');
+    $('.bd.sutra-txt').addClass('hide');
+    return;
+  }
   var texts = $.map($('#txtModal').find('textarea'), function (item) {
     return $(item).text();
   });
-  texts[0] = $('#raw-txt').text();
+  texts[0] = $('#raw-txt').val();
   var hints = $.map($('.sutra-text .selected'), function (i) {
     var lineNo = getLineNo($(i).parent());
     var blockNo = getBlockNo($(i).parent().parent());
@@ -339,7 +344,6 @@ $('.sutra-text-mode .save-txt').click(function () {
     }
   });
   postApi('/data/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    console.log(res);
     $('.sutra-text .blocks').html(res.cmp_data);
     $('.bd.sutra-html').removeClass('hide');
     $('.bd.sutra-txt').addClass('hide');
