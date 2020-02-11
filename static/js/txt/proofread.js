@@ -309,10 +309,50 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
   }
 });
 
+
 /** 文字校对-编辑模式相关代码 */
+
+// 切换文本编辑模式
 $('#toggle-text-mode').click(function () {
-  $(this).toggleClass('raw-txt');
+  $(this).toggleClass('txt-mode');
 });
+
+// 点击编辑，进入纯文本模式
+$('.sutra-text-mode .html-edit').click(function () {
+  $('.bd.sutra-html').addClass('hide');
+  $('.bd.sutra-txt').removeClass('hide');
+  $('#raw-txt').text(getPageText());
+});
+
+// 点击保存，保存后进入html模式
+$('.sutra-text-mode .save-txt').click(function () {
+  var texts = $.map($('#txtModal').find('textarea'), function (item) {
+    return $(item).text();
+  });
+  texts[0] = $('#raw-txt').text();
+  var hints = $.map($('.sutra-text .selected'), function (i) {
+    var lineNo = getLineNo($(i).parent());
+    var blockNo = getBlockNo($(i).parent().parent());
+    return {
+      block_no: blockNo, line_no: lineNo, base: $(i).attr('base'),
+      cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
+    }
+  });
+  postApi('/data/diff', {data: {texts: texts, hints: hints}}, function (res) {
+    console.log(res);
+    $('.sutra-text .blocks').html(res.cmp_data);
+    $('.bd.sutra-html').removeClass('hide');
+    $('.bd.sutra-txt').addClass('hide');
+  });
+});
+
+function getPageText() {
+  return $.map($('.sutra-text .block'), function (block) {
+    return $.map($(block).find('.line'), function (line) {
+      return $(line).text().replace(/\s/g, '');
+    }).join("\n");
+  }).join("\n\n");
+}
 
 
 /** 文字校对-存疑相关代码 */

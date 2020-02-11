@@ -7,6 +7,7 @@
 import re
 from operator import itemgetter
 from functools import cmp_to_key
+from controller.page.diff import Diff
 from tornado.escape import url_escape
 
 
@@ -510,6 +511,41 @@ class PageTool(object):
                 for j in ['x', 'y', 'w', 'h']:
                     if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
                         return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
+
+    @classmethod
+    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
+        """ 生成文字校对的segment"""
+        # 1. 生成segments
+        segments = []
+        pre_empty_line_no = 0
+        block_no, line_no = 1, 1
+        diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
+                if not pre_empty_line_no:  # 连续空行仅保留第一个
+                    s['block_no'], s['line_no'] = block_no, line_no
+                    segments.append(s)
+                    line_no += 1
+                pre_empty_line_no += 1
+            else:  # 当前非空行
+                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
+                    line_no = 1
+                    block_no += 1
+                s['block_no'], s['line_no'] = block_no, line_no
+                segments.append(s)
+                pre_empty_line_no = 0
+        # 2. 结构化，以便页面输出
+        blocks = {}
+        for s in segments:
+            b_no, l_no = s['block_no'], s['line_no']
+            if not blocks.get(b_no):
+                blocks[b_no] = {}
+            if not blocks[b_no].get(l_no):
+                blocks[b_no][l_no] = []
+            if not (s['is_same'] and s['base'] == '\n'):
+                s['offset'] = s['range'][0]
+                blocks[b_no][l_no].append(s)
+        return blocks
 
     @staticmethod
     def merge_narrow_columns(columns):
