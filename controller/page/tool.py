@@ -373,9 +373,8 @@ class PageTool(object):
     def get_chars_col(cls, chars):
         """ 按照column_no对chars分组并设置cid。假定chars已排序"""
         ret = []
-        cid_col = []  # cid表示第几个字，从1开始
+        cid_col = []
         for i, c in enumerate(chars):
-            c['cid'] = i + 1
             column_no1 = c.get('column_no')
             column_no2 = chars[i - 1].get('column_no')
             if i > 1 and column_no1 and column_no2 and column_no1 != column_no2:  # 换行

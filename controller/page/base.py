@@ -132,9 +132,18 @@ class PageHandler(TaskHandler, PageTool):
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
         return True, None, []
 
+    @staticmethod
+    def update_chars_cid(chars):
+        max_cid = max([int(c.get('cid') or 0) for c in chars])
+        for c in chars:
+            if not c.get('cid'):
+                c['cid'] = max_cid + 1
+                max_cid += 1
+
     def get_box_updated(self, calc_id=None):
         """ 获取切分校对的提交"""
         chars = self.decode_box(self.data['chars'])
+        self.update_chars_cid(chars)
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
         if calc_id:
