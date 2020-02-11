@@ -58,35 +58,25 @@ $(document).on('click', '#toggle-blur', function () {
   style.opacity = $(this).hasClass('active') ? 0.2 : 1;
 });
 
-function updateThreeButton() {
-  var charActive = $('#toggle-char').hasClass('active');
-  var blockActive = $('#toggle-block').hasClass('active');
-  var columnActive = $('#toggle-column').hasClass('active');
-  if (charActive && blockActive && columnActive)
-    $('#toggle-three').addClass('active');
-  else if (!charActive && !blockActive && !columnActive)
-    $('#toggle-three').removeClass('active');
-}
-
 // 显隐栏框
 $(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'block');
-  updateThreeButton();
+  localStorage.setItem('toggleBlock', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐列框
 $(document).on('click', '#toggle-column', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'column');
-  updateThreeButton();
+  localStorage.setItem('toggleColumn', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐字框
 $(document).on('click', '#toggle-char', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'char');
-  updateThreeButton();
+  localStorage.setItem('toggleChar', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐所有

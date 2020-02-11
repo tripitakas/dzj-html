@@ -41,7 +41,7 @@ function showSuccess(title, text, timer) {
 function showConfirm(title, text, func) {
   var info = {
     type: 'warning', title: title, text: text, confirmButtonText: '确定', cancelButtonText: '取消',
-    showCancelButton: true, closeOnConfirm: false, timer: 1000000
+    showCancelButton: true, closeOnConfirm: false, html: true
   };
   return swal(info, func);
 }
