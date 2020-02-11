@@ -43,7 +43,7 @@ class CutTaskApi(PageHandler):
         auto_filter = self.data.get('auto_filter') or False
         # 要在get_box_updated之前检查check_box_cover，检查才有效
         valid, message, out_boxes = self.check_box_cover(auto_filter)
-        update = self.get_box_updated(self.page.get('order_confirmed'))
+        update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_doc(update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
@@ -79,7 +79,7 @@ class CutEditApi(PageHandler):
         auto_filter = self.data.get('auto_filter') or False
         # 要在get_box_updated之前检查check_box_cover，检查才有效
         valid, message, out_boxes = self.check_box_cover(auto_filter)
-        update = self.get_box_updated(self.page.get('order_confirmed'))
+        update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))

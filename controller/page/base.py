@@ -134,8 +134,6 @@ class PageHandler(TaskHandler, PageTool):
 
     def get_box_updated(self, calc_id=None):
         """ 获取切分校对的提交"""
-        if calc_id is None and not self.page.get('order_confirmed'):
-            calc_id = True
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])

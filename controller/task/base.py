@@ -246,7 +246,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
-        current_step = self.get_query_argument('step', '') or self.prop(self.data, 'step', '')
+        current_step = (self.get_query_arguments('step') or [''])[0] or self.prop(self.data, 'step', '')
         if todo:
             if current_step and current_step not in todo:
                 current_step = todo[0]
