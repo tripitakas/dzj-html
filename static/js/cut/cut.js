@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-02-06
+ * Date: 2020-02-11
  */
 (function () {
   'use strict';
@@ -557,6 +557,12 @@
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
+      p.chars.forEach(function(c) {
+        if (!c.cid) {
+          c.cid = 1 + Math.max.apply(null, p.chars.map(function(c) { return c.cid || 0; }));
+        }
+      });
+
       if (p.blocks || p.columns) {
         self.setClass(p.chars, 'char');
         if (p.blocks) {
@@ -636,6 +642,9 @@
         }
         if (!b.char_id) {
           b.char_id = 'org' + idx;
+        }
+        if (b.line_no && !b.column_no) {
+          b.column_no = b.line_no;
         }
         b.txt = b.txt || b.ch;
       });
@@ -809,7 +818,8 @@
         return c.w && c.h && c.shape && c.shape.getBBox() && (!boxType || boxType === c.class);
       }).map(function (c) {
         var box = c.shape.getBBox();
-        var ret = {}, ignoreValues = [null, undefined, ''], ignoreFields = ['shape', 'ch', 'class'];
+        var ret = {}, ignoreValues = [null, undefined, ''];
+        var ignoreFields = ['shape', 'ch', 'class', 'line_no', 'index'];
         $.extend(c, {x: r(box.x), y: r(box.y), w: r(box.width), h: r(box.height), txt: c.txt || ''});
         Object.keys(c).forEach(function (k) {
           if (ignoreValues.indexOf(c[k]) < 0 && ignoreFields.indexOf(k) < 0 && k[0] !== '_'
@@ -820,6 +830,7 @@
         if (c.class === 'block' || c.class === 'column') {
           delete ret.char_id;
           delete ret.char_no;
+          delete ret.cid;
         }
         if (c.class === 'block') {
           delete ret.column_no;
