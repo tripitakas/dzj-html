@@ -1,14 +1,10 @@
 .pfread {
-  padding: 42px 2px 2px;
+  padding-top: 40px;
 }
 
 .pfread .left {
   flex: 1;
   width: 50%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
-  background: var(--Grey_Content);
 }
 
 .pfread .left .hd {
@@ -48,10 +44,7 @@
 
 .pfread .right {
   flex: 1;
-  margin-left: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-sizing: border-box;
+  border-left: 1px solid #ccc;
   background: var(--Grey_Content);
 }
 
@@ -103,6 +96,36 @@
   flex: 1 1 auto;
 }
 
+.sutra-text-mode .html-edit, .sutra-text-mode .save-txt {
+  top: 45px;
+  right: 20px;
+  width: 20px;
+  height: 20px;
+  z-index: 1000;
+  cursor: pointer;
+  position: fixed;
+  background-size: 20px 20px;
+}
+
+.sutra-text-mode .html-edit {
+  display: block;
+  background: url(../imgs/icon_edit2.png);
+}
+
+.sutra-text-mode .save-txt {
+  display: none;
+  background: url(../imgs/icon_save2.png);
+}
+
+.raw-txt .save-txt {
+  display: block;
+}
+
+.raw-txt .html-edit {
+  display: none;
+}
+
+
 .right .sutra-text.active {
   display: block;
 }
@@ -112,12 +135,9 @@
   font-size: 0;
 }
 
-.sutra-text .block {
-  margin-bottom: 40px;
-}
-
-.sutra-text .block:last-child {
-  margin-bottom: 0;
+.sutra-text .block:not(:last-child) {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 10px;
 }
 
 .sutra-text .line.current-line {

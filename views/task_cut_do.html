@@ -161,14 +161,38 @@
   $.cut.bindKeys();
 
   // 初始化设置
-  $.cut.toggleBox(false, 'block');
-  $.cut.toggleBox(false, 'column');
+  var blockActive = localStorage.getItem('toggleBlock') || '-1';
+  if (blockActive === '1') {
+    $('#toggle-block').addClass('active');
+    $.cut.toggleBox(true, 'block');
+  } else {
+    $('#toggle-block').removeClass('active');
+    $.cut.toggleBox(false, 'block');
+  }
+
+  var columnActive = localStorage.getItem('toggleColumn') || '-1';
+  if (columnActive === '1') {
+    $('#toggle-column').addClass('active');
+    $.cut.toggleBox(true, 'column');
+  } else {
+    $('#toggle-column').removeClass('active');
+    $.cut.toggleBox(false, 'column');
+  }
+
+  var charActive = localStorage.getItem('toggleChar') || '1';
+  if (charActive === '1') {
+    $('#toggle-char').addClass('active');
+    $.cut.toggleBox(true, 'char');
+  } else {
+    $('#toggle-char').removeClass('active');
+    $.cut.toggleBox(false, 'char');
+  }
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
+    var charActive = $('#toggle-char').hasClass('active');
     var blockActive = $('#toggle-block').hasClass('active');
     var columnActive = $('#toggle-column').hasClass('active');
-    var charActive = $('#toggle-char').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
     if ((charActive || threeActive) && cls === 'char') {
       return true;
@@ -214,6 +238,14 @@
 </script>
 
 <script>
+  // 获取任务数据
+  function getSubmitData(submit) {
+    return {
+      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
+      chars: $.cut.exportBoxes('char'), submit: submit, step: steps.current
+    };
+  }
+
   // 显示各种类型字框数量
   function showHighLightCount() {
     $('.hl-box > button').each(function (i, btn) {
@@ -231,14 +263,6 @@
     $.cut.switchHighlightBoxes(type);
   });
 
-
-  function getSubmitData(submit) {
-    return {
-      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), submit: submit, step: steps.current
-    };
-  }
-
 </script>
 {% end %}
 
@@ -254,7 +278,7 @@
   // 保存之后
   afterSaved = function (submit, res, url) {
     if (!res.valid) {
-      showConfirm('是否自动过滤？', '数据已保存，检测到有' + res.message, function () {
+      showConfirm('是否自动过滤？', '数据已保存！检测到 <b style="color: red">' + res.message +'</b>', function () {
         var data = getSubmitData(submit);
         data.auto_filter = true;
         postApi(location.pathname, {data: data}, function () {

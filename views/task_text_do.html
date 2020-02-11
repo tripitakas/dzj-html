@@ -52,6 +52,10 @@
 <!--/.left-->
 <div class="right" id="right-region">
   <div class="bd">
+    <div class="sutra-text-mode html hide" id="toggle-text-mode">
+      <span class="html-edit"></span>
+      <span class="save-txt"></span>
+    </div>
     <div class="sutra-text active" id="sutra-text">
       <div class="blocks">
         {% if isinstance(cmp_data, str) %}
@@ -226,7 +230,8 @@
 {% block custom-js %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
-<script src="{{static_url('js/proofread.js')}}"></script>
+<script src="{{static_url('js/txt/proofread.js')}}"></script>
+<script src="{{static_url('js/txt/txt-btn.js')}}"></script>
 <script>
   // 页面图和切分框
   var canvasName = taskType + step + docId;

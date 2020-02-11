@@ -158,8 +158,8 @@ class PickTaskApi(TaskHandler):
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
             if self.is_group(task_type) and self.db.task.find_one(dict(
-                    status=self.STATUS_FINISHED, doc_id=task['doc_id'], picked_user_id=self.user_id,
-                    task_type={'$regex': task_type} if self.is_group(task_type) else task_type,
+                    status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}, doc_id=task['doc_id'],
+                    picked_user_id=self.user_id, task_type={'$regex': task_type},
             )):
                 message = '您曾领取过本页面组任务中的一个，不能再领取其它任务'
                 return self.send_error_response(e.group_task_duplicated, message=message)
