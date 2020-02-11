@@ -38,15 +38,15 @@ class CutTaskApi(PageHandler):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
 
-        auto_filter = self.data.get('auto_filter') or False
-        valid, message, out_boxes = self.check_box_cover()
-        if not auto_filter and not valid:
-            return self.send_data_response(dict(valid=False, message=message, out_boxes=out_boxes))
-
         self.update_task(self.data.get('submit'))
-        calc_id = False if self.page.get('order_confirmed') else True
-        self.update_doc(self.get_cut_submit(calc_id, auto_filter))
-        self.send_data_response(dict(valid=True, message=message, out_boxes=out_boxes))
+
+        auto_filter = self.data.get('auto_filter') or False
+        # 要在get_box_updated之前检查check_box_cover，检查才有效
+        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        update = self.get_box_updated(self.page.get('order_confirmed'))
+        self.update_doc(update)
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
@@ -77,14 +77,12 @@ class CutEditApi(PageHandler):
         self.validate(self.data, rules)
 
         auto_filter = self.data.get('auto_filter') or False
-        valid, message, out_boxes = self.check_box_cover()
-        if not auto_filter and not valid:
-            return self.send_data_response(dict(valid=False, message=message, out_boxes=out_boxes))
-
-        calc_id = self.page.get('order_confirmed')
-        update = self.get_cut_submit(calc_id, auto_filter)
+        # 要在get_box_updated之前检查check_box_cover，检查才有效
+        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        update = self.get_box_updated(self.page.get('order_confirmed'))
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
-        self.send_data_response(dict(valid=True, message=message, out_boxes=out_boxes))
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self, page_name):
         self.validate(self.data, [(v.not_empty, 'chars_col')])

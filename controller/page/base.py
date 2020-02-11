@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from controller.page.diff import Diff
 from tornado.escape import json_decode
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
@@ -61,6 +62,41 @@ class PageHandler(TaskHandler, PageTool):
                 doubts.append([review_doubt, '审定存疑'])
         return texts, doubts
 
+    @classmethod
+    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
+        """ 生成文字校对的segment"""
+        # 1. 生成segments
+        segments = []
+        pre_empty_line_no = 0
+        block_no, line_no = 1, 1
+        diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
+                if not pre_empty_line_no:  # 连续空行仅保留第一个
+                    s['block_no'], s['line_no'] = block_no, line_no
+                    segments.append(s)
+                    line_no += 1
+                pre_empty_line_no += 1
+            else:  # 当前非空行
+                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
+                    line_no = 1
+                    block_no += 1
+                s['block_no'], s['line_no'] = block_no, line_no
+                segments.append(s)
+                pre_empty_line_no = 0
+        # 2. 结构化，以便页面输出
+        blocks = {}
+        for s in segments:
+            b_no, l_no = s['block_no'], s['line_no']
+            if not blocks.get(b_no):
+                blocks[b_no] = {}
+            if not blocks[b_no].get(l_no):
+                blocks[b_no][l_no] = []
+            if not (s['is_same'] and s['base'] == '\n'):
+                s['offset'] = s['range'][0]
+                blocks[b_no][l_no].append(s)
+        return blocks
+
     def get_txt_html_update(self, txt_html):
         """ 获取page的txt_html字段的更新"""
         text = self.html2txt(txt_html)
@@ -74,26 +110,30 @@ class PageHandler(TaskHandler, PageTool):
     def decode_box(boxes):
         return json_decode(boxes) if isinstance(boxes, str) else boxes
 
-    def check_box_cover(self):
+    def check_box_cover(self, auto_filter=False):
+        """ 检查字框覆盖情况。auto_filter为True时，过滤字框并设置好self.data"""
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
-        char_out_block = self.boxes_out_boxes(chars, blocks)
+        char_out_block, char_in_block = self.boxes_out_boxes(chars, blocks)
         if char_out_block:
-            return False, '检测到有字框不在栏框内', [c['char_id'] for c in char_out_block]
-        column_out_block = self.boxes_out_boxes(columns, blocks)
+            if auto_filter:
+                self.data['chars'] = char_in_block
+            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
+        column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
         if column_out_block:
-            return False, '检测到有列框不在栏框内', [c['column_id'] for c in column_out_block]
-        char_out_column = self.boxes_out_boxes(chars, columns)
+            if auto_filter:
+                self.data['columns'] = column_in_block
+            return False, '列框不在栏框内', [c['column_id'] for c in column_out_block]
+        char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
         if char_out_column:
-            return False, '检测到有字框不在列框内', [c['char_id'] for c in char_out_column]
+            if auto_filter:
+                self.data['chars'] = char_in_column
+            return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
         return True, None, []
 
-    def get_cut_submit(self, calc_id=None, auto_filter=False):
-        """ 获取切分校对的提交
-        :param calc_id: 是否重新计算id
-        :param auto_filter: 是否自动过滤掉栏外的列框和字框。只有calc_id为True时，参数才有效
-        """
+    def get_box_updated(self, calc_id=None):
+        """ 获取切分校对的提交"""
         if calc_id is None and not self.page.get('order_confirmed'):
             calc_id = True
         chars = self.decode_box(self.data['chars'])
@@ -101,8 +141,8 @@ class PageHandler(TaskHandler, PageTool):
         columns = self.decode_box(self.data['columns'])
         if calc_id:
             blocks = self.calc_block_id(blocks)
-            columns = self.calc_column_id(columns, blocks, auto_filter)
-            chars = self.calc_char_id(chars, columns, auto_filter)
+            columns = self.calc_column_id(columns, blocks)
+            chars = self.calc_char_id(chars, columns)
         return dict(chars=chars, blocks=blocks, columns=columns)
 
     def reorder(self):

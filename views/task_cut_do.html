@@ -254,7 +254,7 @@
   // 保存之后
   afterSaved = function (submit, res, url) {
     if (!res.valid) {
-      showConfirm('是否自动过滤？', res.message, function () {
+      showConfirm('是否自动过滤？', '数据已保存，检测到有' + res.message, function () {
         var data = getSubmitData(submit);
         data.auto_filter = true;
         postApi(location.pathname, {data: data}, function () {

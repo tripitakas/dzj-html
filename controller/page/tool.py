@@ -8,7 +8,6 @@ import re
 from operator import itemgetter
 from functools import cmp_to_key
 from tornado.escape import url_escape
-from controller.page.diff import Diff
 
 
 class PageTool(object):
@@ -44,7 +43,7 @@ class PageTool(object):
 
     @staticmethod
     def box_overlap(box1, box2, only_check=False):
-        """ 计算两个框的交叉面积和比例"""
+        """ 计算两个框的交叉面积和比例。如果only_check为True，则只要有一点交叉就返回True"""
         x1, y1, w1, h1 = box1['x'], box1['y'], box1['w'], box1['h']
         x2, y2, w2, h2 = box2['x'], box2['y'], box2['w'], box2['h']
         if x1 > x2 + w2 or x2 > x1 + w1:
@@ -88,21 +87,23 @@ class PageTool(object):
         return ret
 
     @classmethod
-    def boxes_out_boxes(cls, boxes1, boxes2, ratio=0.1, only_check=False):
-        """ 检查boxes1中所有不在boxes2的box"""
-        out_boxes = []
+    def boxes_out_boxes(cls, boxes1, boxes2, ratio=0.01, only_check=False):
+        """ 检查boxes1中所有不在boxes2的box。ratio越小，对交叉面积要求越低"""
+        out_boxes, in_boxes = [], []
         for b1 in boxes1:
             is_in = False
             for b2 in boxes2:
-                overlap, ratio1, ratio2 = cls.box_overlap(b1, b2)
-                if ratio1 > ratio:
+                ratio1 = cls.box_overlap(b1, b2)[1]
+                if ratio1 > ratio:  # ratio1指的是交叉面积占b1的比例
                     is_in = True
                     break
             if not is_in:
                 out_boxes.append(b1)
                 if only_check:
                     return True
-        return False if only_check else out_boxes
+            else:
+                in_boxes.append(b1)
+        return False if only_check else (out_boxes, in_boxes)
 
     @classmethod
     def horizontal_scan_and_order(cls, boxes, field='', ratio=0.75):
@@ -215,6 +216,7 @@ class PageTool(object):
             """ 设置chars的column_no"""
             # 先按中心点落在哪个列框进行分组，设置column_id
             for c in chars:
+                # 找到所有交叉的列
                 in_columns = [col for col in columns if cls.box_overlap(c, col, True)]
                 if not in_columns:
                     # 列框之外的chars统一设置为'b0c0'
@@ -222,30 +224,42 @@ class PageTool(object):
                 elif len(in_columns) == 1:
                     c['column_id'] = in_columns[0]['column_id']
                 else:
+                    center = c['x'] + c['w'] / 2, c['y'] + c['h'] / 2
                     for col in in_columns:
-                        center = c['x'] + c['w'] / 2, c['y'] + c['h'] / 2
                         if cls.point_in_box(center, col):
                             c['column'] = col
                             c['column_id'] = col['column_id']
                         else:
                             c['column_id2'] = col['column_id']
+                    if not c.get('column_id'):
+                        c['column'] = in_columns[0]
+                        c['column_id'] = in_columns[0]['column_id']
+                        c['column_id2'] = in_columns[1]['column_id']
             # 然后检查小字落在多个列框的情况，更新column_id
             for c in chars:
+                # 检查宽列中小字的情况
                 if c.get('column_id2') and c['column']['w'] > normal_w * 0.75 and maybe_small(c):
-                    center = c['column']['x'] + c['column']['w'] * 0.5
-                    side = 'right' if (c['x'] + c['w'] * 0.5) > center else 'left'
-                    col_chars = [ch for ch in chars if ch.get('column_id') == c.get('column_id')]
-                    h_chars = sorted([ch['y'] for ch in col_chars])
-                    top_boxes = cls.get_boxes_of_interval(col_chars, (c['y'] - normal_h, c['y']), 'y', 0.1)
-                    # 当前不是本列第一个字且上面无字时，尝试移动至另一个列框
-                    if (len(h_chars) > 2 and c['y'] > h_chars[1]) and not top_boxes:
-                        c['column_id'] = c['column_id2']
-                    # 小字在右边，但左边是大字
-                    elif side == 'right':
-                        h_boxes = cls.get_boxes_of_interval(col_chars, (c['y'], c['y'] + c['h']), 'y', 0.1)
-                        l_boxes = [b for b in h_boxes if b['x'] < c['x'] and is_big(b)]
-                        if l_boxes:
+                    # 检查另一列的情况，是否可移过去
+                    col2_chars = [ch for ch in chars if ch.get('column_id') == c.get('column_id2')]
+                    col2_neighbors = cls.get_boxes_of_interval(col2_chars, (c['y'], c['y'] + c['h']), 'y', 0.1)
+                    col2_top_neighbors = cls.get_boxes_of_interval(col2_chars, (c['y'] - normal_h, c['y']), 'y', 0.1)
+                    # 如果另一列有上邻居，且水平邻居为一个小字，则可移过去
+                    can_move = col2_top_neighbors and len(col2_neighbors) == 1 and maybe_small(col2_neighbors[0])
+                    if can_move:
+                        center = c['column']['x'] + c['column']['w'] * 0.5
+                        side = 'right' if (c['x'] + c['w'] * 0.5) > center else 'left'
+                        col_chars = [ch for ch in chars if ch.get('column_id') == c.get('column_id')]
+                        chars_y = sorted([ch['y'] for ch in col_chars])
+                        top_neighbors = cls.get_boxes_of_interval(col_chars, (c['y'] - normal_h, c['y']), 'y', 0.1)
+                        # 当前不是本列第一个字且上面无字时，尝试移动至另一个列框
+                        if (len(col_chars) > 2 and c['y'] > chars_y[1]) and not top_neighbors and can_move:
                             c['column_id'] = c['column_id2']
+                        # 小字在右边，但左边是大字
+                        elif side == 'right':
+                            h_boxes = cls.get_boxes_of_interval(col_chars, (c['y'], c['y'] + c['h']), 'y', 0.1)
+                            l_boxes = [b for b in h_boxes if b['x'] < c['x'] and is_big(b)]
+                            if l_boxes:
+                                c['column_id'] = c['column_id2']
             cls.pop_fields(chars, ['column', 'column_id2'])
 
         def divide_by_column_id():
@@ -428,41 +442,6 @@ class PageTool(object):
         return txt.strip('|')
 
     @classmethod
-    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
-        """ 生成文字校对的segment"""
-        # 1. 生成segments
-        segments = []
-        pre_empty_line_no = 0
-        block_no, line_no = 1, 1
-        diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
-        for s in diff_segments:
-            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
-                if not pre_empty_line_no:  # 连续空行仅保留第一个
-                    s['block_no'], s['line_no'] = block_no, line_no
-                    segments.append(s)
-                    line_no += 1
-                pre_empty_line_no += 1
-            else:  # 当前非空行
-                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
-                    line_no = 1
-                    block_no += 1
-                s['block_no'], s['line_no'] = block_no, line_no
-                segments.append(s)
-                pre_empty_line_no = 0
-        # 2. 结构化，以便页面输出
-        blocks = {}
-        for s in segments:
-            b_no, l_no = s['block_no'], s['line_no']
-            if not blocks.get(b_no):
-                blocks[b_no] = {}
-            if not blocks[b_no].get(l_no):
-                blocks[b_no][l_no] = []
-            if not (s['is_same'] and s['base'] == '\n'):
-                s['offset'] = s['range'][0]
-                blocks[b_no][l_no].append(s)
-        return blocks
-
-    @classmethod
     def check_utf8mb4(cls, seg, base=None):
         column_strip = re.sub(r'\s', '', base or seg.get('base', ''))
         char_codes = [(c, url_escape(c)) for c in list(column_strip)]
@@ -570,4 +549,3 @@ class PageTool(object):
             if (cur['w'] < threshold and ratio2 < 0.45) or (cur['w'] >= threshold and ratio2 < 0.55):
                 ret_columns.append(cur)
         return ret_columns
-
