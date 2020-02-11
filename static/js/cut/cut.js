@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-02-06
+ * Date: 2020-02-11
  */
 (function () {
   'use strict';
@@ -637,6 +637,9 @@
         if (!b.char_id) {
           b.char_id = 'org' + idx;
         }
+        if (b.line_no && !b.column_no) {
+          b.column_no = b.line_no;
+        }
         b.txt = b.txt || b.ch;
       });
 
@@ -817,6 +820,7 @@
             ret[k] = c[k];
           }
         });
+        delete c.line_no;
         if (c.class === 'block' || c.class === 'column') {
           delete ret.char_id;
           delete ret.char_no;
