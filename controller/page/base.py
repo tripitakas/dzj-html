@@ -84,7 +84,7 @@ class PageHandler(TaskHandler, PageTool):
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
         if column_out_block:
-            return False, '列框不在栏框内', [c.get('column_id') or c['char_id'] for c in column_out_block]
+            return False, '列框不在栏框内', [c['char_id'] for c in column_out_block]
         char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
@@ -101,9 +101,9 @@ class PageHandler(TaskHandler, PageTool):
     def get_box_updated(self, calc_id=None):
         """ 获取切分校对的提交"""
         chars = self.decode_box(self.data['chars'])
-        self.update_chars_cid(chars)
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
+        self.update_chars_cid(chars)
         new_chars = [c for c in chars if 'new' in c['char_id']]
         if calc_id or new_chars:
             blocks = self.calc_block_id(blocks)
