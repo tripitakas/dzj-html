@@ -20,6 +20,7 @@ sys.path.append(BASE_DIR)
 from controller.helper import prop
 from controller.data.data import Page
 from controller.page.tool import PageTool
+from controller.page.base import PageHandler
 
 
 class AddPage(object):
@@ -165,6 +166,7 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
+            PageHandler.update_chars_cid(meta['chars'])
             if self.check_id and not self.check_ids(meta):
                 return False
 
