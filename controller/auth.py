@@ -87,6 +87,7 @@ role_route_maps = {
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
+            '/data/cut_view/@page_name': ['GET'],
         }
     },
     '切分审定员': {
