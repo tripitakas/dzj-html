@@ -5,7 +5,11 @@
 @time: 2019/6/4
 """
 import re
-from .variant import is_variant
+from os import path
+
+BASE_DIR = path.dirname(path.dirname(__file__))
+
+from controller.page.variant import is_variant
 
 try:
     from cdifflib import CSequenceMatcher
@@ -16,74 +20,177 @@ except ImportError:
 
 
 class Diff(object):
-    junk_base_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
-    junk_cmp_str = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
+    base_junk_char = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
+    cmp_junk_char = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
+
+    @classmethod
+    def pre_base(cls, base, keep_line=True):
+        """ base预处理"""
+        # 平台中用|表示换行，因此先恢复换行
+        base = base.replace('|', '\n')
+        # 根据参数决定是否保留换行
+        base = base.replace('\n', '') if not keep_line else base
+        return re.sub(Diff.base_junk_char, '', base)
+
+    @classmethod
+    def pre_cmp(cls, cmp):
+        """ 比对本预处理，过滤换行符以及非中文字符"""
+        return re.sub(Diff.cmp_junk_char, '', cmp)
 
     @classmethod
     def diff(cls, base='', cmp1='', cmp2='', cmp3='', check_variant=True, label=None):
-        """ 文本比对。
-        换行以base的换行为准，自动过滤掉cmp1/cmp2/cmp3的换行符
+        """ 文本比对。 换行以base的换行为准，自动过滤掉cmp1/cmp2/cmp3的换行符
         :param base: 基础比对文本
         :param check_variant: 是否检查异体字
         :param label: {'base': '...', 'cmp1': '...', 'cmp2': '...', 'cmp3': '...'}
         """
-        _label = {'base': 'base', 'cmp1': 'cmp1', 'cmp2': 'cmp2', 'cmp3': 'cmp3'}
-        if label:
-            _label.update(label)
-
-        base = Diff.pre_base(base)
+        lbl = {'base': 'base', 'cmp1': 'cmp1', 'cmp2': 'cmp2', 'cmp3': 'cmp3'}
+        if label and isinstance(label, dict):
+            lbl.update(label)
 
         if not cmp1 and not cmp2 and not cmp3:
-            return Diff._diff_one(base, {'base': _label['base']}), []
+            return Diff._diff_one(base), []
 
         ret, err = [], []
+        diff_func = Diff._diff_two_v2
         if cmp1:
-            ret1 = Diff._diff_two(base, Diff.pre_cmp(cmp1), check_variant,
-                                  {'base': _label['base'], 'cmp': _label['cmp1']})
-            ret, _err = Diff._merge_by_combine(ret, ret1, base_key=_label['base'])
+            ret1 = diff_func(base, cmp1, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp1']})
+            ret, _err = Diff._merge_by_combine(ret, ret1, base_key=lbl['base'])
             err.extend(_err)
         if cmp2:
-            ret2 = Diff._diff_two(base, Diff.pre_cmp(cmp2), check_variant,
-                                  {'base': _label['base'], 'cmp': _label['cmp2']})
-            ret, _err = Diff._merge_by_combine(ret, ret2, base_key=_label['base'])
+            ret2 = diff_func(base, cmp2, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp2']})
+            ret, _err = Diff._merge_by_combine(ret, ret2, base_key=lbl['base'])
             err.extend(_err)
         if cmp3:
-            ret3 = Diff._diff_two(base, Diff.pre_cmp(cmp3), check_variant,
-                                  {'base': _label['base'], 'cmp': _label['cmp3']})
-            ret, _err = Diff._merge_by_combine(ret, ret3, base_key=_label['base'])
+            ret3 = diff_func(base, cmp3, check_variant, {'base': lbl['base'], 'cmp': lbl['cmp3']})
+            ret, _err = Diff._merge_by_combine(ret, ret3, base_key=lbl['base'])
             err.extend(_err)
         return ret, err
 
     @classmethod
-    def _diff_one(cls, base, label=None):
-        """ 将单独一份文本按照_diff_two的格式输出 """
-        _label = {'base': 'base'}
-        if label:
-            _label.update(label)
+    def _diff_one(cls, base):
+        """ 将单独一份文本按照_diff_two的格式输出"""
+        base = Diff.pre_base(base)
         ret, line_no = [], 1
         for line in base.split('\n'):
             if line:
-                ret.append({'line_no': line_no, 'is_same': True, _label['base']: line})
-            ret.append({'line_no': line_no, 'is_same': True, _label['base']: '\n'})
+                ret.append({'line_no': line_no, 'is_same': True, 'base': line})
+            ret.append({'line_no': line_no, 'is_same': True, 'base': '\n'})
             line_no += 1
 
-        # 设置起止位置
         line_no, start = 1, 0
         for r in ret:
             if r['line_no'] != line_no:  # 换行
                 line_no += 1
                 start = 0
-            end = start + len(r[_label['base']])
+            end = start + len(r['base'])
             r['range'] = (start, end)
             start = end
         return ret
 
     @classmethod
-    def _diff_two(cls, base, cmp, check_variant=True, label=None):
-        _label = {'base': 'base', 'cmp': 'cmp'}
-        if label:
-            _label.update(label)
+    def _diff_two_v2(cls, base, cmp, check_variant=True, label=None):
+        lbl = {'base': 'base', 'cmp': 'cmp'}
+        if label and isinstance(label, dict):
+            lbl.update(label)
+
+        # 和v1不同，v2在比较时，先去掉换行符，以免对diff算法干扰
+        segments, line_no = [], 1
+        base_lines = base.replace('|', r'\n').split(r'\n')
+        base, cmp = cls.pre_base(base, False), cls.pre_cmp(cmp)
+        s = CSequenceMatcher(None, base, cmp, autojunk=False)
+        for tag, i1, i2, j1, j2 in s.get_opcodes():
+            t1, t2 = base[i1:i2], cmp[j1:j2]
+            # print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(tag, i1, i2, j1, j2, t1, t2))
+            is_same = True if tag == 'equal' else False
+            r = {'line_no': line_no, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
+            if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and is_variant(t1, t2):
+                r['is_variant'] = True
+            segments.append(r)
+
+        # 根据diff比较的结果，按照base设置换行
+        line_segments, idx = [], 0
+        for i, line in enumerate(base_lines):
+            if not line:
+                line_segments.append({'line_no': i + 1, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'})
+                continue
+            # 从segments中找len(line)长作为第i+1行
+            start, left_len = 0, len(line)
+            while idx < len(segments) and left_len > 0:
+                seg = segments[idx]
+                if len(seg[lbl['base']]) <= left_len:  # seg比left_len短，seg入栈
+                    seg['line_no'] = i + 1
+                    seg_len = len(seg[lbl['base']])
+                    line_segments.append(seg)
+                    # 更新变量
+                    left_len -= seg_len
+                    start += seg_len
+                    idx += 1
+                else:  # seg比left_len长，截断seg
+                    front_part = {
+                        'line_no': i + 1, 'is_same': seg['is_same'], lbl['base']: seg[lbl['base']][:left_len],
+                        lbl['cmp']: seg[lbl['cmp']][:left_len],
+                    }
+                    line_segments.append(front_part)
+                    seg.update({
+                        lbl['cmp']: seg[lbl['cmp']][left_len:] if len(seg[lbl['cmp']]) > left_len else '',
+                        lbl['base']: seg[lbl['base']][left_len:],
+                    })
+                    # 更新变量
+                    left_len = 0
+                    start = 0
+
+                if left_len == 0:  # 换行
+                    line_segments.append({'line_no': i + 1, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'})
+
+        # 检查换行符后是否有base为空的异文，有则往前提
+        for i, seg in enumerate(line_segments):
+            pre = line_segments[i - 1] if i > 1 else {}
+            if seg[lbl['base']] == '' and pre['is_same'] and pre[lbl['base']] == '\n':
+                # 当前为空异文，之前为换行，则交换二者位置
+                temp = seg.copy()
+                seg.update(pre)
+                pre.update(temp)
+
+        # 检查是否为异文，并对前后同文进行合并
+        for i, seg in enumerate(line_segments):
+            base, cmp = seg[lbl['base']], seg[lbl['cmp']]
+            if check_variant and len(base) == 1 and len(cmp) == 1 and base != cmp and is_variant(base, cmp):
+                seg['delete'] = True
+                pre = line_segments[i - 1] if i > 0 else {}
+                pre_same = pre.get('is_same') and pre[lbl['base']] != '\n'
+                next = line_segments[i + 1] if i + 1 < len(line_segments) else {}
+                next_same = next.get('is_same') and next[lbl['base']] != '\n'
+                if pre_same and next_same:
+                    pre[lbl['base']] += (seg[lbl['base']] + next[lbl['base']])
+                    pre[lbl['cmp']] += (seg[lbl['cmp']] + next[lbl['cmp']])
+                    next['delete'] = True
+                elif pre_same and not next_same:
+                    pre[lbl['base']] += seg[lbl['base']]
+                    pre[lbl['cmp']] += seg[lbl['cmp']]
+                elif not pre_same and next_same:
+                    next[lbl['base']] += seg[lbl['base']]
+                    next[lbl['cmp']] += seg[lbl['cmp']]
+        line_segments = [s for s in line_segments if not s.get('delete')]
+
+        # 设置range
+        start = 0
+        for seg in line_segments:
+            seg['range'] = (start, start + len(seg['base']))
+            start += len(seg['base'])
+            if seg['is_same'] and seg['base'] == '\n':
+                start = 0
+
+        return line_segments
+
+    @classmethod
+    def _diff_two_v1(cls, base, cmp, check_variant=True, label=None):
+        lbl = {'base': 'base', 'cmp': 'cmp'}
+        if label and isinstance(label, dict):
+            lbl.update(label)
+
         ret, line_no = [], 1
+        base, cmp = cls.pre_base(base), cls.pre_cmp(cmp)
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]
@@ -92,16 +199,16 @@ class Diff(object):
                 lst1 = t1.split('\n')
                 for k, _t1 in enumerate(lst1):
                     if _t1 != '':
-                        ret.append({'line_no': line_no, 'is_same': False, _label['base']: _t1, _label['cmp']: t2})
+                        ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
                         t2 = ''
                     elif k == len(lst1) - 1 and t2:
-                        ret.append({'line_no': line_no, 'is_same': False, _label['base']: _t1, _label['cmp']: t2})
+                        ret.append({'line_no': line_no, 'is_same': False, lbl['base']: _t1, lbl['cmp']: t2})
                     if k < len(lst1) - 1:  # 换行
-                        ret.append({'line_no': line_no, 'is_same': True, _label['base']: '\n'})
+                        ret.append({'line_no': line_no, 'is_same': True, lbl['base']: '\n'})
                         line_no += 1
             else:
                 is_same = True if tag == 'equal' else False
-                r = {'line_no': line_no, 'is_same': is_same, _label['base']: t1, _label['cmp']: t2}
+                r = {'line_no': line_no, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
                 if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and is_variant(t1, t2):
                     r['is_variant'] = True
                 ret.append(r)
@@ -112,7 +219,7 @@ class Diff(object):
             if r['line_no'] != line_no:  # 换行
                 line_no += 1
                 start = 0
-            end = start + len(r[_label['base']])
+            end = start + len(r[lbl['base']])
             r['range'] = (start, end)
             start = end
 
@@ -256,12 +363,10 @@ class Diff(object):
 
         return _ret
 
-    @classmethod
-    def pre_base(cls, base):
-        """ base预处理。保留换行符"""
-        return re.sub(Diff.junk_base_str, '', base.replace('|', '\n'))
 
-    @classmethod
-    def pre_cmp(cls, cmp):
-        """ 比对本预处理，过滤换行符以及非中文字符"""
-        return re.sub(Diff.junk_cmp_str, '', cmp)
+if __name__ == '__main__':
+    ocr = "般若波羅蜜多復次舍利子菩薩摩訶薩不|爲引發苦聖諦故應引發般若波羅蜜多不|爲引發集滅道聖諦故應引發般若波羅蜜|多世尊云何菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多不爲引發集滅道|聖諦故應引發般若波羅蜜多舍利子以苦|聖諦無作無止無生無滅無成無壞無得無|捨無自性故菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多以集滅道聖諦無|作無止無生無滅無成無壞無得無捨無自|性故菩薩摩訶薩不爲引發集滅道聖諦故|應引發般若波羅蜜多復次舍利子菩薩摩|訶薩不爲引發四靜慮故應引發般若波羅|蜜多不爲引發四無量四無色定故應引發|般若波羅蜜多世尊云何菩薩摩訶薩不爲||引發四靜慮故應引發般若波羅蜜多不爲|引發四無量四無色定故應引發般若波羅|蜜多舍利子以四靜慮無作無止無生無滅|無成無壞無得無捨無自性故菩薩摩訶薩|不爲引發四靜慮故應引發般若波羅蜜多|以四無量四無色定無作無止無生無滅無|成無壞無得無捨無自性故菩薩摩訶薩不|爲引發四無量四無色定故應引發般若波|羅蜜多|大般若波羅蜜多經卷第一百七十二|音釋|矜店御切頸矜也蔑彌列叨轉易也設利羅梵捂也亦壬室利罹又云|舍利北云骨身又云靈骨窣堵波梵諱也北云方墳又云圃罤帛春沒切堵|昔狁瞖眩醫肯翁目疾也洶音縣刑熏常生也"
+    ocr_col = "般若波羅蜜多復次舎利子菩薩摩訶薩不|爲引發苦聖諦故應引發般若波羅蜜多不|爲引發集滅道聖諦故應引發般若波羅蜜|多世尊云何菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多不爲引發集滅道|聖諦故應引發般若波羅蜜多舎利子以苦|聖諦無作無止無生無滅無成無壞無得無|捨無自性故菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多以集滅道聖諦無|作無止生無滅無成無壞無得無捨無自|性故菩薩摩訶薩不爲引發集滅道聖諦故|應引發般若波羅蜜多復次舎利子菩薩摩|薩不爲引發四靜故應引發般若波羅|蜜多不爲引發四無量四無色定故應引發|般若波羅蜜多世尊云何菩薩摩訶薩不爲||引四靜慮故應引發般若波羅蜜多不爲|引發四無量四無色定故應引發般若波羅|蜜多舎利子以四靜慮無作無止無生無滅|無成無壞無得無捨無自性故菩薩摩訶薩|不爲引發四靜慮故應引發般若波羅蜜多|以四量四無色定無作無止無生無滅無|成無壞無得無捨無自性故菩薩摩訶薩不|爲引發四無量四無色定故應引發般若波|羅蜜多|大般若波羅蜜多經卷第一百七十二|音釋|子増隱間以設利羅覺離二經|捨是雲能窣者波提攝也說汝般|諸譬敢訶經離"
+    cmp = "般若波羅蜜多復次舍利子菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多不為引發集滅道聖諦故應引發般若波羅蜜多世尊云何菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多不為引發集滅道聖諦故應引發般若波羅蜜多舍利子以苦聖諦無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多以集滅道聖諦無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發集滅道聖諦故應引發般若波羅蜜多復次舍利子菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多不為引發四無量四無色定故應引發般若波羅蜜多世尊云何菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多不為引發四無量四無色定故應引發般若波羅蜜多舍利子以四靜慮無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多以四無量四無色定無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發四無量四無色定故應引發般若波羅蜜多大般若波羅蜜多經卷第一百七十二"
+    cmp = ''
+    Diff.diff(ocr, ocr_col)

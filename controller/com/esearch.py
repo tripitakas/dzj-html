@@ -23,7 +23,7 @@ def find(q, index='cb4ocr-ik'):
         match = {'page_code': q}
     else:
         ocr = re.sub(r'[\x00-\xff]', '', q)
-        ocr = re.sub(Diff.junk_cmp_str, '', ocr)
+        ocr = re.sub(Diff.cmp_junk_char, '', ocr)
         match = {'normal': normalize(ocr)}
 
     dsl = {
@@ -45,7 +45,7 @@ def find_one(ocr, num=1):
         return '', []
     hit_page_codes = [r['_source']['page_code'] for r in ret]
     cb = ''.join(ret[num - 1]['_source']['origin'])
-    diff = Diff.diff(ocr, cb, label=dict(base='ocr', cmp1='cb'))[0]
+    diff = Diff.diff(ocr, cb, lbl=dict(base='ocr', cmp1='cb'))[0]
     txt = ''.join(['<kw>%s</kw>' % d['cb'] if d.get('is_same') else d['cb'] for d in diff])
 
     return txt, hit_page_codes

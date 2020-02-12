@@ -122,8 +122,9 @@ class PageTool(object):
                 return b['y'] - a['y']
 
         boxes.sort(key=cmp_to_key(cmp), reverse=True)
-        for i, box in enumerate(boxes):
-            box[field] = i + 1
+        if field:
+            for i, box in enumerate(boxes):
+                box[field] = i + 1
         return boxes
 
     @classmethod
@@ -551,32 +552,32 @@ class PageTool(object):
 
     @staticmethod
     def merge_narrow_columns(columns):
-        """ 合并窄列"""
+        """ 合并两个连续的窄列。假定columns已分栏并排好序"""
         if len(columns) < 3:
             return columns
         ws = sorted([c['w'] for c in columns], reverse=True)
-        max_w = ws[0] * 1.1
-        threshold = ws[2] * 0.75
+        max_w = ws[0] * 1.1  # 合并后的宽度不超过max_w
+        threshold = ws[2] * 0.6  # 窄列不超过threshold
         ret_columns = [columns[0]]
         for cur in columns[1:]:
             last = ret_columns[-1]
-            x, w = cur['x'], last['x'] + last['w'] - cur['x']
+            w = last['x'] + last['w'] - cur['x']  # w为尝试合并成一个列的宽度
             b_cur, b_last = cur.get('block_no', 0), last.get('block_no', 0)
             if b_cur == b_last and w < max_w and cur['w'] < threshold and last['w'] < threshold:
                 y = min([cur['y'], last['y']])
                 h = max([cur['y'] + cur['h'], last['y'] + last['h']]) - y
-                ret_columns[-1].update(dict(x=round(x, 2), y=round(y, 2), w=round(w, 2), h=round(h, 2)))
+                ret_columns[-1].update(dict(x=round(cur['x'], 2), y=round(y, 2), w=round(w, 2), h=round(h, 2)))
             else:
                 ret_columns.append(cur)
         return ret_columns
 
     @classmethod
     def deduplicate_columns(cls, columns):
-        """ 删除冗余的列"""
+        """ 删除冗余的列。假定columns已分栏并排序"""
         if len(columns) < 3:
             return columns
         ws = sorted([c['w'] for c in columns], reverse=True)
-        threshold = ws[2] * 0.75
+        threshold = ws[2] * 0.6
         ret_columns = [columns[0]]
         for cur in columns[1:]:
             last = ret_columns[-1]
