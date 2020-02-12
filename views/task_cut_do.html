@@ -228,12 +228,16 @@
       if ($.cut.data.hlType) {
         $.cut.clearHighlight();
         $.cut.highlightBoxes($.cut.data.hlType, false, true);
+        $.cut.toggleClass([info.char_id], 'flash', false);
       }
       showHighLightCount();
       updateUndo();
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
-    } else if (reason === 'undo') {
+    } else if (reason === 'initial') {
+      var invalid = $.cut.data.chars.map(function(c) { return /b0c/.test(c.char_id) && c.char_id; });
+      $.cut.toggleClass(invalid, 'flash', true);
+      $.cut.toggleBox(true, null, invalid);
     }
 
   }, true);
@@ -276,6 +280,8 @@
     if (!res.valid) {
       // 高亮未被覆盖的框
       $.cut.toggleClass(res.out_boxes, 'highlight', true);
+      $.cut.toggleClass(res.out_boxes, 'flash', true);
+      $.cut.toggleBox(true, null, res.out_boxes);
       // 弹框提示
       var tips = '检测到<b style="color: red">' + res.message + '</b>'+'并高亮显示。';
       if (submit) {
