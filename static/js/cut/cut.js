@@ -1046,20 +1046,18 @@
 
     toggleClass: function (boxIds, className, value) {
       var res = [];
-      setTimeout(function() {
-        boxIds.map(findCharById).forEach(function (c) {
-          if (c && c.shape && res.indexOf(c) < 0) {
-            res.push(c);
-            var el = $(c.shape.node), old = el.attr('class');
-            if (value === undefined ? old.indexOf(className) < 0 : value) {
-              el.addSvgClass(className);
-            }
-            if (value === undefined ? old.indexOf(className) >= 0 : !value) {
-              el.removeSvgClass(className);
-            }
+      boxIds.map(findCharById).forEach(function (c) {
+        if (c && c.shape && res.indexOf(c) < 0) {
+          res.push(c);
+          var el = $(c.shape.node), old = el.attr('class');
+          if (value === undefined ? old.indexOf(className) < 0 : value) {
+            el.addSvgClass(className);
           }
-        });
-      }, 1000);
+          if (value === undefined ? old.indexOf(className) >= 0 : !value) {
+            el.removeSvgClass(className);
+          }
+        }
+      });
     },
 
     setFocus: function (id) {
