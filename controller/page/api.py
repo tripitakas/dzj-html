@@ -245,7 +245,7 @@ class DetectWideCharsApi(PageHandler):
     URL = '/api/task/detect_chars'
 
     def post(self):
-        """根据文本行内容识别宽字符"""
+        """ 根据文本行内容识别宽字符"""
         try:
             mb4 = [[PageTool.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
             self.send_data_response(mb4)

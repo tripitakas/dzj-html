@@ -336,14 +336,15 @@ $('.sutra-text-mode .save-txt').click(function () {
   });
   texts[0] = $('#raw-txt').val();
   var hints = $.map($('.sutra-text .selected'), function (i) {
-    var lineNo = getLineNo($(i).parent());
-    var blockNo = getBlockNo($(i).parent().parent());
     return {
-      block_no: blockNo, line_no: lineNo, base: $(i).attr('base'),
-      cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
+      block_no: getBlockNo($(i).parent().parent()), line_no: getLineNo($(i).parent()),
+      base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
     }
   });
+  console.log({texts: texts, hints: hints});
+  // return;
   postApi('/data/diff', {data: {texts: texts, hints: hints}}, function (res) {
+    // console.log(res.cmp_data);
     $('.sutra-text .blocks').html(res.cmp_data);
     $('.bd.sutra-html').removeClass('hide');
     $('.bd.sutra-txt').addClass('hide');
@@ -353,7 +354,9 @@ $('.sutra-text-mode .save-txt').click(function () {
 function getPageText() {
   return $.map($('.sutra-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
-      return $(line).text().replace(/\s/g, '');
+      return $.map($(line).find('span'), function (span) {
+        return $(span).text();
+      }).join("")
     }).join("\n");
   }).join("\n\n");
 }
