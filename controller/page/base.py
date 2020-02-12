@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 from tornado.escape import json_decode
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
@@ -76,6 +77,11 @@ class PageHandler(TaskHandler, PageTool):
 
     def check_box_cover(self):
         """ 检查字框覆盖情况"""
+
+        def get_column_id(c):
+            col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
+            return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
+
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
@@ -84,7 +90,7 @@ class PageHandler(TaskHandler, PageTool):
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
         if column_out_block:
-            return False, '列框不在栏框内', [c['char_id'] for c in column_out_block]
+            return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
         char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
