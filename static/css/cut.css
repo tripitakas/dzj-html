@@ -16,6 +16,12 @@
   font-size: 75%;
 }
 
+rect.highlight {
+  fill: red;
+  stroke: black;
+  stroke-width: 1;
+}
+
 #holder {
   text-align: center;
 }

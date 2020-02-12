@@ -51,11 +51,11 @@
 </div>
 <!--/.left-->
 <div class="right" id="right-region">
-  <div class="bd">
-    <div class="sutra-text-mode html hide" id="toggle-text-mode">
-      <span class="html-edit"></span>
-      <span class="save-txt"></span>
-    </div>
+  <div class="sutra-text-mode" id="toggle-text-mode">
+    <span class="html-edit" title="以纯文本方式修改内容"></span>
+    <span class="save-txt" title="应用此文本，切换到比对显示方式"></span>
+  </div>
+  <div class="bd sutra-html">
     <div class="sutra-text active" id="sutra-text">
       <div class="blocks">
         {% if isinstance(cmp_data, str) %}
@@ -115,6 +115,9 @@
     </div>
     {% end %}
     <!--/.pfread-dialog-->
+  </div>
+  <div class="bd sutra-txt hide">
+    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="100"></textarea>
   </div>
 </div>
 <!--/.right-->

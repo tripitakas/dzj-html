@@ -207,3 +207,21 @@ $('#txtModal .btn-txt').click(function () {
   else
     $('#txtModal #' + txtType).removeClass('hide').siblings().addClass('hide');
 });
+
+// 增加字体
+$('#enlarge-font').click(function () {
+  var size = parseInt($('#raw-txt').css('font-size'));
+  if (size < 36) {
+    size++;
+    $('#raw-txt').css('font-size', size + 'px');
+  }
+});
+
+// 减少字体
+$('#reduce-font').click(function () {
+  var size = parseInt($('#raw-txt').css('font-size'));
+  if (size > 8) {
+    size--;
+    $('#raw-txt').css('font-size', size + 'px');
+  }
+});

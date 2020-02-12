@@ -204,7 +204,7 @@
     }
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       showSuccess('退回成功', docId + ' 已退回成功。');
-      goto('/task/lobby/' + taskType, 1000);
+      goto('/task/lobby/' + lobbyTaskType, 1000);
     });
   });
 

@@ -3,7 +3,6 @@
 import tests.users as u
 from tests.testcase import APITestCase
 from tornado.escape import json_encode
-from controller.cut.cuttool import CutTool
 
 
 class TestCutSave(APITestCase):

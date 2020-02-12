@@ -7,6 +7,7 @@
 import re
 from operator import itemgetter
 from functools import cmp_to_key
+from controller.page.diff import Diff
 from tornado.escape import url_escape
 
 
@@ -339,17 +340,16 @@ class PageTool(object):
         set_column_id()
         columns_chars = divide_by_column_id()
         for column_id, column_chars in columns_chars.items():
-            if column_id == 'b0c0':
-                continue
             # 针对每列，从上到下扫描（有交叉时，即小字，从右到左）
             column_chars.sort(key=cmp_to_key(cmp))
             for i, c in enumerate(column_chars):
                 c['char_no'] = i + 1
-            # 小字的方向为先上下后左右，与前不同
-            if small_direction == 'vertical':
-                column = [c for c in columns if c['column_id'] == column_id][0]
-                check_small()
-                column_chars = scan_and_order()
+            if column_id != 'b0c0':
+                # 小字的方向为先上下后左右，与前不同
+                if small_direction == 'vertical':
+                    column = [c for c in columns if c['column_id'] == column_id][0]
+                    check_small()
+                    column_chars = scan_and_order()
             ret_chars.extend(column_chars)
 
         for r in ret_chars:
@@ -375,9 +375,12 @@ class PageTool(object):
         ret = []
         cid_col = []
         for i, c in enumerate(chars):
+            if i == 1:
+                cid_col.append(c['cid'])
+                continue
             column_no1 = c.get('column_no')
             column_no2 = chars[i - 1].get('column_no')
-            if i > 1 and column_no1 and column_no2 and column_no1 != column_no2:  # 换行
+            if column_no1 is not None and column_no2 is not None and column_no1 != column_no2:  # 换行
                 ret.append(cid_col)
                 cid_col = [c['cid']]
             else:
@@ -510,6 +513,41 @@ class PageTool(object):
                 for j in ['x', 'y', 'w', 'h']:
                     if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
                         return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
+
+    @classmethod
+    def diff(cls, base, cmp1='', cmp2='', cmp3=''):
+        """ 生成文字校对的segment"""
+        # 1. 生成segments
+        segments = []
+        pre_empty_line_no = 0
+        block_no, line_no = 1, 1
+        diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
+        for s in diff_segments:
+            if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
+                if not pre_empty_line_no:  # 连续空行仅保留第一个
+                    s['block_no'], s['line_no'] = block_no, line_no
+                    segments.append(s)
+                    line_no += 1
+                pre_empty_line_no += 1
+            else:  # 当前非空行
+                if pre_empty_line_no > 1:  # 之前有多个空行，即换栏
+                    line_no = 1
+                    block_no += 1
+                s['block_no'], s['line_no'] = block_no, line_no
+                segments.append(s)
+                pre_empty_line_no = 0
+        # 2. 结构化，以便页面输出
+        blocks = {}
+        for s in segments:
+            b_no, l_no = s['block_no'], s['line_no']
+            if not blocks.get(b_no):
+                blocks[b_no] = {}
+            if not blocks[b_no].get(l_no):
+                blocks[b_no][l_no] = []
+            if not (s['is_same'] and s['base'] == '\n'):
+                s['offset'] = s['range'][0]
+                blocks[b_no][l_no].append(s)
+        return blocks
 
     @staticmethod
     def merge_narrow_columns(columns):

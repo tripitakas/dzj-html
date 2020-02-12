@@ -68,6 +68,7 @@ role_route_maps = {
             '/com/punctuate': ['GET'],
             '/api/com/punctuate': ['POST'],
             '/com/search': ['GET'],
+            '/api/data/diff': ['POST'],
             '/api/com/search': ['POST'],
             '/api/session/config': ['POST'],
             '/task/sample/@task_type': ['GET'],

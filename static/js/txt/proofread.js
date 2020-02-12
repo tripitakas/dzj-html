@@ -309,10 +309,57 @@ $("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
   }
 });
 
+
 /** 文字校对-编辑模式相关代码 */
+
+// 切换文本编辑模式
 $('#toggle-text-mode').click(function () {
-  $(this).toggleClass('raw-txt');
+  $(this).toggleClass('txt-mode');
 });
+
+// 点击编辑，进入纯文本模式
+$('.sutra-text-mode .html-edit').click(function () {
+  $('.bd.sutra-html').addClass('hide');
+  $('.bd.sutra-txt').removeClass('hide');
+  $('#raw-txt').text(getPageText());
+});
+
+// 点击保存，保存后进入html模式
+$('.sutra-text-mode .save-txt').click(function () {
+  if ($('#raw-txt').text().trim() === $('#raw-txt').val().trim()) {
+    $('.bd.sutra-html').removeClass('hide');
+    $('.bd.sutra-txt').addClass('hide');
+    return;
+  }
+  var texts = $.map($('#txtModal').find('textarea'), function (item) {
+    return $(item).text();
+  });
+  texts[0] = $('#raw-txt').val();
+  var hints = $.map($('.sutra-text .selected'), function (i) {
+    return {
+      block_no: getBlockNo($(i).parent().parent()), line_no: getLineNo($(i).parent()),
+      base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
+    }
+  });
+  console.log({texts: texts, hints: hints});
+  // return;
+  postApi('/data/diff', {data: {texts: texts, hints: hints}}, function (res) {
+    // console.log(res.cmp_data);
+    $('.sutra-text .blocks').html(res.cmp_data);
+    $('.bd.sutra-html').removeClass('hide');
+    $('.bd.sutra-txt').addClass('hide');
+  });
+});
+
+function getPageText() {
+  return $.map($('.sutra-text .block'), function (block) {
+    return $.map($(block).find('.line'), function (line) {
+      return $.map($(line).find('span'), function (span) {
+        return $(span).text();
+      }).join("")
+    }).join("\n");
+  }).join("\n\n");
+}
 
 
 /** 文字校对-存疑相关代码 */

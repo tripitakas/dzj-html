@@ -6,7 +6,9 @@
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
+from tornado.escape import native_str
 from controller.page.diff import Diff
+from controller.base import BaseHandler
 from controller.page.tool import PageTool
 from controller.page.base import PageHandler
 from elasticsearch.exceptions import ConnectionTimeout
@@ -40,9 +42,9 @@ class CutTaskApi(PageHandler):
 
         self.update_task(self.data.get('submit'))
 
-        auto_filter = self.data.get('auto_filter') or False
-        # 要在get_box_updated之前检查check_box_cover，检查才有效
-        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        # 要提前检查，否则char_id可能重新设置
+        valid, message, out_boxes = self.check_box_cover()
+
         update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_doc(update)
 
@@ -76,9 +78,9 @@ class CutEditApi(PageHandler):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
 
-        auto_filter = self.data.get('auto_filter') or False
-        # 要在get_box_updated之前检查check_box_cover，检查才有效
-        valid, message, out_boxes = self.check_box_cover(auto_filter)
+        # 要提前检查，否则char_id可能重新设置
+        valid, message, out_boxes = self.check_box_cover()
+
         update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
 
@@ -213,11 +215,41 @@ class TextEditApi(PageHandler):
             return self.send_db_error(error)
 
 
+class DiffTextsApi(BaseHandler):
+    URL = '/api/data/diff'
+
+    def post(self):
+        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
+        try:
+            rules = [(v.not_empty, 'texts')]
+            self.validate(self.data, rules)
+            diff_blocks = PageTool.diff(*self.data['texts'])
+            if self.data['hints']:
+                diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
+            cmp_data = self.render_string('_text_area.html', blocks=diff_blocks)
+            cmp_data = native_str(cmp_data)
+            self.send_data_response(dict(cmp_data=cmp_data))
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def set_hints(diff_blocks, hints):
+        for h in hints:
+            line_segments = diff_blocks.get(h['block_no'], {}).get(h['line_no'])
+            if not line_segments:
+                continue
+            for s in line_segments:
+                if s['base'] == h['base'] and s['cmp1'] == h['cmp1']:
+                    s['selected'] = True
+        return diff_blocks
+
+
 class DetectWideCharsApi(PageHandler):
     URL = '/api/task/detect_chars'
 
     def post(self):
-        """根据文本行内容识别宽字符"""
+        """ 根据文本行内容识别宽字符"""
         try:
             mb4 = [[PageTool.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
             self.send_data_response(mb4)

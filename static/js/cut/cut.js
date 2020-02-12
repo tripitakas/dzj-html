@@ -300,7 +300,11 @@
 
     hoverOut: function (box) {
       if (box && state.hover === box && state.hoverHandle.fill) {
-        box.attr({stroke: state.hoverStroke, fill: state.hoverHandle.fill, 'fill-opacity': state.hoverHandle.fillOpacity});
+        box.attr({
+          stroke: state.hoverStroke,
+          fill: state.hoverHandle.fill,
+          'fill-opacity': state.hoverHandle.fillOpacity
+        });
         state.hoverHandle.fill = 0;   // 设置此标志，暂不清除 box 变量，以便在框外也可点控制点
         if (state.hoverHandle.hidden) {
           box.hide();
@@ -404,7 +408,7 @@
         this.scrollToVisible(el);
         var box = el.getBBox();
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
-           + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
+            + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
       this.showHandles(state.edit, state.editHandle);
       notifyChanged(state.edit, 'navigate');
@@ -529,7 +533,8 @@
       data.holder = document.getElementById(p.holder);
       data.scrollContainer = p.scrollContainer && $(p.scrollContainer);
       state.focus = true;
-      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {};
+      state.mouseHover = state.mouseDown = state.mouseDrag = state.mouseUp = function () {
+      };
 
       data.image = p.image && p.image.indexOf('err=1') < 0 && data.paper.image(p.image, 0, 0, p.width, p.height);
       data.board = data.paper.rect(0, 0, p.width, p.height)
@@ -557,9 +562,11 @@
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
-      p.chars.forEach(function(c) {
+      p.chars.forEach(function (c) {
         if (!c.cid) {
-          c.cid = 1 + Math.max.apply(null, p.chars.map(function(c) { return c.cid || 0; }));
+          c.cid = 1 + Math.max.apply(null, p.chars.map(function (c) {
+            return c.cid || 0;
+          }));
         }
       });
 
@@ -628,13 +635,10 @@
     },
 
     _check_char_ids: function (chars) {
-      var ids = [], newId = 0;
-
       chars.forEach(function (b, idx) {
         if (b.class === 'column') {
           b.char_id = b.column_id;
-        }
-        else if (b.class === 'block') {
+        } else if (b.class === 'block') {
           if (!b.block_id && b.block_no) {
             b.block_id = 'b' + b.block_no;
           }
@@ -647,13 +651,6 @@
           b.column_no = b.line_no;
         }
         b.txt = b.txt || b.ch;
-      });
-
-      chars.forEach(function (b) {
-        if (!b.char_id || b.char_id.indexOf('b0c0') === 0 || ids.indexOf(b.char_id) >= 0) {
-          b.char_id = 'new' + (++newId);
-        }
-        ids.push(b.char_id);
       });
     },
 
@@ -722,6 +719,7 @@
             break;
           }
         }
+        info.added = true;
       } else {
         info.changed = true;
       }
@@ -838,21 +836,21 @@
         return ret;
       });
 
-      chars.sort(function(a, b) {
+      chars.sort(function (a, b) {
         return (a.block_no || 0) - (b.block_no || 0)
-          || (a.column_no || 0) - (b.column_no || 0)
-          || (a.char_no || 0) - (b.char_no || 0);
+            || (a.column_no || 0) - (b.column_no || 0)
+            || (a.char_no || 0) - (b.char_no || 0);
       });
 
       return chars;
     },
 
     // 导出每个列的字框 [[char_dict, ...], chars_of_2nd_column, ...]
-    exportColChars: function() {
+    exportColChars: function () {
       var chars = this.exportBoxes('char');
       var columns = [], curColId = [0, 0], colChars;
 
-      chars.forEach(function(c) {
+      chars.forEach(function (c) {
         if (curColId[0] !== c.block_no || curColId[1] !== c.column_no) {
           curColId = [c.block_no, c.column_no];
           colChars = [];
@@ -867,7 +865,7 @@
     onBoxChanged: function (callback, fire) {
       data.boxObservers.push(callback);
       if (fire) {
-        setTimeout(function() {
+        setTimeout(function () {
           var c = state.edit && findCharById(state.edit.data('char_id'));
           callback(c || {}, state.edit && state.edit.getBBox(), 'initial');
         }, 0);
@@ -1053,6 +1051,22 @@
       });
     },
 
+    toggleClass: function (boxIds, className, value) {
+      var res = [];
+      boxIds.map(findCharById).forEach(function (c) {
+        if (c && c.shape && res.indexOf(c) < 0) {
+          res.push(c);
+          var el = $(c.shape.node), old = el.attr('class') + ' ';
+          if (value === undefined ? old.indexOf(className + ' ') < 0 : value) {
+            el.addSvgClass(className);
+          }
+          if (value === undefined ? old.indexOf(className + ' ') >= 0 : !value) {
+            el.removeSvgClass(className);
+          }
+        }
+      });
+    },
+
     setFocus: function (id) {
       return this.switchCurrentBox((this.findCharById(id) || {}).shape);
     },
@@ -1102,4 +1116,24 @@
     }
 
   };
+
+  $.fn.addSvgClass = function (className) {
+    return this.each(function () {
+      var attr = ($(this).attr('class') || '') + ' ';
+      if (attr.indexOf(className + ' ') < 0) {
+        $(this).attr('class', $.trim(attr + ' ' + className));
+      }
+    });
+  };
+  $.fn.removeSvgClass = function (className) {
+    return this.each(function () {
+      var attr = ($(this).attr('class') || '') + ' ';
+      if (attr.indexOf(className + ' ') >= 0) {
+        $(this).attr('class', attr.split(' ').filter(function (item) {
+          return item !== className;
+        }).join(' '));
+      }
+    });
+  };
+
 }());

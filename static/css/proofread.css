@@ -110,19 +110,33 @@
 .sutra-text-mode .html-edit {
   display: block;
   background: url(../imgs/icon_edit2.png);
+  background-size: 20px;
+  opacity: 0.5;
 }
 
 .sutra-text-mode .save-txt {
   display: none;
   background: url(../imgs/icon_save2.png);
+  background-size: 20px;
+  opacity: 0.5;
 }
 
-.raw-txt .save-txt {
+.txt-mode .save-txt {
   display: block;
 }
 
-.raw-txt .html-edit {
+.txt-mode .html-edit {
   display: none;
+}
+
+.bd .raw-txt {
+  background: transparent;
+  line-height: 40px;
+  letter-spacing: 1px;
+  font-size: 20px;
+  color: #333;
+  font-weight: 300;
+  border: 0;
 }
 
 
@@ -138,6 +152,7 @@
 .sutra-text .block:not(:last-child) {
   border-bottom: 1px solid #ccc;
   margin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 .sutra-text .line.current-line {
