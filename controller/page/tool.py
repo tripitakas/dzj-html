@@ -375,7 +375,7 @@ class PageTool(object):
         ret = []
         cid_col = []
         for i, c in enumerate(chars):
-            if i == 1:
+            if not i:
                 cid_col.append(c['cid'])
                 continue
             column_no1 = c.get('column_no')

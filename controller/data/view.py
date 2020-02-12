@@ -124,7 +124,7 @@ class DataPageInfoHandler(BaseHandler):
             data_lock = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['ocr', 'ocr_col', 'text']
             page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
-            fields = ['blocks', 'columns', 'chars']
+            fields = ['blocks', 'columns', 'chars', 'chars_col']
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             page_tasks = self.prop(page, 'tasks') or {}
 

@@ -170,7 +170,7 @@ class Page(Model):
         {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
         {'id': 'box_ready', 'name': '切分已就绪'},
-        {'id': 'order_confirmed', 'name': '字序已确认'},
+        {'id': 'chars_col', 'name': '用户提交字序'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'lock.box', 'name': '切分锁'},
         {'id': 'lock.text', 'name': '文本锁'},

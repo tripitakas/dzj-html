@@ -19,7 +19,7 @@
 rect.highlight {
   fill: red;
   stroke: black;
-  stroke-width: 1;
+  stroke-width: 2;
 }
 
 #holder {

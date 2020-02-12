@@ -17,7 +17,7 @@
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
   <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-image" title="显隐图片"/>
-  <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img" id="toggle-blur" title="模糊"/>
+  <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img active" id="toggle-blur" title="模糊"/>
   <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
   <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
   <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
@@ -162,6 +162,8 @@
   $.cut.switchCurrentBox(null);
 
   // 初始化设置
+  $.cut.data.image.node.style.opacity = 0.2;
+
   var blockActive = localStorage.getItem('toggleBlock') || '-1';
   if (blockActive === '1') {
     $('#toggle-block').addClass('active');
