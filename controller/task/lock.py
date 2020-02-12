@@ -37,8 +37,8 @@ class Lock(object):
             'tasks': ['cut_proof', 'cut_review', 'ocr_text', 'text_proof_1', 'text_proof_2', 'text_proof_3',
                       'text_review', 'text_hard'],
             'roles': ['切分专家'],
-            'level': dict(cut_proof=1, cut_review=10, ocr_text=10, text_proof=10, text_review=100,
-                          text_hard=100, 切分专家=100),
+            'level': dict(cut_proof=1, cut_review=10, ocr_text=10, text_proof_1=10, text_proof_2=10,
+                          text_proof_3=10, text_review=100, text_hard=100, 切分专家=100),
         },
         'text': {
             'collection': 'page', 'id': 'name', 'protect_fields': ['text', 'txt_html'],
