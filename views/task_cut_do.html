@@ -278,6 +278,7 @@
       // 高亮未被覆盖的框
       $.cut.toggleClass(res.out_boxes, 'highlight', true);
       $.cut.toggleClass(res.out_boxes, 'flash', true);
+      $.cut.toggleBox(true, null, res.out_boxes);
       // 弹框提示
       var tips = '检测到<b style="color: red">' + res.message + '</b>'+'并高亮显示。';
       if (submit) {

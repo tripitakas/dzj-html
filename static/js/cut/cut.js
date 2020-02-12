@@ -1044,8 +1044,8 @@
       }
     },
 
-    toggleBox: function (visible, cls) {
-      data.chars.forEach(function (box) {
+    toggleBox: function (visible, cls, chars) {
+      (chars || data.chars).forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class'))) {
           $(box.shape.node).toggle(!!visible);
         }
