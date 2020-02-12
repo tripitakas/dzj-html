@@ -84,7 +84,7 @@ class PageHandler(TaskHandler, PageTool):
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
         if column_out_block:
-            return False, '列框不在栏框内', [c['column_id'] for c in column_out_block]
+            return False, '列框不在栏框内', [c.get('column_id') or c['char_id'] for c in column_out_block]
         char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
