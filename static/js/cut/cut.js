@@ -1049,11 +1049,11 @@
       boxIds.map(findCharById).forEach(function (c) {
         if (c && c.shape && res.indexOf(c) < 0) {
           res.push(c);
-          var el = $(c.shape.node), old = el.attr('class');
-          if (value === undefined ? old.indexOf(className) < 0 : value) {
+          var el = $(c.shape.node), old = el.attr('class') + ' ';
+          if (value === undefined ? old.indexOf(className + ' ') < 0 : value) {
             el.addSvgClass(className);
           }
-          if (value === undefined ? old.indexOf(className) >= 0 : !value) {
+          if (value === undefined ? old.indexOf(className + ' ') >= 0 : !value) {
             el.removeSvgClass(className);
           }
         }
@@ -1112,17 +1112,19 @@
 
   $.fn.addSvgClass = function(className) {
     return this.each(function() {
-      var attr = $(this).attr('class') || '';
-      if (!$(this).hasClass(className)) {
+      var attr = ($(this).attr('class') || '') + ' ';
+      if (attr.indexOf(className + ' ') < 0) {
         $(this).attr('class', $.trim(attr + ' ' + className));
       }
     });
   };
   $.fn.removeSvgClass = function(className) {
     return this.each(function() {
-      var attr = $(this).attr('class') || '';
-      if ($(this).hasClass(className)) {
-        $(this).attr('class', attr.split(' ').filter(item => { return item != className; }).join(' '));
+      var attr = ($(this).attr('class') || '') + ' ';
+      if (attr.indexOf(className + ' ') >= 0) {
+        $(this).attr('class', attr.split(' ').filter(function(item) {
+          return item !== className;
+        }).join(' '));
       }
     });
   };
