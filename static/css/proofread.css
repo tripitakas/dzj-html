@@ -110,11 +110,13 @@
 .sutra-text-mode .html-edit {
   display: block;
   background: url(../imgs/icon_edit2.png);
+  background-size: 20px;
 }
 
 .sutra-text-mode .save-txt {
   display: none;
   background: url(../imgs/icon_save2.png);
+  background-size: 20px;
 }
 
 .txt-mode .save-txt {
