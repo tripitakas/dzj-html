@@ -27,7 +27,7 @@ rect.highlight {
         opacity: 1.0;
     }
     50% {
-        opacity: 0.2;
+        opacity: 0.3;
     }
     to {
         opacity: 1.0;
@@ -39,7 +39,7 @@ rect.highlight {
         opacity: 1.0;
     }
     50% {
-        opacity: 0.2;
+        opacity: 0.3;
     }
     to {
         opacity: 1.0;
@@ -47,8 +47,8 @@ rect.highlight {
 }
 
 rect.flash {
-  animation: fade 500ms infinite;
-  -webkit-animation: fade 500ms infinite;
+  animation: fade 600ms infinite;
+  -webkit-animation: fade 600ms infinite;
 }
 
 #holder {

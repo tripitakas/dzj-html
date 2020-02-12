@@ -1044,9 +1044,9 @@
       }
     },
 
-    toggleBox: function (visible, cls, chars) {
-      (chars || data.chars).forEach(function (box) {
-        if (box.shape && (!cls || cls === box.shape.data('class'))) {
+    toggleBox: function (visible, cls, boxIds) {
+      data.chars.forEach(function (box) {
+        if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
           $(box.shape.node).toggle(!!visible);
         }
       });
