@@ -341,10 +341,7 @@ $('.sutra-text-mode .save-txt').click(function () {
       base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
     }
   });
-  console.log({texts: texts, hints: hints});
-  // return;
   postApi('/data/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    // console.log(res.cmp_data);
     $('.sutra-text .blocks').html(res.cmp_data);
     $('.bd.sutra-html').removeClass('hide');
     $('.bd.sutra-txt').addClass('hide');
@@ -352,7 +349,7 @@ $('.sutra-text-mode .save-txt').click(function () {
 });
 
 function getPageText() {
-  return $.map($('.sutra-text .block'), function (block) {
+  return $.map($('#sutra-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
       return $.map($(line).find('span'), function (span) {
         return $(span).text();
