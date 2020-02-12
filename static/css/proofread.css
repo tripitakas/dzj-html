@@ -111,12 +111,14 @@
   display: block;
   background: url(../imgs/icon_edit2.png);
   background-size: 20px;
+  opacity: 0.5;
 }
 
 .sutra-text-mode .save-txt {
   display: none;
   background: url(../imgs/icon_save2.png);
   background-size: 20px;
+  opacity: 0.5;
 }
 
 .txt-mode .save-txt {
