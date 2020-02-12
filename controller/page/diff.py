@@ -176,9 +176,9 @@ class Diff(object):
         # 设置range
         start = 0
         for seg in line_segments:
-            seg['range'] = (start, start + len(seg['base']))
-            start += len(seg['base'])
-            if seg['is_same'] and seg['base'] == '\n':
+            seg['range'] = (start, start + len(seg[lbl['base']]))
+            start += len(seg[lbl['base']])
+            if seg['is_same'] and seg[lbl['base']] == '\n':
                 start = 0
 
         return line_segments
