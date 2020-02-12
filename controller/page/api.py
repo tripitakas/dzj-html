@@ -6,11 +6,11 @@
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
+from tornado.escape import native_str
 from controller.page.diff import Diff
 from controller.base import BaseHandler
 from controller.page.tool import PageTool
 from controller.page.base import PageHandler
-from tornado.escape import to_basestring, native_str
 from elasticsearch.exceptions import ConnectionTimeout
 
 
@@ -42,12 +42,10 @@ class CutTaskApi(PageHandler):
 
         self.update_task(self.data.get('submit'))
 
-        auto_filter = self.data.get('auto_filter') or False
-        # 要在get_box_updated之前检查check_box_cover，检查才有效
-        valid, message, out_boxes = self.check_box_cover(auto_filter)
         update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_doc(update)
 
+        valid, message, out_boxes = self.check_box_cover()
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self):
@@ -78,12 +76,10 @@ class CutEditApi(PageHandler):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
 
-        auto_filter = self.data.get('auto_filter') or False
-        # 要在get_box_updated之前检查check_box_cover，检查才有效
-        valid, message, out_boxes = self.check_box_cover(auto_filter)
         update = self.get_box_updated(not self.page.get('order_confirmed'))
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
 
+        valid, message, out_boxes = self.check_box_cover()
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self, page_name):

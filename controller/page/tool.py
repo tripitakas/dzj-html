@@ -340,17 +340,16 @@ class PageTool(object):
         set_column_id()
         columns_chars = divide_by_column_id()
         for column_id, column_chars in columns_chars.items():
-            if column_id == 'b0c0':
-                continue
             # 针对每列，从上到下扫描（有交叉时，即小字，从右到左）
             column_chars.sort(key=cmp_to_key(cmp))
             for i, c in enumerate(column_chars):
                 c['char_no'] = i + 1
-            # 小字的方向为先上下后左右，与前不同
-            if small_direction == 'vertical':
-                column = [c for c in columns if c['column_id'] == column_id][0]
-                check_small()
-                column_chars = scan_and_order()
+            if column_id != 'b0c0':
+                # 小字的方向为先上下后左右，与前不同
+                if small_direction == 'vertical':
+                    column = [c for c in columns if c['column_id'] == column_id][0]
+                    check_small()
+                    column_chars = scan_and_order()
             ret_chars.extend(column_chars)
 
         for r in ret_chars:
@@ -376,9 +375,12 @@ class PageTool(object):
         ret = []
         cid_col = []
         for i, c in enumerate(chars):
+            if i == 1:
+                cid_col.append(c['cid'])
+                continue
             column_no1 = c.get('column_no')
             column_no2 = chars[i - 1].get('column_no')
-            if i > 1 and column_no1 and column_no2 and column_no1 != column_no2:  # 换行
+            if column_no1 is not None and column_no2 is not None and column_no1 != column_no2:  # 换行
                 ret.append(cid_col)
                 cid_col = [c['cid']]
             else:
