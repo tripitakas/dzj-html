@@ -92,23 +92,31 @@ class PageHandler(TaskHandler, PageTool):
 
     @staticmethod
     def update_chars_cid(chars):
+        updated = False
         max_cid = max([int(c.get('cid') or 0) for c in chars])
         for c in chars:
             if not c.get('cid'):
                 c['cid'] = max_cid + 1
                 max_cid += 1
+                updated = True
+        return updated
 
-    def get_box_updated(self, calc_id=None):
+    def get_box_updated(self, chars_cal=None):
         """ 获取切分校对的提交"""
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
-        self.update_chars_cid(chars)
+        # 更新cid
+        updated = self.update_chars_cid(chars)
+        # 检查是否有新框
         new_chars = [c for c in chars if 'new' in c['char_id']]
-        if calc_id or new_chars:
-            blocks = self.calc_block_id(blocks)
-            columns = self.calc_column_id(columns, blocks)
-            chars = self.calc_char_id(chars, columns)
+        # 重新计算block_no/block_id/column_no/column_id/char_no/char_id
+        blocks = self.calc_block_id(blocks)
+        columns = self.calc_column_id(columns, blocks)
+        chars = self.calc_char_id(chars, columns)
+        # 如果没有新的cid也没有新框，则按用户的字序重新排序
+        if not updated and not new_chars and chars_cal:
+            chars = self.update_char_order(chars, chars_cal)
 
         return dict(chars=chars, blocks=blocks, columns=columns)
 

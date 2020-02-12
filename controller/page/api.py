@@ -19,12 +19,7 @@ class CutTaskApi(PageHandler):
            '/api/task/update/@cut_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交切分校对任务
-        1. 检查栏框外、列框外是否有字框，如果有，则将提示用户是否自动过滤
-        2. 如果有auto_filter参数，则自动过滤掉栏外、列外的字框
-        3. 无参数order_confirmed时，将自动计算block_id/column_id/char_id等，有，则不自动计算
-        4. 检查字框的小字个数并返回给用户
-        """
+        """ 提交切分校对任务。检查栏框外、列框外是否有字框，如果有，则提示用户"""
 
         try:
             if self.steps['current'] == 'order':
@@ -45,7 +40,7 @@ class CutTaskApi(PageHandler):
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover()
 
-        update = self.get_box_updated(not self.page.get('order_confirmed'))
+        update = self.get_box_updated(self.page.get('chars_col'))
         self.update_doc(update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
@@ -54,7 +49,7 @@ class CutTaskApi(PageHandler):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         self.update_task(self.data.get('submit'))
         chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
-        self.update_doc(dict(chars=chars, order_confirmed=True))
+        self.update_doc(dict(chars=chars, chars_col=self.data['chars_col']))
         self.send_data_response()
 
 
@@ -81,7 +76,7 @@ class CutEditApi(PageHandler):
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover()
 
-        update = self.get_box_updated(not self.page.get('order_confirmed'))
+        update = self.get_box_updated(self.page.get('chars_col'))
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
@@ -89,7 +84,7 @@ class CutEditApi(PageHandler):
     def save_order(self, page_name):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
-        update = dict(chars=chars, order_confirmed=True)
+        update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
         self.send_data_response()
 
