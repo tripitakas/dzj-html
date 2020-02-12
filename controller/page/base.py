@@ -74,25 +74,19 @@ class PageHandler(TaskHandler, PageTool):
     def decode_box(boxes):
         return json_decode(boxes) if isinstance(boxes, str) else boxes
 
-    def check_box_cover(self, auto_filter=False):
-        """ 检查字框覆盖情况。auto_filter为True时，过滤字框并设置好self.data"""
+    def check_box_cover(self):
+        """ 检查字框覆盖情况"""
         chars = self.decode_box(self.data['chars'])
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
         char_out_block, char_in_block = self.boxes_out_boxes(chars, blocks)
         if char_out_block:
-            if auto_filter:
-                self.data['chars'] = char_in_block
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
         if column_out_block:
-            if auto_filter:
-                self.data['columns'] = column_in_block
             return False, '列框不在栏框内', [c['column_id'] for c in column_out_block]
         char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
         if char_out_column:
-            if auto_filter:
-                self.data['chars'] = char_in_column
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
         return True, None, []
 
@@ -110,10 +104,12 @@ class PageHandler(TaskHandler, PageTool):
         self.update_chars_cid(chars)
         blocks = self.decode_box(self.data['blocks'])
         columns = self.decode_box(self.data['columns'])
-        if calc_id:
+        new_chars = [c for c in chars if 'new' in c['char_id']]
+        if calc_id or new_chars:
             blocks = self.calc_block_id(blocks)
             columns = self.calc_column_id(columns, blocks)
             chars = self.calc_char_id(chars, columns)
+
         return dict(chars=chars, blocks=blocks, columns=columns)
 
     def reorder(self):

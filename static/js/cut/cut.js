@@ -650,7 +650,7 @@
       });
 
       chars.forEach(function (b) {
-        if (!b.char_id || b.char_id.indexOf('b0c0') === 0 || ids.indexOf(b.char_id) >= 0) {
+        if (!b.char_id || ids.indexOf(b.char_id) >= 0) {
           b.char_id = 'new' + (++newId);
         }
         ids.push(b.char_id);
