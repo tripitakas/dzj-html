@@ -110,11 +110,15 @@
 .sutra-text-mode .html-edit {
   display: block;
   background: url(../imgs/icon_edit2.png);
+  background-size: 20px;
+  opacity: 0.5;
 }
 
 .sutra-text-mode .save-txt {
   display: none;
   background: url(../imgs/icon_save2.png);
+  background-size: 20px;
+  opacity: 0.5;
 }
 
 .txt-mode .save-txt {
@@ -148,6 +152,7 @@
 .sutra-text .block:not(:last-child) {
   border-bottom: 1px solid #ccc;
   margin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 .sutra-text .line.current-line {
