@@ -146,7 +146,7 @@ class Diff(object):
         # 检查换行符后是否有base为空的异文，有则往前提
         for i, seg in enumerate(line_segments):
             pre = line_segments[i - 1] if i > 1 else {}
-            if seg[lbl['base']] == '' and pre['is_same'] and pre[lbl['base']] == '\n':
+            if seg[lbl['base']] == '' and pre.get('is_same') and pre.get(lbl['base']) == '\n':
                 # 当前为空异文，之前为换行，则交换二者位置
                 temp = seg.copy()
                 seg.update(pre)
