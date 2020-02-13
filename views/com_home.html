@@ -87,9 +87,10 @@
                 <p style="padding-top: 12px"><img src="{{static_url('imgs/star.png')}}"></p>
                 <p class="tit" style="margin-top: 6px"><img src="{{static_url('imgs/star-title.png')}}" alt=""></p>
                 <ul>
-                  {% for k, v in month_star.items() %}
+                  {% for s in month_stars %}
                   <li>
-                    <span><span class="name">{{v[0]}}</span>本月 完成了 {{k}} {{v[1]}}页</span>
+                    <span class="name">{{s['username']}}</span>
+                    <span class="content">本月 完成了 {{handler.get_task_name(s['task_type'])}} {{s['count']}}页</span>
                   </li>
                   {% end %}
                 </ul>
