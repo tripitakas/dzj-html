@@ -293,7 +293,7 @@ class NeighborTextApi(PageHandler):
                 txt = Diff.pre_cmp(''.join(neighbor['_source']['origin']))
                 self.send_data_response(dict(txt=txt, code=neighbor['_source']['page_code']))
             else:
-                self.send_error_response(e.no_object, message='没有更多内容')
+                self.send_data_response(dict(txt='', message='没有更多内容'))
 
         except DbError as error:
             return self.send_db_error(error)

@@ -104,38 +104,37 @@ function highlightBox($span, first) {
   if (!$span) {
     $span = currentSpan[0];
     first = currentSpan[1];
-    if (!$span) {
+    if (!$span)
       return;
-    }
   }
-  var $line = $span.parent(), $block = $line.parent();
-  var block_no = getBlockNo($block);
+
+  var $line = $span.parent();
   var line_no = getLineNo($line);
+  var $block = $line.parent();
+  var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
   var text = $span.text().replace(/\s/g, '');
+
   var i, chTmp, all, cmp_ch;
 
   // 根据文字序号寻找序号对应的字框
   var boxes = $.cut.findCharsByOffset(block_no, line_no, offsetInLine);
-
   // 根据文字的栏列号匹配到字框的列，然后根据文字精确匹配列中的字框
-  if (boxes.length === 0)
+  if (!boxes.length)
     boxes = $.cut.findCharsByLine(block_no, line_no, function (ch) {
       return ch === ocrCursor || ch === cmp1Cursor;
     });
-
   // 行内多字能匹配时就取char_no位置最接近的，不亮显整列
   if (boxes.length > 1) {
     boxes[0] = findBestBoxes(offsetInLine, block_no, line_no, function (ch) {
       return ch === ocrCursor || ch === cmp1Cursor;
     }) || boxes[0];
   }
-
-  // 或者用span任意字精确匹配
+  // 用span任意字精确匹配
   if (!boxes.length) {
     cmp_ch = function (what, ch) {
       return !what || ch === what;
@@ -152,6 +151,10 @@ function highlightBox($span, first) {
       });
     }
   }
+  // 当前行的所有字框
+  if (!boxes.length) {
+    boxes = $.cut.findCharsByLine(block_no, line_no);
+  }
 
   $.cut.removeBandNumber(0, true);
   $.cut.state.focus = false;
@@ -160,8 +163,7 @@ function highlightBox($span, first) {
   $.cut.data.line_no = line_no;
   currentSpan = [$span, first];
 
-  all = $.cut.findCharsByLine(block_no, line_no);
-  $.cut.switchCurrentBox(((boxes.length ? boxes : all)[0] || {}).shape);
+  $.cut.switchCurrentBox((boxes[0] || {}).shape);
 }
 
 // 点击切分框
