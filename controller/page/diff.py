@@ -108,12 +108,32 @@ class Diff(object):
                 r['is_variant'] = True
             segments.append(r)
 
+        # 检查是否为异文，并对前后同文进行合并
+        for i, seg in enumerate(segments):
+            if seg.get('is_variant'):
+                pre = segments[i - 1] if i > 0 else {}
+                nex = segments[i + 1] if i + 1 < len(segments) else {}
+                if pre.get('is_same') and nex.get('is_same'):
+                    pre[lbl['base']] += (seg[lbl['base']] + nex[lbl['base']])
+                    pre[lbl['cmp']] += (seg[lbl['cmp']] + nex[lbl['cmp']])
+                    seg['delete'] = nex['delete'] = True
+                elif pre.get('is_same') and not nex.get('is_same'):
+                    pre[lbl['base']] += seg[lbl['base']]
+                    pre[lbl['cmp']] += seg[lbl['cmp']]
+                    seg['delete'] = True
+                elif not pre.get('is_same') and nex.get('is_same'):
+                    nex[lbl['base']] = seg[lbl['base']] + nex[lbl['base']]
+                    nex[lbl['cmp']] = seg[lbl['cmp']] + nex[lbl['cmp']]
+                    seg['delete'] = True
+        segments = [s for s in segments if not s.get('delete')]
+
         # 根据diff比较的结果，按照base设置换行
         line_segments, idx = [], 0
         for i, line in enumerate(base_lines):
-            if not line:
+            if not len(line):   # 如果line为空，则新增换行
                 line_segments.append({'line_no': i + 1, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'})
                 continue
+
             # 从segments中找len(line)长作为第i+1行
             start, left_len = 0, len(line)
             while idx < len(segments) and left_len > 0:
@@ -151,27 +171,6 @@ class Diff(object):
                 temp = seg.copy()
                 seg.update(pre)
                 pre.update(temp)
-
-        # 检查是否为异文，并对前后同文进行合并
-        for i, seg in enumerate(line_segments):
-            base, cmp = seg[lbl['base']], seg[lbl['cmp']]
-            if check_variant and len(base) == 1 and len(cmp) == 1 and base != cmp and is_variant(base, cmp):
-                seg['delete'] = True
-                pre = line_segments[i - 1] if i > 0 else {}
-                pre_same = pre.get('is_same') and pre[lbl['base']] != '\n'
-                next = line_segments[i + 1] if i + 1 < len(line_segments) else {}
-                next_same = next.get('is_same') and next[lbl['base']] != '\n'
-                if pre_same and next_same:
-                    pre[lbl['base']] += (seg[lbl['base']] + next[lbl['base']])
-                    pre[lbl['cmp']] += (seg[lbl['cmp']] + next[lbl['cmp']])
-                    next['delete'] = True
-                elif pre_same and not next_same:
-                    pre[lbl['base']] += seg[lbl['base']]
-                    pre[lbl['cmp']] += seg[lbl['cmp']]
-                elif not pre_same and next_same:
-                    next[lbl['base']] = seg[lbl['base']] + next[lbl['base']]
-                    next[lbl['cmp']] = seg[lbl['cmp']] + next[lbl['cmp']]
-        line_segments = [s for s in line_segments if not s.get('delete')]
 
         # 设置range
         start = 0
@@ -362,3 +361,11 @@ class Diff(object):
             start += len(r[base_key])
 
         return _ret
+
+
+if __name__ == '__main__':
+    ocr = "般若波羅蜜多復次舍利子菩薩摩訶薩不|爲引發苦聖諦故應引發般若波羅蜜多不|爲引發集滅道聖諦故應引發般若波羅蜜|多世尊云何菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多不爲引發集滅道|聖諦故應引發般若波羅蜜多舍利子以苦|聖諦無作無止無生無滅無成無壞無得無|捨無自性故菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多以集滅道聖諦無|作無止無生無滅無成無壞無得無捨無自|性故菩薩摩訶薩不爲引發集滅道聖諦故|應引發般若波羅蜜多復次舍利子菩薩摩|訶薩不爲引發四靜慮故應引發般若波羅|蜜多不爲引發四無量四無色定故應引發|般若波羅蜜多世尊云何菩薩摩訶薩不爲||引發四靜慮故應引發般若波羅蜜多不爲|引發四無量四無色定故應引發般若波羅|蜜多舍利子以四靜慮無作無止無生無滅|無成無壞無得無捨無自性故菩薩摩訶薩|不爲引發四靜慮故應引發般若波羅蜜多|以四無量四無色定無作無止無生無滅無|成無壞無得無捨無自性故菩薩摩訶薩不|爲引發四無量四無色定故應引發般若波|羅蜜多|大般若波羅蜜多經卷第一百七十二|音釋|矜店御切頸矜也蔑彌列叨轉易也設利羅梵捂也亦壬室利罹又云|舍利北云骨身又云靈骨窣堵波梵諱也北云方墳又云圃罤帛春沒切堵|昔狁瞖眩醫肯翁目疾也洶音縣刑熏常生也"
+    ocr_col = "般若波羅蜜多復次舎利子菩薩摩訶薩不|爲引發苦聖諦故應引發般若波羅蜜多不|爲引發集滅道聖諦故應引發般若波羅蜜|多世尊云何菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多不爲引發集滅道|聖諦故應引發般若波羅蜜多舎利子以苦|聖諦無作無止無生無滅無成無壞無得無|捨無自性故菩薩摩訶薩不爲引發苦聖諦|故應引發般若波羅蜜多以集滅道聖諦無|作無止生無滅無成無壞無得無捨無自|性故菩薩摩訶薩不爲引發集滅道聖諦故|應引發般若波羅蜜多復次舎利子菩薩摩|薩不爲引發四靜故應引發般若波羅|蜜多不爲引發四無量四無色定故應引發|般若波羅蜜多世尊云何菩薩摩訶薩不爲||引四靜慮故應引發般若波羅蜜多不爲|引發四無量四無色定故應引發般若波羅|蜜多舎利子以四靜慮無作無止無生無滅|無成無壞無得無捨無自性故菩薩摩訶薩|不爲引發四靜慮故應引發般若波羅蜜多|以四量四無色定無作無止無生無滅無|成無壞無得無捨無自性故菩薩摩訶薩不|爲引發四無量四無色定故應引發般若波|羅蜜多|大般若波羅蜜多經卷第一百七十二|音釋|子増隱間以設利羅覺離二經|捨是雲能窣者波提攝也說汝般|諸譬敢訶經離"
+    cmp = "般若波羅蜜多復次舍利子菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多不為引發集滅道聖諦故應引發般若波羅蜜多世尊云何菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多不為引發集滅道聖諦故應引發般若波羅蜜多舍利子以苦聖諦無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發苦聖諦故應引發般若波羅蜜多以集滅道聖諦無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發集滅道聖諦故應引發般若波羅蜜多復次舍利子菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多不為引發四無量四無色定故應引發般若波羅蜜多世尊云何菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多不為引發四無量四無色定故應引發般若波羅蜜多舍利子以四靜慮無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發四靜慮故應引發般若波羅蜜多以四無量四無色定無作無止無生無滅無成無壞無得無捨無自性故菩薩摩訶薩不為引發四無量四無色定故應引發般若波羅蜜多大般若波羅蜜多經卷第一百七十二"
+    Diff.diff(ocr, ocr_col)
+    # Diff.diff(ocr, ocr_col, cmp)
