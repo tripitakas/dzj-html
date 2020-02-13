@@ -84,7 +84,7 @@ class TextReviewHandler(PageHandler):
         try:
             self.texts, self.doubts = self.get_cmp_txt()
             cmp_data = self.prop(self.page, 'txt_html')
-            if not cmp_data:
+            if not cmp_data and len(self.texts):
                 cmp_data = self.diff(*[t[0] for t in self.texts])
             self.render('task_text_do.html', cmp_data=cmp_data)
 
