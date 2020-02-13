@@ -151,10 +151,11 @@ class TaskHandler(BaseHandler, Task, Lock):
             query.sort(o, asc)
         return list(query)
 
-    def find_mine(self, task_type=None, page_size=None, order=None, status=None):
+    def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None):
         """ 查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
-        condition = {'picked_user_id': self.user_id}
+        user_id = user_id if user_id else self.user_id
+        condition = {'picked_user_id': user_id}
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
         if status:

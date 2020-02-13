@@ -307,6 +307,12 @@ class AssignTasksApi(TaskHandler):
             # 去掉未发布的任务
             log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_PUBLISHED]
             published = [t for t in tasks if t['status'] == self.STATUS_PUBLISHED]
+            # 去掉用户已领取的文字校对页面
+            text_proof_tasks = [t['doc_id'] for t in published if 'text_proof' in t['task_type']]
+            if text_proof_tasks:
+                user_picked_tasks = self.find_mine('text_proof', user_id=user_id)
+                log['picked_before'] = set(t['doc_id'] for t in user_picked_tasks) & set(text_proof_tasks)
+                published = [t for t in published if t['doc_id'] not in log['picked_before']]
             # 指派已发布的任务
             for task in published:
                 # 尝试分配数据锁
