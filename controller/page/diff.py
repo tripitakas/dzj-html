@@ -27,7 +27,7 @@ class Diff(object):
     def pre_base(cls, base, keep_line=True):
         """ base预处理"""
         # 平台中用|表示换行，因此先恢复换行
-        base = base.replace('|', '\n')
+        base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
         base = base.replace('\n', '') if not keep_line else base
         return re.sub(Diff.base_junk_char, '', base)
@@ -95,45 +95,45 @@ class Diff(object):
             lbl.update(label)
 
         # 和v1不同，v2在比较时，先去掉换行符，以免对diff算法干扰
-        segments, line_no = [], 1
-        base_lines = base.replace('|', r'\n').split(r'\n')
-        base, cmp = cls.pre_base(base, False), cls.pre_cmp(cmp)
+        base = base.replace('|', '\n').rstrip('\n')
+        base_lines = base.split('\n')
+        base = cls.pre_base(base, False)
+        cmp = cls.pre_cmp(cmp)
+        segments = []
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
         for tag, i1, i2, j1, j2 in s.get_opcodes():
             t1, t2 = base[i1:i2], cmp[j1:j2]
             # print('{:7}   a[{}:{}] --> b[{}:{}] {!r:>8} --> {!r}'.format(tag, i1, i2, j1, j2, t1, t2))
             is_same = True if tag == 'equal' else False
-            r = {'line_no': line_no, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
+            r = {'line_no': None, 'is_same': is_same, lbl['base']: t1, lbl['cmp']: t2}
             if check_variant and len(t1) == 1 and len(t2) == 1 and t1 != t2 and is_variant(t1, t2):
                 r['is_variant'] = True
+                r['is_same'] = True
             segments.append(r)
 
-        # 检查是否为异文，并对前后同文进行合并
+        # 合并diff时可能被异体字隔断的同文
         for i, seg in enumerate(segments):
-            if seg.get('is_variant'):
-                pre = segments[i - 1] if i > 0 else {}
-                nex = segments[i + 1] if i + 1 < len(segments) else {}
-                if pre.get('is_same') and nex.get('is_same'):
-                    pre[lbl['base']] += (seg[lbl['base']] + nex[lbl['base']])
-                    pre[lbl['cmp']] += (seg[lbl['cmp']] + nex[lbl['cmp']])
-                    seg['delete'] = nex['delete'] = True
-                elif pre.get('is_same') and not nex.get('is_same'):
-                    pre[lbl['base']] += seg[lbl['base']]
-                    pre[lbl['cmp']] += seg[lbl['cmp']]
-                    seg['delete'] = True
-                elif not pre.get('is_same') and nex.get('is_same'):
-                    nex[lbl['base']] = seg[lbl['base']] + nex[lbl['base']]
-                    nex[lbl['cmp']] = seg[lbl['cmp']] + nex[lbl['cmp']]
-                    seg['delete'] = True
-        segments = [s for s in segments if not s.get('delete')]
+            if seg.get('is_same'):
+                # 往前找一个没有被delete的同文seg进行合并
+                j = i - 1
+                while j >= 0:
+                    pre = segments[j]
+                    if not pre['is_same']:
+                        break
+                    if not pre.get('deleted'):
+                        pre[lbl['base']] += seg[lbl['base']]
+                        pre[lbl['cmp']] += seg[lbl['cmp']]
+                        seg['deleted'] = True
+                        break
+                    j -= 1
+        segments = [s for s in segments if not s.get('deleted')]
 
         # 根据diff比较的结果，按照base设置换行
         line_segments, idx = [], 0
         for i, line in enumerate(base_lines):
-            if not len(line):   # 如果line为空，则新增换行
+            if not len(line):  # 如果line为空，则新增换行
                 line_segments.append({'line_no': i + 1, 'is_same': True, lbl['base']: '\n', lbl['cmp']: '\n'})
                 continue
-
             # 从segments中找len(line)长作为第i+1行
             start, left_len = 0, len(line)
             while idx < len(segments) and left_len > 0:
@@ -249,7 +249,8 @@ class Diff(object):
             _d2 = Diff._re_combine_one_line(d2_cur_line, merge_pos, base_key)
             # 合并d2至d1，得到line_no行对应的最终结果
             for i in range(0, len(_d1)):
-                _d1[i].update(_d2[i])
+                if i < len(_d2):
+                    _d1[i].update(_d2[i])
             _d1.append({'line_no': line_no, 'seg_no': len(_d1) + 1, 'is_same': True, base_key: '\n'})
             # 将该行插入ret
             ret.extend(_d1)

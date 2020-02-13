@@ -3,6 +3,7 @@ var l10n = {
   un_ready: '数据未就绪',
   published_before: '任务曾被发布',
   finished_before: '任务已完成',
+  picked_group_task_before: '已领取同组任务',
   data_level_unqualified: '数据等级不够',
   data_is_locked: '数据被锁定',
   published: '任务已发布',

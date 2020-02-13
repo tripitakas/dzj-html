@@ -357,7 +357,7 @@ function getPageText() {
     return $.map($(block).find('.line'), function (line) {
       return $.map($(line).find('span'), function (span) {
         return $(span).text();
-      }).join("")
+      }).join("").trim();
     }).join("\n");
   }).join("\n\n");
 }
