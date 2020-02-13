@@ -31,8 +31,7 @@ class CutTaskHandler(PageHandler):
 
 
 class CutEditHandler(PageHandler):
-    URL = ['/data/cut_edit/@page_name',
-           '/data/cut_view/@page_name']
+    URL = '/data/cut_edit/@page_name'
 
     def get(self, page_name):
         """ 切分编辑页面"""
