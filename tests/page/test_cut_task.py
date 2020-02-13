@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re
 import tests.users as u
+from controller import errors as e
 from tests.testcase import APITestCase
-from tornado.escape import json_encode
 
 
 class TestCutTask(APITestCase):
@@ -34,43 +33,49 @@ class TestCutTask(APITestCase):
             r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, pre_tasks=[]))
             self.assert_code(200, r)
 
-            # 领取指定的任务
+            # 领取任务
             self.login(u.expert1[0], u.expert1[1])
             task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': 'QL_25_16'})
             r = self.fetch('/api/task/pick/' + task_type, body={'data': {'task_id': task['_id']}})
             self.assert_code(200, r)
 
-            # 提交各步骤
+            # 提交第一步：切分数据
             page = self._app.db.page.find_one({'name': 'QL_25_16'})
-            steps = ['chars', 'blocks', 'columns', 'orders']
-            for step in steps:
-                data_field = self.step2field.get(step)
-                data = {'step': step, 'submit': True, 'boxes': json_encode(page[data_field])}
-                r = self.fetch('/api/task/do/%s/%s' % (task_type, task['_id']), body={'data': data})
-                self.assert_code(200, r, msg=task_type + ':' + step)
+            data = self.get_boxes(page)
+            r = self.fetch('/api/task/do/%s/%s' % (task_type, task['_id']), body={'data': data})
+            self.assert_code(200, r, msg=task_type)
+
+            # 提交第二步：字序
+            data = self.get_chars_col(page)
+            r = self.fetch('/api/task/do/%s/%s' % (task_type, task['_id']), body={'data': data})
+            self.assert_code(200, r, msg=task_type)
 
             # 检查任务状态，应为已完成
             task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': 'QL_25_16'})
             self.assertEqual('finished', task['status'], msg=task_type)
 
     def test_cut_edit(self):
-        """测试编辑切分数据"""
+        """ 测试编辑切分数据"""
         self.login(u.expert1[0], u.expert1[1])
-        # 测试专家编辑提交数据
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
-        steps = ['chars', 'blocks', 'columns', 'orders']
-        for step in steps:
-            data_field = self.step2field.get(step)
-            data = {'step': step, 'boxes': json_encode(page[data_field])}
-            r = self.fetch('/api/data/cut_edit/QL_25_16', body={'data': data})
-            self.assert_code(200, r, msg=step)
+        # 测试第一步：修改切分数据
+        page['chars'][0]['w'] += 1
+        data = self.get_boxes(page)
+        r = self.fetch('/api/data/cut_edit/QL_25_16', body={'data': data})
+        self.assert_code(200, r)
+
+        # 测试第二步：修改字序
+        data = self.get_chars_col(page)
+        data['chars_col'][0] = [1, 3, 2, 4]
+        r = self.fetch('/api/data/cut_edit/QL_25_16', body={'data': data})
+        self.assert_code(200, r)
 
     def test_cut_mode(self):
-        """测试切分页面的几种模式"""
+        """ 测试切分页面的几种模式"""
         docs_ready = ['QL_25_16']
-        task_type, step = 'cut_proof', 'chars'
+        task_type, step = 'cut_proof', 'box'
         page = self._app.db.page.find_one({'name': 'QL_25_16'})
-        # 发布任务
+        # 发布任务，仅发布第一步
         self.login_as_admin()
         r = self.publish_page_tasks(dict(doc_ids=docs_ready, task_type=task_type, steps=[step], pre_tasks=[]))
         self.assert_code(200, r)
@@ -82,41 +87,43 @@ class TestCutTask(APITestCase):
         self.assert_code(200, r)
 
         # 用户expert1提交任务
-        data = {'step': step, 'submit': True, 'boxes': json_encode(page['chars'])}
+        data = self.get_boxes(page)
         r = self.fetch('/api/task/do/%s/%s' % (task_type, task['_id']), body={'data': data})
         self.assert_code(200, r)
+        task = self._app.db.task.find_one({'_id': task['_id']})
+        self.assertEqual(task['status'], 'finished')
 
-        # 测试专家expert2进入edit页面时为可写
+        # 测试专家expert2可进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/cut_edit/QL_25_16?_raw=1'))
-        self.assertEqual(False, r.get('readonly'))
+        r = self.fetch('/data/cut_edit/QL_25_16?_raw=1')
+        self.assert_code(200, r)
 
-        # 测试用户expert1进入update页面时为只读
+        # 测试用户expert1不能进入update页面
         self.login(u.expert1[0], u.expert1[1])
-        r = self.parse_response(self.fetch('/task/update/cut_proof/%s?_raw=1' % task['_id']))
-        self.assertEqual(True, r.get('readonly'))
+        r = self.fetch('/task/update/cut_proof/%s?_raw=1' % task['_id'])
+        self.assert_code(e.data_is_locked, r)
 
         # 专家expert2离开时解锁
         self.login(u.expert2[0], u.expert2[1])
         r = self.fetch('/api/data/unlock/box/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
-        # 测试用户expert1进入update页面时为可写
+        # 测试用户expert1可进入update页面
         self.login(u.expert1[0], u.expert1[1])
-        r = self.parse_response(self.fetch('/task/update/cut_proof/%s?_raw=1' % task['_id']))
-        self.assertEqual(False, r.get('readonly'))
+        r = self.fetch('/task/update/cut_proof/%s?_raw=1' % task['_id'])
+        self.assert_code(200, r)
 
-        # 测试专家expert2进入edit页面时为只读
+        # 测试专家expert2无法进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/cut_edit/QL_25_16?_raw=1'))
-        self.assertEqual(True, r.get('readonly'))
+        r = self.fetch('/data/cut_edit/QL_25_16?_raw=1')
+        self.assert_code(e.data_is_locked, r)
 
         # 用户expert1离开时解锁
         self.login(u.expert1[0], u.expert1[1])
         r = self.fetch('/api/data/unlock/box/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
-        # 测试专家expert2进入edit页面时为可写
+        # 测试专家expert2可进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.parse_response(self.fetch('/data/cut_edit/QL_25_16?_raw=1'))
-        self.assertEqual(False, r.get('readonly'))
+        r = self.fetch('/data/cut_edit/QL_25_16?_raw=1')
+        self.assert_code(200, r)

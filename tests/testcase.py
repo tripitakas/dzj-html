@@ -10,12 +10,14 @@ from bson import json_util
 from tornado.util import PY3
 from functools import partial
 from tornado.options import options
+from tornado.escape import json_encode
 from tornado.httpclient import HTTPRequest
 from tornado.testing import AsyncHTTPTestCase
 from tornado.escape import to_basestring, native_str
 import controller as c
-import controller.auth as auth
+from controller import auth
 from controller.app import Application
+from controller.page.tool import PageTool
 from controller.task.base import TaskHandler as Th
 from tests.users import admin
 
@@ -188,6 +190,15 @@ class APITestCase(AsyncHTTPTestCase):
         return r
 
     @staticmethod
+    def get_boxes(page, submit=True):
+        return {'blocks': json_encode(page['blocks']), 'columns': json_encode(page['columns']),
+                'chars': json_encode(page['chars']), 'step': 'box', 'submit': submit}
+
+    @staticmethod
+    def get_chars_col(page, submit=True):
+        return {'chars_col': PageTool.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
+
+    @staticmethod
     def init_data(data):
         data['force'] = data.get('force', '0')
         data['batch'] = data.get('batch', '测试批次号')
@@ -195,7 +206,7 @@ class APITestCase(AsyncHTTPTestCase):
         task_type = data.get('task_type') or data.get('task_types')[0]
         data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % task_type))
         if 'cut' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['chars', 'blocks', 'columns', 'orders'])
+            data['steps'] = data.get('steps', ['box', 'order'])
         if 'text_proof' in task_type and 'steps' not in data:
             data['steps'] = data.get('steps', ['select', 'proof'])
         return data
