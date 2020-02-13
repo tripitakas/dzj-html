@@ -67,8 +67,10 @@ class SessionConfigApi(BaseHandler):
 
     def post(self):
         """ 配置后台cookie"""
+        blacklist = ['user']
         try:
             for k, v in self.data.items():
+                assert k not in blacklist
                 self.set_secure_cookie(k, json_util.dumps(v))
             return self.send_data_response()
 
