@@ -99,8 +99,14 @@ function setQueryString(name, value, onlySearch) {
     return location.pathname + search;
 }
 
-function deleteQueryString(name) {
-  return deleteParam(location.href, name);
+function deleteQueryString(names) {
+  var url = location.href;
+  if (typeof names === 'string')
+    names = names.split(',');
+  names.forEach(function (name) {
+    url = deleteParam(url, name);
+  });
+  return url;
 }
 
 function deleteParam(query, name) {
