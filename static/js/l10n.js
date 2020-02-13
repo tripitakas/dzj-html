@@ -9,6 +9,7 @@ var l10n = {
   pending: '等待前置任务',
   unauthorized: '用户无权访问',
   un_published: '状态不是已发布',
+  duplicated_text: '文字校对重复',
   picked_before: '曾经领过的任务',
   lock_failed: '数据锁定失败',
   assigned: '任务指派成功'

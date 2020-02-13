@@ -212,7 +212,7 @@
   color: #13171c;
   font-size: 14px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .bottom .item li > span {
