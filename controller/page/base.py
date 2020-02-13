@@ -114,12 +114,12 @@ class PageHandler(TaskHandler, PageTool):
         columns = self.decode_box(self.data['columns'])
         # 更新cid
         updated = self.update_chars_cid(chars)
-        # 检查是否有新框
-        new_chars = [c for c in chars if 'new' in c['char_id']]
         # 重新计算block_no/block_id/column_no/column_id/char_no/char_id
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
         chars = self.calc_char_id(chars, columns)
+        # 检查是否有新框
+        new_chars = [c for c in chars if 'new' in c['char_id']]
         # 如果没有新的cid也没有新框，则按用户的字序重新排序
         if not updated and not new_chars and chars_cal:
             chars = self.update_char_order(chars, chars_cal)
