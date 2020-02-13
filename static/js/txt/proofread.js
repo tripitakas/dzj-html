@@ -297,6 +297,8 @@ $('.pfread .right').scroll(function () {
 // 点击异文选择框的各个选项
 $('#pfread-dialog .option').on('click', function () {
   $('#pfread-dialog-slct').text($(this).text());
+  if (!$(this).text().length)
+    $('.current-diff').text($(this).text()).addClass('selected');
 });
 
 // 对话框选择文本input发生修改
