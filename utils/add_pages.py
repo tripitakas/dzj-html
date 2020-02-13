@@ -25,7 +25,7 @@ from controller.page.base import PageHandler
 
 class AddPage(object):
     def __init__(self, db, source='', update=False, check_only=False, use_local_img=False,
-                 check_id=False, reorder=True):
+                 check_id=False, reorder=None):
         self.db = db
         self.source = source
         self.update = update
