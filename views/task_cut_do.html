@@ -148,9 +148,9 @@
   // 页面图
   var canvasName = taskType + step + docId;
   $.cut.create({
-    readonly: {{int(handler.readonly)}},
     holder: 'holder',
     name: canvasName,
+    readonly: readonly,
     scrollContainer: '#holder-container',
     width: '{{handler.page["width"]}}',
     height: '{{handler.page["height"]}}',
@@ -280,6 +280,7 @@
   afterSaved = function (submit, res, url) {
     if (!res.valid) {
       // 高亮未被覆盖的框
+      console.log(res.out_boxes);
       $.cut.toggleClass(res.out_boxes, 'highlight', true);
       $.cut.toggleClass(res.out_boxes, 'flash', true);
       $.cut.toggleBox(true, null, res.out_boxes);

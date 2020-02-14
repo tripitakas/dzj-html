@@ -72,8 +72,18 @@ class PageHandler(TaskHandler, PageTool):
         return update
 
     @staticmethod
-    def decode_box(boxes):
-        return json_decode(boxes) if isinstance(boxes, str) else boxes
+    def filter_box(data, max_width, max_height):
+        def valid(box):
+            return box['x'] + box['w'] <= max_width and box['y'] + box['h'] <= max_height
+
+        chars = json_decode(data['chars']) if isinstance(data['chars'], str) else data['chars']
+        blocks = json_decode(data['blocks']) if isinstance(data['blocks'], str) else data['blocks']
+        columns = json_decode(data['columns']) if isinstance(data['columns'], str) else data['columns']
+        chars = [box for box in chars if valid(box)]
+        blocks = [box for box in blocks if valid(box)]
+        columns = [box for box in columns if valid(box)]
+
+        return blocks, columns, chars
 
     def check_box_cover(self):
         """ 检查字框覆盖情况"""
@@ -82,9 +92,7 @@ class PageHandler(TaskHandler, PageTool):
             col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
             return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
 
-        chars = self.decode_box(self.data['chars'])
-        blocks = self.decode_box(self.data['blocks'])
-        columns = self.decode_box(self.data['columns'])
+        blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
         char_out_block, char_in_block = self.boxes_out_boxes(chars, blocks)
         if char_out_block:
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
@@ -109,9 +117,7 @@ class PageHandler(TaskHandler, PageTool):
 
     def get_box_updated(self, chars_cal=None):
         """ 获取切分校对的提交"""
-        chars = self.decode_box(self.data['chars'])
-        blocks = self.decode_box(self.data['blocks'])
-        columns = self.decode_box(self.data['columns'])
+        blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
         # 更新cid
         updated = self.update_chars_cid(chars)
         # 重新计算block_no/block_id/column_no/column_id/char_no/char_id
