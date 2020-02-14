@@ -24,7 +24,9 @@
         </div>
         <div class="btn-group title" title="{{handler.page['name']}}">
           {{handler.task_name()}}
+          {% block step_title %}
           <span class="sub-title {{'' if handler.step_name() else 'hide'}}">-{{handler.step_name()}}</span>
+          {% end %}
         </div>
       </div><!--left-->
       <div class="center">
