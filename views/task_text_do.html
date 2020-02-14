@@ -1,9 +1,28 @@
 {% extends "_task_do.html" %}
 
+{% block step_title %}{% end %}
+
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 {% include _font_css.html %}
+<style>
+  @media screen and (max-width:1100px){
+    #enlarge-font, #reduce-font {
+      display: none;
+    }
+  }
+  @media screen and (max-width:1024px){
+    .m-header .title {
+      display: none;
+    }
+  }
+  @media screen and (max-width:940px){
+    #enlarge-panel-font, #reduce-panel-font {
+      display: none;
+    }
+  }
+</style>
 {% end %}
 
 {% block buttons %}
