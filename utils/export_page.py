@@ -9,7 +9,7 @@ from bson import json_util
 def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source=''):
     conn = pymongo.MongoClient(uri)
     db = conn[db_name]
-    cond = {'source': source} if source else {}
+    cond = {'source': {'$regex': source} if '^' in source else source} if source else {}
     for index in range(1000):
         rows = list(db.page.find(cond).skip(index * 100).limit(100))
         if rows:

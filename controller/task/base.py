@@ -74,6 +74,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update', 'edit']:
                 self.has_lock, error = self.check_my_lock()
                 if self.has_lock is False:
+                    if '/data/cut_edit/' in self.request.path:
+                        return self.redirect(self.request.path.replace('cut_edit', 'cut_view'))
                     return self.send_error_response(error)
         # 设置其它参数
         self.steps = self.init_steps(self.task, self.task_type)

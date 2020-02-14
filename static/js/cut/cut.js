@@ -1047,7 +1047,8 @@
     toggleBox: function (visible, cls, boxIds) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
-          $(box.shape.node).toggle(!!visible);
+          if (!$(box.shape.node).hasClass('flash'))
+            $(box.shape.node).toggle(!!visible);
         }
       });
     },
