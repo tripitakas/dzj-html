@@ -1,12 +1,13 @@
 /*
  * cut_adv.js
  *
- * Date: 2019-03-05
+ * Date: 2020-02-06
  */
 (function() {
   'use strict';
 
   var data = $.cut.data;
+  var state = $.cut.state;
   var fillColor = '#00f';
   var allHide = false;
 
@@ -28,7 +29,7 @@
 
     highlightBoxes: function(kind, test, retain) {
       var chars = data.chars.filter(function(c) {
-        return c.shape;
+        return c.shape && (!state.canHitBox || state.canHitBox(c.shape));
       });
       var sizes, mean, boxes, highlight;
 
@@ -55,13 +56,21 @@
           var degree = 0;
 
           if (kind === 'large') {
-            degree = r.width * r.height / mean - 1;
+            if (r.is_small !== undefined) {
+              degree = r.is_small ? 0 : 1;
+            } else {
+              degree = r.width * r.height / mean - 1;
+            }
             if (degree < 0.5) {
               return;
             }
           }
           else if (kind === 'small') {
-            degree = mean / (r.width * r.height) - 1;
+            if (r.is_small !== undefined) {
+              degree = r.is_small ? 1 : 0;
+            } else {
+              degree = mean / (r.width * r.height) - 1;
+            }
             if (degree < 0.5 || c.ch === '一') {
               return;
             }
@@ -102,6 +111,13 @@
               }
             }
           }
+          else if (typeof kind === 'function') {
+            degree = kind(c);
+            if (!degree) {
+              return;
+            }
+          }
+
           var alpha = degree >= 1.05 ? 0.8 :
                 degree >= 0.90 ? 0.65 :
                 degree >= 0.75 ? 0.5 :

@@ -6,15 +6,8 @@
     width: 180px;
   }
 
-  td.ocr, td.ocr_col, td.remark {
+  td.remark {
     font-size: 12px;
-  }
-
-  td.blocks, td.columns, td.chars, td.orders, td.text, td.cut-edit {
-    color: #B8906F;
-    font-size: 12px;
-    cursor: pointer;
-    text-decoration: underline;
   }
 
   .select2-container {
@@ -367,16 +360,21 @@
     if (!$(this).text().length)
       return;
     var name = $(this).siblings('.name').text();
-    location.href = '/task/text_edit/' + name + '?from=' + encodeFrom();
+    location.href = '/data/text_edit/' + name + '?from=' + encodeFrom();
   });
 
-  // 修改栏框、列框、字框、字序
-  $('td.cut-edit').click(function () {
-    if (!$(this).text().length)
-      return;
-    var name = $(this).siblings('.name').text();
-    var url = '/task/cut_edit/' + name + '?step=blocks';
-    location.href = url + '&from=' + encodeFrom();
+  // 修改字框
+  $('.action .btn-box').click(function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/data/cut_edit/' + name;
+    location.href = url + '?from=' + encodeFrom();
+  });
+
+  // 修改字序
+  $('.action .btn-order').click(function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/data/cut_edit/' + name;
+    location.href = url + '?step=order&from=' + encodeFrom();
   });
 
   // 解锁
@@ -523,13 +521,9 @@
         break;
     }
     postApi('/task/publish/page', isFile ? formData : {data: data}, function (res) {
-      // console.log(res);
-      var html = '';
-      for (var item in res.data) {
-        var label = l10n[item] + '(' + res.data[item].length + ')';
-        html += '<tr><td class="' + item + '">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
-      }
-      console.log(html);
+      var html = $.map(res.data, function (value, key) {
+        return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
+      }).join('');
       $publishResultModal.find('table').html(html);
       $publishResultModal.modal();
     }, null, isFile);

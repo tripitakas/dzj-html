@@ -1,29 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
+from tornado.escape import json_decode
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, PageTool):
-    step2box = dict(chars='char', columns='column', blocks='block', orders='char')
-
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
-        self.boxes = self.texts = self.doubts = []
-        self.box_type = self.page_name = ''
+        self.chars_col = self.texts = self.doubts = []
+        self.page_name = ''
         self.page = {}
 
     def prepare(self):
         super().prepare()
         self.page_name, self.page = self.doc_id, self.doc
-        if not self.is_api:
-            # 设置切分任务参数
-            if 'cut_' in self.task_type:
-                self.box_type = self.step2box.get(self.steps['current'])
-                self.boxes = self.page.get(self.box_type + 's')
-            # 设置文字任务参数
-            if 'text_' in self.task_type:
-                self.texts, self.doubts = self.get_cmp_txt()
 
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
@@ -78,3 +70,62 @@ class PageHandler(TaskHandler, PageTool):
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
+
+    @staticmethod
+    def decode_box(boxes):
+        return json_decode(boxes) if isinstance(boxes, str) else boxes
+
+    def check_box_cover(self):
+        """ 检查字框覆盖情况"""
+
+        def get_column_id(c):
+            col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
+            return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
+
+        chars = self.decode_box(self.data['chars'])
+        blocks = self.decode_box(self.data['blocks'])
+        columns = self.decode_box(self.data['columns'])
+        char_out_block, char_in_block = self.boxes_out_boxes(chars, blocks)
+        if char_out_block:
+            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
+        column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
+        if column_out_block:
+            return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
+        char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
+        if char_out_column:
+            return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
+        return True, None, []
+
+    @staticmethod
+    def update_chars_cid(chars):
+        updated = False
+        max_cid = max([int(c.get('cid') or 0) for c in chars])
+        for c in chars:
+            if not c.get('cid'):
+                c['cid'] = max_cid + 1
+                max_cid += 1
+                updated = True
+        return updated
+
+    def get_box_updated(self, chars_cal=None):
+        """ 获取切分校对的提交"""
+        chars = self.decode_box(self.data['chars'])
+        blocks = self.decode_box(self.data['blocks'])
+        columns = self.decode_box(self.data['columns'])
+        # 更新cid
+        updated = self.update_chars_cid(chars)
+        # 重新计算block_no/block_id/column_no/column_id/char_no/char_id
+        blocks = self.calc_block_id(blocks)
+        columns = self.calc_column_id(columns, blocks)
+        chars = self.calc_char_id(chars, columns)
+        # 检查是否有新框
+        new_chars = [c for c in chars if 'new' in c['char_id']]
+        # 如果没有新的cid也没有新框，则按用户的字序重新排序
+        if not updated and not new_chars and chars_cal:
+            chars = self.update_char_order(chars, chars_cal)
+
+        return dict(chars=chars, blocks=blocks, columns=columns)
+
+    def reorder(self):
+        """ 重排序号"""
+        self.page['blocks'], self.page['columns'], self.page['chars'] = self.re_calc_id(page=self.page)

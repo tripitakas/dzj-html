@@ -1,6 +1,6 @@
 /**
- @desc 导航相关操作。需提前设置好$.cut。
-*/
+ @desc 页面图导航相关操作
+ */
 
 // 显隐左侧区域
 $(document).on('click', '#toggle-left', function () {
@@ -12,44 +12,6 @@ $(document).on('click', '#toggle-left', function () {
 $(document).on('click', '#toggle-right', function () {
   $(this).toggleClass('active');
   $('#right-region').toggleClass('hide');
-});
-
-// 图片缩放快捷键
-function zoomRatio(ratio) {
-  var pageImg = $('#page-picture img');
-  if (pageImg.length) {
-    pageImg.width((100 * ratio) + '%');
-  } else {
-    $.cut.setRatio(ratio);
-  }
-}
-
-$.mapKey('1', function () {
-  zoomRatio(1);
-});
-$.mapKey('2', function () {
-  zoomRatio(2);
-});
-$.mapKey('3', function () {
-  zoomRatio(3);
-});
-$.mapKey('4', function () {
-  zoomRatio(4);
-});
-$.mapKey('5', function () {
-  zoomRatio(5);
-});
-$.mapKey('6', function () {
-  zoomRatio(0.6);
-});
-$.mapKey('7', function () {
-  zoomRatio(0.8);
-});
-$.mapKey('8', function () {
-  zoomRatio(0.8);
-});
-$.mapKey('9', function () {
-  zoomRatio(0.9);
 });
 
 // 缩小图片
@@ -72,7 +34,7 @@ $(document).on('click', '#zoom-out', function () {
   }
 });
 
-// 图片原始大小
+// 原始大小
 $(document).on('click', '#zoom-reset', function () {
   var pageImg = $('#page-picture img');
   if (pageImg.length) {
@@ -83,46 +45,60 @@ $(document).on('click', '#zoom-reset', function () {
 });
 
 // 显隐图片
-$('#toggle-image').click(function () {
+$(document).on('click', '#toggle-image', function () {
   $(this).toggleClass('active');
   var style = $.cut.data.image.node.style;
   style.display = style.display === 'none' ? '' : 'none';
 });
 
 // 模糊图片
-$('#toggle-blur').click(function () {
+$(document).on('click', '#toggle-blur', function () {
   $(this).toggleClass('active');
   var style = $.cut.data.image.node.style;
   style.opacity = $(this).hasClass('active') ? 0.2 : 1;
 });
 
 // 显隐栏框
-$('#toggle-block').click(function () {
+$(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
-  $.cut.toggleBox('hide', 'block');
+  $.cut.toggleBox($(this).hasClass('active'), 'block');
+  localStorage.setItem('toggleBlock', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐列框
-$('#toggle-column').click(function () {
+$(document).on('click', '#toggle-column', function () {
   $(this).toggleClass('active');
-  $.cut.toggleBox('hide', 'column');
-  // $.cut.toggleColumns(columns);
+  $.cut.toggleBox($(this).hasClass('active'), 'column');
+  localStorage.setItem('toggleColumn', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐字框
-$('#toggle-char').click(function () {
+$(document).on('click', '#toggle-char', function () {
   $(this).toggleClass('active');
-  $.cut.toggleBox('hide', 'char');
+  $.cut.toggleBox($(this).hasClass('active'), 'char');
+  localStorage.setItem('toggleChar', $(this).hasClass('active') ? '1' : '-1');
+});
+
+// 显隐所有
+$(document).on('click', '#toggle-three', function () {
+  $(this).toggleClass('active');
+  if ($(this).hasClass('active')) {
+    $('.toggle-box').addClass('active');
+    $.cut.toggleBox(true);
+  } else {
+    $('.toggle-box').removeClass('active');
+    $.cut.toggleBox(false);
+  }
 });
 
 // 显隐字框编号
-$('#toggle-char-no').click(function () {
+$(document).on('click', '#toggle-char-no', function () {
   $(this).toggleClass('active');
   $.cut.toggleLabel();
 });
 
 // 显隐字序连线
-$('#toggle-order').click(function () {
+$(document).on('click', '#toggle-order', function () {
   $(this).toggleClass('active');
   $.cut.toggleLink();
 });

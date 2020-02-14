@@ -8,3 +8,23 @@
 <script src="{{static_url('js/cut/cut_keys.js')}}"></script>
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 {% end %}
+
+<script>
+  function updateUndo() {
+    var root = '/static/imgs';
+    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
+    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
+  }
+
+  updateUndo();
+
+  $('#undo').click(function () {
+    $.cut.undo();
+    updateUndo();
+  });
+
+  $('#redo').click(function () {
+    $.cut.redo();
+    updateUndo();
+  });
+</script>

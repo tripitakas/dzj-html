@@ -6,6 +6,7 @@
 {% include _font_css.html %}
 <style>
   .right .bd .selectable {
+    height: 50%;
     font-size: 18px;
     overflow-y: auto;
     margin-left: 20px;
@@ -17,10 +18,12 @@
   }
 
   .right .bd .selected {
-    min-height: 40%;
-    width: calc(100% - 40px);
+    max-height: 50%;
     font-size: 18px;
-    margin: 10px 0 10px 20px;
+    width: calc(100% - 30px);
+    height: calc(50% - 30px);
+    margin-bottom: 10px;
+    margin-left: 20px;
     overflow-y: auto;
   }
 
@@ -43,6 +46,7 @@
     margin-left: 8px;
     font-size: 16px;
     padding: 5px 0;
+    height: 30px;
   }
 
   #ocrModal {
@@ -149,7 +153,7 @@
 {% block custom-js %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
-<script src="{{static_url('js/proofread.js')}}"></script>
+<script src="{{static_url('js/txt/txt-btn.js')}}"></script>
 <script>
   // 页面图和切分框
   var canvasName = taskType + step + docId;
@@ -226,8 +230,12 @@
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'prev'};
     postApi('/task/text_neighbor', {data: data}, function (res) {
-      $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
-      $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
+      if (res.txt.length) {
+        $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
+        $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
+      } else {
+        showWarning('提示', '没有更多内容');
+      }
     });
   });
 
@@ -236,8 +244,12 @@
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'next'};
     postApi('/task/text_neighbor', {data: data}, function (res) {
-      $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
-      $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
+      if (res.txt.length) {
+        $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
+        $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);
+      } else {
+        showWarning('提示', '没有更多内容');
+      }
     });
   });
 

@@ -32,12 +32,15 @@
         {% end %}
       </div>
       <div class="right">
+        {% block task-actions %}
         <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#autoPickModal" title="自动领任务"/>
         <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
-        <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if not handler.readonly else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+        <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
         <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
         <img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
         <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
+        {% end %}
+
         {% if handler.mode == 'browse' %}
         <div class="btn-txt btn-gap"></div>
         <img src="{{static_url('imgs/icon_view.png')}}" class="btn-img" id="view-page" title="查看页面"/>
@@ -64,22 +67,25 @@
 
 {% include _base_js.html %}
 <script>
-  // 任务类型，放在pick-task.js之前
-  var taskType = '{{handler.task_type}}';
-  var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
-</script>
-<script src="{{static_url('js/pick-task.js')}}"></script>
-<script>
+  // 公共参数
+  var workChanged = 0;
   var from = decodeFrom();
   var mode = '{{handler.mode}}';
   var docId = '{{handler.doc_id}}';
   var taskId = '{{handler.task_id}}';
+  var taskType = '{{handler.task_type}}';
   var steps = decodeJSON('{{handler.steps}}');
   var readonly = '{{handler.readonly}}' === 'True';
   var isSample = '{{handler.task.get("is_sample")}}';
   var step = '{{handler.steps.get("current") or ""}}';
   var remark = '{{handler.task.get("remark") or ""}}';
-
+  var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
+</script>
+<script src="{{static_url('js/pick-task.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
+{% block custom-js %}
+{% end %}
+<script>
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
@@ -91,6 +97,15 @@
       $('#remarkModal .is_sample :radio[value="是"]').prop('checked', true);
     } else if (isSample === 'False') {
       $('#remarkModal .is_sample :radio[value="否"]').prop('checked', true);
+    }
+  });
+
+  // 离开页面前的提醒
+  window.addEventListener('beforeunload', function (e) {
+    if (workChanged) {
+      var confirmationMessage = '改动内容还未保存，确定要离开本页吗？';
+      (e || window.event).returnValue = confirmationMessage; // 兼容 Gecko + IE
+      return confirmationMessage; // 兼容 Gecko + Webkit, Safari, Chrome
     }
   });
 
@@ -116,13 +131,27 @@
     }
   };
 
+  // 允许页面重载判断
+  var beforeSave = null;
+
+  // 保存任务
+  function saveTask(submit, url, saveEnded) {
+    var data = getSubmitData(submit);
+    var valid = !beforeSave || beforeSave(data) !== false;
+    if (data && !data.error && valid) {
+      postApi(location.pathname, {data: data}, function (res) {
+        workChanged = 0;
+        saveEnded(submit, res, url);
+      });
+    }
+  }
+
   // 步骤导航
   function navigate(to) {
-    var url = location.pathname + '?step=' + steps[to];
-    if (from)
-      url = url + '&from=' + from;
+    var url = setQueryString('step', steps[to]);
     if (!readonly) {
-      saveTask(to === 'next', url);
+      var submit = to === 'next';
+      saveTask(submit, url, afterSaved);
     } else {
       goto(url, 500);
     }
@@ -138,47 +167,36 @@
     navigate('next');
   });
 
-  // 完成任务提交
-  $(document).on("click", '#submit-task', function () {
-    var data = getSubmitData(true);
-    var autoPick = localStorage.getItem('autoPick') || '是';
-    if (data && !data.error) {
-      showTips('提交中‧‧‧');
-      postApi(location.pathname, {data: data}, function () {
-        showSuccess('成功', '已提交');
-        setTimeout(function () {
-          if (mode === 'do' && autoPick === '是') {
-            pick('/task/pick/' + lobbyTaskType);
-          } else {
-            window.leave();
-          }
-        }, 1000);
-      });
-    }
+  // 任务保存
+  $(document).on('click', '#save-task', function () {
+    // 去掉重新排序、重新比对等参数
+    var url = deleteQueryString(['reorder', 're_compare']);
+    saveTask(false, url, afterSaved);
   });
 
-  // 保存任务
-  function saveTask(submit, url) {
-    var data = getSubmitData(submit);
-    if (data && !data.error) {
-      showTips('保存中‧‧‧');
-      postApi(location.pathname, {data: data}, function () {
-        if (!submit)
-          showSuccess('成功', '已保存');
-        goto(url, 1000);
-      });
-    }
+  // 保存之后
+  function afterSaved(submit, res, url) {
+    if (!submit)
+      showSuccess('成功', '已保存');
+    goto(url, 1000);
   }
 
-  // 保存任务提交
-  $(document).on("click", '#save-task', function () {
-    var search = location.search;
-    // 字序校对保存后，刷新的url中删除layout参数
-    if (step === 'orders') {
-      search = deleteQueryString(location.search, 'layout');
-    }
-    saveTask(false, location.pathname + search);
+  // 任务提交
+  $(document).on('click', '#submit-task', function () {
+    saveTask(true, null, afterSubmitted);
   });
+
+  // 提交之后
+  function afterSubmitted(submit, res, url) {
+    var autoPick = localStorage.getItem('autoPick') || '是';
+    setTimeout(function () {
+      if (mode === 'do' && autoPick === '是') {
+        pick('/task/pick/' + lobbyTaskType);
+      } else {
+        window.leave();
+      }
+    }, 1000);
+  }
 
   // 退回任务提交
   $(document).on('click', '#returnModal .modal-confirm', function () {
@@ -188,12 +206,12 @@
     }
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       showSuccess('退回成功', docId + ' 已退回成功。');
-      goto('/task/lobby/' + taskType, 1000);
+      goto('/task/lobby/' + lobbyTaskType, 1000);
     });
   });
 
   // 查看页面
-  $(document).on("click", '#view-page', function () {
+  $(document).on('click', '#view-page', function () {
     location.href = '/data/page/' + docId + '?from=' + encodeFrom();
   });
 
@@ -204,12 +222,12 @@
   }
 
   // 前一个任务
-  $(document).on("click", '#prev-task', function () {
+  $(document).on('click', '#prev-task', function () {
     browse('prev');
   });
 
   // 后一个任务
-  $(document).on("click", '#next-task', function () {
+  $(document).on('click', '#next-task', function () {
     browse('next');
   });
 
@@ -241,10 +259,10 @@
     localStorage.setItem('autoPick', autoPick.val());
     $('#autoPickModal').modal('hide');
   });
-
 </script>
-{% block custom-js %}
+
+{% block final-js %}
 {% end %}
-<script src="{{static_url('js/nav.js')}}"></script>
+
 </body>
 </html>

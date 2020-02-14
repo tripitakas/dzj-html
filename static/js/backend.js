@@ -29,8 +29,8 @@ function showError(title, text, timer) {
     });
 }
 
-function showWarning(title, text) {
-  showError(title, text, 'warning');
+function showWarning(title, text, timer) {
+  showError(title, text, timer);
 }
 
 function showSuccess(title, text, timer) {
@@ -41,7 +41,7 @@ function showSuccess(title, text, timer) {
 function showConfirm(title, text, func) {
   var info = {
     type: 'warning', title: title, text: text, confirmButtonText: '确定', cancelButtonText: '取消',
-    showCancelButton: true, closeOnConfirm: false
+    showCancelButton: true, closeOnConfirm: false, html: true
   };
   return swal(info, func);
 }
@@ -86,10 +86,10 @@ function setQueryString(name, value, onlySearch) {
   var search = location.search;
   var add = name + '=' + value;
   if (search.indexOf(name + '=') !== -1) {
-    search = search.replace(new RegExp(name + '=.*?&', 'i'), add + '&');
-    search = search.replace(new RegExp(name + '=.*?$', 'i'), add);
+    search = search.replace(new RegExp(name + '=.*?(&|$)', 'i'), add + '&');
+    search = search.replace(/&$/, '');
   } else if (search) {
-    search += '&' + add;
+    search = '?' + add + '&' + search.substr(1);
   } else {
     search = '?' + add;
   }
@@ -99,8 +99,14 @@ function setQueryString(name, value, onlySearch) {
     return location.pathname + search;
 }
 
-function deleteQueryString(name) {
-  return deleteParam(location.href, name);
+function deleteQueryString(names) {
+  var url = location.href;
+  if (typeof names === 'string')
+    names = names.split(',');
+  names.forEach(function (name) {
+    url = deleteParam(url, name);
+  });
+  return url;
 }
 
 function deleteParam(query, name) {

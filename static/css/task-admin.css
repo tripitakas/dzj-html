@@ -19,10 +19,13 @@
   text-decoration: underline;
 }
 
-.modal td.published, .modal td.pending {
+.modal td.published, .modal td.pending, .modal td.assigned {
   color: green !important;
 }
 
+.modal tr > td:first-child {
+  width: 140px;
+}
 .siblings {
   text-align: left;
   margin-bottom: 10px;

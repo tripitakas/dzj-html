@@ -3,12 +3,13 @@
 """
 @time: 2019/5/13
 """
-from bson import json_util
-from tornado.escape import json_decode
 from controller import errors as e
 from controller.base import DbError
 from controller import validate as v
+from tornado.escape import native_str
 from controller.page.diff import Diff
+from controller.base import BaseHandler
+from controller.page.tool import PageTool
 from controller.page.base import PageHandler
 from elasticsearch.exceptions import ConnectionTimeout
 
@@ -18,66 +19,74 @@ class CutTaskApi(PageHandler):
            '/api/task/update/@cut_task/@task_id']
 
     def post(self, task_type, task_id):
-        """ 提交切分任务"""
-
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
+        """ 提交切分校对任务。检查栏框外、列框外是否有字框，如果有，则提示用户"""
 
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
-            self.validate(self.data, rules)
-
-            self.submit_task(submit=self.data.get('submit'))
-            self.submit_doc(get_doc_update(), self.data.get('submit'))
-
-            if self.data.get('config'):
-                self.set_secure_cookie('%s_%s' % (task_type, self.data['step']), json_util.dumps(self.data['config']))
-
+            if self.steps['current'] == 'order':
+                self.save_order()
+            else:
+                self.save_box()
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
-            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
 
+    def save_box(self):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        self.update_task(self.data.get('submit'))
+
+        # 要提前检查，否则char_id可能重新设置
+        valid, message, out_boxes = self.check_box_cover()
+
+        update = self.get_box_updated(self.page.get('chars_col'))
+        self.update_doc(update)
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+
+    def save_order(self):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        self.update_task(self.data.get('submit'))
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        self.update_doc(dict(chars=chars, chars_col=self.data['chars_col']))
+        self.send_data_response()
+
 
 class CutEditApi(PageHandler):
-    URL = '/api/task/cut_edit/@page_name'
+    URL = '/api/data/cut_edit/@page_name'
 
     def post(self, page_name):
         """ 修改切分数据"""
 
-        def get_doc_update():
-            update = dict()
-            if isinstance(self.data['boxes'], str):
-                self.data['boxes'] = json_decode(self.data['boxes'])
-            if self.data['step'] == 'orders':
-                assert self.data.get('chars_col')
-                update['chars'] = self.reorder_chars(self.data['chars_col'], self.page['chars'], page=self.page)
-            else:
-                update[self.data['step']] = self.sort_boxes(self.data['boxes'], self.data['step'], page=self.page)
-            return update
-
         try:
-            rules = [(v.not_empty, 'step', 'boxes'), (v.in_list, 'step', list(self.step2box.keys()))]
-            self.validate(self.data, rules)
-
-            info = get_doc_update()
-            release_lock = self.data.get('submit') and self.steps['is_last']
-            self.update_edit_doc(self.task_type, doc_id=page_name, release_lock=release_lock, info=info)
-
+            if self.steps['current'] == 'order':
+                self.save_order(page_name)
+            else:
+                self.save_box(page_name)
             self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
-            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
+
+    def save_box(self, page_name):
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+
+        # 要提前检查，否则char_id可能重新设置
+        valid, message, out_boxes = self.check_box_cover()
+
+        update = self.get_box_updated(self.page.get('chars_col'))
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+
+        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+
+    def save_order(self, page_name):
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
+        update = dict(chars=chars, chars_col=self.data['chars_col'])
+        self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
+        self.send_data_response()
 
 
 class TextProofApi(PageHandler):
@@ -111,8 +120,8 @@ class TextProofApi(PageHandler):
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
         info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': self.now()}
-        self.submit_task(info, data.get('submit'))
-        self.submit_doc({}, data.get('submit'))
+        self.update_task(data.get('submit'), info)
+        self.update_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
@@ -144,11 +153,11 @@ class TextReviewApi(PageHandler):
                 self.publish_hard_task(self.task, doubt)
             # 更新当前任务
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -167,11 +176,11 @@ class TextHardApi(PageHandler):
             # 更新任务
             doubt = self.data.get('doubt', '').strip('\n')
             info = {'result.doubt': doubt, 'updated_time': self.now()}
-            self.submit_task(info, self.data.get('submit'))
+            self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
             info = self.get_txt_html_update(txt_html)
-            self.submit_doc(info, self.data.get('submit'))
+            self.update_doc(info, self.data.get('submit'))
 
             self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
@@ -181,7 +190,7 @@ class TextHardApi(PageHandler):
 
 
 class TextEditApi(PageHandler):
-    URL = '/api/task/text_edit/@page_name'
+    URL = '/api/data/text_edit/@page_name'
 
     def post(self, page_name):
         """ 专家用户首先申请数据锁，然后可以修改数据。"""
@@ -201,25 +210,46 @@ class TextEditApi(PageHandler):
             return self.send_db_error(error)
 
 
-class GenCharIdApi(PageHandler):
-    URL = '/api/cut/gen_char_id'
+class DiffTextsApi(BaseHandler):
+    URL = '/api/data/diff'
 
     def post(self):
-        """ 根据坐标重新生成栏、列、字框的编号"""
-        chars = self.data['chars']
-        blocks = self.data['blocks']
-        columns = self.data['columns']
-        # 每列字框的序号 [[char_index_of_col1, ...], col2...]
-        chars_col = self.data.get('chars_col')
-        zero_char_id, layout_type = [], self.data.get('layout_type')
-        r = self.calc(blocks, columns, chars, chars_col, layout_type)
-        if r:
-            zero_char_id, layout_type, chars_col = r
+        """ 用户提交纯文本后重新比较，并设置修改痕迹"""
+        try:
+            rules = [(v.not_empty, 'texts')]
+            self.validate(self.data, rules)
+            diff_blocks = PageTool.diff(*self.data['texts'])
+            if self.data['hints']:
+                diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
+            cmp_data = self.render_string('_text_area.html', blocks=diff_blocks)
+            cmp_data = native_str(cmp_data)
+            self.send_data_response(dict(cmp_data=cmp_data))
 
-        return self.send_data_response(dict(
-            blocks=blocks, columns=columns, chars=chars, chars_col=chars_col,
-            zero_char_id=zero_char_id, layout_type=layout_type
-        ))
+        except DbError as error:
+            return self.send_db_error(error)
+
+    @staticmethod
+    def set_hints(diff_blocks, hints):
+        for h in hints:
+            line_segments = diff_blocks.get(h['block_no'], {}).get(h['line_no'])
+            if not line_segments:
+                continue
+            for s in line_segments:
+                if s['base'] == h['base'] and s['cmp1'] == h['cmp1']:
+                    s['selected'] = True
+        return diff_blocks
+
+
+class DetectWideCharsApi(PageHandler):
+    URL = '/api/task/detect_chars'
+
+    def post(self):
+        """ 根据文本行内容识别宽字符"""
+        try:
+            mb4 = [[PageTool.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
+            self.send_data_response(mb4)
+        except Exception as error:
+            return self.send_db_error(error)
 
 
 class SelectTextApi(PageHandler):
@@ -263,7 +293,7 @@ class NeighborTextApi(PageHandler):
                 txt = Diff.pre_cmp(''.join(neighbor['_source']['origin']))
                 self.send_data_response(dict(txt=txt, code=neighbor['_source']['page_code']))
             else:
-                self.send_error_response(e.no_object, message='没有更多内容')
+                self.send_data_response(dict(txt='', message='没有更多内容'))
 
         except DbError as error:
             return self.send_db_error(error)

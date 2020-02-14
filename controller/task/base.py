@@ -11,7 +11,7 @@
 5. None，非任务、非数据修改请求
 二、 url
 1. do/update/browse，如：/task/(do/update/browse)/@task_type/5e3139c6a197150011d65e9d
-2. edit，如：/task/cut_edit/@page_name，task_type为cut_edit，伪任务类型
+2. edit，如：/data/cut_edit/@page_name，task_type为cut_edit，伪任务类型
 3. view，如：/task/@task_type/5e3139c6a197150011d65e9d
 4. 非任务、非数据修改请求，如/task/admin/page
 
@@ -118,8 +118,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         s = re.search(r'/task/(do|update|browse)/([^/]+?)/([0-9a-z]{24})', self.request.path)
         task_type = s.group(2) if s else ''
         if not task_type:
-            # eg. /task/cut_edit/@page_name
-            s = re.search(r'/task/([a-z_]+_edit)/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+            # eg. /data/cut_edit/@page_name
+            s = re.search(r'/data/([a-z_]+_(edit|view))/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
             task_type = s.group(1) if s else ''
         return task_type
 
@@ -129,13 +129,6 @@ class TaskHandler(BaseHandler, Task, Lock):
         if not mode and self.get_task_id():
             mode = 'view'
         return mode
-
-    def get_current_step(self):
-        """ 获取当前步骤"""
-        current_step = self.get_query_argument('step', '')
-        if self.is_api and not current_step:
-            current_step = self.prop(self.data, 'step')
-        return current_step
 
     def task_name(self):
         return self.get_task_name(self.task_type) or self.task_type
@@ -158,10 +151,11 @@ class TaskHandler(BaseHandler, Task, Lock):
             query.sort(o, asc)
         return list(query)
 
-    def find_mine(self, task_type=None, page_size=None, order=None, status=None):
+    def find_mine(self, task_type=None, page_size=None, order=None, status=None, user_id=None):
         """ 查找我的任务"""
         assert status in [None, self.STATUS_PICKED, self.STATUS_FINISHED]
-        condition = {'picked_user_id': self.user_id}
+        user_id = user_id if user_id else self.user_id
+        condition = {'picked_user_id': user_id}
         if task_type:
             condition.update({'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type})
         if status:
@@ -249,16 +243,16 @@ class TaskHandler(BaseHandler, Task, Lock):
         当前步骤可以在url中申明，或者在api的请求体中给出。
         """
         steps = dict()
-        current_step = self.get_current_step()
         default_steps = self.get_steps(task_type)
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]
+        current_step = (self.get_query_arguments('step') or [''])[0] or self.prop(self.data, 'step', '')
         if todo:
             if current_step and current_step not in todo:
                 current_step = todo[0]
             if not current_step:
-                current_step = un_submitted[0] if self.mode == 'do' else todo[0]
+                current_step = un_submitted[0] if self.mode == 'do' and not self.is_api else todo[0]
             index = todo.index(current_step)
             steps['todo'] = todo
             steps['current'] = current_step
@@ -280,7 +274,9 @@ class TaskHandler(BaseHandler, Task, Lock):
         mode = self.get_task_mode() if not mode else mode
         error = None
         if mode in ['do', 'update']:
-            if task.get('picked_user_id') != self.current_user.get('_id'):
+            if not task:
+                error = e.task_not_existed
+            elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_unauthorized_locked
             elif mode == 'do' and task['status'] != self.STATUS_PICKED:
                 error = e.task_can_only_do_picked
@@ -309,7 +305,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             error = None if has_lock else r
         return has_lock, error
 
-    def submit_task(self, info=None, submit=False):
+    def update_task(self, submit, info=None):
         """ 更新任务提交"""
         if not submit:
             if info:
@@ -360,8 +356,9 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
             self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
 
-    def submit_doc(self, info, submit=False):
+    def update_doc(self, info, submit=None):
         """ 更新本任务的数据提交"""
+        submit = self.data.get('submit') if submit is None else submit
         # 如果是完成任务，则更新数据内容、数据等级和数据任务状态
         if submit and self.mode == 'do' and self.steps['is_last']:
             self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, info)

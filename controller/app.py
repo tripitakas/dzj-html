@@ -7,18 +7,18 @@
 
 import re
 from os import path
-from operator import itemgetter
 from tornado import web
+from operator import itemgetter
 from tornado.log import access_log
 from tornado.options import define, options
 from controller.auth import url_placeholder
 from controller.helper import BASE_DIR, load_config, connect_db
 
-__version__ = '0.1.79.200207'
+__version__ = '0.1.86.200211'
 
-define('testing', default=False, help='the testing mode', type=bool)
-define('debug', default=True, help='the debug mode', type=bool)
 define('port', default=8000, help='run port', type=int)
+define('debug', default=True, help='the debug mode', type=bool)
+define('testing', default=False, help='the testing mode', type=bool)
 
 
 class Application(web.Application):

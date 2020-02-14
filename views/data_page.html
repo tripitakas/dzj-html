@@ -67,14 +67,18 @@
     }
 
     .pfread .right {
-      flex: none;
-      width: 50%;
-      background: #fff;
+      flex: 1;
+      border-left: 1px solid #ccc;
+      background: var(--Grey_Content);
     }
 
     .pfread .right textarea {
       border: 0;
-      font-size: 18px;
+      font-size: 20px;
+      font-weight: 300;
+      line-height: 40px;
+      letter-spacing: 1px;
+      background: transparent;
     }
 
     .dropdown-menu > li > a {
@@ -117,10 +121,8 @@
         </div>
         <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img" id="toggle-more" title="更多"/>
         <div class="btn-group hidden" id="more-group">
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-block">栏框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-column">列框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-char">字框</button>
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">字序</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改字框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">修改字序</button>
           <button type="button" class="btn btn-default btn-sm" id="btn-ed-text">审定文本</button>
         </div>
       </div>
@@ -258,13 +260,13 @@
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>
-<script src="{{static_url('js/nav.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   var sutraTxt = '';   // 用户选中的当前文本
   var btnConfig = decodeJSON('{{btn_config}}');
   $(document).ready(function () {
     // 设置默认备注字段和备注内容
-    var field = localStorage.getItem('remarkField');
+    var field = localStorage.getItem('pageRemarkField');
     if (typeof field === 'undefined' || field !== '文本')
       field = '切分';
     $('#remarkModal .fields :radio[value="' + field + '"]').prop('checked', true);
@@ -290,28 +292,18 @@
   };
 
   // 修改字框
-  $('#btn-ed-char').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=chars&from=' + encodeFrom();
-  });
-
-  // 修改栏框
-  $('#btn-ed-block').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=blocks&from=' + encodeFrom();
-  });
-
-  // 修改列框
-  $('#btn-ed-column').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=columns&from=' + encodeFrom();
+  $('#btn-ed-box').click(function () {
+    location = '/data/cut_edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 修改字序
   $('#btn-ed-order').click(function () {
-    location = '/task/cut_edit/{{page["name"]}}?step=orders&from=' + encodeFrom();
+    location = '/data/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
   });
 
   // 修改审定文本
   $('#btn-ed-text').click(function () {
-    location = '/task/text_edit/{{page["name"]}}?from=' + encodeFrom();
+    location = '/data/text_edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 跳转
@@ -385,7 +377,7 @@
     if (typeof field === 'undefined')
       return showWarning('请选择备注字段');
     localStorage.setItem('pageRemark', remark);
-    localStorage.setItem('remarkField', field);
+    localStorage.setItem('pageRemarkField', field);
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
     data[field === '切分' ? 'remark.box' : 'remark.text'] = remark;
     postApi('/data/page', {data: data}, function () {
@@ -464,11 +456,11 @@
 
   // 初始化设置
   $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] === -1 ? 1 : 0.2;
+  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
   $('rect.block').css('display', btnConfig['toggle-block'] === 1 ? 'block' : 'none');
   $('rect.column').css('display', btnConfig['toggle-column'] === 1 ? 'block' : 'none');
   $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
-  $.cut.setLink(!(btnConfig['toggle-order'] === -1));
+  $.cut.setLink(btnConfig['toggle-order'] === 1);
 
 </script>
 </body>

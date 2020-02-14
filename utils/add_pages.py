@@ -19,20 +19,20 @@ sys.path.append(BASE_DIR)
 
 from controller.helper import prop
 from controller.data.data import Page
-from controller.cut.reorder import char_reorder
-from controller.cut.cuttool import CutTool
+from controller.page.tool import PageTool
+from controller.page.base import PageHandler
 
 
 class AddPage(object):
-    def __init__(self, db, source='', reorder='', update=False, check_only=False,
-                 use_local_img=False, check_id=False):
+    def __init__(self, db, source='', update=False, check_only=False, use_local_img=False,
+                 check_id=False, reorder=None):
         self.db = db
         self.source = source
-        self.reorder = reorder
         self.update = update
         self.check_only = check_only
         self.use_local_img = use_local_img
         self.check_id = check_id
+        self.reorder = reorder
 
     @staticmethod
     def load_json(filename):
@@ -113,6 +113,14 @@ class AddPage(object):
                 if not path.exists(dst_file) or update:
                     shutil.copy(path.join(root, fn), dst_file)
 
+    @staticmethod
+    def filter_line_no(boxes):
+        for b in boxes:
+            if b.get('line_no') and not b.get('column_no'):
+                b['column_no'] = b.get('line_no')
+            b.pop('line_no', 0)
+        return boxes
+
     def add_box(self, name, info):
         """ 导入切分信息 """
         exist = self.db.page.find_one(dict(name=name))
@@ -122,11 +130,12 @@ class AddPage(object):
         if self.update or not exist:
             width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
             height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
+            chars = self.filter_line_no(prop(info, 'chars', []))
+            columns = self.filter_line_no(prop(info, 'columns', []))
             meta = Page.metadata()
             meta.update(dict(
                 name=name, width=width, height=height, page_code=Page.name2pagecode(name),
-                blocks=prop(info, 'blocks', []), columns=prop(info, 'columns', []),
-                chars=prop(info, 'chars', []),
+                blocks=prop(info, 'blocks', []), columns=columns, chars=chars,
             ))
             if not width or not height:
                 assert exist
@@ -157,17 +166,7 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
-            zero_id = []
-            chars, columns, blocks = meta['chars'], meta['columns'], meta['blocks']
-            if self.reorder:
-                try:
-                    meta['columns'] = char_reorder(chars, blocks, sort=True, remove_outside=True, img_file=name)
-                    if self.reorder == 'v2':
-                        zero_id, meta['layout_type'] = CutTool.sort_chars(chars, columns, blocks)
-                    CutTool.gen_ocr_text(meta)
-                except Exception as e:
-                    sys.stderr.write('%s %s' % (name, str(e)))
-
+            PageHandler.update_chars_cid(meta['chars'])
             if self.check_id and not self.check_ids(meta):
                 return False
 
@@ -175,8 +174,12 @@ class AddPage(object):
                 return meta
 
             info.pop('id', 0)
-            message = '%s:\t%d x %d blocks=%d columns=%d chars=%d\t%s'
-            print(message % (name, width, height, len(blocks), len(columns), len(chars), ','.join(zero_id)))
+            message = '%s:\t%d x %d blocks=%d columns=%d chars=%d'
+            print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
+
+            if self.reorder:
+                meta['blocks'], meta['columns'], meta['chars'] = PageTool.re_calc_id(page=meta)
+
             if exist and self.update:
                 meta.pop('create_time', 0)
                 r = self.db.page.update_one(dict(name=name), {'$set': meta})
@@ -220,7 +223,7 @@ class AddPage(object):
 
 
 def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', reorder='', source='', check_id=False, reset=True,
+         txt_field='ocr', kind='', source='', check_id=False, reorder=True, reset=True,
          use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
@@ -232,9 +235,9 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     :param txt_path: 页面文本文件的路径，json_path为空时取为data目录，可在不同的子目录下放图片文件(*.txt)
     :param txt_field: 文本导入哪个字段
     :param kind: 可指定要导入的藏别
-    :param reorder: 是否重新对字框和列框排序
     :param source: 导入批次名称
     :param check_id: 是否检查切分框的id
+    :param reorder: 是否重新计算序号
     :param reset: 是否先清空page表
     :param use_local_img: 是否强制使用本地的页面图，默认使用OSS上的高清图（如果在app.yml配置了OSS）
     :param update: 已存在的页面是否更新
@@ -248,7 +251,7 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
 
-    add = AddPage(db, source, reorder, update, check_only, use_local_img, check_id)
+    add = AddPage(db, source, update, check_only, use_local_img, check_id, reorder)
     pages = add.add_many_from_dir(json_path, kind)
     add.copy_img_files(pages, img_path)
     add.add_text(pages, txt_path, txt_field)

@@ -158,7 +158,7 @@ class TestDataLock(APITestCase):
         r = self.fetch('/task/update/cut_proof/%s?_raw=1' % task1['_id'])
         self.assertEqual(e.data_level_unqualified[0], self.parse_response(r).get('code'), msg=task_type)
         page = self._app.db.page.find_one({'name': ready_ids[0]})
-        data = {'step': 'chars', 'submit': True, 'boxes': json_encode(page['chars'])}
+        data = self.get_boxes(page)
         r = self.fetch('/api/task/update/cut_proof/%s' % task1['_id'], body={'data': data})
         self.assertEqual(e.data_level_unqualified[0], self.parse_response(r).get('code'), msg=task_type)
 
