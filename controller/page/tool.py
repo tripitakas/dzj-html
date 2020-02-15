@@ -425,7 +425,7 @@ class PageTool(object):
         for block in regex1.findall(html or ''):
             for line in regex2.findall(block or ''):
                 if 'delete' not in line:
-                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
+                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|<[^>]+>|\s)', '', line, flags=re.M | re.S)
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
