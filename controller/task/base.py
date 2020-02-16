@@ -59,7 +59,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
                 if not has_auth:
-                    link = ('只读查看', re.sub('(do|update|edit)/', 'view/', self.request.path))
+                    link = ('只读查看', re.sub('(do|update|edit)/', 'view/', self.request.full_url()))
                     return self.send_error_response(self.error, links=[link])
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
@@ -76,7 +76,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.has_lock, error = self.check_my_lock()
                 if self.has_lock is False:
                     if '/data/cut_edit/' in self.request.path:
-                        return self.redirect(self.request.path.replace('cut_edit', 'cut_view'))
+                        return self.redirect(self.request.full_url().replace('cut_edit', 'cut_view'))
                     return self.send_error_response(error)
         # 设置其它参数
         self.steps = self.init_steps(self.task, self.task_type)

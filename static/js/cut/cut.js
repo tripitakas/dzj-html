@@ -562,14 +562,6 @@
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
-      p.chars.forEach(function (c) {
-        if (!c.cid) {
-          c.cid = 1 + Math.max.apply(null, p.chars.map(function (c) {
-            return c.cid || 0;
-          }));
-        }
-      });
-
       if (p.blocks || p.columns) {
         self.setClass(p.chars, 'char');
         if (p.blocks) {
