@@ -113,6 +113,12 @@ class TextEditHandler(PageHandler):
 
             if not cmp_data and text:
                 cmp_data = self.diff(text)
+                cmp_data = to_basestring(TextArea(self).render(cmp_data))
+
+            if self.get_query_argument('txt_mode', '') == 'char':
+                cmp_txt = PageTool.html2txt(cmp_data)
+                return self.render('task_text_do_char.html', cmp_data=cmp_data, cmp_txt=cmp_txt)
+
             self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
