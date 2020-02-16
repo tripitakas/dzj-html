@@ -265,7 +265,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
         else:
             steps['todo'] = []
-            steps['current'] = None
+            steps['current'] = current_step
             steps['is_first'] = True
             steps['is_last'] = True
             steps['prev'] = None
