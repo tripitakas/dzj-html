@@ -165,6 +165,18 @@ $('#ed-char-order').click(function () {
   });
 });
 
+$('#ed-char-txt').click(function () {
+  autoSave(function () {
+    location = location.href.replace(/\?.+$/, '') + '?txt_mode=char';
+  });
+});
+
+$('#ed-char-std').click(function () {
+  autoSave(function () {
+    location = location.href.replace(/\?.+$/, '');
+  });
+});
+
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
   showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
