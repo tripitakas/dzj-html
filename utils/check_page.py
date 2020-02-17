@@ -11,7 +11,7 @@ def check_box_cover(db_name='tripitaka', uri='localhost'):
     db = pymongo.MongoClient(uri)[db_name]
     cnt = 0
     names = []
-    uncovered = dict(char_out_block=[], column_out_block=[], char_out_column=[])
+    uncovered = dict(字框不在栏框内=[], 列框不在栏框内=[], 字框不在列框内=[])
     while cnt < 1000:
         cnt += 1
         condition = {'source': {'$regex': '1200'}, 'name': {'$nin': names}}
@@ -24,9 +24,9 @@ def check_box_cover(db_name='tripitaka', uri='localhost'):
             names.append(p['name'])
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p['name']))
             # 检查是否有未覆盖的框
-            box_covered, error_type = PageHandler.check_box_cover(p)
-            if not box_covered:
-                uncovered[error_type].append(p['name'])
+            valid, message, invalid_ids = PageHandler.check_box_cover(p)
+            if not valid:
+                uncovered[message].append(p['name'])
 
     print('uncovered', uncovered)
 
@@ -63,12 +63,12 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
             new_chars_col = PageTool.get_chars_col(chars)
             if not cmp_chars_col(old_chars_col, new_chars_col):
                 invalid_order.append(p['name'])
-                print(p['name'])
-    print('invalid_order', invalid_order)
+                print('invalid:', p['name'])
+    print(invalid_order)
 
 
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(check_box_cover)
+    fire.Fire(check_chars_col)
     print('finished!')
