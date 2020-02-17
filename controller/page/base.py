@@ -72,34 +72,48 @@ class PageHandler(TaskHandler, PageTool):
         return update
 
     @staticmethod
-    def filter_box(data, max_width, max_height):
-        def valid(box):
-            return box['x'] + box['w'] <= max_width and box['y'] + box['h'] <= max_height
+    def decode_box(boxes):
+        return json_decode(boxes) if isinstance(boxes, str) else boxes
 
-        chars = json_decode(data['chars']) if isinstance(data['chars'], str) else data['chars']
-        blocks = json_decode(data['blocks']) if isinstance(data['blocks'], str) else data['blocks']
-        columns = json_decode(data['columns']) if isinstance(data['columns'], str) else data['columns']
-        chars = [box for box in chars if valid(box)]
+    @classmethod
+    def filter_box(cls, page, width, height):
+        def valid(box):
+            page_box = dict(x=0, y=0, w=width, h=height)
+            is_valid = cls.box_overlap(box, page_box, True)
+            if is_valid:
+                box['x'] = 0 if box['x'] < 0 else box['x']
+                box['y'] = 0 if box['y'] < 0 else box['y']
+                box['w'] = width - box['x'] if box['x'] + box['w'] > width else box['w']
+                box['h'] = height - box['h'] if box['y'] + box['h'] > height else box['h']
+            return is_valid
+
+        blocks = cls.decode_box(page['blocks'])
+        columns = cls.decode_box(page['columns'])
+        chars = cls.decode_box(page['chars'])
         blocks = [box for box in blocks if valid(box)]
         columns = [box for box in columns if valid(box)]
+        chars = [box for box in chars if valid(box)]
 
         return blocks, columns, chars
 
-    def check_box_cover(self):
+    @classmethod
+    def check_box_cover(cls, page, width=None, height=None):
         """ 检查字框覆盖情况"""
 
         def get_column_id(c):
             col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
             return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
 
-        blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
-        char_out_block, char_in_block = self.boxes_out_boxes(chars, blocks)
+        width = width if width else page.get('width')
+        height = height if height else page.get('height')
+        blocks, columns, chars = cls.filter_box(page, width, height)
+        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
         if char_out_block:
             return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
-        column_out_block, column_in_block = self.boxes_out_boxes(columns, blocks)
+        column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
         if column_out_block:
             return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
-        char_out_column, char_in_column = self.boxes_out_boxes(chars, columns)
+        char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
         return True, None, []
@@ -118,13 +132,10 @@ class PageHandler(TaskHandler, PageTool):
     def get_box_updated(self, chars_cal=None):
         """ 获取切分校对的提交"""
         blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
-        # 更新cid
         updated = self.update_chars_cid(chars)
-        # 重新计算block_no/block_id/column_no/column_id/char_no/char_id
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
         chars = self.calc_char_id(chars, columns)
-        # 检查是否有新框
         new_chars = [c for c in chars if 'new' in c['char_id']]
         # 如果没有新的cid也没有新框，则按用户的字序重新排序
         if not updated and not new_chars and chars_cal:
@@ -134,4 +145,4 @@ class PageHandler(TaskHandler, PageTool):
 
     def reorder(self):
         """ 重排序号"""
-        self.page['blocks'], self.page['columns'], self.page['chars'] = self.re_calc_id(page=self.page)
+        self.page['blocks'], self.page['columns'], self.page['chars'] = self.reorder_boxes(page=self.page)

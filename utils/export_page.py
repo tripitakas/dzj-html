@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import pymongo
-from os import path, makedirs
 from bson import json_util
+from os import path, makedirs
 
 
 def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source=''):

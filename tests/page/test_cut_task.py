@@ -6,7 +6,6 @@ from tests.testcase import APITestCase
 
 
 class TestCutTask(APITestCase):
-    step2field = dict(chars='chars', columns='columns', blocks='blocks', orders='chars')
 
     def setUp(self):
         super(TestCutTask, self).setUp()
