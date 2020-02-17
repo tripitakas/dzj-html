@@ -4,8 +4,10 @@
 @time: 2019/5/13
 """
 from tornado.web import UIModule
+from tornado.escape import to_basestring
 from controller import errors as e
 from controller.page.base import PageHandler
+from controller.page.tool import PageTool
 
 
 class CutTaskHandler(PageHandler):
@@ -52,6 +54,7 @@ class CutEditHandler(PageHandler):
 class TextProofHandler(PageHandler):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
+           '/task/view/text_proof_@num/@task_id',
            '/task/browse/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
@@ -66,6 +69,10 @@ class TextProofHandler(PageHandler):
                 cmp_data = self.prop(self.task, 'result.txt_html')
                 if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
                     cmp_data = self.diff(*[t[0] for t in self.texts])
+                    cmp_data = to_basestring(TextArea(self).render(cmp_data))
+                if self.get_query_argument('txt_mode', '') == 'char':
+                    cmp_txt = PageTool.html2txt(cmp_data)
+                    return self.render('task_text_do_char.html', cmp_data=cmp_data, cmp_txt=cmp_txt)
                 return self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
@@ -75,6 +82,7 @@ class TextProofHandler(PageHandler):
 class TextReviewHandler(PageHandler):
     URL = ['/task/(text_review|text_hard)/@task_id',
            '/task/do/(text_review|text_hard)/@task_id',
+           '/task/view/text_review/@task_id',
            '/task/browse/(text_review|text_hard)/@task_id',
            '/task/update/(text_review|text_hard)/@task_id']
 
@@ -104,6 +112,12 @@ class TextEditHandler(PageHandler):
 
             if not cmp_data and text:
                 cmp_data = self.diff(text)
+                cmp_data = to_basestring(TextArea(self).render(cmp_data))
+
+            if self.get_query_argument('txt_mode', '') == 'char':
+                cmp_txt = PageTool.html2txt(cmp_data)
+                return self.render('task_text_do_char.html', cmp_data=cmp_data, cmp_txt=cmp_txt)
+
             self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:

@@ -58,12 +58,18 @@ class PageTool(BoxTool):
     @classmethod
     def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
-        for col in chars_col:
-            for c_no, cid in enumerate(col):
+        block_no = column_no = 0
+        for col_order in chars_col:
+            column_no += 1
+            for char_no, cid in enumerate(col_order):
                 cs = [c for c in chars if c['cid'] == cid]
                 if cs:
                     c = cs[0]
-                    c['char_no'] = c_no + 1
+                    if block_no != c['block_no']:
+                        block_no = c['block_no']
+                        column_no = 1
+                    c['column_no'] = column_no
+                    c['char_no'] = char_no + 1
                     c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
@@ -90,7 +96,7 @@ class PageTool(BoxTool):
         for block in regex1.findall(html or ''):
             for line in regex2.findall(block or ''):
                 if 'delete' not in line:
-                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|\s)', '', line, flags=re.M | re.S)
+                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|<[^>]+>|\s)', '', line, flags=re.M | re.S)
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))

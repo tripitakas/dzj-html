@@ -1,12 +1,32 @@
 {% extends "_task_do.html" %}
 
+{% block step_title %}{% end %}
+
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 {% include _font_css.html %}
+<style>
+  @media screen and (max-width:1100px){
+    #enlarge-font, #reduce-font {
+      display: none;
+    }
+  }
+  @media screen and (max-width:1024px){
+    .m-header .title {
+      display: none;
+    }
+  }
+  @media screen and (max-width:940px){
+    #enlarge-panel-font, #reduce-panel-font {
+      display: none;
+    }
+  }
+</style>
 {% end %}
 
 {% block buttons %}
+{% block left_buttons %}
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
   <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
@@ -19,14 +39,21 @@
   <img src="{{static_url('imgs/icon_char_txt.png')}}" class="btn-img active" id="toggle-panel-txt" title="显隐浮动面板的文字"/>
   <div class="btn-txt" id="enlarge-panel-font" title="增加字号">A+</div>
   <div class="btn-txt" id="reduce-panel-font" title="减少字号">A-</div>
-  <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
+  <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img" id="toggle-more" title="更多"/>
 </div>
 <div class="btn-group">
   <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
-    <button type="button" class="btn btn-default btn-sm" id="ed-char-box" title="修改字框">修改字框</button>
+    {% if not handler.readonly %}
+    <button type="button" class="btn btn-default btn-sm" id="ed-char-box" title="修改字框、列框、栏框">修改切分</button>
     <button type="button" class="btn btn-default btn-sm" id="ed-char-order" title="修改字序">修改字序</button>
+    {% else %}
+    <button type="button" class="btn btn-default btn-sm" id="ed-char-box" title="查看字框、列框、栏框">查看切分</button>
+    <button type="button" class="btn btn-default btn-sm" id="ed-char-order" title="查看字序">查看字序</button>
+    {% end %}
+    <button type="button" class="btn btn-default btn-sm" id="ed-char-txt" title="并列显示各列框和字框文本，单独改字">逐列校对</button>
   </div>
 </div>
+{% end %}
 <div class="btn-group right">
   <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
   <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>
@@ -235,6 +262,7 @@
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/txt/proofread.js')}}"></script>
 <script src="{{static_url('js/txt/txt-btn.js')}}"></script>
+{% block custom-cut-js %}{% end %}
 <script>
   // 页面图和切分框
   var canvasName = taskType + step + docId;
@@ -243,6 +271,7 @@
   var columns = decodeJSON('{{handler.page.get("columns", [])}}');
 
   function createPage() {
+    {% block create-board %}
     $.cut.create({
       readonly: true,
       name: canvasName,
@@ -253,17 +282,16 @@
       image: '{{handler.get_img(handler.page)}}',
       chars: chars
     });
+    showText = true;  // 默认显示浮动条
+    {% end %}
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
     $.cut.switchCurrentBox(null);
     $.cut.bindKeys();
   }
 
-  createPage();
+  setTimeout(createPage, 1000);
   $('#holder-container').focus();
-
-  // 默认显示浮动条
-  showText = true;
 
   // 获取任务数据
   function getSubmitData(submit) {

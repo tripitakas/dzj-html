@@ -116,7 +116,7 @@ role_route_maps = {
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
             '/api/task/pick/text_proof_@num': ['POST'],
-            '/task/(do|update)/text_proof_@num/@task_id': ['GET'],
+            '/task/(do|update|view)/text_proof_@num/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
             '/data/cut_edit/@page_name': ['GET'],
             '/api/data/cut_edit/@page_name': ['POST'],
@@ -130,7 +130,7 @@ role_route_maps = {
         'routes': {
             '/task/(lobby|my)/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
-            '/task/(do|update)/text_review/@task_id': ['GET'],
+            '/task/(do|update|view)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
             '/data/cut_edit/@page_name': ['GET'],
             '/api/data/cut_edit/@page_name': ['POST'],

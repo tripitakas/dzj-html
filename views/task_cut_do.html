@@ -234,7 +234,8 @@
       showHighLightCount();
       updateUndo();
     } else if (reason === 'navigate') {
-      $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中'));
+      $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中')
+        + (info && info.is_small ? '，小字' : '') + ' ' + (info && info.txt || ''));
     } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function(c) { return /b0c/.test(c.char_id) && c.char_id; });
       $.cut.toggleClass(invalid, 'flash', true);

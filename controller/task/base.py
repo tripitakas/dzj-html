@@ -59,7 +59,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
                 if not has_auth:
-                    return self.send_error_response(self.error)
+                    link = ('只读查看', re.sub('(do|update|edit)/', 'view/', self.request.full_url()))
+                    return self.send_error_response(self.error, links=[link])
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
@@ -74,6 +75,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update', 'edit']:
                 self.has_lock, error = self.check_my_lock()
                 if self.has_lock is False:
+                    if '/data/cut_edit/' in self.request.path:
+                        return self.redirect(self.request.full_url().replace('cut_edit', 'cut_view'))
                     return self.send_error_response(error)
         # 设置其它参数
         self.steps = self.init_steps(self.task, self.task_type)
@@ -262,7 +265,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
         else:
             steps['todo'] = []
-            steps['current'] = None
+            steps['current'] = current_step
             steps['is_first'] = True
             steps['is_last'] = True
             steps['prev'] = None
@@ -395,6 +398,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if status == '':
             self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
         if info:
+            info['task_id'] = str(task['_id'])
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
 
     def update_edit_doc(self, task_type, doc_id, release_lock=False, info=None):
