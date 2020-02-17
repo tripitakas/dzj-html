@@ -21,10 +21,6 @@
   #txt-content {
     font-size: 1.2em;
   }
-
-  .sty-table td .tasks {
-    font-size: 14px;
-  }
 </style>
 {% end %}
 
@@ -408,12 +404,6 @@
   $('.action .btn-nav').click(function () {
     var name = $(this).parent().siblings('.name').text();
     location.href = '/data/page/' + name + location.search;
-  });
-
-  $(document).on('click', '.tasks > a', function () {
-    var $tr = $(this).parent().parent();
-    var taskId = $tr.attr('id'), taskType = $(this).attr('data-task');
-    location.href = '/task/update/' + taskType + '/' + taskId;
   });
 
 </script>
