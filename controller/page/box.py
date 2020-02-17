@@ -412,7 +412,7 @@ class BoxTool(object):
                             c['is_small'] = False
 
         def scan_and_order():
-            """ 针对每列字框，整体从上到下排序，针对连续的夹注小字，列内上下排序，列间左右排序"""
+            """ 针对每列字框从上到下排序，针对连续的夹注小字时，先分列，列内上下排序，列间左右排序"""
             for col_id, col_chars in columns_chars.items():
                 if col_id == 'b0c0':
                     cls.horizontal_scan_and_order(col_chars, 'char_no', 0.6)
