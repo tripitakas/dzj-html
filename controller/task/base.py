@@ -398,6 +398,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if status == '':
             self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
         if info:
+            info['task_id'] = str(task['_id'])
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
 
     def update_edit_doc(self, task_type, doc_id, release_lock=False, info=None):

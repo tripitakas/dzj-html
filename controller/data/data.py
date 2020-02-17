@@ -273,13 +273,9 @@ class Page(Model):
     @staticmethod
     def format_value(value, key=None):
         """ 格式化page表的字段输出"""
-        def finished_href(text, s, k):
-            return '<a class="tasks %s" data-task="%s">%s</a>' % (s, k, text) if s == 'finished' else text
-
         if key == 'tasks':
             value = value or {}
-            tasks = [finished_href('%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)), v, k)
-                     for k, v in value.items()]
+            tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
             value = '<br/>'.join(tasks)
         elif key in ['lock-box', 'lock-text']:
             if prop(value, 'is_temp') is not None:
