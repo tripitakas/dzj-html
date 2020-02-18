@@ -48,6 +48,10 @@
 </div>
 {% end %}
 
+{% block config-modal %}
+{% module TaskConfigModal(handler.cut_task_config) %}
+{% end %}
+
 {% block custom-modal %}
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
   <div class="modal-dialog">
@@ -235,9 +239,11 @@
       updateUndo();
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中')
-        + (info && info.is_small ? '，小字' : '') + ' ' + (info && info.txt || ''));
+          + (info && info.is_small ? '，小字' : '') + ' ' + (info && info.txt || ''));
     } else if (reason === 'initial') {
-      var invalid = $.cut.data.chars.map(function(c) { return /b0c/.test(c.char_id) && c.char_id; });
+      var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      });
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
@@ -247,13 +253,38 @@
 </script>
 
 <script>
+  $(document).ready(function () {
+    var autoAdjust = localStorage.getItem('autoAdjust') || '是';
+    if (autoAdjust.length) {
+      $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
+    }
+    var detectCol = localStorage.getItem('detectCol') || '是';
+    if (detectCol.length) {
+      $('#taskConfigModal .detect-col :radio[value=' + detectCol + ']').prop('checked', true);
+    }
+  });
+
   // 获取任务数据
   function getSubmitData(submit) {
+    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val();
+    var detectCol = $('#taskConfigModal .detect-col :checked').val();
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), submit: submit, step: steps.current
+      chars: $.cut.exportBoxes('char'), submit: submit, step: steps['current'],
+      auto_adjust: autoAdjust === '是', detect_col: detectCol === '是'
     };
   }
+
+  // 是否自动领取新任务
+  $('#taskConfigModal .modal-confirm').click(function () {
+    var autoAdjust = $('#taskConfigModal .auto-adjust :checked');
+    if (autoAdjust.length)
+      localStorage.setItem('autoAdjust', autoAdjust.val());
+    var detectCol = $('#taskConfigModal .detect-col :checked');
+    if (detectCol.length)
+      localStorage.setItem('detectCol', detectCol.val());
+    $('#taskConfigModal').modal('hide');
+  });
 
   // 显示各种类型字框数量
   function showHighLightCount() {
@@ -281,12 +312,12 @@
   afterSaved = function (submit, res, url) {
     if (!res.valid) {
       // 高亮未被覆盖的框
-      console.log(res.out_boxes);
+      // console.log(res.out_boxes);
       $.cut.toggleClass(res.out_boxes, 'highlight', true);
       $.cut.toggleClass(res.out_boxes, 'flash', true);
       $.cut.toggleBox(true, null, res.out_boxes);
       // 弹框提示
-      var tips = '检测到<b style="color: red">' + res.message + '</b>'+'并高亮显示。';
+      var tips = '检测到<b style="color: red">' + res.message + '</b>' + '并高亮显示。';
       if (submit) {
         showConfirm('已保存。是否继续下一步？', tips, function () {
           goto(url, 1000);
@@ -299,6 +330,7 @@
         goto(url, 1000);
       } else {
         showSuccess('成功', '已保存');
+        location.reload();
       }
     }
   };

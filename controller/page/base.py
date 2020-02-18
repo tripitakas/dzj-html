@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, PageTool):
+    # 切分任务配置项，configModal中使用
+    cut_task_config = [
+        dict(id='auto-pick', name='提交任务后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
+        dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
+        dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
+    ]
+
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
         self.chars_col = self.texts = self.doubts = []
@@ -81,7 +89,7 @@ class PageHandler(TaskHandler, PageTool):
         # 重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
-        chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col') or True)
+        chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col', True))
         # 根据字框调整列框和栏框的边界
         if self.data.get('auto_adjust'):
             self.adjust_blocks(blocks, chars)

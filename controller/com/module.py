@@ -171,15 +171,6 @@ class TaskRemarkModal(UIModule):
                                   buttons=buttons)
 
 
-class TaskConfigModal(UIModule):
-    def render(self):
-        title = '任务配置'
-        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'auto-pick', 'name': '自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='taskConfigModal', title=title,
-                                  buttons=buttons)
-
-
 class PageRemarkModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
@@ -190,3 +181,12 @@ class PageRemarkModal(UIModule):
         ]
         return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)
+
+
+class TaskConfigModal(UIModule):
+    def render(self, config_fields=None):
+        title = '任务配置'
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        fields = [{'id': 'auto-pick', 'name': '提交任务后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
+        return self.render_string('_modal_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
+                                  title=title, buttons=buttons)

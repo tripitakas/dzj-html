@@ -18,16 +18,17 @@ class CutTaskHandler(PageHandler):
 
     def get(self, task_type, task_id):
         """ 切分校对页面"""
+
         try:
-            btn_config = {}
             template = 'task_cut_do.html'
             if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-                if self.get_query_argument('reorder', '') == 'true':
-                    direction = self.get_query_argument('direction', '')
-                    self.reorder_boxes(page=self.page, direction=direction)
+                reorder = self.get_query_argument('reorder', '')
+                if reorder:
+                    boxes = self.reorder_boxes(page=self.page, direction=reorder)
+                    self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
-            self.render(template, btn_config=btn_config)
+            self.render(template)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -39,15 +40,15 @@ class CutEditHandler(PageHandler):
     def get(self, page_name):
         """ 切分编辑页面"""
         try:
-            btn_config = {}
             template = 'task_cut_do.html'
             if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
-                if self.get_query_argument('reorder', '') == 'true':
-                    direction = self.get_query_argument('direction', '')
-                    self.reorder_boxes(page=self.page, direction=direction)
+                reorder = self.get_query_argument('reorder', '')
+                if reorder:
+                    boxes = self.reorder_boxes(page=self.page, direction=reorder)
+                    self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
-            self.render(template, btn_config=btn_config)
+            self.render(template)
 
         except Exception as error:
             return self.send_db_error(error)

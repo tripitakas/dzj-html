@@ -258,9 +258,8 @@
   // 是否自动领取新任务
   $('#taskConfigModal .modal-confirm').click(function () {
     var autoPick = $('#taskConfigModal .auto-pick :checked');
-    if (!autoPick.length)
-      return showWarning('请进行选择');
-    localStorage.setItem('autoPick', autoPick.val());
+    if (autoPick.length)
+      localStorage.setItem('autoPick', autoPick.val());
     $('#taskConfigModal').modal('hide');
   });
 </script>
