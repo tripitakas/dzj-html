@@ -59,7 +59,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
                 if not has_auth:
-                    return self.send_error_response(self.error)
+                    links = [('查看', self.request.uri.replace('/do/', '/'))]
+                    return self.send_error_response(self.error, links=links)
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
@@ -262,7 +263,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             steps['next'] = todo[index + 1] if index < len(todo) - 1 else None
         else:
             steps['todo'] = []
-            steps['current'] = None
+            steps['current'] = current_step
             steps['is_first'] = True
             steps['is_last'] = True
             steps['prev'] = None
@@ -294,7 +295,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         # do模式下，检查是否有任务锁
         if shared_field and self.mode == 'do':
             lock = self.prop(self.doc, 'lock.' + shared_field)
-            assert lock
+            assert lock, '数据没有上任务锁'
             has_lock = self.user_id == self.prop(lock, 'locked_user_id')
             if not has_lock:
                 error = e.data_is_locked
@@ -356,7 +357,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                 self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
             self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
 
-    def update_doc(self, info, submit=None):
+    def update_my_doc(self, info, submit=None):
         """ 更新本任务的数据提交"""
         submit = self.data.get('submit') if submit is None else submit
         # 如果是完成任务，则更新数据内容、数据等级和数据任务状态
@@ -395,6 +396,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         if status == '':
             self.db[collection].update_one({id_name: task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})
         if info:
+            info['task_id'] = str(task['_id'])
             self.db[collection].update_one({id_name: task['doc_id']}, {'$set': info})
 
     def update_edit_doc(self, task_type, doc_id, release_lock=False, info=None):

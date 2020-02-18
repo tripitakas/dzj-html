@@ -70,10 +70,6 @@ class Task(Model):
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
             'steps': [['box', '字框'], ['order', '字序']],
         },
-        'cut_view': {
-            'name': '切分查看', 'pre_tasks': [],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-        },
         'ocr_text': {
             'name': 'OCR文字', 'pre_tasks': ['cut_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},

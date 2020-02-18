@@ -562,14 +562,6 @@
       if (typeof p.chars === 'string') {
         p.chars = self.decodeJSON(p.chars);
       }
-      p.chars.forEach(function (c) {
-        if (!c.cid) {
-          c.cid = 1 + Math.max.apply(null, p.chars.map(function (c) {
-            return c.cid || 0;
-          }));
-        }
-      });
-
       if (p.blocks || p.columns) {
         self.setClass(p.chars, 'char');
         if (p.blocks) {
@@ -1047,7 +1039,8 @@
     toggleBox: function (visible, cls, boxIds) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
-          $(box.shape.node).toggle(!!visible);
+          if (!$(box.shape.node).hasClass('flash'))
+            $(box.shape.node).toggle(!!visible);
         }
       });
     },

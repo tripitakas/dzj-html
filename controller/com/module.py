@@ -48,14 +48,12 @@ class ComLeft(UIModule):
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
             ]),
+            dict(name='文章管理', icon='icon_article', link='/article'),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
             ]),
-            dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
-                dict(name='文章管理', icon='icon_subitem', link='/article'),
-                dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
-            ]),
+            dict(name='系统管理', icon='icon_admin', link='/admin/script'),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='自动标点', icon='icon_subitem', link='/com/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/com/search'),
@@ -173,15 +171,6 @@ class TaskRemarkModal(UIModule):
                                   buttons=buttons)
 
 
-class AutoPickModal(UIModule):
-    def render(self):
-        title = '提交后是否自动领取新任务？'
-        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='autoPickModal', title=title,
-                                  buttons=buttons)
-
-
 class PageRemarkModal(UIModule):
     def render(self):
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
@@ -192,3 +181,12 @@ class PageRemarkModal(UIModule):
         ]
         return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)
+
+
+class TaskConfigModal(UIModule):
+    def render(self, config_fields=None):
+        title = '配置项'
+        buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
+        fields = [{'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
+        return self.render_string('_modal_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
+                                  title=title, buttons=buttons)

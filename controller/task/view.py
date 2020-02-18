@@ -33,7 +33,7 @@ class DocTaskAdminHandler(TaskHandler):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
-        {'action': 'btn-republish', 'label': '重新发布'},
+        {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
@@ -191,8 +191,8 @@ class MyTaskHandler(TaskHandler):
     img_operations = []
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
-        {'action': 'my-task-do', 'label': '继续'},
-        {'action': 'my-task-update', 'label': '修改'},
+        {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
+        {'action': 'my-task-update', 'label': '修改', 'disabled': lambda d: d['status'] == 'picked'},
     ]
     table_fields = [
         {'id': 'doc_id', 'name': '页编码'},
