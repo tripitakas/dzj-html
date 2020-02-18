@@ -405,7 +405,8 @@ class BoxOrder(object):
                 columns_chars[col_id] = ordered_chars
 
         assert chars
-        assert small_direction in ['down', 'left']
+        assert small_direction in [None, 'down', 'left']
+        small_direction = 'down' if not small_direction else small_direction
         cls.pop_fields(chars, 'column,column2,column_id,column_id2,side,y_overlap,size,is_small')
 
         normal_w, normal_h, normal_a = params()

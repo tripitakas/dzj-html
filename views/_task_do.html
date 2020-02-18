@@ -35,7 +35,7 @@
       </div>
       <div class="right">
         {% block task-actions %}
-        <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#autoPickModal" title="自动领任务"/>
+        <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#taskConfigModal" title="任务配置"/>
         <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
         <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
         <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
@@ -61,8 +61,10 @@
 
 <div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
-  {% module AutoPickModal() %}
   {% module TaskRemarkModal() %}
+  {% block config-modal %}
+  {% module TaskConfigModal() %}
+  {% end %}
   {% block custom-modal %}
   {% end %}
 </div>
@@ -93,7 +95,7 @@
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
     var autoPick = localStorage.getItem('autoPick') || '是';
     if (autoPick.length) {
-      $('#autoPickModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
+      $('#taskConfigModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
     }
     if (isSample === 'True') {
       $('#remarkModal .is_sample :radio[value="是"]').prop('checked', true);
@@ -254,12 +256,12 @@
   });
 
   // 是否自动领取新任务
-  $('#autoPickModal .modal-confirm').click(function () {
-    var autoPick = $('#autoPickModal .auto-pick :checked');
+  $('#taskConfigModal .modal-confirm').click(function () {
+    var autoPick = $('#taskConfigModal .auto-pick :checked');
     if (!autoPick.length)
       return showWarning('请进行选择');
     localStorage.setItem('autoPick', autoPick.val());
-    $('#autoPickModal').modal('hide');
+    $('#taskConfigModal').modal('hide');
   });
 </script>
 

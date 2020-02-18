@@ -24,7 +24,8 @@ class CutTaskHandler(PageHandler):
             if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
                 if self.get_query_argument('reorder', '') == 'true':
-                    self.reorder()
+                    direction = self.get_query_argument('direction', '')
+                    self.reorder_boxes(page=self.page, direction=direction)
                 self.chars_col = self.get_chars_col(self.page['chars'])
             self.render(template, btn_config=btn_config)
 
@@ -43,7 +44,8 @@ class CutEditHandler(PageHandler):
             if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
                 if self.get_query_argument('reorder', '') == 'true':
-                    self.reorder()
+                    direction = self.get_query_argument('direction', '')
+                    self.reorder_boxes(page=self.page, direction=direction)
                 self.chars_col = self.get_chars_col(self.page['chars'])
             self.render(template, btn_config=btn_config)
 

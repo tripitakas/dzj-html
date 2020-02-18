@@ -173,12 +173,12 @@ class TaskRemarkModal(UIModule):
                                   buttons=buttons)
 
 
-class AutoPickModal(UIModule):
+class TaskConfigModal(UIModule):
     def render(self):
-        title = '提交后是否自动领取新任务？'
+        title = '任务配置'
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
-        modal_fields = [{'id': 'auto-pick', 'name': '', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('_modal.html', modal_fields=modal_fields, id='autoPickModal', title=title,
+        modal_fields = [{'id': 'auto-pick', 'name': '自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
+        return self.render_string('_modal.html', modal_fields=modal_fields, id='taskConfigModal', title=title,
                                   buttons=buttons)
 
 

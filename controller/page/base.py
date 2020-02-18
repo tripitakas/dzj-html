@@ -70,7 +70,10 @@ class PageHandler(TaskHandler, PageTool):
         return update
 
     def get_box_updated(self):
-        """ 获取切分校对的提交"""
+        """ 获取切分校对的提交
+        detect_col, 是否自动检测、调整小字框在多列的情况
+        auto_adjust, 是否根据字框自适应调整栏框和列框的边界
+        """
         # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
         # 更新cid
@@ -79,16 +82,18 @@ class PageHandler(TaskHandler, PageTool):
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
         chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col') or True)
-        # 根据字框调整列框和栏框的大小
+        # 根据字框调整列框和栏框的边界
         if self.data.get('auto_adjust'):
             self.adjust_blocks(blocks, chars)
             self.adjust_columns(columns, chars)
-        # 合并用户校对的字序和算法字序
+        # 合并用户字序和算法字序
+        chars_col = []
         if self.page.get('chars_col'):
-            chars = self.update_char_order(chars, self.page.get('chars_col'))
-
-        return dict(chars=chars, blocks=blocks, columns=columns)
-
-    def reorder(self):
-        """ 重排序号"""
-        self.page['blocks'], self.page['columns'], self.page['chars'] = self.reorder_boxes(page=self.page)
+            algorithm_chars_col = self.get_chars_col(chars)
+            chars_col = self.merge_chars_col(algorithm_chars_col, self.page['chars_col'])
+            chars = self.update_char_order(chars, chars_col)
+        # 设置更新字段
+        ret = dict(chars=chars, blocks=blocks, columns=columns)
+        if chars_col:
+            ret['chars_col'] = chars_col
+        return ret

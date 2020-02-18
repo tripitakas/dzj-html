@@ -78,7 +78,7 @@ class PageTool(BoxOrder):
                         return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
 
     @classmethod
-    def reorder_boxes(cls, chars=None, columns=None, blocks=None, page=None):
+    def reorder_boxes(cls, chars=None, columns=None, blocks=None, page=None, direction=None):
         """ 针对页面的切分框重新排序"""
         if not chars and page:
             blocks = page.get('blocks') or []
@@ -86,7 +86,7 @@ class PageTool(BoxOrder):
             chars = page.get('chars') or []
         blocks = cls.calc_block_id(blocks)
         columns = cls.calc_column_id(columns, blocks)
-        chars = cls.calc_char_id(chars, columns)
+        chars = cls.calc_char_id(chars, columns, small_direction=direction)
         return blocks, columns, chars
 
     @classmethod
@@ -119,15 +119,39 @@ class PageTool(BoxOrder):
         return ret
 
     @classmethod
+    def merge_chars_col(cls, algorithm_chars_col, user_chars_col):
+        """ 合并算法字序和用户校对字序。如果某一列二者cid不一致，则以算法字序为准，如果一致，则以用户字序为准"""
+        ret = []
+        len1 = len(algorithm_chars_col)
+        len2 = len(user_chars_col)
+        m_len = max([len1, len2])
+        for i in range(m_len):
+            cid1 = algorithm_chars_col[i] if i < len1 else []
+            cid2 = user_chars_col[i] if i < len2 else []
+            if set(cid1) == set(cid2):
+                ret[i] = cid2
+            else:
+                ret[i] = cid1
+        return ret
+
+    @classmethod
+    def cmp_cids(cls, chars, chars_col):
+        cids1 = [c['cid'] for c in chars]
+        cids2 = []
+        for col_cid in chars_col:
+            cids2.extend(col_cid)
+        return set(cids1) == set(cids2)
+
+    @classmethod
     def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
         block_no = column_no = 0
-        for col_order in chars_col:
+        for col_cids in chars_col:
             column_no += 1
-            for char_no, cid in enumerate(col_order):
+            for char_no, cid in enumerate(col_cids):
                 cs = [c for c in chars if c['cid'] == cid]
-                if cs:
-                    c = cs[0]
+                c = cs and cs[0]
+                if c:
                     if block_no != c['block_no']:
                         block_no = c['block_no']
                         column_no = 1
