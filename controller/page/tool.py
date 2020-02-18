@@ -145,18 +145,20 @@ class PageTool(BoxOrder):
     @classmethod
     def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
-        block_no = column_no = 0
+
+        columns_blk = {}
         for col_cids in chars_col:
-            column_no += 1
-            for char_no, cid in enumerate(col_cids):
-                cs = [c for c in chars if c['cid'] == cid]
-                c = cs and cs[0]
-                if c:
-                    if block_no != c['block_no']:
-                        block_no = c['block_no']
-                        column_no = 1
-                    c['column_no'] = column_no
+            first_c = [c for c in chars if c['cid'] == col_cids[0]][0]
+            columns_blk[first_c['block_no']] = columns_blk.get(first_c['block_no'], [])
+            columns_blk[first_c['block_no']].append((col_cids, first_c['x']))
+        for block_no, columns in columns_blk.items():
+            columns.sort(key=itemgetter(1), reverse=True)  # 按X排序
+            for column_no, col in enumerate(columns):
+                for char_no, cid in enumerate(col[0]):
+                    c = [c for c in chars if c['cid'] == cid][0]
+                    c['column_no'] = column_no + 1
                     c['char_no'] = char_no + 1
+                    c['block_no'] = block_no + 1
                     c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
