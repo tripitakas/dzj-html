@@ -86,8 +86,8 @@ class PageHandler(TaskHandler, PageTool):
         chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col', True))
         # 根据字框调整列框和栏框的边界
         if self.data.get('auto_adjust'):
-            self.adjust_blocks(blocks, chars)
-            self.adjust_columns(columns, chars)
+            blocks = self.adjust_blocks(blocks, chars)
+            columns = self.adjust_columns(columns, chars)
         # 合并用户字序和算法字序
         chars_col = []
         if self.page.get('chars_col'):

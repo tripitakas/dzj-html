@@ -174,7 +174,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         :return: None
         """
         self.error = error
-
         _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
         _error = list(error.values())[0] if _type == 'multiple' else error
         code, message = _error

@@ -16,15 +16,14 @@ class CutTaskHandler(PageHandler):
            '/task/browse/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
+    config_fields = [
+        dict(id='auto-pick', name='提交后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
+        dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
+        dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
+    ]
+
     def get(self, task_type, task_id):
         """ 切分校对页面"""
-
-        config_fields = [
-            dict(id='auto-pick', name='提交后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
-            dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
-            dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
-        ]
-
         try:
             template = 'task_cut_do.html'
             if self.steps['current'] == 'order':

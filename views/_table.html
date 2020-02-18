@@ -44,11 +44,8 @@
       {% set info = {f: prop(d, f.replace('-', '.'), '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
-      {% if a.get('title') %}
-      <a class="{{a['action']}}" title="{{a['title']}}">{{a['label']}}</a>
-      {% else %}
-      <a class="{{a['action']}}">{{a['label']}}</a>
-      {% end %}
+      {% set disabled = a.get('disabled') and a['disabled'](d) %}
+      <a class="{{a['action']}}{{' disabled' if disabled else ''}}" title="{{a.get('title') or ''}}">{{a['label']}}</a>
       {% end %}
     </td>
   </tr>

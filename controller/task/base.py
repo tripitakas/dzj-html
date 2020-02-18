@@ -59,8 +59,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
                 if not has_auth:
-                    link = ('只读查看', re.sub('(do|update|edit)/', 'view/', self.request.full_url()))
-                    return self.send_error_response(self.error, links=[link])
+                    links = [('查看', self.request.uri.replace('/do/', '/'))]
+                    return self.send_error_response(self.error, links=links)
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
         self.task_type = self.task.get('task_type') or self.get_task_type()
@@ -295,7 +295,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         # do模式下，检查是否有任务锁
         if shared_field and self.mode == 'do':
             lock = self.prop(self.doc, 'lock.' + shared_field)
-            assert lock, '任务锁定失效'
+            assert lock, '数据没有上任务锁'
             has_lock = self.user_id == self.prop(lock, 'locked_user_id')
             if not has_lock:
                 error = e.data_is_locked

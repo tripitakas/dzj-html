@@ -92,15 +92,25 @@ class PageTool(BoxOrder):
 
     @classmethod
     def adjust_blocks(cls, blocks, chars):
+        """ 根据字框调整栏框边界，去掉没有字框的栏框"""
+        ret = []
         for b in blocks:
             b_chars = [c for c in chars if c['block_no'] == b['block_no']]
-            b.update(cls.get_outer_range(b_chars))
+            if b_chars:
+                b.update(cls.get_outer_range(b_chars))
+                ret.append(b)
+        return ret
 
     @classmethod
     def adjust_columns(cls, columns, chars):
+        """ 根据字框调整列框边界，去掉没有字框的列框"""
+        ret = []
         for c in columns:
             c_chars = [ch for ch in chars if ch['block_no'] == c['block_no'] and ch['column_no'] == c['column_no']]
-            c.update(cls.get_outer_range(c_chars))
+            if c_chars:
+                c.update(cls.get_outer_range(c_chars))
+                ret.append(c)
+        return ret
 
     @classmethod
     def get_chars_col(cls, chars):
@@ -149,7 +159,7 @@ class PageTool(BoxOrder):
     def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
         for col_cids in chars_col:
-            col_chars = [[c for c in chars if c['cid'] == cid][0] for cid in col_cids]
+            col_chars = [c for c in chars if c['cid'] in col_cids]
             cnt = Counter(['b%sc%s' % (c['block_no'], c['column_no']) for c in col_chars])
             column_id = cnt.most_common(1)[0][0]
             for char_no, cid in enumerate(col_cids):
