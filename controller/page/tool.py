@@ -147,22 +147,16 @@ class PageTool(BoxOrder):
     @classmethod
     def update_char_order(cls, chars, chars_col):
         """ 按照chars_col重排chars"""
-
-        # 对chars_col中的每一列，按栏号分组（即字框的栏号不变），将在栏内以每列的第一个字框的X坐标对各列排序
-        columns_blk = {}
         for col_cids in chars_col:
-            first_c = [c for c in chars if c['cid'] == col_cids[0]][0]  # 假定每列的第一个字框都不会完全跑到别的列里去
-            columns_blk[first_c['block_no']] = columns_blk.get(first_c['block_no'], [])
-            columns_blk[first_c['block_no']].append((col_cids, first_c['x']))
-        for block_no, columns in columns_blk.items():
-            columns.sort(key=itemgetter(1), reverse=True)  # 在栏内以每列的第一个字框的X坐标对各列排序
-            for column_no, col in enumerate(columns):
-                for char_no, cid in enumerate(col[0]):
-                    c = [c for c in chars if c['cid'] == cid][0]
-                    c['column_no'] = column_no + 1
-                    c['char_no'] = char_no + 1
-                    c['block_no'] = block_no + 1
-                    c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
+            chars_in_col = [[c for c in chars if c['cid'] == cid][0] for cid in col_cids]
+            column_nums = list(set([c['column_no'] for c in chars_in_col]))
+            column_nums = [(no, len([c for c in column_nums if c == no])) for no in column_nums]
+            main_column_no = sorted(column_nums, key=itemgetter(1), reverse=True)[0][0]
+            for char_no, cid in enumerate(col_cids):
+                c = chars_in_col[char_no]
+                c['column_no'] = main_column_no  # 同在一列的字框取多数列号
+                c['char_no'] = char_no + 1
+                c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
     @staticmethod

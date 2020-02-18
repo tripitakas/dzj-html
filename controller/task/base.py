@@ -295,7 +295,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         # do模式下，检查是否有任务锁
         if shared_field and self.mode == 'do':
             lock = self.prop(self.doc, 'lock.' + shared_field)
-            assert lock
+            assert lock, '任务锁定失效'
             has_lock = self.user_id == self.prop(lock, 'locked_user_id')
             if not has_lock:
                 error = e.data_is_locked
