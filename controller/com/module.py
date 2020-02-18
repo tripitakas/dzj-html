@@ -48,14 +48,12 @@ class ComLeft(UIModule):
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
             ]),
+            dict(name='文章管理', icon='icon_article', link='/article'),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
             ]),
-            dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
-                dict(name='文章管理', icon='icon_subitem', link='/article'),
-                dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
-            ]),
+            dict(name='系统管理', icon='icon_admin', link='/admin/script'),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='自动标点', icon='icon_subitem', link='/com/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/com/search'),
