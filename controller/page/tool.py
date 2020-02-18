@@ -126,6 +126,8 @@ class PageTool(BoxOrder):
         len2 = len(user_chars_col)
         m_len = max([len1, len2])
         for i in range(m_len):
+            while len(ret) <= i:
+                ret.append([])
             cid1 = algorithm_chars_col[i] if i < len1 else []
             cid2 = user_chars_col[i] if i < len2 else []
             if set(cid1) == set(cid2):

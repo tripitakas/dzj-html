@@ -178,7 +178,7 @@ class AddPage(object):
             print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
 
             if self.reorder:
-                meta['blocks'], meta['columns'], meta['chars'] = PageTool.re_calc_id(page=meta)
+                meta['blocks'], meta['columns'], meta['chars'] = PageTool.reorder_boxes(page=meta)
 
             if exist and self.update:
                 meta.pop('create_time', 0)
@@ -222,7 +222,7 @@ class AddPage(object):
         return pages
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
+def main(db=None, db_name='tripitaka_test', uri='localhost', json_path='', img_path='img', txt_path='txt',
          txt_field='ocr', kind='', source='', check_id=False, reorder=True, reset=True,
          use_local_img=False, update=False, check_only=False):
     """

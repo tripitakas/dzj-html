@@ -34,15 +34,11 @@ class CutTaskApi(PageHandler):
     def save_box(self):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-
         self.update_task(self.data.get('submit'))
-
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover(self.page)
-
         update = self.get_box_updated()
         self.update_my_doc(update)
-
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self):
@@ -74,13 +70,10 @@ class CutEditApi(PageHandler):
     def save_box(self, page_name):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
-
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover(self.page)
-
         update = self.get_box_updated()
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
-
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
     def save_order(self, page_name):

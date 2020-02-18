@@ -416,7 +416,6 @@ class BoxOrder(object):
             for i, c in enumerate(column_chars):
                 c['char_no'] = i + 1
         if small_direction == 'down':
-            print(small_direction)
             check_small_note()
             scan_and_order()
 
