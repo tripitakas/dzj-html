@@ -8,10 +8,60 @@ import re
 from operator import itemgetter
 from controller.page.diff import Diff
 from tornado.escape import url_escape
-from controller.page.box import BoxTool
+from tornado.escape import json_decode
+from controller.page.order import BoxOrder
 
 
-class PageTool(BoxTool):
+class PageTool(BoxOrder):
+
+    @staticmethod
+    def decode_box(boxes):
+        return json_decode(boxes) if isinstance(boxes, str) else boxes
+
+    @classmethod
+    def filter_box(cls, page, width, height):
+        """ 过滤掉页面之外的切分框"""
+
+        def valid(box):
+            page_box = dict(x=0, y=0, w=width, h=height)
+            is_valid = cls.box_overlap(box, page_box, True)
+            if is_valid:
+                box['x'] = 0 if box['x'] < 0 else box['x']
+                box['y'] = 0 if box['y'] < 0 else box['y']
+                box['w'] = width - box['x'] if box['x'] + box['w'] > width else box['w']
+                box['h'] = height - box['h'] if box['y'] + box['h'] > height else box['h']
+            return is_valid
+
+        blocks = cls.decode_box(page['blocks'])
+        columns = cls.decode_box(page['columns'])
+        chars = cls.decode_box(page['chars'])
+        blocks = [box for box in blocks if valid(box)]
+        columns = [box for box in columns if valid(box)]
+        chars = [box for box in chars if valid(box)]
+
+        return blocks, columns, chars
+
+    @classmethod
+    def check_box_cover(cls, page, width=None, height=None):
+        """ 检查页面字框覆盖情况"""
+
+        def get_column_id(c):
+            col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
+            return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
+
+        width = width if width else page.get('width')
+        height = height if height else page.get('height')
+        blocks, columns, chars = cls.filter_box(page, width, height)
+        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
+        if char_out_block:
+            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
+        column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
+        if column_out_block:
+            return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
+        char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
+        if char_out_column:
+            return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
+        return True, None, []
 
     @staticmethod
     def is_box_changed(page_a, page_b, ignore_none=True):
@@ -29,6 +79,7 @@ class PageTool(BoxTool):
 
     @classmethod
     def reorder_boxes(cls, chars=None, columns=None, blocks=None, page=None):
+        """ 针对页面的切分框重新排序"""
         if not chars and page:
             blocks = page.get('blocks') or []
             columns = page.get('columns') or []
@@ -37,6 +88,18 @@ class PageTool(BoxTool):
         columns = cls.calc_column_id(columns, blocks)
         chars = cls.calc_char_id(chars, columns)
         return blocks, columns, chars
+
+    @classmethod
+    def adjust_blocks(cls, blocks, chars):
+        for b in blocks:
+            b_chars = [c for c in chars if c['block_no'] == b['block_no']]
+            b.update(cls.get_outer_range(b_chars))
+
+    @classmethod
+    def adjust_columns(cls, columns, chars):
+        for c in columns:
+            c_chars = [ch for ch in chars if ch['block_no'] == c['block_no'] and ch['column_no'] == c['column_no']]
+            c.update(cls.get_outer_range(c_chars))
 
     @classmethod
     def get_chars_col(cls, chars):
@@ -72,6 +135,57 @@ class PageTool(BoxTool):
                     c['char_no'] = char_no + 1
                     c['char_id'] = 'b%sc%sc%s' % (c['block_no'], c['column_no'], c['char_no'])
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
+
+    @staticmethod
+    def update_chars_cid(chars):
+        updated = False
+        max_cid = max([int(c.get('cid') or 0) for c in chars])
+        for c in chars:
+            if not c.get('cid'):
+                c['cid'] = max_cid + 1
+                max_cid += 1
+                updated = True
+        return updated
+
+    @staticmethod
+    def merge_narrow_columns(columns):
+        """ 合并两个连续的窄列。假定columns已分栏并排好序"""
+        if len(columns) < 3:
+            return columns
+        ws = sorted([c['w'] for c in columns], reverse=True)
+        max_w = ws[0] * 1.1  # 合并后的宽度不超过max_w
+        threshold = ws[2] * 0.6  # 窄列不超过threshold
+        ret_columns = [columns[0]]
+        for cur in columns[1:]:
+            last = ret_columns[-1]
+            w = last['x'] + last['w'] - cur['x']  # w为尝试合并成一个列的宽度
+            b_cur, b_last = cur.get('block_no', 0), last.get('block_no', 0)
+            if b_cur == b_last and w < max_w and cur['w'] < threshold and last['w'] < threshold:
+                y = min([cur['y'], last['y']])
+                h = max([cur['y'] + cur['h'], last['y'] + last['h']]) - y
+                ret_columns[-1].update(dict(x=round(cur['x'], 2), y=round(y, 2), w=round(w, 2), h=round(h, 2)))
+            else:
+                ret_columns.append(cur)
+        return ret_columns
+
+    @classmethod
+    def deduplicate_columns(cls, columns):
+        """ 删除冗余的列。假定columns已分栏并排序"""
+        if len(columns) < 3:
+            return columns
+        ws = sorted([c['w'] for c in columns], reverse=True)
+        threshold = ws[2] * 0.6
+        ret_columns = [columns[0]]
+        for cur in columns[1:]:
+            last = ret_columns[-1]
+            overlap, ratio1, ratio2 = cls.box_overlap(last, cur)
+            # 检查上一个字框，如果是窄框且重复度超过0.45，或者是大框且重复度超过0.55时，都将去除
+            if (last['w'] < threshold and ratio1 > 0.45) or (last['w'] >= threshold and ratio1 > 0.55):
+                ret_columns.pop()
+            # 检查当前字框
+            if (cur['w'] < threshold and ratio2 < 0.45) or (cur['w'] >= threshold and ratio2 < 0.55):
+                ret_columns.append(cur)
+        return ret_columns
 
     @classmethod
     def txt2html(cls, txt):

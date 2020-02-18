@@ -9,7 +9,7 @@ from functools import cmp_to_key
 from collections import OrderedDict
 
 
-class BoxTool(object):
+class BoxOrder(object):
 
     @staticmethod
     def pop_fields(boxes, fields):
@@ -185,46 +185,6 @@ class BoxTool(object):
             c['column_id'] = 'b%sc%s' % (c['block_no'], c['column_no'])
         return columns
 
-    @staticmethod
-    def merge_narrow_columns(columns):
-        """ 合并两个连续的窄列。假定columns已分栏并排好序"""
-        if len(columns) < 3:
-            return columns
-        ws = sorted([c['w'] for c in columns], reverse=True)
-        max_w = ws[0] * 1.1  # 合并后的宽度不超过max_w
-        threshold = ws[2] * 0.6  # 窄列不超过threshold
-        ret_columns = [columns[0]]
-        for cur in columns[1:]:
-            last = ret_columns[-1]
-            w = last['x'] + last['w'] - cur['x']  # w为尝试合并成一个列的宽度
-            b_cur, b_last = cur.get('block_no', 0), last.get('block_no', 0)
-            if b_cur == b_last and w < max_w and cur['w'] < threshold and last['w'] < threshold:
-                y = min([cur['y'], last['y']])
-                h = max([cur['y'] + cur['h'], last['y'] + last['h']]) - y
-                ret_columns[-1].update(dict(x=round(cur['x'], 2), y=round(y, 2), w=round(w, 2), h=round(h, 2)))
-            else:
-                ret_columns.append(cur)
-        return ret_columns
-
-    @classmethod
-    def deduplicate_columns(cls, columns):
-        """ 删除冗余的列。假定columns已分栏并排序"""
-        if len(columns) < 3:
-            return columns
-        ws = sorted([c['w'] for c in columns], reverse=True)
-        threshold = ws[2] * 0.6
-        ret_columns = [columns[0]]
-        for cur in columns[1:]:
-            last = ret_columns[-1]
-            overlap, ratio1, ratio2 = cls.box_overlap(last, cur)
-            # 检查上一个字框，如果是窄框且重复度超过0.45，或者是大框且重复度超过0.55时，都将去除
-            if (last['w'] < threshold and ratio1 > 0.45) or (last['w'] >= threshold and ratio1 > 0.55):
-                ret_columns.pop()
-            # 检查当前字框
-            if (cur['w'] < threshold and ratio2 < 0.45) or (cur['w'] >= threshold and ratio2 < 0.55):
-                ret_columns.append(cur)
-        return ret_columns
-
     @classmethod
     def scan_small_and_order(cls, boxes, field='small_no'):
         """ 扫描小字列并排序。算法会从右上角第一个框开始往下找，找完该列后，又从剩下的框中右上角的第一个节点往下找。
@@ -244,7 +204,7 @@ class BoxTool(object):
             else:
                 return left_boxes[0]
 
-        cls.horizontal_scan_and_order(boxes, ratio=0.5)
+        cls.horizontal_scan_and_order(boxes, ratio=0.4)
         cur, no = boxes[0], 2
         cur[field] = 1
         while True:
@@ -446,7 +406,7 @@ class BoxTool(object):
 
         assert chars
         assert small_direction in ['down', 'left']
-        cls.pop_fields(chars, 'column_id,size,side,y_overlap,is_small')
+        cls.pop_fields(chars, 'column,column2,column_id,column_id2,side,y_overlap,size,is_small')
 
         normal_w, normal_h, normal_a = params()
         columns_chars = set_properties()
@@ -466,5 +426,5 @@ class BoxTool(object):
                 c['char_id'] = '%sc%s' % (c['column_id'], c['char_no'])
             ret_chars.extend(column_chars)
 
-        cls.pop_fields(ret_chars, 'column,column2,side,y_overlap')
+        cls.pop_fields(ret_chars, 'column,column2,column_id,column_id2,side,y_overlap')
         return ret_chars

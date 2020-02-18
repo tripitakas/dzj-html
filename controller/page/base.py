@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import re
-from tornado.escape import json_decode
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
@@ -71,75 +69,23 @@ class PageHandler(TaskHandler, PageTool):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
-    @staticmethod
-    def decode_box(boxes):
-        return json_decode(boxes) if isinstance(boxes, str) else boxes
-
-    @classmethod
-    def filter_box(cls, page, width, height):
-        def valid(box):
-            page_box = dict(x=0, y=0, w=width, h=height)
-            is_valid = cls.box_overlap(box, page_box, True)
-            if is_valid:
-                box['x'] = 0 if box['x'] < 0 else box['x']
-                box['y'] = 0 if box['y'] < 0 else box['y']
-                box['w'] = width - box['x'] if box['x'] + box['w'] > width else box['w']
-                box['h'] = height - box['h'] if box['y'] + box['h'] > height else box['h']
-            return is_valid
-
-        blocks = cls.decode_box(page['blocks'])
-        columns = cls.decode_box(page['columns'])
-        chars = cls.decode_box(page['chars'])
-        blocks = [box for box in blocks if valid(box)]
-        columns = [box for box in columns if valid(box)]
-        chars = [box for box in chars if valid(box)]
-
-        return blocks, columns, chars
-
-    @classmethod
-    def check_box_cover(cls, page, width=None, height=None):
-        """ 检查字框覆盖情况"""
-
-        def get_column_id(c):
-            col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
-            return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
-
-        width = width if width else page.get('width')
-        height = height if height else page.get('height')
-        blocks, columns, chars = cls.filter_box(page, width, height)
-        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
-        if char_out_block:
-            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
-        column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
-        if column_out_block:
-            return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
-        char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
-        if char_out_column:
-            return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
-        return True, None, []
-
-    @staticmethod
-    def update_chars_cid(chars):
-        updated = False
-        max_cid = max([int(c.get('cid') or 0) for c in chars])
-        for c in chars:
-            if not c.get('cid'):
-                c['cid'] = max_cid + 1
-                max_cid += 1
-                updated = True
-        return updated
-
-    def get_box_updated(self, chars_cal=None):
+    def get_box_updated(self):
         """ 获取切分校对的提交"""
+        # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
-        updated = self.update_chars_cid(chars)
+        # 更新cid
+        self.update_chars_cid(chars)
+        # 重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)
-        chars = self.calc_char_id(chars, columns)
-        new_chars = [c for c in chars if 'new' in c['char_id']]
-        # 如果没有新的cid也没有新框，则按用户的字序重新排序
-        if not updated and not new_chars and chars_cal:
-            chars = self.update_char_order(chars, chars_cal)
+        chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col') or True)
+        # 根据字框调整列框和栏框的大小
+        if self.data.get('auto_adjust'):
+            self.adjust_blocks(blocks, chars)
+            self.adjust_columns(columns, chars)
+        # 合并用户校对的字序和算法字序
+        if self.page.get('chars_col'):
+            chars = self.update_char_order(chars, self.page.get('chars_col'))
 
         return dict(chars=chars, blocks=blocks, columns=columns)
 

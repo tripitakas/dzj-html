@@ -40,7 +40,7 @@ class CutTaskApi(PageHandler):
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover(self.page)
 
-        update = self.get_box_updated(self.page.get('chars_col'))
+        update = self.get_box_updated()
         self.update_doc(update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
@@ -76,7 +76,7 @@ class CutEditApi(PageHandler):
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover(self.page)
 
-        update = self.get_box_updated(self.page.get('chars_col'))
+        update = self.get_box_updated()
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
 
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
