@@ -27,12 +27,11 @@ def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source='', p
                 makedirs(out_dir)
             print('export %d pages...' % len(rows))
             for p in rows:
-                if text_finished:
-                    task = db.task.find_one({'task_type': {'$regex': '^text_proof'}, 'status': 'finished',
-                                             'doc_id': p['name']})
-                    if not task:
-                        continue
-                    p['text_proof'] = PageTool.html2txt(prop(task, 'result.txt_html', ''))
+                tasks = db.task.find({'doc_id': p['name'], 'task_type': {'$regex': '^text'}, 'status': 'finished'})
+                if text_finished and not tasks:
+                    continue
+                for task in tasks:
+                    p[task['task_type']] = PageTool.html2txt(prop(task, 'result.txt_html', ''))
 
                 p['_id'] = str(p['_id'])
                 p['create_time'] = p['create_time'].strftime('%Y-%m-%d %H:%M:%S')
