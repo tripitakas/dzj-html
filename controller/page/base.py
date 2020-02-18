@@ -6,12 +6,6 @@ from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, PageTool):
-    # 切分任务配置项，configModal中使用
-    cut_task_config = [
-        dict(id='auto-pick', name='提交任务后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
-    ]
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)

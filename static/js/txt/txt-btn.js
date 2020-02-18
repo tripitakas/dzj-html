@@ -153,24 +153,16 @@ $('#zoom-reset').on('click', function () {
 
 // 修改字框
 $('#ed-char-box').click(function () {
-  if (readonly) {
-    location = '/data/cut_view/' + docId + '?step=box&from=' + encodeFrom();
-  } else {
-    autoSave(function () {
-      location = '/data/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
-    });
-  }
+  autoSave(function () {
+    location = '/data/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
+  });
 });
 
 // 修改字序
 $('#ed-char-order').click(function () {
-  if (readonly) {
-    location = '/data/cut_view/' + docId + '?step=order&from=' + encodeFrom();
-  } else {
-    autoSave(function () {
-      location = '/data/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
-    });
-  }
+  autoSave(function () {
+    location = '/data/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
+  });
 });
 
 $('#ed-char-txt').click(function () {

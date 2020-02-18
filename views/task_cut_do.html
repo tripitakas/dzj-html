@@ -49,7 +49,7 @@
 {% end %}
 
 {% block config-modal %}
-{% module TaskConfigModal(handler.cut_task_config) %}
+{% module TaskConfigModal(handler.config_fields) %}
 {% end %}
 
 {% block custom-modal %}
@@ -275,7 +275,7 @@
     };
   }
 
-  // 是否自动领取新任务
+  // 是否自动调整栏框、列框大小，自适应检测字框在多列的情况
   $('#taskConfigModal .modal-confirm').click(function () {
     var autoAdjust = $('#taskConfigModal .auto-adjust :checked');
     if (autoAdjust.length)
