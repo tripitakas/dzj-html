@@ -177,7 +177,8 @@ class PageRemarkModal(UIModule):
         modal_fields = [
             {'id': 'fields', 'name': '备注字段', 'input_type': 'radio', 'options': ['切分', '文本']},
             {'id': 'remark', 'name': '备注内容'},
-            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
+            # {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['算法的问题', '用户的问题']},
         ]
         return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)

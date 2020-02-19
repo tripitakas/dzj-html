@@ -76,6 +76,8 @@ role_route_maps = {
             '/api/task/text_select/@page_name': ['POST'],
             '/api/task/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
+            '/data/cut_view/@page_name': ['GET'],
+            '/data/text_view/@page_name': ['GET'],
         }
     },
     '切分校对员': {

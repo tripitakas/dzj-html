@@ -70,5 +70,5 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(check_chars_col)
+    fire.Fire(check_box_cover)
     print('finished!')
