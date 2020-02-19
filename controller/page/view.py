@@ -40,7 +40,7 @@ class CutTaskHandler(PageHandler):
 
 
 class CutEditHandler(PageHandler):
-    URL = '/data/cut_edit/@page_name'
+    URL = ['/data/cut_edit/@page_name', '/data/cut_view/@page_name']
 
     config_fields = [
         dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
@@ -113,10 +113,10 @@ class TextReviewHandler(PageHandler):
 
 
 class TextEditHandler(PageHandler):
-    URL = '/data/text_edit/@page_name'
+    URL = ['/data/text_edit/@page_name', '/data/text_view/@page_name']
 
     def get(self, page_name):
-        """ 文字修改页面"""
+        """ 文字查看、修改页面"""
         try:
             self.texts, self.doubts = self.get_cmp_txt()
             cmp_data, text = self.page.get('txt_html') or '', self.page.get('text') or ''
