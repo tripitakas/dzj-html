@@ -26,9 +26,14 @@ class BoxOrder(object):
             b[field] = value
         return boxes
 
-    @staticmethod
-    def is_point_in_box(point, box):
-        return (box['x'] <= point[0] <= box['x'] + box['w']) and (box['y'] <= point[1] <= box['y'] + box['h'])
+    @classmethod
+    def get_outer_range(cls, boxes):
+        """ 获取boxes的外包络框"""
+        x = sorted([b['x'] for b in boxes])[0]
+        y = sorted([b['y'] for b in boxes])[0]
+        w = sorted([b['x'] + b['w'] for b in boxes])[-1] - x
+        h = sorted([b['y'] + b['h'] for b in boxes])[-1] - y
+        return dict(x=x, y=y, w=w, h=h)
 
     @staticmethod
     def line_overlap(line1, line2, only_check=False):
@@ -44,18 +49,6 @@ class BoxOrder(object):
             ratio1 = round(overlap / w1, 2)
             ratio2 = round(overlap / w2, 2)
             return overlap, ratio1, ratio2
-
-    @classmethod
-    def get_cast_length(cls, boxes, interval, direction='x'):
-        """ 获取boxes在x轴或y轴方向、区间interval内的投影长度"""
-
-        def get_length(b):
-            if direction == 'x':
-                return cls.line_overlap((b['x'], b['x'] + b['w']), interval)[0]
-            else:
-                return cls.line_overlap((b['y'], b['y'] + b['h']), interval)[0]
-
-        return sum([get_length(b) for b in boxes])
 
     @staticmethod
     def box_overlap(box1, box2, only_check=False):
@@ -85,37 +78,16 @@ class BoxOrder(object):
             return cls.line_overlap((a['y'], a['y'] + a['h']), (b['y'], b['y'] + b['h']))
 
     @classmethod
-    def get_boxes_of_interval(cls, boxes, interval, direction='', ratio=0.0, op='or'):
-        """ 从boxes中筛选x轴或y轴上interval区间内所有box"""
-        assert direction in ['x', 'y']
-        ret = []
-        param = 'w' if direction == 'x' else 'h'
-        for b in boxes:
-            overlap, ratio1, ratio2 = cls.line_overlap((b[direction], b[direction] + b[param]), interval)
-            if op == 'and' and (ratio1 >= ratio and ratio2 >= ratio):
-                ret.append(b)
-            elif ratio1 >= ratio or ratio2 >= ratio:
-                ret.append(b)
-        return ret
-
-    @classmethod
-    def get_boxes_of_region(cls, boxes, region, ratio=0.0):
+    def get_boxes_of_region(cls, boxes, region, ratio=0.0, set_ratio=False):
         """ 从boxes中筛选region范围内的所有box"""
         ret = []
         for b in boxes:
             ratio1 = cls.box_overlap(b, region)[1]
             if ratio1 >= ratio:
                 ret.append(b)
+                if set_ratio:
+                    b['ratio'] = ratio1
         return ret
-
-    @classmethod
-    def get_outer_range(cls, boxes):
-        """ 获取boxes的外包络框"""
-        x = sorted([b['x'] for b in boxes])[0]
-        y = sorted([b['y'] for b in boxes])[0]
-        w = sorted([b['x'] + b['w'] for b in boxes])[-1] - x
-        h = sorted([b['y'] + b['h'] for b in boxes])[-1] - y
-        return dict(x=x, y=y, w=w, h=h)
 
     @classmethod
     def boxes_out_of_boxes(cls, boxes1, boxes2, ratio=0.01, only_check=False):
@@ -137,83 +109,67 @@ class BoxOrder(object):
         return False if only_check else (out_boxes, in_boxes)
 
     @classmethod
-    def horizontal_scan_and_order(cls, boxes, field='', ratio=0.75):
-        """ 水平扫描（从右到左扫描，如果上下交叉，则从上到下）boxes并进行排序
-        :param boxes: list, 待排序的boxes
-        :param field: str, 序号设置在哪个字段
-        :param ratio: float, 上下交叉比例超过ratio时，将比较y值
-        """
+    def cmp_up2down(cls, a, b):
+        """ 从上到下扫描（如果左右交叉时，则从右到左）"""
+        ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
+        rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
+        # 当二者在y轴上交叉且x轴几乎不交叉时，认为二者是水平邻居，则从右到左，即x值大的在前
+        if (ry1 > 0.5 or ry2 > 0.5) and (ry1 > 0.25 or ry2 > 0.25) and (rx1 < 0.25 and rx2 < 0.25):
+            return b['x'] - a['x']
+        # 否则，从上到下，即y值小的在前
+        else:
+            return a['y'] - b['y']
 
-        def cmp(a, b):
-            r1, r2 = cls.get_box_overlap(a, b, direction='x')[1:]
-            if r1 < ratio and r2 < ratio:
-                return a['x'] + a['w'] - b['x'] - b['w']
-            else:
-                return b['y'] - a['y']
-
-        boxes.sort(key=cmp_to_key(cmp), reverse=True)
-        if field:
-            for i, box in enumerate(boxes):
-                box[field] = i + 1
-        return boxes
+    @classmethod
+    def cmp_right2left(cls, a, b):
+        """ 从右到左扫描（如果上下交叉时，则从上到下）"""
+        ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
+        rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
+        # 当二者在x轴上交叉且y轴几乎不交叉时，认为二者是上下邻居，则从上到下，即y值小的在前
+        if (rx1 > 0.5 or rx2 > 0.5) and (rx1 > 0.25 and rx2 > 0.25) and (ry1 < 0.25 and ry2 < 0.25):
+            return a['y'] - b['y']
+        # 否则，从右到左，即x值大的在前
+        else:
+            return b['x'] - a['x']
 
     @classmethod
     def calc_block_id(cls, blocks):
         """ 计算并设置栏序号，包括block_no/block_id"""
         cls.pop_fields(blocks, ['block_no', 'block_id'])
-        cls.horizontal_scan_and_order(blocks, 'block_no')
-        for b in blocks:
-            b['block_id'] = 'b%s' % b['block_no']
+        blocks.sort(key=cmp_to_key(cls.cmp_up2down))
+        for i, b in enumerate(blocks):
+            b['block_no'] = i + 1
+            b['block_id'] = 'b%s' % (i + 1)
         return blocks
 
     @classmethod
     def calc_column_id(cls, columns, blocks):
         """ 计算和设置列序号，包括column_no/column_id。假定blocks已排好序"""
         cls.pop_fields(columns, ['block_no', 'column_no', 'column_id'])
-        for block in blocks:
-            block_columns = []
-            for c in columns:
-                point = c['x'] + c['w'] / 2, c['y'] + c['h'] / 2
-                if cls.is_point_in_box(point, block):
-                    c['block_no'] = block['block_no']
-                    block_columns.append(c)
-            cls.horizontal_scan_and_order(block_columns, 'column_no')
-        for i, c in enumerate([c for c in columns if c.get('block_no') is None]):
+        # 设置栏号
+        for c in columns:
+            in_blocks = [(cls.box_overlap(c, b)[1], b) for b in blocks if cls.box_overlap(c, b)[1] > 0]
+            if in_blocks:
+                in_block = sorted(in_blocks, key=itemgetter(0), reverse=True)[0][1]
+                c['block_no'] = in_block['block_no']
+        # 按栏分列
+        in_columns = []
+        for b in blocks:
+            b_columns = [c for c in columns if c.get('block_no') == b['block_no']]
+            b_columns.sort(key=cmp_to_key(cls.cmp_right2left))
+            for i, c in enumerate(b_columns):
+                c['column_no'] = i + 1
+            in_columns.extend(b_columns)
+        # 栏外的列
+        out_columns = [c for c in columns if c.get('block_no') is None]
+        for i, c in enumerate(out_columns):
             c['block_no'] = 0
             c['column_no'] = i + 1
-        for c in columns:
+        # 设置返回
+        ret = out_columns + in_columns
+        for c in ret:
             c['column_id'] = 'b%sc%s' % (c['block_no'], c['column_no'])
-        return columns
-
-    @classmethod
-    def scan_small_and_order(cls, boxes, field='small_no'):
-        """ 扫描小字列并排序。算法会从右上角第一个框开始往下找，找完该列后，又从剩下的框中右上角的第一个节点往下找。
-        :param boxes: list, 待排序的boxes
-        :param field: str, 序号设置在哪个字段
-        """
-
-        def find_next():
-            left_boxes = [b for b in boxes if not b.get(field)]
-            if not left_boxes:
-                return None
-            ud_neighbors = cls.get_boxes_of_interval(left_boxes, (cur['x'], cur['x'] + cur['w']), 'x', 0.5)
-            dn_neighbors = [c for c in ud_neighbors if c['y'] > cur['y'] + cur['h']]
-            if dn_neighbors:
-                dn_neighbors.sort(key=itemgetter('y'))
-                return dn_neighbors[0]
-            else:
-                return left_boxes[0]
-
-        cls.horizontal_scan_and_order(boxes, ratio=0.4)
-        cur, no = boxes[0], 2
-        cur[field] = 1
-        while True:
-            nex = find_next()
-            if not nex:
-                break
-            nex[field] = no
-            cur = nex
-            no += 1
+        return ret
 
     @classmethod
     def calc_char_id(cls, chars, columns, detect_col=True, small_direction='down'):
@@ -224,83 +180,103 @@ class BoxOrder(object):
         :param small_direction: str, 下一个夹注小字的方向，down表示往下找，left表示往左找
         """
 
-        def cmp(a, b):
-            """ 从上到下扫描（如果左右交叉时，则从右到左）"""
-            ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
-            rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
-            if (ry1 > 0.75 or ry2 > 0.75) and (rx1 < 0.25 and rx2 < 0.25):
-                return b['x'] - a['x']
+        def cmp_small(a, b):
+            side2int = dict(left=3, center=2, right=1)
+            if a['side'] != b['side']:
+                return side2int.get(a['side']) - side2int.get(b['side'])
             else:
                 return a['y'] - b['y']
 
-        def get_column(col_id):
-            cols = [c for c in columns if c['column_id'] == col_id]
-            return cols and cols[0]
+        def is_narrow_column(col_id):
+            return column_dict.get(col_id)['w'] <= nm_cl_w * 0.6
 
-        def is_narrow_column(col):
-            return col['w'] <= normal_w * 0.6
+        def is_hr_neighbor(a, b):
+            ry1, ry2 = cls.get_box_overlap(a, b, 'y')[1:]
+            rx1, rx2 = cls.get_box_overlap(a, b, 'x')[1:]
+            # 二者在y轴有交叉，x轴交叉不大，则认为是水平邻居
+            if (ry1 > 0.25 or ry2 > 0.25) and (rx1 < 0.25 and rx2 < 0.25):
+                return True
 
-        def params():
-            """ 计算正常字框的宽度、高度和面积"""
-            wc = sorted([c['w'] for c in chars], reverse=True)
-            big_w = wc[2] if len(wc) > 3 else wc[1] if len(wc) > 2 else wc[1]
-            normal_chars = [c for c in chars if c['w'] > big_w * 0.75]
-            ws = [c['w'] for c in normal_chars]
-            w = round(sum(ws) / len(ws), 2)
-            hs = [c['h'] for c in normal_chars]
-            h = round(sum(hs) / len(hs), 2)
-            rs = [c['w'] * c['h'] for c in normal_chars]
-            r = round(sum(rs) / len(rs), 2)
-            return w, h, r
+        def init_params():
+            # 计算正常字框的宽度、高度和面积
+            ch = sorted([c['w'] for c in chars], reverse=True)
+            big_ch = ch[2] if len(ch) > 3 else ch[1] if len(ch) > 2 else ch[1] if len(ch) > 1 else ch[0]
+            normal_chars = [c for c in chars if big_ch * 0.75 < c['w'] <= big_ch]
+            ch_ws = [c['w'] for c in normal_chars]
+            ch_w = round(sum(ch_ws) / len(ch_ws), 2)
+            ch_hs = [c['h'] for c in normal_chars]
+            ch_h = round(sum(ch_hs) / len(ch_hs), 2)
+            ch_as = [c['w'] * c['h'] for c in normal_chars]
+            ch_a = round(sum(ch_as) / len(ch_as), 2)
+            # 计算正常列框的宽度
+            cl = sorted([c['w'] for c in columns], reverse=True)
+            big_cl = cl[2] if len(cl) > 3 else cl[1] if len(cl) > 2 else cl[1] if len(cl) > 1 else cl[0]
+            normal_columns = [c for c in columns if big_cl * 0.75 < c['w'] <= big_cl]
+            cl_ws = [c['w'] for c in normal_columns]
+            cl_w = round(sum(cl_ws) / len(cl_ws), 2)
+            return ch_w, ch_h, ch_a, cl_w
 
-        def set_properties():
-            """ 设置column_id以及各种属性"""
-            # 初步检查、设置参数
+        def get_side_and_ratio(ch, col_chars, col_range):
+            """ 计算字框的位置和列宽的占比"""
+            nb_chars = [(c, abs(c['y'] - ch['y'])) for c in col_chars if c['hr_nbs']]
+            if nb_chars:  # 先以最近的并排夹注小字的作为参照
+                nb_ch = sorted(nb_chars, key=itemgetter(1))[0][0]
+                out_range = cls.get_outer_range(nb_ch['hr_nbs'] + [nb_ch])
+            else:  # 次以整列的外包络作为参照
+                out_range = col_range
+            r_w = cls.line_overlap((out_range['x'], out_range['x'] + out_range['w']), (ch['x'], ch['x'] + ch['w']))[1]
+            cen_line = out_range['x'] + out_range['w'] * 0.5
+            ch['side'] = 'left' if ch['x'] + ch['w'] * 0.5 < cen_line else 'right'
+            cen_interval = out_range['x'] + out_range['w'] * 0.25, out_range['x'] + out_range['w'] * 0.75
+            r1, r2 = cls.line_overlap(cen_interval, (ch['x'], ch['x'] + ch['w']))[1:]
+            if r2 > 0.99 or r1 > 0.99 or (r1 > 0.8 and r1 + r2 > 1.6):
+                ch['side'] = 'center'
+            return ch['side'], r_w
+
+        def set_column_id():
+            # 初步设置column_id和size参数
             for c in chars:
-                r = c['w'] / normal_w
-                a = c['w'] * c['h'] / normal_a
-                c['size'] = 'big' if r > 0.85 or a > 0.75 else 'small' if r < 0.6 or a < 0.45 else 'median'
-                in_columns = [col for col in columns if cls.box_overlap(c, col, True)]
+                r = c['w'] / nm_ch_w
+                a = (c['w'] * c['h']) / nm_ch_a
+                c['size'] = 'big' if r > 0.85 and a > 0.65 else 'small' if r < 0.55 and a < 0.35 else 'median'
+                in_columns = [col for col in columns if cls.box_overlap(c, col)[1] > 0.25]
                 if not in_columns:
                     c['column_id'] = 'b0c0'
                 elif len(in_columns) == 1:
-                    c['column'] = in_columns[0]
-                    c['column_id'] = c['column']['column_id']
+                    c['column_id'] = in_columns[0]['column_id']
                 else:
-                    # 字框在多列时，根据字框面积主要落在哪列设置column_id，另一列设置为column_id2
+                    # 字框在多列时，根据字框面积主要落在哪列设置column_id
                     in_columns = [(cls.box_overlap(c, col)[1], col) for col in in_columns]
-                    in_columns.sort(key=itemgetter(0))
-                    c['column'] = in_columns[-1][1]
-                    c['column_id'] = c['column']['column_id']
-                    c['column2'] = in_columns[0][1]
-                    c['column_id2'] = c['column2']['column_id']
+                    in_columns.sort(key=itemgetter(0), reverse=True)
+                    c['column_id'] = in_columns[0][1]['column_id']
+                    c['column_id2'] = in_columns[1][1]['column_id']
 
-            # 检查、调整小字字框落在多列的情况
+            # 进一步调整字框落在多列的情况
             if detect_col:
                 for c in chars:
-                    if c.get('column_id2') and not is_narrow_column(c['column']) and c['size'] == 'small':
-                        # 检查c在两列的水平邻居
-                        x = min(c['column']['x'], c['column2']['x'])
-                        w = max(c['column']['x'] + c['column']['w'], c['column2']['x'] + c['column2']['w']) - x
-                        hr_neighbors = cls.get_boxes_of_region(chars, dict(x=x, y=c['y'], w=w, h=c['h']), 0.25)
-                        hr_neighbors1 = [ch for ch in hr_neighbors if ch['column_id'] == c['column_id']]
-                        hr_neighbors2 = [ch for ch in hr_neighbors if ch['column_id'] == c['column_id2']]
-                        big1 = [c['column_id'] for c in hr_neighbors1 if c['size'] == 'big']
-                        big2 = [c['column_id'] for c in hr_neighbors2 if c['size'] == 'big']
-                        # 如果另一列有两个字或有大字
-                        if len(hr_neighbors2) >= 2 or len(big2) >= 1:
-                            continue
-                        # 如果本列包括自己超过三个字或有大字
-                        if len(hr_neighbors1) > 3 or len(big1) >= 1:
-                            c['column_id'] = c['column_id2']
-                            continue
+                    if c.get('column_id2') and not is_narrow_column(c['column_id']) and c['size'] != 'big':
                         # 如果有上邻居，就随上邻居
-                        region = dict(x=c['x'], y=c['y'] - normal_h, w=c['w'], h=normal_h)
-                        up_neighbors = cls.get_boxes_of_region(chars, region, 0.1)
-                        up_neighbors = [ch for ch in up_neighbors if c['y'] - ch['y'] - ch['h'] > 0]
-                        up_neighbors = [(cls.box_overlap(region, ch)[1], ch) for ch in up_neighbors]
-                        up_neighbors.sort(key=itemgetter(0))
-                        if up_neighbors and c['column_id'] != up_neighbors[-1][1]['column_id']:
+                        region = dict(x=c['x'], y=c['y'] - nm_ch_h, w=c['w'], h=nm_ch_h)
+                        up_nbs = cls.get_boxes_of_region(chars, region, 0.1, set_ratio=True)
+                        up_nbs = [ch for ch in up_nbs if c['y'] > ch['y'] and cls.get_box_overlap(c, ch, 'x')[1] > 0.5]
+                        if up_nbs:
+                            up_nbs.sort(key=itemgetter('ratio'))
+                            c['column_id'] = up_nbs[-1]['column_id']
+                            cls.pop_fields(up_nbs, 'ratio')
+                            continue
+                        # 没有上邻居，就检查两列的水平邻居
+                        column1 = column_dict.get(c['column_id'])
+                        column2 = column_dict.get(c['column_id2'])
+                        x = min(column1['x'], column2['x'])
+                        w = max(column1['x'] + column1['w'], column2['x'] + column2['w']) - x
+                        hr_nbs = cls.get_boxes_of_region(chars, dict(x=x, y=c['y'], w=w, h=c['h']), 0.1)
+                        hr_nbs2 = [ch for ch in hr_nbs if ch['column_id'] == c['column_id2']]
+                        hr_nbs1 = [ch for ch in hr_nbs if ch['column_id'] == c['column_id']]
+                        # 比较把c放过去之后两列的水平宽度
+                        hr_w1 = cls.get_outer_range(hr_nbs1)['w']
+                        hr_w2 = cls.get_outer_range(hr_nbs2 + [c])['w']
+                        # 如果放在另一列的宽度更窄，则移过去
+                        if hr_w2 < hr_w1:
                             c['column_id'] = c['column_id2']
 
             # 根据column_id分组
@@ -310,122 +286,126 @@ class BoxOrder(object):
                 cols_chars[col_id] = cols_chars[col_id] if cols_chars.get(col_id) else []
                 cols_chars[col_id].append(c)
 
-            # 设置y_overlap参数
-            for col_id, col_chars in cols_chars.items():
-                for i, c in enumerate(col_chars):
-                    y_cast_length = cls.get_cast_length(col_chars, (c['y'], c['y'] + c['h']), 'y')
-                    c['y_overlap'] = (y_cast_length - c['h']) / c['h']
-
-            # 初步设置side参数
-            for col_id, col_chars in cols_chars.items():
-                if col_id != 'b0c0':
-                    col = get_column(col_id)
-                    for i, c in enumerate(col_chars):
-                        cen_line = col['x'] + col['w'] * 0.5
-                        c['side'] = 'left' if c['x'] + c['w'] * 0.5 < cen_line else 'right'
-                        cen_interval = col['x'] + col['w'] * 0.25, col['x'] + col['w'] * 0.75
-                        r1, r2 = cls.line_overlap(cen_interval, (c['x'], c['x'] + c['w']))[1:]
-                        if r1 > 0.9 or r2 > 0.99 or (r1 > 0.85 and r2 > 0.85) or (r1 > 0.80 and r2 > 0.9):
-                            c['side'] = 'center'
-
-            # 针对独立小字，根据它之前的字框来调整，以适应列倾斜的情况
-            for col_id, col_chars in cols_chars.items():
-                if col_id != 'b0c0':
-                    col = get_column(col_id)
-                    for i, c in enumerate(col_chars):
-                        if c['size'] == 'small' and c['y_overlap'] < 0.25:
-                            region = dict(x=col['x'], y=c['y'] - normal_h / 2, w=col['w'], h=normal_h / 2)
-                            up_neighbors = cls.get_boxes_of_region(col_chars, region, 0.25)
-                            if up_neighbors and (len(up_neighbors) > 1 or up_neighbors[0]['side'] == 'center'):
-                                up_range = cls.get_outer_range(up_neighbors)
-                                interval = up_range['x'] + up_range['w'] * 0.25, up_range['x'] + up_range['w'] * 0.75
-                                r1, r2 = cls.line_overlap(interval, (c['x'], c['x'] + c['w']))[1:]
-                                if r1 > 0.9 or (r1 > 0.85 and r2 > 0.85):
-                                    c['side'] = 'center'
-
             return cols_chars
 
-        def check_small_note():
-            """ 检查字框是否为夹注小字"""
-            for col_id, col_chars in columns_chars.items():
-                if col_id == 'b0c0':
-                    continue
-
-                col = get_column(col_id)
-                if is_narrow_column(col):
-                    cls.set_field(col_chars, 'is_small', True)
-                    continue
-
-                for i, c in enumerate(col_chars):
-                    c['is_small'] = None
-                    if c['size'] == 'big' and c['side'] != 'right' and c['y_overlap'] < 0.25:
-                        c['is_small'] = False
-                    elif c['size'] == 'median' and c['side'] != 'right' and c['y_overlap'] < 0.15:
-                        c['is_small'] = False
-                    elif c['size'] == 'small' and c['side'] == 'center' and c['y_overlap'] < 0.1:
-                        region = dict(x=col['x'], y=c['y'] - normal_h / 2, w=col['w'], h=normal_h / 2)
-                        up_neighbors = cls.get_boxes_of_region(col_chars, region, 0.25)
-                        sm_neighbors = [c for c in up_neighbors if c['size'] != 'big']
-                        if not up_neighbors or len(sm_neighbors) == 2:
-                            c['is_small'] = False
-                        elif len(up_neighbors) == 1 and up_neighbors[0]['is_small'] is False:
-                            c['is_small'] = False
-
         def scan_and_order():
-            """ 针对每列字框从上到下排序，针对连续的夹注小字时，先分列，列内上下排序，列间左右排序"""
-            for col_id, col_chars in columns_chars.items():
-                if col_id == 'b0c0':
-                    cls.horizontal_scan_and_order(col_chars, 'char_no', 0.6)
-                    continue
-
-                col = get_column(col_id)
-                if is_narrow_column(col):
-                    cls.horizontal_scan_and_order(col_chars, 'char_no', 0.6)
-                    continue
-
-                ordered_chars, small_list = [], []
-                for c in col_chars:
-                    if c['is_small'] is not False:
-                        small_list.append(c)
-                    else:
-                        if not small_list:  # 连续的大字
-                            ordered_chars.append(c)
-                        else:  # 从小字切换为大字
-                            cls.scan_small_and_order(small_list)
-                            ordered_chars.extend(small_list)
-                            ordered_chars.append(c)
-                            small_list = []
-                if small_list:
-                    cls.scan_small_and_order(small_list)
-                    ordered_chars.extend(small_list)
-
-                for i, c in enumerate(ordered_chars):
+            # 检查是否为b0c0或是窄列
+            if column_id == 'b0c0' or is_narrow_column(column_id):
+                column_chars.sort(key=cmp_to_key(cls.cmp_up2down))
+                for i, c in enumerate(column_chars):
                     c['char_no'] = i + 1
+                return
 
-                columns_chars[col_id] = ordered_chars
+            # 初步检查、设置字框的水平邻居
+            col_len = len(column_chars)
+            for i, c in enumerate(column_chars):
+                c['hr_nbs'] = c['hr_nbs'] if c.get('hr_nbs') else []
+                for j in range(1, 5):  # 往后找4个节点
+                    n = column_chars[i + j] if i < col_len - j else {}
+                    if n and is_hr_neighbor(c, n):
+                        n['hr_nbs'] = n['hr_nbs'] if n.get('hr_nbs') else []
+                        c['hr_nbs'].append(n)
+                        n['hr_nbs'].append(c)
+
+            # 进一步检查水平邻居中的上下关系
+            for i, c in enumerate(column_chars):
+                hr_nbs = c['hr_nbs']
+                if not hr_nbs or len(hr_nbs) < 2:
+                    continue
+                res_nbs, handled = [], []
+                for b in hr_nbs:
+                    if b['cid'] not in handled:
+                        # 从所有水平邻居中找出和b有上下关系的节点
+                        dup_nbs = [n for n in hr_nbs if cls.get_box_overlap(b, n, 'x')[1] > 0.25]
+                        # 从上下关系的节点中选择和c在y轴上重复度最大的节点
+                        nb = sorted([(cls.get_box_overlap(c, n, 'y')[1], n) for n in dup_nbs], key=itemgetter(0))[-1]
+                        res_nbs.append(nb[1])
+                        handled.extend([n['cid'] for n in dup_nbs])
+                c['hr_nbs'] = res_nbs
+
+            # 检查最多的水平邻居数，以此判断是否有小字以及小字的列数
+            max_nb_cnt = max([len(c.get('hr_nbs') or []) for c in column_chars])
+            if max_nb_cnt == 0:  # 整列无水平邻居，则直接排序、返回
+                column_chars.sort(key=cmp_to_key(cls.cmp_up2down))
+                for i, c in enumerate(column_chars):
+                    c['char_no'] = i + 1
+                return
+
+            # 检查、设置是否夹注小字
+            col_range = cls.get_outer_range(column_chars)
+            for c in column_chars:
+                if c['hr_nbs']:
+                    c['is_small'] = True
+                    continue
+                if c['size'] == 'big':
+                    c['is_small'] = False
+                    continue
+                side, r_w = get_side_and_ratio(c, column_chars, col_range)  # r_w为字宽占附近列宽的比例
+                if side == 'center':
+                    if r_w > 0.6 or c['size'] == 'median':
+                        c['is_small'] = False
+                    else:  # 居中小字
+                        c['is_small'] = True
+                        # 如果下邻居也无左右邻居且大小和位置跟自己差不多，则是连续的非夹注小字
+                        dn_region = dict(x=c['x'], y=c['y'] + c['h'], w=c['w'], h=nm_ch_h)
+                        dn_nbs = cls.get_boxes_of_region(column_chars, dn_region, 0.25)
+                        if dn_nbs:
+                            dnb = sorted(dn_nbs, key=itemgetter('y'))[0]
+                            n_side, r_n = get_side_and_ratio(dnb, column_chars, col_range)
+                            if not dnb['hr_nbs'] and n_side == 'center' and r_n < 0.6:
+                                c['is_small'] = False
+                else:
+                    if r_w > 0.75:
+                        c['is_small'] = False
+                    elif r_w < 0.5:
+                        c['is_small'] = True
+                    else:  # 不居中的中号字
+                        c['is_small'] = True
+                        up_region = dict(x=c['x'], y=c['y'] - nm_ch_h, w=c['w'], h=nm_ch_h)
+                        up_nbs = cls.get_boxes_of_region(column_chars, up_region, 0.25)
+                        if up_nbs:  # 随上邻居
+                            unb = sorted(up_nbs, key=itemgetter('y'))[-1]
+                            c['is_small'] = unb['is_small']
+
+            # 检查、设置左右位置，以便排序
+            for c in column_chars:
+                if c['is_small'] and not c.get('side'):
+                    get_side_and_ratio(c, column_chars, col_range)
+
+            # 针对连续的夹注小字重新排序
+            small_start = None
+            for i, c in enumerate(column_chars):
+                if c['is_small']:
+                    if small_start is None:
+                        small_start = i
+                    nex = column_chars[i + 1] if i < len(column_chars) - 1 else {}
+                    if not nex.get('is_small') or not nex:
+                        if max_nb_cnt == 1 and i - small_start >= 5:
+                            ordered = sorted(column_chars[small_start: i + 1], key=cmp_to_key(cmp_small))
+                        else:
+                            ordered = sorted(column_chars[small_start: i + 1], key=cmp_to_key(cls.cmp_right2left))
+                        column_chars[small_start: i + 1] = ordered
+                        small_start = None
 
         assert chars
-        assert small_direction in [None, 'down', 'left', '']
+        assert small_direction in [None, '', 'down', 'left']
         small_direction = 'down' if not small_direction else small_direction
-        cls.pop_fields(chars, 'column,column2,column_id,column_id2,side,y_overlap,size,is_small')
-
-        normal_w, normal_h, normal_a = params()
-        columns_chars = set_properties()
-        for column_id, column_chars in columns_chars.items():
-            column_chars.sort(key=cmp_to_key(cmp))
-            for i, c in enumerate(column_chars):
-                c['char_no'] = i + 1
-        if small_direction == 'down':
-            check_small_note()
-            scan_and_order()
+        cls.pop_fields(chars, 'column_id,column_id2,char_no,hr_nbs,side,size,is_small')
 
         ret_chars = []
+        column_dict = {c['column_id']: c for c in columns}
+        nm_ch_w, nm_ch_h, nm_ch_a, nm_cl_w = init_params()
+        columns_chars = set_column_id()
         for column_id, column_chars in columns_chars.items():
-            for c in column_chars:
-                c['block_no'] = int(c['column_id'][1])
-                c['column_no'] = int(c['column_id'][3:])
-                c['char_id'] = '%sc%s' % (c['column_id'], c['char_no'])
+            column_chars.sort(key=cmp_to_key(cls.cmp_up2down))
+            if small_direction == 'down':
+                scan_and_order()
+            for i, c in enumerate(column_chars):
+                c['char_no'] = i + 1
+                c['block_no'] = int(column_id[1])
+                c['column_no'] = int(column_id[3:])
+                c['char_id'] = '%sc%s' % (column_id, i + 1)
             ret_chars.extend(column_chars)
 
-        cls.pop_fields(ret_chars, 'column,column2,column_id,column_id2,side,y_overlap')
+        cls.pop_fields(ret_chars, 'column_id,column_id2,hr_nbs,side')
         return ret_chars

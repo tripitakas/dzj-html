@@ -43,6 +43,7 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
         return True
 
     db = pymongo.MongoClient(uri)[db_name]
+    debug_name = ''
     cnt = 0
     handled = []
     invalid_order = []
@@ -50,10 +51,11 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
         cnt += 1
         project = {k: 1 for k in ['name', 'chars', 'blocks', 'columns']}
         condition = {'source': {'$regex': '1200'}, 'name': {'$nin': handled}}
+        if debug_name:
+            condition = {'name': debug_name}
         pages = list(db.page.find(condition, project).limit(10))
         if not pages:
             break
-
         for p in pages:
             handled.append(p['name'])
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p['name']))
@@ -63,12 +65,15 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
             new_chars_col = PageTool.get_chars_col(chars)
             if not cmp_chars_col(old_chars_col, new_chars_col):
                 invalid_order.append(p['name'])
-                print('invalid:', p['name'])
+                # print('invalid:', p['name'])
+        if debug_name:
+            break
+
     print(invalid_order)
 
 
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(check_box_cover)
+    fire.Fire(check_chars_col)
     print('finished!')

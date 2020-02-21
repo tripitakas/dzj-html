@@ -100,7 +100,7 @@
         <div class="btn-group back">
           <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()" title="返回"/>
         </div>
-        <div class="btn-group title" title="{{page['name']}}">
+        <div class="btn-group title" style="user-select: text">
           <a href="/data/page/info/{{page['name']}}">{{page['name']}}</a>
         </div>
       </div>
@@ -184,7 +184,7 @@
         <div class="bd">
           {% for i, (field, txt, label) in enumerate(texts) %}
           <div class="sutra-text {{field}} {{'' if (which in fields and field == which) or (which not in fields and i == 0) else 'hide'}}">
-            <textarea class="form-control" rows="{{len(txt.split('|'))+3}}" {{'readonly' if field == 'text' and page.get('txt_html') else ''}}>{% raw txt.replace('|', '\n') %}</textarea>
+            <textarea class="form-control" rows="200" {{'readonly' if field == 'text' and page.get('txt_html') else ''}}>{% raw txt.replace('|', '\n') %}</textarea>
           </div>
           {% end %}
         </div>

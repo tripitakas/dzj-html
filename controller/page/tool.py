@@ -118,9 +118,9 @@ class PageTool(BoxOrder):
         ret = []
         cid_col = [chars[0]['cid']]
         for i, c in enumerate(chars[1:]):
-            cur_no = c.get('column_no')
-            pre_no = chars[i].get('column_no')
-            if cur_no is not None and pre_no is not None and cur_no != pre_no:  # 换行
+            column_id1 = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
+            column_id2 = 'b%sc%s' % (chars[i].get('block_no'), chars[i].get('column_no'))
+            if column_id1 != column_id2:  # 换行
                 ret.append(cid_col)
                 cid_col = [c['cid']]
             else:

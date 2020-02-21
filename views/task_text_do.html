@@ -146,7 +146,7 @@
     <!--/.pfread-dialog-->
   </div>
   <div class="bd sutra-txt hide">
-    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="100"></textarea>
+    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
   </div>
 </div>
 <!--/.right-->
@@ -292,7 +292,7 @@
     $.cut.bindKeys();
   }
 
-  setTimeout(createPage, 1000);
+  createPage();
   $('#holder-container').focus();
 
   // 获取任务数据
