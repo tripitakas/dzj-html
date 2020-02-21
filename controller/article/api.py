@@ -112,8 +112,8 @@ class UploadImageApi(BaseHandler):
     def resize_image(filename, width=0, height=0):
         im = Image.open(filename)
         w, h = im.size
-        width = width or 1024
-        height = height or 768
+        width = width or 2048
+        height = height or 1500
         if w > width or h > height:
             if w > width:
                 h = round(width * h / w)
