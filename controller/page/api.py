@@ -45,9 +45,9 @@ class CutTaskApi(PageHandler):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         self.update_task(self.data.get('submit'))
         if not self.cmp_cids(self.page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='字框有增减，请刷新页面')
+            return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
         if len(self.data['chars_col']) != len(self.page['columns']):
-            return self.send_error_response(e.col_not_identical, message='列框有增减，请修正')
+            return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
         chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
         self.update_my_doc(dict(chars=chars, chars_col=self.data['chars_col']))
         self.send_data_response()
@@ -81,9 +81,9 @@ class CutEditApi(PageHandler):
     def save_order(self, page_name):
         self.validate(self.data, [(v.not_empty, 'chars_col')])
         if not self.cmp_cids(self.page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='字框有增减，请刷新页面')
+            return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
         if len(self.data['chars_col']) != len(self.page['columns']):
-            return self.send_error_response(e.col_not_identical, message='列框有增减，请修正')
+            return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
         chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
         update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
