@@ -526,7 +526,7 @@ function checkMismatch(report, fromApi) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     }
   });
-  $.cut.updateText();
+  $.cut.updateText && $.cut.updateText();
   workChanged = oldChanged;
   if (report) {
     if (mismatch.length) {
