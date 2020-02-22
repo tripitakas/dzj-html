@@ -76,6 +76,8 @@ role_route_maps = {
             '/api/task/text_select/@page_name': ['POST'],
             '/api/task/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
+            '/data/cut_view/@page_name': ['GET'],
+            '/data/text_view/@page_name': ['GET'],
         }
     },
     '切分校对员': {
@@ -87,7 +89,6 @@ role_route_maps = {
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
             '/api/data/unlock/box/@page_name': ['POST'],
-            '/data/cut_view/@page_name': ['GET'],
         }
     },
     '切分审定员': {
@@ -152,6 +153,18 @@ role_route_maps = {
             '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
+    'OCR加工员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api/task/init': ['POST'],
+            '/task/(lobby|my)/@ocr_task': ['GET'],
+            '/api/task/pick/@ocr_task': ['POST'],
+            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
+            '/api/task/submit/@ocr_task': ['POST'],
+            '/api/data/@metadata/upload': ['POST'],
+        }
+    },
     '任务浏览员': {
         'is_assignable': True,
         'roles': ['普通用户'],
@@ -178,18 +191,6 @@ role_route_maps = {
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
-    '数据处理员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/api/task/init': ['POST'],
-            '/task/(lobby|my)/@ocr_task': ['GET'],
-            '/api/task/pick/@ocr_task': ['POST'],
-            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
-            '/api/task/submit/@ocr_task': ['POST'],
-            '/api/data/@metadata/upload': ['POST'],
-        }
-    },
     '数据管理员': {
         'is_assignable': True,
         'roles': ['普通用户', '数据处理员'],
@@ -203,13 +204,10 @@ role_route_maps = {
             '/api/data/@metadata/delete': ['POST'],
         }
     },
-    '系统管理员': {
+    '文章管理员': {
         'is_assignable': True,
         'roles': ['普通用户'],
         'routes': {
-            '/api': ['GET'],
-            '/api/code/(.+)': ['GET'],
-            '/admin/script': ['GET'],
             '/article': ['GET'],
             '/article/add': ['GET'],
             '/article/@article_id': ['GET'],
@@ -226,6 +224,15 @@ role_route_maps = {
             '/user/admin/role': ['GET'],
             '/api/user/admin': ['POST'],
             '/api/user/admin/(delete|role|reset_pwd)': ['POST'],
+        }
+    },
+    '系统管理员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api': ['GET'],
+            '/api/code/(.+)': ['GET'],
+            '/admin/script': ['GET'],
         }
     },
 

@@ -178,7 +178,7 @@ class AddPage(object):
             print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
 
             if self.reorder:
-                meta['blocks'], meta['columns'], meta['chars'] = PageTool.re_calc_id(page=meta)
+                meta['blocks'], meta['columns'], meta['chars'] = PageTool.reorder_boxes(page=meta)
 
             if exist and self.update:
                 meta.pop('create_time', 0)

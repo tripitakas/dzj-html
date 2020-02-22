@@ -100,7 +100,7 @@
         <div class="btn-group back">
           <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()" title="返回"/>
         </div>
-        <div class="btn-group title" title="{{page['name']}}">
+        <div class="btn-group title" style="user-select: text">
           <a href="/data/page/info/{{page['name']}}">{{page['name']}}</a>
         </div>
       </div>
@@ -121,7 +121,7 @@
         </div>
         <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img" id="toggle-more" title="更多"/>
         <div class="btn-group hidden" id="more-group">
-          <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改字框</button>
+          <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改切分</button>
           <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">修改字序</button>
           <button type="button" class="btn btn-default btn-sm" id="btn-ed-text">审定文本</button>
         </div>
@@ -184,7 +184,7 @@
         <div class="bd">
           {% for i, (field, txt, label) in enumerate(texts) %}
           <div class="sutra-text {{field}} {{'' if (which in fields and field == which) or (which not in fields and i == 0) else 'hide'}}">
-            <textarea class="form-control" rows="{{len(txt.split('|'))+3}}" {{'readonly' if field == 'text' and page.get('txt_html') else ''}}>{% raw txt.replace('|', '\n') %}</textarea>
+            <textarea class="form-control" rows="200" {{'readonly' if field == 'text' and page.get('txt_html') else ''}}>{% raw txt.replace('|', '\n') %}</textarea>
           </div>
           {% end %}
         </div>

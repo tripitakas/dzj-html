@@ -429,6 +429,10 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
+$('.line > span').on('keydown', function () {
+  highlightBox($(this));
+});
+
 function findSpanByOffset($li, offset) {
   var ret = [null, 0];
   $li.find('span').each(function (i, item) {
@@ -488,7 +492,7 @@ function checkMismatch(report, fromApi) {
 
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
-    if (c.shape && c.column_no) {
+    if (c.shape && c.column_no && (!c.class || c.class === 'char')) {
       var t = c.block_no + ',' + c.column_no;
       if (ocrColumns.indexOf(t) < 0) {
         ocrColumns.push(t);
@@ -501,6 +505,7 @@ function checkMismatch(report, fromApi) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
     mismatch.splice(0, 0, lineCountMisMatch);
   }
+  var oldChanged = workChanged;
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = getLine(no.blockNo, no.lineNo);
@@ -509,13 +514,20 @@ function checkMismatch(report, fromApi) {
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length === len) {
       $line.removeAttr('mismatch');
+      boxes.forEach(function(c, i) {
+        (c._char || {}).txt = c.txt = text[i];
+      });
     } else {
-      $line.attr({mismatch: boxes.length + '!=' + len});
+      $line.attr({mismatch: boxes.length + '!=' + len
+        + ': ' + boxes.map(function(c) { return c.txt; }).join('') + ' -> ' + text.join('')
+      });
     }
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     }
   });
+  $.cut.updateText && $.cut.updateText();
+  workChanged = oldChanged;
   if (report) {
     if (mismatch.length) {
       var text = mismatch.map(function (t) {
@@ -533,6 +545,7 @@ function checkMismatch(report, fromApi) {
 // 调用后台API，根据文本行内容识别宽字符
 function updateWideChars(lineNos, ended) {
   var texts = [];
+  var oldChanged = workChanged;
   lineNos.forEach(function (no) {
     var $line = getLine(no.blockNo, no.lineNo);
     var spans = [];
@@ -555,6 +568,7 @@ function updateWideChars(lineNos, ended) {
         }
       });
     });
+    workChanged = oldChanged;
     ended();
   }, ended);
 }
@@ -581,9 +595,7 @@ $(document).on('paste', 'span', function (e) {
 $('#sutra-text').on('DOMSubtreeModified', markChanged);
 
 function markChanged() {
-  if (workChanged > 0) {
-    workChanged++;
-  }
+  workChanged++;
 }
 
 function autoSave(ended) {

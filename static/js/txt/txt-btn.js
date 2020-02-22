@@ -151,23 +151,35 @@ $('#zoom-reset').on('click', function () {
   highlightBox();
 });
 
-// 修改字框
-$('#ed-char-box').click(function () {
+// 修改切分
+$('#btn-ed-box').click(function () {
   autoSave(function () {
     location = '/data/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
   });
 });
 
+// 查看切分
+$('#btn-vw-box').click(function () {
+  location = '/data/cut_view/' + docId + '?step=box&from=' + encodeFrom();
+});
+
+
 // 修改字序
-$('#ed-char-order').click(function () {
+$('#btn-ed-order').click(function () {
   autoSave(function () {
     location = '/data/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
   });
 });
 
-$('#ed-char-txt').click(function () {
+// 查看字序
+$('#btn-vw-order').click(function () {
+  location = '/data/cut_view/' + docId + '?step=order&from=' + encodeFrom();
+});
+
+// 修改文本
+$('#btn-ed-txt').click(function () {
   autoSave(function () {
-    location = location.href.replace(/\?.+$/, '') + '?txt_mode=char';
+    location = location.href.replace(/\?.+$/, '') + '?txt_mode=char&step=proof';
   });
 });
 
