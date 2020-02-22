@@ -763,7 +763,7 @@
     findCharsByLine: function (block_no, line_no, cmp) {
       var i = 0;
       return data.chars.filter(function (c) {
-        if (c.block_no === block_no && c.column_no === line_no) {
+        if (c.block_no === block_no && c.column_no === line_no && (!c.class || c.class === 'char')) {
           return !cmp || cmp(c.txt, c, i++);
         }
       }).sort(function (a, b) {
