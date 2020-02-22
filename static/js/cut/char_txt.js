@@ -70,6 +70,7 @@ Array.min = Array.min || function(array) {
           var x = c._box.x + c.w / 2, y = c._box.y + c.h / 2;
           c._text = data.paper.text(x * ratio, y * ratio, c.txt)
             .attr({'font-size': $.cut.data.fontSize});
+          c._text.node.id = 't' + c.char_id;
         }
       });
     },
@@ -200,7 +201,9 @@ Array.min = Array.min || function(array) {
         });
         return r;
       });
-    }
+    },
+
+    updateText: createImageText
   });
 
   function createImageText() {

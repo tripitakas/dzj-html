@@ -510,13 +510,19 @@ function checkMismatch(report, fromApi) {
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length === len) {
       $line.removeAttr('mismatch');
+      boxes.forEach(function(c, i) {
+        (c._char || {}).txt = c.txt = text[i];
+      });
     } else {
-      $line.attr({mismatch: boxes.length + '!=' + len});
+      $line.attr({mismatch: boxes.length + '!=' + len
+        + ': ' + boxes.map(function(c) { return c.txt; }).join('') + ' -> ' + text.join('')
+      });
     }
     if (boxes.length !== len) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     }
   });
+  $.cut.updateText();
   workChanged = oldChanged;
   if (report) {
     if (mismatch.length) {
