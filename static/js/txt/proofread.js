@@ -429,6 +429,10 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
+$('.line > span').on('keydown', function () {
+  highlightBox($(this));
+});
+
 function findSpanByOffset($li, offset) {
   var ret = [null, 0];
   $li.find('span').each(function (i, item) {
@@ -488,7 +492,7 @@ function checkMismatch(report, fromApi) {
 
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
-    if (c.shape && c.column_no) {
+    if (c.shape && c.column_no && (!c.class || c.class === 'char')) {
       var t = c.block_no + ',' + c.column_no;
       if (ocrColumns.indexOf(t) < 0) {
         ocrColumns.push(t);
@@ -522,7 +526,7 @@ function checkMismatch(report, fromApi) {
       mismatch.push('第' + no.lineNo + '行#文本 ' + len + '字#图片' + boxes.length + '字');
     }
   });
-  $.cut.updateText();
+  $.cut.updateText && $.cut.updateText();
   workChanged = oldChanged;
   if (report) {
     if (mismatch.length) {
