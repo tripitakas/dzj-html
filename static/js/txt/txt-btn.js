@@ -8,14 +8,30 @@ $('#toggle-panel-no').on('click', function () {
   $(this).toggleClass('active');
   showOrder = $(this).hasClass('active');
   highlightBox();
+  localStorage.setItem('togglePanelNo', $(this).hasClass('active') ? '1' : '-1');
 });
+if (localStorage.getItem('togglePanelNo') === '1') {
+  showOrder = true;
+  $('#toggle-panel-no').addClass('active');
+} else {
+  showOrder = false;
+  $('#toggle-panel-no').removeClass('active');
+}
 
 // 显隐浮动面板的文本
 $('#toggle-panel-txt').on('click', function () {
   $(this).toggleClass('active');
   showText = $(this).hasClass('active');
   highlightBox();
+  localStorage.setItem('togglePanelTxt', $(this).hasClass('active') ? '1' : '-1');
 });
+if (localStorage.getItem('togglePanelTxt') !== '-1') {
+  showText = true;
+  $('#toggle-panel-txt').addClass('active');
+} else {
+  showText = false;
+  $('#toggle-panel-txt').removeClass('active');
+}
 
 // 增加浮动面板的字体
 $('#enlarge-panel-font').on('click', function () {
