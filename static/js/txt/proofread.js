@@ -429,6 +429,10 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
+$('.line > span').on('keydown', function () {
+  highlightBox($(this));
+});
+
 function findSpanByOffset($li, offset) {
   var ret = [null, 0];
   $li.find('span').each(function (i, item) {
