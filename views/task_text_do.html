@@ -7,25 +7,29 @@
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 {% include _font_css.html %}
 <style>
-  @media screen and (max-width:1100px){
+  @media screen and (max-width: 1100px) {
     #enlarge-font, #reduce-font {
       display: none;
     }
   }
-  @media screen and (max-width:1024px){
+
+  @media screen and (max-width: 1024px) {
     .m-header .title {
       display: none;
     }
   }
-  @media screen and (max-width:940px){
+
+  @media screen and (max-width: 940px) {
     #enlarge-panel-font, #reduce-panel-font {
       display: none;
     }
   }
+
   #more-group {
     position: fixed;
     top: 40px;
   }
+
   #more-group > button:first-child {
     margin-left: -30px;
   }
@@ -33,7 +37,6 @@
 {% end %}
 
 {% block buttons %}
-{% block left_buttons %}
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
   <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
@@ -51,25 +54,23 @@
 <div class="btn-group">
   <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
     {% if not handler.readonly %}
-    <button type="button" class="btn btn-default" id="btn-ed-box" title="修改字框、列框、栏框">修改切分</button>
-    <button type="button" class="btn btn-default" id="btn-ed-order" title="修改字序">修改字序</button>
+    <button type="button" class="btn btn-default" id="btn-ed-box">修改切分</button>
+    <button type="button" class="btn btn-default" id="btn-ed-order">修改字序</button>
     {% else %}
-    <button type="button" class="btn btn-default" id="btn-vw-box" title="查看字框、列框、栏框">查看切分</button>
-    <button type="button" class="btn btn-default" id="btn-vw-order" title="查看字序">查看字序</button>
+    <button type="button" class="btn btn-default" id="btn-vw-box">查看切分</button>
+    <button type="button" class="btn btn-default" id="btn-vw-order">查看字序</button>
     {% end %}
-    <button type="button" class="btn btn-default" id="btn-ed-txt" title="并列显示各列框和字框文本，单独改字">逐列校对</button>
   </div>
 </div>
-{% end %}
 <div class="btn-group right">
   <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
   <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>
   <div class="btn-txt" id="previous-diff" title="上一条异文"><</div>
   <div class="btn-txt" id="next-diff" title="下一条异文">></div>
   <div class="btn-txt btn-empty-place" id="toggle-empty-place" title="显示空位符">　</div>
-  <img src="{{static_url('imgs/icon_delete.png')}}" class="btn-img" id="delete-line" title="删除该行"/>
-  <img src="{{static_url('imgs/icon_add_up.png')}}" class="btn-img" id="add-up-line" title="向上增行"/>
-  <img src="{{static_url('imgs/icon_add_down.png')}}" class="btn-img" id="add-down-line" title="向下增行"/>
+  <img src="{{static_url('imgs/icon_delete.png')}}" class="btn-img hide" id="delete-line" title="删除该行"/>
+  <img src="{{static_url('imgs/icon_add_up.png')}}" class="btn-img hide" id="add-up-line" title="向上增行"/>
+  <img src="{{static_url('imgs/icon_add_down.png')}}" class="btn-img hide" id="add-down-line" title="向下增行"/>
   <img src="{{static_url('imgs/icon_doubt.png')}}" class="btn-img {{'hide' if 'text_hard' in handler.task_type else ''}}" id="save-doubt" title="存疑"/>
   <img src="{{static_url('imgs/icon_match.png')}}" class="btn-img" id="check-match" title="检查图文匹配"/>
   <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img {{'' if 'text_proof' in handler.task_type else 'hide'}}" id="re-compare" title="重新比对"/>
@@ -271,7 +272,6 @@
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
 <script src="{{static_url('js/txt/proofread.js')}}"></script>
 <script src="{{static_url('js/txt/txt-btn.js')}}"></script>
-{% block custom-cut-js %}{% end %}
 <script>
   // 页面图和切分框
   var canvasName = taskType + step + docId;
@@ -280,7 +280,6 @@
   var columns = decodeJSON('{{handler.page.get("columns", [])}}');
 
   function createPage() {
-    {% block create-board %}
     $.cut.create({
       readonly: true,
       name: canvasName,
@@ -291,7 +290,6 @@
       image: '{{handler.get_img(handler.page)}}',
       chars: chars
     });
-    {% end %}
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
     $.cut.switchCurrentBox(null);
