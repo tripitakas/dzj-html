@@ -492,7 +492,7 @@ function checkMismatch(report, fromApi) {
 
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
-    if (c.shape && c.column_no) {
+    if (c.shape && c.column_no && (!c.class || c.class === 'char')) {
       var t = c.block_no + ',' + c.column_no;
       if (ocrColumns.indexOf(t) < 0) {
         ocrColumns.push(t);
