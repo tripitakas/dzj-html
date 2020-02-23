@@ -114,11 +114,8 @@ function highlightBox($span, first, keyCode) {
   var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
-  if (keyCode === 39) {
-    offsetInSpan++;
-  } else if (keyCode === 37) {
-    offsetInSpan--;
-  }
+  offsetInSpan = offsetInSpan + (keyCode === 39 ? 1 : keyCode === 37 ? -1 : 0);
+  offsetInSpan = offsetInSpan || 1;
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
