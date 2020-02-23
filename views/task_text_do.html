@@ -75,7 +75,6 @@
   <img src="{{static_url('imgs/icon_match.png')}}" class="btn-img" id="check-match" title="检查图文匹配"/>
   <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img {{'' if 'text_proof' in handler.task_type else 'hide'}}" id="re-compare" title="重新比对"/>
   <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img {{'' if handler.texts else 'hide'}}" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
-  <div class="btn-txt btn-gap"></div>
 </div>
 {% end %}
 
