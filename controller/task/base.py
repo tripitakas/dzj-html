@@ -59,7 +59,8 @@ class TaskHandler(BaseHandler, Task, Lock):
             if self.mode in ['do', 'update']:
                 has_auth, self.error = self.check_task_auth(self.task)
                 if not has_auth:
-                    links = [('查看', self.request.uri.replace('/(do|update)/', '/'))]
+
+                    links = [('查看', re.sub('/(do|update)/', '/', self.request.uri))]
                     return self.send_error_response(self.error, links=links)
         # 检查数据
         self.doc_id = self.task.get('doc_id') or self.get_doc_id()
