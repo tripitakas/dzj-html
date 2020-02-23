@@ -20,8 +20,9 @@ except ImportError:
 
 
 class Diff(object):
-    base_junk_char = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
-    cmp_junk_char = r'[\-\.\{\}\(\),0-9a-zA-Z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
+    # YMN*等是校对符号，不要去掉
+    base_junk_char = r'[\-\.\{\}\(\),0-9a-z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…]'
+    cmp_junk_char = r'[\-\.\{\}\(\),0-9a-z_「」『』（）〈〉《》|，、：；。？！“”‘’—#Ω￥%&*◎…\s\n\f\t\v\u3000]'
 
     @classmethod
     def pre_base(cls, base, keep_line=True):
