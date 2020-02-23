@@ -60,11 +60,12 @@ function previousDiff() {
   var idx = $diff.index(current);
   if (idx < 1)
     return;
-
-  $diff.eq(idx - 1).click();
-  $diff.eq(idx - 1).dblclick();
-  if ($('.dialog-abs').offset().top < 50) {
-    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
+  $diff.eq(idx - 1).click().dblclick();
+  if ($('.dialog-abs').offset().top < 55) {
+    $('.right #sutra-text').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
+    setTimeout(function () {
+      $diff.eq(idx - 1).click().dblclick();
+    }, 500);
   }
 }
 
@@ -76,10 +77,12 @@ function nextDiff() {
   var current = $('.current-diff');
   var $diff = $('.pfread .right .diff');
   var idx = $diff.index(current);
-  $diff.eq(idx + 1).click();
-  $diff.eq(idx + 1).dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
-    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
+  $diff.eq(idx + 1).click().dblclick();
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#sutra-text').height()) {
+    $('.right #sutra-text').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
+    setTimeout(function () {
+      $diff.eq(idx + 1).click().dblclick();
+    }, 500);
   }
 }
 

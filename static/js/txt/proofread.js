@@ -96,7 +96,7 @@ function getCursorPosition(element) {
     preCaretRange.setEndPoint('EndToEnd', range);
     caretOffset = preCaretRange.text.length;
   }
-  return caretOffset;
+  return caretOffset + 1;
 }
 
 // 点击文字区域时，高亮与文字对应的字框
@@ -249,12 +249,12 @@ $(document).on('dblclick', '.diff', function (e) {
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
 
   // 当弹框超出文字框时，向上弹出
-  var r_h = $(".pfread .right").height();
+  var r_h = $(".pfread .right #sutra-text").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
-    $dlg.offset({top: $(this).offset().top - 180});
+    $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
 
@@ -514,12 +514,15 @@ function checkMismatch(report, fromApi) {
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length === len) {
       $line.removeAttr('mismatch');
-      boxes.forEach(function(c, i) {
+      boxes.forEach(function (c, i) {
         (c._char || {}).txt = c.txt = text[i];
       });
     } else {
-      $line.attr({mismatch: boxes.length + '!=' + len
-        + ': ' + boxes.map(function(c) { return c.txt; }).join('') + ' -> ' + text.join('')
+      $line.attr({
+        mismatch: boxes.length + '!=' + len
+            + ': ' + boxes.map(function (c) {
+              return c.txt;
+            }).join('') + ' -> ' + text.join('')
       });
     }
     if (boxes.length !== len) {
