@@ -96,11 +96,11 @@ function getCursorPosition(element) {
     preCaretRange.setEndPoint('EndToEnd', range);
     caretOffset = preCaretRange.text.length;
   }
-  return caretOffset + 1;
+  return caretOffset;
 }
 
 // 点击文字区域时，高亮与文字对应的字框
-function highlightBox($span, first) {
+function highlightBox($span, first, keyCode) {
   if (!$span) {
     $span = currentSpan[0];
     first = currentSpan[1];
@@ -114,6 +114,11 @@ function highlightBox($span, first) {
   var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
+  if (keyCode === 39) {
+    offsetInSpan++;
+  } else if (keyCode === 37) {
+    offsetInSpan--;
+  }
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
@@ -429,8 +434,9 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
-$('.line > span').on('keydown', function () {
-  highlightBox($(this));
+$('.line > span').on('keydown', function (e) {
+  var keyCode = e.keyCode || e.which;
+  highlightBox($(this), false, keyCode);
 });
 
 function findSpanByOffset($li, offset) {
