@@ -160,6 +160,8 @@ class PageTool(BoxOrder):
         """ 按照chars_col重排chars"""
         for col_cids in chars_col:
             col_chars = [c for c in chars if c['cid'] in col_cids]
+            if not col_chars:
+                continue
             cnt = Counter(['b%sc%s' % (c['block_no'], c['column_no']) for c in col_chars])
             column_id = cnt.most_common(1)[0][0]
             for char_no, cid in enumerate(col_cids):
