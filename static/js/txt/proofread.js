@@ -48,7 +48,7 @@ function getLineText($line) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
     }
-    var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
+    var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
@@ -96,11 +96,11 @@ function getCursorPosition(element) {
     preCaretRange.setEndPoint('EndToEnd', range);
     caretOffset = preCaretRange.text.length;
   }
-  return caretOffset + 1;
+  return caretOffset;
 }
 
 // 点击文字区域时，高亮与文字对应的字框
-function highlightBox($span, first) {
+function highlightBox($span, first, keyCode) {
   if (!$span) {
     $span = currentSpan[0];
     first = currentSpan[1];
@@ -114,6 +114,11 @@ function highlightBox($span, first) {
   var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
+  if (keyCode === 39) {
+    offsetInSpan++;
+  } else if (keyCode === 37) {
+    offsetInSpan--;
+  }
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
@@ -429,8 +434,9 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
-$('.line > span').on('keydown', function () {
-  highlightBox($(this));
+$('.line > span').on('keydown', function (e) {
+  var keyCode = e.keyCode || e.which;
+  highlightBox($(this), false, keyCode);
 });
 
 function findSpanByOffset($li, offset) {
@@ -555,7 +561,7 @@ function updateWideChars(lineNos, ended) {
     texts.push(spans);
     $line.find('span').each(function (i, el) {
       if ($(el).parent().prop('tagName') === 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
-        var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
+        var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
         spans.push(text);
       }
     });
