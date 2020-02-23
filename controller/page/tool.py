@@ -238,12 +238,17 @@ class PageTool(BoxOrder):
     def html2txt(cls, html):
         """ 从html中获取txt文本，换行用|、换栏用||表示"""
         txt = ''
+        html = re.sub('&nbsp;', '', html)
         regex1 = re.compile("<ul.*?>.*?</ul>", re.M | re.S)
         regex2 = re.compile("<li.*?>.*?</li>", re.M | re.S)
+        regex3 = re.compile("<span.*?</span>", re.M | re.S)
+        regex4 = re.compile("<span.*>(.*)</span>", re.M | re.S)
         for block in regex1.findall(html or ''):
             for line in regex2.findall(block or ''):
                 if 'delete' not in line:
-                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|<[^>]+>|\s)', '', line, flags=re.M | re.S)
+                    line_txt = ''
+                    for span in regex3.findall(line or ''):
+                        line_txt += ''.join(regex4.findall(span or ''))
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
