@@ -95,13 +95,15 @@ if ($('.pfread .right .diff').length < 1) {
 $('#delete-line').on('click', function () {
   var $curSpan = $('.current-span');
   if (!$curSpan.length) {
-    return showError('请点击文本行', '请先点击一行文本，然后删除。');
+    return showError('提示', '请先点击一行文本，然后再删除。');
   }
-  var $currentLine = $curSpan.parent(".line");
-  $currentLine.fadeOut(500).fadeIn(500);
-  setTimeout(function () {
-    $currentLine.remove();
-  }, 500);
+  showConfirm('删除', '确定删除当前行吗？', function () {
+    var $currentLine = $curSpan.parent(".line");
+    $currentLine.fadeOut(500).fadeIn(500);
+    setTimeout(function () {
+      $currentLine.remove();
+    }, 500);
+  }, true);
 });
 
 // 向上增行
