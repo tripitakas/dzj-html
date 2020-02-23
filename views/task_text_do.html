@@ -24,15 +24,6 @@
       display: none;
     }
   }
-
-  #more-group {
-    position: fixed;
-    top: 40px;
-  }
-
-  #more-group > button:first-child {
-    margin-left: -30px;
-  }
 </style>
 {% end %}
 
@@ -51,16 +42,14 @@
   <div class="btn-txt" id="reduce-panel-font" title="减少字号">A-</div>
   <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img" id="toggle-more" title="更多"/>
 </div>
-<div class="btn-group">
-  <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
-    {% if not handler.readonly %}
-    <button type="button" class="btn btn-default" id="btn-ed-box">修改切分</button>
-    <button type="button" class="btn btn-default" id="btn-ed-order">修改字序</button>
-    {% else %}
-    <button type="button" class="btn btn-default" id="btn-vw-box">查看切分</button>
-    <button type="button" class="btn btn-default" id="btn-vw-order">查看字序</button>
-    {% end %}
-  </div>
+<div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
+  {% if not handler.readonly %}
+  <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改切分</button>
+  <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">修改字序</button>
+  {% else %}
+  <button type="button" class="btn btn-default btn-sm" id="btn-vw-box">查看切分</button>
+  <button type="button" class="btn btn-default btn-sm" id="btn-vw-order">查看字序</button>
+  {% end %}
 </div>
 <div class="btn-group right">
   <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>

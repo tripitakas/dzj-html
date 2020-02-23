@@ -169,7 +169,7 @@
   word-break: break-all;
 }
 
-.sutra-text .line span:last-child {
+.sutra-text .line span:last-child(:not .empty-place) {
   padding-right: 10px;
   min-width: 20px;
   min-height: 40px;
