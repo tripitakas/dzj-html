@@ -7,7 +7,6 @@ from tornado.web import UIModule
 from tornado.escape import to_basestring
 from controller import errors as e
 from controller.page.base import PageHandler
-from controller.page.tool import PageTool
 
 
 class CutTaskHandler(PageHandler):
