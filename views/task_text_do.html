@@ -1,11 +1,39 @@
 {% extends "_task_do.html" %}
 
+{% block step_title %}{% end %}
+
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+{% include _font_css.html %}
+<style>
+  @media screen and (max-width:1100px){
+    #enlarge-font, #reduce-font {
+      display: none;
+    }
+  }
+  @media screen and (max-width:1024px){
+    .m-header .title {
+      display: none;
+    }
+  }
+  @media screen and (max-width:940px){
+    #enlarge-panel-font, #reduce-panel-font {
+      display: none;
+    }
+  }
+  #more-group {
+    position: fixed;
+    top: 40px;
+  }
+  #more-group > button:first-child {
+    margin-left: -30px;
+  }
+</style>
 {% end %}
 
 {% block buttons %}
+{% block left_buttons %}
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
   <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-left" title="显隐图片"/>
@@ -18,14 +46,21 @@
   <img src="{{static_url('imgs/icon_char_txt.png')}}" class="btn-img active" id="toggle-panel-txt" title="显隐浮动面板的文字"/>
   <div class="btn-txt" id="enlarge-panel-font" title="增加字号">A+</div>
   <div class="btn-txt" id="reduce-panel-font" title="减少字号">A-</div>
-  <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
-  <span class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="float: right">
-    <button type="button" class="btn btn-default btn-sm" id="ed-char-box" title="修改字框">字框</button>
-    <button type="button" class="btn btn-default btn-sm" id="ed-block-box" title="修改栏框">栏框</button>
-    <button type="button" class="btn btn-default btn-sm" id="ed-column-box" title="修改列框">列框</button>
-    <button type="button" class="btn btn-default btn-sm" id="ed-char-order" title="修改字序">字序</button>
-  </span>
+  <img src="{{static_url('imgs/icon_edit.png')}}" class="btn-img" id="toggle-more" title="更多"/>
 </div>
+<div class="btn-group">
+  <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
+    {% if not handler.readonly %}
+    <button type="button" class="btn btn-default" id="btn-ed-box" title="修改字框、列框、栏框">修改切分</button>
+    <button type="button" class="btn btn-default" id="btn-ed-order" title="修改字序">修改字序</button>
+    {% else %}
+    <button type="button" class="btn btn-default" id="btn-vw-box" title="查看字框、列框、栏框">查看切分</button>
+    <button type="button" class="btn btn-default" id="btn-vw-order" title="查看字序">查看字序</button>
+    {% end %}
+    <button type="button" class="btn btn-default" id="btn-ed-txt" title="并列显示各列框和字框文本，单独改字">逐列校对</button>
+  </div>
+</div>
+{% end %}
 <div class="btn-group right">
   <div class="btn-txt" id="enlarge-font" title="增加字号">A+</div>
   <div class="btn-txt" id="reduce-font" title="减少字号">A-</div>
@@ -50,7 +85,11 @@
 </div>
 <!--/.left-->
 <div class="right" id="right-region">
-  <div class="bd">
+  <div class="sutra-text-mode" id="toggle-text-mode">
+    <span class="html-edit" title="以纯文本方式修改内容"></span>
+    <span class="save-txt" title="应用此文本，切换到比对显示方式"></span>
+  </div>
+  <div class="bd sutra-html">
     <div class="sutra-text active" id="sutra-text">
       <div class="blocks">
         {% if isinstance(cmp_data, str) %}
@@ -61,6 +100,7 @@
       </div>
     </div>
     <!--/.sutra-text-->
+    {% if handler.doubts %}
     <div class="char-list doubt-list">
       <div class="char-list-tab">
         {% for i, doubt in enumerate(handler.doubts) %}
@@ -88,6 +128,7 @@
       </table>
       {% end %}
     </div>
+    {% end %}
     <!--/.doubt-list-->
     {% if handler.texts %}
     <div class="pfread-dialog" id="pfread-dialog">
@@ -110,6 +151,9 @@
     </div>
     {% end %}
     <!--/.pfread-dialog-->
+  </div>
+  <div class="bd sutra-txt hide">
+    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
   </div>
 </div>
 <!--/.right-->
@@ -223,10 +267,11 @@
 {% end %}
 
 {% block custom-js %}
-{% include _font.html %}
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/proof_keys.js')}}"></script>
-<script src="{{static_url('js/proofread.js')}}"></script>
+<script src="{{static_url('js/txt/proofread.js')}}"></script>
+<script src="{{static_url('js/txt/txt-btn.js')}}"></script>
+{% block custom-cut-js %}{% end %}
 <script>
   // 页面图和切分框
   var canvasName = taskType + step + docId;
@@ -235,6 +280,7 @@
   var columns = decodeJSON('{{handler.page.get("columns", [])}}');
 
   function createPage() {
+    {% block create-board %}
     $.cut.create({
       readonly: true,
       name: canvasName,
@@ -245,6 +291,8 @@
       image: '{{handler.get_img(handler.page)}}',
       chars: chars
     });
+    showText = true;  // 默认显示浮动条
+    {% end %}
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);
     $.cut.switchCurrentBox(null);
@@ -254,12 +302,9 @@
   createPage();
   $('#holder-container').focus();
 
-  // 默认显示浮动条
-  showText = true;
-
   // 获取任务数据
   function getSubmitData(submit) {
-    var txt_html = $('#sutra-text').html();
+    var txt_html = $('#sutra-text .block').parent().html();
     var doubt = $('.char-list-table.editable tbody').html();
     return {submit: submit, step: step, name: docId, doubt: doubt, txt_html: txt_html};
   }

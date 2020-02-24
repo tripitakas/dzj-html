@@ -63,12 +63,12 @@ class Task(Model):
         'cut_proof': {
             'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
+            'steps': [['box', '字框'], ['order', '字序']],
         },
         'cut_review': {
             'name': '切分审定', 'pre_tasks': ['cut_proof'],
             'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
+            'steps': [['box', '字框'], ['order', '字序']],
         },
         'ocr_text': {
             'name': 'OCR文字', 'pre_tasks': ['cut_review'],
@@ -111,12 +111,21 @@ class Task(Model):
             'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
         },
         'cut_edit': {
-            'name': '切分编辑',
+            'name': '切分修改',
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-            'steps': [['blocks', '栏框'], ['chars', '字框'], ['columns', '列框'], ['orders', '字序']],
+            'steps': [['box', '字框'], ['order', '字序']],
+        },
+        'cut_view': {
+            'name': '切分查看',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
+            'steps': [['box', '字框'], ['order', '字序']],
         },
         'text_edit': {
-            'name': '文字编辑',
+            'name': '文字修改',
+            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
+        },
+        'text_view': {
+            'name': '文字查看',
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         }
     }

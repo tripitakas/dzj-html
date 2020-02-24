@@ -4,6 +4,28 @@
   <title>{{site['name']}} - 访问出错</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/helper.css')}}" rel="stylesheet"/>
+  <style>
+    .tips {
+      float: left;
+      margin-top: 15px;
+      margin-left: 10px;
+    }
+
+    .links {
+      float: left;
+      margin-top: 15px;
+      padding-left: 8px;
+    }
+
+    .links a {
+      color: #B8906F;
+    }
+
+    .actions {
+      margin-top: 50px;
+      clear: both;
+    }
+  </style>
 </head>
 
 <body>
@@ -21,18 +43,20 @@
               </h3>
             </div>
             <div class="panel-body" style="padding: 10px">
-              <p>{{message}}</p>
-              <p style="margin: 10px 0 40px">
+              <div class="tips">{{message.rstrip('。')}}。</div>
+              <div class="links">
                 {% if 'links' in globals() %}
                 {% for text, url in links %}
-                <a href="{{url}}" class="btn btn-primary">{{text}}</a>
+                <a href="{{url}}">{{text}}</a>
                 {% end %}
                 {% end %}
+              </div>
+              <div class="actions">
                 <a href="/" class="btn btn-default fr"><i class="glyphicon glyphicon-home"></i> 回到首页</a>
                 <a href="javascript:history.back(-1)" class="btn btn-default fr">
                   <i class="glyphicon glyphicon-chevron-left"></i> 返回前页
                 </a>
-              </p>
+              </div>
             </div>
           </div>
         </div>

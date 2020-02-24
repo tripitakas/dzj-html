@@ -10,7 +10,7 @@ from functools import cmp_to_key
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.cut.cuttool import CutTool
+from controller.page.tool import PageTool
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
@@ -124,7 +124,7 @@ class DataPageInfoHandler(BaseHandler):
             data_lock = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             fields = ['ocr', 'ocr_col', 'text']
             page_txt = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
-            fields = ['blocks', 'columns', 'chars']
+            fields = ['blocks', 'columns', 'chars', 'chars_col']
             page_box = {k: self.prop(page, k) for k in fields if self.prop(page, k)}
             page_tasks = self.prop(page, 'tasks') or {}
 
@@ -155,12 +155,6 @@ class DataPageListHandler(BaseHandler, Page):
         {'id': 'level-text', 'name': '文本等级'},
         {'id': 'lock-box', 'name': '切分锁'},
         {'id': 'lock-text', 'name': '文本锁'},
-        {'id': 'blocks', 'name': '栏框'},
-        {'id': 'columns', 'name': '列框'},
-        {'id': 'chars', 'name': '字框'},
-        {'id': 'ocr', 'name': '字框OCR'},
-        {'id': 'ocr_col', 'name': '列框OCR'},
-        {'id': 'text', 'name': '审定文本'},
         {'id': 'remark-box', 'name': '切分备注'},
         {'id': 'remark-text', 'name': '文字备注'},
     ]
@@ -176,6 +170,8 @@ class DataPageListHandler(BaseHandler, Page):
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-box', 'label': '字框'},
+        {'action': 'btn-order', 'label': '字序'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
@@ -217,7 +213,8 @@ class DataPageListHandler(BaseHandler, Page):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = self.get_page_search_condition(self.request.query)
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code')
+            p = {f: 0 for f in ['chars', 'columns', 'blocks', 'ocr', 'ocr_col', 'text', 'txt_html', 'char_ocr']}
+            docs, pager, q, order = self.find_by_page(self, condition, default_order='page_code', projection=p)
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, Th=TaskHandler,
                         format_value=self.format_value, **kwargs)
@@ -256,12 +253,12 @@ class DataPageViewHandler(BaseHandler, Page):
                 message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
                 return self.send_error_response(e.no_object, message=message)
 
-            r = CutTool.calc(page['blocks'], page['columns'], page['chars'], None, page.get('layout_type'))
-            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            chars_col = PageTool.get_chars_col(page['chars'])
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
             texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
-            self.render('data_page.html', page=page, chars_col=r[2], btn_config=btn_config,
+            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            self.render('data_page.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))
 

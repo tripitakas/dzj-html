@@ -307,9 +307,9 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
 <script>
   /*---公共设置---*/
+  var taskTypes = decodeJSON('{{handler.task_types}}');
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
-  var taskTypes = decodeJSON('{{handler.task_types}}');
 </script>
 <script>
   /*---普通操作---*/
@@ -421,11 +421,10 @@
       var node = $(item).parent().parent();
       return [[node.attr('id'), node.find('.task_type').attr('title'), node.find('.doc_id').text()]];
     });
-    // console.log(tasks);
     var data = {'tasks': tasks, 'user_id': $assignModal.find(".select-user").val()};
     postApi('/task/assign', {'data': data}, function (res) {
       var html = $.map(res.data, function (value, key) {
-        return '<tr><td>' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
+        return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
       }).join('');
       $assignModal.modal('hide');
       $assignResultModal.find('table').html(html);
@@ -482,191 +481,5 @@
     $searchModal.find('.picked_user_id').val(null).trigger('change');
     resetModal($searchModal, searchFields);
   });
-</script>
-<script>
-  /*---发布任务---*/
-  var docs = [];
-  var taskType = '';
-  var searchStr = '';
-  var $publishModal = $('#publishModal');
-  var $myMultiSelect = $('#my_multi_select');
-  var $publishResultModal = $('#publishResultModal');
-  var publishFields = [
-    {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
-    {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},
-    {id: 'force', input_type: 'radio'}
-  ];
-  // 弹框
-  $('.btn-publish a').click(function () {
-    taskType = $(this).attr('title');
-    $publishModal.find('.task_type').val(taskType);
-    $publishModal.find('.modal-title').text('发布任务-' + taskTypes[taskType].name);
-    var preTasks = taskTypes[taskType].pre_tasks || [];
-    preTasks.forEach(function (item) {
-      $('.pre_tasks .' + item).prop('checked', true);
-    });
-    var steps = taskTypes[taskType].steps || [];
-    var html = $.map(steps, function (item) {
-      return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
-    }).join('');
-    $publishModal.find('.steps').html(html);
-    $publishModal.modal();
-  });
-  // 刷新
-  $publishModal.find('.modal-refresh').click(function () {
-    location.reload();
-  });
-  // 提交
-  $publishModal.find('.modal-confirm').click(function () {
-    var isFile = false;
-    var formData = new FormData();
-    var data = getModal($publishModal, publishFields);
-    var source = $publishModal.find('.tab-pane.active').attr('id');
-    switch (source) {
-      case 'source-prefix':
-        var idPrefix = $('#id_prefix').val().trim();
-        if (!idPrefix)
-          return showError('请输入页码前缀');
-        data['prefix'] = idPrefix;
-        break;
-      case 'source-select':
-        var selections = $('#ms-my_multi_select .ms-selection .ms-selected').css('display', 'red');
-        var selectedDocs = $.map(selections, function (item) {
-          return item.innerText;
-        });
-        if (!selectedDocs.length)
-          return showError('请选择要发布的页面');
-        data['doc_ids'] = selectedDocs;
-        break;
-      case 'source-file':
-        var idsFile = $('#upload')[0].files[0];
-        if (typeof idsFile === "undefined")
-          return showError('请选择文件');
-        if (!/\.(csv|txt|json)$/.test(idsFile.name))
-          return showError('文件不是CSV或TXT类型');
-        if (idsFile.size > (10 * 1024 * 1024))
-          return showError('文件大小不能超过10M');
-        formData.append('data', JSON.stringify(data));
-        formData.append('ids_file', idsFile);
-        isFile = true;
-        break;
-    }
-    postApi('/task/publish/page', isFile ? formData : {data: data}, function (res) {
-      var html = '';
-      for (var item in res.data) {
-        var label = l10n[item] + '(' + res.data[item].length + ')';
-        html += '<tr><td class="' + item + '">' + label + '<td>' + res.data[item] + '</td>' + '</td></tr>';
-      }
-      $publishResultModal.find('table').html(html);
-      $publishResultModal.modal();
-    }, null, isFile);
-  });
-  $publishResultModal.find('.modal-confirm').click(function () {
-    location.reload();
-  });
-
-  // 初始化页码选择器
-  $myMultiSelect.multiSelect({
-    selectableOptgroup: true
-  });
-
-  // 生成并显示导航
-  function displayPagination(pageNo, pageSize, totalCount) {
-    var pageCount = Math.ceil(totalCount / pageSize);
-    if (!pageCount) {
-      return $('#pagination').html('');
-    }
-    var displayCount = 5;
-    var start = pageNo - parseInt(displayCount / 2);
-    start = start < 1 ? 1 : start;
-    var end = start + displayCount - 1;
-    end = end > pageCount ? pageCount : end;
-    var html = "<a title='1'>首页</a>";
-    for (var i = start; i <= end; i++) {
-      if (i === pageNo)
-        html += "<a class='cur' title='" + i + "'>" + i + "</a>";
-      else
-        html += "<a title='" + i + "'>" + i + "</a>";
-    }
-    html += "<a title='" + pageCount + "'>未页</a>";
-    $('#pagination').html(html);
-  }
-
-  // 待选对象-翻页
-  $(document).on('click', '#pagination a', function () {
-    var page = $(this).attr('title').trim();
-    var selectedDocs = [];
-    $(".ms-selection .ms-selected").each(function () {
-      selectedDocs.push($(this).text());
-    });
-    if ($(".ms-elem-selectable:not(.ms-selected)").length === 0 && page > 1) {
-      page = page - 1;
-    }
-    var data = {prefix: searchStr, page: page, exclude: selectedDocs};
-    postApi('/task/ready/' + taskType, {data: data}, function (res) {
-      docs = selectedDocs.concat(res.data.docs);
-      showModal(page, res.data.page_size, res.data.total_count);
-      $myMultiSelect.multiSelect('select', selectedDocs)
-    });
-  });
-  // 待选对象-全选
-  $("#select_all_btn").on("click", function () {
-    $myMultiSelect.multiSelect('select_all');
-  });
-  // 待选对象-搜索
-  $(".ms-selectable .ser-btn").on('click', function () {
-    var selectedDocs = [];
-    $(".ms-selection .ms-selected").each(function () {
-      selectedDocs.push($(this).text());
-    });
-    var selectableInput = $('#selectable_input').val().trim();
-    var data = {prefix: selectableInput, exclude: selectedDocs};
-    postApi('/task/ready/' + taskType, {data: data}, function (res) {
-      searchStr = selectableInput;  // 设置全局变量
-      docs = selectedDocs.concat(res.data.docs);
-      showModal(1, res.data.page_size, res.data.total_count);
-      $myMultiSelect.multiSelect('select', selectedDocs)
-    });
-  });
-  // 待选对象-搜索-回车
-  $('.ms-selectable').on("keydown", function (event) {
-    var keyCode = event.keyCode || event.which;
-    if (keyCode === 13) {
-      $(".ms-selectable .ser-btn").click();
-      event.preventDefault();
-    }
-  });
-  // 已选对象-搜索
-  $("#selected_input").on('input propertychange', function () {
-    var inputval = new RegExp($(this).val().trim(), "i");
-    var selections = $myMultiSelect.siblings('.ms-container').find('.ms-elem-selection.ms-selected');
-    selections.each(function () {
-      if ($(this).text().match(inputval)) {
-        $(this).show();
-      } else {
-        $(this).hide();
-      }
-    })
-  });
-  // 已选对象-全删
-  $("#deselect_all_btn").click(function () {
-    $myMultiSelect.multiSelect('deselect_all');
-  });
-
-  function showModal(pageNo, pageSize, totalCount) {
-    $myMultiSelect.html(docs.map(function (p) {
-      return '<option value="' + p + '">' + p + '</option>';
-    }).join('\n'));
-    $myMultiSelect.multiSelect('refresh');
-    displayPagination(pageNo, pageSize, totalCount);
-  }
-
-  // 初始化选择列表
-  // $publishModal.on('shown.bs.modal', function () {
-  //   postApi('/task/ready/' + taskType, {data: {}}, function (res) {
-  //     docs = res.data.docs;
-  //     showModal(1, res.data.page_size, res.data.total_count);
-  //   });
-  // });
 </script>
 {% end %}

@@ -170,6 +170,7 @@ class Page(Model):
         {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
         {'id': 'box_ready', 'name': '切分已就绪'},
+        {'id': 'chars_col', 'name': '用户提交字序'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'lock.box', 'name': '切分锁'},
         {'id': 'lock.text', 'name': '文本锁'},
@@ -279,10 +280,8 @@ class Page(Model):
         elif key in ['lock-box', 'lock-text']:
             if prop(value, 'is_temp') is not None:
                 value = '临时锁<a>解锁</a>' if prop(value, 'is_temp') else '任务锁'
-        elif key in ['blocks', 'columns', 'chars']:
-            value = '%s个' % len(value)
-        elif key in ['ocr', 'ocr_col', 'text']:
-            value = '%s字' % len(value) if len(value) else ''
+        elif key in ['cut-edit']:
+            value = '修改'
         else:
             value = Task.format_value(value, key)
         return value

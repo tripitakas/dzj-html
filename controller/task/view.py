@@ -33,7 +33,7 @@ class DocTaskAdminHandler(TaskHandler):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
-        {'action': 'btn-republish', 'label': '重新发布'},
+        {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
@@ -66,7 +66,8 @@ class DocTaskAdminHandler(TaskHandler):
                 {'id': 'remark', 'name': '备注'},
             ]
             condition, params = self.get_task_search_condition(self.request.query, collection)
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
+            p = {f: 0 for f in ['input', 'result']}
+            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id', p)
             self.render(
                 'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
                 collection=collection, **kwargs,
@@ -187,10 +188,11 @@ class MyTaskHandler(TaskHandler):
     search_tips = '请搜索页编码'
     search_fields = ['doc_id']
     operations = []
+    img_operations = []
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
-        {'action': 'my-task-do', 'label': '继续'},
-        {'action': 'my-task-update', 'label': '修改'},
+        {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
+        {'action': 'my-task-update', 'label': '修改', 'disabled': lambda d: d['status'] == 'picked'},
     ]
     table_fields = [
         {'id': 'doc_id', 'name': '页编码'},

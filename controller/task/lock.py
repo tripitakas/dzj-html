@@ -37,8 +37,8 @@ class Lock(object):
             'tasks': ['cut_proof', 'cut_review', 'ocr_text', 'text_proof_1', 'text_proof_2', 'text_proof_3',
                       'text_review', 'text_hard'],
             'roles': ['切分专家'],
-            'level': dict(cut_proof=1, cut_review=10, ocr_text=10, text_proof=10, text_review=100,
-                          text_hard=100, 切分专家=100),
+            'level': dict(cut_proof=1, cut_review=10, ocr_text=10, text_proof_1=10, text_proof_2=10,
+                          text_proof_3=10, text_review=100, text_hard=100, 切分专家=100),
         },
         'text': {
             'collection': 'page', 'id': 'name', 'protect_fields': ['text', 'txt_html'],
@@ -89,7 +89,7 @@ class Lock(object):
         assert shared_field in self.data_auth_maps
         collection, id_name = self.get_collection_and_id(shared_field)
         doc = self.db[collection].find_one({id_name: doc_id}) if not doc else doc
-        return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field, 0))
+        return prop(doc, 'lock.' + shared_field, {}), int(prop(doc, 'level.' + shared_field) or 0)
 
     def assign_temp_lock(self, doc_id, shared_field, user, doc=None):
         """ 将临时数据锁分配给用户。成功时返回True，失败时返回错误代码 """

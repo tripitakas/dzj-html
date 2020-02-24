@@ -66,9 +66,9 @@
               self.removeBandNumber(last);
               last.char_no = oldChar[0] || 0;
               if (last.char_no) {
-                last.char_id = 'b' + last.block_no + 'c' + last.line_no + 'c' + last.char_no;
+                last.char_id = 'b' + last.block_no + 'c' + last.column_no + 'c' + last.char_no;
               } else {
-                last.line_no = 0;
+                last.column_no = 0;
                 last.char_id = ''
               }
               if (last.shape) {
@@ -81,8 +81,8 @@
             oldChar[0] = order;
             info.char_no = order;
             info.block_no = $.cut.data.block_no;
-            info.line_no = $.cut.data.line_no;
-            info.char_id = 'b' + info.block_no + 'c' + info.line_no + 'c' + info.char_no;
+            info.column_no = $.cut.data.column_no;
+            info.char_id = 'b' + info.block_no + 'c' + info.column_no + 'c' + info.char_no;
             if (info.shape) {
               info.shape.data('cid', info.char_id);
               info.order_changed = true;

@@ -30,8 +30,10 @@
       margin: 5px 0 10px;
     }
 
-    .m-header {
-      height: 40px;
+    .back {
+      top: 5px;
+      left: 5px;
+      position: fixed;
     }
 
     .logo-con img {
@@ -69,11 +71,9 @@
 
 <body>
 <div class="app-main">
-  <header class="m-header">
-    <div class="back">
-      <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()"/>
-    </div>
-  </header>
+  <div class="back">
+    <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()"/>
+  </div>
   <div class="article">
     <div class="title">{{article['title']}}</div>
     <div class="content"> {% raw article['content'] %}</div>

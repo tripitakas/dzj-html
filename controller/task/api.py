@@ -137,8 +137,7 @@ class PickTaskApi(TaskHandler):
         try:
             # 检查是否有未完成的任务
             task_type = 'text_proof' if 'text_proof' in task_type else task_type
-            task_filter = {'$regex': task_type} if self.is_group(task_type) else task_type
-            uncompleted = self.find_mine(task_type=task_type, status=self.STATUS_PICKED, page_size=1)
+            uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
                 return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
@@ -159,8 +158,8 @@ class PickTaskApi(TaskHandler):
 
             # 如果任务为组任务，则检查用户是否曾领取过该组任务
             if self.is_group(task_type) and self.db.task.find_one(dict(
-                    task_type=task_filter, collection=task['collection'], id_name=task['id_name'],
-                    doc_id=task['doc_id'], picked_user_id=self.user_id
+                    status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}, doc_id=task['doc_id'],
+                    picked_user_id=self.user_id, task_type={'$regex': task_type},
             )):
                 message = '您曾领取过本页面组任务中的一个，不能再领取其它任务'
                 return self.send_error_response(e.group_task_duplicated, message=message)
@@ -308,6 +307,15 @@ class AssignTasksApi(TaskHandler):
             # 去掉未发布的任务
             log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_PUBLISHED]
             published = [t for t in tasks if t['status'] == self.STATUS_PUBLISHED]
+            # 去掉用户已领取的文字校对页面
+            text_proof_tasks = [t['doc_id'] for t in published if 'text_proof' in t['task_type']]
+            log['duplicated_text'] = set(d for d in text_proof_tasks if text_proof_tasks.count(d) > 1)
+            published = [t for t in published if t['doc_id'] not in log['duplicated_text']]
+            text_proof_tasks = set(text_proof_tasks) - log['duplicated_text']
+            if text_proof_tasks:
+                user_picked_tasks = self.find_mine('text_proof', user_id=user_id)
+                log['picked_before'] = set(t['doc_id'] for t in user_picked_tasks) & set(text_proof_tasks)
+                published = [t for t in published if t['doc_id'] not in log['picked_before']]
             # 指派已发布的任务
             for task in published:
                 # 尝试分配数据锁

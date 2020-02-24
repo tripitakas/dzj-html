@@ -23,7 +23,7 @@ def find(q, index='cb4ocr-ik'):
         match = {'page_code': q}
     else:
         ocr = re.sub(r'[\x00-\xff]', '', q)
-        ocr = re.sub(Diff.junk_cmp_str, '', ocr)
+        ocr = re.sub(Diff.cmp_junk_char, '', ocr)
         match = {'normal': normalize(ocr)}
 
     dsl = {

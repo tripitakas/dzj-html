@@ -157,12 +157,23 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 更多上下文参数
         :return: None
         """
+        def remove_func(obj):
+            if isinstance(obj, dict):
+                for k, v in list(obj.items()):
+                    if callable(v):
+                        obj.pop(k)
+                    remove_func(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    remove_func(v)
+
         assert data is None or isinstance(data, (list, dict))
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
 
         r_type = 'multiple' if isinstance(data, list) else 'single' if isinstance(data, dict) else None
-        response = dict(status='success', type=r_type, data=data, code=200)
+        response = dict(status='success', type=r_type, data=data or kwargs, code=200)
         response.update(kwargs)
+        remove_func(response)
         self.write(json_util.dumps(response))
         self.finish()
 
@@ -174,7 +185,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         :return: None
         """
         self.error = error
-
         _type = 'multiple' if isinstance(error, dict) else 'single' if isinstance(error, tuple) else None
         _error = list(error.values())[0] if _type == 'multiple' else error
         code, message = _error

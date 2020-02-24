@@ -1,24 +1,18 @@
 {% extends "_task_do.html" %}
 
-{% try %}
-{% set btn_config = btn_config %}
-{% except %}
-{% set btn_config = {} %}
-{% end %}
-
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <style>
-  .m-bottom > span + span {
+  .m-bottom > span {
     margin-left: 8px;
-  }
-
-  text tspan {
-    fill: #f00;
   }
 
   .full-bd {
     padding-bottom: 20px;
+  }
+
+  text tspan {
+    fill: #f00;
   }
 
   .sweet-overlay {
@@ -31,30 +25,25 @@
 {% block buttons %}
 <div class="btn-group">
   <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-  <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img {{'' if btn_config.get('toggle-image') == -1 else 'active'}}" id="toggle-image" title="显隐图片"/>
-  <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img {{'' if btn_config.get('toggle-blur') == -1 else 'active'}}" id="toggle-blur" title="模糊"/>
+  <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-image" title="显隐图片"/>
+  <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img active" id="toggle-blur" title="模糊"/>
   <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
   <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
   <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
   <img src="{{static_url('imgs/icon_lr.png')}}" class="btn-img" id="undo" title="撤销"/>
   <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
+  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img" id="toggle-block" title="显隐栏框"/>
+  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img" id="toggle-column" title="显隐列框"/>
+  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img" id="toggle-char" title="显隐字框"/>
+  <img src="{{static_url('imgs/icon_char_no.png')}}" class="btn-img" id="toggle-char-no" title="显隐字序"/>
+  <img src="{{static_url('imgs/icon_order.png')}}" class="btn-img active" id="toggle-order" title="显隐连线"/>
+  <img src="{{static_url('imgs/icon_check2.png')}}" class="btn-img" id="show-err-box" title="查漏"/>
 </div>
 
-<div class="btn-group">
-  <button type="button" class="btn btn-default btn-sm {{'active' if btn_config.get('toggle-column') == 1 else ''}}" id="toggle-column" title="显隐列框">列框</button>
-  <button type="button" class="btn btn-default btn-sm {{'active' if btn_config.get('toggle-char') == 1 else ''}}" id="toggle-char" title="显隐字框">字框</button>
-  <button type="button" class="btn btn-default btn-sm {{'' if btn_config.get('toggle-order') == -1 else 'active'}}" id="toggle-order" title="显隐连线">连线</button>
-  <button type="button" class="btn btn-default btn-sm {{'active' if btn_config.get('toggle-char-no') == 1 else ''}}" id="toggle-char-no" title="显隐字框编号">编号</button>
-  <button type="button" class="btn btn-default btn-sm" id="show-err-box" title="显隐待修正的字框">查漏</button>
-</div>
-
-<div class="btn-group right">
-  <img src="{{static_url('imgs/icon_more.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
-  <div class="btn-group hidden" id="more-group" role="group" aria-label="更多" style="margin-top: 4px">
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders'}}">原始字序</a>
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=1'}}">重排(旧算法)</a>
-    <a class="btn btn-default btn-sm" href="{{current_path + '?step=orders&layout=2'}}">重排(新算法)</a>
-  </div>
+<img src="{{static_url('imgs/icon_more.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"/>
+<div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
+  <button type="button" class="btn btn-default btn-sm" id="reorder">重新排序<sup class="s-count"></sup></button>
+  <button type="button" class="btn btn-default btn-sm" id="old-order">原始字序<sup class="s-count"></sup></button>
 </div>
 {% end %}
 
@@ -64,9 +53,7 @@
 </div>
 <div class="m-bottom" id="cut-info">
   <span class="cur-char"></span>
-  <span class="col-info"></span>
   <span class="char-info"></span>
-  <span class="target-char"></span>
 </div>
 {% end %}
 
@@ -166,25 +153,29 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
   var canvasName = taskType + step + docId;
-  var btnConfig = decodeJSON('{{btn_config}}');
-  var chars = $.cut.setClass(decodeJSON('{{handler.page.get("chars") or []}}'), 'char');
-  var blocks = $.cut.setClass(decodeJSON('{{handler.page.get("blocks") or []}}'), 'block');
-  var columns = $.cut.setClass(decodeJSON('{{handler.page.get("columns") or []}}'), 'column');
-
   $.cut.create({
     readonly: true,
     orderMode: true,
     name: canvasName,
+    scrollContainer: '#holder-container',
     holder: 'holder',
     width: '{{handler.page["width"]}}',
     height: '{{handler.page["height"]}}',
     image: '{{handler.get_img(handler.page)}}',
-    chars: chars
+    chars: '{{handler.page["chars"]}}',
+    blocks: '{{handler.page["blocks"]}}',
+    columns: '{{handler.page["columns"]}}'
   });
-  $.cut.switchCurrentBox(null);
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
+  $.cut.switchCurrentBox(null);
+  $.cut.addCharOrderLinks(decodeJSON('{{handler.chars_col}}'));
+
+  // 初始化设置
+  $.cut.data.image.node.style.opacity = 0.2;
+  $.cut.toggleBox(false);
+  $.cut.setLabel(false);
+  $.cut.setLink(true);
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
@@ -199,48 +190,14 @@
     }
   };
 
-  // 获取当前按钮状态
-  function getConfig() {
-    var config = {};
-    var buttons = ['toggle-image', 'toggle-blur', 'toggle-column', 'toggle-char', 'toggle-order', 'toggle-char-no'];
-    buttons.forEach(function (button) {
-      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
-    });
-    return config;
-  }
+</script>
 
+<script>
   // 获取任务数据
   function getSubmitData(submit) {
-    var data = {submit: submit, step: 'orders', box_type: 'chars', boxes: JSON.stringify($.cut.exportBoxes())};
-    if ($.cut.isLinkChanged() || 1) {
-      var r = $.cut.getCharsCol();
-      data.error = r.error;
-      data.chars_col = r.chars_col;
-      data.blocks = blocks;
-      data.columns = columns;
-    }
-    data.config = getConfig();
-    return data;
+    var r = $.cut.getCharsCol();
+    return {submit: submit, step: steps.current, chars_col: r.chars_col, error: r.error};
   }
-
-  // 更新Undo
-  function updateUndo() {
-    var root = '{{static_url("imgs")}}';
-    $('#undo').attr('src', root + ($.cut.canUndo() ? '/icon_lr.png' : '/icon_lr_not.png'));
-    $('#redo').attr('src', root + ($.cut.canRedo() ? '/icon_rr.png' : '/icon_rr_not.png'));
-  }
-
-  updateUndo();
-
-  $('#undo').click(function () {
-    $.cut.undo();
-    updateUndo();
-  });
-
-  $('#redo').click(function () {
-    $.cut.redo();
-    updateUndo();
-  });
 
   // 显示字序待修正的字框
   $('#show-err-box').click(function () {
@@ -248,20 +205,17 @@
   });
   setTimeout(function () {
     $.cut.showErrorBoxes();
-  }, 100);
+  }, 1000);
 
-  $('#toggle-column').click(function () {
-    $.cut.toggleColumns(columns);
+  // 重新计算字序
+  $('#reorder').click(function () {
+    location.href = setQueryString('reorder', 'down');
   });
 
-  // 初始化设置
-  $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] === -1 ? 1 : 0.2;
-  $('rect.char').css('display', btnConfig['toggle-char'] === 1 ? 'block' : 'none');
-  $.cut.setLabel(btnConfig['toggle-char-no'] === 1);
-  $.cut.setLink(!(btnConfig['toggle-order'] === -1));
-  if (btnConfig['toggle-column'] === 1)
-    $.cut.toggleColumns(columns);
+  // 显示原始字序
+  $('#old-order').click(function () {
+    location.href = deleteQueryString('reorder');
+  });
 
 </script>
 {% end %}

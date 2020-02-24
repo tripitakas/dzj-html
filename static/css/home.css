@@ -215,20 +215,17 @@
   justify-content: center;
 }
 
-.bottom .item li span {
-  flex: 1;
+.bottom .item li > span {
+  flex: auto;
   text-align: center;
 }
 
-.bottom .item .task-info {
-  margin-left: 5px;
-  text-align: left;
-  word-break: break-all;
-}
-
 .bottom .item .name {
-  margin-right: 5px;
+  margin-left: 20px;
   position: relative;
+  width: 50px;
+  max-width: 50px;
+  text-align: left;
 }
 
 .bottom .item.star .name:before {
@@ -238,9 +235,18 @@
   height: 18px;
   background: url(../imgs/medal.png) no-repeat;
   left: -20px;
-  top: 1px;
+  top: 11px;
 }
 
+.bottom .item .content {
+  text-align: left;
+}
+
+.bottom .item .task-info {
+  margin-left: 5px;
+  text-align: left;
+  word-break: break-all;
+}
 
 .bottom .item .time {
   font-size: 0.9em;

@@ -1,29 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, PageTool):
-    step2box = dict(chars='char', columns='column', blocks='block', orders='char')
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
-        self.boxes = self.texts = self.doubts = []
-        self.box_type = self.page_name = ''
+        self.chars_col = self.texts = self.doubts = []
+        self.page_name = ''
         self.page = {}
 
     def prepare(self):
         super().prepare()
         self.page_name, self.page = self.doc_id, self.doc
-        if not self.is_api:
-            # 设置切分任务参数
-            if 'cut_' in self.task_type:
-                self.box_type = self.step2box.get(self.steps['current'])
-                self.boxes = self.page.get(self.box_type + 's')
-            # 设置文字任务参数
-            if 'text_' in self.task_type:
-                self.texts, self.doubts = self.get_cmp_txt()
 
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
@@ -78,3 +70,32 @@ class PageHandler(TaskHandler, PageTool):
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
+
+    def get_box_updated(self):
+        """ 获取切分校对的提交
+        detect_col, 是否自动检测、调整小字框在多列的情况
+        auto_adjust, 是否根据字框自适应调整栏框和列框的边界
+        """
+        # 过滤页面外的切分框
+        blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
+        # 更新cid
+        self.update_chars_cid(chars)
+        # 重新排序
+        blocks = self.calc_block_id(blocks)
+        columns = self.calc_column_id(columns, blocks)
+        chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col', True))
+        # 根据字框调整列框和栏框的边界
+        if self.data.get('auto_adjust'):
+            blocks = self.adjust_blocks(blocks, chars)
+            columns = self.adjust_columns(columns, chars)
+        # 合并用户字序和算法字序
+        chars_col = []
+        if self.page.get('chars_col'):
+            algorithm_chars_col = self.get_chars_col(chars)
+            chars_col = self.merge_chars_col(algorithm_chars_col, self.page['chars_col'])
+            chars = self.update_char_order(chars, chars_col)
+        # 设置更新字段
+        ret = dict(chars=chars, blocks=blocks, columns=columns)
+        if chars_col:
+            ret['chars_col'] = chars_col
+        return ret

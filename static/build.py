@@ -71,9 +71,10 @@ def merge_css_js(name, html_lines):
 def merge_from_html(names):
     for name in names:
         html_file = path.join(PATH, 'views', '_%s.html' % name)
-        with open(html_file) as f:
-            html_lines = f.read().split('\n')
-        merge_css_js(name, html_lines)
+        if path.exists(html_file):
+            with open(html_file) as f:
+                html_lines = f.read().split('\n')
+            merge_css_js(name, html_lines)
 
 
 if __name__ == '__main__':
