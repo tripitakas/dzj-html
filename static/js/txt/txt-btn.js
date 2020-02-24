@@ -8,14 +8,30 @@ $('#toggle-panel-no').on('click', function () {
   $(this).toggleClass('active');
   showOrder = $(this).hasClass('active');
   highlightBox();
+  localStorage.setItem('togglePanelNo', $(this).hasClass('active') ? '1' : '-1');
 });
+if (localStorage.getItem('togglePanelNo') === '1') {
+  showOrder = true;
+  $('#toggle-panel-no').addClass('active');
+} else {
+  showOrder = false;
+  $('#toggle-panel-no').removeClass('active');
+}
 
 // 显隐浮动面板的文本
 $('#toggle-panel-txt').on('click', function () {
   $(this).toggleClass('active');
   showText = $(this).hasClass('active');
   highlightBox();
+  localStorage.setItem('togglePanelTxt', $(this).hasClass('active') ? '1' : '-1');
 });
+if (localStorage.getItem('togglePanelTxt') !== '-1') {
+  showText = true;
+  $('#toggle-panel-txt').addClass('active');
+} else {
+  showText = false;
+  $('#toggle-panel-txt').removeClass('active');
+}
 
 // 增加浮动面板的字体
 $('#enlarge-panel-font').on('click', function () {
@@ -44,11 +60,12 @@ function previousDiff() {
   var idx = $diff.index(current);
   if (idx < 1)
     return;
-
-  $diff.eq(idx - 1).click();
-  $diff.eq(idx - 1).dblclick();
-  if ($('.dialog-abs').offset().top < 50) {
-    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top + 100}, 500);
+  $diff.eq(idx - 1).click().dblclick();
+  if ($('.dialog-abs').offset().top < 55) {
+    $('.right #sutra-text').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
+    setTimeout(function () {
+      $diff.eq(idx - 1).click().dblclick();
+    }, 500);
   }
 }
 
@@ -60,10 +77,12 @@ function nextDiff() {
   var current = $('.current-diff');
   var $diff = $('.pfread .right .diff');
   var idx = $diff.index(current);
-  $diff.eq(idx + 1).click();
-  $diff.eq(idx + 1).dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('.bd').height()) {
-    $('.right .bd').animate({scrollTop: $('#pfread-dialog').offset().top - 100}, 500);
+  $diff.eq(idx + 1).click().dblclick();
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#sutra-text').height()) {
+    $('.right #sutra-text').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
+    setTimeout(function () {
+      $diff.eq(idx + 1).click().dblclick();
+    }, 500);
   }
 }
 
@@ -79,13 +98,15 @@ if ($('.pfread .right .diff').length < 1) {
 $('#delete-line').on('click', function () {
   var $curSpan = $('.current-span');
   if (!$curSpan.length) {
-    return showError('请点击文本行', '请先点击一行文本，然后删除。');
+    return showError('提示', '请先点击一行文本，然后再删除。');
   }
-  var $currentLine = $curSpan.parent(".line");
-  $currentLine.fadeOut(500).fadeIn(500);
-  setTimeout(function () {
-    $currentLine.remove();
-  }, 500);
+  showConfirm('删除', '确定删除当前行吗？', function () {
+    var $currentLine = $curSpan.parent(".line");
+    $currentLine.fadeOut(500).fadeIn(500);
+    setTimeout(function () {
+      $currentLine.remove();
+    }, 500);
+  }, true);
 });
 
 // 向上增行

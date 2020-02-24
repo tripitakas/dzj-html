@@ -38,10 +38,10 @@ function showSuccess(title, text, timer) {
   swal({title: title, text: text, type: 'success', timer: timer, showConfirmButton: false});
 }
 
-function showConfirm(title, text, func) {
+function showConfirm(title, text, func, keep) {
   var info = {
     type: 'warning', title: title, text: text, confirmButtonText: '确定', cancelButtonText: '取消',
-    showCancelButton: true, closeOnConfirm: false, html: true
+    showCancelButton: true, closeOnConfirm: typeof keep !== 'undefined' && keep, html: true
   };
   return swal(info, func);
 }

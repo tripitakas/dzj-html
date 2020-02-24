@@ -48,7 +48,7 @@ function getLineText($line) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
     }
-    var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
+    var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
@@ -100,7 +100,7 @@ function getCursorPosition(element) {
 }
 
 // 点击文字区域时，高亮与文字对应的字框
-function highlightBox($span, first) {
+function highlightBox($span, first, keyCode) {
   if (!$span) {
     $span = currentSpan[0];
     first = currentSpan[1];
@@ -114,6 +114,8 @@ function highlightBox($span, first) {
   var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
   offsetInSpan = first ? 0 : getCursorPosition($span[0]);
+  offsetInSpan = offsetInSpan + (keyCode === 39 ? 1 : keyCode === 37 ? -1 : 0);
+  offsetInSpan = offsetInSpan || 1;
   var offsetInLine = offsetInSpan + offset0;
   var ocrCursor = ($span.attr('base') || '')[offsetInSpan];
   var cmp1Cursor = ($span.attr('cmp1') || '')[offsetInSpan];
@@ -249,12 +251,12 @@ $(document).on('dblclick', '.diff', function (e) {
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
 
   // 当弹框超出文字框时，向上弹出
-  var r_h = $(".pfread .right").height();
+  var r_h = $(".pfread .right #sutra-text").height();
   var o_t = $dlg.offset().top;
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
-    $dlg.offset({top: $(this).offset().top - 180});
+    $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
 
@@ -429,8 +431,9 @@ $('.line > span').on('mouseup', function () {
   offsetInSpan = getCursorPosition(this);
 });
 
-$('.line > span').on('keydown', function () {
-  highlightBox($(this));
+$('.line > span').on('keydown', function (e) {
+  var keyCode = e.keyCode || e.which;
+  highlightBox($(this), false, keyCode);
 });
 
 function findSpanByOffset($li, offset) {
@@ -514,12 +517,15 @@ function checkMismatch(report, fromApi) {
     $line.toggleClass('mismatch', boxes.length !== len);
     if (boxes.length === len) {
       $line.removeAttr('mismatch');
-      boxes.forEach(function(c, i) {
+      boxes.forEach(function (c, i) {
         (c._char || {}).txt = c.txt = text[i];
       });
     } else {
-      $line.attr({mismatch: boxes.length + '!=' + len
-        + ': ' + boxes.map(function(c) { return c.txt; }).join('') + ' -> ' + text.join('')
+      $line.attr({
+        mismatch: boxes.length + '!=' + len
+            + ': ' + boxes.map(function (c) {
+              return c.txt;
+            }).join('') + ' -> ' + text.join('')
       });
     }
     if (boxes.length !== len) {
@@ -552,7 +558,7 @@ function updateWideChars(lineNos, ended) {
     texts.push(spans);
     $line.find('span').each(function (i, el) {
       if ($(el).parent().prop('tagName') === 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
-        var text = $(el).text().replace(/[\sYM　]/g, '');  // 正字Y，模糊字M，*不明字占位
+        var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
         spans.push(text);
       }
     });

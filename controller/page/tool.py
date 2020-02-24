@@ -160,6 +160,8 @@ class PageTool(BoxOrder):
         """ 按照chars_col重排chars"""
         for col_cids in chars_col:
             col_chars = [c for c in chars if c['cid'] in col_cids]
+            if not col_chars:
+                continue
             cnt = Counter(['b%sc%s' % (c['block_no'], c['column_no']) for c in col_chars])
             column_id = cnt.most_common(1)[0][0]
             for char_no, cid in enumerate(col_cids):
@@ -238,12 +240,17 @@ class PageTool(BoxOrder):
     def html2txt(cls, html):
         """ 从html中获取txt文本，换行用|、换栏用||表示"""
         txt = ''
+        html = re.sub('&nbsp;', '', html)
         regex1 = re.compile("<ul.*?>.*?</ul>", re.M | re.S)
         regex2 = re.compile("<li.*?>.*?</li>", re.M | re.S)
+        regex3 = re.compile("<span.*?</span>", re.M | re.S)
+        regex4 = re.compile("<span.*>(.*)</span>", re.M | re.S)
         for block in regex1.findall(html or ''):
             for line in regex2.findall(block or ''):
                 if 'delete' not in line:
-                    line_txt = re.sub(r'(<li.*?>|</li>|<span.*?>|</span>|<[^>]+>|\s)', '', line, flags=re.M | re.S)
+                    line_txt = ''
+                    for span in regex3.findall(line or ''):
+                        line_txt += ''.join(regex4.findall(span or ''))
                     txt += line_txt + '|'
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
@@ -348,7 +355,10 @@ class PageTool(BoxOrder):
                 blocks[b_no] = {}
             if not blocks[b_no].get(l_no):
                 blocks[b_no][l_no] = []
-            if not (s['is_same'] and s['base'] == '\n'):
-                s['offset'] = s['range'][0]
-                blocks[b_no][l_no].append(s)
+            if s['is_same'] and s['base'] == '\n':  # 跳过空行
+                continue
+            if s['base'] in[' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
+                s['is_same'] = True
+            s['offset'] = s['range'][0]
+            blocks[b_no][l_no].append(s)
         return blocks

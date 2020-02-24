@@ -9,6 +9,13 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    #progress {
+      top: 33px;
+      right: 64px;
+      position: fixed;
+    }
+  </style>
   {% block custom-css %}
   {% end %}
 </head>
@@ -136,50 +143,20 @@
     }
   };
 
-  // 允许页面重载判断
-  var beforeSave = null;
-
   // 保存任务
+  var errorHandle = null;
+
   function saveTask(submit, url, saveEnded) {
-    var data = getSubmitData(submit);
-    var valid = !beforeSave || beforeSave(data) !== false;
-    if (data && !data.error && valid) {
+    var data = getSubmitData(submit, url);
+    if (data && !data.error) {
       $('#progress').removeClass('hide');
       postApi(location.pathname, {data: data}, function (res) {
-        workChanged = 0;
         $('#progress').addClass('hide');
+        workChanged = 0;
         saveEnded(submit, res, url);
-      });
+      }, errorHandle);
     }
   }
-
-  // 步骤导航
-  function navigate(to) {
-    var url = setQueryString('step', steps[to]);
-    if (!readonly) {
-      var submit = to === 'next';
-      saveTask(submit, url, afterSaved);
-    } else {
-      goto(url, 500);
-    }
-  }
-
-  // 上一步
-  $(document).on("click", '#prev-step', function () {
-    navigate('prev');
-  });
-
-  // 下一步
-  $(document).on("click", '#next-step', function () {
-    navigate('next');
-  });
-
-  // 任务保存
-  $(document).on('click', '#save-task', function () {
-    // 去掉重新排序、重新比对等参数
-    var url = deleteQueryString(['reorder', 're_compare']);
-    saveTask(false, url, afterSaved);
-  });
 
   // 保存之后
   function afterSaved(submit, res, url) {
@@ -188,9 +165,31 @@
     goto(url, 1000);
   }
 
-  // 任务提交
-  $(document).on('click', '#submit-task', function () {
-    saveTask(true, null, afterSubmitted);
+  // 步骤导航
+  function stepTo(to) {
+    var url = setQueryString('step', steps[to]);
+    if (!readonly) {
+      saveTask(to === 'next', url, afterSaved);
+    } else {
+      goto(url, 500);
+    }
+  }
+
+  // 上一步
+  $(document).on("click", '#prev-step', function () {
+    stepTo('prev');
+  });
+
+  // 下一步
+  $(document).on("click", '#next-step', function () {
+    stepTo('next');
+  });
+
+  // 任务保存
+  $(document).on('click', '#save-task', function () {
+    // 去掉重新排序、重新比对等参数
+    var url = deleteQueryString(['reorder', 're_compare']);
+    saveTask(false, url, afterSaved);
   });
 
   // 提交之后
@@ -204,6 +203,11 @@
       }
     }, 1000);
   }
+
+  // 任务提交
+  $(document).on('click', '#submit-task', function () {
+    saveTask(true, null, afterSubmitted);
+  });
 
   // 退回任务提交
   $(document).on('click', '#returnModal .modal-confirm', function () {

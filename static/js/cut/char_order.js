@@ -815,8 +815,8 @@
       var routes = [], heads = [], error = null;
 
       if (!cs.checkLinks(routes, heads)) {
-        error = '字框连线有误，请修正黄色字框的连线。';
-        showError(error);
+        error = '字序连线有误，请修正黄色字框的连线。';
+        // showError(error);
       }
       var chars_col = routes.map(function (route) {
         return route.map(function (char) {
