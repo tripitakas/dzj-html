@@ -67,7 +67,6 @@ class CutEditHandler(PageHandler):
 class TextProofHandler(PageHandler):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
-           '/task/view/text_proof_@num/@task_id',
            '/task/browse/text_proof_@num/@task_id',
            '/task/update/text_proof_@num/@task_id']
 
@@ -92,7 +91,6 @@ class TextProofHandler(PageHandler):
 class TextReviewHandler(PageHandler):
     URL = ['/task/(text_review|text_hard)/@task_id',
            '/task/do/(text_review|text_hard)/@task_id',
-           '/task/view/text_review/@task_id',
            '/task/browse/(text_review|text_hard)/@task_id',
            '/task/update/(text_review|text_hard)/@task_id']
 
