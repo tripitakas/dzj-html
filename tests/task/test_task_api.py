@@ -274,7 +274,7 @@ class TestTaskApi(APITestCase):
             # 管理员不能重新发布已发布的任务
             task2 = self._app.db.task.find_one({'task_type': task_type, 'doc_id': ready_ids[0]})
             r = self.fetch('/api/task/republish/%s' % task2['_id'], body={'data': {}})
-            self.assert_code(errors.republish_only_picked_or_failed[0], r, msg=task_type)
+            self.assert_code(errors.task_status_error[0], r, msg=task_type)
 
             self.delete_tasks_and_locks()
 

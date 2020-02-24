@@ -236,7 +236,7 @@ class RepublishTaskApi(TaskHandler):
         """ 重新发布任务"""
         try:
             if self.task.get('status') not in [self.STATUS_PICKED, self.STATUS_FAILED]:
-                self.send_error_response(e.republish_only_picked_or_failed, message='只能重新发布进行中或失败的任务')
+                self.send_error_response(e.task_status_error, message='只能重新发布进行中或失败的任务')
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'pre_tasks': {k: '' for k in self.prop(self.task, 'pre_tasks', [])},
                 'status': self.STATUS_PUBLISHED, 'result': {}

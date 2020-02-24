@@ -146,7 +146,7 @@ class DocTaskStatisticHandler(TaskHandler):
             condition = self.get_task_search_condition(self.request.query, collection)[0]
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status']:
-                return self.send_error_response(e.invalid_statistic_type, message='只能按用户、任务类型或任务状态统计')
+                return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
 
             counts = list(self.db.task.aggregate([
                 {'$match': condition},
