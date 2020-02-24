@@ -355,7 +355,10 @@ class PageTool(BoxOrder):
                 blocks[b_no] = {}
             if not blocks[b_no].get(l_no):
                 blocks[b_no][l_no] = []
-            if not (s['is_same'] and s['base'] == '\n'):
-                s['offset'] = s['range'][0]
-                blocks[b_no][l_no].append(s)
+            if s['is_same'] and s['base'] == '\n':  # 跳过空行
+                continue
+            if s['base'] in[' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
+                s['is_same'] = True
+            s['offset'] = s['range'][0]
+            blocks[b_no][l_no].append(s)
         return blocks

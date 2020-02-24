@@ -153,6 +153,7 @@
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
   var canvasName = taskType + step + docId;
+  var columnCount = parseInt('{{len(handler.page["columns"])}}');
   $.cut.create({
     readonly: true,
     orderMode: true,
@@ -194,9 +195,18 @@
 
 <script>
   // 获取任务数据
-  function getSubmitData(submit) {
+  function getSubmitData(submit, url) {
     var r = $.cut.getCharsCol();
-    return {submit: submit, step: steps.current, chars_col: r.chars_col, error: r.error};
+    if (!r.error && r.chars_col.length !== columnCount) {
+      r.error = '字序中的列数跟字框中的列数不一致，请检查。';
+    }
+    if (r.error) {
+      showConfirm('检测到错误，是否继续？', r.error, function () {
+        goto(url, 500);
+      })
+    } else {
+      return {submit: submit, step: steps.current, chars_col: r.chars_col};
+    }
   }
 
   // 显示字序待修正的字框
