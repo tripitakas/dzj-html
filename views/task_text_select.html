@@ -184,8 +184,6 @@
     if (!$selectedTxt.length) {
       if (confirm('选择文本为空。您确定不选择任何文本吗？')) {
         return {submit: submit, name: docId, step: 'select'};
-      } else {
-        return false;
       }
     } else {
       return {submit: submit, name: docId, step: 'select', cmp: $selectedTxt};
