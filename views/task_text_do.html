@@ -289,10 +289,10 @@
   $('#holder-container').focus();
 
   // 获取任务数据
-  function getSubmitData(submit) {
+  function getTaskData() {
     var txt_html = $('#sutra-text .block').parent().html();
     var doubt = $('.char-list-table.editable tbody').html();
-    return {submit: submit, step: step, name: docId, doubt: doubt, txt_html: txt_html};
+    return {step: step, name: docId, doubt: doubt, txt_html: txt_html};
   }
 </script>
 {% end %}

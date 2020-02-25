@@ -162,6 +162,7 @@ class DataPageListHandler(BaseHandler, Page):
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'bat-export-char', 'label': '生成字表'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': v} for k, v in Task.get_task_types('page').items()

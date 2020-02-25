@@ -265,13 +265,13 @@
   });
 
   // 获取任务数据
-  function getSubmitData(submit) {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val();
-    var detectCol = $('#taskConfigModal .detect-col :checked').val();
+  function getTaskData() {
+    var detectCol = $('#taskConfigModal .detect-col :checked').val() === '是';
+    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val() === '是';
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), submit: submit, step: steps['current'],
-      auto_adjust: autoAdjust === '是', detect_col: detectCol === '是'
+      chars: $.cut.exportBoxes('char'), step: steps.current,
+      auto_adjust: autoAdjust, detect_col: detectCol
     };
   }
 

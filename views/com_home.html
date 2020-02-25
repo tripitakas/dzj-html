@@ -33,6 +33,7 @@
                     <dt>{{time_slot}}好，{{current_user['name']}}</dt>
                     <dd>访问情况：今日访问 {{visit_count}} 次</dd>
                     <dd>上次登录：{{last_login}}</dd>
+                    <dd id="test-swal">测试Swal</dd>
                   </dl>
                 </div>
                 <ul class="clearfix">
@@ -133,6 +134,54 @@
   </div>
 </div>
 {% include _base_js.html %}
+<script src="https://cdn.bootcss.com/limonte-sweetalert2/8.11.8/sweetalert2.all.min.js"></script>
+<script>
+  Swal.mixin({
+    confirmButtonColor: '#b8906f',
+  });
+
+  // swal.setDefaults({confirmButtonText : "確定" , cancelButtonText : "取消" });
+
+  function test() {
+    Swal.fire({
+      title: 'Submit your Github username',
+      input: 'text',
+      inputAttributes: {
+        autocapitalize: 'off'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Look up',
+      showLoaderOnConfirm: true,
+      preConfirm: (login) => {
+        return fetch(`//api.github.com/users/${login}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(response.statusText)
+              }
+              return response.json()
+            })
+            .catch(error => {
+              Swal.showValidationMessage(
+                  `Request failed: ${error}`
+              )
+            })
+      },
+      allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+      if (result.value) {
+        Swal.fire({
+          title: `${result.value.login}'s avatar`,
+          imageUrl: result.value.avatar_url
+        })
+      }
+    })
+  }
+
+  $('#test-swal').click(function () {
+    test();
+  });
+
+</script>
 
 </body>
 </html>

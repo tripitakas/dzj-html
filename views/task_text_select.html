@@ -179,14 +179,14 @@
   $('#holder-container').focus();
 
   // 检查数据有效性，然后返回任务数据
-  function getSubmitData(submit) {
-    var $selectedTxt = $('#selected').val().trim();
-    if (!$selectedTxt.length) {
+  function getTaskData() {
+    var txt = $('#selected').val().trim();
+    if (!txt.length) {
       if (confirm('选择文本为空。您确定不选择任何文本吗？')) {
-        return {submit: submit, name: docId, step: 'select'};
+        return {name: docId, step: 'select'};
       }
     } else {
-      return {submit: submit, name: docId, step: 'select', cmp: $selectedTxt};
+      return {name: docId, step: 'select', cmp: txt};
     }
   }
 

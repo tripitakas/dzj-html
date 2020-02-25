@@ -102,9 +102,7 @@
     // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
     var autoPick = localStorage.getItem('autoPick') || '是';
-    if (autoPick.length) {
-      $('#taskConfigModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
-    }
+    $('#taskConfigModal .auto-pick :radio[value=' + autoPick + ']').prop('checked', true);
     if (isSample === 'True') {
       $('#remarkModal .is_sample :radio[value="是"]').prop('checked', true);
     } else if (isSample === 'False') {
@@ -114,7 +112,7 @@
 
   // 离开页面前的提醒
   window.addEventListener('beforeunload', function (e) {
-    if (workChanged) {
+    if (workChanged && !readonly) {
       var confirmationMessage = '改动内容还未保存，确定要离开本页吗？';
       (e || window.event).returnValue = confirmationMessage; // 兼容 Gecko + IE
       return confirmationMessage; // 兼容 Gecko + Webkit, Safari, Chrome
@@ -124,7 +122,7 @@
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if (['edit', 'update'].indexOf(mode) !== -1 && !readonly) {
+    if ('edit,update'.indexOf(mode) > -1 && !readonly) {
       if (taskType.indexOf('cut_') !== -1) {
         postApi('/data/unlock/box/' + docId, {});
       } else if (taskType.indexOf('text_') !== -1) {
@@ -144,56 +142,32 @@
   };
 
   // 保存任务
-  var errorHandle = null;
-
-  function saveTask(submit, url, saveEnded) {
-    var data = getSubmitData(submit, url);
+  function saveTask(type, jumpUrl, saveEnded) {
+    // type有四种类型：prev/next/save/submit
+    var data = getTaskData(type, jumpUrl);
     if (data && !data.error) {
+      data.submit = 'next,submit'.indexOf(type) > -1;
       $('#progress').removeClass('hide');
       postApi(location.pathname, {data: data}, function (res) {
-        $('#progress').addClass('hide');
         workChanged = 0;
-        saveEnded(submit, res, url);
+        $('#progress').addClass('hide');
+        saveEnded(type, res, jumpUrl);
       }, errorHandle);
     }
   }
 
-  // 保存之后
-  function afterSaved(submit, res, url) {
-    if (!submit)
-      showSuccess('成功', '已保存');
-    goto(url, 1000);
+  function errorHandle(res) {
+    showError('操作失败', res.message || '');
+    $('#progress').addClass('hide');
   }
 
-  // 步骤导航
-  function stepTo(to) {
-    var url = setQueryString('step', steps[to]);
-    if (!readonly) {
-      saveTask(to === 'next', url, afterSaved);
-    } else {
-      goto(url, 500);
-    }
+  function afterSaved(type, res, url) {
+    showSuccess('成功', '已保存');
+    if (type !== 'save')
+      goto(url, 1000);
   }
 
-  // 上一步
-  $(document).on("click", '#prev-step', function () {
-    stepTo('prev');
-  });
-
-  // 下一步
-  $(document).on("click", '#next-step', function () {
-    stepTo('next');
-  });
-
-  // 任务保存
-  $(document).on('click', '#save-task', function () {
-    // 去掉重新排序、重新比对等参数
-    var url = deleteQueryString(['reorder', 're_compare']);
-    saveTask(false, url, afterSaved);
-  });
-
-  // 提交之后
-  function afterSubmitted(submit, res, url) {
+  function afterSubmitted(type, res, url) {
     var autoPick = localStorage.getItem('autoPick') || '是';
     setTimeout(function () {
       if (mode === 'do' && autoPick === '是') {
@@ -204,17 +178,44 @@
     }, 1000);
   }
 
+  // 步骤导航
+  function navigate(to) {
+    var url = setQueryString('step', steps[to]);
+    if (!readonly) {
+      saveTask(to, url, afterSaved);
+    } else {
+      goto(url, 1000);
+    }
+  }
+
+  // 上一步
+  $(document).on("click", '#prev-step', function () {
+    navigate('prev');
+  });
+
+  // 下一步
+  $(document).on("click", '#next-step', function () {
+    navigate('next');
+  });
+
+  // 任务保存
+  $(document).on('click', '#save-task', function () {
+    // 去掉重新排序、重新比对等参数
+    var url = deleteQueryString(['reorder', 're_compare']);
+    saveTask('save', url, afterSaved);
+  });
+
+
   // 任务提交
   $(document).on('click', '#submit-task', function () {
-    saveTask(true, null, afterSubmitted);
+    saveTask('submit', null, afterSubmitted);
   });
 
   // 退回任务提交
   $(document).on('click', '#returnModal .modal-confirm', function () {
     var reason = $('#returnModal .return_reason').val().trim();
-    if (!reason.length) {
+    if (!reason.length)
       return showError('请填写退回理由', '尚未填写退回理由');
-    }
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
       showSuccess('退回成功', docId + ' 已退回成功。');
       goto('/task/lobby/' + lobbyTaskType, 1000);
@@ -226,20 +227,16 @@
     location.href = '/data/page/' + docId + '?from=' + encodeFrom();
   });
 
-  // 浏览任务
-  function browse(to) {
-    var path = '/task/browse/' + taskType + '/' + taskId;
-    location.href = path + setQueryString('to', to, true);
-  }
-
   // 前一个任务
   $(document).on('click', '#prev-task', function () {
-    browse('prev');
+    var path = '/task/browse/' + taskType + '/' + taskId;
+    location.href = path + setQueryString('to', 'prev', true);
   });
 
   // 后一个任务
   $(document).on('click', '#next-task', function () {
-    browse('next');
+    var path = '/task/browse/' + taskType + '/' + taskId;
+    location.href = path + setQueryString('to', 'next', true);
   });
 
   // 备注任务
@@ -248,15 +245,11 @@
     $('#remarkModal .remark').val($(this).val());
   });
   $remarkModal.find('.modal-confirm').click(function () {
-    var remark = $('#remarkModal .remark').val().trim();
+    var isSample = $remarkModal.find('.is_sample :checked').val() || '否';
+    var remark = $remarkModal.find('.remark').val().trim();
     if (!remark.length)
-      return showWarning('请输入备注内容');
-    localStorage.setItem('taskRemark', remark);
-    var data = {_id: taskId, remark: remark};
-    var is_sample = $('#remarkModal .is_sample :checked').val();
-    if (typeof is_sample !== 'undefined')
-      data.is_sample = is_sample;
-    postApi('/task/remark', {data: data}, function () {
+      localStorage.setItem('taskRemark', remark);
+    postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
       showSuccess('成功', '已备注');
       navigate(getQueryString('to') || 'next');
     });

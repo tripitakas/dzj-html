@@ -195,17 +195,18 @@
 
 <script>
   // 获取任务数据
-  function getSubmitData(submit, url) {
+  function getTaskData(type, jumpUrl) {
     var r = $.cut.getCharsCol();
     if (!r.error && r.chars_col.length !== columnCount) {
-      r.error = '字序中的列数跟字框中的列数不一致，请检查。';
+      r.error = '字序中的列数跟字框中的列数不一致。';
     }
     if (r.error) {
-      showConfirm('检测到错误，是否继续？', r.error, function () {
-        goto(url, 500);
-      })
+      if ('prev,next'.indexOf(type) > -1)
+        showConfirm('检测到错误，是否放弃当前修改？', r.error, () => goto(jumpUrl, 1000));
+      else
+        showError('检测到错误，请修正', r.error)
     } else {
-      return {submit: submit, step: steps.current, chars_col: r.chars_col};
+      return {step: steps.current, chars_col: r.chars_col};
     }
   }
 
