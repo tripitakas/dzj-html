@@ -17,7 +17,10 @@ from controller.helper import BASE_DIR, load_config, connect_db
 
 
 def get_page_key(page_name, salt, img_name=None):
-    img_name = img_name or page_name
+    if img_name:
+        page_name += '_' + img_name
+    else:
+        img_name = page_name
     md5 = hashlib.md5()
     md5.update((img_name + salt).encode('utf-8'))
     new_name = '%s_%s.jpg' % (img_name, md5.hexdigest())
