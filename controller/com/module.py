@@ -40,6 +40,7 @@ class ComLeft(UIModule):
             dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
                 dict(name='页图片', icon='icon_subitem', link='/task/admin/image'),
                 dict(name='页任务', icon='icon_subitem', link='/task/admin/page'),
+                # dict(name='字任务', icon='icon_subitem', link='/task/admin/char'),
             ]),
             dict(name='数据管理', icon='icon_data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
@@ -47,6 +48,7 @@ class ComLeft(UIModule):
                 dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
                 dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon_subitem', link='/data/page'),
+                dict(name='字数据', icon='icon_subitem', link='/data/char'),
             ]),
             dict(name='文章管理', icon='icon_article', link='/article'),
             dict(name='人员管理', icon='icon_user', id='user', sub_items=[

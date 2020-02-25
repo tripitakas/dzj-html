@@ -20,7 +20,7 @@ url_placeholder = {
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
     'shared_field': r'box|text',
     'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
-    'metadata': r'tripitaka|sutra|volume|reel|page',
+    'metadata': r'tripitaka|sutra|volume|reel|page|char',
     'boxType': 'block|column|char',
     'img_file': '[A-Za-z0-9._-]+',
     'user_code': '[A-Za-z0-9]+',
@@ -170,11 +170,10 @@ role_route_maps = {
         'roles': ['普通用户'],
         'routes': {
             '/api/user/list': ['POST'],
-            '/task/admin/image': ['GET'],
-            '/task/admin/page': ['GET'],
             '/task/page/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
+            '/task/admin/(image|page|char)': ['GET'],
             '/task/browse/@task_type/@task_id': ['GET'],
         }
     },
@@ -199,8 +198,8 @@ role_route_maps = {
             '/data/page/@page_name': ['GET'],
             '/data/page/info/@page_name': ['GET'],
             '/api/data/gen_js': ['POST'],
-            '/api/data/page/source': ['POST'],
             '/api/data/page/export_char': ['POST'],
+            '/api/data/(page|char)/source': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
         }

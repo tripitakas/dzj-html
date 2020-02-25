@@ -293,17 +293,50 @@ class Char(Model):
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'id', 'name': 'id'},
-        {'id': 'column_cid', 'name': '列cid'},
-        {'id': 'batch', 'name': '批次'},
-        {'id': 'has_img', 'name': '是否已有字图'},
-        {'id': 'ocr', 'name': 'ocr文字'},
+        {'id': 'column_cid', 'name': '所属列'},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'has_img', 'name': '字图'},
+        {'id': 'ocr', 'name': 'OCR文字'},
         {'id': 'txt', 'name': '校对文字'},
         {'id': 'pos', 'name': '坐标'},
-        {'id': 'cc', 'name': 'ocr置信度'},
-        {'id': 'sc', 'name': '图片相似度'},
+        {'id': 'cc', 'name': '置信度'},
+        {'id': 'sc', 'name': '相似度'},
+        {'id': 'remark', 'name': '备注'},
     ]
     rules = [
         (v.not_empty, 'page_name', 'cid', 'column_cid'),
         (v.is_page, 'page_name'),
     ]
     primary = 'id'
+
+    @staticmethod
+    def get_char_search_condition(request_query):
+        condition, params = dict(), dict()
+        for field in ['ocr', 'txt']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: value})
+        for field in ['id', 'source']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                condition.update({field: {'$regex': value, '$options': '$i'}})
+        for field in ['cc', 'sc']:
+            value = get_url_param(field, request_query)
+            if value:
+                params[field] = value
+                m = re.search(r'([><=]?)(\d+)', value)
+                if m:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
+                    condition.update({field: {op: value} if op else value})
+        return condition, params
+
+    @staticmethod
+    def format_value(value, key=None):
+        """ 格式化page表的字段输出"""
+        if key == 'pos':
+            value = '|'.join(['%s:%s' % (k, v) for k, v in value.items()])
+        else:
+            value = Task.format_value(value, key)
+        return value

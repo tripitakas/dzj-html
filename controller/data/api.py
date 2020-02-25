@@ -125,7 +125,7 @@ class DataPageExportCharApi(BaseHandler):
             return {
                 'page_name': p['name'], 'cid': c['cid'], 'id': '%s_%s' % (p['name'], c['cid']),
                 'column_cid': col2cid.get('b%sc%s' % (c['block_no'], c['column_no'])),
-                'batch': p.get('batch'), 'has_img': None, 'ocr': c['ocr_txt'],
+                'source': p.get('source'), 'has_img': None, 'ocr': c['ocr_txt'],
                 'txt': c.get('txt'), 'cc': c.get('cc'), 'sc': c.get('sc'),
                 'pos': dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
             }
@@ -159,6 +159,28 @@ class DataPageExportCharApi(BaseHandler):
                 self.db.char.update_one({'id': c['id']}, {'$set': {'pos': c['pos']}})
 
             self.send_data_response(inserted_count=len(chars), invalid_pages=invalid_pages, invalid_chars=invalid_chars)
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+
+class DataCharUpdateSourceApi(BaseHandler):
+    URL = '/api/data/char/source'
+
+    def post(self):
+        """ 批量更新分类 """
+        try:
+            rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
+            self.validate(self.data, rules)
+
+            update = {'$set': {'source': self.data['source']}}
+            if self.data.get('_id'):
+                r = self.db.char.update_one({'_id': ObjectId(self.data['_id'])}, update)
+                self.add_op_log('update_char', target_id=self.data['_id'])
+            else:
+                r = self.db.char.update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
+                self.add_op_log('update_char', target_id=self.data['_ids'])
+            self.send_data_response(dict(matched_count=r.matched_count))
 
         except DbError as error:
             return self.send_db_error(error)

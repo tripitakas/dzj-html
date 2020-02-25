@@ -14,6 +14,7 @@ def main(db_name='tripitaka', uri='localhost'):
     # 创建索引，加速检索
     fields2index1 = {
         'user': ['name', 'email', 'phone'],
+        'char': ['source', 'ocr', 'txt', 'cc', 'sc'],
         'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }

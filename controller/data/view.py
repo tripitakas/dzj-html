@@ -13,7 +13,7 @@ from controller.base import BaseHandler
 from controller.page.tool import PageTool
 from controller.helper import cmp_page_code
 from controller.task.base import TaskHandler
-from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page
+from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page, Char
 
 
 class TripitakaHandler(BaseHandler):
@@ -139,7 +139,7 @@ class DataPageListHandler(BaseHandler, Page):
     URL = '/data/page'
 
     page_title = '页数据管理'
-    search_tips = '请搜索页名称、分类、页面结构、统一经编码、卷编码'
+    search_tips = '请搜索页编码、分类、页面结构、统一经编码、卷编码'
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
     table_fields = [
         {'id': 'name', 'name': '页编码'},
@@ -262,6 +262,66 @@ class DataPageViewHandler(BaseHandler, Page):
             self.render('data_page.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
                         img_url=self.get_img(page))
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class DataCharListHandler(BaseHandler, Char):
+    URL = '/data/char'
+
+    page_title = '字数据管理'
+    search_tips = '请搜索字编码、分类、文字'
+    search_fields = ['id', 'source', 'ocr', 'txt']
+    table_fields = [
+        {'id': 'has_img', 'name': '字图'},
+        {'id': 'id', 'name': 'id'},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'column_cid', 'name': '所属列'},
+        {'id': 'ocr', 'name': 'OCR文字'},
+        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'cc', 'name': '置信度'},
+        {'id': 'sc', 'name': '相似度'},
+        {'id': 'pos', 'name': '坐标'},
+    ]
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除'},
+        {'operation': 'btn-duplicate', 'label': '查找重复'},
+        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
+            {'operation': k, 'label': v} for k, v in Task.get_task_types('char').items()
+        ]},
+    ]
+    actions = [
+        {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
+    hide_fields = []
+
+    def get_duplicate_condition(self):
+        chars = list(self.db.char.aggregate([
+            {'$group': {'_id': '$id', 'count': {'$sum': 1}}},
+            {'$match': {'count': {'$gte': 2}}},
+        ]))
+        condition = {'id': {'$in': [c['_id'] for c in chars]}}
+        params = {'duplicate': 'true'}
+        return condition, params
+
+    def get(self):
+        """ 字数据管理"""
+        try:
+            kwargs = self.get_template_kwargs()
+            key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
+            hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
+            kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
+            if self.get_query_argument('duplicate', '') == 'true':
+                condition, params = self.get_duplicate_condition()
+            else:
+                condition, params = self.get_char_search_condition(self.request.query)
+            docs, pager, q, order = self.find_by_page(self, condition)
+            self.render('data_char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
+                        Th=TaskHandler, format_value=self.format_value, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -91,28 +91,6 @@
     </div>
   </div>
 </div>
-<div id="configModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="configModal"
-     aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">配置列表</h4>
-      </div>
-      <div class="modal-body">
-        <div class="select-column">
-          {% for f in table_fields %}
-          <label class="checkbox-inline"><input type="checkbox" class="{{f['id']}}" title="{{f['id']}}" checked>{{f['name']}}</label>
-          {% end %}
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">应用</button>
-      </div>
-    </div>
-  </div>
-</div>
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -226,19 +204,6 @@
     </div>
   </div>
 </div>
-<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sourceModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-body">
-        <input type="text" class="form-control" value="" placeholder="请输入分类">
-      </div>
-      <div class="modal-footer" style="border: 0">
-        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-      </div>
-    </div>
-  </div>
-</div>
 <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -336,7 +301,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/data/page/source', {data: {_ids: ids, source: result.value}}, () => refresh(1000));
+        postApi('/data/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
