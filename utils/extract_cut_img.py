@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+@desc: 对指定的页面，从OSS上的原图提取单字图和列图，并将生成的图上传到OSS。
+@time: 2020-02-25
+"""
+
+import hashlib
+from boto3.session import Session
+from boto3.exceptions import Boto3Error
+from botocore.exceptions import BotoCoreError
+from os import path, makedirs, remove
+import logging
+import cv2
+
+from controller.helper import BASE_DIR, load_config, connect_db
+
+
+def get_page_key(page_name, salt, img_name=None):
+    img_name = img_name or page_name
+    md5 = hashlib.md5()
+    md5.update((img_name + salt).encode('utf-8'))
+    new_name = '%s_%s.jpg' % (img_name, md5.hexdigest())
+    return '/'.join(page_name.split('_')[:-1] + [new_name])
+
+
+def resize_binary(img, width=1024, height=1024, center=False):
+    h, w = img.shape[:2]
+    if w > width or h > height:
+        if w > width:
+            w, h = width, int(width * h / w)
+        if h > height:
+            w, h = int(height * w / h), height
+        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_CUBIC)
+
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 10)
+    if center:
+        w2, h2 = (width - w) // 2, (height - h) // 2
+        img = cv2.copyMakeBorder(img, h2, height - h - h2, w2, width - w - w2,
+                                 cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    return img
+
+
+def extract_from_page(name, db, client, salt, tmp_path):
+    key = get_page_key(name, salt)
+    down_file = path.join(tmp_path, '%s.jpg' % name)
+    if not path.exists(down_file):
+        client.download_file('pages', key, down_file)
+        logging.info('download_file: %s, %.1f kb' % (name, path.getsize(down_file) / 1024))
+
+    page = db.page.find_one({'name': name})
+    if not page:
+        raise OSError('%s not found' % name)
+
+    img = cv2.imread(down_file, cv2.IMREAD_GRAYSCALE)
+    h, w = img.shape[:2]
+    if w != page['width'] or h != page['height']:
+        img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
+    remove(down_file)
+
+    chars_count = 0
+    for c in page['chars']:
+        img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
+        if img_c is not None:
+            img_c = resize_binary(img_c, 64, 64, True)
+            img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
+            cv2.imwrite(img_file, img_c)
+            key = get_page_key(name, salt, str(c['cid']))
+            client.upload_file(img_file, 'chars', key)
+            chars_count += 1
+    logging.info('%s: %d char-images uploaded' % (name, chars_count))
+
+    columns_count = 0
+    for c in page['columns']:
+        img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
+        if img_c is not None:
+            img_c = resize_binary(img_c, 200, 800)
+            img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
+            cv2.imwrite(img_file, img_c)
+            key = get_page_key(name, salt, str(c['cid']))
+            client.upload_file(img_file, 'columns', key)
+            columns_count += 1
+    logging.info('%s: %d column-images uploaded' % (name, columns_count))
+
+
+def extract_from_pages(page_names, db=None):
+    cfg = load_config()
+    db = db or connect_db(cfg['database'])[0]
+
+    oss = cfg['img']
+    host = oss['host'].replace('-img', '-big')
+    assert oss['salt'] and oss['access_key'] and oss['secret_key'] and oss['region_name']
+
+    tmp_path = path.join(BASE_DIR, 'log', 'img')
+    if not path.exists(tmp_path):
+        makedirs(tmp_path)
+
+    session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'])
+    s3 = session.resource('s3', endpoint_url=host)
+    for name in page_names:
+        try:
+            extract_from_page(name, db, s3.meta.client, oss['salt'], tmp_path)
+        except (Boto3Error, BotoCoreError):
+            return
+
+
+if __name__ == '__main__':
+    extract_from_pages(['YB_26_172'])
