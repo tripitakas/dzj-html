@@ -79,7 +79,8 @@ class PageHandler(TaskHandler, PageTool):
         # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
         # 更新cid
-        self.update_chars_cid(chars)
+        self.update_box_cid(chars)
+        self.update_box_cid(columns)
         # 重新排序
         blocks = self.calc_block_id(blocks)
         columns = self.calc_column_id(columns, blocks)

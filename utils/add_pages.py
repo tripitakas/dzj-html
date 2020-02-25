@@ -166,7 +166,8 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
-            PageHandler.update_chars_cid(meta['chars'])
+            PageHandler.update_box_cid(meta['chars'])
+            PageHandler.update_box_cid(meta['columns'])
             if self.check_id and not self.check_ids(meta):
                 return False
 

@@ -172,12 +172,12 @@ class PageTool(BoxOrder):
         return sorted(chars, key=itemgetter('block_no', 'column_no', 'char_no'))
 
     @staticmethod
-    def update_chars_cid(chars):
+    def update_box_cid(boxes):
         updated = False
-        max_cid = max([int(c.get('cid') or 0) for c in chars])
-        for c in chars:
-            if not c.get('cid'):
-                c['cid'] = max_cid + 1
+        max_cid = max([int(c.get('cid') or 0) for c in boxes])
+        for b in boxes:
+            if not b.get('cid'):
+                b['cid'] = max_cid + 1
                 max_cid += 1
                 updated = True
         return updated
@@ -357,7 +357,7 @@ class PageTool(BoxOrder):
                 blocks[b_no][l_no] = []
             if s['is_same'] and s['base'] == '\n':  # 跳过空行
                 continue
-            if s['base'] in[' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
+            if s['base'] in [' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
                 s['is_same'] = True
             s['offset'] = s['range'][0]
             blocks[b_no][l_no].append(s)
