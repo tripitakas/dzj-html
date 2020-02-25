@@ -150,9 +150,28 @@ a:focus {
 	position: absolute;
 	width: 100%;
 	bottom: 0;
-	padding: 20px 30px;
+	padding: 15px 20px;
 	background-color: #f9f9f9;
 	border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.footer {
+  position: fixed;
+  opacity: .95;
+}
+
+.footer > span {
+  display: inline-block;
+}
+
+.footer > span + span:before {
+	content: "·"
+}
+
+@media (max-width: 900px) {
+	.footer .cp-sign {
+		display: none;
+	}
 }
 
 #wrapper {
