@@ -255,13 +255,9 @@
 <script>
   $(document).ready(function () {
     var autoAdjust = localStorage.getItem('autoAdjust') || '是';
-    if (autoAdjust.length) {
-      $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
-    }
+    $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
     var detectCol = localStorage.getItem('detectCol') || '是';
-    if (detectCol.length) {
-      $('#taskConfigModal .detect-col :radio[value=' + detectCol + ']').prop('checked', true);
-    }
+    $('#taskConfigModal .detect-col :radio[value=' + detectCol + ']').prop('checked', true);
   });
 
   // 获取任务数据
@@ -309,24 +305,20 @@
 {% block final-js %}
 <script>
   // 保存之后
-  afterSaved = function (submit, res, url) {
+  afterSaved = function (type, res, url) {
     if (!res.valid) {
       // 高亮未被覆盖的框
-      // console.log(res.out_boxes);
-      $.cut.toggleClass(res.out_boxes, 'highlight', true);
-      $.cut.toggleClass(res.out_boxes, 'flash', true);
+      $.cut.toggleClass(res.out_boxes, 'highlight flash', true);
       $.cut.toggleBox(true, null, res.out_boxes);
       // 弹框提示
-      var tips = '检测到<b style="color: red">' + res.message + '</b>' + '并高亮显示。';
-      if (submit) {
-        showConfirm('已保存。是否继续下一步？', tips, function () {
-          goto(url, 1000);
-        });
+      var tips = '检测到<b style="color: red">' + res.message + '</b>' + '并高亮显示';
+      if (type === 'next') {
+        showConfirm('已保存，发现错误，是否继续？', tips, () => goto(url, 1000));
       } else {
-        showWarning('已保存。提示', tips);
+        showWarning('已保存，发现错误', tips);
       }
     } else {
-      if (submit) {
+      if (type === 'next') {
         goto(url, 1000);
       } else {
         showSuccess('成功', '已保存');

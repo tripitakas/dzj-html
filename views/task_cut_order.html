@@ -202,9 +202,9 @@
     }
     if (r.error) {
       if ('prev,next'.indexOf(type) > -1)
-        showConfirm('检测到错误，是否放弃当前修改？', r.error, () => goto(jumpUrl, 1000));
+        showConfirm('未保存，发现错误，是否继续？', r.error, () => goto(jumpUrl, 1000));
       else
-        showError('检测到错误，请修正', r.error)
+        showError('发现错误，请修正', r.error)
     } else {
       return {step: steps.current, chars_col: r.chars_col};
     }
@@ -214,9 +214,7 @@
   $('#show-err-box').click(function () {
     $.cut.showErrorBoxes(true);
   });
-  setTimeout(function () {
-    $.cut.showErrorBoxes();
-  }, 1000);
+  setTimeout(() => $.cut.showErrorBoxes(), 1000);
 
   // 重新计算字序
   $('#reorder').click(function () {

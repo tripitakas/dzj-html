@@ -20,34 +20,34 @@ function showError(title, text, timer) {
   // 弹框提示
   var type = /失败|错误/.test(title) ? 'error' : 'warning';
   if (typeof timer !== 'undefined')
-    Swal0.fire({title: title, text: text, type: type, timer: 5000});
+    Swal0.fire({title: title, html: text, type: type, timer: 5000});
   else
-    Swal0.fire({title: title, text: text, type: type});
+    Swal0.fire({title: title, html: text, type: type});
 }
 
 function showWarning(title, text, timer) {
   if (typeof timer !== 'undefined')
-    Swal0.fire({title: title, text: text, type: 'warning', timer: 5000});
+    Swal0.fire({title: title, html: text, type: 'warning', timer: 5000});
   else
-    Swal0.fire({title: title, text: text, type: 'warning'});
+    Swal0.fire({title: title, html: text, type: 'warning'});
 }
 
 function showSuccess(title, text, timer) {
   timer = typeof timer === 'undefined' ? 1000 : timer;
-  Swal0.fire({title: title, text: text, type: 'success', timer: timer});
+  Swal0.fire({title: title, html: text, type: 'success', timer: timer});
 }
 
 function showConfirm(title, text, func) {
-  return Swal2.fire({title: title, text: text, type: 'warning'}).then(result => result.value && func());
+  return Swal2.fire({title: title, html: text, type: 'warning'}).then(result => result.value && func());
 }
 
 function showTips(title, text, reload, timer) {
   if (typeof reload !== 'undefined' && reload) {
-    Swal0.fire({title: title, text: text, type: 'success'}, () => window.location.reload());
+    Swal0.fire({title: title, html: text, type: 'success'}, () => window.location.reload());
   } else if (typeof timer !== 'undefined') {
-    Swal0.fire({title: title, text: text, timer: timer});
+    Swal0.fire({title: title, html: text, timer: timer});
   } else {
-    Swal0.fire({title: title, text: text});
+    Swal0.fire({title: title, html: text});
   }
 }
 
