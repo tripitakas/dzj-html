@@ -115,6 +115,55 @@ class DataPageUpdateSourceApi(BaseHandler):
             return self.send_db_error(error)
 
 
+class DataPageExportCharApi(BaseHandler):
+    URL = '/api/data/page/export_char'
+
+    def post(self):
+        """ 批量生成字表 """
+
+        def pack_char():
+            return {
+                'page_name': p['name'], 'cid': c['cid'], 'id': '%s_%s' % (p['name'], c['cid']),
+                'column_cid': col2cid.get('b%sc%s' % (c['block_no'], c['column_no'])),
+                'batch': p.get('batch'), 'has_img': None, 'ocr': c['ocr_txt'],
+                'txt': c.get('txt'), 'cc': c.get('cc'), 'sc': c.get('sc'),
+                'pos': dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+            }
+
+        try:
+            rules = [(v.not_both_empty, '_id', '_ids')]
+            self.validate(self.data, rules)
+
+            chars = []
+            invalid_pages = []
+            invalid_chars = []
+            project = {'name': 1, 'chars': 1, 'columns': 1}
+            _ids = [self.data['_id']] if self.data.get('_id') else self.data['_ids']
+            pages = self.db.page.find({'_id': {'$in': [ObjectId(i) for i in _ids]}}, project)
+            for p in pages:
+                try:
+                    col2cid = {cl['column_id']: cl['cid'] for cl in p['columns']}
+                    for c in p.get('chars', []):
+                        try:
+                            chars.append(pack_char())
+                        except KeyError:
+                            invalid_chars.append(c)
+                except KeyError:
+                    invalid_pages.append(p)
+            # 插入数据库，忽略错误
+            r = self.db.char.insert_many(chars, ordered=False)
+            inserted_chars = [c['id'] for c in list(self.db.char.find({'_id': {'$in': r.inserted_ids}}))]
+            # 未插入的数据，进行更新
+            un_inserted_chars = [c for c in chars if c['id'] not in inserted_chars]
+            for c in un_inserted_chars:
+                self.db.char.update_one({'id': c['id']}, {'$set': {'pos': c['pos']}})
+
+            self.send_data_response(inserted_count=len(chars), invalid_pages=invalid_pages, invalid_chars=invalid_chars)
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

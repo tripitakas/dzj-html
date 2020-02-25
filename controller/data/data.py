@@ -285,3 +285,25 @@ class Page(Model):
         else:
             value = Task.format_value(value, key)
         return value
+
+
+class Char(Model):
+    collection = 'char'
+    fields = [
+        {'id': 'page_name', 'name': '页编码'},
+        {'id': 'cid', 'name': 'cid'},
+        {'id': 'id', 'name': 'id'},
+        {'id': 'column_cid', 'name': '列cid'},
+        {'id': 'batch', 'name': '批次'},
+        {'id': 'has_img', 'name': '是否已有字图'},
+        {'id': 'ocr', 'name': 'ocr文字'},
+        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'pos', 'name': '坐标'},
+        {'id': 'cc', 'name': 'ocr置信度'},
+        {'id': 'sc', 'name': '图片相似度'},
+    ]
+    rules = [
+        (v.not_empty, 'page_name', 'cid', 'column_cid'),
+        (v.is_page, 'page_name'),
+    ]
+    primary = 'id'
