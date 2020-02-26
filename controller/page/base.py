@@ -32,6 +32,9 @@ class PageHandler(TaskHandler, PageTool):
         if 'text_proof_' in self.task_type:
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
+            text = self.page.get('text')
+            if text:
+                texts.append([text, '审定文本'])
             ocr = self.get_ocr()
             if ocr:
                 texts.append([ocr, '字框OCR'])

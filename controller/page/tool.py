@@ -332,6 +332,7 @@ class PageTool(BoxOrder):
         segments = []
         pre_empty_line_no = 0
         block_no, line_no = 1, 1
+        base = re.sub(r'\s+', '', base)
         diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
@@ -357,7 +358,7 @@ class PageTool(BoxOrder):
                 blocks[b_no][l_no] = []
             if s['is_same'] and s['base'] == '\n':  # 跳过空行
                 continue
-            if s['base'] in[' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
+            if s['base'] in [' ', '\u3000'] and not s.get('cmp1') and not s.get('cmp2'):
                 s['is_same'] = True
             s['offset'] = s['range'][0]
             blocks[b_no][l_no].append(s)

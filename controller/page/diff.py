@@ -27,7 +27,7 @@ class Diff(object):
     @classmethod
     def pre_base(cls, base, keep_line=True):
         """ base预处理"""
-        # 平台中用|表示换行，因此先恢复换行
+        # 平台中用|表示换行，先恢复换行
         base = base.replace('|', '\n').rstrip('\n')
         # 根据参数决定是否保留换行
         base = base.replace('\n', '') if not keep_line else base
@@ -96,9 +96,9 @@ class Diff(object):
             lbl.update(label)
 
         # 和v1不同，v2在比较时，先去掉换行符，以免对diff算法干扰
-        base = base.replace('|', '\n').rstrip('\n')
+        base = cls.pre_base(base)
         base_lines = base.split('\n')
-        base = cls.pre_base(base, False)
+        base = base.replace('\n', '')
         cmp = cls.pre_cmp(cmp)
         segments = []
         s = CSequenceMatcher(None, base, cmp, autojunk=False)
@@ -169,9 +169,9 @@ class Diff(object):
             pre = line_segments[i - 1] if i > 1 else {}
             if seg[lbl['base']] == '' and pre.get('is_same') and pre.get(lbl['base']) == '\n':
                 # 当前为空异文，之前为换行，则交换二者位置
-                temp = seg.copy()
-                seg.update(pre)
-                pre.update(temp)
+                seg['line_no'] = pre['line_no']
+                line_segments[i - 1] = seg
+                line_segments[i] = pre
 
         # 设置range
         start = 0
@@ -230,37 +230,36 @@ class Diff(object):
         if not d1 or not d2:
             return d1 or d2, []
 
-        line_nos = list({d['line_no'] for d in d1})
-        line_nos.sort()
         ret, err = [], []
+        line_nos = sorted(list(set(d['line_no'] for d in d1)))
         for line_no in line_nos:
-            d1_cur_line = [d for d in d1 if d['line_no'] == line_no and d[base_key] != '\n']
-            d2_cur_line = [d for d in d2 if d['line_no'] == line_no and d[base_key] != '\n']
-            d1_cur_line_base_txt = [d[base_key] for d in d1_cur_line]
-            d2_cur_line_base_txt = [d[base_key] for d in d2_cur_line]
+            line1 = [d for d in d1 if d['line_no'] == line_no and d[base_key] != '\n']
+            line2 = [d for d in d2 if d['line_no'] == line_no and d[base_key] != '\n']
+            base_txt1 = [d[base_key] for d in line1]
+            base_txt2 = [d[base_key] for d in line2]
             # 检查base_key对应的基础文本是否相同
-            if ''.join(d1_cur_line_base_txt) != ''.join(d2_cur_line_base_txt):
+            if ''.join(base_txt1) != ''.join(base_txt2):
                 err.append(line_no)
                 continue
             # 用merge_pos来分别改造d1和d2，使得二者分割方式一致
-            d1_diff_pos = [d['range'] for d in d1_cur_line if not d['is_same']]
-            d2_diff_pos = [d['range'] for d in d2_cur_line if not d['is_same']]
+            d1_diff_pos = [d['range'] for d in line1 if not d['is_same']]
+            d2_diff_pos = [d['range'] for d in line2 if not d['is_same']]
             merge_pos = Diff._merge_diff_pos(d1_diff_pos, d2_diff_pos)
-            _d1 = Diff._re_combine_one_line(d1_cur_line, merge_pos, base_key)
-            _d2 = Diff._re_combine_one_line(d2_cur_line, merge_pos, base_key)
-            # 合并d2至d1，得到line_no行对应的最终结果
-            for i in range(0, len(_d1)):
-                if i < len(_d2):
-                    _d1[i].update(_d2[i])
-            _d1.append({'line_no': line_no, 'seg_no': len(_d1) + 1, 'is_same': True, base_key: '\n'})
+            _line1 = Diff._reorganize_line(line1, merge_pos, base_key)
+            _line2 = Diff._reorganize_line(line2, merge_pos, base_key)
+            # 合并二者，得到line_no行对应的最终结果
+            for i in range(0, len(_line1)):
+                if i < len(_line2):
+                    _line1[i].update(_line2[i])
+            _line1.append({'line_no': line_no, 'is_same': True, base_key: '\n'})
             # 将该行插入ret
-            ret.extend(_d1)
+            ret.extend(_line1)
         return ret, err
 
     @classmethod
     def _merge_diff_pos(cls, diff_pos1, diff_pos2):
-        """合并两个异文的起止位置。有两种情况，一是字位置，比如删除或修改一或多个字，起止位置(s, e)代表这段异文在整行文本中的位置。
-        一是点位置，比如在某个字后面，起止位置(s, e)中，s等于e，表示在这个字之后增加字。
+        """ 合并两个异文的起止位置。有两种情况：一种是字位置，比如删除或修改一或多个字，起止位置(s, e)代表这段异文在整行文本中的位置。
+        一种是点位置，比如在某个字后面，起止位置(s, e)中，s等于e，表示在这个字之后增加字。
         """
         diff_pos = list(set(diff_pos1 + diff_pos2))  # 去重
         diff_pos.sort(key=lambda x: x[0])  # 排序
@@ -283,7 +282,7 @@ class Diff(object):
         return merge_pos
 
     @classmethod
-    def _re_combine_one_line(cls, diff, diff_pos, base_key='base'):
+    def _reorganize_line(cls, diff, diff_pos, base_key='base'):
         """
         diff是一行文本的比对结果集合，diff_pos是异文段的起止位置集合，要求按照diff_pos重新改造diff。 diff中异文段的起止位置集合
         diff_pos1，应该是diff_pos的子集。也就是说，diff_pos1中每一个元素对应的区间应在diff_pos的区间内。
@@ -348,18 +347,15 @@ class Diff(object):
         # 合并剩下的diff
         ret.extend(diff[idx:])
 
-        # 合并前后相接的同文或异文，重新设置seg_no以及range
-        _ret, seg_no, start = [], 1, 0
+        # 合并前后相接的同文或异文，重新设置range
+        _ret, start = [], 0
         for r in ret:
             if _ret and r['is_same'] == _ret[-1]['is_same']:  # 合并上一条同文或异文
                 _r = _ret.pop()
-                seg_no -= 1
                 start -= len(_r[base_key])
                 r = {k: (_r.get(k) + v if isinstance(v, str) else v) for k, v in r.items()}
-            r['seg_no'] = seg_no
             r['range'] = (start, start + len(r[base_key]))
             _ret.append(r)
-            seg_no += 1
             start += len(r[base_key])
 
         return _ret
