@@ -202,6 +202,7 @@ role_route_maps = {
             '/api/data/(page|char)/source': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
+            '/api/data/char/gen_img': ['POST'],
         }
     },
     '文章管理员': {
