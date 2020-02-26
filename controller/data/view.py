@@ -308,7 +308,7 @@ class DataCharListHandler(BaseHandler, Char):
     info_fields = ['source', 'txt', 'txt_type', 'remark']
     txt_types = {
         '': '', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字',
-        'N': '难字', '*': '不知道',
+        'N': '拿不准', '*': '不认识',
     }
 
     def get_duplicate_condition(self):

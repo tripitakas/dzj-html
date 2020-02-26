@@ -97,6 +97,9 @@ class Task(Model):
             'name': '难字审定', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
+        'char_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'id'}},
+        'char_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'id'}},
+        'char_hard': {'name': '僻字校对', 'data': {'collection': 'char', 'id': 'id'}},
     }
 
     # 其它任务定义
