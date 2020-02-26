@@ -12,6 +12,10 @@ from botocore.exceptions import BotoCoreError
 from os import path, makedirs, remove
 import logging
 import cv2
+import re
+import json
+from bson.objectid import ObjectId
+
 
 from controller.helper import BASE_DIR, load_config, connect_db
 
@@ -44,11 +48,11 @@ def resize_binary(img, width=1024, height=1024, center=False):
     return img
 
 
-def extract_from_page(name, db, client, salt, tmp_path):
+def extract_from_page(name, db, s3_big, s3_cut, salt, tmp_path, only_chars=None, only_columns=None):
     key = get_page_key(name, salt)
     down_file = path.join(tmp_path, '%s.jpg' % name)
     if not path.exists(down_file):
-        client.download_file('pages', key, down_file)
+        s3_big.meta.client.download_file('pages', key, down_file)
         logging.info('download_file: %s, %.1f kb' % (name, path.getsize(down_file) / 1024))
 
     page = db.page.find_one({'name': name})
@@ -63,49 +67,88 @@ def extract_from_page(name, db, client, salt, tmp_path):
 
     chars_count = 0
     for c in page['chars']:
+        if only_chars and c['cid'] not in only_chars:
+            continue
         img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
         if img_c is not None:
             img_c = resize_binary(img_c, 64, 64, True)
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
             cv2.imwrite(img_file, img_c)
             key = get_page_key(name, salt, str(c['cid']))
-            client.upload_file(img_file, 'chars', key)
+            s3_cut.meta.client.upload_file(img_file, 'chars', key)
             chars_count += 1
     logging.info('%s: %d char-images uploaded' % (name, chars_count))
 
     columns_count = 0
     for c in page['columns']:
+        if only_columns and c['cid'] not in only_columns:
+            continue
         img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
         if img_c is not None:
             img_c = resize_binary(img_c, 200, 800)
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
             cv2.imwrite(img_file, img_c)
             key = get_page_key(name, salt, str(c['cid']))
-            client.upload_file(img_file, 'columns', key)
+            s3_cut.meta.client.upload_file(img_file, 'columns', key)
             columns_count += 1
     logging.info('%s: %d column-images uploaded' % (name, columns_count))
 
+    return dict(name=name, chars_count=chars_count, columns_count=columns_count)
 
-def extract_from_pages(page_names, db=None):
+
+def extract_from_pages(db=None, page_names=None, char_ids=None, condition=None):
     cfg = load_config()
     db = db or connect_db(cfg['database'])[0]
 
     oss = cfg['img']
-    host = oss['host'].replace('-img', '-big')
-    assert oss['salt'] and oss['access_key'] and oss['secret_key'] and oss['region_name']
+    host_big = re.sub('tripitaka-[a-z]+', 'tripitaka-big', oss['host'])
+    host_cut = re.sub('tripitaka-[a-z]+', oss['bucket'], oss['host'])
 
     tmp_path = path.join(BASE_DIR, 'log', 'img')
     if not path.exists(tmp_path):
         makedirs(tmp_path)
 
+    only_chars, only_columns = {}, {}
+    page_names = search_char(db, char_ids, condition, page_names, only_chars, only_columns)
+
     session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'])
-    s3 = session.resource('s3', endpoint_url=host)
+    s3_big = session.resource('s3', endpoint_url=host_big)
+    s3_cut = session.resource('s3', endpoint_url=host_cut)
+    res = dict(ok=[], fail=[])
     for name in page_names:
         try:
-            extract_from_page(name, db, s3.meta.client, oss['salt'], tmp_path)
+            res['ok'].append(extract_from_page(name, db, s3_big, s3_cut, oss['salt'], tmp_path,
+                                               only_chars.get(name), only_columns.get(name)))
         except (Boto3Error, BotoCoreError):
-            return
+            res['fail'].append(dict(name=name, message='OSS Error'))
+        except Exception as e:
+            res['fail'].append(dict(name=name, message='[%s] %s' % (e.__class__.__name__, str(e))))
+    return res
+
+
+def search_char(db, char_ids, condition, page_names, only_chars, only_columns):
+    page_names = page_names.split(',') if isinstance(page_names, str) else page_names or []
+    if not page_names and (char_ids or condition):
+        if char_ids:
+            char_ids = char_ids.split(',') if isinstance(char_ids) else char_ids
+            chars = db.char.find({'_id': {'$in': [ObjectId(i) for i in char_ids]}})
+        else:
+            condition = json.loads(condition) if isinstance(condition, str) else condition
+            chars = db.char.find(condition)
+
+        for c in chars:
+            page = c['page_name']
+            only_chars[page] = only_chars.get(page, set())
+            only_columns[page] = only_columns.get(page, set())
+            only_chars[page].add(c['cid'])
+            only_columns[page].add(c['column_cid'])
+
+        page_names = list(only_chars.keys())
+    return page_names
 
 
 if __name__ == '__main__':
-    extract_from_pages(['YB_26_172'])
+    import fire
+
+    fire.Fire(extract_from_pages)
+    # print(extract_from_pages(['YB_22_995']))

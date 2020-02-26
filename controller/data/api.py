@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import csv
+import json
 from os import path
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
@@ -121,12 +122,12 @@ class DataPageExportCharApi(BaseHandler):
         """ 批量生成字表 """
 
         def pack_char():
-            id = '%s_%s' % (p['name'], c['cid'])
+            char_id = '%s_%s' % (p['name'], c['cid'])
             txt = c.get('txt') or c.get('ocr_txt')
             pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
             column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
             return {
-                'page_name': p['name'], 'cid': c['cid'], 'id': id, 'column_cid': column_cid,
+                'page_name': p['name'], 'cid': c['cid'], 'id': char_id, 'column_cid': column_cid,
                 'source': p.get('source'), 'has_img': None, 'ocr': c['ocr_txt'], 'txt': txt,
                 'cc': c.get('cc'), 'sc': c.get('sc'), 'pos': pos,
             }
@@ -196,14 +197,18 @@ class DataCharGenImgApi(BaseHandler, Char):
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
 
+            char_ids = condition = ''
             if self.data['type'] == 'selected':
-                _ids = self.data['_ids']
-                chars = self.db.char.find({'_id': {'$in': [ObjectId(i) for i in _ids]}})
+                char_ids = ','.join(self.data['_ids'])
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
-                chars = self.db.char.find(condition)
+                condition = json.dumps(condition, ensure_ascii=False)
 
             # 启动脚本，生成字图
+            script = ['python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py'),
+                      '--char_ids=' + char_ids, '--condition=' + condition]
+            os.system(' '.join(script))
+
             self.send_data_response()
 
         except DbError as error:
