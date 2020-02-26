@@ -292,15 +292,18 @@ class Char(Model):
     fields = [
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
-        {'id': 'id', 'name': 'id'},
         {'id': 'column_cid', 'name': '所属列'},
+        {'id': 'id', 'name': 'id'},
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '字图'},
         {'id': 'ocr', 'name': 'OCR文字'},
-        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'options', 'name': 'OCR候选'},
         {'id': 'pos', 'name': '坐标'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
+        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'txt_type', 'name': '文字类型'},
+        {'id': 'log', 'name': '校对记录'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
@@ -312,12 +315,12 @@ class Char(Model):
     @staticmethod
     def get_char_search_condition(request_query):
         condition, params = dict(), dict()
-        for field in ['ocr', 'txt']:
+        for field in ['ocr', 'txt', 'txt_type']:
             value = get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['id', 'source']:
+        for field in ['id', 'source', 'remark']:
             value = get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -336,7 +339,7 @@ class Char(Model):
     def format_value(value, key=None):
         """ 格式化page表的字段输出"""
         if key == 'pos':
-            value = '|'.join(['%s:%s' % (k, v) for k, v in value.items()])
+            value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         else:
             value = Task.format_value(value, key)
         return value

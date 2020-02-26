@@ -69,11 +69,8 @@
             {% end %}
 
             {% block table %}
-            {% try %}
-            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=handler.format_value) %}
-            {% except %}
-            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order) %}
-            {% end %}
+            {% set format_func = format_value if 'format_value' in globals() else None %}
+            {% module ComTable(docs, table_fields, actions, info_fields, hide_fields, order,format_value=format_func) %}
             {% end %}
 
             {% module Pager(pager) %}

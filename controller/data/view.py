@@ -279,25 +279,37 @@ class DataCharListHandler(BaseHandler, Char):
         {'id': 'source', 'name': '分类'},
         {'id': 'column_cid', 'name': '所属列'},
         {'id': 'ocr', 'name': 'OCR文字'},
+        {'id': 'options', 'name': 'OCR候选'},
         {'id': 'txt', 'name': '校对文字'},
+        {'id': 'txt_type', 'name': '文字类型'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},
+        {'id': 'log', 'name': '校对记录'},
+        {'id': 'remark', 'name': '备注'},
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': v} for k, v in Task.get_task_types('char').items()
         ]},
     ]
     actions = [
+        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
+        {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    hide_fields = []
+    hide_fields = ['log', 'options']
+    info_fields = ['source', 'txt', 'txt_type', 'remark']
+    txt_types = {
+        '': '', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字',
+        'N': '难字', '*': '不知道',
+    }
 
     def get_duplicate_condition(self):
         chars = list(self.db.char.aggregate([
@@ -321,7 +333,8 @@ class DataCharListHandler(BaseHandler, Char):
                 condition, params = self.get_char_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition)
             self.render('data_char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
-                        Th=TaskHandler, format_value=self.format_value, **kwargs)
+                        Th=TaskHandler, txt_types=self.txt_types, format_value=self.format_value,
+                        **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)

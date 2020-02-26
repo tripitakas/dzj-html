@@ -3,14 +3,13 @@
 import os
 import csv
 from os import path
-from datetime import datetime
 from bson.objectid import ObjectId
 from tornado.escape import to_basestring
 from utils.build_js import build_js
 from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler, DbError
-from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page
+from controller.data.data import Tripitaka, Reel, Sutra, Volume, Page, Char
 
 try:
     from StringIO import StringIO
@@ -122,12 +121,14 @@ class DataPageExportCharApi(BaseHandler):
         """ 批量生成字表 """
 
         def pack_char():
+            id = '%s_%s' % (p['name'], c['cid'])
+            txt = c.get('txt') or c.get('ocr_txt')
+            pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+            column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
             return {
-                'page_name': p['name'], 'cid': c['cid'], 'id': '%s_%s' % (p['name'], c['cid']),
-                'column_cid': col2cid.get('b%sc%s' % (c['block_no'], c['column_no'])),
-                'source': p.get('source'), 'has_img': None, 'ocr': c['ocr_txt'],
-                'txt': c.get('txt'), 'cc': c.get('cc'), 'sc': c.get('sc'),
-                'pos': dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                'page_name': p['name'], 'cid': c['cid'], 'id': id, 'column_cid': column_cid,
+                'source': p.get('source'), 'has_img': None, 'ocr': c['ocr_txt'], 'txt': txt,
+                'cc': c.get('cc'), 'sc': c.get('sc'), 'pos': pos,
             }
 
         try:
@@ -181,6 +182,29 @@ class DataCharUpdateSourceApi(BaseHandler):
                 r = self.db.char.update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
                 self.add_op_log('update_char', target_id=self.data['_ids'])
             self.send_data_response(dict(matched_count=r.matched_count))
+
+        except DbError as error:
+            return self.send_db_error(error)
+
+
+class DataCharGenImgApi(BaseHandler, Char):
+    URL = '/api/data/char/gen_img'
+
+    def post(self):
+        """ 批量生成字图 """
+        try:
+            rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
+            self.validate(self.data, rules)
+
+            if self.data['type'] == 'selected':
+                _ids = self.data['_ids']
+                chars = self.db.char.find({'_id': {'$in': [ObjectId(i) for i in _ids]}})
+            else:
+                condition = self.get_char_search_condition(self.data['search'])[0]
+                chars = self.db.char.find(condition)
+
+            # 启动脚本，生成字图
+            self.send_data_response()
 
         except DbError as error:
             return self.send_db_error(error)
