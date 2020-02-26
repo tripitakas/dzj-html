@@ -15,6 +15,7 @@ import cv2
 import re
 import json
 from bson.objectid import ObjectId
+from datetime import datetime
 
 
 from controller.helper import BASE_DIR, load_config, connect_db
@@ -65,7 +66,7 @@ def extract_from_page(name, db, s3_big, s3_cut, salt, tmp_path, only_chars=None,
         img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
     remove(down_file)
 
-    chars_count = 0
+    chars_gen = []
     for c in page['chars']:
         if only_chars and c['cid'] not in only_chars:
             continue
@@ -76,8 +77,10 @@ def extract_from_page(name, db, s3_big, s3_cut, salt, tmp_path, only_chars=None,
             cv2.imwrite(img_file, img_c)
             key = get_page_key(name, salt, str(c['cid']))
             s3_cut.meta.client.upload_file(img_file, 'chars', key)
-            chars_count += 1
-    logging.info('%s: %d char-images uploaded' % (name, chars_count))
+            chars_gen.append(c['cid'])
+    if only_chars and chars_gen:
+        db.char.update_one({'page_name': name, 'cid': c['cid']}, {'$set': {'has_img': datetime.now()}})
+    logging.info('%s: %d char-images uploaded' % (name, len(chars_gen)))
 
     columns_count = 0
     for c in page['columns']:
@@ -93,7 +96,7 @@ def extract_from_page(name, db, s3_big, s3_cut, salt, tmp_path, only_chars=None,
             columns_count += 1
     logging.info('%s: %d column-images uploaded' % (name, columns_count))
 
-    return dict(name=name, chars_count=chars_count, columns_count=columns_count)
+    return dict(name=name, chars_count=len(chars_gen), columns_count=columns_count)
 
 
 def extract_from_pages(db=None, page_names=None, char_ids=None, condition=None):
@@ -126,17 +129,19 @@ def extract_from_pages(db=None, page_names=None, char_ids=None, condition=None):
     return res
 
 
-def search_char(db, char_ids, condition, page_names, only_chars, only_columns):
+def search_char(db, char_ids, condition, page_names, only_chars, only_columns, skip_exist=True):
     page_names = page_names.split(',') if isinstance(page_names, str) else page_names or []
     if not page_names and (char_ids or condition):
         if char_ids:
-            char_ids = char_ids.split(',') if isinstance(char_ids) else char_ids
+            char_ids = char_ids.split(',') if isinstance(char_ids, str) else char_ids
             chars = db.char.find({'_id': {'$in': [ObjectId(i) for i in char_ids]}})
         else:
             condition = json.loads(condition) if isinstance(condition, str) else condition
             chars = db.char.find(condition)
 
         for c in chars:
+            if skip_exist and c['has_img']:
+                continue
             page = c['page_name']
             only_chars[page] = only_chars.get(page, set())
             only_columns[page] = only_columns.get(page, set())
