@@ -47,7 +47,7 @@
 </div>
 
 <!--忘记密码-->
-<div class="panel-body">
+<div class="panel-body hidden">
   <div id="forgetModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -71,9 +71,11 @@
   </div>
 </div>
 
+{% include _footer_main.html %}
 {% include _base_js.html %}
 <script>
   $('.log-btn > a').click(function () {
+    $modal.parent().removeClass('hidden');
     postApi('/user/login?next={{next}}', {
       data: {
         phone_or_email: $('#phone_or_email').val(),

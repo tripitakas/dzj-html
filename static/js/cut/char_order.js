@@ -799,9 +799,9 @@
       var r = cs.checkLinks();
       if (prompt) {
         if (r) {
-          showSuccess('字框连接正常', '没有待修正的字框连线。');
+          showSuccess('成功');
         } else {
-          showError('字框连线有误', '请修正黄色字框的连线。');
+          showError('错误', '黄色字框的字序连线有误。');
         }
       }
     },
@@ -815,7 +815,7 @@
       var routes = [], heads = [], error = null;
 
       if (!cs.checkLinks(routes, heads)) {
-        error = '字序连线有误，请修正黄色字框的连线。';
+        error = '黄色字框的字序连线有误。';
         // showError(error);
       }
       var chars_col = routes.map(function (route) {
