@@ -5,18 +5,15 @@
 @time: 2020-02-25
 """
 
+import re
+import cv2
+import json
+import logging
 import hashlib
+from os import path, makedirs, remove
 from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
-from os import path, makedirs, remove
-import logging
-import cv2
-import re
-import json
-from bson.objectid import ObjectId
-from datetime import datetime
-
 from controller.helper import BASE_DIR, load_config, connect_db
 
 
