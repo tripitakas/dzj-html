@@ -308,10 +308,10 @@ class DataCharListHandler(BaseHandler, Char):
     info_fields = ['has_img', 'source', 'txt', 'txt_type', 'remark']
     update_fields = [
         {'id': 'has_img', 'name': '已有字图', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'source', 'name': '分类'},
+        {'id': 'source', 'name': '分　　类'},
         {'id': 'txt', 'name': '校对文字'},
         {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'remark', 'name': '备注'},
+        {'id': 'remark', 'name': '备　　注'},
     ]
     txt_types = {
         '': '', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字',
