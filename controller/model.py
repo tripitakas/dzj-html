@@ -86,6 +86,11 @@ class Model(object):
         return {f: getattr(cls, f) for f in fields}
 
     @classmethod
+    def name2code(cls, name):
+        """ 把带_的name转换为用0填充、补齐的code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
+        return ''.join([n.zfill(4) for n in name.split('_')]).lstrip('0')
+
+    @classmethod
     def pack_doc(cls, doc):
         d = {f['id']: doc.get(f['id']) for f in cls.fields if doc.get(f['id'])}
         if doc.get('_id'):

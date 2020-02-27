@@ -134,7 +134,7 @@ class AddPage(object):
             columns = self.filter_line_no(prop(info, 'columns', []))
             meta = Page.metadata()
             meta.update(dict(
-                name=name, width=width, height=height, page_code=Page.name2pagecode(name),
+                name=name, width=width, height=height, page_code=Page.name2code(name),
                 blocks=prop(info, 'blocks', []), columns=columns, chars=chars,
             ))
             if not width or not height:

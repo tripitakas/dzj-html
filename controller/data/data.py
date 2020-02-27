@@ -210,11 +210,6 @@ class Page(Model):
         return super().pack_doc(doc)
 
     @classmethod
-    def name2pagecode(cls, page_name):
-        """ 把page的name转换为page_code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
-        return ''.join([n.zfill(4) for n in page_name.split('_')]).lstrip('0')
-
-    @classmethod
     def insert_many(cls, db, file_stream=None, layout=None):
         """ 插入新页面
         :param db 数据库连接
@@ -234,7 +229,7 @@ class Page(Model):
             s = page_name.split('.')
             page['name'] = s[0]
             page['layout'] = layout
-            page['page_code'] = cls.name2pagecode(s[0])
+            page['page_code'] = cls.name2code(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
         if pages:
@@ -291,7 +286,8 @@ class Char(Model):
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'column_cid', 'name': '所属列'},
-        {'id': 'id', 'name': 'id'},
+        {'id': 'char_id', 'name': 'id'},
+        {'id': 'char_code', 'name': 'code'},
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '字图'},
         {'id': 'ocr', 'name': 'OCR文字'},
@@ -317,7 +313,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['id', 'source', 'remark']:
+        for field in ['char_id', 'source', 'remark']:
             value = get_url_param(field, request_query)
             if value:
                 params[field] = value

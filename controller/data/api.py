@@ -119,17 +119,19 @@ class DataPageExportCharApi(BaseHandler):
     URL = '/api/data/page/export_char'
 
     def post(self):
-        """ 批量生成字表 """
+        """ 批量生成字表"""
 
         def pack_char():
             char_id = '%s_%s' % (p['name'], c['cid'])
+            char_code = Page.name2code(char_id)
             txt = c.get('txt') or c.get('ocr_txt')
             pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
             column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
             return {
-                'page_name': p['name'], 'cid': c['cid'], 'id': char_id, 'column_cid': column_cid,
-                'source': p.get('source'), 'has_img': None, 'ocr': c['ocr_txt'], 'txt': txt,
-                'cc': c.get('cc'), 'sc': c.get('sc'), 'pos': pos,
+                'page_name': p['name'], 'cid': c['cid'], 'char_id': char_id, 'char_code': char_code,
+                'column_cid': column_cid, 'source': p.get('source'), 'has_img': None,
+                'ocr': c['ocr_txt'], 'txt': txt, 'cc': c.get('cc'),
+                'sc': c.get('sc'), 'pos': pos,
             }
 
         try:
@@ -202,7 +204,7 @@ class DataCharGenImgApi(BaseHandler, Char):
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
 
-            self.db.char.update_many(condition, {'$set': {'updated': False}})
+            self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
 
             # 启动脚本，生成字图
             script = ['python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]

@@ -85,7 +85,7 @@
       <div class="modal-body" style="min-height: 380px; padding: 0">
         <h4 class="col-sm-2 control-label">字编码</h4>
         <div class="col-sm-10">
-          <input type="text" class="form-control id" value="{{params.get('id') or ''}}" placeholder="请输入字编码，可部分输入">
+          <input type="text" class="form-control char_id" value="{{params.get('char_id') or ''}}" placeholder="请输入字编码，可部分输入">
         </div>
         <h4 class="col-sm-2 control-label">分类</h4>
         <div class="col-sm-10">
@@ -198,7 +198,7 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['id', 'source', 'ocr', 'txt', 'remark', 'cc'];
+  var inputFields = ['char_id', 'source', 'ocr', 'txt', 'remark', 'cc'];
   var selectFields = ['txt_type'];
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';
