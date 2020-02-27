@@ -118,9 +118,10 @@ class TextProofApi(PageHandler):
         self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
     def save_proof(self, data):
+        base = data.get('base', '').strip('\n')
         doubt = data.get('doubt', '').strip('\n')
         txt_html = data.get('txt_html', '').strip('\n')
-        info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': self.now()}
+        info = {'result': {'base': base, 'doubt': doubt, 'txt_html': txt_html}, 'updated_time': self.now()}
         self.update_task(data.get('submit'), info)
         self.update_my_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
@@ -148,12 +149,13 @@ class TextReviewApi(PageHandler):
     def post(self, task_id):
         """ 文字审定提交 """
         try:
+            base = self.data.get('base', '').strip('\n')
             doubt = self.data.get('doubt', '').strip('\n')
             # 发布难字任务
             if self.data.get('submit') and self.mode == 'do':
                 self.publish_hard_task(self.task, doubt)
             # 更新当前任务
-            info = {'result.doubt': doubt, 'updated_time': self.now()}
+            info = {'result.base': base, 'result.doubt': doubt, 'updated_time': self.now()}
             self.update_task(self.data.get('submit'), info)
             # 更新数据
             txt_html = self.data.get('txt_html', '').strip('\n')
