@@ -58,24 +58,30 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
         img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
     remove(down_file)
 
-    chars_done = []
+    chars_done, columns_todo = [], set()
     chars_todo = page_chars or page['chars']
     for c in chars_todo:
-        img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
+        oc = page_chars and [oc for oc in page['chars'] if oc['cid'] == c['cid']]
+        oc = oc and oc[0]
+        if oc and c['has_img'] and dict(x=oc['x'], y=oc['y'], w=oc['w'], h=oc['h']) == c['pos']:
+            continue
+        oc = c['pos']
+        img_c = img[int(oc['y']): int(oc['y'] + oc['h']), int(oc['x']): int(oc['x'] + oc['w'])]
         if img_c is not None:
             img_c = resize_binary(img_c, 64, 64, True)
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
             cv2.imwrite(img_file, img_c)
             key = get_img_key(name, salt, str(c['cid']))
             s3_cut.meta.client.upload_file(img_file, 'chars', key)
-            chars_done.append(c.get('id') or '%s_%s' % (name, c['cid']))
+            chars_done.append(c['char_id'])
+            columns_todo.add(c['column_cid'])
     if chars_done:
-        db.char.update_many({'id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
+        db.char.update_many({'char_id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
     logging.info('%s: %d char-images uploaded' % (name, len(chars_done)))
 
     columns_done = []
-    columns_cid = set(c['cid'] for c in chars_todo)
-    columns_todo = [c for c in page['columns'] if c['cid'] in columns_cid]
+    columns_todo = list(columns_todo)
+    columns_todo = [c for c in page['columns'] if c['cid'] in columns_todo]
     for c in columns_todo:
         img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
         if img_c is not None:
@@ -129,4 +135,3 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(extract_cut_img)
-    # print(extract_chars_img(['YB_22_995']))
