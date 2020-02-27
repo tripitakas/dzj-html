@@ -169,7 +169,7 @@ class Page(Model):
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},
         {'id': 'txt_html', 'name': '文本HTML'},
-        {'id': 'box_ready', 'name': '切分已就绪'},
+        {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'chars_col', 'name': '用户提交字序'},
         {'id': 'tasks', 'name': '任务'},
         {'id': 'lock.box', 'name': '切分锁'},
@@ -271,7 +271,7 @@ class Page(Model):
         return condition, params
 
     @staticmethod
-    def format_value(value, key=None):
+    def format_value(value, key=None, doc=None):
         """ 格式化page表的字段输出"""
         if key == 'tasks':
             value = value or {}
@@ -280,8 +280,6 @@ class Page(Model):
         elif key in ['lock-box', 'lock-text']:
             if prop(value, 'is_temp') is not None:
                 value = '临时锁<a>解锁</a>' if prop(value, 'is_temp') else '任务锁'
-        elif key in ['cut-edit']:
-            value = '修改'
         else:
             value = Task.format_value(value, key)
         return value
@@ -307,7 +305,6 @@ class Char(Model):
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
-        (v.not_empty, 'page_name', 'cid', 'column_cid'),
         (v.is_page, 'page_name'),
     ]
     primary = 'id'
@@ -334,12 +331,3 @@ class Char(Model):
                     op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
                     condition.update({field: {op: value} if op else value})
         return condition, params
-
-    @staticmethod
-    def format_value(value, key=None):
-        """ 格式化page表的字段输出"""
-        if key == 'pos':
-            value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        else:
-            value = Task.format_value(value, key)
-        return value

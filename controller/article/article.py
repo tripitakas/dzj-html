@@ -32,6 +32,6 @@ class Article(Model):
     ]
     actions = [  # 列表单条记录包含哪些操作
         {'action': 'article-view', 'label': '查看'},
-        {'action': 'article-update', 'label': '修改'},
+        {'action': 'article-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]

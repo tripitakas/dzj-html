@@ -157,7 +157,7 @@ a:focus {
 
 .footer {
   position: fixed;
-  opacity: .95;
+  opacity: .75;
 }
 
 .footer > span {

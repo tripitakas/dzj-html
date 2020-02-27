@@ -834,7 +834,7 @@ a:hover, a:visited, a:focus {
 }
 
 .modal-radio input[type='radio'] {
-  margin: 0 5px 0 15px;
+  margin: 7px 5px 0 15px;
 }
 
 .modal-radio input[type='radio']:first-child {

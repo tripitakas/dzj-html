@@ -37,7 +37,7 @@
     <td><input type="checkbox"/></td>
     {% for f in table_fields %}
     <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
-      {% raw format_value(prop(d, f['id'].replace('-', '.')), f['id']) or '' %}
+      {% raw format_value(prop(d, f['id'].replace('-', '.')), f['id'], d) or '' %}
     </td>
     {% end %}
     <td class="action">

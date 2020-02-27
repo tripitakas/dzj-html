@@ -224,7 +224,7 @@ class Task(Model):
         return cls.priorities.get(priority) or priority
 
     @classmethod
-    def format_value(cls, value, key=None):
+    def format_value(cls, value, key=None, doc=None):
         """ 格式化task表的字段输出"""
         if key == 'task_type':
             value = cls.get_task_name(value)

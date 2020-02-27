@@ -192,7 +192,7 @@ class MyTaskHandler(TaskHandler):
     actions = [
         {'action': 'my-task-view', 'label': '查看'},
         {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
-        {'action': 'my-task-update', 'label': '修改', 'disabled': lambda d: d['status'] == 'picked'},
+        {'action': 'my-task-update', 'label': '更新', 'disabled': lambda d: d['status'] == 'picked'},
     ]
     table_fields = [
         {'id': 'doc_id', 'name': '页编码'},

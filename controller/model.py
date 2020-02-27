@@ -42,7 +42,7 @@ class Model(object):
     img_operations = ['config', 'help']
     actions = [  # 单条记录包含哪些操作
         {'action': 'btn-view', 'label': '查看'},
-        {'action': 'btn-update', 'label': '修改'},
+        {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
     update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
