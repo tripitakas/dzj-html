@@ -332,7 +332,7 @@ class DataCharListHandler(BaseHandler, Char):
         if key == 'pos':
             value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'has_img' and value:
-            value = r'<img class="char-img" href="%s"/>' % self.get_cut_img(doc['id'])
+            value = r'<img class="char-img" src="%s"/>' % self.get_cut_img(doc['id'])
         else:
             value = Task.format_value(value, key)
         return value
