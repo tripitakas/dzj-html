@@ -58,11 +58,9 @@
   <div class="btn-txt" id="next-diff" title="下一条异文">></div>
   <div class="btn-txt btn-empty-place" id="toggle-empty-place" title="显示空位符">　</div>
   <img src="{{static_url('imgs/icon_delete.png')}}" class="btn-img" id="delete-line" title="删除该行"/>
-  <img src="{{static_url('imgs/icon_add_up.png')}}" class="btn-img hide" id="add-up-line" title="向上增行"/>
-  <img src="{{static_url('imgs/icon_add_down.png')}}" class="btn-img hide" id="add-down-line" title="向下增行"/>
   <img src="{{static_url('imgs/icon_doubt.png')}}" class="btn-img {{'hide' if 'text_hard' in handler.task_type else ''}}" id="save-doubt" title="存疑"/>
   <img src="{{static_url('imgs/icon_match.png')}}" class="btn-img" id="check-match" title="检查图文匹配"/>
-  <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img {{'' if 'text_proof' in handler.task_type else 'hide'}}" id="re-compare" title="重新比对"/>
+  <img src="{{static_url('imgs/icon_compare.png')}}" class="btn-img" id="re-compare" data-toggle="modal" data-target="#cmpModal" title="重新比对"/>
   <img src="{{static_url('imgs/icon_txts.png')}}" class="btn-img {{'' if handler.texts else 'hide'}}" data-toggle="modal" data-target="#txtModal" title="显示文本"/>
 </div>
 {% end %}
@@ -169,6 +167,30 @@
             {{txt[0].replace('|', '\n')}}
           </textarea>
         {% end %}
+      </div>
+    </div>
+  </div>
+</div>
+<div id="cmpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cmpModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">重新比对</h4>
+      </div>
+      <div class="modal-body" style="min-height: 80px">
+        <h4 class="col-sm-2 control-label">选择底本</h4>
+        <div class="col-sm-10 select-base">
+          {% for i, txt in enumerate(handler.texts) %}
+          <label class="radio-inline">
+            <input type="radio" name="base" value="{{txt[2]}}" {{'' if i else 'checked'}}>{{txt[1]}}
+          </label>
+          {% end %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
       </div>
     </div>
   </div>
@@ -290,9 +312,10 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
+    var base = '{{handler.texts[0][2]}}';
     var txt_html = $('#sutra-text .block').parent().html();
     var doubt = $('.char-list-table.editable tbody').html();
-    return {submit: submit, step: step, name: docId, doubt: doubt, txt_html: txt_html};
+    return {submit: submit, step: step, name: docId, doubt: doubt, base: base, txt_html: txt_html};
   }
 </script>
 {% end %}

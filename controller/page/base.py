@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from functools import cmp_to_key
 from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
@@ -26,6 +27,10 @@ class PageHandler(TaskHandler, PageTool):
     def get_ocr_col(self):
         return self.page.get('ocr_col') or self.get_ocr_txt(self.page.get('columns'))
 
+    @staticmethod
+    def sort_by_base(texts, base):
+        base and texts.sort(key=cmp_to_key(lambda a, b: -1 if a[2] == base else 1))
+
     def get_cmp_txt(self):
         """ 获取比对文本、存疑文本"""
         texts, doubts = [], []
@@ -34,13 +39,13 @@ class PageHandler(TaskHandler, PageTool):
             doubts.append([doubt, '我的存疑'])
             text = self.page.get('text')
             if text:
-                texts.append([text, '审定文本'])
+                texts.append([text, '审定文本', 'text'])
             ocr = self.get_ocr()
             if ocr:
-                texts.append([ocr, '字框OCR'])
+                texts.append([ocr, '字框OCR', 'ocr'])
             ocr_col = self.get_ocr_col()
             if ocr_col:
-                texts.append([ocr_col, '列框OCR'])
+                texts.append([ocr_col, '列框OCR', 'ocr_col'])
             cmp = self.prop(self.task, 'result.cmp')
             if cmp:
                 texts.append([cmp, '比对文本'])
@@ -51,7 +56,7 @@ class PageHandler(TaskHandler, PageTool):
             condition = dict(task_type={'$regex': 'text_proof'}, doc_id=self.page_name, status=self.STATUS_FINISHED)
             for task in list(self.db.task.find(condition)):
                 txt = self.html2txt(self.prop(task, 'result.txt_html', ''))
-                texts.append([txt, self.get_task_name(task['task_type'])])
+                texts.append([txt, self.get_task_name(task['task_type']), task['task_type']])
                 proof_doubt += self.prop(task, 'result.doubt', '')
             if proof_doubt:
                 doubts.append([proof_doubt, '校对存疑'])
@@ -63,6 +68,7 @@ class PageHandler(TaskHandler, PageTool):
             review_doubt = self.prop(review_task, 'result.doubt', '')
             if review_doubt:
                 doubts.append([review_doubt, '审定存疑'])
+        self.sort_by_base(texts, self.prop(self.task, 'result.base'))
         return texts, doubts
 
     def get_txt_html_update(self, txt_html):

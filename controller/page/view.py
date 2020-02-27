@@ -3,6 +3,7 @@
 """
 @time: 2019/5/13
 """
+from functools import cmp_to_key
 from tornado.web import UIModule
 from tornado.escape import to_basestring
 from controller import errors as e
@@ -80,9 +81,10 @@ class TextProofHandler(PageHandler):
                 return self.render('task_text_select.html', cmp=cmp)
             else:
                 cmp_data = self.prop(self.task, 'result.txt_html')
-                if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
+                base = self.get_query_argument('base', '')
+                if not cmp_data or base:
+                    self.sort_by_base(self.texts, base)
                     cmp_data = self.diff(*[t[0] for t in self.texts])
-                    cmp_data = to_basestring(TextArea(self).render(cmp_data))
                 return self.render('task_text_do.html', cmp_data=cmp_data)
 
         except Exception as error:
@@ -101,7 +103,9 @@ class TextReviewHandler(PageHandler):
         try:
             self.texts, self.doubts = self.get_cmp_txt()
             cmp_data = self.prop(self.page, 'txt_html')
-            if not cmp_data and len(self.texts):
+            base = self.get_query_argument('base', '')
+            if (not cmp_data or base) and len(self.texts):
+                self.sort_by_base(self.texts, base)
                 cmp_data = self.diff(*[t[0] for t in self.texts])
             self.render('task_text_do.html', cmp_data=cmp_data)
 
