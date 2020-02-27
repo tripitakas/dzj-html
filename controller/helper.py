@@ -40,6 +40,9 @@ def load_config():
         if k not in config:
             config[k] = v
 
+    if prop(config, 'img.local'):
+        config['img']['img_path'] = path.join(BASE_DIR, 'static', 'img')
+
     return config
 
 

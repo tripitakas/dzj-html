@@ -91,10 +91,10 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
             cv2.imwrite(img_file, img_c)
             key = get_img_key(name, salt, str(c['cid']))
             upload_file(img_file, 'chars', key)
-            chars_done.append(c['char_id'])
+            chars_done.append(c['id'])
             columns_todo.add(c['column_cid'])
     if chars_done:
-        db.char.update_many({'char_id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
+        db.char.update_many({'id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
     logging.info('%s: %d char-images uploaded' % (name, len(chars_done)))
 
     columns_done = []
@@ -135,7 +135,7 @@ def extract_cut_img(db=None, collection='char', char_condition=None, page_names=
         page_names = set(c['page_name'] for c in chars)
 
     session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'])
-    s3_big = oss.get('big_path') or session.resource('s3', endpoint_url=re.sub('tripitaka-[a-z]+', 'tripitaka-big', oss['host']))
+    s3_big = oss.get('big_path') or session.resource('s3', endpoint_url=host_big)
     s3_cut = oss.get('img_path') or session.resource('s3', endpoint_url=host_cut)
     res = dict(ok=[], fail=[])
     for name in page_names:

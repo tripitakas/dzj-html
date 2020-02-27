@@ -157,7 +157,7 @@ class DataPageExportCharApi(BaseHandler):
                     pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                     column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
                     c = {
-                        'page_name': p['name'], 'cid': c['cid'], 'char_id': char_id, 'char_code': char_code,
+                        'page_name': p['name'], 'cid': c['cid'], 'id': char_id, 'char_code': char_code,
                         'column_cid': column_cid, 'source': p.get('source'), 'has_img': None,
                         'ocr': c['ocr_txt'], 'txt': txt, 'cc': c.get('cc'),
                         'sc': c.get('sc'), 'pos': pos,

@@ -279,23 +279,29 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_img(self, page, resize=False):
         page_name = page['name']
+        inner_path = '/'.join(page_name.split('_')[:-1])
         host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
-        if not host or salt in [None, '', '待配置']:
-            fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
+        if prop(self.config, 'img.local'):
+            fn = self.static_url('img/pages/{0}/{1}.jpg'.format(page_name[:2], page_name))
             if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
 
         hash_value = md5_encode(page_name, salt)
-        inner_path = '/'.join(page_name.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
 
     def get_cut_img(self, img_name, img_type='char'):
         assert img_type in ['char', 'column']
+        inner_path = '/'.join(img_name.split('_')[:-1])
+        if prop(self.config, 'img.local'):
+            fn = self.static_url('img/{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name))
+            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
+                fn += '?err=1'
+            return fn
+
         host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
         hash_value = md5_encode(img_name, salt)
-        inner_path = '/'.join(img_name.split('_')[:-1])
         return '%s/%ss/%s/%s_%s.jpg' % (host, img_type, inner_path, img_name, hash_value)
 
     def validate(self, data, rules):
