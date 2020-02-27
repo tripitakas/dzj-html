@@ -157,6 +157,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         :param kwargs: 更多上下文参数
         :return: None
         """
+
         def remove_func(obj):
             if isinstance(obj, dict):
                 for k, v in list(obj.items()):
@@ -276,14 +277,10 @@ class BaseHandler(CorsMixin, RequestHandler):
         except MongoError:
             pass
 
-    def get_img(self, page, resize=False, force_local=False):
-        if page.get('img_cloud_path'):
-            url = page['img_cloud_path']
-            return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-
+    def get_img(self, page, resize=False):
         page_name = page['name']
         host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
-        if not host or salt in [None, '', '待配置'] or force_local:
+        if not host or salt in [None, '', '待配置']:
             fn = self.static_url('img/{0}/{1}.jpg'.format(page_name[:2], page_name))
             if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
@@ -293,6 +290,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(page_name.split('_')[:-1])
         url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
         return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
+
+    def get_cut_img(self, img_name, img_type='char'):
+        assert img_type in ['char', 'column']
+        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
+        hash_value = md5_encode(img_name, salt)
+        inner_path = '/'.join(img_name.split('_')[:-1])
+        return '%s/%ss/%s/%s_%s.jpg' % (host, img_type, inner_path, img_name, hash_value)
 
     def validate(self, data, rules):
         errs = v.validate(data, rules)

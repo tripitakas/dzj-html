@@ -150,7 +150,7 @@ class DataPageListHandler(BaseHandler, Page):
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
         {'id': 'tasks', 'name': '任务'},
-        {'id': 'box_ready', 'name': '切分已就绪'},
+        {'id': 'box_ready', 'name': '切分就绪'},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
         {'id': 'lock-box', 'name': '切分锁'},
@@ -182,7 +182,7 @@ class DataPageListHandler(BaseHandler, Page):
     update_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分类'},
-        {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
         {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': Page.layouts},
         {'id': 'level-box', 'name': '切分等级'},
         {'id': 'level-text', 'name': '文本等级'},
@@ -231,7 +231,7 @@ class DataPageViewHandler(BaseHandler, Page):
         """ 浏览页面数据"""
         edit_fields = [
             {'id': 'name', 'name': '页编码', 'readonly': True},
-            {'id': 'box_ready', 'name': '切分已就绪', 'input_type': 'radio', 'options': ['是', '否']},
+            {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
             {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': self.layouts},
             {'id': 'source', 'name': '分类'},
             {'id': 'level-box', 'name': '切分等级'},
@@ -305,7 +305,14 @@ class DataCharListHandler(BaseHandler, Char):
         {'action': 'btn-remove', 'label': '删除'},
     ]
     hide_fields = ['log', 'options']
-    info_fields = ['source', 'txt', 'txt_type', 'remark']
+    info_fields = ['has_img', 'source', 'txt', 'txt_type', 'remark']
+    update_fields = [
+        {'id': 'has_img', 'name': '已有字图', 'input_type': 'radio', 'options': ['是', '否']},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'txt_type', 'name': '文字类型'},
+        {'id': 'remark', 'name': '备注'},
+    ]
     txt_types = {
         '': '', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字',
         'N': '拿不准', '*': '不认识',
@@ -319,6 +326,16 @@ class DataCharListHandler(BaseHandler, Char):
         condition = {'id': {'$in': [c['_id'] for c in chars]}}
         params = {'duplicate': 'true'}
         return condition, params
+
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化page表的字段输出"""
+        if key == 'pos':
+            value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
+        if key == 'has_img' and value:
+            value = r'<img class="char-img" href="%s"/>' % self.get_cut_img(doc['id'])
+        else:
+            value = Task.format_value(value, key)
+        return value
 
     def get(self):
         """ 字数据管理"""

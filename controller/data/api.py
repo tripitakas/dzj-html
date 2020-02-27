@@ -197,16 +197,15 @@ class DataCharGenImgApi(BaseHandler, Char):
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
 
-            char_ids = condition = ''
             if self.data['type'] == 'selected':
-                char_ids = ','.join(self.data['_ids'])
+                condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
-                condition = json.dumps(condition, ensure_ascii=False)
+
+            self.db.char.update_many(condition, {'$set': {'updated': False}})
 
             # 启动脚本，生成字图
-            script = ['python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py'),
-                      '--char_ids=' + char_ids, '--condition=' + condition]
+            script = ['python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]
             os.system(' '.join(script))
 
             self.send_data_response()
