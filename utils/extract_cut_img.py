@@ -10,7 +10,9 @@ import cv2
 import json
 import logging
 import hashlib
+import shutil
 from os import path, makedirs, remove
+from glob2 import glob
 from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
@@ -42,11 +44,26 @@ def resize_binary(img, width=1024, height=1024, center=False):
 
 
 def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
+    def upload_file(filename, bucket, key_):
+        if isinstance(s3_cut, str):
+            dst_file = path.join(s3_cut, bucket, '_'.join(key_.split('_')[:-1]) + '.jpg')
+            if not path.exists(path.dirname(dst_file)):
+                makedirs(path.dirname(dst_file))
+            shutil.move(filename, dst_file)
+        else:
+            s3_cut.meta.client.upload_file(filename, bucket, key_)
+
     key = get_img_key(name, salt)
     down_file = path.join(tmp_path, '%s.jpg' % name)
     if not path.exists(down_file):
-        s3_big.meta.client.download_file('pages', key, down_file)
-        logging.info('download_file: %s, %.1f kb' % (name, path.getsize(down_file) / 1024))
+        if isinstance(s3_big, str):
+            down_file = glob(path.join(s3_big, *(name.split('_')[:-1]), name + '.*'))
+            if not down_file:
+                raise OSError('%s not exist in %s' % (name, s3_big))
+            down_file = down_file[0]
+        else:
+            s3_big.meta.client.download_file('pages', key, down_file)
+            logging.info('download_file: %s, %.1f kb' % (name, path.getsize(down_file) / 1024))
 
     page = db.page.find_one({'name': name})
     if not page:
@@ -56,7 +73,8 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
     h, w = img.shape[:2]
     if w != page['width'] or h != page['height']:
         img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
-    remove(down_file)
+    if not isinstance(s3_big, str):
+        remove(down_file)
 
     chars_done, columns_todo = [], set()
     chars_todo = page_chars or page['chars']
@@ -72,7 +90,7 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
             cv2.imwrite(img_file, img_c)
             key = get_img_key(name, salt, str(c['cid']))
-            s3_cut.meta.client.upload_file(img_file, 'chars', key)
+            upload_file(img_file, 'chars', key)
             chars_done.append(c['char_id'])
             columns_todo.add(c['column_cid'])
     if chars_done:
@@ -89,7 +107,7 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
             cv2.imwrite(img_file, img_c)
             key = get_img_key(name, salt, str(c['cid']))
-            s3_cut.meta.client.upload_file(img_file, 'columns', key)
+            upload_file(img_file, 'columns', key)
             columns_done.append(c['cid'])
     logging.info('%s: %d column-images uploaded' % (name, len(columns_done)))
 
@@ -117,8 +135,8 @@ def extract_cut_img(db=None, collection='char', char_condition=None, page_names=
         page_names = set(c['page_name'] for c in chars)
 
     session = Session(aws_access_key_id=oss['access_key'], aws_secret_access_key=oss['secret_key'])
-    s3_big = session.resource('s3', endpoint_url=host_big)
-    s3_cut = session.resource('s3', endpoint_url=host_cut)
+    s3_big = oss.get('big_path') or session.resource('s3', endpoint_url=re.sub('tripitaka-[a-z]+', 'tripitaka-big', oss['host']))
+    s3_cut = oss.get('img_path') or session.resource('s3', endpoint_url=host_cut)
     res = dict(ok=[], fail=[])
     for name in page_names:
         try:
