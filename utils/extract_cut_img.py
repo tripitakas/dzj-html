@@ -70,7 +70,7 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
             s3_cut.meta.client.upload_file(img_file, 'chars', key)
             chars_done.append(c.get('id') or '%s_%s' % (name, c['cid']))
     if chars_done:
-        db.char.update_many({'id': {'$in': chars_done}}, {'$set': {'has_img': True, 'updated': True}})
+        db.char.update_many({'id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
     logging.info('%s: %d char-images uploaded' % (name, len(chars_done)))
 
     columns_done = []
