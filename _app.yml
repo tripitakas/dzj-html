@@ -38,10 +38,25 @@ task:
   task_timeout_days: 7
   temp_lock_timeout_hours: 1
 
-# OSS
-img:
-  host: 'https://tripitaka-img.oss-cn-beijing.aliyuncs.com'
-  salt: '待配置'
+# web img
+web_img:
+  use_local: false
+  with_hash: true
+  salt:
+  local_path: static/img
+  my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  secret_key:
+  access_key:
+  shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
+
+# big img
+big_img:
+  use_local: true
+  local_path: static/img
+  my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  secret_key:
+  access_key:
+  shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
 
 # 网盘
 pan:

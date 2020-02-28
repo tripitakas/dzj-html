@@ -24,7 +24,7 @@ from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
-from controller.helper import get_date_time, prop, md5_encode
+from controller.helper import get_date_time, prop, md5_encode, get_web_img
 
 MongoError = (PyMongoError, BSONError)
 DbError = MongoError
@@ -277,41 +277,26 @@ class BaseHandler(CorsMixin, RequestHandler):
         except MongoError:
             pass
 
-    def get_img(self, page, resize=False):
-        page_name = page['name']
-        inner_path = '/'.join(page_name.split('_')[:-1])
-        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
-        if prop(self.config, 'img.local'):
-            fn = self.static_url('img/pages/{0}/{1}.jpg'.format(inner_path, page_name))
-            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
-                fn += '?err=1'  # cut.js 据此不显示图
-            return fn
-
-        hash_value = md5_encode(page_name, salt)
-        url = '%s/pages/%s/%s_%s.jpg' % (host, inner_path, page_name, hash_value)
-        return url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else url
-
-    def get_cut_img(self, img_name, img_type='char'):
-        assert img_type in ['char', 'column']
-        inner_path = '/'.join(img_name.split('_')[:-1])
-        if prop(self.config, 'img.local'):
-            fn = self.static_url('img/{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name))
-            if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
-                fn += '?err=1'
-            return fn
-
-        host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
-        hash_value = md5_encode(img_name, salt)
-        return '%s/%ss/%s/%s_%s.jpg' % (host, img_type, inner_path, img_name, hash_value)
-
     def validate(self, data, rules):
         errs = v.validate(data, rules)
-        if errs:
-            self.send_error_response(errs)
+        errs and self.send_error_response(errs)
 
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
+
+    @staticmethod
+    def get_page_img(page, resize=False):
+        img_url = get_web_img(page['name'], img_type='page')
+        return img_url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else img_url
+
+    @staticmethod
+    def get_char_img(char_id):
+        return get_web_img(char_id, img_type='char')
+
+    @staticmethod
+    def get_column_img(column_id):
+        return get_web_img(column_id, img_type='column')
 
     @staticmethod
     def now():

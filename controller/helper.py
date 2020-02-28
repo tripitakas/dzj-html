@@ -6,18 +6,17 @@
 """
 
 import re
-import random
+import oss2
 import hashlib
 import logging
 import inspect
-from hashids import Hashids
-from urllib.parse import unquote
-from datetime import datetime, timedelta, timezone
-
-from tornado.util import PY3
-from os import path
-from yaml import load as load_yml, SafeLoader
 import pymongo
+from os import path
+from hashids import Hashids
+from tornado.util import PY3
+from urllib.parse import unquote
+from yaml import load as load_yml, SafeLoader
+from datetime import datetime, timedelta, timezone
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 
@@ -40,9 +39,6 @@ def load_config():
         if k not in config:
             config[k] = v
 
-    if prop(config, 'img.local'):
-        config['img']['img_path'] = path.join(BASE_DIR, 'static', 'img')
-
     return config
 
 
@@ -59,9 +55,9 @@ def connect_db(cfg, db_name_ext=''):
     return conn[cfg['name'] + db_name_ext], uri
 
 
-def md5_encode(page_code, salt):
+def md5_encode(img_name, salt):
     md5 = hashlib.md5()
-    md5.update((page_code + salt).encode('utf-8'))
+    md5.update((img_name + salt).encode('utf-8'))
     return md5.hexdigest()
 
 
@@ -86,7 +82,7 @@ def gen_id(value, salt='', rand=False, length=16):
     return coder.encode(*[ord(c) for c in list(value or [])])[:length]
 
 
-def cmp_page_code(a, b):
+def cmp_img_code(a, b):
     """ 比较图片名称大小 """
     al, bl = a.split('_'), b.split('_')
     if len(al) != len(bl):
@@ -97,18 +93,6 @@ def cmp_page_code(a, b):
         if ai != bi:
             return 1 if ai > bi else -1
     return 0
-
-
-def random_code():
-    code = ''
-    for i in range(4):
-        current = random.randrange(0, 4)
-        if current != i:
-            temp = chr(random.randint(65, 90))
-        else:
-            temp = random.randint(0, 9)
-        code += str(temp)
-    return code
 
 
 def prop(obj, key, default=None):
@@ -122,6 +106,34 @@ def get_url_param(key, url_query):
     regex = r'(^|\?|&)%s=(.*?)($|&)' % key
     r = re.search(regex, url_query, re.I)
     return unquote(r.group(2)) if r else ''
+
+
+def get_web_img(img_name, img_type='page', config=None):
+    config = config if config else load_config()
+    inner_path = '/'.join(img_name.split('_')[:-1])
+    if prop(config, 'web_img.with_hash'):
+        img_name += '_' + md5_encode(img_name, prop(config, 'img.salt'))
+    relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
+    # 从本地获取图片
+    if prop(config, 'web_img.use_local'):
+        img_url = '/{0}/{1}'.format(prop(config, 'web_img.local_path').strip('/'), relative_url)
+        if not path.exists(path.join(BASE_DIR, img_url[1:])):
+            img_url += '?err=1'  # cut.js 据此不显示图
+        return img_url
+    # 从云盘获取图片
+    auth = oss2.Auth(prop(config, 'web_img.access_key'), prop(config, 'web_img.secret_key'))
+    my_cloud = prop(config, 'web_img.my_cloud')
+    bucket_name = re.sub(r'http[s]?://', '', my_cloud.split('.')[0])
+    cloud_host = my_cloud.replace(bucket_name + '.', '')
+    my_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
+    # 先尝试自己云盘
+    try:
+        if my_bucket.object_exists(relative_url):
+            return path.join(prop(config, 'web_img.my_cloud'), relative_url)
+    except oss2.exceptions:
+        pass
+    # 后尝试共享云盘
+    return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
 
 
 def my_framer():
