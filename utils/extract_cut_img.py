@@ -57,7 +57,8 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
     down_file = path.join(tmp_path, '%s.jpg' % name)
     if not path.exists(down_file):
         if isinstance(s3_big, str):
-            down_file = glob(path.join(s3_big, *(name.split('_')[:-1]), name + '.*'))
+            down_file = [f for f in glob(path.join(s3_big, *(name.split('_')[:-1]), name + '.*'))
+                         if f.lower().split('.')[-1] in ['jpg', 'png', 'gif']]
             if not down_file:
                 raise OSError('%s not exist in %s' % (name, s3_big))
             down_file = down_file[0]
