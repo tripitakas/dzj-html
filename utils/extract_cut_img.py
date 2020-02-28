@@ -70,6 +70,8 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
         raise OSError('%s not found' % name)
 
     img = cv2.imread(down_file, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise OSError('fail to open %s' % down_file)
     h, w = img.shape[:2]
     if w != page['width'] or h != page['height']:
         img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
