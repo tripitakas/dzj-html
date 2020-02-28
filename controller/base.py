@@ -282,7 +282,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         inner_path = '/'.join(page_name.split('_')[:-1])
         host, salt = prop(self.config, 'img.host'), prop(self.config, 'img.salt')
         if prop(self.config, 'img.local'):
-            fn = self.static_url('img/pages/{0}/{1}.jpg'.format(page_name[:2], page_name))
+            fn = self.static_url('img/pages/{0}/{1}.jpg'.format(inner_path, page_name))
             if not path.exists(path.join(self.application.BASE_DIR, fn[1: fn.index('?')] if '?' in fn else fn[1:])):
                 fn += '?err=1'  # cut.js 据此不显示图
             return fn
