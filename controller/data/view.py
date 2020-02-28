@@ -355,3 +355,17 @@ class DataCharListHandler(BaseHandler, Char):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class DataCharBrowseHandler(BaseHandler, Char):
+    URL = '/data/char/@char_id'
+
+    def get(self, char_id):
+        """ 浏览多张字图"""
+        char = self.db.char.find_one({'id': char_id})
+        if not char:
+            return self.send_error_response(e.no_object, message='没有找到字图%s' % char)
+        condition = self.get_char_search_condition(self.request.query)[0]
+        op = '$lt' if self.get_query_argument('to', '') == 'prev' else '$lt'
+        condition['char_code'] = {op: Char.name2code(char_id)}
+        docs, pager, q, order = self.find_by_page(condition, default_order='char_code')

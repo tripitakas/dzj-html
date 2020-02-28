@@ -53,17 +53,8 @@ class ApiTableHandler(TaskHandler):
             return ','.join(r for r in roles if not re.search(r'员|专家', r) or '普通用户' not in roles)
 
         def add_handler(url, idx=0):
-            added = 0
-            if '@boxType' in url:
-                for s, box_type in enumerate(['block', 'char', 'column', 'text']):
-                    sub_url = url.replace('@boxType', box_type)
-                    roles = get_route_roles(sub_url, method)
-                    if roles:
-                        added += len(roles)
-                        handlers.append((sub_url, func_name, idx * 10 + s + 1, file, get_doc(), show_roles(roles)))
-            if not added:
-                roles = get_route_roles(url, method)
-                handlers.append((url, func_name, idx, file, get_doc(), show_roles(roles)))
+            roles = get_route_roles(url, method)
+            handlers.append((url, func_name, idx, file, get_doc(), show_roles(roles)))
 
         if isinstance(cls.URL, list):
             for i, url_ in enumerate(cls.URL):

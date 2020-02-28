@@ -7,23 +7,23 @@
 
 import re
 
-# url占位符
+# url占位符，注意不要带括号
 url_placeholder = {
     'num': r'\d+',
+    'user_code': '[A-Za-z0-9]+',
+    'img_file': '[A-Za-z0-9._-]+',
+    'shared_field': r'box|text',
     'article_id': r'[^/]{6,}',
-    'page_prefix': r'[a-zA-Z]{2}[0-9_]*',
-    'page_name': r'[a-zA-Z]{2}_[fb0-9_]+',
-    'task_id': r'[A-Za-z0-9]{24}',
+    'task_id': r'[a-z0-9]{24}',
+    'doc_id': r'[a-zA-Z]{2}_[_0-9]+',
+    'char_id': r'[a-zA-Z]{2}_[_0-9]+',
+    'page_name': r'[a-zA-Z]{2}_[_0-9]+',
+    'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
-    'shared_field': r'box|text',
-    'doc_id': r'[a-zA-Z]{2}_[0-9_]+',
     'metadata': r'tripitaka|sutra|volume|reel|page|char',
-    'boxType': 'block|column|char',
-    'img_file': '[A-Za-z0-9._-]+',
-    'user_code': '[A-Za-z0-9]+',
 }
 
 """ 
