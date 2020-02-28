@@ -332,7 +332,7 @@ class PageTool(BoxOrder):
         segments = []
         pre_empty_line_no = 0
         block_no, line_no = 1, 1
-        base = re.sub(r'\s+', '', base)
+        base = base.replace(' ', '')
         diff_segments = Diff.diff(base, cmp1, cmp2, cmp3)[0]
         for s in diff_segments:
             if s['is_same'] and s['base'] == '\n':  # 当前为空行，即换行
