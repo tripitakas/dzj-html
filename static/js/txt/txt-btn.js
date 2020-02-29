@@ -181,7 +181,7 @@ $('#btn-ed-box').click(function () {
 
 // 查看切分
 $('#btn-vw-box').click(function () {
-  location = '/data/cut_view/' + docId + '?step=box&from=' + encodeFrom();
+  location = '/page/cut_view/' + docId + '?step=box&from=' + encodeFrom();
 });
 
 
@@ -194,7 +194,7 @@ $('#btn-ed-order').click(function () {
 
 // 查看字序
 $('#btn-vw-order').click(function () {
-  location = '/data/cut_view/' + docId + '?step=order&from=' + encodeFrom();
+  location = '/page/cut_view/' + docId + '?step=order&from=' + encodeFrom();
 });
 
 // 修改文本
