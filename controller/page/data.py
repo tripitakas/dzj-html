@@ -9,10 +9,11 @@ from controller import errors as e
 from controller import validate as v
 from controller.task.task import Task
 from controller.base import BaseHandler
+from controller.helper import name2code
 
 
 class PageAdminHandler(BaseHandler, Page):
-    URL = '/data/page'
+    URL = '/page'
 
     # 列表相关参数
     page_title = '页数据管理'
@@ -232,7 +233,8 @@ class PageExportCharApi(BaseHandler, Page):
         except self.DbError as error:
             return self.send_db_error(error)
 
-    def export_chars(self, p, chars, invalid_chars, invalid_pages):
+    @staticmethod
+    def export_chars(p, chars, invalid_chars, invalid_pages):
         try:
             col2cid = {cl['column_id']: cl['cid'] for cl in p['columns']}
             for c in p.get('chars', []):
@@ -242,7 +244,7 @@ class PageExportCharApi(BaseHandler, Page):
                     pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                     column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
                     c = {'page_name': p['name'], 'cid': c['cid'], 'name': char_name, 'column_cid': column_cid,
-                         'char_code': self.name2code(char_name), 'source': p.get('source'),
+                         'char_code': name2code(char_name), 'source': p.get('source'),
                          'ocr': c['ocr_txt'], 'txt': txt, 'cc': c.get('cc'),
                          'sc': c.get('sc'), 'pos': pos}
                     chars.append(c)

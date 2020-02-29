@@ -13,6 +13,7 @@ from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler
+from controller.helper import name2code
 
 
 class DataCharListHandler(BaseHandler, Char):

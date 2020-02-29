@@ -10,7 +10,7 @@ from .tool.box import Box
 from controller.model import Model
 from controller import validate as v
 from controller.task.task import Task
-from controller.helper import get_url_param, prop
+from controller.helper import get_url_param, prop, name2code
 
 
 class Page(Model, Box):
@@ -94,7 +94,7 @@ class Page(Model, Box):
             s = page_name.split('.')
             page['name'] = s[0]
             page['layout'] = layout
-            page['page_code'] = cls.name2code(s[0])
+            page['page_code'] = name2code(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
         if pages:
@@ -144,20 +144,3 @@ class Page(Model, Box):
             value = Task.format_value(value, key)
         return value
 
-    @staticmethod
-    def name2code(name):
-        """ 把带_的name转换为用0填充、补齐的code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
-        return ''.join([n.zfill(4) for n in name.split('_')]).lstrip('0')
-
-    @staticmethod
-    def cmp_page_code(a, b):
-        """ 比较图片名称大小"""
-        al, bl = a.split('_'), b.split('_')
-        if len(al) != len(bl):
-            return len(al) - len(bl)
-        for i in range(len(al)):
-            length = max(len(al[i]), len(bl[i]))
-            ai, bi = al[i].zfill(length), bl[i].zfill(length)
-            if ai != bi:
-                return 1 if ai > bi else -1
-        return 0

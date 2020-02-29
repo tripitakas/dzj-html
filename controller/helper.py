@@ -82,6 +82,23 @@ def md5_encode(img_name, salt):
     return md5.hexdigest()
 
 
+def name2code(name):
+    # 把带name中的_替换为0填充、补齐4位，如GL_1_1_1转换为GL000100010001
+    return ''.join([n.zfill(4) for n in name.split('_')]).lstrip('0')
+
+
+def cmp_page_code(a, b):
+    al, bl = a.split('_'), b.split('_')
+    if len(al) != len(bl):
+        return len(al) - len(bl)
+    for i in range(len(al)):
+        length = max(len(al[i]), len(bl[i]))
+        ai, bi = al[i].zfill(length), bl[i].zfill(length)
+        if ai != bi:
+            return 1 if ai > bi else -1
+    return 0
+
+
 def get_url_param(key, url_query):
     regex = r'(^|\?|&)%s=(.*?)($|&)' % key
     r = re.search(regex, url_query, re.I)
