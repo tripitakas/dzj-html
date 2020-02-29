@@ -128,12 +128,12 @@ class TestTextTask(APITestCase):
 
         # 测试获取上一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'prev'}}
-        d = self.parse_response(self.fetch('/api/task/text_neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/page/text_neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
         # 测试获取下一页文本
         data = {'data': {'cmp_page_code': hit_page_codes[0], 'neighbor': 'next'}}
-        d = self.parse_response(self.fetch('/api/task/text_neighbor', body=data))
+        d = self.parse_response(self.fetch('/api/page/text_neighbor', body=data))
         self.assertTrue(d.get('txt'))
 
     def test_text_mode(self):
@@ -171,7 +171,7 @@ class TestTextTask(APITestCase):
 
         # 专家expert2离开时解锁
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/api/data/unlock/text/QL_25_16', body={'data': {}})
+        r = self.fetch('/api/page/unlock/text/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
         # 测试用户expert1进入update页面时为可写
@@ -186,7 +186,7 @@ class TestTextTask(APITestCase):
 
         # 用户expert1离开时解锁
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/data/unlock/text/QL_25_16', body={'data': {}})
+        r = self.fetch('/api/page/unlock/text/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
         # 测试专家expert2进入edit页面时为可写

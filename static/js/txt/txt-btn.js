@@ -175,7 +175,7 @@ $('#zoom-reset').on('click', function () {
 // 修改切分
 $('#btn-ed-box').click(function () {
   autoSave(function () {
-    location = '/data/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
+    location = '/page/cut_edit/' + docId + '?step=box&from=' + encodeFrom();
   });
 });
 
@@ -188,7 +188,7 @@ $('#btn-vw-box').click(function () {
 // 修改字序
 $('#btn-ed-order').click(function () {
   autoSave(function () {
-    location = '/data/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
+    location = '/page/cut_edit/' + docId + '?step=order&from=' + encodeFrom();
   });
 });
 

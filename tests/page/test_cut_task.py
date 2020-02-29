@@ -62,7 +62,7 @@ class TestCutTask(APITestCase):
         # 测试第一步：修改切分数据
         page['chars'][0]['w'] += 1
         data = self.get_boxes(page)
-        r = self.fetch('/api/data/cut_edit/' + name, body={'data': data})
+        r = self.fetch('/api/page/cut_edit/' + name, body={'data': data})
         self.assert_code(200, r)
 
         # 测试第二步：修改字序
@@ -70,7 +70,7 @@ class TestCutTask(APITestCase):
         chars_col1 = data['chars_col'][0]
         cid1, cid2 = chars_col1[:2]
         chars_col1[0], chars_col1[1] = cid2, cid1
-        r = self.fetch('/api/data/cut_edit/' + name, body={'data': data})
+        r = self.fetch('/api/page/cut_edit/' + name, body={'data': data})
         self.assert_code(200, r)
 
     def test_cut_mode(self):
@@ -98,7 +98,7 @@ class TestCutTask(APITestCase):
 
         # 测试专家expert2可进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/cut_edit/%s?_raw=1' % name)
+        r = self.fetch('/page/cut_edit/%s?_raw=1' % name)
         self.assert_code(200, r)
 
         # 测试用户expert1不能进入update页面
@@ -108,7 +108,7 @@ class TestCutTask(APITestCase):
 
         # 专家expert2离开时解锁
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/api/data/unlock/box/' + name, body={'data': {}})
+        r = self.fetch('/api/page/unlock/box/' + name, body={'data': {}})
         self.assert_code(200, r)
 
         # 测试用户expert1可进入update页面
@@ -118,15 +118,15 @@ class TestCutTask(APITestCase):
 
         # 测试专家expert2无法进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/cut_edit/YB_22_346?_raw=1')
+        r = self.fetch('/page/cut_edit/YB_22_346?_raw=1')
         self.assert_code(e.data_is_locked, r)
 
         # 用户expert1离开时解锁
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/data/unlock/box/' + name, body={'data': {}})
+        r = self.fetch('/api/page/unlock/box/' + name, body={'data': {}})
         self.assert_code(200, r)
 
         # 测试专家expert2可进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/cut_edit/%s?_raw=1' % name)
+        r = self.fetch('/page/cut_edit/%s?_raw=1' % name)
         self.assert_code(200, r)
