@@ -362,7 +362,7 @@ $('.sutra-text-mode .save-txt').click(function () {
 function getPageText() {
   return $.map($('#sutra-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
-      return getSpanText($line.find('span'), []).join("");
+      return getSpanText($(line).find('span'), []).join("");
     }).join("\n");
   }).join("\n\n");
 }
