@@ -23,15 +23,14 @@ url_placeholder = {
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
-    'metadata': r'tripitaka|sutra|volume|reel|page|char',
+    'metadata': r'tripitaka|sutra|volume|reel',
 }
 
 """ 
-角色权限对应表，定义系统中的所有角色以及对应的route权限。
-将属于同一业务的route分配给同一个角色，用户通过拥有角色来拥有对应的route权限。
-角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
-routes：角色可以访问的权限集合；
+角色权限对应表。定义系统中的所有角色以及对应的route权限，将属于同一业务的route分配给同一个角色，
+用户通过拥有角色来拥有对应的route权限。角色可以嵌套定义，如下表中的切分专家和文字专家。字段说明：
 roles：角色所继承的父角色；
+routes：角色可以访问的权限集合；
 is_assignable：角色是否可被分配。
 """
 role_route_maps = {
@@ -52,7 +51,7 @@ role_route_maps = {
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             '/api/user/forget_pwd': ['POST'],
             '/article/@article_id': ['GET'],
-            '/api/task/detect_chars': ['POST'],
+            '/api/page/detect_chars': ['POST'],
         }
     },
     '普通用户': {
@@ -68,13 +67,13 @@ role_route_maps = {
             '/com/punctuate': ['GET'],
             '/api/com/punctuate': ['POST'],
             '/com/search': ['GET'],
-            '/api/data/diff': ['POST'],
+            '/api/page/diff': ['POST'],
             '/api/com/search': ['POST'],
             '/api/session/config': ['POST'],
             '/task/sample/@task_type': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/api/task/text_select/@page_name': ['POST'],
-            '/api/task/text_neighbor': ['POST'],
+            '/api/page/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/data/cut_view/@page_name': ['GET'],
             '/data/text_view/@page_name': ['GET'],
@@ -88,7 +87,7 @@ role_route_maps = {
             '/api/task/pick/cut_proof': ['POST'],
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/page/unlock/box/@page_name': ['POST'],
         }
     },
     '切分审定员': {
@@ -99,16 +98,16 @@ role_route_maps = {
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update)/cut_review/@task_id': ['GET'],
             '/api/task/(do|update)/cut_review/@task_id': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/page/unlock/box/@page_name': ['POST'],
         }
     },
     '切分专家': {
         'is_assignable': True,
         'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
         'routes': {
-            '/data/cut_edit/@page_name': ['GET'],
-            '/api/data/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
+            '/page/cut_edit/@page_name': ['GET'],
+            '/api/page/cut_edit/@page_name': ['POST'],
+            '/api/page/unlock/box/@page_name': ['POST'],
         }
     },
     '文字校对员': {
@@ -120,10 +119,10 @@ role_route_maps = {
             '/api/task/pick/text_proof_@num': ['POST'],
             '/task/(do|update|view)/text_proof_@num/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
-            '/data/cut_edit/@page_name': ['GET'],
-            '/api/data/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
+            '/page/cut_edit/@page_name': ['GET'],
+            '/api/page/cut_edit/@page_name': ['POST'],
+            '/api/page/unlock/box/@page_name': ['POST'],
+            '/api/page/unlock/text/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -134,10 +133,10 @@ role_route_maps = {
             '/api/task/pick/text_review': ['POST'],
             '/task/(do|update|view)/text_review/@task_id': ['GET'],
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
-            '/data/cut_edit/@page_name': ['GET'],
-            '/api/data/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
+            '/page/cut_edit/@page_name': ['GET'],
+            '/api/page/cut_edit/@page_name': ['POST'],
+            '/api/page/unlock/box/@page_name': ['POST'],
+            '/api/page/unlock/text/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -150,7 +149,7 @@ role_route_maps = {
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
             '/data/text_edit/@page_name': ['GET'],
             '/api/data/text_edit/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
+            '/api/page/unlock/text/@page_name': ['POST'],
         }
     },
     'OCR加工员': {

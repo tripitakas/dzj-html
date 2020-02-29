@@ -4,8 +4,8 @@
 @desc: Handler基类
 @time: 2018/6/23
 """
-
 import re
+import oss2
 import logging
 import traceback
 from os import path
@@ -24,17 +24,16 @@ from tornado.httpclient import AsyncHTTPClient
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
-from controller.helper import get_date_time, prop, md5_encode, get_web_img
-
-MongoError = (PyMongoError, BSONError)
-DbError = MongoError
-hook = {}
+from controller.helper import get_date_time, prop, md5_encode, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
+
+    MongoError = (PyMongoError, BSONError)
+    DbError = MongoError
 
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
@@ -45,10 +44,10 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
-        self.set_header('Cache-Control', 'no-cache')
         self.set_header('Access-Control-Allow-Headers', self.CORS_HEADERS)
         self.set_header('Access-Control-Allow-Methods', self._get_methods())
         self.set_header('Access-Control-Allow-Credentials', 'true')
+        self.set_header('Cache-Control', 'no-cache')
 
     def prepare(self):
         """ 调用 get/post 前的准备"""
@@ -71,7 +70,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             user_in_db = self.db.user.find_one({'$or': cond} if cond else dict(_id=self.current_user.get('_id')))
             if not user_in_db:
                 return self.send_error_response(e.no_user) if self.is_api else self.redirect(login_url)
-        except MongoError as error:
+        except self.MongoError as error:
             return self.send_db_error(error)
         # 设置参数
         self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
@@ -238,7 +237,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         if not isinstance(code, int):
             code = 0
         reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
-        if not code and '[Errno' in reason and isinstance(error, MongoError):
+        if not code and '[Errno' in reason and isinstance(error, self.MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
             reason = '无法访问文档库' if code in [61] or 'Timeout' in error.__class__.__name__ else '%s(%s)%s' % (
@@ -253,16 +252,27 @@ class BaseHandler(CorsMixin, RequestHandler):
         if code not in [2003, 1]:
             traceback.print_exc()
 
-        default_error = e.mongo_error if isinstance(error, MongoError) else e.db_error
+        default_error = e.mongo_error if isinstance(error, self.MongoError) else e.db_error
         reason = '无法连接数据库' if code in [2003] else '%s(%s)%s' % (
             default_error[1], error.__class__.__name__, ': ' + (reason or '')
         )
 
         return self.send_error_response((default_error[0] + code, reason))
 
+    @staticmethod
+    def now():
+        return datetime.now()
+
+    @staticmethod
+    def prop(obj, key, default=None):
+        return prop(obj, key, default=default)
+
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
+
+    def get_config(self, key):
+        return self.prop(self.config, key)
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
         target_id = target_id and str(target_id) or None
@@ -274,7 +284,7 @@ class BaseHandler(CorsMixin, RequestHandler):
                 op_type=op_type, username=username, user_id=user_id, target_id=target_id,
                 context=str(context), ip=self.get_ip(), create_time=self.now(),
             ))
-        except MongoError:
+        except self.MongoError:
             pass
 
     def validate(self, data, rules):
@@ -285,26 +295,35 @@ class BaseHandler(CorsMixin, RequestHandler):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
 
-    @staticmethod
-    def get_page_img(page, resize=False):
-        img_url = get_web_img(page['name'], img_type='page')
-        return img_url + '?x-oss-process=image/resize,m_lfit,h_300,w_300' if resize else img_url
-
-    @staticmethod
-    def get_char_img(char_id):
-        return get_web_img(char_id, img_type='char')
-
-    @staticmethod
-    def get_column_img(column_id):
-        return get_web_img(column_id, img_type='column')
-
-    @staticmethod
-    def now():
-        return datetime.now()
-
-    @classmethod
-    def prop(cls, obj, key, default=None):
-        return prop(obj, key, default=default)
+    def get_web_img(self, img_name, img_type='page'):
+        inner_path = '/'.join(img_name.split('_')[:-1])
+        if self.get_config('web_img.with_hash'):
+            img_name += '_' + md5_encode(img_name, self.get_config('web_img.salt'))
+        shared_cloud = self.get_config('web_img.shared_cloud')
+        relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
+        # 从本地获取图片
+        if self.get_config('web_img.local_path'):
+            img_url = '/{0}/{1}'.format(self.get_config('web_img.local_path').strip('/'), relative_url)
+            if path.exists(path.join(BASE_DIR, img_url[1:])):
+                return img_url
+            elif shared_cloud:
+                return path.join(shared_cloud, relative_url)
+            else:
+                return img_url + '?err=1'  # cut.js 据此不显示图
+        # 从云盘获取图片
+        img_cloud = self.get_config('web_img.img_cloud')
+        if img_cloud:
+            auth = oss2.Auth(self.get_config('web_img.access_key'), self.get_config('web_img.secret_key'))
+            bucket_name = re.sub(r'http[s]?://', '', img_cloud).split('.')[0]
+            cloud_host = img_cloud.replace(bucket_name + '.', '')
+            img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
+            img_url = path.join(img_cloud.replace('-internal', ''), relative_url)
+            if img_bucket.object_exists(relative_url):
+                return img_url
+            elif shared_cloud:
+                return path.join(shared_cloud, relative_url)
+            else:
+                return img_url + '?err=1'
 
     @gen.coroutine
     def call_back_api(self, url, handle_response=None, handle_error=None, **kwargs):

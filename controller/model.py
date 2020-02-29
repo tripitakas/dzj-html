@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 数据模型定义类。
+@desc: 数据模型定义类
 数据库字段(fields)定义格式如下:
 {
-'id': '',  # 字段id
-'name': '',  # 字段名称
-'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
-'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
-'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
+    'id': '',  # 字段id
+    'name': '',  # 字段名称
+    'type': 'str',  # 存储类型，默认为str，其它如int/boolean等
+    'input_type': 'text',  # 输入类型，默认为text，其它如radio/select/textarea等
+    'options': [],  # 输入选项。如果输入类型为radio或select，则可以通过options提供对应的选项
 }
 @time: 2019/12/10
 """
@@ -47,6 +47,10 @@ class Model(object):
     ]
     update_fields = [dict(id='', name='', input_type='', options=[])]  # update模态框包含哪些字段
 
+    @staticmethod
+    def prop(obj, key, default=None):
+        return prop(obj, key, default=default)
+
     @classmethod
     def validate(cls, doc, rules=None):
         rules = cls.rules if not rules else rules
@@ -77,18 +81,12 @@ class Model(object):
             if f['name'] == name:
                 return f['id']
 
-    @classmethod
-    def get_template_kwargs(cls, fields=None):
+    def get_template_kwargs(self, fields=None):
         fields = fields if fields else [
             'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
             'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
         ]
-        return {f: getattr(cls, f) for f in fields}
-
-    @classmethod
-    def name2code(cls, name):
-        """ 把带_的name转换为用0填充、补齐的code，如GL_1_1_1转换为GL000100010001，即补齐为4位数字"""
-        return ''.join([n.zfill(4) for n in name.split('_')]).lstrip('0')
+        return {f: getattr(self, f) for f in fields}
 
     @classmethod
     def pack_doc(cls, doc):
@@ -99,6 +97,7 @@ class Model(object):
 
     @classmethod
     def find_by_page(cls, self, condition=None, search_fields=None, default_order='', projection=None):
+        """ 查找数据库中的记录，按页返回结果"""
         condition = condition or {}
         q = self.get_query_argument('q', '')
         search_fields = search_fields or cls.search_fields
@@ -176,7 +175,6 @@ class Model(object):
                 message = '缺以下字段：%s' % ','.join(need_fields)
                 return dict(status='failed', code=e.field_error[0], message=message)
             docs = [{heads[i]: item for i, item in enumerate(row)} for row in rows[1:]]
-
         # 逐个校验数据
         valid_docs, valid_codes, error_codes = [], [], []
         for i, doc in enumerate(docs):
@@ -189,7 +187,6 @@ class Model(object):
             else:
                 valid_docs.append(cls.pack_doc(doc))
                 valid_codes.append(doc.get(cls.primary))
-
         # 剔除数据库中的重复记录
         existed_docs = []
         if valid_docs:
@@ -197,7 +194,6 @@ class Model(object):
             existed_codes = [i.get(cls.primary) for i in existed_record]
             existed_docs = [i for i in valid_docs if i.get(cls.primary) in existed_codes]
             valid_docs = [i for i in valid_docs if i.get(cls.primary) not in existed_codes]
-
         # 更新数据库中的重复记录
         if update:
             for doc in existed_docs:
@@ -205,7 +201,6 @@ class Model(object):
                     doc = {k: v for k, v in doc.items() if k in updated_fields}
                 assert cls.primary in doc
                 db[collection].update_one({cls.primary: doc.get(cls.primary)}, {'$set': doc})
-
         # 插入新的数据记录
         if valid_docs:
             db[collection].insert_many(valid_docs)

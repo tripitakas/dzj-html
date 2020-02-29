@@ -6,7 +6,6 @@
 """
 
 import re
-import oss2
 import hashlib
 import logging
 import inspect
@@ -55,10 +54,38 @@ def connect_db(cfg, db_name_ext=''):
     return conn[cfg['name'] + db_name_ext], uri
 
 
+def prop(obj, key, default=None):
+    obj = obj or dict()
+    for s in key.split('.'):
+        obj = obj.get(s) if isinstance(obj, dict) else None
+    return default if obj is None else obj
+
+
+def cmp_obj(a, b, fields=None):
+    fields = fields if fields else list(a.keys())
+    for f in fields:
+        if prop(a, f) != prop(b, f):
+            return False
+    return True
+
+
+def gen_id(value, salt='', rand=False, length=16):
+    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
+    if isinstance(value, bytes):
+        return coder.encode(*value)[:length]
+    return coder.encode(*[ord(c) for c in list(value or [])])[:length]
+
+
 def md5_encode(img_name, salt):
     md5 = hashlib.md5()
     md5.update((img_name + salt).encode('utf-8'))
     return md5.hexdigest()
+
+
+def get_url_param(key, url_query):
+    regex = r'(^|\?|&)%s=(.*?)($|&)' % key
+    r = re.search(regex, url_query, re.I)
+    return unquote(r.group(2)) if r else ''
 
 
 def get_date_time(fmt=None, date_time=None, diff_seconds=None):
@@ -73,74 +100,6 @@ def get_date_time(fmt=None, date_time=None, diff_seconds=None):
 
     time_zone = timezone(timedelta(hours=8))
     return time.astimezone(time_zone).strftime(fmt or '%Y-%m-%d %H:%M:%S')
-
-
-def gen_id(value, salt='', rand=False, length=16):
-    coder = Hashids(salt=salt and rand and salt + str(datetime.now().second) or salt, min_length=16)
-    if isinstance(value, bytes):
-        return coder.encode(*value)[:length]
-    return coder.encode(*[ord(c) for c in list(value or [])])[:length]
-
-
-def cmp_obj(a, b, fields=None):
-    fields = fields if fields else list(a.keys())
-    for f in fields:
-        if prop(a, f) != prop(b, f):
-            return False
-    return True
-
-
-def cmp_page_code(a, b):
-    """ 比较图片名称大小 """
-    al, bl = a.split('_'), b.split('_')
-    if len(al) != len(bl):
-        return len(al) - len(bl)
-    for i in range(len(al)):
-        length = max(len(al[i]), len(bl[i]))
-        ai, bi = al[i].zfill(length), bl[i].zfill(length)
-        if ai != bi:
-            return 1 if ai > bi else -1
-    return 0
-
-
-def prop(obj, key, default=None):
-    obj = obj or dict()
-    for s in key.split('.'):
-        obj = obj.get(s) if isinstance(obj, dict) else None
-    return default if obj is None else obj
-
-
-def get_url_param(key, url_query):
-    regex = r'(^|\?|&)%s=(.*?)($|&)' % key
-    r = re.search(regex, url_query, re.I)
-    return unquote(r.group(2)) if r else ''
-
-
-def get_web_img(img_name, img_type='page', config=None):
-    config = config if config else load_config()
-    inner_path = '/'.join(img_name.split('_')[:-1])
-    if prop(config, 'web_img.with_hash'):
-        img_name += '_' + md5_encode(img_name, prop(config, 'web_img.salt'))
-    shared_cloud = prop(config, 'web_img.shared_cloud')
-    relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
-    # 从本地获取图片
-    if prop(config, 'web_img.use_local'):
-        img_url = '/{0}/{1}'.format(prop(config, 'web_img.local_path').strip('/'), relative_url)
-        if not path.exists(path.join(BASE_DIR, img_url[1:])):
-            if shared_cloud:
-                return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
-            else:
-                return img_url + '?err=1'  # cut.js 据此不显示图
-    # 从云盘获取图片
-    auth = oss2.Auth(prop(config, 'web_img.access_key'), prop(config, 'web_img.secret_key'))
-    img_cloud = prop(config, 'web_img.img_cloud')
-    bucket_name = re.sub(r'http[s]?://', '', img_cloud).split('.')[0]
-    cloud_host = img_cloud.replace(bucket_name + '.', '')
-    img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
-    if img_bucket.object_exists(relative_url):
-        return path.join(prop(config, 'web_img.img_cloud'), relative_url)
-    else:
-        return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
 
 
 def my_framer():
@@ -162,4 +121,3 @@ def my_framer():
 
 old_framer = logging.currentframe
 logging.currentframe = my_framer
-
