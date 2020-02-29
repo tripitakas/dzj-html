@@ -78,7 +78,7 @@ def gen_id(value, salt='', rand=False, length=16):
 
 def md5_encode(img_name, salt):
     md5 = hashlib.md5()
-    md5.update((img_name + salt).encode('utf-8'))
+    md5.update((img_name + salt or '').encode('utf-8'))
     return md5.hexdigest()
 
 
