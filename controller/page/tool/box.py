@@ -6,6 +6,7 @@
 """
 import re
 from .order import BoxOrder
+from collections import Counter
 from operator import itemgetter
 from tornado.escape import json_decode
 

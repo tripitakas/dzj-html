@@ -19,11 +19,11 @@ url_placeholder = {
     'char_id': r'[a-zA-Z]{2}_[_0-9]+',
     'page_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
+    'metadata': r'tripitaka|sutra|volume|reel',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
     'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
-    'metadata': r'tripitaka|sutra|volume|reel',
 }
 
 """ 
@@ -40,7 +40,7 @@ role_route_maps = {
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/finish/@task_id': ['POST'],
-            '/api/data/lock/@shared_field/@doc_id': ['POST'],
+            '/api/page/lock/@shared_field/@doc_id': ['POST'],
         }
     },
     '访客': {
@@ -51,7 +51,6 @@ role_route_maps = {
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             '/api/user/forget_pwd': ['POST'],
             '/article/@article_id': ['GET'],
-            '/api/page/detect_chars': ['POST'],
         }
     },
     '普通用户': {
@@ -63,20 +62,21 @@ role_route_maps = {
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka/list': ['GET'],
-            '/page/@page_prefix': ['GET'],
+            '/tripitaka/@page_prefix': ['GET'],
             '/com/punctuate': ['GET'],
             '/api/com/punctuate': ['POST'],
             '/com/search': ['GET'],
-            '/api/page/diff': ['POST'],
             '/api/com/search': ['POST'],
+            # 以下为任务相关请求
             '/api/session/config': ['POST'],
             '/task/sample/@task_type': ['GET'],
-            '/api/task/return/@task_id': ['POST'],
-            '/api/task/text_select/@page_name': ['POST'],
-            '/api/page/text_neighbor': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
-            '/data/cut_view/@page_name': ['GET'],
-            '/data/text_view/@page_name': ['GET'],
+            '/api/task/return/@task_id': ['POST'],
+            '/api/page/diff': ['POST'],
+            '/api/page/detect_chars': ['POST'],
+            '/api/page/text_neighbor': ['POST'],
+            '/page/cut_view/@page_name': ['GET'],
+            '/page/text_view/@page_name': ['GET'],
         }
     },
     '切分校对员': {
@@ -117,6 +117,7 @@ role_route_maps = {
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
             '/api/task/pick/text_proof_@num': ['POST'],
+            '/api/task/text_select/@page_name': ['POST'],
             '/task/(do|update|view)/text_proof_@num/@task_id': ['GET'],
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
             '/page/cut_edit/@page_name': ['GET'],
@@ -194,14 +195,17 @@ role_route_maps = {
         'roles': ['普通用户', '数据处理员'],
         'routes': {
             '/data/@metadata': ['GET'],
-            '/data/page/@page_name': ['GET'],
-            '/data/page/info/@page_name': ['GET'],
-            '/api/data/gen_js': ['POST'],
-            '/api/data/page/export_char': ['POST'],
-            '/api/data/(page|char)/source': ['POST'],
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
-            '/api/data/char/gen_img': ['POST'],
+            '/api/data/gen_js': ['POST'],
+            '/data/page': ['GET'],
+            '/page/@page_name': ['GET'],
+            '/page/info/@page_name': ['GET'],
+            '/api/page/export_char': ['POST'],
+            '/api/page/source': ['POST'],
+            '/data/char': ['GET'],
+            '/api/char/source': ['POST'],
+            '/api/char/gen_img': ['POST'],
         }
     },
     '文章管理员': {
