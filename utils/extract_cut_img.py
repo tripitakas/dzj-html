@@ -6,13 +6,13 @@
 """
 
 import re
-import cv2
 import json
 import logging
 import hashlib
 import shutil
 from os import path, makedirs, remove
 from glob2 import glob
+from PIL import Image
 from boto3.session import Session
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
@@ -28,22 +28,22 @@ def get_img_key(img_name, salt, cid=''):
 
 
 def resize_binary(img, width=1024, height=1024, center=False):
-    h, w = img.shape[:2]
+    w, h = img.size
     if w > width or h > height:
         if w > width:
             w, h = width, int(width * h / w)
         if h > height:
             w, h = int(height * w / h), height
-        img = cv2.resize(img, (w, h), interpolation=cv2.INTER_CUBIC)
+        img = img.resize((w, h), Image.BICUBIC)
 
-    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 10)
+    # img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 10)
     if center:
-        w2, h2, value = (width - w) // 2, (height - h) // 2, [255, 255, 255]
-        img = cv2.copyMakeBorder(img, h2, height - h - h2, w2, width - w - w2, cv2.BORDER_CONSTANT, value=value)
+        new_im = Image.new('L', (width, height), 'white')
+        new_im.paste(img, ((width - w) // 2, (height - h) // 2))
     return img
 
 
-def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
+def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None, regen=False):
     def upload_file(filename, bucket, key_):
         if isinstance(s3_cut, str):
             dst_file = path.join(s3_cut, bucket, '_'.join(key_.split('_')[:-1]) + '.jpg')
@@ -70,12 +70,12 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
     if not page:
         raise OSError('%s not found' % name)
 
-    img = cv2.imread(down_file, cv2.IMREAD_GRAYSCALE)
+    img = Image.open(down_file).convert('L')
     if img is None:
         raise OSError('fail to open %s' % down_file)
-    h, w = img.shape[:2]
+    w, h = img.size
     if w != page['width'] or h != page['height']:
-        img = cv2.resize(img, (page['width'], page['height']), interpolation=cv2.INTER_CUBIC)
+        img = img.resize((page['width'], page['height']), Image.BICUBIC)
     if not isinstance(s3_big, str):
         remove(down_file)
 
@@ -84,18 +84,20 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
     for c in chars_todo:
         oc = page_chars and [oc for oc in page['chars'] if oc['cid'] == c['cid']]
         oc = oc and oc[0]
-        if oc and c['has_img'] and dict(x=oc['x'], y=oc['y'], w=oc['w'], h=oc['h']) == c['pos']:
+        if oc and c['has_img'] and not regen and dict(x=oc['x'], y=oc['y'], w=oc['w'], h=oc['h']) == c['pos']:
             continue
         oc = c['pos']
-        img_c = img[int(oc['y']): int(oc['y'] + oc['h']), int(oc['x']): int(oc['x'] + oc['w'])]
-        if img_c is not None:
+        try:
+            img_c = img.crop((oc['x'], oc['y'], min(w, oc['x'] + oc['w']), min(h, oc['y'] + oc['h'])))
             img_c = resize_binary(img_c, 64, 64, True)
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
-            cv2.imwrite(img_file, img_c)
+            img_c.save(img_file)
             key = get_img_key(name, salt, str(c['cid']))
             upload_file(img_file, 'chars', key)
             chars_done.append(c['id'])
             columns_todo.add(c['column_cid'])
+        except SystemError:
+            continue
     if chars_done:
         db.char.update_many({'id': {'$in': chars_done}}, {'$set': {'has_img': True, 'img_need_updated': False}})
     logging.info('%s: %d char-images uploaded' % (name, len(chars_done)))
@@ -104,20 +106,22 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None):
     columns_todo = list(columns_todo)
     columns_todo = [c for c in page['columns'] if c['cid'] in columns_todo]
     for c in columns_todo:
-        img_c = img[int(c['y']): int(c['y'] + c['h']), int(c['x']): int(c['x'] + c['w'])]
-        if img_c is not None:
+        try:
+            img_c = img.crop((oc['x'], oc['y'], min(w, oc['x'] + oc['w']), min(h, oc['y'] + oc['h'])))
             img_c = resize_binary(img_c, 200, 800)
             img_file = path.join(tmp_path, '%s.jpg' % c['cid'])
-            cv2.imwrite(img_file, img_c)
+            img_c.save(img_file)
             key = get_img_key(name, salt, str(c['cid']))
             upload_file(img_file, 'columns', key)
             columns_done.append(c['cid'])
+        except SystemError:
+            continue
     logging.info('%s: %d column-images uploaded' % (name, len(columns_done)))
 
     return dict(name=name, chars_count=len(chars_done), columns_count=len(columns_done))
 
 
-def extract_cut_img(db=None, collection='char', char_condition=None, page_names=None):
+def extract_cut_img(db=None, collection='char', char_condition=None, name=None, regen=False):
     assert collection in ['char', 'page']
     cfg = load_config()
     db = db or connect_db(cfg['database'])[0]
@@ -132,7 +136,7 @@ def extract_cut_img(db=None, collection='char', char_condition=None, page_names=
 
     chars = []
     if collection == 'char':
-        cond = char_condition if char_condition else {'img_need_updated': True}
+        cond = char_condition if char_condition else {'page_name': name} if name else {'img_need_updated': True}
         cond = json.loads(cond) if isinstance(cond, str) else cond
         chars = list(db.char.find(cond))
         page_names = set(c['page_name'] for c in chars)
@@ -144,7 +148,7 @@ def extract_cut_img(db=None, collection='char', char_condition=None, page_names=
     for name in page_names:
         try:
             page_chars = [c for c in chars if c['page_name'] == name]
-            res['ok'].append(extract_one_page(db, name, s3_big, s3_cut, oss['salt'], tmp_path, page_chars))
+            res['ok'].append(extract_one_page(db, name, s3_big, s3_cut, oss['salt'], tmp_path, page_chars, regen=regen))
         except (Boto3Error, BotoCoreError):
             res['fail'].append(dict(name=name, message='OSS Error'))
         except Exception as e:
@@ -156,3 +160,4 @@ if __name__ == '__main__':
     import fire
 
     fire.Fire(extract_cut_img)
+    # print(extract_cut_img(name='GL_1047_1_5', regen=True))
