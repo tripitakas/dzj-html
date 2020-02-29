@@ -62,7 +62,7 @@ class TripitakaHandler(BaseHandler):
             # 获取图片路径及文本数据
             page = self.db.page.find_one({'name': nav.get('cur_page')})
             page_text = (page.get('text') or page.get('ocr') or page.get('ocr_col')) if page else ''
-            img_url = self.get_img(page or dict(name=nav.get('cur_page')))
+            img_url = self.get_page_img(page or dict(name=nav.get('cur_page')))
 
             self.render('com_tripitaka.html', tripitaka=tripitaka, tripitaka_code=tripitaka_code, nav=nav,
                         img_url=img_url, page_text=page_text, page=page)
@@ -261,7 +261,7 @@ class DataPageViewHandler(BaseHandler, Page):
             btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             self.render('data_page.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, Th=TaskHandler, info=info, edit_fields=edit_fields,
-                        img_url=self.get_img(page))
+                        img_url=self.get_page_img(page))
 
         except Exception as error:
             return self.send_db_error(error)

@@ -45,7 +45,7 @@ def load_config():
 def connect_db(cfg, db_name_ext=''):
     if cfg.get('user'):
         uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-        uri = uri.format(cfg.get('user'), cfg.get('password'), cfg.get('host'), cfg.get('port', 27017))
+        uri = uri.format(cfg['user'], cfg['password'], cfg['host'], cfg.get('port', 27017))
     else:
         uri = 'mongodb://{0}:{1}/'.format(cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
     conn = pymongo.MongoClient(
@@ -82,7 +82,15 @@ def gen_id(value, salt='', rand=False, length=16):
     return coder.encode(*[ord(c) for c in list(value or [])])[:length]
 
 
-def cmp_img_code(a, b):
+def cmp_obj(a, b, fields=None):
+    fields = fields if fields else list(a.keys())
+    for f in fields:
+        if prop(a, f) != prop(b, f):
+            return False
+    return True
+
+
+def cmp_page_code(a, b):
     """ 比较图片名称大小 """
     al, bl = a.split('_'), b.split('_')
     if len(al) != len(bl):
@@ -112,28 +120,27 @@ def get_web_img(img_name, img_type='page', config=None):
     config = config if config else load_config()
     inner_path = '/'.join(img_name.split('_')[:-1])
     if prop(config, 'web_img.with_hash'):
-        img_name += '_' + md5_encode(img_name, prop(config, 'img.salt'))
+        img_name += '_' + md5_encode(img_name, prop(config, 'web_img.salt'))
+    shared_cloud = prop(config, 'web_img.shared_cloud')
     relative_url = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, img_name)
     # 从本地获取图片
     if prop(config, 'web_img.use_local'):
         img_url = '/{0}/{1}'.format(prop(config, 'web_img.local_path').strip('/'), relative_url)
         if not path.exists(path.join(BASE_DIR, img_url[1:])):
-            img_url += '?err=1'  # cut.js 据此不显示图
-        return img_url
+            if shared_cloud:
+                return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
+            else:
+                return img_url + '?err=1'  # cut.js 据此不显示图
     # 从云盘获取图片
     auth = oss2.Auth(prop(config, 'web_img.access_key'), prop(config, 'web_img.secret_key'))
-    my_cloud = prop(config, 'web_img.my_cloud')
-    bucket_name = re.sub(r'http[s]?://', '', my_cloud.split('.')[0])
-    cloud_host = my_cloud.replace(bucket_name + '.', '')
-    my_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
-    # 先尝试自己云盘
-    try:
-        if my_bucket.object_exists(relative_url):
-            return path.join(prop(config, 'web_img.my_cloud'), relative_url)
-    except oss2.exceptions:
-        pass
-    # 后尝试共享云盘
-    return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
+    img_cloud = prop(config, 'web_img.img_cloud')
+    bucket_name = re.sub(r'http[s]?://', '', img_cloud).split('.')[0]
+    cloud_host = img_cloud.replace(bucket_name + '.', '')
+    img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
+    if img_bucket.object_exists(relative_url):
+        return path.join(prop(config, 'web_img.img_cloud'), relative_url)
+    else:
+        return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
 
 
 def my_framer():
@@ -155,3 +162,4 @@ def my_framer():
 
 old_framer = logging.currentframe
 logging.currentframe = my_framer
+
