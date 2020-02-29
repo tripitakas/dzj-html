@@ -42,8 +42,10 @@ function findBestBoxes(offset, block_no, column_no, cmp) {
 }
 
 function getLineText($line) {
-  var chars = [];
-  var $span = $line.find('span');
+  return getSpanText($line.find('span'), []);
+}
+
+function getSpanText($span, chars) {
   $span.each(function (i, el) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
@@ -360,9 +362,7 @@ $('.sutra-text-mode .save-txt').click(function () {
 function getPageText() {
   return $.map($('#sutra-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
-      return $.map($(line).find('span'), function (span) {
-        return $(span).text();
-      }).join("").trim();
+      return getSpanText($line.find('span'), []).join("");
     }).join("\n");
   }).join("\n\n");
 }
