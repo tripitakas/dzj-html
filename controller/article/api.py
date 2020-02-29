@@ -32,7 +32,7 @@ class ArticleDeleteApi(BaseHandler):
                 self.add_op_log('delete_article', target_id=self.data['_ids'])
             self.send_data_response(dict(count=r.deleted_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -70,7 +70,7 @@ class ArticleAddOrUpdateApi(BaseHandler):
             info.pop('content', 0)
             self.send_data_response(info)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 

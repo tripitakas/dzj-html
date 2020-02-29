@@ -1,5 +1,4 @@
 from . import api, view
-from controller.base import hook
 
 views = [
     view.UserLoginHandler, view.UserRegisterHandler, view.UserProfileHandler,
@@ -11,4 +10,3 @@ handlers = [
     api.UserAddOrUpdateApi, api.DeleteUserApi, api.ResetUserPasswordApi, api.ChangeUserRoleApi,
     api.UserlistApi,
 ]
-hook['login'] = api.LoginApi.login

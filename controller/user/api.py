@@ -52,7 +52,7 @@ class LoginApi(BaseHandler):
             if 'info=1' in next_url:
                 LoginApi.send_user_info(self)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -151,7 +151,7 @@ class RegisterApi(BaseHandler):
             else:
                 self.send_data_response(self.data)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -209,7 +209,7 @@ class ChangeMyPasswordApi(BaseHandler):
             self.add_op_log('change_my_password', context=self.username)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -242,7 +242,7 @@ class ChangeMyProfileApi(BaseHandler):
             self.add_op_log('change_my_profile', context=self.data.get('name'))
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -262,7 +262,7 @@ class UploadUserAvatarApi(BaseHandler):
             self.current_user['img'] = img
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -285,7 +285,7 @@ class SendUserEmailCodeApi(BaseHandler):
             self.db.verify.find_one_and_update(condition, {'$set': dict(code=code, stime=self.now())}, upsert=True)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -336,7 +336,7 @@ class SendUserPhoneCodeApi(BaseHandler):
             self.db.verify.find_one_and_update(condition, {'$set': dict(code=code, stime=self.now())}, upsert=True)
             self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -407,7 +407,7 @@ class ChangeUserRoleApi(BaseHandler):
             self.add_op_log('change_role', target_id=self.data['_id'], context='%s: %s' % (user['name'], roles))
             self.send_data_response({'roles': roles})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -424,7 +424,7 @@ class ResetUserPasswordApi(BaseHandler):
             if pwd:
                 self.send_data_response({'password': pwd})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -463,7 +463,7 @@ class DeleteUserApi(BaseHandler):
             self.add_op_log('delete_user', target_id=_ids)
             self.send_data_response(dict(count=r.deleted_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -493,5 +493,5 @@ class UserAddOrUpdateApi(BaseHandler):
             else:
                 self.send_error_response(r.get('errors'))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)

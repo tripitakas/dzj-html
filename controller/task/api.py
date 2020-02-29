@@ -44,7 +44,7 @@ class GetReadyDocsApi(TaskHandler):
             response = {'docs': doc_ids, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
             return self.send_data_response(response)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -75,7 +75,7 @@ class PublishDocTasksApi(PublishBaseHandler):
             )
             return self.send_data_response({k: value for k, value in log.items() if value})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     def get_doc_ids(self, data, model):
@@ -125,7 +125,7 @@ class PublishImageTasksApi(TaskHandler):
             self.add_op_log('publish_task', target_id=r.inserted_id, context=message)
             self.send_data_response(dict(_id=r.inserted_id))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -179,7 +179,7 @@ class PickTaskApi(TaskHandler):
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
             return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -204,7 +204,7 @@ class UpdateTaskApi(TaskHandler):
                 self.add_op_log('update_task', target_id=_ids, context=self.data[field])
             self.send_data_response(dict(count=r.matched_count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -225,7 +225,7 @@ class ReturnTaskApi(TaskHandler):
             self.add_op_log('return_task', target_id=self.task['_id'])
             return self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -249,7 +249,7 @@ class RepublishTaskApi(TaskHandler):
             self.add_op_log('republish_task', target_id=self.task['_id'])
             return self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -272,7 +272,7 @@ class DeleteTasksApi(TaskHandler):
                 self.update_task_doc(task, release_lock=True, status='')
             return self.send_data_response({'count': r.deleted_count})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -339,7 +339,7 @@ class AssignTasksApi(TaskHandler):
             self.add_op_log('assign_task', context='%s, %s' % (user_id, assigned))
             self.send_data_response({k: v for k, v in log.items() if v})
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -353,7 +353,7 @@ class FinishTaskApi(TaskHandler):
             self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, {})
             return self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -370,7 +370,7 @@ class LockTaskApi(TaskHandler):
             else:
                 return self.send_error_response(r)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -385,7 +385,7 @@ class UnlockTaskApi(TaskHandler):
             count = self.release_temp_lock(doc_id, shared_field)
             return self.send_data_response(dict(count=count))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -421,5 +421,5 @@ class InitTestTasksApi(TaskHandler):
             if r.inserted_ids:
                 self.send_data_response(dict(ids=r.inserted_ids))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)

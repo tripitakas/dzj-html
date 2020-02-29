@@ -27,7 +27,7 @@ class PunctuationApi(BaseHandler):
             res = punc_str(q) if q else ''
             self.send_data_response(dict(res=res))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -74,5 +74,5 @@ class SessionConfigApi(BaseHandler):
                 self.set_secure_cookie(k, json_util.dumps(v))
             return self.send_data_response()
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
