@@ -129,8 +129,8 @@ def get_web_img(img_name, img_type='page', config=None):
         if not path.exists(path.join(BASE_DIR, img_url[1:])):
             if shared_cloud:
                 return path.join(prop(config, 'web_img.shared_cloud'), relative_url)
-            else:
-                return img_url + '?err=1'  # cut.js 据此不显示图
+        else:
+            return img_url + '?err=1'  # cut.js 据此不显示图
     # 从云盘获取图片
     auth = oss2.Auth(prop(config, 'web_img.access_key'), prop(config, 'web_img.secret_key'))
     img_cloud = prop(config, 'web_img.img_cloud')
