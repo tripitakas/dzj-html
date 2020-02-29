@@ -219,7 +219,7 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for t, v in Th.task_types.items() %}
+          {% for t, v in handler.task_types.items() %}
           {% if handler.is_mod_enabled(v['name']) %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
@@ -327,14 +327,14 @@
   // 修改字框
   $('.action .btn-box').click(function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/data/cut_edit/' + name;
+    var url = '/page/cut_edit/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
   // 修改字序
   $('.action .btn-order').click(function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/data/cut_edit/' + name;
+    var url = '/page/cut_edit/' + name;
     location.href = url + '?step=order&from=' + encodeFrom();
   });
 
@@ -407,7 +407,7 @@
   var taskType = '';
   var $publishModal = $('#publishModal');
   var $publishResultModal = $('#publishResultModal');
-  var taskTypes = decodeJSON('{{Th.task_types}}');
+  var taskTypes = decodeJSON('{{handler.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
     {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},

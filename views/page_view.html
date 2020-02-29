@@ -154,7 +154,7 @@
         <label>相关任务:</label>
         <span class="tasks">
           {% for task, status in page.get('tasks', {}).items() %}
-          <span class="task">{{Th.get_task_name(task)+'/'+Th.get_status_name(status)}}</span>
+          <span class="task">{{Task.get_task_name(task)+'/'+Task.get_status_name(status)}}</span>
           {% end %}
           {% end %}
         </span>
@@ -293,12 +293,12 @@
 
   // 修改字框
   $('#btn-ed-box').click(function () {
-    location = '/data/cut_edit/{{page["name"]}}?from=' + encodeFrom();
+    location = '/page/cut_edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 修改字序
   $('#btn-ed-order').click(function () {
-    location = '/data/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
+    location = '/page/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
   });
 
   // 修改审定文本

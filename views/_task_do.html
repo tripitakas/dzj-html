@@ -128,9 +128,9 @@
     // 释放临时数据锁
     if ('edit,update'.indexOf(mode) > -1 && !readonly) {
       if (taskType.indexOf('cut_') !== -1) {
-        postApi('/data/unlock/box/' + docId, {});
+        postApi('/page/unlock/box/' + docId, {});
       } else if (taskType.indexOf('text_') !== -1) {
-        postApi('/data/unlock/text/' + docId, {});
+        postApi('/page/unlock/text/' + docId, {});
       }
     }
     // 返回

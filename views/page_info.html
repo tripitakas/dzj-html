@@ -23,7 +23,7 @@
             <div class="block-head">基本信息</div>
             {% for k, v in metadata.items() %}
             <div class="info">
-              <label class="label">{{Page.get_field_name(k)}}</label>
+              <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw Task.format_value(v, k) %}</span>
             </div>
             {% end %}
@@ -41,7 +41,7 @@
             <div class="block-head">数据锁</div>
             {% for k, v in data_lock.items() %}
             <div class="info">
-              <label class="label">{{Page.get_field_name(k)}}</label>
+              <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw Task.format_value(v, k) %}</span>
             </div>
             {% end %}
@@ -50,7 +50,7 @@
             <div class="block-head">文本信息</div>
             {% for k, v in page_txt.items() %}
             <div class="info long">
-              <label class="label">{{Page.get_field_name(k)}}</label>
+              <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw Task.format_value(v, k) %}</span>
             </div>
             {% end %}
@@ -59,7 +59,7 @@
             <div class="block-head">切分信息</div>
             {% for k, v in page_box.items() %}
             <div class="info long">
-              <label class="label">{{Page.get_field_name(k)}}</label>
+              <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw Task.format_value(v, k) %}</span>
             </div>
             {% end %}

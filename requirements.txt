@@ -1,8 +1,8 @@
-tornado==5.0.2
-hashids==1.2.0
+tornado
 tornado-cors
-pymongo==3.7.2
+pymongo==3.10.1
 pyconvert
+hashids
 pyyaml
 Pillow
 fire
@@ -12,3 +12,4 @@ aliyun-python-sdk-core-v3
 elasticsearch
 lxml
 oss2
+bson
