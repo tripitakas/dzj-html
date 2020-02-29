@@ -81,12 +81,13 @@ class Model(object):
             if f['name'] == name:
                 return f['id']
 
-    def get_template_kwargs(self, fields=None):
+    @classmethod
+    def get_template_kwargs(cls, fields=None):
         fields = fields if fields else [
             'page_title', 'search_tips', 'search_fields', 'table_fields', 'hide_fields',
             'info_fields', 'operations', 'img_operations', 'actions', 'update_fields'
         ]
-        return {f: getattr(self, f) for f in fields}
+        return {f: getattr(cls, f) for f in fields}
 
     @classmethod
     def pack_doc(cls, doc):

@@ -131,7 +131,7 @@ class Page(Model, Box):
         return condition, params
 
     @staticmethod
-    def format_value(value, key=None):
+    def format_value(value, key=None, doc=None):
         """ 格式化page表的字段输出"""
         if key == 'tasks':
             value = value or {}

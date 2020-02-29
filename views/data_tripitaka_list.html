@@ -73,7 +73,7 @@
                       <ul class="list clearfix">
                         {% for t in tripitakas %}
                         <li>
-                          <a href="/page/{{t['tripitaka_code']}}">
+                          <a href="/tripitaka/{{t['tripitaka_code']}}">
                             <img class="tripitaka-cover" src="{{static_url('imgs/cover/%s.jpg' % t['tripitaka_code'])}}" alt="没有找到图片"
                                  onerror=javascript:this.src='{{static_url("imgs/cover/default.jpg")}}';>
                             <p>{{t['name']}}</p>

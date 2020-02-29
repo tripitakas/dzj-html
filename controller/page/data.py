@@ -109,14 +109,14 @@ class PageAdminHandler(BaseHandler, Page):
 
             self.render('page_admin.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, format_value=self.format_value,
-                        **kwargs)
+                        Task=Task, **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class PageViewHandler(BaseHandler, Page):
-    URL = '/page/@page_name'
+class PageBrowseHandler(BaseHandler, Page):
+    URL = '/page/browse/@page_name'
 
     edit_fields = [
         {'id': 'name', 'name': '页编码', 'readonly': True},
@@ -188,7 +188,7 @@ class PageInfoHandler(BaseHandler, Page):
 
 
 class PageUploadApi(BaseHandler, Page):
-    URL = '/api/data/page/upload'
+    URL = '/api/page/upload'
 
     def post(self):
         """ 批量上传 """

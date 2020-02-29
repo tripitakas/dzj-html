@@ -92,7 +92,7 @@ class CharAdminHandler(BaseHandler, Char):
             else:
                 condition, params = self.get_char_search_condition(self.request.query)
             docs, pager, q, order = self.find_by_page(self, condition)
-            self.render('data_char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
+            self.render('char_admin.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         Th=TaskHandler, txt_types=self.txt_types, format_value=self.format_value,
                         **kwargs)
 
@@ -100,7 +100,7 @@ class CharAdminHandler(BaseHandler, Char):
             return self.send_db_error(error)
 
 
-class DataCharBrowseHandler(BaseHandler, Char):
+class CharBrowseHandler(BaseHandler, Char):
     URL = '/data/char/@char_id'
 
     def get(self, char_id):

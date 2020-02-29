@@ -25,7 +25,7 @@ class PageTaskCutHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 切分校对页面"""
         try:
-            template = 'task_cut_do.html'
+            template = 'page_task_cut.html'
             if self.steps['current'] == 'order':
                 template = 'task_cut_order.html'
                 reorder = self.get_query_argument('reorder', '')

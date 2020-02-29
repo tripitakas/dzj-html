@@ -219,7 +219,7 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for t, v in handler.task_types.items() %}
+          {% for t, v in Task.task_types.items() %}
           {% if handler.is_mod_enabled(v['name']) %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
@@ -301,7 +301,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/data/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
@@ -312,7 +312,7 @@
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     showConfirm('', `将对选中的${ids.length}条记录生成字表`, function () {
-      postApi('/data/page/export_char', {data: {_ids: ids}}, (res) => {
+      postApi('/page/export_char', {data: {_ids: ids}}, (res) => {
         showSuccess('成功', `共生成${res.inserted_count}条字数据。${res.invalid_pages.length}条无效页面`);
       });
     });
@@ -358,13 +358,13 @@
 
   // 详情
   $('.action .btn-detail').click(function () {
-    location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
+    location.href = '/page/info/' + $(this).parent().siblings('.name').text();
   });
 
   // 浏览
   $('.action .btn-nav').click(function () {
     var name = $(this).parent().siblings('.name').text();
-    location.href = '/data/page/' + name + location.search;
+    location.href = '/page/browse/' + name + location.search;
   });
 
 </script>
@@ -407,7 +407,7 @@
   var taskType = '';
   var $publishModal = $('#publishModal');
   var $publishResultModal = $('#publishResultModal');
-  var taskTypes = decodeJSON('{{handler.task_types}}');
+  var taskTypes = decodeJSON('{{Task.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
     {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},

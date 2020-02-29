@@ -163,7 +163,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/data/char/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/char/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
@@ -182,7 +182,7 @@
       if (result.value === 'searched' && !location.search.trim()) {
         return showWarning('提示', '请先进行综合检索');
       }
-      postApi('/data/char/gen_img', {data: {type: result.value, search: location.search, _ids: ids}}, (res) => {
+      postApi('/char/gen_img', {data: {type: result.value, search: location.search, _ids: ids}}, (res) => {
         showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
       });
     });

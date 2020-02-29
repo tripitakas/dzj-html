@@ -32,9 +32,9 @@ class TestPageApi(APITestCase):
         self.assert_code(200, r)
 
     def test_page_nav(self):
-        r = self.fetch('/page/JX_165_7_12?to=next&_raw=1')
+        r = self.fetch('/page/browse/JX_165_7_12?to=next&_raw=1')
         self.assert_code(200, r)
-        r = self.fetch('/page/JX_165_7_12?to=prev&_raw=1')
+        r = self.fetch('/page/browse/JX_165_7_12?to=prev&_raw=1')
         self.assert_code(200, r)
 
     def test_page_export_char(self):

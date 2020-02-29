@@ -101,7 +101,7 @@
           <img src="{{static_url('imgs/icon_back.png')}}" class="btn-img" onclick="leave()" title="返回"/>
         </div>
         <div class="btn-group title" style="user-select: text">
-          <a href="/data/page/info/{{page['name']}}">{{page['name']}}</a>
+          <a href="/page/info/{{page['name']}}">{{page['name']}}</a>
         </div>
       </div>
       <div class="center">
@@ -308,7 +308,7 @@
 
   // 跳转
   function go(to) {
-    var url = setQueryString('to', to).replace(location.pathname, '/data/page/{{page["name"]}}');
+    var url = setQueryString('to', to).replace(location.pathname, '/page/{{page["name"]}}');
     var config = getConfig();
     if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
       postApi('/session/config', {data: {data_page_button: config}}, function (res) {
