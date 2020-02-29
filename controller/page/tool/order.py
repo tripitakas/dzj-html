@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 字框工具
+@desc: 字序工具
 @time: 2019/6/3
 """
 from operator import itemgetter

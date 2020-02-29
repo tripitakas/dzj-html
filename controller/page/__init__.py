@@ -1,14 +1,16 @@
-from . import api, ocr, view
+from . import api, view, ocr, data
 
 views = [
-    view.CutTaskHandler, view.CutEditHandler,
-    view.TextProofHandler, view.TextReviewHandler, view.TextEditHandler,
+    data.PageAdminHandler, data.PageViewHandler, data.PageInfoHandler,
+    view.PageTaskCutHandler, view.PageCutEditHandler,
+    view.PageTaskTextProofHandler, view.PageTaskTextReviewHandler, view.PageTextEditHandler,
 ]
 
 handlers = [
-    api.CutTaskApi, api.CutEditApi, api.DetectWideCharsApi,
-    api.SelectTextApi, api.NeighborTextApi, api.DiffTextsApi,
-    api.TextProofApi, api.TextReviewApi, api.TextHardApi, api.TextEditApi,
+    data.PageUpdateSourceApi, data.PageExportCharApi,
+    api.PageTaskCutApi, api.PageCutEditApi,
+    api.PageTaskTextSelectApi, api.PageTaskTextProofApi, api.PageTaskTextReviewApi, api.PageTaskTextHardApi,
+    api.PageTextEditApi, api.PageNeighborTextApi, api.PageDiffTextsApi, api.PageDetectWideCharsApi,
     ocr.FetchOcrTasksApi, ocr.SubmitOcrTasksApi, ocr.ConfirmFetchOcrTasksApi,
 ]
 

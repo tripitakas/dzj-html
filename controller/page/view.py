@@ -3,13 +3,14 @@
 """
 @time: 2019/5/13
 """
+
 from tornado.web import UIModule
 from tornado.escape import to_basestring
+from .base import PageHandler
 from controller import errors as e
-from controller.page.base import PageHandler
 
 
-class CutTaskHandler(PageHandler):
+class PageTaskCutHandler(PageHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/browse/@cut_task/@task_id',
@@ -18,7 +19,7 @@ class CutTaskHandler(PageHandler):
     config_fields = [
         dict(id='auto-pick', name='提交后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
         dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
+        dict(id='detect-col', name='自适应调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
     ]
 
     def get(self, task_type, task_id):
@@ -38,9 +39,9 @@ class CutTaskHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class CutEditHandler(PageHandler):
-    URL = ['/data/cut_edit/@page_name',
-           '/data/cut_view/@page_name']
+class PageCutEditHandler(PageHandler):
+    URL = ['/page/cut_edit/@page_name',
+           '/page/cut_view/@page_name']
 
     config_fields = [
         dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
@@ -50,9 +51,9 @@ class CutEditHandler(PageHandler):
     def get(self, page_name):
         """ 切分编辑页面"""
         try:
-            template = 'task_cut_do.html'
+            template = 'page_task_cut.html'
             if self.steps['current'] == 'order':
-                template = 'task_cut_order.html'
+                template = 'page_task_order.html'
                 reorder = self.get_query_argument('reorder', '')
                 if reorder:
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)
@@ -64,7 +65,7 @@ class CutEditHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class TextProofHandler(PageHandler):
+class PageTaskTextProofHandler(PageHandler):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
            '/task/browse/text_proof_@num/@task_id',
@@ -76,19 +77,19 @@ class TextProofHandler(PageHandler):
             self.texts, self.doubts = self.get_cmp_txt()
             if self.steps['current'] == 'select':
                 cmp = self.prop(self.task, 'result.cmp')
-                return self.render('task_text_select.html', cmp=cmp)
+                return self.render('page_task_select.html', cmp=cmp)
             else:
                 cmp_data = self.prop(self.task, 'result.txt_html')
                 if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
                     cmp_data = self.diff(*[t[0] for t in self.texts])
                     cmp_data = to_basestring(TextArea(self).render(cmp_data))
-                return self.render('task_text_do.html', cmp_data=cmp_data)
+                return self.render('page_task_text.html', cmp_data=cmp_data)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class TextReviewHandler(PageHandler):
+class PageTaskTextReviewHandler(PageHandler):
     URL = ['/task/(text_review|text_hard)/@task_id',
            '/task/do/(text_review|text_hard)/@task_id',
            '/task/browse/(text_review|text_hard)/@task_id',
@@ -101,15 +102,15 @@ class TextReviewHandler(PageHandler):
             cmp_data = self.prop(self.page, 'txt_html')
             if not cmp_data and len(self.texts):
                 cmp_data = self.diff(*[t[0] for t in self.texts])
-            self.render('task_text_do.html', cmp_data=cmp_data)
+            self.render('page_task_text.html', cmp_data=cmp_data)
 
         except Exception as error:
             return self.send_db_error(error)
 
 
-class TextEditHandler(PageHandler):
-    URL = ['/data/text_edit/@page_name',
-           '/data/text_view/@page_name']
+class PageTextEditHandler(PageHandler):
+    URL = ['/page/text_edit/@page_name',
+           '/page/text_view/@page_name']
 
     def get(self, page_name):
         """ 文字查看、修改页面"""
@@ -123,7 +124,7 @@ class TextEditHandler(PageHandler):
                 cmp_data = self.diff(text)
                 cmp_data = to_basestring(TextArea(self).render(cmp_data))
 
-            self.render('task_text_do.html', cmp_data=cmp_data)
+            self.render('page_task_text.html', cmp_data=cmp_data)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -133,4 +134,4 @@ class TextArea(UIModule):
     """文字校对的文字区"""
 
     def render(self, cmp_data):
-        return self.render_string('_text_area.html', blocks=cmp_data)
+        return self.render_string('page_text_area.html', blocks=cmp_data)

@@ -7,9 +7,7 @@
 import logging
 from bson.objectid import ObjectId
 from controller import errors as e
-from controller.base import DbError
 from controller import validate as v
-from controller.page.tool import PageTool
 from controller.task.base import TaskHandler
 
 
@@ -56,7 +54,7 @@ class FetchOcrTasksApi(TaskHandler):
                 logging.info('%d %s tasks fetched' % (r.matched_count, data_task))
                 self.send_data_response(dict(tasks=get_tasks()))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -77,7 +75,7 @@ class ConfirmFetchOcrTasksApi(TaskHandler):
             else:
                 self.send_error_response(e.no_object)
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
 
@@ -124,7 +122,7 @@ class SubmitOcrTasksApi(TaskHandler):
 
             self.send_data_response(dict(tasks=ret_tasks))
 
-        except DbError as error:
+        except self.DbError as error:
             return self.send_db_error(error)
 
     @staticmethod
@@ -143,6 +141,20 @@ class SubmitOcrTasksApi(TaskHandler):
             'width': width, 'height': height, 'chars': chars, 'blocks': blocks,
             'columns': columns, 'ocr': ocr, 'ocr_col': ocr_col,
         }
+
+    @staticmethod
+    def is_box_changed(page_a, page_b, ignore_none=True):
+        """ 检查两个页面的切分信息是否发生了修改"""
+        for field in ['blocks', 'columns', 'chars']:
+            a, b = page_a.get(field), page_b.get(field)
+            if ignore_none and (not a or not b):
+                continue
+            if len(a) != len(b):
+                return field + '.len'
+            for i in range(len(a)):
+                for j in ['x', 'y', 'w', 'h']:
+                    if abs(a[i][j] - b[i][j]) > 0.1 and (field != 'blocks' or len(a) > 1):
+                        return '%s[%d] %s %f != %f' % (field, i, j, a[i][j], b[i][j])
 
     def check_success(self, task):
         if task['status'] == 'failed' or self.prop(task, 'result.status') == 'failed':
@@ -171,7 +183,7 @@ class SubmitOcrTasksApi(TaskHandler):
         page = self.db.page.find_one({'name': task.get('page_name')})
         if not page:
             return e.no_object
-        box_changed = PageTool.is_box_changed(task.get('result'), page)
+        box_changed = self.is_box_changed(task.get('result'), page)
         if box_changed:
             return e.box_not_identical[0], '(%s)切分信息不一致' % box_changed
         update = self.get_page_meta(task, page)

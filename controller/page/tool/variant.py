@@ -4,7 +4,6 @@
 @desc: variant
 @time: 2019/6/4
 """
-
 import re
 
 # 第一个字为规范用字，后面为异体字
