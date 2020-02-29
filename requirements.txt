@@ -1,8 +1,8 @@
-tornado
+tornado==5.0.2
+hashids==1.2.0
 tornado-cors
-pymongo
+pymongo==3.10.1
 pyconvert
-hashids
 pyyaml
 Pillow
 fire
