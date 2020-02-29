@@ -48,6 +48,9 @@ function getLineText($line) {
     if ($(el).parent().prop('tagName') !== 'LI') {  // 忽略嵌套span，在新建行中粘贴其他行的内容产生的
       return;
     }
+    if ($(el).css('display') === 'none') {
+      return;
+    }
     var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
