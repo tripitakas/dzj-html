@@ -12,8 +12,8 @@ import re
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.page.tool import PageTool
 from controller.base import prop
+from controller.page.base import PageHandler
 
 
 def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source='', phonetic=False, text_finished=False):
@@ -34,7 +34,7 @@ def export_page(db_name='tripitaka', uri='localhost', out_dir=None, source='', p
                 if text_finished and not tasks:
                     continue
                 for task in tasks:
-                    p[task['task_type']] = PageTool.html2txt(prop(task, 'result.txt_html', ''))
+                    p[task['task_type']] = PageHandler.html2txt(prop(task, 'result.txt_html', ''))
 
                 p['_id'] = str(p['_id'])
                 p['create_time'] = p['create_time'].strftime('%Y-%m-%d %H:%M:%S')

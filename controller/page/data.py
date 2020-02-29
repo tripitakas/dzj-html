@@ -188,7 +188,7 @@ class PageInfoHandler(BaseHandler, Page):
 
 
 class PageUploadApi(BaseHandler, Page):
-    URL = '/api/page/upload'
+    URL = '/api/data/page/upload'
 
     def post(self):
         """ 批量上传 """

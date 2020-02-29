@@ -3,7 +3,7 @@
 
 import pymongo
 from datetime import datetime
-from controller.page.tool import PageTool
+from controller.page.page import Page
 from controller.page.base import PageHandler
 
 
@@ -60,9 +60,9 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
             handled.append(p['name'])
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p['name']))
             # 检查字序是否有问题
-            old_chars_col = PageTool.get_chars_col(p['chars'])
-            blocks, columns, chars = PageTool.reorder_boxes(page=p)
-            new_chars_col = PageTool.get_chars_col(chars)
+            old_chars_col = Page.get_chars_col(p['chars'])
+            blocks, columns, chars = Page.reorder_boxes(page=p)
+            new_chars_col = Page.get_chars_col(chars)
             if not cmp_chars_col(old_chars_col, new_chars_col):
                 invalid_order.append(p['name'])
                 # print('invalid:', p['name'])
