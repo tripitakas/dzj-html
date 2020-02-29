@@ -17,8 +17,8 @@ from tornado.escape import to_basestring, native_str
 import controller as c
 from controller import auth
 from controller.app import Application
-from controller.page.tool import PageTool
-from controller.task.base import TaskHandler as Th
+from controller.task.task import Task
+from controller.page.page import Page
 from tests.users import admin
 
 if PY3:
@@ -196,7 +196,7 @@ class APITestCase(AsyncHTTPTestCase):
 
     @staticmethod
     def get_chars_col(page, submit=True):
-        return {'chars_col': PageTool.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
+        return {'chars_col': Page.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
 
     @staticmethod
     def init_data(data):
@@ -204,7 +204,7 @@ class APITestCase(AsyncHTTPTestCase):
         data['batch'] = data.get('batch', '测试批次号')
         data['priority'] = data.get('priority', 3)
         task_type = data.get('task_type') or data.get('task_types')[0]
-        data['pre_tasks'] = data.get('pre_tasks', Th.prop(Th.task_types, '%s.pre_tasks' % task_type))
+        data['pre_tasks'] = data.get('pre_tasks', Task.prop(Task.task_types, '%s.pre_tasks' % task_type))
         if 'cut' in task_type and 'steps' not in data:
             data['steps'] = data.get('steps', ['box', 'order'])
         if 'text_proof' in task_type and 'steps' not in data:

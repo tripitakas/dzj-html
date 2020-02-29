@@ -8,7 +8,6 @@ from .base import PageHandler
 from controller import errors as e
 from controller import validate as v
 from tornado.escape import native_str
-from controller.com.esearch import find_neighbor
 from elasticsearch.exceptions import ConnectionTimeout
 
 
@@ -240,10 +239,10 @@ class PageNeighborTextApi(PageHandler):
         """ 获取比对文本的前后页文本"""
         # param page_code: 当前cmp文本的page_code（对应于es库中的page_code）
         # param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
+        from controller.com.esearch import find_neighbor
         try:
             rules = [(v.not_empty, 'cmp_page_code', 'neighbor')]
             self.validate(self.data, rules)
-
             neighbor = find_neighbor(self.data.get('cmp_page_code'), self.data.get('neighbor'))
             if neighbor:
                 txt = Diff.pre_cmp(''.join(neighbor['_source']['origin']))
@@ -266,7 +265,7 @@ class PageDiffTextsApi(PageHandler):
             diff_blocks = self.diff(*self.data['texts'])
             if self.data['hints']:
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
-            cmp_data = self.render_string('_text_area.html', blocks=diff_blocks)
+            cmp_data = self.render_string('page_text_area.html', blocks=diff_blocks)
             cmp_data = native_str(cmp_data)
             self.send_data_response(dict(cmp_data=cmp_data))
 

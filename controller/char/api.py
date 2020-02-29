@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import csv
 from os import path
+from .char import Char
 from bson.objectid import ObjectId
-from tornado.escape import to_basestring
-from utils.build_js import build_js
-from controller import errors as e
 from controller import validate as v
 from controller.base import BaseHandler
-from controller.data.data import Tripitaka, Reel, Sutra, Volume
 
 
 class CharUpdateSourceApi(BaseHandler):

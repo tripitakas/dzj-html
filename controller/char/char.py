@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
-import json
 from controller.model import Model
 from controller import validate as v
-from controller.helper import get_url_param, prop, name2code
+from controller.helper import get_url_param
 
 
 class Char(Model):
     collection = 'char'
     fields = [
+        {'id': 'id', 'name': 'id'},
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'column_cid', 'name': '所属列'},
-        {'id': 'char_id', 'name': 'id'},
         {'id': 'char_code', 'name': 'code'},
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '字图'},

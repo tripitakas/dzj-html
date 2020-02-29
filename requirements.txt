@@ -1,6 +1,6 @@
 tornado
 tornado-cors
-pymongo==3.10.1
+pymongo
 pyconvert
 hashids
 pyyaml
@@ -12,4 +12,3 @@ aliyun-python-sdk-core-v3
 elasticsearch
 lxml
 oss2
-bson

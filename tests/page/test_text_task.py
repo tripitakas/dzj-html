@@ -106,11 +106,11 @@ class TestTextTask(APITestCase):
         self.assert_code(200, r)
 
         # 测试文字编辑
-        r = self.fetch('/data/text_edit/%s?_raw=1' % docs_ready[0])
+        r = self.fetch('/page/text_edit/%s?_raw=1' % docs_ready[0])
         self.assert_code(200, r)
 
         # 保存文字编辑
-        r = self.fetch('/api/data/text_edit/%s' % docs_ready[0],
+        r = self.fetch('/api/page/text_edit/%s' % docs_ready[0],
                        body={'data': dict(submit=True, txt_html=json_encode(page1.get('ocr')))})
         self.assert_code(200, r)
 
@@ -161,7 +161,7 @@ class TestTextTask(APITestCase):
 
         # 测试专家expert2可以进入edit页面
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/text_edit/QL_25_16?_raw=1')
+        r = self.fetch('/page/text_edit/QL_25_16?_raw=1')
         self.assert_code(200, r)
 
         # 测试用户expert1进入update页面时报错
@@ -171,7 +171,7 @@ class TestTextTask(APITestCase):
 
         # 专家expert2离开时解锁
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/api/page/unlock/text/QL_25_16', body={'data': {}})
+        r = self.fetch('/api/data/unlock/text/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
         # 测试用户expert1进入update页面时为可写
@@ -181,15 +181,15 @@ class TestTextTask(APITestCase):
 
         # 测试专家expert2进入edit页面时为只读
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/text_edit/QL_25_16?_raw=1')
+        r = self.fetch('/page/text_edit/QL_25_16?_raw=1')
         self.assert_code(e.data_is_locked, r)
 
         # 用户expert1离开时解锁
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/page/unlock/text/QL_25_16', body={'data': {}})
+        r = self.fetch('/api/data/unlock/text/QL_25_16', body={'data': {}})
         self.assert_code(200, r)
 
         # 测试专家expert2进入edit页面时为可写
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/data/text_edit/QL_25_16?_raw=1')
+        r = self.fetch('/page/text_edit/QL_25_16?_raw=1')
         self.assert_code(200, r)

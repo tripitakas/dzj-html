@@ -21,7 +21,7 @@ from controller import helper
 from controller import errors as e
 from controller import validate as v
 from controller.user.user import User
-from controller.base import BaseHandler, DbError
+from controller.base import BaseHandler
 
 
 class LoginApi(BaseHandler):

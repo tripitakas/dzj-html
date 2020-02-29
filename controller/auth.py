@@ -40,7 +40,7 @@ role_route_maps = {
             '/api/user/list': ['POST'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/finish/@task_id': ['POST'],
-            '/api/page/lock/@shared_field/@doc_id': ['POST'],
+            '/api/data/lock/@shared_field/@doc_id': ['POST'],
         }
     },
     '访客': {
@@ -87,7 +87,7 @@ role_route_maps = {
             '/api/task/pick/cut_proof': ['POST'],
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
-            '/api/page/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分审定员': {
@@ -98,7 +98,7 @@ role_route_maps = {
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update)/cut_review/@task_id': ['GET'],
             '/api/task/(do|update)/cut_review/@task_id': ['POST'],
-            '/api/page/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分专家': {
@@ -107,7 +107,7 @@ role_route_maps = {
         'routes': {
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/page/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '文字校对员': {
@@ -122,8 +122,8 @@ role_route_maps = {
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/page/unlock/box/@page_name': ['POST'],
-            '/api/page/unlock/text/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -136,8 +136,8 @@ role_route_maps = {
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/page/unlock/box/@page_name': ['POST'],
-            '/api/page/unlock/text/@page_name': ['POST'],
+            '/api/data/unlock/box/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -148,21 +148,9 @@ role_route_maps = {
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@task_id': ['GET'],
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
-            '/data/text_edit/@page_name': ['GET'],
-            '/api/data/text_edit/@page_name': ['POST'],
-            '/api/page/unlock/text/@page_name': ['POST'],
-        }
-    },
-    'OCR加工员': {
-        'is_assignable': True,
-        'roles': ['普通用户'],
-        'routes': {
-            '/api/task/init': ['POST'],
-            '/task/(lobby|my)/@ocr_task': ['GET'],
-            '/api/task/pick/@ocr_task': ['POST'],
-            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
-            '/api/task/submit/@ocr_task': ['POST'],
-            '/api/data/@metadata/upload': ['POST'],
+            '/page/text_edit/@page_name': ['GET'],
+            '/api/page/text_edit/@page_name': ['POST'],
+            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '任务浏览员': {
@@ -190,9 +178,22 @@ role_route_maps = {
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
+    'OCR加工员': {
+        'is_assignable': True,
+        'roles': ['普通用户'],
+        'routes': {
+            '/api/task/init': ['POST'],
+            '/task/(lobby|my)/@ocr_task': ['GET'],
+            '/api/task/pick/@ocr_task': ['POST'],
+            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
+            '/api/task/submit/@ocr_task': ['POST'],
+            '/api/data/@metadata/upload': ['POST'],
+            '/api/data/page/upload': ['POST'],
+        }
+    },
     '数据管理员': {
         'is_assignable': True,
-        'roles': ['普通用户', '数据处理员'],
+        'roles': ['普通用户', 'OCR加工员'],
         'routes': {
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],

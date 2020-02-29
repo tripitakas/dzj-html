@@ -121,7 +121,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         task_type = s.group(2) if s else ''
         if not task_type:
             # eg. /page/cut_edit/@page_name
-            s = re.search(r'/data/([a-z_]+_(edit|view))/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
+            s = re.search(r'/([a-z_]+_(edit|view))/([a-zA-Z]{2}(_\d+)+)(\?|$|\/)', self.request.path)
             task_type = s.group(1) if s else ''
         return task_type
 

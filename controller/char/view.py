@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@time: 2019/5/13
-"""
 import re
+from .char import Char
 from bson import json_util
-from tornado.web import UIModule
-from tornado.escape import to_basestring
-from .page import Page
-from .base import PageHandler
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.task.base import TaskHandler
 from controller.helper import name2code
+from controller.task.base import TaskHandler
 
 
-class DataCharListHandler(BaseHandler, Char):
+class CharAdminHandler(BaseHandler, Char):
     URL = '/data/char'
 
     page_title = '字数据管理'
@@ -81,7 +75,7 @@ class DataCharListHandler(BaseHandler, Char):
         if key == 'pos':
             value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'has_img' and value:
-            value = r'<img class="char-img" src="%s"/>' % self.get_char_img(doc['id'])
+            value = r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['id'], 'char')
         else:
             value = Task.format_value(value, key)
         return value
@@ -116,5 +110,5 @@ class DataCharBrowseHandler(BaseHandler, Char):
             return self.send_error_response(e.no_object, message='没有找到字图%s' % char)
         condition = self.get_char_search_condition(self.request.query)[0]
         op = '$lt' if self.get_query_argument('to', '') == 'prev' else '$lt'
-        condition['char_code'] = {op: Char.name2code(char_id)}
+        condition['char_code'] = {op: name2code(char_id)}
         docs, pager, q, order = self.find_by_page(condition, default_order='char_code')

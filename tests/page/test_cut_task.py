@@ -108,7 +108,7 @@ class TestCutTask(APITestCase):
 
         # 专家expert2离开时解锁
         self.login(u.expert2[0], u.expert2[1])
-        r = self.fetch('/api/page/unlock/box/' + name, body={'data': {}})
+        r = self.fetch('/api/data/unlock/box/' + name, body={'data': {}})
         self.assert_code(200, r)
 
         # 测试用户expert1可进入update页面
@@ -123,7 +123,7 @@ class TestCutTask(APITestCase):
 
         # 用户expert1离开时解锁
         self.login(u.expert1[0], u.expert1[1])
-        r = self.fetch('/api/page/unlock/box/' + name, body={'data': {}})
+        r = self.fetch('/api/data/unlock/box/' + name, body={'data': {}})
         self.assert_code(200, r)
 
         # 测试专家expert2可进入edit页面

@@ -3,10 +3,10 @@
 
 import re
 from tornado.options import options
-from controller.page.diff import Diff
 from elasticsearch import Elasticsearch
-from controller.page.variant import normalize
 from controller.helper import load_config
+from controller.page.tool.diff import Diff
+from controller.page.tool.variant import normalize
 
 
 def get_hosts():

@@ -32,13 +32,13 @@ class TestPageApi(APITestCase):
         self.assert_code(200, r)
 
     def test_page_nav(self):
-        r = self.fetch('/data/page/JX_165_7_12?to=next&_raw=1')
+        r = self.fetch('/page/JX_165_7_12?to=next&_raw=1')
         self.assert_code(200, r)
-        r = self.fetch('/data/page/JX_165_7_12?to=prev&_raw=1')
+        r = self.fetch('/page/JX_165_7_12?to=prev&_raw=1')
         self.assert_code(200, r)
 
     def test_page_export_char(self):
         pages = self._app.db.page.find({'name': {'$regex': 'GL'}})
         _ids = [str(p['_id']) for p in list(pages)]
-        r = self.fetch('/api/data/page/export_char', body={'data': {'_ids': _ids}})
+        r = self.fetch('/api/page/export_char', body={'data': {'_ids': _ids}})
         self.assert_code(200, r)

@@ -4,6 +4,7 @@
 import re
 from bson import json_util
 from bson.objectid import ObjectId
+from tornado.escape import to_basestring
 from .page import Page
 from controller import errors as e
 from controller import validate as v
@@ -11,9 +12,14 @@ from controller.task.task import Task
 from controller.base import BaseHandler
 from controller.helper import name2code
 
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 
 class PageAdminHandler(BaseHandler, Page):
-    URL = '/page'
+    URL = '/data/page'
 
     # 列表相关参数
     page_title = '页数据管理'
@@ -179,6 +185,22 @@ class PageInfoHandler(BaseHandler, Page):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class PageUploadApi(BaseHandler, Page):
+    URL = '/api/data/page/upload'
+
+    def post(self):
+        """ 批量上传 """
+        upload_file = self.request.files.get('csv') or self.request.files.get('json')
+        content = to_basestring(upload_file[0]['body'])
+        with StringIO(content) as fn:
+            assert self.data.get('layout'), 'need layout'
+            r = self.insert_many(self.db, file_stream=fn, layout=self.data['layout'])
+            if r.get('status') == 'success':
+                self.send_data_response(r)
+            else:
+                self.send_error_response((r.get('code'), r.get('message')))
 
 
 class PageUpdateSourceApi(BaseHandler, Page):

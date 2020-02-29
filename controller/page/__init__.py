@@ -7,7 +7,7 @@ views = [
 ]
 
 handlers = [
-    data.PageUpdateSourceApi, data.PageExportCharApi,
+    data.PageUpdateSourceApi, data.PageExportCharApi, data.PageUploadApi,
     api.PageTaskCutApi, api.PageCutEditApi,
     api.PageTaskTextSelectApi, api.PageTaskTextProofApi, api.PageTaskTextReviewApi, api.PageTaskTextHardApi,
     api.PageTextEditApi, api.PageNeighborTextApi, api.PageDiffTextsApi, api.PageDetectWideCharsApi,

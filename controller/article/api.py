@@ -7,12 +7,11 @@ import os
 import re
 import hashlib
 from PIL import Image
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors
 import controller.validate as v
+from controller.base import BaseHandler
 from controller.helper import get_date_time
-from controller.base import BaseHandler, DbError
 
 
 class ArticleDeleteApi(BaseHandler):

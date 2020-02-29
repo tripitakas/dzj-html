@@ -6,8 +6,8 @@
 import re
 from .esearch import find
 from bson import json_util
-from controller.page.variant import normalize
-from controller.base import BaseHandler, DbError
+from controller.base import BaseHandler
+from controller.page.tool.variant import normalize
 
 try:
     import punctuation
