@@ -271,11 +271,13 @@ class SendUserEmailCodeApi(BaseHandler):
 
     def post(self):
         """用户注册时，发送邮箱验证码"""
+
         try:
             rules = [(v.not_empty, 'email')]
             self.validate(self.data, rules)
 
-            code = helper.random_code()
+            seed = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            code = ''.join([random.choice(seed) for i in range(4)])
             if not self.send_email(self, self.data['email'], code):
                 return self.send_error_response(e.email_send_failed)
 
@@ -325,7 +327,8 @@ class SendUserPhoneCodeApi(BaseHandler):
         rules = [(v.not_empty, 'phone')]
         self.validate(self.data, rules)
 
-        code = "%04d" % random.randint(1000, 9999)
+        seed = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        code = ''.join([random.choice(seed) for i in range(4)])
         if not self.send_sms(self, self.data['phone'], code):
             return
         try:
