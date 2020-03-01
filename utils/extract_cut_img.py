@@ -76,6 +76,7 @@ def extract_one_page(db, name, s3_big, s3_cut, salt, tmp_path, page_chars=None, 
     w, h = img.size
     if w != page['width'] or h != page['height']:
         img = img.resize((page['width'], page['height']), Image.BICUBIC)
+
     if not isinstance(s3_big, str):
         remove(down_file)
 
