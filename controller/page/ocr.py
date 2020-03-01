@@ -11,7 +11,7 @@ from controller import validate as v
 from controller.task.base import TaskHandler
 
 
-class FetchOcrTasksApi(TaskHandler):
+class FetchTasksApi(TaskHandler):
     URL = '/api/task/fetch_many/@ocr_task'
 
     def post(self, data_task):
@@ -58,7 +58,7 @@ class FetchOcrTasksApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class ConfirmFetchOcrTasksApi(TaskHandler):
+class ConfirmFetchTasksApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
     def post(self, data_task):
@@ -79,7 +79,7 @@ class ConfirmFetchOcrTasksApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class SubmitOcrTasksApi(TaskHandler):
+class SubmitTasksApi(TaskHandler):
     URL = '/api/task/submit/@ocr_task'
 
     def post(self, task_type):

@@ -1,17 +1,17 @@
-from . import api, view, ocr, data
+from . import view, api, ocr, data
 
 views = [
     data.PageAdminHandler, data.PageBrowseHandler, data.PageInfoHandler,
-    view.PageTaskCutHandler, view.PageCutEditHandler,
-    view.PageTaskTextProofHandler, view.PageTaskTextReviewHandler, view.PageTextEditHandler,
+    view.TaskCutHandler, view.CutEditHandler,
+    view.TaskTextProofHandler, view.TaskTextReviewHandler, view.TextEditHandler,
 ]
 
 handlers = [
     data.PageUpdateSourceApi, data.PageExportCharApi, data.PageUploadApi,
-    api.PageTaskCutApi, api.PageCutEditApi,
-    api.PageTaskTextSelectApi, api.PageTaskTextProofApi, api.PageTaskTextReviewApi, api.PageTaskTextHardApi,
-    api.PageTextEditApi, api.PageNeighborTextApi, api.PageDiffTextsApi, api.PageDetectWideCharsApi,
-    ocr.FetchOcrTasksApi, ocr.SubmitOcrTasksApi, ocr.ConfirmFetchOcrTasksApi,
+    ocr.FetchTasksApi, ocr.SubmitTasksApi, ocr.ConfirmFetchTasksApi,
+    api.TaskCutApi, api.CutEditApi,
+    api.TaskTextSelectApi, api.TaskTextProofApi, api.TaskTextReviewApi, api.TaskTextHardApi,
+    api.TextEditApi, api.TextNeighborApi, api.TextsDiffApi, api.DetectWideCharsApi,
 ]
 
 modules = {'TextArea': view.TextArea}

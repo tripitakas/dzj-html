@@ -191,5 +191,5 @@ class TaskConfigModal(UIModule):
         title = '配置项'
         buttons = [('modal-cancel', '取消'), ('modal-confirm', '确定')]
         fields = [{'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']}]
-        return self.render_string('_modal_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
+        return self.render_string('_config.html', modal_fields=config_fields or fields, id='taskConfigModal',
                                   title=title, buttons=buttons)

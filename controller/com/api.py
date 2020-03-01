@@ -4,9 +4,9 @@
 @time: 2019/6/23
 """
 import re
-from .esearch import find
 from bson import json_util
 from controller.base import BaseHandler
+from controller.page.tool.esearch import find
 from controller.page.tool.variant import normalize
 
 try:

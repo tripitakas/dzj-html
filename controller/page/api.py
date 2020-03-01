@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@time: 2019/5/13
-"""
-from .tool.diff import Diff
-from .base import PageHandler
+
+from tornado.escape import native_str
 from controller import errors as e
 from controller import validate as v
-from tornado.escape import native_str
+from .tool.diff import Diff
+from .base import PageHandler
+from .tool.esearch import find_one, find_neighbor
 from elasticsearch.exceptions import ConnectionTimeout
 
 
-class PageTaskCutApi(PageHandler):
+class TaskCutApi(PageHandler):
     URL = ['/api/task/do/@cut_task/@task_id',
            '/api/task/update/@cut_task/@task_id']
 
@@ -50,7 +49,7 @@ class PageTaskCutApi(PageHandler):
         self.send_data_response()
 
 
-class PageCutEditApi(PageHandler):
+class CutEditApi(PageHandler):
     URL = '/api/page/cut_edit/@page_name'
 
     def post(self, page_name):
@@ -87,31 +86,7 @@ class PageCutEditApi(PageHandler):
         self.send_data_response()
 
 
-class PageTaskTextSelectApi(PageHandler):
-    URL = '/api/task/text_select/@page_name'
-
-    def post(self, page_name):
-        """ 获取比对本。根据OCR文本，从CBETA库中获取相似的文本作为比对本"""
-        from controller.com.esearch import find_one
-        try:
-            self.page = self.db.page.find_one({'name': page_name})
-            if not self.page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            ocr = self.get_ocr()
-            num = self.prop(self.data, 'num', 1)
-            cmp, hit_page_codes = find_one(ocr, int(num))
-            if cmp:
-                self.send_data_response(dict(cmp=cmp, hit_page_codes=hit_page_codes))
-            else:
-                self.send_error_response(e.no_object, message='未找到比对文本')
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-        except ConnectionTimeout as error:
-            return self.send_db_error(error)
-
-
-class PageTaskTextProofApi(PageHandler):
+class TaskTextProofApi(PageHandler):
     URL = ['/api/task/do/text_proof_@num/@task_id',
            '/api/task/update/text_proof_@num/@task_id']
 
@@ -148,7 +123,7 @@ class PageTaskTextProofApi(PageHandler):
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
 
 
-class PageTaskTextReviewApi(PageHandler):
+class TaskTextReviewApi(PageHandler):
     URL = ['/api/task/do/text_review/@task_id',
            '/api/task/update/text_review/@task_id']
 
@@ -188,7 +163,7 @@ class PageTaskTextReviewApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskTextHardApi(PageHandler):
+class TaskTextHardApi(PageHandler):
     URL = ['/api/task/do/text_hard/@task_id',
            '/api/task/update/text_hard/@task_id']
 
@@ -211,7 +186,7 @@ class PageTaskTextHardApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTextEditApi(PageHandler):
+class TextEditApi(PageHandler):
     URL = '/api/page/text_edit/@page_name'
 
     def post(self, page_name):
@@ -232,14 +207,36 @@ class PageTextEditApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageNeighborTextApi(PageHandler):
+class TaskTextSelectApi(PageHandler):
+    URL = '/api/task/text_select/@page_name'
+
+    def post(self, page_name):
+        """ 寻找比对本。根据OCR文本从CBETA库中查找相似文本作为比对本"""
+        try:
+            self.page = self.db.page.find_one({'name': page_name})
+            if not self.page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            ocr = self.get_ocr()
+            num = self.prop(self.data, 'num', 1)
+            cmp, hit_page_codes = find_one(ocr, int(num))
+            if cmp:
+                self.send_data_response(dict(cmp=cmp, hit_page_codes=hit_page_codes))
+            else:
+                self.send_error_response(e.no_object, message='未找到比对文本')
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+        except ConnectionTimeout as error:
+            return self.send_db_error(error)
+
+
+class TextNeighborApi(PageHandler):
     URL = '/api/page/text_neighbor'
 
     def post(self):
         """ 获取比对文本的前后页文本"""
         # param page_code: 当前cmp文本的page_code（对应于es库中的page_code）
         # param neighbor: prev/next，根据当前cmp文本的page_code往前或者往后找一条数据
-        from controller.com.esearch import find_neighbor
         try:
             rules = [(v.not_empty, 'cmp_page_code', 'neighbor')]
             self.validate(self.data, rules)
@@ -254,7 +251,7 @@ class PageNeighborTextApi(PageHandler):
             return self.send_db_error(error)
 
 
-class PageDiffTextsApi(PageHandler):
+class TextsDiffApi(PageHandler):
     URL = '/api/page/diff'
 
     def post(self):
@@ -284,7 +281,7 @@ class PageDiffTextsApi(PageHandler):
         return diff_blocks
 
 
-class PageDetectWideCharsApi(PageHandler):
+class DetectWideCharsApi(PageHandler):
     URL = '/api/page/detect_chars'
 
     def post(self):

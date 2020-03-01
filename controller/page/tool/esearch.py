@@ -4,9 +4,9 @@
 import re
 from tornado.options import options
 from elasticsearch import Elasticsearch
+from .diff import Diff
+from .variant import normalize
 from controller.helper import load_config
-from controller.page.tool.diff import Diff
-from controller.page.tool.variant import normalize
 
 
 def get_hosts():
@@ -63,4 +63,4 @@ def find_neighbor(page_code, neighbor='next'):
 
 
 if __name__ == '__main__':
-    print([r['_source'] for r in find('由業非以自性滅，故無賴耶亦能生', None)])
+    print([r['_source'] for r in find('由業非以自性滅，故無賴耶亦能生')])

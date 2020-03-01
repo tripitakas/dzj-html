@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@time: 2019/5/13
-"""
 
 from tornado.web import UIModule
 from tornado.escape import to_basestring
@@ -10,7 +7,7 @@ from .base import PageHandler
 from controller import errors as e
 
 
-class PageTaskCutHandler(PageHandler):
+class TaskCutHandler(PageHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/browse/@cut_task/@task_id',
@@ -39,7 +36,7 @@ class PageTaskCutHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageCutEditHandler(PageHandler):
+class CutEditHandler(PageHandler):
     URL = ['/page/cut_edit/@page_name',
            '/page/cut_view/@page_name']
 
@@ -65,7 +62,7 @@ class PageCutEditHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskTextProofHandler(PageHandler):
+class TaskTextProofHandler(PageHandler):
     URL = ['/task/text_proof_@num/@task_id',
            '/task/do/text_proof_@num/@task_id',
            '/task/browse/text_proof_@num/@task_id',
@@ -89,7 +86,7 @@ class PageTaskTextProofHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskTextReviewHandler(PageHandler):
+class TaskTextReviewHandler(PageHandler):
     URL = ['/task/(text_review|text_hard)/@task_id',
            '/task/do/(text_review|text_hard)/@task_id',
            '/task/browse/(text_review|text_hard)/@task_id',
@@ -108,7 +105,7 @@ class PageTaskTextReviewHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTextEditHandler(PageHandler):
+class TextEditHandler(PageHandler):
     URL = ['/page/text_edit/@page_name',
            '/page/text_view/@page_name']
 

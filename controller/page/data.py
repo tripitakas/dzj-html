@@ -12,11 +12,6 @@ from controller.task.task import Task
 from controller.base import BaseHandler
 from controller.helper import name2code
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
-
 
 class PageAdminHandler(BaseHandler, Page):
     URL = '/data/page'
@@ -191,7 +186,12 @@ class PageUploadApi(BaseHandler, Page):
     URL = '/api/data/page/upload'
 
     def post(self):
-        """ 批量上传 """
+        """ 批量上传。给小欧使用"""
+        try:
+            from StringIO import StringIO
+        except ImportError:
+            from io import StringIO
+
         upload_file = self.request.files.get('csv') or self.request.files.get('json')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
