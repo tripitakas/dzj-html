@@ -17,8 +17,8 @@ from os import path, listdir, makedirs, walk
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.page.page import Page
 from controller.helper import prop, name2code
+from controller.page.base import PageHandler as Ph
 
 
 class AddPage(object):
@@ -130,7 +130,7 @@ class AddPage(object):
             height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
             chars = self.filter_line_no(prop(info, 'chars', []))
             columns = self.filter_line_no(prop(info, 'columns', []))
-            meta = Page.metadata()
+            meta = Ph.metadata()
             meta.update(dict(
                 name=name, width=width, height=height, page_code=name2code(name),
                 blocks=prop(info, 'blocks', []), columns=columns, chars=chars,
@@ -164,8 +164,8 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
-            Page.update_box_cid(meta['chars'])
-            Page.update_box_cid(meta['columns'])
+            Ph.update_box_cid(meta['chars'])
+            Ph.update_box_cid(meta['columns'])
             if self.check_id and not self.check_ids(meta):
                 return False
 
@@ -177,7 +177,7 @@ class AddPage(object):
             print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
 
             if self.reorder:
-                meta['blocks'], meta['columns'], meta['chars'] = Page.reorder_boxes(page=meta)
+                meta['blocks'], meta['columns'], meta['chars'] = Ph.reorder_boxes(page=meta)
 
             if exist and self.update:
                 meta.pop('create_time', 0)

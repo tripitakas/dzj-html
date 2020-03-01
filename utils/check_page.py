@@ -3,8 +3,7 @@
 
 import pymongo
 from datetime import datetime
-from controller.page.page import Page
-from controller.page.base import PageHandler
+from controller.page.base import PageHandler as Ph
 
 
 def check_box_cover(db_name='tripitaka', uri='localhost'):
@@ -24,7 +23,7 @@ def check_box_cover(db_name='tripitaka', uri='localhost'):
             names.append(p['name'])
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p['name']))
             # 检查是否有未覆盖的框
-            valid, message, invalid_ids = PageHandler.check_box_cover(p)
+            valid, message, invalid_ids = Ph.check_box_cover(p)
             if not valid:
                 uncovered[message].append(p['name'])
 
@@ -60,9 +59,9 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
             handled.append(p['name'])
             print('[%s] processing %s' % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), p['name']))
             # 检查字序是否有问题
-            old_chars_col = Page.get_chars_col(p['chars'])
-            blocks, columns, chars = Page.reorder_boxes(page=p)
-            new_chars_col = Page.get_chars_col(chars)
+            old_chars_col = Ph.get_chars_col(p['chars'])
+            blocks, columns, chars = Ph.reorder_boxes(page=p)
+            new_chars_col = Ph.get_chars_col(chars)
             if not cmp_chars_col(old_chars_col, new_chars_col):
                 invalid_order.append(p['name'])
                 # print('invalid:', p['name'])
