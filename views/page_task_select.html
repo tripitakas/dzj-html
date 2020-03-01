@@ -227,7 +227,7 @@
   $(document).on('click', '.selectable #prev', function () {
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'prev'};
-    postApi('/page/text_neighbor', {data: data}, function (res) {
+    postApi('/task/text/neighbor', {data: data}, function (res) {
       if (res.txt.length) {
         $('#prev').addClass('hide').before('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().top - 100}, 500);
@@ -241,7 +241,7 @@
   $(document).on('click', '.selectable #next', function () {
     var pageCode = $('#pagination a.cur').eq(0).attr('title');
     var data = {cmp_page_code: pageCode, neighbor: 'next'};
-    postApi('/page/text_neighbor', {data: data}, function (res) {
+    postApi('/task/text/neighbor', {data: data}, function (res) {
       if (res.txt.length) {
         $('#next').addClass('hide').after('<span class="more">' + res.txt + '</span>');
         $('#selectable').animate({scrollTop: $('#cmp').offset().bottom}, 500);

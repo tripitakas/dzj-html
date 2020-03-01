@@ -301,7 +301,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/data/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
@@ -312,7 +312,7 @@
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     showConfirm('', `将对选中的${ids.length}条记录生成字表`, function () {
-      postApi('/page/export_char', {data: {_ids: ids}}, (res) => {
+      postApi('/data/page/export_char', {data: {_ids: ids}}, (res) => {
         showSuccess('成功', `共生成${res.inserted_count}条字数据。${res.invalid_pages.length}条无效页面`);
       });
     });
@@ -358,13 +358,13 @@
 
   // 详情
   $('.action .btn-detail').click(function () {
-    location.href = '/page/info/' + $(this).parent().siblings('.name').text();
+    location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
   });
 
   // 浏览
   $('.action .btn-nav').click(function () {
     var name = $(this).parent().siblings('.name').text();
-    location.href = '/page/browse/' + name + location.search;
+    location.href = '/data/page/' + name + location.search;
   });
 
 </script>

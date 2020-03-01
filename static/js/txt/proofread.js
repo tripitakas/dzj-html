@@ -347,7 +347,7 @@ $('.sutra-text-mode .save-txt').click(function () {
       base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
     }
   });
-  postApi('/page/diff', {data: {texts: texts, hints: hints}}, function (res) {
+  postApi('/task/text/diff', {data: {texts: texts, hints: hints}}, function (res) {
     $('.sutra-text .blocks').html(res.cmp_data);
     $('.bd.sutra-html').removeClass('hide');
     $('.bd.sutra-txt').addClass('hide');

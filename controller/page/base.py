@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import re
-from .page import Page
+from .tool.box import Box
 from .tool.diff import Diff
 from tornado.escape import url_escape
+from controller.data.data import Page
 from controller.task.base import TaskHandler
 
 
-class PageHandler(TaskHandler, Page):
+class PageHandler(TaskHandler, Page, Box):
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)

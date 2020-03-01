@@ -8,11 +8,12 @@ import json
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller import validate as v
-from controller.page.page import Page
+from controller.data.data import Page
 from controller.helper import get_url_param
 from controller.task.base import TaskHandler
 from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
+
 
 class GetReadyDocsApi(TaskHandler):
     URL = '/api/task/ready/@task_type'
@@ -379,7 +380,8 @@ class UnlockTaskApi(TaskHandler):
         """ 释放临时数据锁"""
         assert shared_field in self.data_auth_maps
         try:
-            count = self.release_temp_lock(doc_id, shared_field)
+            user = None if 'admin/unlock' in self.request.uri else self.user
+            count = self.release_temp_lock(doc_id, shared_field, user)
             return self.send_data_response(dict(count=count))
 
         except self.DbError as error:

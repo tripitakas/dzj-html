@@ -19,7 +19,7 @@ url_placeholder = {
     'char_id': r'[a-zA-Z]{2}_[_0-9]+',
     'page_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
-    'metadata': r'tripitaka|sutra|volume|reel',
+    'metadata': r'tripitaka|sutra|volume|reel|page|char',
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
@@ -61,7 +61,7 @@ role_route_maps = {
             '/(home|help|announce)': ['GET'],
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
-            '/tripitaka/list': ['GET'],
+            '/tripitaka': ['GET'],
             '/tripitaka/@page_prefix': ['GET'],
             '/com/punctuate': ['GET'],
             '/api/com/punctuate': ['POST'],
@@ -72,11 +72,12 @@ role_route_maps = {
             '/task/sample/@task_type': ['GET'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/page/diff': ['POST'],
-            '/api/page/detect_chars': ['POST'],
-            '/api/page/text_neighbor': ['POST'],
+            '/api/task/text/diff': ['POST'],
+            '/api/task/text/detect_chars': ['POST'],
+            '/api/task/text/neighbor': ['POST'],
             '/page/cut_view/@page_name': ['GET'],
             '/page/text_view/@page_name': ['GET'],
+            '/api/data/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
     '切分校对员': {
@@ -87,7 +88,6 @@ role_route_maps = {
             '/api/task/pick/cut_proof': ['POST'],
             '/task/(do|update)/cut_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cut_proof/@task_id': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分审定员': {
@@ -98,7 +98,6 @@ role_route_maps = {
             '/api/task/pick/cut_review': ['POST'],
             '/task/(do|update)/cut_review/@task_id': ['GET'],
             '/api/task/(do|update)/cut_review/@task_id': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '切分专家': {
@@ -107,7 +106,6 @@ role_route_maps = {
         'routes': {
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
         }
     },
     '文字校对员': {
@@ -122,8 +120,6 @@ role_route_maps = {
             '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字审定员': {
@@ -136,8 +132,6 @@ role_route_maps = {
             '/api/task/(do|update)/text_review/@task_id': ['POST'],
             '/page/cut_edit/@page_name': ['GET'],
             '/api/page/cut_edit/@page_name': ['POST'],
-            '/api/data/unlock/box/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '文字专家': {
@@ -150,7 +144,6 @@ role_route_maps = {
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
             '/page/text_edit/@page_name': ['GET'],
             '/api/page/text_edit/@page_name': ['POST'],
-            '/api/data/unlock/text/@page_name': ['POST'],
         }
     },
     '任务浏览员': {
@@ -188,7 +181,6 @@ role_route_maps = {
             '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
             '/api/task/submit/@ocr_task': ['POST'],
             '/api/data/@metadata/upload': ['POST'],
-            '/api/data/page/upload': ['POST'],
         }
     },
     '数据管理员': {
@@ -199,13 +191,10 @@ role_route_maps = {
             '/api/data/@metadata': ['POST'],
             '/api/data/@metadata/delete': ['POST'],
             '/api/data/gen_js': ['POST'],
-            '/data/page': ['GET'],
             '/page/browse/@page_name': ['GET'],
-            '/page/info/@page_name': ['GET'],
-            '/api/page/export_char': ['POST'],
-            '/api/page/source': ['POST'],
-            '/data/char': ['GET'],
-            '/api/char/source': ['POST'],
+            '/data/page/info/@page_name': ['GET'],
+            '/api/data/page/export_char': ['POST'],
+            '/api/data/(page|char)/source': ['POST'],
             '/api/char/gen_img': ['POST'],
         }
     },

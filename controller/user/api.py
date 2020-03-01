@@ -467,7 +467,7 @@ class DeleteUserApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class UserAddOrUpdateApi(BaseHandler):
+class UserUpsertApi(BaseHandler):
     URL = '/api/user/admin'
 
     def post(self):

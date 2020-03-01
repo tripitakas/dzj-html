@@ -231,7 +231,7 @@ class TaskTextSelectApi(PageHandler):
 
 
 class TextNeighborApi(PageHandler):
-    URL = '/api/page/text_neighbor'
+    URL = '/api/task/text/neighbor'
 
     def post(self):
         """ 获取比对文本的前后页文本"""
@@ -252,7 +252,7 @@ class TextNeighborApi(PageHandler):
 
 
 class TextsDiffApi(PageHandler):
-    URL = '/api/page/diff'
+    URL = '/api/task/text/diff'
 
     def post(self):
         """ 用户提交纯文本后重新比较，并设置修改痕迹"""
@@ -282,7 +282,7 @@ class TextsDiffApi(PageHandler):
 
 
 class DetectWideCharsApi(PageHandler):
-    URL = '/api/page/detect_chars'
+    URL = '/api/task/text/detect_chars'
 
     def post(self):
         """ 根据文本行内容识别宽字符"""

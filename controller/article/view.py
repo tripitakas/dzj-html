@@ -24,7 +24,7 @@ class ArticleAdminHandler(BaseHandler):
             return self.send_db_error(error)
 
 
-class ArticleAddOrUpdateHandler(BaseHandler):
+class ArticleUpsertHandler(BaseHandler):
     URL = ['/article/add', '/article/update/@article_id']
 
     def get(self, article_id=None):

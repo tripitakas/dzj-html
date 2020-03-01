@@ -3,6 +3,7 @@
 
 from tornado.web import UIModule
 from tornado.escape import to_basestring
+from bson import json_util
 from .base import PageHandler
 from controller import errors as e
 
@@ -122,6 +123,49 @@ class TextEditHandler(PageHandler):
                 cmp_data = to_basestring(TextArea(self).render(cmp_data))
 
             self.render('page_task_text.html', cmp_data=cmp_data)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageBrowseHandler(PageHandler):
+    URL = '/page/browse/@page_name'
+
+    def get(self, page_name):
+        """ 浏览页面数据"""
+
+        edit_fields = [
+            {'id': 'name', 'name': '页编码', 'readonly': True},
+            {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
+            {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': self.layouts},
+            {'id': 'source', 'name': '分　　类'},
+            {'id': 'level-box', 'name': '切分等级'},
+            {'id': 'level-text', 'name': '文本等级'},
+        ]
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            condition = self.get_page_search_condition(self.request.query)[0]
+            to = self.get_query_argument('to', '')
+            if to == 'next':
+                condition['page_code'] = {'$gt': page['page_code']}
+                page = self.db.page.find_one(condition, sort=[('page_code', 1)])
+            elif to == 'prev':
+                condition['page_code'] = {'$lt': page['page_code']}
+                page = self.db.page.find_one(condition, sort=[('page_code', -1)])
+            if not page:
+                message = '没有找到页面%s的%s' % (page_name, '上一页' if to == 'prev' else '下一页')
+                return self.send_error_response(e.no_object, message=message)
+
+            img_url = self.get_web_img(page['name'])
+            chars_col = self.get_chars_col(page['chars'])
+            btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
+            info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
+            labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
+            texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            self.render('page_browse.html', page=page, chars_col=chars_col, btn_config=btn_config,
+                        texts=texts, info=info, edit_fields=edit_fields, img_url=img_url)
 
         except Exception as error:
             return self.send_db_error(error)

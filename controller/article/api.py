@@ -35,7 +35,7 @@ class ArticleDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class ArticleAddOrUpdateApi(BaseHandler):
+class ArticleUpsertApi(BaseHandler):
     URL = '/api/article/(add|update)'
 
     def post(self, mode):

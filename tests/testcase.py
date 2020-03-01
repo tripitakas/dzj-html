@@ -16,9 +16,9 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.escape import to_basestring, native_str
 import controller as c
 from controller import auth
-from controller.app import Application
 from controller.task.task import Task
-from controller.page.page import Page
+from controller.app import Application
+from controller.page.base import PageHandler
 from tests.users import admin
 
 if PY3:
@@ -196,7 +196,7 @@ class APITestCase(AsyncHTTPTestCase):
 
     @staticmethod
     def get_chars_col(page, submit=True):
-        return {'chars_col': Page.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
+        return {'chars_col': PageHandler.get_chars_col(page['chars']), 'step': 'order', 'submit': submit}
 
     @staticmethod
     def init_data(data):
