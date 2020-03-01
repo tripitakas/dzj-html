@@ -16,6 +16,7 @@ class Cut(object):
         self.db = db
         self.cfg = cfg
         self.oss_big = self.oss_web = None
+        self.kwargs = kwargs
 
     def get_cfg(self, key):
         return prop(self.cfg, key)
@@ -49,9 +50,9 @@ class Cut(object):
     def get_big_img(self, page_name):
         """ 读大图。自动检测page_name中的hash值"""
         has_hash = len(page_name.split('_')[-1]) > 30
-        page_name = page_name if has_hash else self.get_hash_name(page_name)
+        page_name = self.get_hash_name(page_name.split('_')[0] if has_hash else page_name, use_salt=False)
         inner_path = '/'.join(page_name.split('_')[:-2 if has_hash else -1])
-        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
+        img_path = 'pages/{0}/{1}'.format(inner_path, page_name)
         local_path = self.get_cfg('big_img.local_path')
         if local_path:
             if local_path[0] != '/':
@@ -121,11 +122,14 @@ class Cut(object):
             except Exception:
                 log['fail'].extend([dict(id=c['id'], reason='page img not exist') for c in chars_todo])
 
-            img_page = Image.open(img_file).convert('L')
+            try:
+                img_page = Image.open(img_file).convert('L')
+            except AttributeError:
+                img_page = None
             if img_page is None:
                 log['fail'].extend([dict(id=c['id'], reason='fail to open page') for c in chars_todo])
                 continue
-            ih, iw = img_page.shape[:2]
+            iw, ih = img_page.size
             if iw != page['width'] or ih != page['height']:
                 img_page = img_page.resize((page['width'], page['height']), Image.BICUBIC)
             # 字框切图
@@ -134,19 +138,18 @@ class Cut(object):
                 if not oc:
                     log['fail'].append(dict(id=c['id'], reason='origin cid not exist'))
                     continue
-                if c['has_img'] and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                if c['has_img'] and not self.kwargs.get('reset') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                     log['exist'].append(c)
                     continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
-                img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                if img_c is not None:
+                try:
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
                     img_c = self.resize_binary(img_c, 64, 64, True)
                     img_name = '%s_%s' % (c['page_name'], c['cid'])
-                    try:
-                        self.write_web_img(img_c, img_name, 'char')
-                        chars_done.append(c)
-                    except Exception:
-                        log['fail'].append(dict(id=c['id'], reason='write error'))
+                    self.write_web_img(img_c, img_name, 'char')
+                    chars_done.append(c)
+                except Exception:
+                    log['fail'].append(dict(id=c['id'], reason='write error'))
 
             # 列框切图
             columns_todo, columns_done = list(set(c['column_cid'] for c in chars_done)), []
@@ -156,15 +159,14 @@ class Cut(object):
                     continue
                 c = column[0]
                 x, y, h, w = int(c['x']), int(c['y']), int(c['h']), int(c['w'])
-                img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                if img_c is not None:
+                try:
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
                     img_c = self.resize_binary(img_c, 64, 64, True)
                     img_name = '%s_%s' % (c['page_name'], c['cid'])
-                    try:
-                        self.write_web_img(img_c, img_name, 'column')
-                        columns_done.append(c)
-                    except Exception:
-                        pass
+                    self.write_web_img(img_c, img_name, 'column')
+                    columns_done.append(c)
+                except Exception:
+                    pass
 
             log['success'].extend(chars_done)
             log['columns'].extend(columns_done)

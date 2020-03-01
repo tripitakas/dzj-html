@@ -10,7 +10,7 @@ from controller.char.cut import Cut
 from controller.helper import load_config, connect_db
 
 
-def extract_cut_img(db=None, char_condition=None, chars=None):
+def extract_cut_img(db=None, char_condition=None, chars=None, regen=False):
     """ 从大图中切图，存放到web_img中，供web访问"""
 
     cfg = load_config()
@@ -23,7 +23,7 @@ def extract_cut_img(db=None, char_condition=None, chars=None):
             char_condition = json.loads(char_condition)
         chars = list(db.char.find(char_condition))
 
-    cut = Cut(db, cfg)
+    cut = Cut(db, cfg, regen=regen)
     r = cut.cut_img(chars)
     print(r)
 
