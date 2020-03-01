@@ -76,7 +76,8 @@ class Cut(object):
     def write_web_img(self, img_obj, img_name, img_type='char'):
         """ 写web图。img_obj为Image对象，img_name不带hash值"""
         inner_path = '/'.join(img_name.split('_')[:-1])
-        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, self.get_hash_name(img_name))
+        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path,
+                                             self.get_hash_name(img_name, use_salt=self.get_cfg('web_img.with_hash')))
         local_path = self.get_cfg('web_img.local_path')
         if local_path:
             if local_path[0] != '/':
