@@ -153,11 +153,11 @@ class PageExportCharApi(BaseHandler):
             for c in p.get('chars', []):
                 try:
                     txt = c.get('txt') or c.get('ocr_txt')
-                    char_name = '%s_%s' % (p['name'], c['cid'])
+                    char_id = '%s_%s' % (p['name'], c['cid'])
                     pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                     column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
-                    c = {'page_name': p['name'], 'cid': c['cid'], 'name': char_name, 'column_cid': column_cid,
-                         'char_code': name2code(char_name), 'source': p.get('source'),
+                    c = {'page_name': p['name'], 'cid': c['cid'], 'id': char_id, 'column_cid': column_cid,
+                         'char_code': name2code(char_id), 'source': p.get('source'),
                          'ocr': c['ocr_txt'], 'txt': txt, 'cc': c.get('cc'),
                          'sc': c.get('sc'), 'pos': pos}
                     chars.append(c)

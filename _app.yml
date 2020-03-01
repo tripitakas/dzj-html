@@ -54,7 +54,6 @@ big_img:
   my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
   key_id:
   key_secret:
-  shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
 
 # 网盘
 pan:

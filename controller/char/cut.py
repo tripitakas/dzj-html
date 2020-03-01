@@ -4,11 +4,10 @@
 import os
 import re
 import oss2
-import json
 import hashlib
 from os import path
 from PIL import Image
-from controller.helper import BASE_DIR, prop, cmp_obj, load_config, connect_db
+from controller.helper import BASE_DIR, prop, cmp_obj
 
 
 class Cut(object):
@@ -61,22 +60,21 @@ class Cut(object):
             if not path.exists(img_file):
                 raise OSError('%s not exist' % img_file)
             return img_file
-        if not self.oss_big:
-            my_cloud = self.get_cfg('big_img.my_cloud')
-            if my_cloud:
-                self.oss_big = Oss(my_cloud, self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret'))
+        my_cloud = self.get_cfg('big_img.my_cloud')
+        if not self.oss_big and my_cloud:
+            key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
+            self.oss_big = Oss(my_cloud, key_id, key_secret)
         if self.oss_big and self.oss_big.readable:
             tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
-            self.oss_big.download_file(tmp_file)
+            self.oss_big.download_file(img_path, tmp_file)
             return tmp_file
         raise OSError('oss not exist or not readable')
 
     def write_web_img(self, img_obj, img_name, img_type='char'):
         """ 写web图。img_obj为Image对象，img_name不带hash值"""
-        has_hash = len(img_name.split('_')[-1]) > 30
-        inner_path = '/'.join(img_name.split('_')[:-2 if has_hash else -1])
+        inner_path = '/'.join(img_name.split('_')[:-1])
         img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, self.get_hash_name(img_name))
         local_path = self.get_cfg('web_img.local_path')
         if local_path:
@@ -89,7 +87,8 @@ class Cut(object):
             return img_path
         my_cloud = self.get_cfg('web_img.my_cloud')
         if not self.oss_web and my_cloud:
-            self.oss_web = Oss(my_cloud, self.get_cfg('web_img.key_id'), self.get_cfg('web_img.key_secret'), 'write')
+            key_id, key_secret = self.get_cfg('web_img.key_id'), self.get_cfg('web_img.key_secret')
+            self.oss_web = Oss(my_cloud, key_id, key_secret, access='write')
         if self.oss_web and self.oss_web.writeable:
             tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):

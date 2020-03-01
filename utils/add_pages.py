@@ -114,7 +114,7 @@ class AddPage(object):
             meta['page_code'] = name2code(name)
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.items() if v and k in fields1})
-            fields2 = ['source', 'blocks', 'columns', 'chars', 'ocr', 'ocr_col', 'char_ocr', 'create_time']
+            fields2 = ['name', 'source', 'blocks', 'columns', 'chars', 'ocr', 'ocr_col', 'char_ocr', 'create_time']
             meta.update({k: v for k, v in info.items() if v and k in fields2})
             meta['source'] = self.source if self.source else meta.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']

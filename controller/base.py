@@ -314,7 +314,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         # 从云盘获取图片
         my_cloud = self.get_config('web_img.my_cloud')
         if my_cloud:
-            auth = oss2.Auth(self.get_config('web_img.access_key'), self.get_config('web_img.secret_key'))
+            auth = oss2.Auth(self.get_config('web_img.key_id'), self.get_config('web_img.key_secret'))
             bucket_name = re.sub(r'http[s]?://', '', my_cloud).split('.')[0]
             cloud_host = my_cloud.replace(bucket_name + '.', '')
             img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
