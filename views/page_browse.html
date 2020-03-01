@@ -303,12 +303,12 @@
 
   // 修改审定文本
   $('#btn-ed-text').click(function () {
-    location = '/data/text_edit/{{page["name"]}}?from=' + encodeFrom();
+    location = '/page/text_edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 跳转
   function go(to) {
-    var url = setQueryString('to', to).replace(location.pathname, '/page/{{page["name"]}}');
+    var url = setQueryString('to', to).replace(location.pathname, '/page/browse/{{page["name"]}}');
     var config = getConfig();
     if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
       postApi('/session/config', {data: {data_page_button: config}}, function (res) {

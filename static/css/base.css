@@ -942,3 +942,9 @@ a:hover, a:visited, a:focus {
   text-align: right;
   padding-right: 20px;
 }
+
+.swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
+    outline: 0;
+    border: 1px solid var(--Brown_Dark);
+    box-shadow: 0 0 3px var(--Brown);
+}

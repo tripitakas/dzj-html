@@ -7,7 +7,6 @@
 {% end %}
 
 {% block custom-modal %}
-{% module ComModal([{'id': 'batch', 'name': '批次'}], 'batchModal', '更新批次') %}
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal"
      aria-hidden="true">
   <div class="modal-dialog">
@@ -313,24 +312,18 @@
 </script>
 <script>
   /*---普通操作---*/
-  // 批量更新批次
-  var $batchModal = $('#batchModal');
-  $batchModal.find('.modal-confirm').click(function () {
-    var ids = $.map($('.sty-table :checked'), function (item) {
-      return $(item).parent().parent().attr('id');
-    });
-    if (!ids.length) {
-      $batchModal.modal('hide');
-      return showError('请选择任务');
-    }
-    var batch = $batchModal.find('.batch').val();
-    if (!batch.length) {
-      return showError('请输入批次');
-    }
-    postApi('/task/batch', {data: {'_ids': ids, 'batch': batch}}, function (res) {
-      location.reload();
+  // 更新分类
+  $('.operation .bat-batch').click(function () {
+    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    if (!ids.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+    Swal2.fire({title: '请输入批次', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+      if (result.value) {
+        postApi('/task/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
+      }
     });
   });
+
   // 统计检索结果
   $('.operation .btn-statistic a').click(function () {
     location.href = '/task/page/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');

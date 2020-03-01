@@ -163,7 +163,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/char/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/data/char/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
