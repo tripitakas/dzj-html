@@ -21,15 +21,15 @@ class Cut(object):
     def get_cfg(self, key):
         return prop(self.cfg, key)
 
-    def get_hash_name(self, img_name, cid='', use_salt=True):
+    @staticmethod
+    def get_hash_name(img_name, cid='', salt=''):
         img_name += '_' + cid if cid else ''
-        salt = self.get_cfg('web_img.salt')
-        if use_salt and salt:
+        if salt:
             md5 = hashlib.md5()
             md5.update((img_name + salt).encode('utf-8'))
-            return '%s_%s.jpg' % (img_name, md5.hexdigest())
+            return '%s_%s' % (img_name, md5.hexdigest())
         else:
-            return img_name + '.jpg'
+            return img_name
 
     @staticmethod
     def resize_binary(img, width=1024, height=1024, center=False):
@@ -48,11 +48,11 @@ class Cut(object):
         return img
 
     def get_big_img(self, page_name):
-        """ 读大图。自动检测page_name中的hash值"""
-        has_hash = len(page_name.split('_')[-1]) > 30
-        page_name = self.get_hash_name(page_name.split('_')[0] if has_hash else page_name, use_salt=False)
-        inner_path = '/'.join(page_name.split('_')[:-2 if has_hash else -1])
-        img_path = 'pages/{0}/{1}'.format(inner_path, page_name)
+        """ 读大图。page_name中不带hash值"""
+        inner_path = '/'.join(page_name.split('_')[:-1])
+        if self.get_cfg('big_img.with_hash'):
+            page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
+        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
         local_path = self.get_cfg('big_img.local_path')
         if local_path:
             if local_path[0] != '/':
@@ -75,9 +75,9 @@ class Cut(object):
 
     def write_web_img(self, img_obj, img_name, img_type='char'):
         """ 写web图。img_obj为Image对象，img_name不带hash值"""
+        salt = self.get_cfg('web_img.salt')
         inner_path = '/'.join(img_name.split('_')[:-1])
-        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path,
-                                             self.get_hash_name(img_name, use_salt=self.get_cfg('web_img.with_hash')))
+        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, self.get_hash_name(img_name, salt=salt))
         local_path = self.get_cfg('web_img.local_path')
         if local_path:
             if local_path[0] != '/':
@@ -103,7 +103,7 @@ class Cut(object):
     def cut_img(self, chars):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
-        log = dict(success=[], fail=[], exist=[], columns=[])
+        log = dict(success=[], fail=[], exist=[], column_success=[], column_fail=[])
         page_names = list(set(c['page_name'] for c in chars))
         fields = ['name', 'width', 'height', 'columns', 'chars']
         pages = list(self.db.page.find({'name': {'$in': page_names}}, {f: 1 for f in fields}))
@@ -117,40 +117,38 @@ class Cut(object):
             page = page_dict.get(page_name)
             chars_todo, chars_done = [c for c in chars if c['page_name'] == page_name], []
             # 获取大图
-            img_file = None
+            img_page = None
             try:
                 img_file = self.get_big_img(page_name)
-            except Exception:
-                log['fail'].extend([dict(id=c['id'], reason='page img not exist') for c in chars_todo])
-
-            try:
                 img_page = Image.open(img_file).convert('L')
-            except AttributeError:
-                img_page = None
-            if img_page is None:
-                log['fail'].extend([dict(id=c['id'], reason='fail to open page') for c in chars_todo])
-                continue
-            iw, ih = img_page.size
-            if iw != page['width'] or ih != page['height']:
-                img_page = img_page.resize((page['width'], page['height']), Image.BICUBIC)
+            except Exception as e:
+                reason = '[%s] %s' % (e.__class__.__name__, str(e))
+                log['fail'].extend([dict(id=c['id'], reason=reason) for c in chars_todo])
+            ih, iw = img_page.size
+            ph, pw = int(page['width']), int(page['height'])
+            if iw != pw or ih != ph:
+                img_page = img_page.resize((pw, ph), Image.BICUBIC)
             # 字框切图
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
                 if not oc:
                     log['fail'].append(dict(id=c['id'], reason='origin cid not exist'))
                     continue
-                if c['has_img'] and not self.kwargs.get('reset') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                    log['exist'].append(c)
-                    continue
+                if c.get('has_img') and not self.kwargs.get('reset') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                    if c.get('has_img') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                        log['exist'].append(c['id'])
+                        continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
-                try:
-                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                    img_c = self.resize_binary(img_c, 64, 64, True)
-                    img_name = '%s_%s' % (c['page_name'], c['cid'])
-                    self.write_web_img(img_c, img_name, 'char')
-                    chars_done.append(c)
-                except Exception:
-                    log['fail'].append(dict(id=c['id'], reason='write error'))
+                # img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
+                img_c = img_page.crop((x, y, x + w, y + h))
+                if img_c is not None:
+                    try:
+                        img_c = self.resize_binary(img_c, 64, 64, True)
+                        img_name = '%s_%s' % (page_name, c['cid'])
+                        self.write_web_img(img_c, img_name, 'char')
+                        chars_done.append(c)
+                    except Exception as e:
+                        log['fail'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
 
             # 列框切图
             columns_todo, columns_done = list(set(c['column_cid'] for c in chars_done)), []
@@ -160,17 +158,19 @@ class Cut(object):
                     continue
                 c = column[0]
                 x, y, h, w = int(c['x']), int(c['y']), int(c['h']), int(c['w'])
-                try:
-                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                    img_c = self.resize_binary(img_c, 64, 64, True)
-                    img_name = '%s_%s' % (c['page_name'], c['cid'])
-                    self.write_web_img(img_c, img_name, 'column')
-                    columns_done.append(c)
-                except Exception:
-                    pass
+                img_c = img_page.crop((x, y, x + w, y + h))
+                if img_c is not None:
+                    try:
+                        img_c = self.resize_binary(img_c, 64, 64, True)
+                        img_name = '%s_%s' % (page_name, c['cid'])
+                        self.write_web_img(img_c, img_name, 'column')
+                        columns_done.append('%s_%s' % (page_name, c['cid']))
+                    except Exception as e:
+                        reason = '[%s] %s' % (e.__class__.__name__, str(e))
+                        log['column_fail'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
 
-            log['success'].extend(chars_done)
-            log['columns'].extend(columns_done)
+            log['success'].extend([c['id'] for c in chars_done])
+            log['column_success'].extend(columns_done)
 
         return log
 

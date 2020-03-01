@@ -24,8 +24,12 @@ def extract_cut_img(db=None, char_condition=None, chars=None, regen=False):
         chars = list(db.char.find(char_condition))
 
     cut = Cut(db, cfg, regen=regen)
-    r = cut.cut_img(chars)
-    print(r)
+    log = cut.cut_img(chars)
+    if log.get('success'):
+        update = {'has_img': True, 'img_need_updated': False}
+        db.char.update_many({'id': {'$in': log['success']}}, {'$set': update})
+
+    print(log)
 
 
 if __name__ == '__main__':
