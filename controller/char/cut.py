@@ -44,6 +44,7 @@ class Cut(object):
         if center:
             new_im = Image.new('L', (width, height), 'white')
             new_im.paste(img, ((width - w) // 2, (height - h) // 2))
+            img = new_im
         return img
 
     def cut_img(self, chars):
@@ -70,8 +71,8 @@ class Cut(object):
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
                 log['fail'].extend([dict(id=c['id'], reason=reason) for c in chars_todo])
                 continue
-            ih, iw = img_page.size
-            ph, pw = int(page['width']), int(page['height'])
+            iw, ih = img_page.size
+            pw, ph = int(page['width']), int(page['height'])
             if iw != pw or ih != ph:
                 img_page = img_page.resize((pw, ph), Image.BICUBIC)
             # 字框切图
@@ -85,16 +86,14 @@ class Cut(object):
                         log['exist'].append(c['id'])
                         continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
-                # img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
-                img_c = img_page.crop((x, y, x + w, y + h))
-                if img_c is not None:
-                    try:
-                        img_c = self.resize_binary(img_c, 64, 64, True)
-                        img_name = '%s_%s' % (page_name, c['cid'])
-                        self.write_web_img(img_c, img_name, 'char')
-                        chars_done.append(c)
-                    except Exception as e:
-                        log['fail'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                try:
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
+                    img_c = self.resize_binary(img_c, 64, 64, True)
+                    img_name = '%s_%s' % (page_name, c['cid'])
+                    self.write_web_img(img_c, img_name, 'char')
+                    chars_done.append(c)
+                except Exception as e:
+                    log['fail'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
 
             # 列框切图
             columns_todo, columns_done = list(set(c['column_cid'] for c in chars_done)), []
@@ -104,16 +103,15 @@ class Cut(object):
                     continue
                 c = column[0]
                 x, y, h, w = int(c['x']), int(c['y']), int(c['h']), int(c['w'])
-                img_c = img_page.crop((x, y, x + w, y + h))
-                if img_c is not None:
-                    try:
-                        img_c = self.resize_binary(img_c, 64, 64, True)
-                        img_name = '%s_%s' % (page_name, c['cid'])
-                        self.write_web_img(img_c, img_name, 'column')
-                        columns_done.append('%s_%s' % (page_name, c['cid']))
-                    except Exception as e:
-                        reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                        log['column_fail'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
+                try:
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
+                    img_c = self.resize_binary(img_c, 200, 1024)
+                    img_name = '%s_%s' % (page_name, c['cid'])
+                    self.write_web_img(img_c, img_name, 'column')
+                    columns_done.append('%s_%s' % (page_name, c['cid']))
+                except Exception as e:
+                    reason = '[%s] %s' % (e.__class__.__name__, str(e))
+                    log['column_fail'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
             log['success'].extend([c['id'] for c in chars_done])
             log['column_success'].extend(columns_done)
 
