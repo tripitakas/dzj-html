@@ -356,13 +356,13 @@ class SendUserPhoneCodeApi(BaseHandler):
             request.add_query_param('SignName', sign_name)
             request.add_query_param('PhoneNumbers', phone)
             request.add_query_param('TemplateCode', template_code)
-            request.add_query_param('TemplateParam', '{"code": ' + code + '}')
+            request.add_query_param('TemplateParam', '{"code": "' + code + '"}')
             response = client.do_action_with_exception(request)
             response = response.decode()
             return response
 
         except Exception as error:
-            message = '发送邮件失败: [%s] %s' % (error.__class__.__name__, str(error))
+            message = '发送验证码失败: [%s] %s' % (error.__class__.__name__, str(error))
             self.send_error_response(e.verify_failed, message=message)
 
 
