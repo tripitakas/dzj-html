@@ -117,13 +117,13 @@ class Cut(object):
             page = page_dict.get(page_name)
             chars_todo, chars_done = [c for c in chars if c['page_name'] == page_name], []
             # 获取大图
-            img_page = None
             try:
                 img_file = self.get_big_img(page_name)
                 img_page = Image.open(img_file).convert('L')
             except Exception as e:
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
                 log['fail'].extend([dict(id=c['id'], reason=reason) for c in chars_todo])
+                continue
             ih, iw = img_page.size
             ph, pw = int(page['width']), int(page['height'])
             if iw != pw or ih != ph:
@@ -186,13 +186,13 @@ class Oss(object):
         oss_host = bucket_host.replace(bucket_name + '.', '')
 
         self.bucket_host = bucket_host
-        self.bucket = oss2.Bucket(auth, oss_host, bucket_name)
+        self.bucket = oss2.Bucket(auth, oss_host, bucket_name, connect_timeout=2)
         self.readable = self.is_readable() if access == 'read' else None
         self.writeable = self.is_writeable() if access == 'write' else None
 
     def is_readable(self):
         try:
-            self.bucket.list_objects('')
+            self.bucket.list_objects('', max_keys=1)
             return True
         except oss2.exceptions:
             return False
