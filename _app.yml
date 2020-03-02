@@ -44,14 +44,18 @@ web_img:
   salt:
   local_path: static/img
   my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  use_internal:
   key_id:
   key_secret:
   shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
 
 # big img
 big_img:
+  with_hash:
+  salt:
   local_path: static/img
   my_cloud: https://tripitaka-xxx.oss-cn-beijing.aliyuncs.com
+  use_internal:
   key_id:
   key_secret:
 

@@ -25,8 +25,8 @@ class CharGenImgApi(BaseHandler, Char):
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
 
             # 启动脚本，生成字图
-            script = ['python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]
-            os.system(' '.join(script))
+            script = ['nohup', 'python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]
+            os.system(' '.join(script) + '>/dev/null 2>&1 &')
 
             self.send_data_response()
 

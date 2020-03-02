@@ -41,64 +41,10 @@ class Cut(object):
                 w, h = int(height * w / h), height
             img = img.resize((w, h), Image.BICUBIC)
 
-        # img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 19, 10)
         if center:
             new_im = Image.new('L', (width, height), 'white')
             new_im.paste(img, ((width - w) // 2, (height - h) // 2))
         return img
-
-    def get_big_img(self, page_name):
-        """ 读大图。page_name中不带hash值"""
-        inner_path = '/'.join(page_name.split('_')[:-1])
-        if self.get_cfg('big_img.with_hash'):
-            page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
-        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
-        local_path = self.get_cfg('big_img.local_path')
-        if local_path:
-            if local_path[0] != '/':
-                local_path = path.join(BASE_DIR, local_path)
-            img_file = path.join(local_path, img_path)
-            if not path.exists(img_file):
-                raise OSError('%s not exist' % img_file)
-            return img_file
-        my_cloud = self.get_cfg('big_img.my_cloud')
-        if not self.oss_big and my_cloud:
-            key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
-            self.oss_big = Oss(my_cloud, key_id, key_secret)
-        if self.oss_big and self.oss_big.readable:
-            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
-            if not path.exists(path.dirname(tmp_file)):
-                os.makedirs(path.dirname(tmp_file))
-            self.oss_big.download_file(img_path, tmp_file)
-            return tmp_file
-        raise OSError('oss not exist or not readable')
-
-    def write_web_img(self, img_obj, img_name, img_type='char'):
-        """ 写web图。img_obj为Image对象，img_name不带hash值"""
-        salt = self.get_cfg('web_img.salt')
-        inner_path = '/'.join(img_name.split('_')[:-1])
-        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, self.get_hash_name(img_name, salt=salt))
-        local_path = self.get_cfg('web_img.local_path')
-        if local_path:
-            if local_path[0] != '/':
-                local_path = path.join(BASE_DIR, local_path)
-            img_path = path.join(local_path, img_path)
-            if not path.exists(path.dirname(img_path)):
-                os.makedirs(path.dirname(img_path))
-            img_obj.save(img_path)
-            return img_path
-        my_cloud = self.get_cfg('web_img.my_cloud')
-        if not self.oss_web and my_cloud:
-            key_id, key_secret = self.get_cfg('web_img.key_id'), self.get_cfg('web_img.key_secret')
-            self.oss_web = Oss(my_cloud, key_id, key_secret, access='write')
-        if self.oss_web and self.oss_web.writeable:
-            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
-            if not path.exists(path.dirname(tmp_file)):
-                os.makedirs(path.dirname(tmp_file))
-            img_obj.save(tmp_file)
-            self.oss_web.upload_file(img_path, tmp_file)
-            return tmp_file
-        raise OSError('oss not exist or not writeable')
 
     def cut_img(self, chars):
         """ 切图，包括字图和列图"""
@@ -149,7 +95,6 @@ class Cut(object):
                         chars_done.append(c)
                     except Exception as e:
                         log['fail'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
-
             # 列框切图
             columns_todo, columns_done = list(set(c['column_cid'] for c in chars_done)), []
             for cid in columns_todo:
@@ -168,45 +113,102 @@ class Cut(object):
                     except Exception as e:
                         reason = '[%s] %s' % (e.__class__.__name__, str(e))
                         log['column_fail'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
-
             log['success'].extend([c['id'] for c in chars_done])
             log['column_success'].extend(columns_done)
 
         return log
 
+    def get_big_img(self, page_name):
+        """ 读大图。page_name中不带hash值"""
+        inner_path = '/'.join(page_name.split('_')[:-1])
+        if self.get_cfg('big_img.with_hash'):
+            page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
+        img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
+        local_path = self.get_cfg('big_img.local_path')
+        if local_path:
+            if local_path[0] != '/':
+                local_path = path.join(BASE_DIR, local_path)
+            img_file = path.join(local_path, img_path)
+            if not path.exists(img_file):
+                raise OSError('%s not exist' % img_file)
+            return img_file
+        my_cloud = self.get_cfg('big_img.my_cloud')
+        if not self.oss_big and my_cloud:
+            key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
+            self.oss_big = Oss(my_cloud, key_id, key_secret, self.get_cfg('big_img.use_internal'))
+        if self.oss_big and self.oss_big.is_readable():
+            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
+            if not path.exists(path.dirname(tmp_file)):
+                os.makedirs(path.dirname(tmp_file))
+            self.oss_big.download_file(img_path, tmp_file)
+            return tmp_file
+        raise OSError('oss not exist or not readable')
+
+    def write_web_img(self, img_obj, img_name, img_type='char'):
+        """ 写web图。img_obj为Image对象，img_name不带hash值"""
+        salt = self.get_cfg('web_img.salt')
+        inner_path = '/'.join(img_name.split('_')[:-1])
+        img_path = '{0}s/{1}/{2}.jpg'.format(img_type, inner_path, self.get_hash_name(img_name, salt=salt))
+        local_path = self.get_cfg('web_img.local_path')
+        if local_path:
+            if local_path[0] != '/':
+                local_path = path.join(BASE_DIR, local_path)
+            img_path = path.join(local_path, img_path)
+            if not path.exists(path.dirname(img_path)):
+                os.makedirs(path.dirname(img_path))
+            img_obj.save(img_path)
+            return img_path
+        my_cloud = self.get_cfg('web_img.my_cloud')
+        if not self.oss_web and my_cloud:
+            key_id, key_secret = self.get_cfg('web_img.key_id'), self.get_cfg('web_img.key_secret')
+            self.oss_web = Oss(my_cloud, key_id, key_secret, self.get_cfg('web_img.use_internal'))
+        if self.oss_web and self.oss_web.is_writeable():
+            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
+            if not path.exists(path.dirname(tmp_file)):
+                os.makedirs(path.dirname(tmp_file))
+            img_obj.save(tmp_file)
+            self.oss_web.upload_file(img_path, tmp_file)
+            return tmp_file
+        raise OSError('oss not exist or not writeable')
+
 
 class Oss(object):
 
-    def __init__(self, bucket_host, key_id, key_secret, internal=True, access='read', **kwargs):
+    def __init__(self, bucket_host, key_id, key_secret, use_internal=True, **kwargs):
         """ OSS读写默认以内网方式进行"""
-        if internal and '-internal' not in bucket_host:  # 获取内网访问地址
+        if use_internal and '-internal' not in bucket_host:
             bucket_host = bucket_host.replace('.aliyuncs.com', '-internal.aliyuncs.com')
+        if not use_internal:
+            bucket_host = bucket_host.replace('-internal.aliyuncs.com', '.aliyuncs.com')
+
         auth = oss2.Auth(key_id, key_secret)
         bucket_name = re.sub(r'http[s]?://', '', bucket_host).split('.')[0]
         oss_host = bucket_host.replace(bucket_name + '.', '')
-
         self.bucket_host = bucket_host
         self.bucket = oss2.Bucket(auth, oss_host, bucket_name)
-        self.readable = self.is_readable() if access == 'read' else None
-        self.writeable = self.is_writeable() if access == 'write' else None
+        self.readable = self.writeable = None
 
     def is_readable(self):
-        try:
-            self.bucket.list_objects('')
-            return True
-        except oss2.exceptions:
-            return False
+        if self.readable is None:
+            try:
+                self.bucket.list_objects('')
+                self.readable = True
+            except oss2.exceptions:
+                self.readable = False
+        return self.readable
 
     def is_writeable(self):
-        try:
-            self.bucket.put_object('1.tmp', '')
-            self.bucket.delete_object('1.tmp')
-            return True
-        except oss2.exceptions:
-            return False
+        if self.writeable is None:
+            try:
+                self.bucket.put_object('1.tmp', '')
+                self.bucket.delete_object('1.tmp')
+                self.writeable = True
+            except oss2.exceptions:
+                self.writeable = False
+        return self.writeable
 
-    def download_file(self, oss_file, save_path=None):
-        self.bucket.get_object_to_file(oss_file, save_path)
+    def download_file(self, oss_file, local_file):
+        self.bucket.get_object_to_file(oss_file, local_file)
 
     def upload_file(self, oss_file, local_file):
         self.bucket.put_object_from_file(oss_file, local_file)
