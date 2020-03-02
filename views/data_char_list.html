@@ -194,6 +194,11 @@
     location.href = location.pathname + '?duplicate=true';
   });
 
+  // 浏览结果
+  $('.operation .btn-browse').click(function () {
+    location.href = '/char/browse' + location.search;
+  });
+
 </script>
 <script>
   /*---综合检索---*/

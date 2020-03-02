@@ -196,6 +196,8 @@ role_route_maps = {
             '/api/data/page/export_char': ['POST'],
             '/api/data/(page|char)/source': ['POST'],
             '/api/char/gen_img': ['POST'],
+            '/api/char/column_url': ['POST'],
+            '/char/browse': ['GET'],
         }
     },
     '文章管理员': {

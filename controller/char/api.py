@@ -32,3 +32,19 @@ class CharGenImgApi(BaseHandler, Char):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class GetColumnUrlApi(BaseHandler, Char):
+    URL = '/api/char/column_url'
+
+    def post(self):
+        """ 获取列图路径"""
+        try:
+            rules = [(v.not_empty, 'column_id')]
+            self.validate(self.data, rules)
+
+            url = self.get_web_img(self.data['column_id'], img_type='column')
+            self.send_data_response(dict(url=url))
+
+        except self.DbError as error:
+            return self.send_db_error(error)

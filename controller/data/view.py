@@ -191,12 +191,12 @@ class CharListHandler(BaseHandler, Char):
         {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
+        {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': v} for k, v in Task.get_task_types('char').items()
         ]},
     ]
     actions = [
-        {'action': 'btn-browse', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},

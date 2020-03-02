@@ -192,7 +192,8 @@ class Oss(object):
             try:
                 self.bucket.list_objects('', max_keys=1)
                 self.readable = True
-            except oss2.exceptions:
+            except Exception as e:
+                print('[%s] %s' % (e.__class__.__name__, str(e)))
                 self.readable = False
         return self.readable
 
@@ -202,7 +203,8 @@ class Oss(object):
                 self.bucket.put_object('1.tmp', '')
                 self.bucket.delete_object('1.tmp')
                 self.writeable = True
-            except oss2.exceptions:
+            except Exception as e:
+                print('[%s] %s' % (e.__class__.__name__, str(e)))
                 self.writeable = False
         return self.writeable
 

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>聚类校对</title>
+  {% include _base_css.html %}
+  <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .flex-content .char-imgs {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .char-imgs .img-list {
+      margin: 10px 20px;
+    }
+
+    .char-imgs .pagers {
+      clear: both;
+    }
+
+    .char-img {
+      float: left;
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .char-img img {
+      background: transparent;
+    }
+
+    .char-img img :hover {
+      transform: scale(1.2);
+    }
+
+    .flex-content .column-img {
+      flex: 1;
+      height: 100%;
+      overflow: auto;
+      width: 120px;
+      max-width: 120px;
+      border-left: 1px solid #ccc;
+      text-align: center;
+    }
+
+
+    .column-img {
+      float: left;
+      height: 100%;
+      overflow: auto;
+    }
+
+    .column-img img {
+      height: 100%;
+      cursor: pointer;
+    }
+
+
+    .flex-content .work-area {
+      flex: 1;
+      height: 100%;
+      overflow: auto;
+      width: 300px;
+      max-width: 300px;
+      padding: 0 10px;
+      border-left: 1px solid #ccc;
+      background: var(--Grey_Content);
+    }
+
+    .work-area label {
+      clear: both;
+      margin: 5px 0;
+      font-size: 1.2em;
+      font-weight: 500;
+      color: var(--Color_333);
+    }
+
+    .work-area label:not(:first-child) {
+      margin-top: 20px;
+    }
+
+    .ocr-txt {
+      font-size: 36px;
+      border: 1px solid #ccc;
+    }
+
+    .logs table {
+      width: 100%;
+    }
+
+    .logs table th, .logs table tr {
+      text-align: center;
+    }
+
+    .actions input {
+      margin-bottom: 5px;
+    }
+  </style>
+  {% block custom-css %}
+  {% end %}
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          {% set title, img = ('返回', 'icon_back') %}
+          <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
+        </div>
+        <div class="btn-group title">
+          聚类校对
+        </div>
+      </div><!--left-->
+    </div>
+    <div class="full-bd flex-content">
+      <div class="char-imgs">
+        <div class="img-list">
+          {% for d in docs %}
+          <div class="char-img"><img src="{{handler.get_web_img(d['id'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/></div>
+          {% end %}
+        </div>
+        {% module Pager(pager) %}
+      </div>
+      <div class="column-img">
+        {%set column_id = '%s_%s' % (docs[0]['page_name'], docs[0]['column_cid'])%}
+        <img src="{{handler.get_web_img(column_id, 'column')}}" title="{{column_id}}"/>
+      </div>
+      <div class="work-area">
+        <label>OCR候选</label>
+        <div class="ocr-options">
+          <span class="ocr-txt">菩</span>
+          <span class="ocr-txt">菩</span>
+          <span class="ocr-txt">菩</span>
+          <span class="ocr-txt">菩</span>
+          <span class="ocr-txt">菩</span>
+        </div>
+        <label>校对历史</label>
+        <div class="logs">
+          <table>
+            <thead>
+            <tr>
+              <th>文字</th>
+              <th>备注</th>
+              <th>校对者</th>
+              <th>时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>菩M</td>
+              <td></td>
+              <td>张三</td>
+              <td>2020-03-02 20:40</td>
+            </tr>
+            <tr>
+              <td>菩Y</td>
+              <td></td>
+              <td>李四</td>
+              <td>2020-03-02 20:40</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <label>请您校对</label>
+        <div class="actions">
+          <input class="form-control confirm-txt" placeholder="校对文字，可带校对符号YMN*等"/>
+          <input class="form-control remark" placeholder="备注，如果有的话"/>
+          <button class="btn btn-primary fr">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+<script>
+  function setCurrent(char) {
+    var ch = decodeJSON(char);
+    var columnImg = $('.column-img img');
+    var chColumnId = ch['page_name'] + '_' + ch['column_cid'];
+    if (chColumnId !== columnImg.attr('title')) {
+      postApi('/char/column_url', {data: {column_id: chColumnId}}, (res) => {
+        columnImg.attr('src', res.url).attr('title', chColumnId);
+      });
+    }
+
+
+  }
+
+</script>
+
+</body>
+</html>
