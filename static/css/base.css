@@ -334,8 +334,9 @@ a:hover, a:visited, a:focus {
 }
 
 .pagers span {
-  font-size: 14px;
   color: #333;
+  font-size: 14px;
+  line-height: 36px;
   margin-right: 15px;
 }
 
@@ -351,22 +352,23 @@ a:hover, a:visited, a:focus {
 }
 
 .pagers ul li {
-  display: inline-block;
   height: 32px;
-  line-height: 32px;
-  background: #fff;
+  /*background: #fff;*/
   color: #4e4e4e;
   font-size: 14px;
-  border: 1px solid #d3dae7;
+  line-height: 32px;
   margin-right: -1px;
+  display: inline-flex;
+  /*border: 1px solid #d3dae7;*/
 }
 
 .pagers ul li input {
-  height: 20px;
-  margin: auto 5px;
   width: 45px;
+  height: 20px;
   padding: 0 3px;
+  margin: auto 5px;
   border: 1px solid #ccc;
+  background: transparent;
 }
 
 .pagers li.active a {
@@ -375,11 +377,9 @@ a:hover, a:visited, a:focus {
 }
 
 .pagers li a {
-  display: inline-block;
-  height: 100%;
   cursor: pointer;
   color: #4e4e4e;
-  padding: 0 15px;
+  padding: 0 12px;
 }
 
 .pagers li a:hover {
@@ -391,6 +391,7 @@ a:hover, a:visited, a:focus {
 }
 
 .pagers .page-size {
+  border: none;
   background-color: transparent;
 }
 

@@ -32,13 +32,13 @@ class Cut(object):
             return img_name
 
     @staticmethod
-    def resize_binary(img, width=1024, height=1024, center=False):
+    def resize_binary(img, width=1024.0, height=1024.0, center=False):
         w, h = img.size
         if w > width or h > height:
             if w > width:
-                w, h = width, int(width * h / w)
+                w, h = int(width), int(width * h / w)
             if h > height:
-                w, h = int(height * w / h), height
+                w, h = int(height * w / h), int(height)
             img = img.resize((w, h), Image.BICUBIC)
 
         if center:
@@ -87,8 +87,8 @@ class Cut(object):
                         continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
                 try:
-                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                    img_c = self.resize_binary(img_c, 64, 64, True)
+                    img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
+                    img_c = self.resize_binary(img_c, 64, 64 * w / h)
                     img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
@@ -102,10 +102,10 @@ class Cut(object):
                 if not column:
                     continue
                 c = column[0]
-                x, y, h, w = int(c['x']), int(c['y']), int(c['h']), int(c['w'])
+                x, y, h, w = int(c['x']) - 1, int(c['y']) - 1, int(c['h']) + 1, int(c['w']) + 1
                 try:
-                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
-                    img_c = self.resize_binary(img_c, 200, 1024)
+                    img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
+                    img_c = self.resize_binary(img_c, 120, 120 * w / h)
                     img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'column')
                     columns_done.append('%s_%s' % (page_name, c['cid']))
@@ -115,6 +115,7 @@ class Cut(object):
             log['success'].extend([c['id'] for c in chars_done])
             log['column_success'].extend(columns_done)
 
+        print(log)
         return log
 
     def get_big_img(self, page_name):
