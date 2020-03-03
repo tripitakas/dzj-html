@@ -161,11 +161,11 @@
 }
 
 .sutra-text .line span {
+  padding: 6px 0;
   font-size: 20px;
   font-weight: 300;
-  letter-spacing: 1px;
   line-height: 40px;
-  display: inline-block;
+  letter-spacing: 1px;
   word-break: break-all;
 }
 
