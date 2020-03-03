@@ -101,6 +101,10 @@ class Cut(object):
                 x, y, h, w = int(c['x']), int(c['y']), int(c['h']), int(c['w'])
                 try:
                     img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
+                    if iw < x + w or ih < y + h:
+                        new_im = Image.new('L', (w, h), 'white')
+                        new_im.paste(img_c)
+                        img_c = new_im
                     img_c = self.resize_binary(img_c, 200, 1024)
                     img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'column')

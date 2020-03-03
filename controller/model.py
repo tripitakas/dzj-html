@@ -102,7 +102,7 @@ class Model(object):
         condition = condition or {}
         q = self.get_query_argument('q', '')
         search_fields = search_fields or cls.search_fields
-        if q:
+        if q and search_fields:
             condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in search_fields]
         if projection:
             query = self.db[cls.collection].find(condition, projection)
