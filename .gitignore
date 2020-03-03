@@ -44,6 +44,7 @@ target/
 
 # Project Files
 log/
+temp/
 static/img/
 static/upload/
 static/js/meta/
