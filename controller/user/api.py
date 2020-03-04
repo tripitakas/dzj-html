@@ -60,12 +60,12 @@ class LoginApi(BaseHandler):
         user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
         if not user:
             if report_error:
-                self.add_op_log('login_no_user', context=phone_or_email)
+                self.add_log('login_no_user', context=phone_or_email)
                 return send_response and self.send_error_response(e.no_user)
             return
         if user['password'] != helper.gen_id(password):
             if report_error:
-                self.add_op_log('login_fail', context=phone_or_email)
+                self.add_log('login_fail', context=phone_or_email)
                 return send_response and self.send_error_response(e.incorrect_password)
             return
 
@@ -77,7 +77,7 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
-        self.add_op_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
+        self.add_log('login_ok', context=phone_or_email + ': ' + user['name'], username=user['name'])
         info = 'login id=%s, name=%s, phone_or_email=%s, roles=%s'
         logging.info(info % (user['_id'], user['name'], phone_or_email, user['roles']))
 
@@ -102,7 +102,7 @@ class LogoutApi(BaseHandler):
         if self.current_user:
             self.clear_cookie('user')
             self.current_user = None
-            self.add_op_log('logout')
+            self.add_log('logout')
         self.send_data_response()
 
 
@@ -143,7 +143,7 @@ class RegisterApi(BaseHandler):
             self.set_secure_cookie('user', json_util.dumps(self.data), expires_days=2)
 
             message = '%s, %s, %s' % (self.data.get('email'), self.data.get('phone'), self.data['name'])
-            self.add_op_log('register', context=message, username=self.data['name'])
+            self.add_log('register', context=message, username=self.data['name'])
 
             next_url = self.get_query_argument('next', '')
             if 'info=1' in next_url:
@@ -206,7 +206,7 @@ class ChangeMyPasswordApi(BaseHandler):
                 return self.send_error_response(e.incorrect_old_password)
             update = dict(password=helper.gen_id(self.data['password']))
             self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
-            self.add_op_log('change_my_password', context=self.username)
+            self.add_log('change_my_password', context=self.username)
             self.send_data_response()
 
         except self.DbError as error:
@@ -239,7 +239,7 @@ class ChangeMyProfileApi(BaseHandler):
                 return self.send_error_response(e.not_changed)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
-            self.add_op_log('change_my_profile', context=self.data.get('name'))
+            self.add_log('change_my_profile', context=self.data.get('name'))
             self.send_data_response()
 
         except self.DbError as error:
@@ -404,7 +404,7 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': dict(roles=roles)})
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
-            self.add_op_log('change_role', target_id=self.data['_id'], context='%s: %s' % (user['name'], roles))
+            self.add_log('change_role', target_id=self.data['_id'], context='%s: %s' % (user['name'], roles))
             self.send_data_response({'roles': roles})
 
         except self.DbError as error:
@@ -437,7 +437,7 @@ class ResetUserPasswordApi(BaseHandler):
 
         user = self.db.user.find_one(dict(_id=oid))
         ResetUserPasswordApi.remove_login_fails(self, user['_id'])
-        self.add_op_log('reset_password', target_id=user['_id'], context=user['name'])
+        self.add_log('reset_password', target_id=user['_id'], context=user['name'])
         return pwd
 
     @staticmethod
@@ -460,7 +460,7 @@ class DeleteUserApi(BaseHandler):
                 return self.send_error_response(e.cannot_delete_self)
 
             r = self.db.user.delete_many({'_id': {'$in': [ObjectId(i) for i in _ids]}})
-            self.add_op_log('delete_user', target_id=_ids)
+            self.add_log('delete_user', target_id=_ids)
             self.send_data_response(dict(count=r.deleted_count))
 
         except self.DbError as error:
@@ -488,7 +488,7 @@ class UserUpsertApi(BaseHandler):
                 rules.append((v.not_existed, self.db.user, 'phone', 'email'))
             r = User.save_one(self.db, 'user', self.data, rules)
             if r.get('status') == 'success':
-                self.add_op_log(('update_' if r.get('update') else 'add_') + 'user', context=r.get('message'))
+                self.add_log(('update_' if r.get('update') else 'add_') + 'user', context=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))

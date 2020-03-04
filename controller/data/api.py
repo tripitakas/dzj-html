@@ -28,7 +28,7 @@ class DataUpsertApi(BaseHandler):
             model = eval(metadata.capitalize())
             r = model.save_one(self.db, metadata, self.data)
             if r.get('status') == 'success':
-                self.add_op_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
+                self.add_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
@@ -68,7 +68,7 @@ class DataUploadApi(BaseHandler):
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
                 self.send_data_response(r)
-                self.add_op_log('upload_' + collection, context=r.get('message'))
+                self.add_log('upload_' + collection, context=r.get('message'))
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 
@@ -84,10 +84,10 @@ class DataDeleteApi(BaseHandler):
 
             if self.data.get('_id'):
                 r = self.db[collection].delete_one({'_id': ObjectId(self.data['_id'])})
-                self.add_op_log('delete_' + collection, target_id=self.data['_id'])
+                self.add_log('delete_' + collection, target_id=self.data['_id'])
             else:
                 r = self.db[collection].delete_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}})
-                self.add_op_log('delete_' + collection, target_id=self.data['_ids'])
+                self.add_log('delete_' + collection, target_id=self.data['_ids'])
             self.send_data_response(dict(count=r.deleted_count))
 
         except self.DbError as error:
@@ -106,10 +106,10 @@ class UpdateSourceApi(BaseHandler):
             update = {'$set': {'source': self.data['source']}}
             if self.data.get('_id'):
                 r = self.db[collection].update_one({'_id': ObjectId(self.data['_id'])}, update)
-                self.add_op_log('update_' + collection, target_id=self.data['_id'])
+                self.add_log('update_' + collection, target_id=self.data['_id'])
             else:
                 r = self.db[collection].update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
-                self.add_op_log('update_' + collection, target_id=self.data['_ids'])
+                self.add_log('update_' + collection, target_id=self.data['_ids'])
             self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:

@@ -274,7 +274,7 @@ class BaseHandler(CorsMixin, RequestHandler):
     def get_config(self, key):
         return self.prop(self.config, key)
 
-    def add_op_log(self, op_type, target_id=None, context=None, username=None):
+    def add_log(self, op_type, target_id=None, context=None, username=None):
         target_id = target_id and str(target_id) or None
         user_id = self.current_user and self.current_user.get('_id')
         username = username or self.current_user and self.current_user.get('name')

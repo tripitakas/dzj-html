@@ -22,7 +22,7 @@ class TaskCutApi(PageHandler):
                 self.save_order()
             else:
                 self.save_box()
-            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -60,7 +60,7 @@ class CutEditApi(PageHandler):
                 self.save_order(page_name)
             else:
                 self.save_box(page_name)
-            self.add_op_log('edit_box', target_id=self.page['_id'], context=page_name)
+            self.add_log('edit_box', target_id=self.page['_id'], context=page_name)
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -101,7 +101,7 @@ class TaskTextProofApi(PageHandler):
             else:
                 self.save_proof(self.data)
 
-            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
         except self.DbError as error:
@@ -138,7 +138,7 @@ class TaskTextReviewApi(PageHandler):
                     publish_user_id=self.user_id,
                     publish_by=self.username)
         r = self.db.task.insert_one(task)
-        self.add_op_log('publish_task', target_id=r.inserted_id, context=str(review_task['_id']))
+        self.add_log('publish_task', target_id=r.inserted_id, context=str(review_task['_id']))
         return r.inserted_id
 
     def post(self, task_id):
@@ -156,7 +156,7 @@ class TaskTextReviewApi(PageHandler):
             info = self.get_txt_html_update(txt_html)
             self.update_my_doc(info, self.data.get('submit'))
 
-            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
         except self.DbError as error:
@@ -179,7 +179,7 @@ class TaskTextHardApi(PageHandler):
             info = self.get_txt_html_update(txt_html)
             self.update_my_doc(info, self.data.get('submit'))
 
-            self.add_op_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
             self.send_data_response()
 
         except self.DbError as error:
@@ -200,7 +200,7 @@ class TextEditApi(PageHandler):
             if not self.page.get('txt_html'):  # 如果页面原先没有txt_html字段，则去掉这个字段
                 info.pop('txt_html', 0)
             self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), info)
-            self.add_op_log('edit_text', target_id=page_name)
+            self.add_log('edit_text', target_id=page_name)
             self.send_data_response()
 
         except self.DbError as error:
