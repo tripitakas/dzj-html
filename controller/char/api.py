@@ -26,7 +26,7 @@ class CharGenImgApi(BaseHandler, Char):
 
             # 启动脚本，生成字图
             script = ['nohup', 'python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]
-            os.system(' '.join(script) + ' >> log/cut.log 2>&1 &')
+            os.system(' '.join(script) + ' >> log/cut_img.log 2>&1 &')
 
             self.send_data_response()
 

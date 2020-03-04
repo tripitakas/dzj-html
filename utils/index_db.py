@@ -22,7 +22,7 @@ def main(db_name='tripitaka', uri='localhost'):
         db[collection].create_index([(field, pymongo.ASCENDING) for field in fields])
 
     # 创建唯一索引
-    fields2index2 = {'char': ['id']}
+    fields2index2 = {'char': ['id'], 'page': ['page_code']}
     for collection, fields in fields2index2.items():
         db[collection].create_index([(field, pymongo.ASCENDING) for field in fields], unique=True)
 
