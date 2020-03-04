@@ -93,7 +93,8 @@ def code2int(code):
     if m:
         h1 = sum([ord(s) for s in m.group(1)]) % 99
         h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])
-        return int('%d%s' % (h1, h2))
+        return '%d%s' % (h1, h2)
+        # return int('%d%s' % (h1, h2))
 
 
 def format_value(value, key=None, doc=None):

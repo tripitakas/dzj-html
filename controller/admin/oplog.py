@@ -29,13 +29,12 @@ class Oplog(Model):
     ]
 
     l10n = {
-        'export_chars': '导出字表', 'inserted': '已插入字符', 'existed': '已存在字符',
+        'gen_chars': '生成字表', 'inserted': '已插入字符', 'existed': '已存在字符',
         'invalid': '无效字符', 'invalid_pages': '无效页码',
     }
 
     @classmethod
     def format_value(cls, value, key=None, doc=None):
-
         if key == 'op_type':
             return cls.l10n.get(value, value)
         if key == 'content':

@@ -71,7 +71,7 @@ def export_chars(db=None, condition=None, page_names=None):
     if un_existed:
         db.char.insert_many(un_existed, ordered=False)
 
-    Bh.add_op_log(db, 'export_chars', dict(
+    Bh.add_op_log(db, 'gen_chars', dict(
         inserted=[c['name'] for c in un_existed], existed=[c['name'] for c in existed],
         invalid=invalid_chars, invalid_pages=invalid_pages
     ))

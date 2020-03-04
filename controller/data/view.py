@@ -232,7 +232,7 @@ class CharListHandler(BaseHandler, Char):
         if key == 'txt_type':
             return self.txt_types.get(value, value)
         if key == 'has_img' and value:
-            return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['id'], 'char')
+            return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['name'], 'char')
         return h.format_value(value, key, doc)
 
     def get(self):
