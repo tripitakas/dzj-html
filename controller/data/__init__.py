@@ -7,5 +7,5 @@ views = [
 
 handlers = [
     api.DataUpsertApi, api.DataUploadApi, api.DataDeleteApi, api.UpdateSourceApi,
-    api.PageExportCharApi, api.DataGenJsApi,
+    api.PageExportCharsApi, api.DataGenJsApi,
 ]

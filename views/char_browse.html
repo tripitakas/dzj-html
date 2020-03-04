@@ -13,6 +13,7 @@
     .flex-content .char-imgs {
       flex: 1;
       overflow: auto;
+      padding-bottom: 20px;
     }
 
     .char-imgs .img-list {
@@ -25,30 +26,37 @@
 
     .char-img {
       float: left;
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
+      margin: 10px;
       cursor: pointer;
+      text-align: center;
       background: transparent;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
     }
 
     .char-img img {
+      align-items: center;
+      vertical-align: middle;
       background: transparent;
     }
 
-    .char-img img :hover {
-      transform: scale(1.2);
+    .char-img img:hover {
+      transform: scale(1.25);
     }
 
     .flex-content .column-img {
       flex: 1;
+      width: 120px;
       height: 100%;
       overflow: auto;
-      width: 120px;
       max-width: 120px;
-      border-left: 1px solid #ccc;
       text-align: center;
+      border-left: 1px solid #ccc;
     }
-
 
     .column-img {
       float: left;
@@ -61,7 +69,6 @@
       margin-top: 8px;
       cursor: pointer;
     }
-
 
     .flex-content .work-area {
       flex: 1;

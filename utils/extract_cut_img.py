@@ -10,19 +10,20 @@ from controller.char.cut import Cut
 from controller.helper import load_config, connect_db
 
 
-def extract_cut_img(db=None, char_condition=None, chars=None, regen=False):
+def extract_cut_img(db=None, condition=None, chars=None, regen=True):
     """ 从大图中切图，存放到web_img中，供web访问"""
 
     cfg = load_config()
     db = db or connect_db(cfg['database'])[0]
 
     if not chars:
-        if not char_condition:
-            char_condition = {'img_need_updated': True}
-        elif isinstance(char_condition, str):
-            char_condition = json.loads(char_condition)
-        chars = list(db.char.find(char_condition))
+        if not condition:
+            condition = {'img_need_updated': True}
+        elif isinstance(condition, str):
+            condition = json.loads(condition)
+        chars = list(db.char.find(condition))
 
+    # chars = list(db.char.find({'id': 'GL_1056_5_6_8'}))
     cut = Cut(db, cfg, regen=regen)
     log = cut.cut_img(chars)
     if log.get('success'):

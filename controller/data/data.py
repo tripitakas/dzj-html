@@ -4,9 +4,9 @@ import re
 import json
 from functools import cmp_to_key
 from controller.model import Model
+from controller import helper as h
 from controller import validate as v
 from controller.task.task import Task
-from controller.helper import get_url_param, prop, name2code, cmp_page_code
 
 
 class Tripitaka(Model):
@@ -134,16 +134,16 @@ class Volume(Model):
         doc = super().pack_doc(doc)
         if doc.get('content_pages') and isinstance(doc['content_pages'], str):
             content_pages = re.sub(r'[\[\]\"\'\s]', '', doc['content_pages']).split(',')
-            content_pages.sort(key=cmp_to_key(cmp_page_code))
+            content_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['content_pages'] = content_pages
         doc['content_page_count'] = len(doc.get('content_pages') or [])
         if doc.get('front_cover_pages') and isinstance(doc['front_cover_pages'], str):
             front_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['front_cover_pages']).split(',')
-            front_cover_pages.sort(key=cmp_to_key(cmp_page_code))
+            front_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['front_cover_pages'] = front_cover_pages
         if doc.get('back_cover_pages') and isinstance(doc['back_cover_pages'], str):
             back_cover_pages = re.sub(r'[\[\]\"\'\s]', '', doc['back_cover_pages']).split(',')
-            back_cover_pages.sort(key=cmp_to_key(cmp_page_code))
+            back_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['back_cover_pages'] = back_cover_pages
         return doc
 
@@ -229,7 +229,7 @@ class Page(Model):
             s = page_name.split('.')
             page['name'] = s[0]
             page['layout'] = layout
-            page['page_code'] = name2code(s[0])
+            page['page_code'] = h.align_code(s[0])
             page['img_suffix'] = name2suffix.get(page_name)
             pages.append(page)
         if pages:
@@ -242,12 +242,12 @@ class Page(Model):
     def get_page_search_condition(request_query):
         condition, params = dict(), dict()
         for field in ['name', 'source', 'remark-box', 'remark-text']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field.replace('-', '.'): {'$regex': value, '$options': '$i'}})
         for field in ['level-box', 'level-text']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 m = re.search(r'([><=]?)(\d+)', value)
@@ -255,11 +255,11 @@ class Page(Model):
                     op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
                     condition.update({field.replace('_', '.'): {op: value} if op else value})
         for field in ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({'tasks.' + field: None if value == 'un_published' else value})
-        value = get_url_param('txt', request_query)
+        value = h.get_url_param('txt', request_query)
         if value:
             params[field] = value
             condition.update({'$or': [{k: {'$regex': value}} for k in ['ocr', 'ocr_col', 'text']]})
@@ -273,8 +273,8 @@ class Page(Model):
             tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
             value = '<br/>'.join(tasks)
         elif key in ['lock-box', 'lock-text']:
-            if prop(value, 'is_temp') is not None:
-                value = '临时锁<a>解锁</a>' if prop(value, 'is_temp') else '任务锁'
+            if h.prop(value, 'is_temp') is not None:
+                value = '临时锁<a>解锁</a>' if h.prop(value, 'is_temp') else '任务锁'
         else:
             value = Task.format_value(value, key)
         return value
@@ -309,17 +309,17 @@ class Char(Model):
     def get_char_search_condition(request_query):
         condition, params = dict(), dict()
         for field in ['ocr', 'txt', 'txt_type']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
         for field in ['char_id', 'source', 'remark']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
         for field in ['cc', 'sc']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 m = re.search(r'([><=]?)(\d+)', value)

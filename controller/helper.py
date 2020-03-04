@@ -82,9 +82,19 @@ def md5_encode(img_name, salt):
     return md5.hexdigest()
 
 
-def name2code(name):
-    # 把带name中的_替换为0填充、补齐4位，如GL_1_1_1转换为GL000100010001
-    return ''.join([n.zfill(4) for n in name.split('_')]).lstrip('0')
+def align_code(code):
+    # 把带code中的_替换为0填充、补齐4位，如GL_1_1_1转换为GL000100010001
+    return ''.join([n.zfill(4) for n in code.split('_')]).lstrip('0')
+
+
+def code2int(code):
+    # 把藏经编码转换成整数
+    m = re.match(r'^([A-Z]{2})(_\d+)+', code)
+    if m:
+        print(m.group(1), m.group(2))
+        h1 = sum([ord(s) for s in m.group(1)]) % 99
+        h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])
+        return int('%d%s' % (h1, h2))
 
 
 def cmp_page_code(a, b):

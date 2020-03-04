@@ -17,7 +17,7 @@ from os import path, makedirs, walk
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
 
-from controller.helper import prop, name2code
+from controller.helper import prop, align_code
 from controller.page.base import PageHandler as Ph
 
 
@@ -111,7 +111,7 @@ class AddPage(object):
             return
         if self.update or not page:
             meta = Ph.metadata()
-            meta['page_code'] = name2code(name)
+            meta['page_code'] = align_code(name)
             meta['name'] = name
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})

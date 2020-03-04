@@ -9,7 +9,7 @@ from bson import json_util
 from controller import errors as e
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.helper import name2code
+from controller.helper import align_code
 from controller.page.tool.box import Box
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page, Char
 
