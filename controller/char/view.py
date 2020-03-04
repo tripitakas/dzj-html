@@ -14,7 +14,7 @@ class CharBrowseHandler(BaseHandler, Char):
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = self.find_by_page(self, condition)
             for d in docs:
-                column_id = '%s_%s' % (d['page_nam'], d['column']['cid'])
+                column_id = '%s_%s' % (d['page_name'], d['column']['cid'])
                 d['column']['hash'] = h.md5_encode(column_id, self.get_config('web_img.salt'))
             self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order)
 
