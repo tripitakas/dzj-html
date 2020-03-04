@@ -184,40 +184,39 @@
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script>
-  var columns = decodeJSON('{{columns}}');
   var paper, rect;
 
   function setCurrent(char) {
     var ch = decodeJSON(char);
     var columnImg = $('#col-holder');
-    var chColumnId = ch['page_name'] + '_' + ch['column_cid'];
-    var column = columns[chColumnId];
+    var column = ch.column;
     var ratio = columnImg.height() / column.h;
 
-    if (chColumnId !== columnImg.attr('title')) {
-      postApi('/char/column_url', {data: {column_id: chColumnId}}, (res) => {
-        if (rect) {
-          rect.remove();
-        }
+    if (rect) {
+      rect.remove();
+      rect = null;
+    }
+    if (ch.column_id !== columnImg.attr('title')) {
+      postApi('/char/column_url', {data: {column_id: ch.column_id}}, (res) => {
         if (paper) {
           paper.remove();
         }
-        columnImg.attr('src', res.url).attr('title', chColumnId);
+        columnImg.attr('src', res.url).attr('title', ch.column_id);
 
         paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
         paper.image(res.url, 4, 4, column.w, column.h).initZoom();
         rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
-          .setAttr({stroke: '#158815', 'stroke-width': 2 / ratio});
+          .setAttr({stroke: '#158815', 'stroke-width': 2 / ratio, fill: 'rgba(255, 0, 0, .4)'})
+          .animate({fill: 'rgba(255, 0, 0, .15)'}, 800);
         paper.setZoom(ratio);
         paper.setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
       });
     }
     else if (paper) {
-      if (rect) {
-        rect.remove();
-      }
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
-        .setAttr({stroke: '#158815', 'stroke-width': 1.5 / ratio}).setZoom(ratio);
+        .setAttr({stroke: '#158815', 'stroke-width': 1.5 / ratio, fill: 'rgba(255, 0, 0, .4)'})
+        .setZoom(ratio)
+        .animate({fill: 'rgba(255, 0, 0, .15)'}, 800);
     }
 
 

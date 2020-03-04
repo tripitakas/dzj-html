@@ -128,7 +128,7 @@ class PageExportCharApi(BaseHandler):
             chars = []
             invalid_pages = []
             invalid_chars = []
-            project = {'name': 1, 'chars': 1, 'columns': 1, 'source': 1}
+            project = {'name': 1, 'chars': 1, 'columns': 1, 'source': 1, 'width': 1, 'height': 1}
             _ids = [self.data['_id']] if self.data.get('_id') else self.data['_ids']
             pages = self.db.page.find({'_id': {'$in': [ObjectId(i) for i in _ids]}}, project)
             for p in pages:
@@ -149,19 +149,23 @@ class PageExportCharApi(BaseHandler):
     @staticmethod
     def export_chars(p, chars, invalid_chars, invalid_pages):
         try:
-            col2cid = {cl['column_id']: cl['cid'] for cl in p['columns']}
+            col2cid = {cl['column_id']: dict(cid=cl['cid'], x=cl['x'], y=cl['y'], w=cl['w'], h=cl['h'])
+                       for cl in p['columns']}
             for c in p.get('chars', []):
                 try:
                     txt = c.get('txt') or c.get('ocr_txt')
                     char_id = '%s_%s' % (p['name'], c['cid'])
                     pos = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                    column_cid = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
-                    c = {'page_name': p['name'], 'cid': c['cid'], 'id': char_id, 'column_cid': column_cid,
+                    column = col2cid.get('b%sc%s' % (c['block_no'], c['column_no']))
+                    c = {'page_name': p['name'], 'cid': c['cid'], 'id': char_id,
+                         'column': column, 'column_id': column and '%s_%s' % (p['name'], column['cid']) or '',
                          'char_code': name2code(char_id), 'source': p.get('source'),
-                         'ocr': c['ocr_txt'], 'txt': txt, 'cc': c.get('cc'),
-                         'sc': c.get('sc'), 'pos': pos}
+                         'ocr': c.get('ocr_txt'), 'txt': txt, 'cc': c.get('cc'),
+                         'sc': c.get('sc'), 'pos': pos,
+                         'width': p['width'], 'height': p['height']}
                     chars.append(c)
-                except KeyError:
+                except KeyError as err:
+                    print(err)
                     invalid_chars.append(c)
         except KeyError:
             invalid_pages.append(p)
