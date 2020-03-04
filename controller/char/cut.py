@@ -32,19 +32,14 @@ class Cut(object):
             return img_name
 
     @staticmethod
-    def resize_binary(img, width=1024.0, height=1024.0, center=False):
+    def resize_binary(img, width=1024, height=1024):
         w, h = img.size
         if w > width or h > height:
             if w > width:
-                w, h = int(width), int(width * h / w)
+                w, h = width, int(width * h / w)
             if h > height:
-                w, h = int(height * w / h), int(height)
+                w, h = int(height * w / h), height
             img = img.resize((w, h), Image.BICUBIC)
-
-        if center:
-            new_im = Image.new('L', (width, height), 'white')
-            new_im.paste(img, ((width - w) // 2, (height - h) // 2))
-            img = new_im
         return img
 
     def cut_img(self, chars):
@@ -75,6 +70,7 @@ class Cut(object):
             pw, ph = int(page['width']), int(page['height'])
             if iw != pw or ih != ph:
                 img_page = img_page.resize((pw, ph), Image.BICUBIC)
+                iw, ih = img_page.size
             # 字框切图
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
@@ -87,8 +83,8 @@ class Cut(object):
                         continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
                 try:
-                    img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
-                    img_c = self.resize_binary(img_c, 64, 64 * w / h)
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
+                    img_c = self.resize_binary(img_c, 64, 64)
                     img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
@@ -104,8 +100,12 @@ class Cut(object):
                 c = column[0]
                 x, y, h, w = int(c['x']) - 1, int(c['y']) - 1, int(c['h']) + 1, int(c['w']) + 1
                 try:
-                    img_c = img_page.crop((x, y, min(pw, x + w), min(ph, y + h)))
-                    img_c = self.resize_binary(img_c, 120, 120 * w / h)
+                    img_c = img_page.crop((x, y, min(iw, x + w), min(ih, y + h)))
+                    if iw < x + w or ih < y + h:
+                        new_im = Image.new('L', (w, h), 'white')
+                        new_im.paste(img_c)
+                        img_c = new_im
+                    img_c = self.resize_binary(img_c, 200, 1024)
                     img_name = '%s_%s' % (page_name, c['cid'])
                     self.write_web_img(img_c, img_name, 'column')
                     columns_done.append('%s_%s' % (page_name, c['cid']))
@@ -115,12 +115,11 @@ class Cut(object):
             log['success'].extend([c['id'] for c in chars_done])
             log['column_success'].extend(columns_done)
 
-        print(log)
         return log
 
-    def get_big_img(self, page_name):
+    def get_big_img(self, page_name, inner_path=None):
         """ 读大图。page_name中不带hash值"""
-        inner_path = '/'.join(page_name.split('_')[:-1])
+        inner_path = inner_path or '/'.join(page_name.split('_')[:-1])
         if self.get_cfg('big_img.with_hash'):
             page_name = self.get_hash_name(page_name, salt=self.get_cfg('big_img.salt'))
         img_path = 'pages/{0}/{1}.jpg'.format(inner_path, page_name)
@@ -130,7 +129,14 @@ class Cut(object):
                 local_path = path.join(BASE_DIR, local_path)
             img_file = path.join(local_path, img_path)
             if not path.exists(img_file):
-                raise OSError('%s not exist' % img_file)
+                if path.exists(img_file.replace('pages/', '')):
+                    img_file = img_file.replace('pages/', '')
+                else:
+                    alt_file = len(inner_path) > 2 and self.get_big_img(page_name, page_name[:2])
+                    if alt_file:
+                        img_file = alt_file
+                    else:
+                        raise OSError('%s not exist' % img_file)
             return img_file
         my_cloud = self.get_cfg('big_img.my_cloud')
         if not self.oss_big and my_cloud:
