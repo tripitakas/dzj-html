@@ -9,14 +9,13 @@ import re
 import math
 from bson.json_util import dumps
 from tornado.web import UIModule
-from controller.helper import prop
-from controller.task.task import Task
+from controller import helper as h
 
 
 class ComLeft(UIModule):
     def render(self, active_id=''):
         def is_enabled(module):
-            return module not in prop(self.handler.config, 'modules.disabled', '')
+            return module not in h.prop(self.handler.config, 'modules.disabled', '')
 
         can_access = self.handler.can_access
 
@@ -55,7 +54,10 @@ class ComLeft(UIModule):
                 dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
                 dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
             ]),
-            dict(name='系统管理', icon='icon_admin', link='/admin/script'),
+            dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
+                dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
+                dict(name='系统日志', icon='icon_subitem', link='/admin/oplog'),
+            ]),
             dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
                 dict(name='自动标点', icon='icon_subitem', link='/com/punctuate'),
                 dict(name='CBeta检索', icon='icon_subitem', link='/com/search'),
@@ -106,9 +108,9 @@ class Pager(UIModule):
             pager = dict(cur_page=0, doc_count=0)
         if isinstance(pager, dict) and 'cur_page' in pager and 'doc_count' in pager:
             conf = self.handler.application.config
-            pager['page_size'] = prop(pager, 'page_size', prop(conf, 'pager.page_size'))  # 每页显示多少条记录
+            pager['page_size'] = h.prop(pager, 'page_size', h.prop(conf, 'pager.page_size'))  # 每页显示多少条记录
             pager['page_count'] = math.ceil(pager['doc_count'] / pager['page_size'])  # 一共有多少页
-            pager['display_count'] = prop(conf, 'pager.display_count')  # pager导航条中显示多少个页码
+            pager['display_count'] = h.prop(conf, 'pager.display_count')  # pager导航条中显示多少个页码
             # 计算显示哪些页码
             gap, if_left, cur_page = int(pager['display_count'] / 2), int(pager['display_count']) % 2, pager['cur_page']
             start, end = cur_page - gap, cur_page + gap - 1 + if_left
@@ -127,12 +129,12 @@ class ComTable(UIModule):
                pack=None, format_value=None):
         pack = dumps if not pack else pack
         hide_fields = [] if hide_fields is None else hide_fields
-        format_value = Task.format_value if not format_value else format_value
-        info_fields = [d['id'] for d in table_fields] if not info_fields else info_fields
+        format_value = h.format_value if not format_value else format_value
+        info_fields = [d['id'] for d in table_fields] if info_fields is None else info_fields
         return self.render_string(
             '_table.html', docs=docs, order=order, actions=actions, table_fields=table_fields,
             info_fields=info_fields, hide_fields=hide_fields, format_value=format_value,
-            pack=pack, prop=prop
+            pack=pack, prop=h.prop
         )
 
 
@@ -179,8 +181,7 @@ class PageRemarkModal(UIModule):
         modal_fields = [
             {'id': 'fields', 'name': '备注字段', 'input_type': 'radio', 'options': ['切分', '文本']},
             {'id': 'remark', 'name': '备注内容'},
-            # {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
-            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['算法的问题', '用户的问题']},
+            {'id': 'options', 'name': '　', 'input_type': 'radio', 'options': ['没问题', '还可以', '不合要求']},
         ]
         return self.render_string('_modal.html', modal_fields=modal_fields, id='remarkModal', title='备注',
                                   buttons=buttons)

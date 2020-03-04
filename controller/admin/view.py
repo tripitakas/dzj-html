@@ -5,7 +5,10 @@
 """
 import re
 import inspect
+from .oplog import Oplog
 from operator import itemgetter
+from bson.objectid import ObjectId
+from controller import errors as e
 from controller.base import BaseHandler
 from controller.auth import get_route_roles
 from controller.task.base import TaskHandler
@@ -18,6 +21,28 @@ class AdminScriptHandler(BaseHandler):
         """ 系统脚本管理"""
         tripitakas = ['所有'] + self.db.tripitaka.find().distinct('tripitaka_code')
         self.render('admin_script.html', tripitakas=tripitakas)
+
+
+class AdminOplogHandler(BaseHandler, Oplog):
+    URL = '/admin/oplog'
+
+    def get(self):
+        """ 管理日志"""
+        kwargs = self.get_template_kwargs()
+        docs, pager, q, order = self.find_by_page(self, default_order='-_id')
+        self.render('admin_oplog.html', docs=docs, pager=pager, q=q, order=order,
+                    format_value=self.format_value, **kwargs)
+
+
+class AdminOplogViewHandler(BaseHandler, Oplog):
+    URL = '/admin/oplog/@oid'
+
+    def get(self, oid):
+        """ 管理日志"""
+        log = self.db.oplog.find_one({'_id': ObjectId(oid)})
+        if not log:
+            self.send_error_response(e.no_object, message='日志不存在')
+        self.render('admin_oplog_view.html', log=log)
 
 
 class ApiTableHandler(TaskHandler):

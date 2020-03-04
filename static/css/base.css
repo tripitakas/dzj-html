@@ -511,36 +511,6 @@ a:hover, a:visited, a:focus {
   border: 1px solid #ebebeb;
 }
 
-.sty-table td span {
-  display: inline-block;
-  width: 70px;
-  height: 32px;
-  background: #b8906f;
-  border-radius: 3px;
-  text-align: center;
-  line-height: 32px;
-  color: #fff;
-  font-size: 14px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.sty-table td.status_none {
-  color: #999;
-}
-
-.sty-table td.status_pending {
-  color: #666;
-}
-
-.sty-table td.status_ended {
-  color: #0f0;
-}
-
-.sty-table td.status_opened {
-  color: #007;
-}
-
 .sty-table .sort {
   cursor: pointer;
 }
@@ -945,7 +915,7 @@ a:hover, a:visited, a:focus {
 }
 
 .swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
-    outline: 0;
-    border: 1px solid var(--Brown_Dark);
-    box-shadow: 0 0 3px var(--Brown);
+  outline: 0;
+  border: 1px solid var(--Brown_Dark);
+  box-shadow: 0 0 3px var(--Brown);
 }

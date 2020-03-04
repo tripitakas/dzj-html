@@ -22,8 +22,8 @@
 .info {
   width: 50%;
   float: left;
-  padding: 4px 5px;
   display: flex;
+  padding: 4px 10px;
 }
 
 .info.long {

@@ -308,12 +308,12 @@
 
   // 生成字表
   $('.operation .bat-export-char').click(function () {
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    if (!ids.length)
+    var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
+    if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
-    showConfirm('', `将对选中的${ids.length}条记录生成字表`, function () {
-      postApi('/data/page/export_char', {data: {_ids: ids}}, (res) => {
-        showSuccess('成功', `共生成${res.inserted_count}条字数据。${res.invalid_pages.length}条无效页面`);
+    showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
+      postApi('/data/page/export_char', {data: {page_names: pageNames}}, (res) => {
+        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
       });
     });
   });

@@ -7,10 +7,9 @@
 import re
 from bson import json_util
 from controller import errors as e
+from controller import helper as h
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.helper import align_code
-from controller.page.tool.box import Box
 from controller.data.data import Tripitaka, Volume, Sutra, Reel, Page, Char
 
 
@@ -137,7 +136,7 @@ class PageListHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class PageInfoHandler(BaseHandler):
+class PageInfoHandler(BaseHandler, Page):
     URL = '/data/page/info/@page_name'
 
     def get(self, page_name):
@@ -227,12 +226,10 @@ class CharListHandler(BaseHandler, Char):
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
         if key == 'pos':
-            value = '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
+            return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'has_img' and value:
-            value = r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['id'], 'char')
-        else:
-            value = Task.format_value(value, key)
-        return value
+            return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['id'], 'char')
+        return h.format_value(value, key, doc)
 
     def get(self):
         """ 字数据管理"""

@@ -147,7 +147,7 @@ var $modal = $('#updateModal');
 var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_id'});
 
 // 新增-弹框
-$('.operation .btn-add').click(function () {
+$('.btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('.update-url').val($(this).attr('url') || location.pathname);
   console.log($(this).attr('url') || location.pathname);
@@ -160,9 +160,11 @@ $('.operation .btn-add').click(function () {
 $('.btn-view').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
+  console.log(data);
+
   var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
   $modal.find('.modal-title').html(title);
-  toggleModal($modal, fields, true);
+  // toggleModal($modal, fields, true);
   setModal($modal, data, fields);
   $modal.modal();
 });

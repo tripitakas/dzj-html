@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import json
+from os import path
+
+BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
+sys.path.append(BASE_DIR)
+
 from controller import helper as h
+from controller.base import BaseHandler as Bh
 
 
 def export_chars(db=None, condition=None, page_names=None):
@@ -21,11 +28,12 @@ def export_chars(db=None, condition=None, page_names=None):
     cfg = h.load_config()
     db = db or h.connect_db(cfg['database'])[0]
     if not condition:
-        condition = {'name': {'$in': page_names.split(',')}}
+        page_names = page_names.split(',') if isinstance(page_names, str) else page_names
+        condition = {'name': {'$in': page_names}}
     elif isinstance(condition, str):
         condition = json.loads(condition)
 
-    pages = list(db.char.find(condition, {k: 1 for k in ['name', 'source', 'columns', 'chars']}))
+    pages = list(db.page.find(condition, {k: 1 for k in ['name', 'source', 'columns', 'chars']}))
     # 查找、分类chars
     chars, invalid_chars, invalid_pages = [], [], []
     for p in pages:
@@ -58,13 +66,19 @@ def export_chars(db=None, condition=None, page_names=None):
     # 插入不存在的chars
     existed_id = [c['id'] for c in existed]
     un_existed = [c for c in chars if c['id'] not in existed_id]
-    db.char.insert_many(un_existed, ordered=False)
+    if un_existed:
+        db.char.insert_many(un_existed, ordered=False)
 
-    return dict(inserted=[c['name'] for c in un_existed], existed=[c['name'] for c in existed],
-                invalid=invalid_chars, invalid_pages=invalid_pages)
+    Bh.add_op_log(db, 'export_chars', dict(
+        inserted=[c['name'] for c in un_existed], existed=[c['name'] for c in existed],
+        invalid=invalid_chars, invalid_pages=invalid_pages
+    ))
 
 
 if __name__ == '__main__':
-    import fire
+    # import fire
+    #
+    # fire.Fire(export_chars)
 
-    fire.Fire(export_chars)
+    names = ['GL_924_2_35', 'QL_25_313']
+    export_chars(page_names=names)

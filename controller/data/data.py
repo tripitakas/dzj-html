@@ -271,13 +271,11 @@ class Page(Model):
         if key == 'tasks':
             value = value or {}
             tasks = ['%s/%s' % (Task.get_task_name(k), Task.get_status_name(v)) for k, v in value.items()]
-            value = '<br/>'.join(tasks)
-        elif key in ['lock-box', 'lock-text']:
+            return '<br/>'.join(tasks)
+        if key in ['lock-box', 'lock-text']:
             if h.prop(value, 'is_temp') is not None:
-                value = '临时锁<a>解锁</a>' if h.prop(value, 'is_temp') else '任务锁'
-        else:
-            value = Task.format_value(value, key)
-        return value
+                return '临时锁<a>解锁</a>' if h.prop(value, 'is_temp') else '任务锁'
+        return h.format_value(value, key)
 
 
 class Char(Model):

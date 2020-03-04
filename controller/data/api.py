@@ -127,8 +127,9 @@ class PageExportCharsApi(BaseHandler):
 
             # 启动脚本，生成字表
             page_names = ','.join(self.data['page_names'])
-            script = 'nohup python3 export_chars.py --page_name="%s" >> log/cut.log 2>&1 &' % page_names
-            os.system(script)
+            script = 'nohup python3 %s/export_chars.py --page_name="%s" >> log/cut.log 2>&1 &'
+            print(script % (path.dirname(__file__), page_names))
+            os.system(script % (path.dirname(__file__), page_names))
 
             self.send_data_response()
 

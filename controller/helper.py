@@ -91,10 +91,17 @@ def code2int(code):
     # 把藏经编码转换成整数
     m = re.match(r'^([A-Z]{2})(_\d+)+', code)
     if m:
-        print(m.group(1), m.group(2))
         h1 = sum([ord(s) for s in m.group(1)]) % 99
         h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])
         return int('%d%s' % (h1, h2))
+
+
+def format_value(value, key=None, doc=None):
+    if isinstance(value, datetime):
+        value = get_date_time('%Y-%m-%d %H:%M', value)
+    elif isinstance(value, dict):
+        value = '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
+    return value
 
 
 def cmp_page_code(a, b):

@@ -7,7 +7,7 @@
 from datetime import datetime
 from bson.objectid import ObjectId
 from controller.model import Model
-from controller.helper import prop, get_date_time, get_url_param
+from controller import helper as h
 
 
 class Task(Model):
@@ -158,7 +158,7 @@ class Task(Model):
 
     @classmethod
     def is_group(cls, task_type):
-        return 'groups' in prop(cls.all_task_types(), task_type)
+        return 'groups' in h.prop(cls.all_task_types(), task_type)
 
     @classmethod
     def get_ocr_tasks(cls):
@@ -167,7 +167,7 @@ class Task(Model):
 
     @classmethod
     def get_task_types(cls, collection):
-        return {t: v['name'] for t, v in cls.task_types.items() if prop(v, 'data.collection') == collection}
+        return {t: v['name'] for t, v in cls.task_types.items() if h.prop(v, 'data.collection') == collection}
 
     @classmethod
     def get_task_meta(cls, task_type):
@@ -175,20 +175,20 @@ class Task(Model):
 
     @classmethod
     def get_data_conf(cls, task_type):
-        d = prop(cls.all_task_types(), '%s.data' % task_type) or dict()
+        d = h.prop(cls.all_task_types(), '%s.data' % task_type) or dict()
         return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
 
     @classmethod
     def get_shared_field(cls, task_type):
-        return prop(cls.all_task_types(), '%s.data.shared_field' % task_type)
+        return h.prop(cls.all_task_types(), '%s.data.shared_field' % task_type)
 
     @classmethod
     def get_data_collection(cls, task_type):
-        return prop(cls.all_task_types(), '%s.data.collection' % task_type)
+        return h.prop(cls.all_task_types(), '%s.data.collection' % task_type)
 
     @classmethod
     def get_pre_tasks(cls, task_type):
-        return prop(cls.all_task_types(), task_type + '.pre_tasks', [])
+        return h.prop(cls.all_task_types(), task_type + '.pre_tasks', [])
 
     @classmethod
     def task_names(cls):
@@ -200,7 +200,7 @@ class Task(Model):
 
     @classmethod
     def get_steps(cls, task_type):
-        steps = prop(cls.all_task_types(), '%s.steps' % task_type, [])
+        steps = h.prop(cls.all_task_types(), '%s.steps' % task_type, [])
         return [s[0] for s in steps] if steps else []
 
     @classmethod
@@ -227,27 +227,22 @@ class Task(Model):
     def format_value(cls, value, key=None, doc=None):
         """ 格式化task表的字段输出"""
         if key == 'task_type':
-            value = cls.get_task_name(value)
-        elif key == 'status':
-            value = cls.get_status_name(value)
-        elif key == 'pre_tasks':
-            value = '/'.join([cls.get_task_name(t) for t in value])
-        elif key == 'steps':
-            value = '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
-        elif key == 'priority':
-            value = cls.get_priority_name(int(value))
-        elif isinstance(value, datetime):
-            value = get_date_time('%Y-%m-%d %H:%M', value)
-        elif isinstance(value, dict):
-            value = value.get('error') or value.get('message') or \
-                    '<br/>'.join(['%s: %s' % (k, v) for k, v in value.items()])
-        return value
+            return cls.get_task_name(value)
+        if key == 'status':
+            return cls.get_status_name(value)
+        if key == 'pre_tasks':
+            return '/'.join([cls.get_task_name(t) for t in value])
+        if key == 'steps':
+            return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
+        if key == 'priority':
+            return cls.get_priority_name(int(value))
+        return h.format_value(value, key, doc)
 
     @classmethod
     def get_task_search_condition(cls, request_query, collection=None, mode=None):
         """ 获取任务的查询条件"""
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        value = get_url_param('task_type', request_query)
+        value = h.get_url_param('task_type', request_query)
         if value:
             params['task_type'] = value
             condition.update({'task_type': value})
@@ -255,42 +250,42 @@ class Task(Model):
             # 浏览模式过滤掉小欧任务
             condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
         for field in ['collection', 'status', 'priority']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
         for field in ['batch', 'doc_id', 'remark']:
-            value = get_url_param(field, request_query)
+            value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: {'$regex': value, '$options': '$i'}})
-        picked_user_id = get_url_param('picked_user_id', request_query)
+        picked_user_id = h.get_url_param('picked_user_id', request_query)
         if picked_user_id:
             params['picked_user_id'] = picked_user_id
             condition.update({'picked_user_id': ObjectId(picked_user_id)})
-        publish_start = get_url_param('publish_start', request_query)
+        publish_start = h.get_url_param('publish_start', request_query)
         if publish_start:
             params['publish_start'] = publish_start
             condition['publish_time'] = {'$gt': datetime.strptime(publish_start, '%Y-%m-%d %H:%M:%S')}
-        publish_end = get_url_param('publish_end', request_query)
+        publish_end = h.get_url_param('publish_end', request_query)
         if publish_end:
             params['publish_end'] = publish_end
             condition['publish_time'] = condition.get('publish_time') or {}
             condition['publish_time'].update({'$lt': datetime.strptime(publish_end, '%Y-%m-%d %H:%M:%S')})
-        picked_start = get_url_param('picked_start', request_query)
+        picked_start = h.get_url_param('picked_start', request_query)
         if picked_start:
             params['picked_start'] = picked_start
             condition['picked_time'] = {'$gt': datetime.strptime(picked_start, '%Y-%m-%d %H:%M:%S')}
-        picked_end = get_url_param('picked_end', request_query)
+        picked_end = h.get_url_param('picked_end', request_query)
         if picked_end:
             params['picked_end'] = picked_end
             condition['picked_time'] = condition.get('picked_time') or {}
             condition['picked_time'].update({'$lt': datetime.strptime(picked_end, '%Y-%m-%d %H:%M:%S')})
-        finished_start = get_url_param('finished_start', request_query)
+        finished_start = h.get_url_param('finished_start', request_query)
         if finished_start:
             params['finished_start'] = finished_start
             condition['picked_time'] = {'$gt': datetime.strptime(finished_start, '%Y-%m-%d %H:%M:%S')}
-        finished_end = get_url_param('finished_end', request_query)
+        finished_end = h.get_url_param('finished_end', request_query)
         if finished_end:
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}

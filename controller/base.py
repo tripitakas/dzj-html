@@ -287,6 +287,14 @@ class BaseHandler(CorsMixin, RequestHandler):
         except self.MongoError:
             pass
 
+    @classmethod
+    def add_op_log(cls, db, op_type, content):
+        try:
+            assert isinstance(content, dict)
+            db.oplog.insert_one(dict(op_type=op_type, content=content, create_time=cls.now()))
+        except cls.MongoError:
+            pass
+
     def validate(self, data, rules):
         errs = v.validate(data, rules)
         errs and self.send_error_response(errs)

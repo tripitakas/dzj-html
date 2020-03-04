@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>日志详情</title>
+  {% include _base_css.html %}
+  <link href="{{static_url('css/info.css')}}" rel="stylesheet">
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body>
+<div class="app-main">
+  <div class="main">
+    {% module ComLeft() %}
+    <div class="main-content">
+      {% module ComHead() %}
+      <div class="layout">
+        <div class="wrapper">
+          <div class="block">
+            <div class="block-head">基本信息</div>
+            <div class="info">
+              <label class="label">日志类型</label>
+              <span class="value">{{handler.l10n.get(log['op_type']) or log['op_type']}}</span>
+            </div>
+            <div class="info">
+              <label class="label">创建时间</label>
+              <span class="value">{{to_date_str(log['create_time'])}}</span>
+            </div>
+          </div>
+          <div class="block">
+            <div class="block-head">日志内容</div>
+            {% for k, v in log.get('content', {}).items() %}
+            <div class="info long">
+              <label class="label">{{handler.l10n.get(k, k)}}</label>
+              <span class="value">{{','.join(v) if isinstance(v, list) else v}}</span>
+            </div>
+            {% end %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+</body>
+</html>

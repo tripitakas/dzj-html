@@ -14,6 +14,7 @@ url_placeholder = {
     'img_file': '[A-Za-z0-9._-]+',
     'shared_field': r'box|text',
     'article_id': r'[^/]{6,}',
+    'oid': r'[a-z0-9]{24}',
     'task_id': r'[a-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[_0-9]+',
     'char_id': r'[a-zA-Z]{2}_[_0-9]+',
@@ -229,6 +230,9 @@ role_route_maps = {
             '/api': ['GET'],
             '/api/code/(.+)': ['GET'],
             '/admin/script': ['GET'],
+            '/admin/oplog': ['GET'],
+            '/admin/oplog/@oid': ['GET'],
+            '/api/admin/oplog/delete': ['POST'],
         }
     },
 
