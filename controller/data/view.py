@@ -168,19 +168,25 @@ class CharListHandler(BaseHandler, Char):
 
     page_title = '字数据管理'
     search_tips = '请搜索字编码、分类、文字'
-    search_fields = ['id', 'source', 'ocr', 'txt']
+    search_fields = ['name', 'source', 'ocr', 'txt', 'txt_normal']
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
-        {'id': 'id', 'name': 'id'},
         {'id': 'source', 'name': '分类'},
-        {'id': 'column_cid', 'name': '所属列'},
-        {'id': 'ocr', 'name': 'OCR文字'},
-        {'id': 'options', 'name': 'OCR候选'},
-        {'id': 'txt', 'name': '校对文字'},
-        {'id': 'txt_type', 'name': '文字类型'},
+        {'id': 'page_name', 'name': '页编码'},
+        {'id': 'cid', 'name': 'cid'},
+        {'id': 'name', 'name': '字编码'},
+        {'id': 'id', 'name': '字id'},
+        {'id': 'char_id', 'name': '字序'},
+        {'id': 'uid', 'name': '字序id'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},
+        {'id': 'column', 'name': '所属列'},
+        {'id': 'txt_type', 'name': '文字类型'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'normal_txt', 'name': '正字'},
+        {'id': 'ocr_txt', 'name': 'OCR文字'},
+        {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'log', 'name': '校对记录'},
         {'id': 'remark', 'name': '备注'},
     ]
@@ -200,19 +206,15 @@ class CharListHandler(BaseHandler, Char):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    hide_fields = ['log', 'options']
-    info_fields = ['has_img', 'source', 'txt', 'txt_type', 'remark']
+    hide_fields = ['page_name', 'cid', 'id', 'uid', 'log', 'sc', 'pos', 'column']
+    info_fields = ['has_img', 'source', 'txt', 'normal_txt', 'txt_type', 'remark']
     update_fields = [
-        {'id': 'has_img', 'name': '已有字图', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'source', 'name': '分　　类'},
-        {'id': 'txt', 'name': '校对文字'},
-        {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'remark', 'name': '备　　注'},
+        {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
+        {'id': 'source', 'name': '分类'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'normal_txt', 'name': '正字'},
+        {'id': 'remark', 'name': '备注'},
     ]
-    txt_types = {
-        '': '', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字',
-        'N': '拿不准', '*': '不认识',
-    }
 
     def get_duplicate_condition(self):
         chars = list(self.db.char.aggregate([
@@ -227,6 +229,8 @@ class CharListHandler(BaseHandler, Char):
         """ 格式化page表的字段输出"""
         if key == 'pos':
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
+        if key == 'txt_type':
+            return self.txt_types.get(value, value)
         if key == 'has_img' and value:
             return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['id'], 'char')
         return h.format_value(value, key, doc)

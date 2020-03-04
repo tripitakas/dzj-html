@@ -89,7 +89,7 @@ def align_code(code):
 
 def code2int(code):
     # 把藏经编码转换成整数
-    m = re.match(r'^([A-Z]{2})(_\d+)+', code)
+    m = re.match(r'^([A-Z]{2})((_\d+)+)', code)
     if m:
         h1 = sum([ord(s) for s in m.group(1)]) % 99
         h2 = ''.join([n.zfill(4) for n in m.group(2)[1:].split('_')])

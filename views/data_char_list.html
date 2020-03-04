@@ -86,43 +86,48 @@
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-body" style="min-height: 380px; padding: 0">
-        <h4 class="col-sm-2 control-label">字编码</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control char_id" value="{{params.get('char_id') or ''}}" placeholder="请输入字编码，可部分输入">
-        </div>
-        <h4 class="col-sm-2 control-label">分类</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
-        </div>
-        <h4 class="col-sm-2 control-label">OCR文字</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control ocr" value="{{params.get('ocr') or ''}}" placeholder="请输入OCR文字，一个汉字">
-        </div>
-        <h4 class="col-sm-2 control-label">校对文字</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
-        </div>
-        <h4 class="col-sm-2 control-label">文字类型</h4>
-        <div class="col-sm-10">
-          <select class="form-control txt_type">
-            {% for k,v in txt_types.items() %}
-            {% if params.get('txt_type', '') == k %}
-            <option value="{{k}}" selected="selected">{{v}}</option>
-            {% else %}
-            <option value="{{k}}">{{v}}</option>
-            {% end %}
-            {% end %}
-          </select>
-        </div>
-        <h4 class="col-sm-2 control-label">置信度</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
-        </div>
-        <h4 class="col-sm-2 control-label">备注</h4>
-        <div class="col-sm-10">
-          <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
-        </div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">字编码</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入字编码，可部分输入">
+            </div>
+            <h4 class="col-sm-2 control-label">分类</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+            </div>
+            <h4 class="col-sm-2 control-label">OCR文字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control ocr_txt" value="{{params.get('ocr_txt') or ''}}" placeholder="请输入OCR文字，一个汉字">
+            </div>
+            <h4 class="col-sm-2 control-label">校对文字</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
+            </div>
+            <h4 class="col-sm-2 control-label">文字类型</h4>
+            <div class="col-sm-10">
+              <select class="form-control txt_type">
+                <option value=""></option>
+                {% for k,v in txt_types.items() %}
+                {% if params.get('txt_type', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">置信度</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
+            </div>
+            <h4 class="col-sm-2 control-label">备注</h4>
+            <div class="col-sm-10">
+              <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
+            </div>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default waves-effect reset">重置</button>
@@ -207,7 +212,7 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['char_id', 'source', 'ocr', 'txt', 'remark', 'cc'];
+  var inputFields = ['name', 'source', 'ocr', 'txt', 'remark', 'cc'];
   var selectFields = ['txt_type'];
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';

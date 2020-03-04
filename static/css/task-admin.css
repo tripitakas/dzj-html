@@ -2,10 +2,6 @@
   width: 100%;
 }
 
-.modal .control-label {
-  padding: 10px 0;
-}
-
 .modal .my-container {
   background: none;
 }
@@ -26,6 +22,7 @@
 .modal tr > td:first-child {
   width: 140px;
 }
+
 .siblings {
   text-align: left;
   margin-bottom: 10px;
@@ -122,6 +119,10 @@
 
 #publishModal .modal-body {
   padding: 5px 0;
+}
+
+#publishModal .control-label {
+  padding: 10px 0;
 }
 
 #publishModal .modal-body > div {

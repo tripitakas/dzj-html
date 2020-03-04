@@ -281,19 +281,23 @@ class Page(Model):
 class Char(Model):
     collection = 'char'
     fields = [
-        {'id': 'id', 'name': 'id'},
+        {'id': 'name', 'name': '字编码'},
+        {'id': 'id', 'name': 'id', 'remark': 'name的整型值'},
         {'id': 'page_name', 'name': '页编码'},
+        {'id': 'char_id', 'name': 'char_id'},
+        {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
-        {'id': 'column_cid', 'name': '所属列'},
-        {'id': 'char_code', 'name': 'code'},
         {'id': 'source', 'name': '分类'},
-        {'id': 'has_img', 'name': '字图'},
-        {'id': 'ocr', 'name': 'OCR文字'},
-        {'id': 'options', 'name': 'OCR候选'},
-        {'id': 'pos', 'name': '坐标'},
+        {'id': 'has_img', 'name': '是否已有字图'},
+        {'id': 'img_need_update', 'name': '是否需要更新字图'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
-        {'id': 'txt', 'name': '校对文字'},
+        {'id': 'pos', 'name': '坐标'},
+        {'id': 'column', 'name': '所属列'},
+        {'id': 'ocr_txt', 'name': 'OCR文字'},
+        {'id': 'alternatives', 'name': 'OCR候选'},
+        {'id': 'txt', 'name': '原字'},
+        {'id': 'normal_txt', 'name': '正字'},
         {'id': 'txt_type', 'name': '文字类型'},
         {'id': 'log', 'name': '校对记录'},
         {'id': 'remark', 'name': '备注'},
@@ -302,16 +306,17 @@ class Char(Model):
         (v.is_page, 'page_name'),
     ]
     primary = 'id'
+    txt_types = {'Z': '正字', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字', 'N': '不确定', '*': '不认识'}
 
     @staticmethod
     def get_char_search_condition(request_query):
         condition, params = dict(), dict()
-        for field in ['ocr', 'txt', 'txt_type']:
+        for field in ['ocr_txt', 'txt', 'txt_type']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['char_id', 'source', 'remark']:
+        for field in ['name', 'source', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

@@ -132,7 +132,7 @@
       <div class="char-imgs">
         <div class="img-list">
           {% for d in docs %}
-          <div class="char-img"><img src="{{handler.get_web_img(d['id'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/></div>
+          <div class="char-img"><img src="{{handler.get_web_img(d['name'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/></div>
           {% end %}
         </div>
         {% module Pager(pager) %}

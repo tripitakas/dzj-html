@@ -17,7 +17,7 @@ def export_chars(db=None, condition=None, page_names=None):
 
     def is_changed(a, b):
         """ 检查坐标和字序是否发生变化"""
-        for k in ['char_id', 'uid']:
+        for k in ['char_id']:
             if a[k] != b[k]:
                 return True
         for k in ['x', 'y', 'w', 'h']:
@@ -28,6 +28,7 @@ def export_chars(db=None, condition=None, page_names=None):
     cfg = h.load_config()
     db = db or h.connect_db(cfg['database'])[0]
     if not condition:
+        assert page_names
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}
     elif isinstance(condition, str):
@@ -77,9 +78,6 @@ def export_chars(db=None, condition=None, page_names=None):
 
 
 if __name__ == '__main__':
-    # import fire
-    #
-    # fire.Fire(export_chars)
+    import fire
 
-    names = ['GL_924_2_35', 'QL_25_313']
-    export_chars(page_names=names)
+    fire.Fire(export_chars)

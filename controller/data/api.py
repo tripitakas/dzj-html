@@ -124,13 +124,9 @@ class PageExportCharsApi(BaseHandler):
         try:
             rules = [(v.not_empty, 'page_names')]
             self.validate(self.data, rules)
-
             # 启动脚本，生成字表
-            page_names = ','.join(self.data['page_names'])
-            script = 'nohup python3 %s/export_chars.py --page_name="%s" >> log/cut.log 2>&1 &'
-            print(script % (path.dirname(__file__), page_names))
-            os.system(script % (path.dirname(__file__), page_names))
-
+            script = 'nohup python3 %s/gen_chars.py --page_name="%s" >> log/cut.log 2>&1 &'
+            os.system(script % (path.dirname(__file__), ','.join(self.data['page_names'])))
             self.send_data_response()
 
         except self.DbError as error:

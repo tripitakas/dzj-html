@@ -800,7 +800,7 @@ a:hover, a:visited, a:focus {
 }
 
 .modal-radio, .modal-select, .modal-checkbox {
-  margin-top: 6px !important;
+  margin-top: 3px !important;
   background: transparent;
 }
 

@@ -6,7 +6,6 @@ from controller.base import BaseHandler
 
 class CharBrowseHandler(BaseHandler, Char):
     URL = '/char/browse'
-    search_fields = ['id', 'source', 'ocr', 'txt']
 
     def get(self):
         """ 浏览字图"""
