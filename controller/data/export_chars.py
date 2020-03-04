@@ -43,7 +43,8 @@ def export_chars(db=None, condition=None, page_names=None):
                 try:
                     meta = dict(page_name=p['name'])
                     meta['name'] = '%s_%s' % (p['name'], c['cid'])
-                    meta.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'txt'] if c.get(k)})
+                    meta.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'txt', 'alternatives']
+                                 if c.get(k)})
                     meta.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                     meta['txt'] = c.get('txt') or c.get('ocr_txt')
                     meta['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
