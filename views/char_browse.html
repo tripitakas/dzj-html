@@ -118,6 +118,15 @@
       font-size: 36px;
       margin: 0 8px 5px 0;
       border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .ocr-txt.active, .ocr-txt:hover {
+      background-color: rgba(0, 0, 0, .1);
+    }
+
+    .ocr-txt:hover {
+      border: 1px solid rgba(0, 0, 255, .4);
     }
 
     .logs table {
@@ -155,8 +164,8 @@
         <div class="char-items">
           {% for d in docs %}
           <div class="char-item" id="{{d['name']}}">
-            <div class="char-img">
-              <img src="{{handler.get_web_img(d['name'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/>
+            <div class="char-img" onclick="setCurrent('{{dumps(d)}}')">
+              <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
               <span class="txt">{{d.get('txt', '')}}</span>|<span class="cc">{{d.get('cc', 0)/1000}}</span>
@@ -222,7 +231,7 @@
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script>
   var paper, rect;
-  var columnBaseUrl = "{{handler.get_web_img('1', 'column')}}";
+  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
 
   function setCurrent(char) {
     var ch = decodeJSON(char);
@@ -231,16 +240,18 @@
     var column = ch.column;
     var columnImg = $('#col-holder');
     var ratio = columnImg.height() / column.h;
+    var imgName = ch.page_name + '_' + ch.column.cid;
+
     if (rect) {
       rect.remove();
       rect = null;
     }
-    if (ch.name !== columnImg.attr('title')) {
+    if (imgName !== columnImg.attr('data-id')) {
+      columnImg.attr('data-id', imgName);
       if (paper) {
         paper.remove();
       }
-      var imgName = ch.page_name + '_' + ch.column.cid + '_' + ch.column.hash + '.jpg';
-      var imgPath = 'columns/' + imgName.split('_').slice(0, -2).join('/') + '/' + imgName;
+      var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
       var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath);
 
       paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
@@ -254,6 +265,11 @@
           .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'})
           .setZoom(ratio);
     }
+
+    // 更新候选字
+    $('.ocr-options').html(ch.alternatives.split('').map(function (c) {
+      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+    }));
   }
 
   setCurrent('{{dumps(docs[0])}}');
