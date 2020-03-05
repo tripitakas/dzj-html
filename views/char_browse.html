@@ -73,14 +73,15 @@
       overflow: auto;
       max-width: 120px;
       text-align: center;
-      border-left: 0 solid #ccc;
+      border: 1px solid #ccc;
     }
 
     .column-img > :first-child {
       cursor: pointer;
       margin: 1px 0;
-      height: calc(100% - 4px);
-      border: 1px solid #ccc;
+      height: calc(100% - 3px);
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
     }
 
     .flex-content .work-area {
@@ -320,6 +321,19 @@
     $('.ocr-alternatives').html(ch.alternatives.split('').map(function (c) {
       return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
+    // 更新校对历史
+    var logs = (ch.txt_logs || []).map(function (log) {
+      var head = `<span class="log-txt">${log.txt || log.normal_txt}</span>`;
+      var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
+      meta += log.normal_txt ? `<label>正字</label><span>${log.normal_txt}</span><br/>` : '';
+      meta += log.txt_type ? `<label>类型</label><span>${log.txt_type}</span><br/>` : '';
+      meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
+      meta += `<label>校对人</label><span>${log.username}</span><br/>`;
+      meta += `<label>创建时间</label><span>${new Date(log.create_time.$date).toLocaleString()}</span><br/>`;
+      meta += `<label>更新时间</label><span>${new Date(log.updated_time.$date).toLocaleString()}</span><br/>`;
+      return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
+    }).join('');
+    $('.logs').html(logs);
     // 更新请您校对
     $('#currentId').val(ch._id);
     $('.proof .txt').val(ch.txt || ch.ocr_txt);
@@ -389,7 +403,9 @@
   // 提交
   $('#submit-proof').click(function () {
     var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
-    postApi('/char/' + $('#currentId').val(), {data: data}, () => location.reload());
+    postApi('/char/' + $('#currentId').val(), {data: data}, () => {
+      showSuccess('成功', '已保存成功');
+    });
   });
 
 

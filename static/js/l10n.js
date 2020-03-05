@@ -21,5 +21,11 @@ var l10n = {
   picked_before: '曾经领过的任务',
   lock_failed: '数据锁定失败',
   assigned: '任务指派成功',
+  txt: '原字',
+  normal_txt: '正字',
+  txt_type: '文字类型',
+  create_time: '创建时间',
+  updated_time: '更新时间',
+  remark: '备注',
 };
 
