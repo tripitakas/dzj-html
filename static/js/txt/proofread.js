@@ -53,7 +53,8 @@ function getSpanText($span, chars) {
     if ($(el).css('display') === 'none') {
       return;
     }
-    var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
+    // var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
+    var text = $(el).text();
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
