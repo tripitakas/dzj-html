@@ -202,7 +202,7 @@
       rect.remove();
       rect = null;
     }
-    if (ch.column_id !== columnImg.attr('title')) {
+    if (ch.name !== columnImg.attr('title')) {
       if (paper) {
         paper.remove();
       }
@@ -211,7 +211,7 @@
       var columnUrl = columnImg.attr('src').replace(/columns\/.*?.jpg/, imgPath);
       console.log(columnUrl);
 
-      columnImg.attr('src', columnUrl).attr('title', ch.column_id);
+      columnImg.attr('src', columnUrl).attr('title', ch.name);
 
       paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
       paper.image(res.url, 4, 4, column.w, column.h).initZoom();
