@@ -28,6 +28,7 @@
 
 .info.long {
   width: 100%;
+  overflow: auto;
 }
 
 .info .label {

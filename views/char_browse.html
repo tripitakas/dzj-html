@@ -10,41 +10,61 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .flex-content .char-imgs {
+    .flex-content .char-list {
       flex: 1;
       overflow: auto;
       padding-bottom: 20px;
     }
 
-    .char-imgs .img-list {
+    .char-list .char-items {
       margin: 10px 20px;
     }
 
-    .char-imgs .pagers {
+    .char-list .pagers {
       clear: both;
+      margin: 40px 0 20px;
     }
 
-    .char-img {
+    .char-item {
       float: left;
-      width: 60px;
-      height: 60px;
+      width: 62px;
+      height: 85px;
       margin: 10px;
       cursor: pointer;
       text-align: center;
-      background: transparent;
+      background: #fff;
       display: flex;
-      flex-direction: row;
       align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid #ccc;
     }
 
-    .char-img img {
+    .char-item.current {
+      border: 1px solid red;
+    }
+
+    .char-img, .char-info {
+      flex: 1;
+    }
+
+    .char-info {
+      max-height: 20px;
+    }
+
+    .char-info .txt, .char-info .cc{
+      margin: 0 2px;
+    }
+
+    .char-item img {
+      width: 60px;
+      max-height: 60px;
       align-items: center;
       vertical-align: middle;
       background: transparent;
     }
 
-    .char-img img:hover {
+    .char-item:hover {
       transform: scale(1.25);
     }
 
@@ -55,7 +75,7 @@
       overflow: auto;
       max-width: 120px;
       text-align: center;
-      border-left: 1px solid #ccc;
+      border-left: 0 solid #ccc;
     }
 
     .column-img {
@@ -65,8 +85,9 @@
     }
 
     .column-img > :first-child {
-      height: calc(100% - 16px);
-      margin-top: 8px;
+      border: 1px solid #ccc;
+      height: calc(100% - 4px);
+      margin: 2px;
       cursor: pointer;
     }
 
@@ -77,7 +98,7 @@
       width: 300px;
       max-width: 300px;
       padding: 0 10px;
-      border-left: 1px solid #ccc;
+      border-left: 0 solid #ccc;
       background: var(--Grey_Content);
     }
 
@@ -95,6 +116,7 @@
 
     .ocr-txt {
       font-size: 36px;
+      margin: 0 8px 5px 0;
       border: 1px solid #ccc;
     }
 
@@ -121,7 +143,6 @@
       <div class="left">
         <div class="btn-group back">
           {% set title, img = ('返回', 'icon_back') %}
-
           <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
         <div class="btn-group title">
@@ -130,10 +151,18 @@
       </div><!--left-->
     </div>
     <div class="full-bd flex-content">
-      <div class="char-imgs">
-        <div class="img-list">
+      <div class="char-list">
+        <div class="char-items">
           {% for d in docs %}
-          <div class="char-img"><img src="{{handler.get_web_img(d['name'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/></div>
+          <div class="char-item" id="{{d['name']}}">
+            <div class="char-img">
+              <img src="{{handler.get_web_img(d['name'], 'char')}}" onclick="setCurrent('{{dumps(d)}}')"/>
+            </div>
+            <div class="char-info">
+              <span class="txt">{{d.get('txt', '')}}</span>|<span class="cc">{{d.get('cc', 0)/1000}}</span>
+            </div>
+
+          </div>
           {% end %}
         </div>
         {% module Pager(pager) %}
@@ -142,13 +171,12 @@
         <div id="col-holder"></div>
       </div>
       <div class="work-area">
+        {% set c = docs and docs[0] or {}%}
         <label>OCR候选</label>
         <div class="ocr-options">
-          <span class="ocr-txt">菩</span>
-          <span class="ocr-txt">菩</span>
-          <span class="ocr-txt">菩</span>
-          <span class="ocr-txt">菩</span>
-          <span class="ocr-txt">菩</span>
+          {% for t in c.get('alternatives', '')%}
+          <span class="ocr-txt">{{t}}</span>
+          {% end %}
         </div>
         <label>校对历史</label>
         <div class="logs">
@@ -189,16 +217,19 @@
 </div>
 
 {% include _base_js.html %}
+<script src="{{static_url('js/com-pager.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script>
   var paper, rect;
-  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
+  var columnBaseUrl = "{{handler.get_web_img('1', 'column')}}";
 
   function setCurrent(char) {
-    var columnImg = $('#col-holder');
     var ch = decodeJSON(char);
+    $('.current').removeClass('current');
+    $('#' + ch.name).addClass('current');
     var column = ch.column;
+    var columnImg = $('#col-holder');
     var ratio = columnImg.height() / column.h;
     if (rect) {
       rect.remove();
@@ -227,6 +258,17 @@
 
   setCurrent('{{dumps(docs[0])}}');
 
+</script>
+<script>
+  // 离开页面
+  window.leave = function () {
+    var from = decodeFrom();
+    if (from) {
+      window.location = from;
+    } else {
+      window.history.back();
+    }
+  };
 </script>
 
 </body>
