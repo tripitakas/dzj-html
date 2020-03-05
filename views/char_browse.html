@@ -121,6 +121,7 @@
       <div class="left">
         <div class="btn-group back">
           {% set title, img = ('返回', 'icon_back') %}
+
           <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
         </div>
         <div class="btn-group title">
@@ -138,7 +139,8 @@
         {% module Pager(pager) %}
       </div>
       <div class="column-img">
-        <div id="col-holder"></div>
+        <div id="col-holder"
+             init_url="{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}"></div>
       </div>
       <div class="work-area">
         <label>OCR候选</label>
@@ -208,13 +210,10 @@
       }
       var imgName = ch.page_name + '_' + ch.column.cid + '_' + ch.column.hash + '.jpg';
       var imgPath = 'columns/' + imgName.split('_').slice(0, -2).join('/') + '/' + imgName;
-      var columnUrl = columnImg.attr('src').replace(/columns\/.*?.jpg/, imgPath);
-      console.log(columnUrl);
-
-      columnImg.attr('src', columnUrl).attr('title', ch.name);
+      var columnUrl = columnImg.attr('init_url').replace(/columns\/.*?.jpg/, imgPath);
 
       paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
-      paper.image(res.url, 4, 4, column.w, column.h).initZoom();
+      paper.image(columnUrl, 4, 4, column.w, column.h).initZoom();
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
           .setAttr({stroke: '#158815', 'stroke-width': 2 / ratio, fill: 'rgba(255, 0, 0, .4)'})
           .animate({fill: 'rgba(255, 0, 0, .15)'}, 800);
@@ -228,6 +227,7 @@
     }
   }
 
+  setCurrent('{{dumps(docs[0])}}');
 </script>
 
 </body>
