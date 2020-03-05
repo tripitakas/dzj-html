@@ -288,10 +288,10 @@ class BaseHandler(CorsMixin, RequestHandler):
             pass
 
     @classmethod
-    def add_op_log(cls, db, op_type, content):
+    def add_op_log(cls, db, op_type, content, username):
         try:
             assert isinstance(content, dict)
-            db.oplog.insert_one(dict(op_type=op_type, content=content, create_time=cls.now()))
+            db.oplog.insert_one(dict(op_type=op_type, content=content, create_by=username, create_time=cls.now()))
         except cls.MongoError:
             pass
 

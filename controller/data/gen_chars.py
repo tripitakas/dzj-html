@@ -12,7 +12,7 @@ from controller import helper as h
 from controller.base import BaseHandler as Bh
 
 
-def export_chars(db=None, condition=None, page_names=None):
+def gen_chars(db=None, condition=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
     def is_changed(a, b):
@@ -44,40 +44,37 @@ def export_chars(db=None, condition=None, page_names=None):
                 try:
                     meta = dict(page_name=p['name'])
                     meta['name'] = '%s_%s' % (p['name'], c['cid'])
-                    meta.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'txt', 'alternatives']
-                                 if c.get(k)})
+                    meta.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
                     meta.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                     meta['txt'] = c.get('txt') or c.get('ocr_txt')
                     meta['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                     meta['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
-                    # 以下两个整数id，方便查找和排序
-                    meta['id'] = h.code2int(meta['name'])
-                    meta['uid'] = h.code2int('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
+                    meta['uid'] = h.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                     chars.append(meta)
                 except KeyError:
                     invalid_chars.append('%s_%s' % (p['name'], c['cid']))
         except KeyError:
             invalid_pages.append(p['name'])
     # 更新已存在的chars
-    chars_dict = {c['id']: c for c in chars}
-    existed = list(db.char.find({'id': {'$in': [c['id'] for c in chars]}}))
+    chars_dict = {c['name']: c for c in chars}
+    existed = list(db.char.find({'name': {'$in': [c['name'] for c in chars]}}))
     for e in existed:
-        c = chars_dict.get(e['id'])
+        c = chars_dict.get(e['name'])
         if is_changed(e, c):
             db.char.update_one({'_id': e['_id']}, {'$set': {k: c.get(k) for k in ['char_id', 'uid', 'pos']}})
     # 插入不存在的chars
-    existed_id = [c['id'] for c in existed]
-    un_existed = [c for c in chars if c['id'] not in existed_id]
+    existed_id = [c['name'] for c in existed]
+    un_existed = [c for c in chars if c['name'] not in existed_id]
     if un_existed:
         db.char.insert_many(un_existed, ordered=False)
 
     Bh.add_op_log(db, 'gen_chars', dict(
         inserted=[c['name'] for c in un_existed], existed=[c['name'] for c in existed],
         invalid=invalid_chars, invalid_pages=invalid_pages
-    ))
+    ), username)
 
 
 if __name__ == '__main__':
     import fire
 
-    fire.Fire(export_chars)
+    fire.Fire(gen_chars)

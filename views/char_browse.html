@@ -139,8 +139,7 @@
         {% module Pager(pager) %}
       </div>
       <div class="column-img">
-        <div id="col-holder"
-             init_url="{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}"></div>
+        <div id="col-holder"></div>
       </div>
       <div class="work-area">
         <label>OCR候选</label>
@@ -194,6 +193,7 @@
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script>
   var paper, rect;
+  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
 
   function setCurrent(char) {
     var columnImg = $('#col-holder');
@@ -210,24 +210,23 @@
       }
       var imgName = ch.page_name + '_' + ch.column.cid + '_' + ch.column.hash + '.jpg';
       var imgPath = 'columns/' + imgName.split('_').slice(0, -2).join('/') + '/' + imgName;
-      var columnUrl = columnImg.attr('init_url').replace(/columns\/.*?.jpg/, imgPath);
+      var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath);
 
       paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
       paper.image(columnUrl, 4, 4, column.w, column.h).initZoom();
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
-          .setAttr({stroke: '#158815', 'stroke-width': 2 / ratio, fill: 'rgba(255, 0, 0, .4)'})
-          .animate({fill: 'rgba(255, 0, 0, .15)'}, 800);
+          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'});
       paper.setZoom(ratio);
       paper.setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
     } else if (paper) {
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
-          .setAttr({stroke: '#158815', 'stroke-width': 1.5 / ratio, fill: 'rgba(255, 0, 0, .4)'})
-          .setZoom(ratio)
-          .animate({fill: 'rgba(255, 0, 0, .15)'}, 800);
+          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'})
+          .setZoom(ratio);
     }
   }
 
   setCurrent('{{dumps(docs[0])}}');
+
 </script>
 
 </body>

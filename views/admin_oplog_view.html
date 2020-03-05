@@ -26,6 +26,10 @@
               <span class="value">{{handler.l10n.get(log['op_type']) or log['op_type']}}</span>
             </div>
             <div class="info">
+              <label class="label">创建人</label>
+              <span class="value">{{log.get('create_by', '')}}</span>
+            </div>
+            <div class="info">
               <label class="label">创建时间</label>
               <span class="value">{{to_date_str(log['create_time'])}}</span>
             </div>
