@@ -53,8 +53,7 @@ function getSpanText($span, chars) {
     if ($(el).css('display') === 'none') {
       return;
     }
-    // var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
-    var text = $(el).text();
+    var text = $(el).text().replace(/[\sYMN　]/g, '');  // 正字Y，模糊字M，*不明字占位
     if ($(el).hasClass('variant')) {
       chars = chars.concat(text.split(''));  // chars.push($(el).text());
     } else {
@@ -363,7 +362,9 @@ $('.sutra-text-mode .save-txt').click(function () {
 function getPageText() {
   return $.map($('#sutra-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
-      return getSpanText($(line).find('span'), []).join("");
+      return $.map($(line).find('span'), function (span) {
+        return $(span).text();
+      }).join("").trim();
     }).join("\n");
   }).join("\n\n");
 }
