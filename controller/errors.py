@@ -79,5 +79,6 @@ page_code_error = 5002, '页面编码有误'
 field_error = 5004, '字段有误'
 code_duplicated = 5005, '编码重复'
 code_existed = 5006, '编码已存在'
-
 upload_fail = 5100, '上传失败'
+
+invalid_proof_txt = 6001, '文字格式有误'

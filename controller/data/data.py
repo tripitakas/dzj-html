@@ -282,12 +282,12 @@ class Char(Model):
     collection = 'char'
     fields = [
         {'id': 'name', 'name': '字编码'},
-        {'id': 'id', 'name': 'id', 'remark': 'name的整型值'},
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'char_id', 'name': 'char_id'},
         {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'source', 'name': '分类'},
+        {'id': 'data_level', 'name': '数据等级'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
         {'id': 'cc', 'name': '置信度'},
@@ -298,15 +298,17 @@ class Char(Model):
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt', 'name': '原字'},
         {'id': 'normal_txt', 'name': '正字'},
-        {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'log', 'name': '校对记录'},
+        {'id': 'txt_type', 'name': '类型'},
+        {'id': 'txt_logs', 'name': '校对历史'},
+        {'id': 'box_logs', 'name': '校对历史'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
         (v.is_page, 'page_name'),
     ]
     primary = 'id'
-    txt_types = {'Z': '正字', 'X': '狭义异体字', 'Y': '广义异体字', 'M': '模糊字', 'N': '不确定', '*': '不认识'}
+    txt_types = {'Z': '正字', 'Y': '广义异体字', 'X': '狭义异体字', 'M': '模糊字', 'N': '不确定', '*': '不认识'}
+    edit_types = {'char_edit': '单字校对', 'cluster_proof': '聚类校对', 'cluster_review': '聚类审定'}
 
     @staticmethod
     def get_char_search_condition(request_query):

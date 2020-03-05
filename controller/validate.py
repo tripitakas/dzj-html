@@ -245,6 +245,14 @@ def is_digit(**kw):
     return errs or None
 
 
+def is_proof_txt(**kw):
+    """ 检查是否为校对文字。"""
+    code, message = e.invalid_proof_txt
+    regex = r'^([^\x00-\xff]|\[.*?\])[XYMN*]?$'  # 一个汉字或组字式，再加一个校对符号（可选）
+    errs = {k: (code, '%s:%s' % (k, message)) for k, v in kw.items() if v and not re.match(regex, str(v))}
+    return errs or None
+
+
 def between(min_v, max_v, **kw):
     assert len(kw) == 1
     k, v = list(kw.items())[0]

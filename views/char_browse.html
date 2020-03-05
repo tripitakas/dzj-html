@@ -31,41 +31,39 @@
       height: 85px;
       margin: 10px;
       cursor: pointer;
-      text-align: center;
       background: #fff;
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      justify-content: space-between;
+      text-align: center;
       border: 1px solid #ccc;
+    }
+
+    .char-item:hover {
+      transform: scale(1.25);
     }
 
     .char-item.current {
       border: 1px solid red;
     }
 
-    .char-img, .char-info {
-      flex: 1;
+    .char-item .char-img {
+      height: 60px;
+      display: flex;
+      align-items: flex-start;
+      /*align-items: center;*/
     }
 
-    .char-info {
-      max-height: 20px;
-    }
-
-    .char-info .txt, .char-info .cc{
-      margin: 0 2px;
-    }
-
-    .char-item img {
+    .char-img img {
       width: 60px;
+      flex-grow: 0;
       max-height: 60px;
-      align-items: center;
-      vertical-align: middle;
       background: transparent;
     }
 
-    .char-item:hover {
-      transform: scale(1.25);
+    .char-item .char-info {
+      height: 20px;
+    }
+
+    .char-info span {
+      margin: 0 2px;
     }
 
     .flex-content .column-img {
@@ -79,40 +77,41 @@
     }
 
     .column-img > :first-child {
-      border: 1px solid #ccc;
-      height: calc(100% - 10px);
-      margin: 2px;
       cursor: pointer;
+      margin: 1px 0;
+      height: calc(100% - 4px);
+      border: 1px solid #ccc;
     }
 
     .flex-content .work-area {
       flex: 1;
       height: 100%;
       overflow: auto;
-      width: 300px;
+      width: 360px;
       max-width: 300px;
-      padding: 0 10px;
+      padding: 0 12px;
       border-left: 0 solid #ccc;
       background: var(--Grey_Content);
     }
 
-    .work-area label {
+    .work-area .head {
       clear: both;
       margin: 5px 0;
       font-size: 1.2em;
       font-weight: 500;
+      border-bottom: 1px solid #ccc;
       color: var(--Color_333);
     }
 
-    .work-area label:not(:first-child) {
+    .work-area .head:not(.first) {
       margin-top: 20px;
     }
 
     .ocr-txt {
-      font-size: 36px;
-      margin: 0 8px 5px 0;
-      border: 1px solid #ccc;
       cursor: pointer;
+      font-size: 36px;
+      margin: 0 14px 5px 0;
+      border: 1px solid #ccc;
     }
 
     .ocr-txt.active, .ocr-txt:hover {
@@ -123,17 +122,78 @@
       border: 1px solid rgba(0, 0, 255, .4);
     }
 
-    .logs table {
-      width: 100%;
+    .log {
+      display: flex;
     }
 
-    .logs table th, .logs table tr {
+    .log .log-head {
+      flex: 1;
+      text-align: left;
+      max-width: 45px;
+      cursor: pointer;
+      font-size: 36px;
+      margin-right: 5px;
+      border-right: 1px solid #ccc;
+    }
+
+    .log .log-txt {
+      border: 1px solid #ccc;
+    }
+
+    .log .log-meta {
+      flex: 1;
+    }
+
+    .log-meta label {
+      font-weight: 400;
+      margin-right: 5px;
+      width: 60px;
+      color: #6a6a77;
+    }
+
+    .txt-type {
+      margin-top: 5px;
+    }
+
+    .txt-type .radio-item {
+      width: 30%;
+      display: inline-block;
+    }
+
+    .radio-item.long {
+      width: 33%;
+    }
+
+    .radio-item:last-child {
+      margin-left: 9px;
+    }
+
+    .radio-item input[type=radio] {
+      margin-right: 2px;
+    }
+
+    .proof .form-control {
+      margin-top: 5px;
+    }
+
+    .proof-help {
+      cursor: pointer;
+      font-size: 16px;
+      margin-left: 5px;
+    }
+
+    .debug {
+      bottom: 0;
+      width: 300px;
+      margin-left: -12px;
+      height: 20px;
+      position: fixed;
       text-align: center;
+      background-color: #fff;
+      border-top: 1px solid #ddd;
+      opacity: 0.75;
     }
 
-    .actions input {
-      margin-bottom: 5px;
-    }
   </style>
   {% block custom-css %}
   {% end %}
@@ -164,7 +224,6 @@
             <div class="char-info">
               <span class="txt">{{d.get('txt', '')}}</span>|<span class="cc">{{d.get('cc', 0)/1000}}</span>
             </div>
-
           </div>
           {% end %}
         </div>
@@ -175,50 +234,75 @@
       </div>
       <div class="work-area">
         {% set c = docs and docs[0] or {}%}
-        <label>OCR候选</label>
-        <div class="ocr-options">
+        <label class="head hide">当前字框</label>
+        <div class="cur-meta hide">
+          {% for f in [i for i in ['name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
+          <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
+          {% end %}
+        </div>
+        <label class="head first">OCR候选</label>
+        <div class="ocr-alternatives">
           {% for t in c.get('alternatives', '')%}
           <span class="ocr-txt">{{t}}</span>
           {% end %}
         </div>
-        <label>校对历史</label>
+        <label class="head">校对历史</label>
         <div class="logs">
-          <table>
-            <thead>
-            <tr>
-              <th>文字</th>
-              <th>备注</th>
-              <th>校对者</th>
-              <th>时间</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              <td>菩M</td>
-              <td></td>
-              <td>张三</td>
-              <td>2020-03-02 20:40</td>
-            </tr>
-            <tr>
-              <td>菩Y</td>
-              <td></td>
-              <td>李四</td>
-              <td>2020-03-02 20:40</td>
-            </tr>
-            </tbody>
-          </table>
+          {% for log in c.get('txt_logs', '')%}
+          <div class="log">
+            <div class="log-head"><span class="log-txt">{{log.get('txt') or log.get('normal_txt')}}</span></div>
+            <div class="log-meta">
+              {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
+              {% if log.get(f) %}
+              <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+              {% end %}
+              {% end %}
+              <label>校对人</label><span>{{log['username']}}</span><br/>
+              <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
+              <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
+            </div>
+          </div>
+          {% end %}
         </div>
-        <label>请您校对</label>
-        <div class="actions">
-          <input class="form-control confirm-txt" placeholder="校对文字，可带校对符号YMN*等"/>
+        <label class="head">请您校对<span class="proof-help glyphicon glyphicon-question-sign"></span></label>
+        <div class="proof">
+          <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
+          <div class="txt-type">
+            {% for k, v in handler.txt_types.items() %}
+            <span class="radio-item {{'long' if len(v) > 3 else ''}}">
+              <input type="radio" name="txt-type" value="{{k}}" {{'checked' if k == 'Z' else ''}}>{{v}}
+            </span>
+            {% end %}
+          </div>
+          <input class="form-control normal-txt hide" placeholder="如果字框的文字为异体字，请录入正字"/>
           <input class="form-control remark" placeholder="备注，如果有的话"/>
-          <button class="btn btn-primary fr">确认</button>
+          <button class="btn btn-primary fr" id="submit-proof" style="margin-top: 5px">确认</button>
+        </div>
+        <div class="debug">字编码：<span class="name"></span></div>
+        <input type="hidden" id="currentId">
+      </div>
+    </div>
+  </div>
+</div>
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、校对原则</div>
+          <div class="intro">
+            校对以尊重字形为第一原则。
+          </div>
+          <div class="title">二、校对符号</div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
 {% include _base_js.html %}
 <script src="{{static_url('js/com-pager.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
@@ -229,41 +313,42 @@
 
   function setCurrent(char) {
     var ch = decodeJSON(char);
-    $('.current').removeClass('current');
+    // 更新当前字框
+    $('.char-items .current').removeClass('current');
     $('#' + ch.name).addClass('current');
+    // 更新OCR候选
+    $('.ocr-alternatives').html(ch.alternatives.split('').map(function (c) {
+      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+    }));
+    // 更新请您校对
+    $('#currentId').val(ch._id);
+    $('.proof .txt').val(ch.txt || ch.ocr_txt);
+    $('.txt-type :radio').each(function (i, item) {
+      $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    });
+    // 更新列图和字框
     var column = ch.column;
     var columnImg = $('#col-holder');
     var ratio = columnImg.height() / column.h;
     var imgName = ch.page_name + '_' + ch.column.cid;
-
-    if (rect) {
-      rect.remove();
-      rect = null;
-    }
+    rect && rect.remove();
+    rect = null;
     if (imgName !== columnImg.attr('data-id')) {
       columnImg.attr('data-id', imgName);
-      if (paper) {
-        paper.remove();
-      }
+      paper && paper.remove();
       var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
       var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath);
-
       paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
       paper.image(columnUrl, 4, 4, column.w, column.h).initZoom();
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
           .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'});
-      paper.setZoom(ratio);
-      paper.setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
+      paper.setZoom(ratio).setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
     } else if (paper) {
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
-          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'})
-          .setZoom(ratio);
+          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'}).setZoom(ratio);
     }
-
-    // 更新候选字
-    $('.ocr-options').html(ch.alternatives.split('').map(function (c) {
-      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
-    }));
+    // 设置debug信息
+    $('.debug .name').text(ch.name);
   }
 
   setCurrent('{{dumps(docs[0])}}');
@@ -279,6 +364,35 @@
       window.history.back();
     }
   };
+
+  // 帮助
+  $('.proof-help').click(function () {
+    $('#helpModal').modal();
+  });
+
+  // 点击候选字
+  $('.ocr-txt, .log-txt').on('click', function () {
+    $('.proof .txt').val($('.proof .txt').val() + $(this).text());
+  });
+
+  // 点击文字类型
+  $('.txt-type :radio').click(function () {
+    var txtType = $(this).val();
+    if (txtType !== 'Z')
+      $('.proof .txt').val($('.proof .txt').val() + txtType);
+    if (txtType === 'X' || txtType === 'Y')
+      $('.proof .normal-txt').removeClass('hide');
+    else
+      $('.proof .normal-txt').addClass('hide')
+  });
+
+  // 提交
+  $('#submit-proof').click(function () {
+    var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
+    postApi('/char/' + $('#currentId').val(), {data: data}, () => location.reload());
+  });
+
+
 </script>
 
 </body>

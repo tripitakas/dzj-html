@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import re
 import os
 from os import path
 from bson.objectid import ObjectId
+from controller import errors  as e
 from controller import validate as v
 from controller.data.data import Char
 from controller.base import BaseHandler
@@ -31,17 +34,45 @@ class CharGenImgApi(BaseHandler, Char):
             return self.send_db_error(error)
 
 
-class GetColumnUrlApi(BaseHandler, Char):
-    URL = '/api/char/column_url'
+class CharUpdateApi(BaseHandler, Char):
+    URL = '/api/char/@oid'
 
-    def post(self):
-        """ 获取列图路径"""
+    def post(self, _id):
+        """ 更新字符"""
+
+        def check_level():
+            return True
+
         try:
-            rules = [(v.not_empty, 'column_id')]
+            rules = [(v.not_empty, 'txt'), (v.is_proof_txt, 'txt')]
             self.validate(self.data, rules)
+            char = self.db.char.find_one({'_id': ObjectId(_id)})
+            if not char:
+                self.send_error_response(e.no_object, message='没有找到字符')
+            if not check_level():
+                self.send_error_response(e.data_level_unqualified, message='数据等级不够')
 
-            url = self.get_web_img(self.data['column_id'], img_type='column')
-            self.send_data_response(dict(url=url))
+            r = re.findall(r'[XYMN*]', self.data['txt'])
+            if r:
+                self.data['txt_type'] = r[0]
+                self.data['txt'] = self.data['txt'].replace(r[0], '')
+
+            my_log = {k: self.data[k] for k in ['txt', 'txt_type', 'normal_txt', 'remark'] if self.data.get(k)}
+            my_log.update({'edit_type': 'char_edit', 'updated_time': self.now()})
+            new_log = True
+            logs = char.get('txt_logs') or []
+            for i, log in enumerate(logs):
+                if log['user_id'] == self.user_id:
+                    logs[i].update(my_log)
+                    new_log = False
+            if new_log:
+                my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
+                logs.append(my_log)
+
+            update = {k: self.data[k] for k in ['txt', 'txt_type', 'normal_txt'] if self.data.get(k)}
+            update['txt_logs'] = logs
+            self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

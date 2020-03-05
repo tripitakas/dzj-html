@@ -175,9 +175,9 @@ class CharListHandler(BaseHandler, Char):
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'name', 'name': '字编码'},
-        {'id': 'id', 'name': '字id'},
         {'id': 'char_id', 'name': '字序'},
         {'id': 'uid', 'name': '字序id'},
+        {'id': 'data_level', 'name': '数据等级'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},
@@ -187,7 +187,7 @@ class CharListHandler(BaseHandler, Char):
         {'id': 'normal_txt', 'name': '正字'},
         {'id': 'ocr_txt', 'name': 'OCR文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
-        {'id': 'log', 'name': '校对记录'},
+        {'id': 'txt_logs', 'name': '校对记录'},
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
@@ -206,7 +206,7 @@ class CharListHandler(BaseHandler, Char):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    hide_fields = ['page_name', 'cid', 'id', 'uid', 'log', 'sc', 'pos', 'column']
+    hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column']
     info_fields = ['has_img', 'source', 'txt', 'normal_txt', 'txt_type', 'remark']
     update_fields = [
         {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
