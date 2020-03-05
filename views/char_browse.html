@@ -81,6 +81,7 @@
       margin: 1px 0;
       height: calc(100% - 4px);
       border: 1px solid #ccc;
+      overflow-y: hidden;
     }
 
     .flex-content .work-area {
@@ -371,24 +372,35 @@
   });
 
   // 点击候选字
-  $('.ocr-txt, .log-txt').on('click', function () {
-    $('.proof .txt').val($('.proof .txt').val() + $(this).text());
+  var $txt = $('.proof .txt');
+  $('.ocr-txt').on('click', function() {
+    var txt = $txt.val();
+    $txt.val($(this).text() + txt.replace(/[^A-Z*]/, ''));
+    $('.ocr-txt').removeClass('active');
+    if ($txt.val().indexOf($(this).text()) >= 0) {
+      $(this).addClass('active');
+    }
+  });
+  $('.log-txt').on('click', function() {
+    var txt = $txt.val();
+    $txt.val($(this).text() + txt.replace(/[^A-Z*]/, ''));
   });
 
   // 点击文字类型
   $('.txt-type :radio').click(function () {
     var txtType = $(this).val();
-    if (txtType !== 'Z')
-      $('.proof .txt').val($('.proof .txt').val() + txtType);
-    if (txtType === 'X' || txtType === 'Y')
+    $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
+    if (txtType === 'X' || txtType === 'Y') {
       $('.proof .normal-txt').removeClass('hide');
-    else
-      $('.proof .normal-txt').addClass('hide')
+    }
+    else {
+      $('.proof .normal-txt').addClass('hide');
+    }
   });
 
   // 提交
   $('#submit-proof').click(function () {
-    var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
+    var data = {txt: $txt.val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
     postApi('/char/' + $('#currentId').val(), {data: data}, () => location.reload());
   });
 
