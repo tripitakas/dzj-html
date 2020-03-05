@@ -231,7 +231,7 @@ class CharListHandler(BaseHandler, Char):
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type':
             return self.txt_types.get(value, value)
-        if key == 'has_img' and value:
+        if key == 'has_img' and value not in [None, False]:
             return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['name'], 'char')
         return h.format_value(value, key, doc)
 

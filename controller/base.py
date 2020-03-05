@@ -21,6 +21,7 @@ from tornado.web import RequestHandler
 from tornado.httpclient import HTTPError
 from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
+from controller.l10n import _t
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
@@ -113,11 +114,13 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
+        kwargs['_t'] = _t
         kwargs['prop'] = self.prop
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
         kwargs['file_exists'] = lambda fn: path.exists(path.join(self.application.BASE_DIR, fn))
-        if self._finished:  # check_auth 等处报错返回后就不再渲染
+        # check_auth 等处报错返回后就不再渲染
+        if self._finished:
             return
 
         # 单元测试时，获取传递给页面的数据

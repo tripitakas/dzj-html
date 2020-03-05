@@ -289,7 +289,7 @@ class Char(Model):
         {'id': 'cid', 'name': 'cid'},
         {'id': 'source', 'name': '分类'},
         {'id': 'has_img', 'name': '是否已有字图'},
-        {'id': 'img_need_update', 'name': '是否需要更新字图'},
+        {'id': 'img_need_updated', 'name': '是否需要更新字图'},
         {'id': 'cc', 'name': '置信度'},
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},

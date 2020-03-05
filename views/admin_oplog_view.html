@@ -23,7 +23,7 @@
             <div class="block-head">基本信息</div>
             <div class="info">
               <label class="label">日志类型</label>
-              <span class="value">{{handler.l10n.get(log['op_type']) or log['op_type']}}</span>
+              <span class="value">{{_t(log['op_type'])}}</span>
             </div>
             <div class="info">
               <label class="label">创建人</label>
@@ -38,7 +38,7 @@
             <div class="block-head">日志内容</div>
             {% for k, v in log.get('content', {}).items() %}
             <div class="info long">
-              <label class="label">{{handler.l10n.get(k, k)}}</label>
+              <label class="label">{{_t(k)}}</label>
               <span class="value">{{','.join(v) if isinstance(v, list) else v}}</span>
             </div>
             {% end %}

@@ -16,18 +16,15 @@ class CharGenImgApi(BaseHandler, Char):
         try:
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
-
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
-
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
 
             # 启动脚本，生成字图
-            script = ['nohup', 'python3', path.join(self.application.BASE_DIR, 'utils', 'extract_cut_img.py')]
-            os.system(' '.join(script) + ' >> log/cut_img.log 2>&1 &')
-
+            script = 'nohup python3 %s/extract_img.py --username="%s" >> log/extract_img.log 2>&1 &'
+            os.system(script % (path.dirname(__file__), self.username))
             self.send_data_response()
 
         except self.DbError as error:

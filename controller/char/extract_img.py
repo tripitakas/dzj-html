@@ -3,11 +3,18 @@
 
 import os
 import re
+import sys
 import oss2
+import json
 import hashlib
 from os import path
 from PIL import Image
-from controller.helper import BASE_DIR, prop, cmp_obj
+
+BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
+sys.path.append(BASE_DIR)
+
+from controller import helper as hp
+from controller.base import BaseHandler as Bh
 
 
 class Cut(object):
@@ -19,7 +26,7 @@ class Cut(object):
         self.kwargs = kwargs
 
     def get_cfg(self, key):
-        return prop(self.cfg, key)
+        return hp.prop(self.cfg, key)
 
     @staticmethod
     def get_hash_name(img_name, cid='', salt=''):
@@ -45,13 +52,13 @@ class Cut(object):
     def cut_img(self, chars):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
-        log = dict(success=[], fail=[], exist=[], column_success=[], column_fail=[])
+        log = dict(success_char=[], fail_char=[], exist_char=[], success_column=[], fail_column=[])
         page_names = list(set(c['page_name'] for c in chars))
         fields = ['name', 'width', 'height', 'columns', 'chars']
         pages = list(self.db.page.find({'name': {'$in': page_names}}, {f: 1 for f in fields}))
         valid_names = [p['name'] for p in pages]
-        log['fail'].extend([
-            dict(id=c['id'], reason='page not in db') for c in chars if c['page_name'] not in valid_names
+        log['fail_char'].extend([
+            dict(id=c['name'], reason='page not in db') for c in chars if c['page_name'] not in valid_names
         ])
         page_dict = {p['name']: p for p in pages}
         # 处理有效页面
@@ -64,7 +71,7 @@ class Cut(object):
                 img_page = Image.open(img_file).convert('L')
             except Exception as e:
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                log['fail'].extend([dict(id=c['id'], reason=reason) for c in chars_todo])
+                log['fail_char'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
                 continue
             iw, ih = img_page.size
             pw, ph = int(page['width']), int(page['height'])
@@ -75,11 +82,11 @@ class Cut(object):
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
                 if not oc:
-                    log['fail'].append(dict(id=c['id'], reason='origin cid not exist'))
+                    log['fail_char'].append(dict(id=c['id'], reason='origin cid not exist'))
                     continue
-                if c.get('has_img') and not self.kwargs.get('reset') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                    if c.get('has_img') and cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                        log['exist'].append(c['id'])
+                if c.get('has_img') and not self.kwargs.get('reset') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                    if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                        log['exist_char'].append(c['name'])
                         continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
                 try:
@@ -89,7 +96,7 @@ class Cut(object):
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
                 except Exception as e:
-                    log['fail'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
 
             # 列框切图
             columns_todo, columns_done = list(set(c['column']['cid'] for c in chars_done)), []
@@ -111,9 +118,9 @@ class Cut(object):
                     columns_done.append('%s_%s' % (page_name, c['cid']))
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                    log['column_fail'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
-            log['success'].extend([c['id'] for c in chars_done])
-            log['column_success'].extend(columns_done)
+                    log['fail_column'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
+            log['success_char'].extend([c['name'] for c in chars_done])
+            log['success_column'].extend(columns_done)
 
         return log
 
@@ -126,7 +133,7 @@ class Cut(object):
         local_path = self.get_cfg('big_img.local_path')
         if local_path:
             if local_path[0] != '/':
-                local_path = path.join(BASE_DIR, local_path)
+                local_path = path.join(hp.BASE_DIR, local_path)
             img_file = path.join(local_path, img_path)
             if not path.exists(img_file):
                 if path.exists(img_file.replace('pages/', '')):
@@ -143,7 +150,7 @@ class Cut(object):
             key_id, key_secret = self.get_cfg('big_img.key_id'), self.get_cfg('big_img.key_secret')
             self.oss_big = Oss(my_cloud, key_id, key_secret, self.get_cfg('big_img.use_internal'))
         if self.oss_big and self.oss_big.is_readable():
-            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
+            tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
             self.oss_big.download_file(img_path, tmp_file)
@@ -158,7 +165,7 @@ class Cut(object):
         local_path = self.get_cfg('web_img.local_path')
         if local_path:
             if local_path[0] != '/':
-                local_path = path.join(BASE_DIR, local_path)
+                local_path = path.join(hp.BASE_DIR, local_path)
             img_path = path.join(local_path, img_path)
             if not path.exists(path.dirname(img_path)):
                 os.makedirs(path.dirname(img_path))
@@ -169,7 +176,7 @@ class Cut(object):
             key_id, key_secret = self.get_cfg('web_img.key_id'), self.get_cfg('web_img.key_secret')
             self.oss_web = Oss(my_cloud, key_id, key_secret, self.get_cfg('web_img.use_internal'))
         if self.oss_web and self.oss_web.is_writeable():
-            tmp_file = path.join(BASE_DIR, 'temp', 'cut', img_path)
+            tmp_file = path.join(hp.BASE_DIR, 'temp', 'cut', img_path)
             if not path.exists(path.dirname(tmp_file)):
                 os.makedirs(path.dirname(tmp_file))
             img_obj.save(tmp_file)
@@ -220,3 +227,31 @@ class Oss(object):
 
     def upload_file(self, oss_file, local_file):
         self.bucket.put_object_from_file(oss_file, local_file)
+
+
+def extract_img(db=None, condition=None, chars=None, regen=True, username=None):
+    """ 从大图中切图，存放到web_img中，供web访问"""
+
+    cfg = hp.load_config()
+    db = db or hp.connect_db(cfg['database'])[0]
+
+    if not chars:
+        if not condition:
+            condition = {'img_need_updated': True}
+        elif isinstance(condition, str):
+            condition = json.loads(condition)
+        chars = list(db.char.find(condition))
+
+    cut = Cut(db, cfg, regen=regen)
+    log = cut.cut_img(chars)
+    if log.get('success_char'):
+        update = {'has_img': True, 'img_need_updated': False}
+        db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+
+    Bh.add_op_log(db, 'extract_img', log, username)
+
+
+if __name__ == '__main__':
+    import fire
+
+    fire.Fire(extract_img)

@@ -8,7 +8,7 @@ from os import path
 BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
 sys.path.append(BASE_DIR)
 
-from controller import helper as h
+from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
@@ -25,8 +25,8 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
                 return True
         return False
 
-    cfg = h.load_config()
-    db = db or h.connect_db(cfg['database'])[0]
+    cfg = hp.load_config()
+    db = db or hp.connect_db(cfg['database'])[0]
     if not condition:
         assert page_names
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
@@ -49,7 +49,7 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
                     meta['txt'] = c.get('txt') or c.get('ocr_txt')
                     meta['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
                     meta['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
-                    meta['uid'] = h.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
+                    meta['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                     chars.append(meta)
                 except KeyError:
                     invalid_chars.append('%s_%s' % (p['name'], c['cid']))
@@ -69,8 +69,8 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
         db.char.insert_many(un_existed, ordered=False)
 
     Bh.add_op_log(db, 'gen_chars', dict(
-        inserted=[c['name'] for c in un_existed], existed=[c['name'] for c in existed],
-        invalid=invalid_chars, invalid_pages=invalid_pages
+        inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
+        invalid_char=invalid_chars, invalid_pages=invalid_pages
     ), username)
 
 
