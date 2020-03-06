@@ -66,7 +66,7 @@
             </div>
           </div>
           <div class="item logs">
-            <label class="head">校对历史</label>
+            <label class="head">校对记录</label>
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log">
@@ -128,11 +128,23 @@
           <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
         </div>
         <div class="modal-body">
-          <div class="title">一、校对原则</div>
+          <div class="title">一、校对方法</div>
           <div class="intro">
-            校对以尊重字形为第一原则。
+            请您录入字框中的文字。以下几种情况都是准确的录入：<br/>
+            1. 录入原字，即跟图片中字形完全一样（包括笔画和结构）的文字。如果有多笔少划或者结构上的差异，则不宜直接认为是同一个字。<br/>
+            2. 录入正字。如果原字无法打出，且经查字典等工具后也找不到原字，则可以录入对应的正字。<br/>
+            注：简单起见，如果原字不易录入，则可根据上下文直接判定为某字而录入。
           </div>
           <div class="title">二、校对符号</div>
+          <div class="intro">
+            1. 正字。默认为正字，不需要任何校对符号。<br/>
+            2. Y，广义异体字。如果认定是广义异体字，请带上Y符号。如果认定是异体字而不确定是狭义还是广义，则也应带上Y符号。<br/>
+            3. X，狭义异体字。如果认定是狭义异体字，请带上X符号。<br/>
+            4. M，模糊字。如果图片中的字很模糊或有残损，请带上M符号。<br/>
+            5. N，不确定。如果不确定自己录入的字，请带上N符号。<br/>
+            6. *，不认识。如果该字完全不认识，请直接录入*。<br/>
+            注：最多只能有一个校对符号。
+          </div>
         </div>
       </div>
     </div>
@@ -155,8 +167,8 @@
       meta += log.txt_type ? `<label>类型</label><span>${log.txt_type}</span><br/>` : '';
       meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
       meta += `<label>校对人</label><span>${log.username}</span><br/>`;
-      meta += `<label>创建时间</label><span>${new Date(log.create_time.$date).toLocaleString()}</span><br/>`;
-      meta += `<label>更新时间</label><span>${new Date(log.updated_time.$date).toLocaleString()}</span><br/>`;
+      meta += `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>`;
+      meta += `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>`;
       return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
     }).join('');
     $('.logs .body').html(html);
@@ -252,7 +264,7 @@
     var txtType = $(this).val();
     $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
     if (txtType === 'X' || txtType === 'Y') {
-      $('.proof .normal-txt').removeClass('hide');
+      $('.proof .normal-txt').addClass('hide');
     } else {
       $('.proof .normal-txt').addClass('hide');
     }
@@ -267,7 +279,7 @@
       updateLogs(res.txt_logs);
       data.txt_logs = res.txt_logs;
       if ($('.proof .txt-type :checked').length)
-      data.txt_type = $('.proof .txt-type :checked').val();
+        data.txt_type = $('.proof .txt-type :checked').val();
       chars[id] = $.extend(chars[id], data);
       location.href = location.href + '#' + name;
       bsAlert('成功！', '已保存成功', 'success');

@@ -49,15 +49,23 @@ function showTips(title, text, reload, timer) {
   }
 }
 
-function bsAlert(title, text, type, hide) {
+function bsAlert(title, text, type, selector, hide) {
   // type的值为info/warning/success等几种类型
   type = typeof type !== 'undefined' ? type : 'info';
-  $('#bs-alert').attr('class', 'alert alert-' + type);
-  $('#bs-alert .title').text(title);
-  $('#bs-alert .text').text(text);
+  selector = typeof selector !== 'undefined' ? selector : '#bs-alert';
   hide = typeof hide !== 'undefined' ? hide : true;
+  $(selector).attr('class', 'alert alert-' + type);
+  $(selector).find('.text').text(text);
+  $(selector).find('.title').text(title);
   if (hide)
     setTimeout(() => $('#bs-alert').addClass('hide'), 1000);
+}
+
+function toLocalTime(isoTimeStamp) {
+  if (typeof isoTimeStamp['$date'] !== 'undefined')
+    isoTimeStamp = isoTimeStamp['$date'];
+  var times = new Date(isoTimeStamp).toISOString().split('T');
+  return times[0] + ' ' + times[1].substr(0, 5);
 }
 
 function refresh(timer) {
