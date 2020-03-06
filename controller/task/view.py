@@ -70,7 +70,7 @@ class DocTaskAdminHandler(TaskHandler):
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id', p)
             self.render(
                 'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                collection=collection, **kwargs,
+                collection=collection, format_value=self.format_value, **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)

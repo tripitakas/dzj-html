@@ -1,0 +1,212 @@
+/* 字图面板*/
+.flex-content .char-panel {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 20px;
+}
+
+.char-panel .char-items {
+  margin: 10px 20px;
+}
+
+.char-panel .pagers {
+  clear: both;
+  margin: 40px 0 20px;
+}
+
+.char-items .char-item {
+  float: left;
+  width: 62px;
+  height: 85px;
+  margin: 10px;
+  cursor: pointer;
+  background: #fff;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+
+.char-item:hover {
+  transform: scale(1.25);
+}
+
+.char-item.current {
+  border: 1px solid red;
+}
+
+.char-item .char-img {
+  height: 60px;
+  display: flex;
+  align-items: flex-start;
+  /*align-items: center;*/
+}
+
+.char-img img {
+  width: 60px;
+  flex-grow: 0;
+  max-height: 60px;
+  background: transparent;
+}
+
+.char-item .char-info {
+  height: 20px;
+}
+
+.char-info span {
+  margin: 0 2px;
+}
+
+/* 列图面板*/
+.flex-content .column-panel {
+  flex: 1;
+  width: 120px;
+  height: 100%;
+  overflow: auto;
+  max-width: 120px;
+  text-align: center;
+  border: 1px solid #ccc;
+  justify-content: space-between;
+}
+
+.column-panel > :first-child {
+  cursor: pointer;
+  margin: 1px 0;
+  height: calc(100% - 3px);
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  overflow-y: hidden;
+}
+
+/* 工作面板*/
+.flex-content .work-panel {
+  flex: 1;
+  height: 100%;
+  width: 360px;
+  max-width: 300px;
+  background: var(--Grey_Content);
+  display: flex;
+  flex-direction: column;
+}
+
+.work-panel .txt-list {
+  flex-grow: 1;
+  overflow: auto;
+  padding: 0 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.work-panel .user-work {
+  flex-grow: 0;
+  height: 280px;
+  padding: 0 15px;
+}
+
+.work-panel .head {
+  clear: both;
+  margin: 5px 0;
+  font-size: 1.2em;
+  font-weight: 500;
+  border-bottom: 1px solid #ccc;
+  color: var(--Color_333);
+}
+
+.txt-list .item {
+  margin-bottom: 20px;
+}
+
+.ocr-txt {
+  cursor: pointer;
+  font-size: 36px;
+  margin: 0 14px 5px 0;
+  border: 1px solid #ccc;
+}
+
+.ocr-txt.active, .ocr-txt:hover {
+  background-color: rgba(0, 0, 0, .1);
+}
+
+.ocr-txt:hover {
+  border: 1px solid rgba(0, 0, 255, .4);
+}
+
+.log {
+  display: flex;
+}
+
+.log .log-head {
+  flex: 1;
+  text-align: left;
+  max-width: 45px;
+  cursor: pointer;
+  font-size: 36px;
+  margin-right: 5px;
+  border-right: 1px solid #ccc;
+}
+
+.log .log-txt {
+  border: 1px solid #ccc;
+}
+
+.log .log-meta {
+  flex: 1;
+}
+
+.log-meta label {
+  font-weight: 400;
+  margin-right: 5px;
+  width: 60px;
+  color: #6a6a77;
+}
+
+.txt-type {
+  margin-top: 5px;
+}
+
+.txt-type .radio-item {
+  width: 30%;
+  display: inline-block;
+}
+
+.radio-item.long {
+  width: 33%;
+}
+
+.radio-item:last-child {
+  margin-left: 9px;
+}
+
+.radio-item input[type=radio] {
+  margin-right: 2px;
+}
+
+.proof .form-control {
+  margin-top: 5px;
+}
+
+.proof-help {
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 5px;
+}
+
+#bs-alert {
+  margin-bottom: 0;
+  padding: 7px 5px;
+  display: inline-block;
+  width: calc(100% - 80px);
+}
+
+#bs-alert .close {
+  line-height: 16px;
+}
+
+.debug {
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  height: 20px;
+  position: fixed;
+  text-align: center;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  opacity: 0.75;
+}

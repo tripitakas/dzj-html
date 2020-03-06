@@ -9,20 +9,18 @@ const Swal2 = Swal1.mixin({cancelButtonText: '取消', showCancelButton: true});
 
 function showError(title, text, timer) {
   // 在页面提示
-  var $err = $('.ajax-error');
-  if ($err.length) {
-    $err.text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(() => $err.hide(), 5000);
+  if ($('.ajax-error').length) {
+    $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
+    return setTimeout(() => $('.ajax-error').hide(), 5000);
   }
   // 没有错误
+  var type = /失败|错误/.test(title) ? 'error' : 'warning';
   if (text === '没有发生改变')
     return showSuccess(title.replace(/失败|错误/, '跳过'), text);
   // 弹框提示
-  var type = /失败|错误/.test(title) ? 'error' : 'warning';
   if (typeof timer !== 'undefined')
-    Swal0.fire({title: title, html: text, type: type, timer: 5000});
-  else
-    Swal0.fire({title: title, html: text, type: type});
+    return Swal0.fire({title: title, html: text, type: type, timer: 5000});
+  Swal0.fire({title: title, html: text, type: type});
 }
 
 function showWarning(title, text, timer) {
@@ -49,6 +47,17 @@ function showTips(title, text, reload, timer) {
   } else {
     Swal0.fire({title: title, html: text});
   }
+}
+
+function bsAlert(title, text, type, hide) {
+  // type的值为info/warning/success等几种类型
+  type = typeof type !== 'undefined' ? type : 'info';
+  $('#bs-alert').attr('class', 'alert alert-' + type);
+  $('#bs-alert .title').text(title);
+  $('#bs-alert .text').text(text);
+  hide = typeof hide !== 'undefined' ? hide : true;
+  if (hide)
+    setTimeout(() => $('#bs-alert').addClass('hide'), 1000);
 }
 
 function refresh(timer) {

@@ -4,201 +4,12 @@
   <meta charset="UTF-8">
   <title>聚类校对</title>
   {% include _base_css.html %}
+  <link href="{{static_url('css/char.css')}}" rel="stylesheet">
   <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <style>
-    .flex-content .char-list {
-      flex: 1;
-      overflow: auto;
-      padding-bottom: 20px;
-    }
-
-    .char-list .char-items {
-      margin: 10px 20px;
-    }
-
-    .char-list .pagers {
-      clear: both;
-      margin: 40px 0 20px;
-    }
-
-    .char-item {
-      float: left;
-      width: 62px;
-      height: 85px;
-      margin: 10px;
-      cursor: pointer;
-      background: #fff;
-      text-align: center;
-      border: 1px solid #ccc;
-    }
-
-    .char-item:hover {
-      transform: scale(1.25);
-    }
-
-    .char-item.current {
-      border: 1px solid red;
-    }
-
-    .char-item .char-img {
-      height: 60px;
-      display: flex;
-      align-items: flex-start;
-      /*align-items: center;*/
-    }
-
-    .char-img img {
-      width: 60px;
-      flex-grow: 0;
-      max-height: 60px;
-      background: transparent;
-    }
-
-    .char-item .char-info {
-      height: 20px;
-    }
-
-    .char-info span {
-      margin: 0 2px;
-    }
-
-    .flex-content .column-img {
-      flex: 1;
-      width: 120px;
-      height: 100%;
-      overflow: auto;
-      max-width: 120px;
-      text-align: center;
-      border: 1px solid #ccc;
-    }
-
-    .column-img > :first-child {
-      cursor: pointer;
-      margin: 1px 0;
-      height: calc(100% - 3px);
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-      overflow-y: hidden;
-    }
-
-    .flex-content .work-area {
-      flex: 1;
-      height: 100%;
-      overflow: auto;
-      width: 360px;
-      max-width: 300px;
-      padding: 0 12px;
-      border-left: 0 solid #ccc;
-      background: var(--Grey_Content);
-    }
-
-    .work-area .head {
-      clear: both;
-      margin: 5px 0;
-      font-size: 1.2em;
-      font-weight: 500;
-      border-bottom: 1px solid #ccc;
-      color: var(--Color_333);
-    }
-
-    .work-area .head:not(.first) {
-      margin-top: 20px;
-    }
-
-    .ocr-txt {
-      cursor: pointer;
-      font-size: 36px;
-      margin: 0 14px 5px 0;
-      border: 1px solid #ccc;
-    }
-
-    .ocr-txt.active, .ocr-txt:hover {
-      background-color: rgba(0, 0, 0, .1);
-    }
-
-    .ocr-txt:hover {
-      border: 1px solid rgba(0, 0, 255, .4);
-    }
-
-    .log {
-      display: flex;
-    }
-
-    .log .log-head {
-      flex: 1;
-      text-align: left;
-      max-width: 45px;
-      cursor: pointer;
-      font-size: 36px;
-      margin-right: 5px;
-      border-right: 1px solid #ccc;
-    }
-
-    .log .log-txt {
-      border: 1px solid #ccc;
-    }
-
-    .log .log-meta {
-      flex: 1;
-    }
-
-    .log-meta label {
-      font-weight: 400;
-      margin-right: 5px;
-      width: 60px;
-      color: #6a6a77;
-    }
-
-    .txt-type {
-      margin-top: 5px;
-    }
-
-    .txt-type .radio-item {
-      width: 30%;
-      display: inline-block;
-    }
-
-    .radio-item.long {
-      width: 33%;
-    }
-
-    .radio-item:last-child {
-      margin-left: 9px;
-    }
-
-    .radio-item input[type=radio] {
-      margin-right: 2px;
-    }
-
-    .proof .form-control {
-      margin-top: 5px;
-    }
-
-    .proof-help {
-      cursor: pointer;
-      font-size: 16px;
-      margin-left: 5px;
-    }
-
-    .debug {
-      bottom: 0;
-      width: 300px;
-      margin-left: -12px;
-      height: 20px;
-      position: fixed;
-      text-align: center;
-      background-color: #fff;
-      border-top: 1px solid #ddd;
-      opacity: 0.75;
-    }
-
-  </style>
-  {% block custom-css %}
-  {% end %}
 </head>
 
 <body class="widescreen">
@@ -216,7 +27,7 @@
       </div><!--left-->
     </div>
     <div class="full-bd flex-content">
-      <div class="char-list">
+      <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
           <div class="char-item" id="{{d['name']}}">
@@ -231,57 +42,79 @@
         </div>
         {% module Pager(pager) %}
       </div>
-      <div class="column-img">
+      <div class="column-panel">
         <div id="col-holder"></div>
       </div>
-      <div class="work-area">
+      <div class="work-panel">
         {% set c = docs and docs[0] or {}%}
-        <label class="head hide">当前字框</label>
-        <div class="cur-meta hide">
-          {% for f in [i for i in ['name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
-          <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
-          {% end %}
-        </div>
-        <label class="head first">OCR候选</label>
-        <div class="ocr-alternatives">
-          {% for t in c.get('alternatives', '')%}
-          <span class="ocr-txt">{{t}}</span>
-          {% end %}
-        </div>
-        <label class="head">校对历史</label>
-        <div class="logs">
-          {% for log in c.get('txt_logs', '')%}
-          <div class="log">
-            <div class="log-head"><span class="log-txt">{{log.get('txt') or log.get('normal_txt')}}</span></div>
-            <div class="log-meta">
-              {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
-              {% if log.get(f) %}
-              <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+        <input type="hidden" id="currentId">
+        <div class="items txt-list">
+          <div class="item cur-meta hide">
+            <label class="head">基本信息</label>
+            <div class="info">
+              {% for f in [i for i in ['name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
+              <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
               {% end %}
-              {% end %}
-              <label>校对人</label><span>{{log['username']}}</span><br/>
-              <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
-              <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
             </div>
           </div>
-          {% end %}
-        </div>
-        <label class="head">请您校对<span class="proof-help glyphicon glyphicon-question-sign"></span></label>
-        <div class="proof">
-          <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
-          <div class="txt-type">
-            {% for k, v in handler.txt_types.items() %}
-            <span class="radio-item {{'long' if len(v) > 3 else ''}}">
-              <input type="radio" name="txt-type" value="{{k}}" {{'checked' if k == 'Z' else ''}}>{{v}}
-            </span>
-            {% end %}
+          <div class="item ocr-alternatives">
+            <label class="head">OCR候选</label>
+            <div class="body">
+              {% for t in c.get('alternatives', '')%}
+              <span class="ocr-txt">{{t}}</span>
+              {% end %}
+            </div>
           </div>
-          <input class="form-control normal-txt hide" placeholder="如果字框的文字为异体字，请录入正字"/>
-          <input class="form-control remark" placeholder="备注，如果有的话"/>
-          <button class="btn btn-primary fr" id="submit-proof" style="margin-top: 5px">确认</button>
+          <div class="item logs">
+            <label class="head">校对历史</label>
+            <div class="body">
+              {% for log in c.get('txt_logs', '')%}
+              <div class="log">
+                <div class="log-head"><span class="log-txt">{{log.get('txt') or log.get('normal_txt')}}</span></div>
+                <div class="log-meta">
+                  {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
+                  {% if log.get(f) %}
+                  <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+                  {% end %}
+                  {% end %}
+                  <label>校对人</label><span>{{log['username']}}</span><br/>
+                  <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
+                  <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
+                </div>
+              </div>
+              {% end %}
+            </div>
+          </div>
         </div>
-        <div class="debug">字编码：<span class="name"></span></div>
-        <input type="hidden" id="currentId">
+        <div class="items user-work">
+          <div class="item proof">
+            <label class="head">请您校对
+              <span class="proof-help glyphicon glyphicon-question-sign"></span>
+            </label>
+            <div class="body">
+              <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
+              <div class="txt-type">
+                {% for k, v in handler.txt_types.items() %}
+                <span class="radio-item {{'long' if len(v) > 3 else ''}}">
+                  <input type="radio" name="txt-type" value="{{k}}" {{'checked' if k == 'Z' else ''}}>{{v}}
+                </span>
+                {% end %}
+              </div>
+              <input class="form-control normal-txt hide" placeholder="如果字框的文字为异体字，请录入正字"/>
+              <input class="form-control remark" placeholder="备注，如果有的话"/>
+            </div>
+            <div class="tail submit" style="margin-top: 5px">
+              <span id="bs-alert" class="alert hide">
+                <a class="close" onclick="$(this).parent().addClass('hide')">×</a>
+                <strong class="title"></strong><span class="text"></span>
+              </span>
+              <button class="btn btn-primary fr" id="submit-proof">确认</button>
+            </div>
+          </div>
+        </div>
+        <div class="item debug">
+          <div class="info">字编码：<span class="name"></span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -319,7 +152,7 @@
     $('.char-items .current').removeClass('current');
     $('#' + ch.name).addClass('current');
     // 更新OCR候选
-    $('.ocr-alternatives').html(ch.alternatives.split('').map(function (c) {
+    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
       return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
     // 更新校对历史
@@ -334,7 +167,8 @@
       meta += `<label>更新时间</label><span>${new Date(log.updated_time.$date).toLocaleString()}</span><br/>`;
       return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
     }).join('');
-    $('.logs').html(logs);
+    $('.logs .body').html(logs);
+    logs.length ? $('.logs').removeClass('hide') : $('.logs').addClass('hide');
     // 更新请您校对
     $('#currentId').val(ch._id);
     $('.proof .txt').val(ch.txt || ch.ocr_txt);
@@ -406,8 +240,7 @@
     $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
     if (txtType === 'X' || txtType === 'Y') {
       $('.proof .normal-txt').removeClass('hide');
-    }
-    else {
+    } else {
       $('.proof .normal-txt').addClass('hide');
     }
   });
@@ -416,7 +249,7 @@
   $('#submit-proof').click(function () {
     var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
     postApi('/char/' + $('#currentId').val(), {data: data}, () => {
-      showSuccess('成功', '已保存成功');
+      bsAlert('成功！', '已保存成功', 'success');
     });
   });
 
