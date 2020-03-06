@@ -232,11 +232,11 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, condition=None, chars=None, regen=True, username=None):
+def extract_img(db=None, condition=None, chars=None, regen=True, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
 
     cfg = hp.load_config()
-    db = db or hp.connect_db(cfg['database'])[0]
+    db = db or hp.connect_db(cfg['database'], host=host)[0]
 
     if not chars:
         if not condition:
