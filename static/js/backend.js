@@ -122,7 +122,7 @@ function deleteParam(query, name) {
 
 function getAnchor() {
   var p = location.href.search(/#[^\/#]+$/);
-  return p ? location.href.substr(p + 1) : '';
+  return p > 0 ? location.href.substr(p + 1) : '';
 }
 
 function setAnchor(anchor) {

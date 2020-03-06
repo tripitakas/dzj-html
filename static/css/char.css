@@ -123,11 +123,12 @@
   cursor: pointer;
 }
 
-.ocr-txt.active, .ocr-txt:hover {
+.ocr-txt.active {
   background-color: rgba(0, 0, 0, .1);
 }
 
-.ocr-txt:hover {
+.ocr-txt:hover, .log-txt:hover {
+  background-color: rgba(0, 0, 0, .1);
   border: 1px solid rgba(0, 0, 255, .4);
 }
 
@@ -146,6 +147,7 @@
 }
 
 .log .log-txt {
+  cursor: pointer;
   border: 1px solid #ccc;
 }
 
