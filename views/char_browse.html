@@ -30,7 +30,7 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item" id="{{d['_id']}}">
+          <div class="char-item" id="{{d['name']}}" title="{{d['_id']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
@@ -48,6 +48,7 @@
       <div class="work-panel">
         {% set c = docs and docs[0] or {}%}
         <input type="hidden" id="currentId">
+        <input type="hidden" id="currentName">
         <div class="items txt-list">
           <div class="item cur-meta hide">
             <label class="head">基本信息</label>
@@ -100,7 +101,7 @@
                 </span>
                 {% end %}
               </div>
-              <input class="form-control normal-txt hide" placeholder="如果字框的文字为异体字，请录入正字"/>
+              <input class="form-control normal-txt hide" style="display: none" placeholder="如果字框的文字为异体字，请录入正字"/>
               <input class="form-control remark" placeholder="备注，如果有的话"/>
             </div>
             <div class="tail submit" style="margin-top: 5px">
@@ -161,8 +162,8 @@
 <script>
   var paper, rect;
   var chars = decodeJSON('{{dumps(chars)}}');
-  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
@@ -204,11 +205,12 @@
   }
 
   $('.char-item').on('click', function () {
-    var id = $(this).attr('id');
+    var id = $(this).attr('title');
     var ch = id in chars ? chars[id] : {};
     // 更新当前参数
     $('#currentId').val(id);
     $('#currentName').val(ch.name);
+    $('.debug .name').text(ch.name);
     $('.char-items .current').removeClass('current');
     $(this).addClass('current');
     // 更新OCR候选
@@ -225,12 +227,10 @@
     });
     // 更新列图和字框
     updateColumnImg(ch);
-    // 设置debug信息
-    $('.debug .name').text(ch.name);
   });
 
   // 初始化
-  $('.char-item:first').click();
+  getAnchor() ? $('#' + getAnchor()).click() : $('.char-item:first').click();
 
 </script>
 <script>
@@ -288,7 +288,7 @@
       if ($('.proof .txt-type :checked').length)
         data.txt_type = $('.proof .txt-type :checked').val();
       chars[id] = $.extend(chars[id], data);
-      location.href = location.href + '#' + name;
+      location.href = setAnchor(name);
       bsAlert('成功！', '已保存成功', 'success');
     });
   });

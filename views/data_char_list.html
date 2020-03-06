@@ -205,7 +205,7 @@
 
   // 浏览结果
   $('.operation .btn-browse').click(function () {
-    location.href = '/char/browse' + location.search;
+    location.href = '/char/browse' + setQueryString('from', '/data/char', true);
   });
 
 </script>

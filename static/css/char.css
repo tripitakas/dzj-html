@@ -133,6 +133,7 @@
 
 .log {
   display: flex;
+  margin-bottom: 5px;
 }
 
 .log .log-head {

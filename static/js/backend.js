@@ -120,6 +120,15 @@ function deleteParam(query, name) {
   return query;
 }
 
+function getAnchor() {
+  var p = location.href.search(/#[^\/#]+$/);
+  return p ? location.href.substr(p + 1) : '';
+}
+
+function setAnchor(anchor) {
+  return location.href.replace(/#[^\/#]+$/, '') + '#' + anchor;
+}
+
 function encodeFrom() {
   // 将第一个?替换为&，然后删除to/page等参数
   var url = location.pathname + location.search.replace('?', '&');
