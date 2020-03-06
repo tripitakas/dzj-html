@@ -125,7 +125,7 @@ class PageListHandler(BaseHandler, Page):
                 condition, params = self.get_duplicate_condition()
             else:
                 condition, params = self.get_page_search_condition(self.request.query)
-            fields = ['chars', 'columns', 'blocks', 'ocr', 'ocr_col', 'text', 'txt_html', 'char_ocr']
+            fields = ['chars', 'columns', 'blocks', 'ocr', 'ocr_col', 'text', 'txt_html']
             docs, pager, q, order = self.find_by_page(self, condition, None, 'page_code', {f: 0 for f in fields})
 
             self.render('data_page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,

@@ -10,21 +10,19 @@ def main(db_name='tripitaka', uri='localhost'):
     :param db_name: 数据库名
     :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     """
-    db = pymongo.MongoClient(uri)[db_name]
+    # db = pymongo.MongoClient(uri)[db_name]
+    uri_dev = 'mongodb://tripitaka-dev:sm2019321-321.dev@47.95.216.233'
+    db = pymongo.MongoClient(uri_dev)['tripitaka']
     # 创建索引，加速检索
     fields2index1 = {
         'user': ['name', 'email', 'phone'],
-        'char': ['source', 'ocr', 'txt', 'cc', 'sc'],
+        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc'],
         'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
         'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
     }
     for collection, fields in fields2index1.items():
-        db[collection].create_index([(field, pymongo.ASCENDING) for field in fields])
-
-    # 创建唯一索引
-    fields2index2 = {'char': ['id'], 'page': ['page_code']}
-    for collection, fields in fields2index2.items():
-        db[collection].create_index([(field, pymongo.ASCENDING) for field in fields], unique=True)
+        for field in fields:
+            db[collection].create_index(field)
 
 
 if __name__ == '__main__':

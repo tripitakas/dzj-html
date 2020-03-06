@@ -23,7 +23,7 @@
   width: 50%;
   float: left;
   display: flex;
-  padding: 4px 10px;
+  padding: 8px 0;
 }
 
 .info.long {
@@ -41,9 +41,12 @@
 }
 
 .info .value {
+  flex: 1;
+  overflow: auto;
+  max-height: 280px;
   display: inline-block;
   word-break: break-all;
-  flex: 1;
+  border-bottom: 1px solid #ccc;
 }
 
 
