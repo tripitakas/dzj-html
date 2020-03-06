@@ -263,10 +263,12 @@
 
   // 点击文字类型
   $('.txt-type .radio-item').click(function () {
-    var txtType = $(this).find(':radio').val();
+    var $radio = $(this).find(':radio');
+    var txtType = $radio.val();
+    $radio.prop('checked', true)
     $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
     if (txtType === 'X' || txtType === 'Y') {
-      $('.proof .normal-txt').addClass('hide');
+      $('.proof .normal-txt').removeClass('hide');
     } else {
       $('.proof .normal-txt').addClass('hide');
     }
