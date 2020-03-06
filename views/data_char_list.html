@@ -1,4 +1,5 @@
 {% extends "_list.html" %}
+
 {% block custom-css %}
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 <style>
@@ -14,6 +15,7 @@
     margin: 5px 0;
   }
 </style>
+{% include _font_css.html %}
 {% end %}
 
 {% block custom-modal %}

@@ -223,7 +223,7 @@
     $('.proof .remark').val('');
     $('.proof .txt').val(ch.txt || ch.ocr_txt);
     $('.txt-type .radio-item :radio').each(function (i, item) {
-      $(item).val() === (ch.txt_type || 'Z') ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+      $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
     });
     // 更新列图和字框
     updateColumnImg(ch);
