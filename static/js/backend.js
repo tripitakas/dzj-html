@@ -49,11 +49,11 @@ function showTips(title, text, reload, timer) {
   }
 }
 
-function bsAlert(title, text, type, selector, hide) {
+function bsAlert(title, text, type, hide, selector) {
   // type的值为info/warning/success等几种类型
   type = typeof type !== 'undefined' ? type : 'info';
-  selector = typeof selector !== 'undefined' ? selector : '#bs-alert';
   hide = typeof hide !== 'undefined' ? hide : true;
+  selector = typeof selector !== 'undefined' ? selector : '#bs-alert';
   $(selector).attr('class', 'alert alert-' + type);
   $(selector).find('.text').text(text);
   $(selector).find('.title').text(title);

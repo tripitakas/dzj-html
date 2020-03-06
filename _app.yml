@@ -48,6 +48,7 @@ web_img:
   key_id:
   key_secret:
   shared_cloud: https://tripitaka-yyy.oss-cn-beijing.aliyuncs.com
+  shared_type: page
 
 # big img
 big_img:
