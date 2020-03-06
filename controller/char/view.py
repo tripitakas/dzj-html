@@ -14,9 +14,10 @@ class CharBrowseHandler(BaseHandler, Char):
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = self.find_by_page(self, condition)
             for d in docs:
-                column_id = '%s_%s' % (d['page_name'], d['column']['cid'])
-                d['column']['hash'] = h.md5_encode(column_id, self.get_config('web_img.salt'))
-            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order)
+                d['column']['hash'] = h.md5_encode('%s_%s' % (d['page_name'], d['column']['cid']),
+                                                   self.get_config('web_img.salt'))
+            self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
+                        chars={str(d['_id']): d for d in docs})
 
         except Exception as error:
             return self.send_db_error(error)

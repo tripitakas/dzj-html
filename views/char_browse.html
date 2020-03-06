@@ -30,8 +30,8 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item" id="{{d['name']}}">
-            <div class="char-img" onclick="setCurrent('{{dumps(d)}}')">
+          <div class="char-item" id="{{d['_id']}}">
+            <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
@@ -144,19 +144,11 @@
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
 <script>
   var paper, rect;
+  var chars = decodeJSON('{{dumps(chars)}}');
   var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
 
-  function setCurrent(char) {
-    var ch = decodeJSON(char);
-    // 更新当前字框
-    $('.char-items .current').removeClass('current');
-    $('#' + ch.name).addClass('current');
-    // 更新OCR候选
-    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
-      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
-    }));
-    // 更新校对历史
-    var logs = (ch.txt_logs || []).map(function (log) {
+  function updateLogs(logs) {
+    var html = (logs || []).map(function (log) {
       var head = `<span class="log-txt">${log.txt || log.normal_txt}</span>`;
       var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
       meta += log.normal_txt ? `<label>正字</label><span>${log.normal_txt}</span><br/>` : '';
@@ -167,15 +159,11 @@
       meta += `<label>更新时间</label><span>${new Date(log.updated_time.$date).toLocaleString()}</span><br/>`;
       return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
     }).join('');
-    $('.logs .body').html(logs);
-    logs.length ? $('.logs').removeClass('hide') : $('.logs').addClass('hide');
-    // 更新请您校对
-    $('#currentId').val(ch._id);
-    $('.proof .txt').val(ch.txt || ch.ocr_txt);
-    $('.txt-type :radio').each(function (i, item) {
-      $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
-    });
-    // 更新列图和字框
+    $('.logs .body').html(html);
+    html.length ? $('.logs').removeClass('hide') : $('.logs').addClass('hide');
+  }
+
+  function updateColumnImg(ch) {
     var column = ch.column;
     var columnImg = $('#col-holder');
     var ratio = columnImg.height() / column.h;
@@ -196,11 +184,36 @@
       rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
           .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'}).setZoom(ratio);
     }
-    // 设置debug信息
-    $('.debug .name').text(ch.name);
   }
 
-  setCurrent('{{dumps(docs[0])}}');
+  $('.char-item').on('click', function () {
+    var id = $(this).attr('id');
+    var ch = id in chars ? chars[id] : {};
+    // 更新当前参数
+    $('#currentId').val(id);
+    $('#currentName').val(ch.name);
+    $('.char-items .current').removeClass('current');
+    $(this).addClass('current');
+    // 更新OCR候选
+    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
+      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+    }));
+    // 更新校对历史
+    updateLogs(ch.txt_logs);
+    // 更新请您校对
+    $('.proof .remark').val('');
+    $('.proof .txt').val(ch.txt || ch.ocr_txt);
+    $('.txt-type :radio').each(function (i, item) {
+      $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    });
+    // 更新列图和字框
+    updateColumnImg(ch);
+    // 设置debug信息
+    $('.debug .name').text(ch.name);
+  });
+
+  // 初始化
+  $('.char-item:first').click();
 
 </script>
 <script>
@@ -247,12 +260,19 @@
 
   // 提交
   $('#submit-proof').click(function () {
+    var id = $('#currentId').val();
+    var name = $('#currentName').val();
     var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
-    postApi('/char/' + $('#currentId').val(), {data: data}, () => {
+    postApi('/char/' + id, {data: data}, (res) => {
+      updateLogs(res.txt_logs);
+      data.txt_logs = res.txt_logs;
+      if ($('.proof .txt-type :checked').length)
+      data.txt_type = $('.proof .txt-type :checked').val();
+      chars[id] = $.extend(chars[id], data);
+      location.href = location.href + '#' + name;
       bsAlert('成功！', '已保存成功', 'success');
     });
   });
-
 
 </script>
 

@@ -72,7 +72,7 @@ class CharUpdateApi(BaseHandler, Char):
             update = {k: self.data[k] for k in ['txt', 'txt_type', 'normal_txt'] if self.data.get(k)}
             update['txt_logs'] = logs
             self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
-            self.send_data_response()
+            self.send_data_response(dict(txt_logs=logs))
 
         except self.DbError as error:
             return self.send_db_error(error)
