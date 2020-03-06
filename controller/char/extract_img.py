@@ -73,6 +73,7 @@ class Cut(object):
             except Exception as e:
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
                 log['fail_char'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
+                print(reason)
                 continue
             iw, ih = img_page.size
             pw, ph = int(page['width']), int(page['height'])
@@ -98,6 +99,7 @@ class Cut(object):
                     chars_done.append(c)
                 except Exception as e:
                     log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    print(e)
 
             # 列框切图
             columns_todo, columns_done = list(set(c['column']['cid'] for c in chars_done)), []
