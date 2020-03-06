@@ -62,9 +62,10 @@ class Cut(object):
         ])
         page_dict = {p['name']: p for p in pages}
         # 处理有效页面
-        for page_name in valid_names:
+        for i, page_name in enumerate(valid_names):
             page = page_dict.get(page_name)
             chars_todo, chars_done = [c for c in chars if c['page_name'] == page_name], []
+            print('%d %s: %d chars' % (i + 1, page_name, len(chars_todo)))
             # 获取大图
             try:
                 img_file = self.get_big_img(page_name)
@@ -240,7 +241,15 @@ def extract_img(db=None, condition=None, chars=None, regen=True, username=None):
             condition = {'img_need_updated': True}
         elif isinstance(condition, str):
             condition = json.loads(condition)
-        chars = list(db.char.find(condition))
+
+        chars = []
+        for index in range(10000):
+            rows = list(db.char.find(condition).skip(index * 1000).limit(1000))
+            if rows:
+                chars.extend(rows)
+            else:
+                break
+        print('%d chars to generate' % len(chars))
 
     cut = Cut(db, cfg, regen=regen)
     log = cut.cut_img(chars)
