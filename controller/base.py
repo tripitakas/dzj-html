@@ -318,7 +318,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             img_url = '/{0}/{1}'.format(local_path.strip('/'), relative_url)
             if path.exists(path.join(BASE_DIR, img_url[1:])):
                 return img_url
-            elif shared_cloud and img_type in self.get_config('web_img.shared_type'):
+            elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
                 return path.join(shared_cloud, relative_url)
             else:
                 return img_url + '?err=1'  # cut.js 据此不显示图

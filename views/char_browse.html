@@ -184,7 +184,7 @@
   function updateColumnImg(ch) {
     var column = ch.column;
     var columnImg = $('#col-holder');
-    var ratio = columnImg.height() / column.h;
+    var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);
     var imgName = ch.page_name + '_' + ch.column.cid;
     rect && rect.remove();
     rect = null;
