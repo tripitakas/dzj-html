@@ -39,6 +39,6 @@ class TestPageApi(APITestCase):
 
     def test_page_export_char(self):
         pages = self._app.db.page.find({'name': {'$regex': 'GL'}})
-        _ids = [str(p['_id']) for p in list(pages)]
-        r = self.fetch('/api/data/page/export_char', body={'data': {'_ids': _ids}})
+        page_names = [p['name'] for p in list(pages)]
+        r = self.fetch('/api/data/page/export_char', body={'data': {'page_names': page_names}})
         self.assert_code(200, r)
