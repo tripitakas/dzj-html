@@ -114,10 +114,13 @@
 }
 
 .ocr-txt {
-  cursor: pointer;
   font-size: 36px;
   margin: 0 14px 5px 0;
   border: 1px solid #ccc;
+}
+
+.ocr-alternatives .ocr-txt {
+  cursor: pointer;
 }
 
 .ocr-txt.active, .ocr-txt:hover {
@@ -136,7 +139,6 @@
   flex: 1;
   text-align: left;
   max-width: 45px;
-  cursor: pointer;
   font-size: 36px;
   margin-right: 5px;
   border-right: 1px solid #ccc;
@@ -164,6 +166,7 @@
 .txt-type .radio-item {
   width: 30%;
   display: inline-block;
+  cursor: pointer;
 }
 
 .radio-item.long {
