@@ -100,7 +100,6 @@ class Cut(object):
                 except Exception as e:
                     log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
-            print('%s: %d char images generated' % (page_name, len(chars_done)))
 
             # 列框切图
             columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
@@ -233,7 +232,7 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, condition=None, chars=None, regen=True, username=None, host=None):
+def extract_img(db=None, condition=None, chars=None, regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
 
     cfg = hp.load_config()
