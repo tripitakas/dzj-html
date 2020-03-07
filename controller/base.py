@@ -332,7 +332,7 @@ class BaseHandler(CorsMixin, RequestHandler):
             img_url = path.join(my_cloud.replace('-internal', ''), relative_url)
             if img_bucket.object_exists(relative_url):
                 return img_url
-            elif shared_cloud and img_type in self.get_config('web_img.shared_type'):
+            elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
                 return path.join(shared_cloud, relative_url)
             else:
                 return img_url + '?err=1'

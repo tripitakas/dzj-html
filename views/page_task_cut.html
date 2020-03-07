@@ -167,7 +167,9 @@
   $.cut.switchCurrentBox(null);
 
   // 初始化设置
-  $.cut.data.image.node.style.opacity = 0.2;
+  if ($.cut.data.image.node) {
+    $.cut.data.image.node.style.opacity = 0.2;
+  }
 
   var blockActive = localStorage.getItem('toggleBlock') || '-1';
   if (blockActive === '1') {

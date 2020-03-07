@@ -193,7 +193,8 @@
       if (result.value === 'searched' && !location.search.trim()) {
         return showWarning('提示', '请先进行综合检索');
       }
-      postApi('/char/gen_img', {data: {type: result.value, search: location.search, _ids: ids}}, (res) => {
+      postApi('/char/gen_img', {data: {type: result.value,
+          search: location.search, _ids: ids, regen: false}}, (res) => {
         showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
       });
     });
