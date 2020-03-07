@@ -6,6 +6,7 @@ import re
 import sys
 import oss2
 import json
+import math
 import hashlib
 from os import path
 from PIL import Image
@@ -49,7 +50,7 @@ class Cut(object):
             img = img.resize((w, h), Image.BICUBIC)
         return img
 
-    def cut_img(self, chars, save):
+    def cut_img(self, chars):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
         log = dict(success_char=[], fail_char=[], exist_char=[], success_column=[], fail_column=[])
@@ -65,9 +66,6 @@ class Cut(object):
         for i, page_name in enumerate(valid_names):
             page = page_dict.get(page_name)
             chars_todo, chars_done = [c for c in chars if c['page_name'] == page_name], []
-            if (i + 1) % 10 == 0:
-                save(log)
-
             # 获取大图
             try:
                 img_file = self.get_big_img(page_name)
@@ -130,7 +128,7 @@ class Cut(object):
             log['success_char'].extend([c['name'] for c in chars_done])
             log['success_column'].extend(columns_done)
 
-        save(log)
+        return log
 
     def get_big_img(self, page_name, inner_path=None):
         """ 读大图。page_name中不带hash值"""
@@ -239,16 +237,9 @@ class Oss(object):
 
 def extract_img(db=None, condition=None, chars=None, regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
-    def save(log):
-        if log.get('success_char'):
-            update = {'has_img': True, 'img_need_updated': False}
-            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
-        Bh.add_op_log(db, 'extract_img', log, username)
-        for k in log:
-            log[k] = []
-
     cfg = hp.load_config()
     db = db or hp.connect_db(cfg['database'], host=host)[0]
+    cut = Cut(db, cfg, regen=regen)
 
     if not chars:
         if not condition:
@@ -256,17 +247,16 @@ def extract_img(db=None, condition=None, chars=None, regen=False, username=None,
         elif isinstance(condition, str):
             condition = json.loads(condition)
 
-        chars = []
-        for index in range(10000):
-            rows = list(db.char.find(condition).skip(index * 1000).limit(1000))
-            if rows:
-                chars.extend(rows)
-            else:
-                break
+    once_size = 1000
+    total_count = db.page.count_documents(condition)
+    for i in range(int(math.ceil(total_count / once_size))):
+        chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         print('%d chars to generate' % len(chars))
-
-    cut = Cut(db, cfg, regen=regen)
-    cut.cut_img(chars, save)
+        log = cut.cut_img(chars)
+        if log.get('success_char'):
+            update = {'has_img': True, 'img_need_updated': False}
+            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+        Bh.add_op_log(db, 'extract_img', log, username)
 
 
 if __name__ == '__main__':
