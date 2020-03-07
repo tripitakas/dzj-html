@@ -218,7 +218,7 @@ class CharListHandler(BaseHandler, Char):
 
     def get_duplicate_condition(self):
         chars = list(self.db.char.aggregate([
-            {'$group': {'_id': '$id', 'count': {'$sum': 1}}},
+            {'$group': {'_id': '$name', 'count': {'$sum': 1}}},
             {'$match': {'count': {'$gte': 2}}},
         ]))
         condition = {'id': {'$in': [c['_id'] for c in chars]}}
@@ -231,6 +231,8 @@ class CharListHandler(BaseHandler, Char):
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
         if key == 'txt_type':
             return self.txt_types.get(value, value)
+        if key in ['cc', 'sc'] and value:
+            return value / 1000
         if key == 'has_img' and value not in [None, False]:
             return r'<img class="char-img" src="%s"/>' % self.get_web_img(doc['name'], 'char')
         return h.format_value(value, key, doc)

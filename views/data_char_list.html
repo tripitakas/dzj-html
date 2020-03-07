@@ -95,7 +95,7 @@
             <div class="col-sm-10">
               <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入字编码，可部分输入">
             </div>
-            <h4 class="col-sm-2 control-label">分类</h4>
+            <h4 class="col-sm-2 control-label">分　类</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
             </div>
@@ -124,7 +124,7 @@
             <div class="col-sm-10">
               <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
             </div>
-            <h4 class="col-sm-2 control-label">备注</h4>
+            <h4 class="col-sm-2 control-label">备　注</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
             </div>
@@ -214,7 +214,7 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'ocr', 'txt', 'remark', 'cc'];
+  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
   var selectFields = ['txt_type'];
   $searchModal.find('.modal-confirm').click(function () {
     var search = '';
