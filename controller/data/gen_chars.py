@@ -68,10 +68,9 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
     if un_existed:
         db.char.insert_many(un_existed, ordered=False)
 
-    Bh.add_op_log(db, 'gen_chars', dict(
-        inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
-        invalid_char=invalid_chars, invalid_pages=invalid_pages
-    ), username)
+    log = dict(inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
+               invalid_char=invalid_chars, invalid_pages=invalid_pages)
+    Bh.add_op_log(db, 'gen_chars', log, username)
 
 
 if __name__ == '__main__':

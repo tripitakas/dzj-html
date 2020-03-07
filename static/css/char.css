@@ -80,11 +80,12 @@
 .flex-content .work-panel {
   flex: 1;
   height: 100%;
-  width: 360px;
+  width: 300px;
   max-width: 300px;
   background: var(--Grey_Content);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 
 .work-panel .txt-list {

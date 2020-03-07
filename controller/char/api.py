@@ -58,8 +58,8 @@ class CharUpdateApi(BaseHandler, Char):
                 self.data['txt_type'] = r[0]
                 self.data['txt'] = self.data['txt'].replace(r[0], '')
 
-            my_log = {k: self.data[k] for k in ['txt', 'txt_type', 'normal_txt', 'remark'] if self.data.get(k)}
-            my_log.update({'edit_type': 'char_edit', 'updated_time': self.now()})
+            my_log = {k: self.data[k] for k in ['txt', 'normal_txt', 'remark'] if self.data.get(k)}
+            my_log.update({'edit_type': 'char_edit', 'txt_type': self.data.get('txt_type'), 'updated_time': self.now()})
             new_log = True
             logs = char.get('txt_logs') or []
             for i, log in enumerate(logs):

@@ -12,7 +12,7 @@
   <![endif]-->
 </head>
 
-<body class="widescreen">
+<body class="widescreen" style="padding-right: 0 !important; height: 100% !important;">
 <div class="app-main">
   <div class="main">
     <div class="m-header">
@@ -25,6 +25,10 @@
           聚类校对
         </div>
       </div><!--left-->
+      <div class="right">
+        <div class="btn-txt glyphicon glyphicon-sort" id="sort-char" title="排序"></div>
+        <div class="btn-txt glyphicon glyphicon-filter" data-toggle="modal" data-target="#filterModal" title="过虑"></div>
+      </div>
     </div>
     <div class="full-bd flex-content">
       <div class="char-panel">
@@ -154,6 +158,28 @@
       </div>
     </div>
   </div>
+  <div id="filterModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="filterModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <form class="form-horizontal">
+            <div class="form-group">
+              <h4 class="col-sm-2 control-label">置信度</h4>
+              <div class="col-sm-8">
+                <input type="text" class="form-control start" placeholder="起始值" style="float: left;width: 45%">
+                <span style="margin-left: 4%; line-height: 32px">~</span>
+                <input type="text" class="form-control end" placeholder="终止值" style="float: right;width: 45%">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% include _base_js.html %}
 {% include _font_css.html %}
@@ -248,6 +274,40 @@
   // 帮助
   $('.proof-help').click(function () {
     $('#helpModal').modal();
+  });
+
+  // 排序
+  $('#sort-char').on('click', function (e) {
+    var inputOptions = {cc_asc: '按置信度升序', cc_desc: '按置信度降序'};
+    Swal2.fire({input: 'radio', title: '排序', inputOptions: inputOptions}).then((result) => {
+      if (!result.value)
+        return;
+      if (result.value === 'cc_asc') {
+        location.href = setQueryString('order', 'cc');
+      }
+      if (result.value === 'cc_desc') {
+        location.href = setQueryString('order', '-cc');
+      }
+    });
+  });
+
+  // 过滤
+  $('#filterModal .modal-confirm').on('click', function () {
+    var start = $('#filterModal .start').val();
+    var end = $('#filterModal .end').val();
+    if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)
+      return showTips('提示', '起始值不符合要求');
+    if (end && end.match(/^(0\.\d+|0|1|1\.0)$/) === null)
+      return showTips('提示', '终止值不符合要求');
+    if (!start.length && !end.length)
+      return showTips('提示', '请输入起始值或终止值');
+    if (start.length && !end.length) {
+      location.href = setQueryString('cc', '>=' + start);
+    } else if (end.length && !start.length) {
+      location.href = setQueryString('cc', '<=' + end);
+    } else {
+      location.href = setQueryString('cc', start + ',' + end);
+    }
   });
 
   // 点击候选字

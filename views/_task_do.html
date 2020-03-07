@@ -47,7 +47,7 @@
       <div class="right">
         {% block task-actions %}
         <img src="{{static_url('imgs/loading.gif')}}" class="btn-img hide" id="progress" title="进行中"/>
-        <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" data-toggle="modal" data-target="#taskConfigModal" title="任务配置"/>
+        <div class="btn-txt glyphicon glyphicon-cog {{'hide' if handler.readonly else ''}}" data-toggle="modal" data-target="#taskConfigModal" title="任务配置"></div>
         <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
         <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
         <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>

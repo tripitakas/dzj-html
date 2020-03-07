@@ -312,6 +312,9 @@ class Char(Model):
 
     @staticmethod
     def get_char_search_condition(request_query):
+        def c2int(c):
+            return int(float(c) * 1000)
+
         condition, params = dict(), dict()
         for field in ['ocr_txt', 'txt', 'txt_type']:
             value = h.get_url_param(field, request_query)
@@ -327,8 +330,11 @@ class Char(Model):
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
-                m = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', value)
-                if m:
-                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m.group(1))
-                    condition.update({field: {op: int(float(m.group(2)) * 1000)} if op else value})
+                m1 = re.search(r'^([><]=?)(0|1|[01]\.\d+)$', value)
+                m2 = re.search(r'^(0|1|[01]\.\d+),(0|1|[01]\.\d+)$', value)
+                if m1:
+                    op = {'>': '$gt', '<': '$lt', '>=': '$gte', '<=': '$lte'}.get(m1.group(1))
+                    condition.update({field: {op: c2int(m1.group(2))} if op else value})
+                elif m2:
+                    condition.update({field: {'$gte': c2int(m2.group(1)), '$lte': c2int(m2.group(2))}})
         return condition, params
