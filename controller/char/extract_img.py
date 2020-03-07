@@ -73,6 +73,7 @@ class Cut(object):
             except Exception as e:
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
                 log['fail_char'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
+                print(reason)
                 continue
             iw, ih = img_page.size
             pw, ph = int(page['width']), int(page['height'])
@@ -98,9 +99,11 @@ class Cut(object):
                     chars_done.append(c)
                 except Exception as e:
                     log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    print(e)
+            print('%s: %d char images generated' % (page_name, len(chars_done)))
 
             # 列框切图
-            columns_todo, columns_done = list(set(c['column']['cid'] for c in chars_done)), []
+            columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
             for cid in columns_todo:
                 column = [c for c in page['columns'] if c['cid'] == cid]
                 if not column:
@@ -230,11 +233,11 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, condition=None, chars=None, regen=True, username=None):
+def extract_img(db=None, condition=None, chars=None, regen=True, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
 
     cfg = hp.load_config()
-    db = db or hp.connect_db(cfg['database'])[0]
+    db = db or hp.connect_db(cfg['database'], host=host)[0]
 
     if not chars:
         if not condition:

@@ -41,12 +41,12 @@ def load_config():
     return config
 
 
-def connect_db(cfg, db_name_ext=''):
+def connect_db(cfg, db_name_ext='', host=None):
     if cfg.get('user'):
         uri = 'mongodb://{0}:{1}@{2}:{3}/admin'
-        uri = uri.format(cfg['user'], cfg['password'], cfg['host'], cfg.get('port', 27017))
+        uri = uri.format(cfg['user'], cfg['password'], host or cfg['host'], cfg.get('port', 27017))
     else:
-        uri = 'mongodb://{0}:{1}/'.format(cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
+        uri = 'mongodb://{0}:{1}/'.format(host or cfg.get('host') or '127.0.0.1', cfg.get('port', 27017))
     conn = pymongo.MongoClient(
         uri, connectTimeoutMS=2000, serverSelectionTimeoutMS=2000,
         maxPoolSize=10, waitQueueTimeoutMS=5000
