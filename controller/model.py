@@ -29,6 +29,7 @@ class Model(object):
     rules = []  # 校验规则
 
     """ 前端列表页面参数"""
+    page_size = None  # 每页显示多少条
     page_title = ''  # 页面title
     search_tips = ''  # 查询提示
     search_fields = []  # 查询哪些字段
@@ -114,10 +115,36 @@ class Model(object):
             query.sort(o, asc)
         doc_count = self.db[cls.collection].count_documents(condition)
         cur_page = int(self.get_query_argument('page', 1))
-        page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
+        page_size = int(self.get_query_argument('page_size', 0) or cls.page_size or self.get_config('pager.page_size'))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page
         docs = list(query.skip((cur_page - 1) * page_size).limit(page_size))
+        pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
+        return docs, pager, q, order
+
+    @classmethod
+    def aggregate_by_page(cls, self, condition=None, aggregates=None, default_order='', projection=None):
+        """ 聚合数据库中的记录，按页返回结果"""
+        condition = condition or {}
+        aggregates = aggregates or []
+        q = self.get_query_argument('q', '')
+        if q and cls.search_fields:
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
+        aggregates.append({'$match': condition})
+        if projection:
+            aggregates.append({'$project': projection})
+        order = self.get_query_argument('order', default_order)
+        if order:
+            o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
+            aggregates.append({'$sort': {o: asc}})
+        doc_count = self.db[cls.collection].count_documents(condition)
+        cur_page = int(self.get_query_argument('page', 1))
+        page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
+        max_page = math.ceil(doc_count / page_size)
+        cur_page = max_page if max_page and max_page < cur_page else cur_page
+        aggregates.append({'$skip': (cur_page - 1) * page_size})
+        aggregates.append({'$limit': page_size})
+        docs = list(self.db[cls.collection].aggregate(aggregates))
         pager = dict(cur_page=cur_page, doc_count=doc_count, page_size=page_size)
         return docs, pager, q, order
 

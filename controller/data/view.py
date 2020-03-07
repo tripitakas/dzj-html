@@ -193,6 +193,12 @@ class CharListHandler(BaseHandler, Char):
         {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
+        {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
+            {'operation': 'source', 'label': '按分类'},
+            {'operation': 'txt', 'label': '按原字'},
+            {'operation': 'ocr_txt', 'label': '按OCR'},
+            {'operation': 'normal_txt', 'label': '按正字'},
+        ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': v} for k, v in Task.get_task_types('char').items()
         ]},
@@ -248,6 +254,24 @@ class CharListHandler(BaseHandler, Char):
             self.render('data_char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         Task=Task, txt_types=self.txt_types, format_value=self.format_value,
                         **kwargs)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class CharStatisticHandler(BaseHandler, Char):
+    URL = '/data/char/statistic'
+
+    def get(self):
+        """ 统计字数据"""
+        try:
+            condition = self.get_char_search_condition(self.request.query)[0]
+            kind = self.get_query_argument('kind', '')
+            if kind not in ['source', 'txt', 'ocr_txt', 'normal_txt']:
+                return self.send_error_response(e.statistic_type_error, message='只能按分类、原字、正字和OCR文字统计')
+            aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
+            docs, pager, q, order = self.aggregate_by_page(self, condition, aggregates, default_order='-count')
+            self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind)
 
         except Exception as error:
             return self.send_db_error(error)

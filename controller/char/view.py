@@ -8,6 +8,8 @@ from controller.base import BaseHandler
 class CharBrowseHandler(BaseHandler, Char):
     URL = '/char/browse'
 
+    page_size = 50
+
     def get(self):
         """ 浏览字图"""
         try:

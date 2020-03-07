@@ -26,3 +26,17 @@
   </select>
   条</span>
 </div>
+
+<script>
+  $('.pagers .page-no').on("keydown", function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var page = $(this).val().trim();
+      page = page > 1 ? page : 1;
+      location.href = setQueryString('page', page);
+    }
+  });
+  $('.pagers .page-size').on("change", function () {
+    location.href = setQueryString('page_size', this.value);
+  });
+</script>

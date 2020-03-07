@@ -212,12 +212,16 @@
     });
   });
 
+  // 统计检索结果
+  $('.operation .btn-statistic a').click(function () {
+    location.href = '/data/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+  });
+
   // 生成字图
   $('.operation .bat-gen-img').click(function () {
     $('#genModal #selected-count').text($('table tbody :checked').length);
     $('#genModal').modal();
   });
-
   $('#genModal .modal-confirm').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     var data = {_ids: ids, type: $('.range :checked').val(), regen: $('.regen :checked').val(), search: location.search};

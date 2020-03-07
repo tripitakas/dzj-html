@@ -194,6 +194,7 @@ role_route_maps = {
             '/api/data/gen_js': ['POST'],
             '/page/browse/@page_name': ['GET'],
             '/data/page/info/@page_name': ['GET'],
+            '/data/char/statistic': ['GET'],
             '/api/data/page/export_char': ['POST'],
             '/api/data/(page|char)/source': ['POST'],
             '/api/char/gen_img': ['POST'],
