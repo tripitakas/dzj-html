@@ -256,7 +256,7 @@ def extract_img(db=None, condition=None, chars=None, regen=False, username=None,
         condition = json.loads(condition)
 
     once_size = 1000
-    total_count = db.page.count_documents(condition)
+    total_count = db.char.count_documents(condition)
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         print('%d chars to generate' % len(chars))
