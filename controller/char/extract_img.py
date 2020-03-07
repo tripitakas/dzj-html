@@ -49,7 +49,7 @@ class Cut(object):
             img = img.resize((w, h), Image.BICUBIC)
         return img
 
-    def cut_img(self, chars):
+    def cut_img(self, chars, save):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
         log = dict(success_char=[], fail_char=[], exist_char=[], success_column=[], fail_column=[])
@@ -65,7 +65,9 @@ class Cut(object):
         for i, page_name in enumerate(valid_names):
             page = page_dict.get(page_name)
             chars_todo, chars_done = [c for c in chars if c['page_name'] == page_name], []
-            print('%d %s: %d chars' % (i + 1, page_name, len(chars_todo)))
+            if (i + 1) % 10 == 0:
+                save(log)
+
             # 获取大图
             try:
                 img_file = self.get_big_img(page_name)
@@ -103,6 +105,9 @@ class Cut(object):
 
             # 列框切图
             columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
+            print('%d %s: %d generated in %d chars, %d columns' % (
+                i + 1, page_name, len(chars_done), len(chars_todo), len(columns_todo)))
+
             for cid in columns_todo:
                 column = [c for c in page['columns'] if c['cid'] == cid]
                 if not column:
@@ -125,7 +130,7 @@ class Cut(object):
             log['success_char'].extend([c['name'] for c in chars_done])
             log['success_column'].extend(columns_done)
 
-        return log
+        save(log)
 
     def get_big_img(self, page_name, inner_path=None):
         """ 读大图。page_name中不带hash值"""
@@ -234,6 +239,13 @@ class Oss(object):
 
 def extract_img(db=None, condition=None, chars=None, regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
+    def save(log):
+        if log.get('success_char'):
+            update = {'has_img': True, 'img_need_updated': False}
+            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+        Bh.add_op_log(db, 'extract_img', log, username)
+        for k in log:
+            log[k] = []
 
     cfg = hp.load_config()
     db = db or hp.connect_db(cfg['database'], host=host)[0]
@@ -254,12 +266,7 @@ def extract_img(db=None, condition=None, chars=None, regen=False, username=None,
         print('%d chars to generate' % len(chars))
 
     cut = Cut(db, cfg, regen=regen)
-    log = cut.cut_img(chars)
-    if log.get('success_char'):
-        update = {'has_img': True, 'img_need_updated': False}
-        db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
-
-    Bh.add_op_log(db, 'extract_img', log, username)
+    cut.cut_img(chars, save)
 
 
 if __name__ == '__main__':
