@@ -100,9 +100,10 @@ class Cut(object):
                 except Exception as e:
                     log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
+            print('%s: %d char images generated' % (page_name, len(chars_done)))
 
             # 列框切图
-            columns_todo, columns_done = list(set(c['column']['cid'] for c in chars_done)), []
+            columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
             for cid in columns_todo:
                 column = [c for c in page['columns'] if c['cid'] == cid]
                 if not column:
