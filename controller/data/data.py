@@ -189,6 +189,8 @@ class Page(Model):
     ]
     primary = 'name'
     layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']  # 图片的版面结构
+    search_tips = '请搜索页编码、分类、页面结构、统一经编码、卷编码'
+    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
 
     @classmethod
     def metadata(cls):
@@ -235,12 +237,14 @@ class Page(Model):
         if pages:
             r = db.page.insert_many(pages)
         message = '导入page，总共%s条记录，插入%s条，%s条旧数据。' % (len(page_names), len(pages), len(existed_pages))
-        print(message)
         return dict(status='success', message=message, inserted_ids=r.inserted_ids if pages else [])
 
-    @staticmethod
-    def get_page_search_condition(request_query):
+    @classmethod
+    def get_page_search_condition(cls, request_query):
         condition, params = dict(), dict()
+        q = h.get_url_param('q', request_query)
+        if q and cls.search_fields:
+            condition['$or'] = [{k: {'$regex': q, '$options': '$i'}} for k in cls.search_fields]
         for field in ['name', 'source', 'remark-box', 'remark-text']:
             value = h.get_url_param(field, request_query)
             if value:
@@ -307,11 +311,15 @@ class Char(Model):
         (v.is_page, 'page_name'),
     ]
     primary = 'id'
+
     txt_types = {'Z': '正字', 'Y': '广义异体字', 'X': '狭义异体字', 'M': '模糊字', 'N': '不确定', '*': '不认识'}
     edit_types = {'char_edit': '单字校对', 'cluster_proof': '聚类校对', 'cluster_review': '聚类审定'}
+    # search_fields在这里定义，这样find_by_page时q参数才会起作用
+    search_tips = '请搜索字编码、分类、文字'
+    search_fields = ['name', 'source', 'ocr', 'txt', 'txt_normal']
 
-    @staticmethod
-    def get_char_search_condition(request_query):
+    @classmethod
+    def get_char_search_condition(cls, request_query):
         def c2int(c):
             return int(float(c) * 1000)
 

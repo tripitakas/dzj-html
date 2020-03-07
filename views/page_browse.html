@@ -154,7 +154,7 @@
         <label>相关任务:</label>
         <span class="tasks">
           {% for task, status in page.get('tasks', {}).items() %}
-          <span class="task">{{Task.get_task_name(task)+'/'+Task.get_status_name(status)}}</span>
+          <span class="task">{{handler.get_task_name(task)+'/'+handler.get_status_name(status)}}</span>
           {% end %}
           {% end %}
         </span>

@@ -44,8 +44,6 @@ class PageListHandler(BaseHandler, Page):
 
     # 列表相关参数
     page_title = '页数据管理'
-    search_tips = '请搜索页编码、分类、页面结构、统一经编码、卷编码'
-    search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
     table_fields = [
         {'id': 'name', 'name': '页编码'},
         {'id': 'source', 'name': '分类'},
@@ -167,8 +165,6 @@ class CharListHandler(BaseHandler, Char):
     URL = '/data/char'
 
     page_title = '字数据管理'
-    search_tips = '请搜索字编码、分类、文字'
-    search_fields = ['name', 'source', 'ocr', 'txt', 'txt_normal']
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
         {'id': 'source', 'name': '分类'},
