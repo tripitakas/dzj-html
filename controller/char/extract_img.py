@@ -241,11 +241,19 @@ def extract_img(db=None, condition=None, chars=None, regen=False, username=None,
     db = db or hp.connect_db(cfg['database'], host=host)[0]
     cut = Cut(db, cfg, regen=regen)
 
-    if not chars:
-        if not condition:
-            condition = {'img_need_updated': True}
-        elif isinstance(condition, str):
-            condition = json.loads(condition)
+    if chars:
+        print('%d chars to generate' % len(chars))
+        log = cut.cut_img(chars)
+        if log.get('success_char'):
+            update = {'has_img': True, 'img_need_updated': False}
+            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+        Bh.add_op_log(db, 'extract_img', log, username)
+        return
+
+    if not condition:
+        condition = {'img_need_updated': True}
+    elif isinstance(condition, str):
+        condition = json.loads(condition)
 
     once_size = 1000
     total_count = db.page.count_documents(condition)
