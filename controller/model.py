@@ -137,7 +137,7 @@ class Model(object):
         if order:
             o, asc = (order[1:], -1) if order[0] == '-' else (order, 1)
             aggregates.append({'$sort': {o: asc}})
-        doc_count = self.db[cls.collection].count_documents(condition)
+        doc_count = len(list(self.db[cls.collection].aggregate(aggregates)))
         cur_page = int(self.get_query_argument('page', 1))
         page_size = int(self.get_query_argument('page_size', prop(self.config, 'pager.page_size', 10)))
         max_page = math.ceil(doc_count / page_size)
