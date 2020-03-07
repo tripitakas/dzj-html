@@ -27,8 +27,8 @@ class CharGenImgApi(BaseHandler, Char):
 
             # 启动脚本，生成字图
             script = 'nohup python3 %s/extract_img.py --username="%s" --regen=%s >> log/extract_img.log 2>&1 &'
-            os.system(script % (path.dirname(__file__), self.username,
-                                int(self.data.get('regen') in ['1', True, 'true'])))
+            print(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
+            os.system(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
             self.send_data_response()
 
         except self.DbError as error:

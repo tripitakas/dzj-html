@@ -11,9 +11,14 @@
     width: 60px;
   }
 
-  #searchModal .modal-body h4, #searchModal .modal-body div {
+  #searchModal .control-label, #searchModal .control-label + div {
     margin: 5px 0;
   }
+
+  #genModal .control-label, #genModal .control-label + div {
+    padding: 8px 5px;
+  }
+
 </style>
 {% include _font_css.html %}
 {% end %}
@@ -88,6 +93,7 @@
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
+      <div class="modal-header"><h4 class="modal-title">综合检索</h4></div>
       <div class="modal-body">
         <form class="form-horizontal">
           <div class="form-group">
@@ -139,6 +145,33 @@
     </div>
   </div>
 </div>
+<div id="genModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h4 class="modal-title">生成字图</h4></div>
+      <div class="modal-body">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <h4 class="col-sm-4 control-label">针对哪些数据？</h4>
+            <div class="col-sm-8 range">
+              <input type="radio" name="range" value="selected" style="margin-right: 10px" checked>选中记录(<span id="selected-count">0</span>条)
+              <input type="radio" name="range" value="searched" style="margin: 0 10px">检索结果({{pager['doc_count']}}条)
+            </div>
+            <h4 class="col-sm-4 control-label">已有字图时是否重新生成？</h4>
+            <div class="col-sm-8 regen">
+              <input type="radio" name="regen" value="否" style="margin-right: 10px" checked>否
+              <input type="radio" name="regen" value="是" style="margin: 0 10px">是
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -153,15 +186,15 @@
           <input type="text" class="form-control batch" placeholder="请输入批次号">
         </div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-      <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">确定</button>
-      <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">确定</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
+      </div>
     </div>
   </div>
 </div>
-</div>
+
 {% end %}
 
 {% block custom-js %}
@@ -181,22 +214,16 @@
 
   // 生成字图
   $('.operation .bat-gen-img').click(function () {
-    var docCount = '{{pager["doc_count"]}}';
+    $('#genModal #selected-count').text($('table tbody :checked').length);
+    $('#genModal').modal();
+  });
+
+  $('#genModal .modal-confirm').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var inputOptions = {selected: '选中记录(' + ids.length + ')', searched: '检索结果(' + docCount + ')'};
-    Swal2.fire({input: 'radio', title: '针对哪些记录生成字图？', inputOptions: inputOptions}).then((result) => {
-      if (!result.value)
-        return;
-      if (result.value === 'selected' && !ids) {
-        return showWarning('提示', '请选择记录');
-      }
-      if (result.value === 'searched' && !location.search.trim()) {
-        return showWarning('提示', '请先进行综合检索');
-      }
-      postApi('/char/gen_img', {data: {type: result.value,
-          search: location.search, _ids: ids, regen: false}}, (res) => {
-        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
-      });
+    var data = {_ids: ids, type: $('.range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
+    postApi('/char/gen_img', {data: data}, (res) => {
+      showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
+      $('#genModal').modal('hide');
     });
   });
 

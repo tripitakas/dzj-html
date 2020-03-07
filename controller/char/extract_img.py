@@ -86,7 +86,7 @@ class Cut(object):
                 if not oc:
                     log['fail_char'].append(dict(id=c['id'], reason='origin cid not exist'))
                     continue
-                if c.get('has_img') and not self.kwargs.get('reset') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
+                if c.get('has_img') and not self.kwargs.get('regen') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                     if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                         log['exist_char'].append(c['name'])
                         continue
