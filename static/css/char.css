@@ -106,6 +106,7 @@
   margin: 5px 0;
   font-size: 1.2em;
   font-weight: 500;
+  user-select: none;
   border-bottom: 1px solid #ccc;
   color: var(--Color_333);
 }
@@ -114,21 +115,18 @@
   margin-bottom: 20px;
 }
 
-.ocr-txt {
+.txt-item {
+  cursor: pointer;
   font-size: 36px;
-  margin: 0 14px 5px 0;
+  margin: 0 12px 5px 0;
   border: 1px solid #ccc;
 }
 
-.ocr-alternatives .ocr-txt {
-  cursor: pointer;
-}
-
-.ocr-txt.active {
+.txt-item.active {
   background-color: rgba(0, 0, 0, .1);
 }
 
-.ocr-txt:hover, .log-txt:hover {
+.txt-item:hover {
   background-color: rgba(0, 0, 0, .1);
   border: 1px solid rgba(0, 0, 255, .4);
 }
@@ -145,11 +143,6 @@
   font-size: 36px;
   margin-right: 5px;
   border-right: 1px solid #ccc;
-}
-
-.log .log-txt {
-  cursor: pointer;
-  border: 1px solid #ccc;
 }
 
 .log .log-meta {

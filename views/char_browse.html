@@ -54,28 +54,33 @@
         <input type="hidden" id="currentId">
         <input type="hidden" id="currentName">
         <div class="items txt-list">
-          <div class="item cur-meta hide">
-            <label class="head">基本信息</label>
-            <div class="info">
-              {% for f in [i for i in ['name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
-              <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
-              {% end %}
-            </div>
-          </div>
           <div class="item ocr-alternatives">
             <label class="head">OCR候选</label>
             <div class="body">
               {% for t in c.get('alternatives', '')%}
-              <span class="ocr-txt">{{t}}</span>
+              <span class="ocr-txt txt-item">{{t}}</span>
               {% end %}
+            </div>
+          </div>
+          <div class="item cur-meta hide">
+            <label class="head">当前信息</label>
+            <div class="body">
+              <div class="log">
+                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('normal_txt')}}</span></div>
+                <div class="log-meta">
+                  {% for f in [i for i in ['name', 'page_name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
+                  <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
+                  {% end %}
+                </div>
+              </div>
             </div>
           </div>
           <div class="item logs">
             <label class="head">校对记录</label>
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
-              <div class="log">
-                <div class="log-head"><span class="log-txt">{{log.get('txt') or log.get('normal_txt')}}</span></div>
+              <div class="log current">
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('normal_txt')}}</span></div>
                 <div class="log-meta">
                   {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
@@ -192,7 +197,7 @@
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
-      var head = `<span class="log-txt">${log.txt || log.normal_txt}</span>`;
+      var head = `<span class="log-txt txt-item">${log.txt || log.normal_txt}</span>`;
       var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
       meta += log.normal_txt ? `<label>正字</label><span>${log.normal_txt}</span><br/>` : '';
       meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
@@ -240,7 +245,7 @@
     $(this).addClass('current');
     // 更新OCR候选
     $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
-      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+      return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
     // 更新校对历史
     updateLogs(ch.txt_logs);
@@ -310,17 +315,13 @@
 
   // 点击候选字
   var $txt = $('.proof .txt');
-  $(document).on('click', '.ocr-alternatives .ocr-txt', function () {
+  $(document).on('click', '.txt-item', function () {
     var txt = $txt.val();
     $txt.val($(this).text() + txt.replace(/[^A-Z*]/, ''));
-    $('.ocr-txt').removeClass('active');
+    $('.txt-item.active').removeClass('active');
     if ($txt.val().indexOf($(this).text()) >= 0) {
       $(this).addClass('active');
     }
-  });
-  $(document).on('click', '.log-txt', function () {
-    var txt = $txt.val();
-    $txt.val($(this).text() + txt.replace(/[^A-Z*]/, ''));
   });
 
   // 点击文字类型
