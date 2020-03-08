@@ -189,7 +189,7 @@
   var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
   {% set first_i = [i for i, c in enumerate(docs) if c['column']][0] %}
-  var columnBaseUrl = "{{[handler.get_web_img('%s_%s' % (docs[first_i]['page_name'], docs[first_i]['column']['cid']), 'column')}}";
+  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[first_i]['page_name'], docs[first_i]['column']['cid']), 'column')}}";
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
