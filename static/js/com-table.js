@@ -5,7 +5,7 @@
 
 // 排序
 $('.sty-table .sort').click(function () {
-  var direction = $(this).find('.ion-arrow-down-b').hasClass('toggle') ? '-' : '';
+  var direction = $(this).find('span').hasClass('icon-triangle-up') ? '-' : '';
   location.href = setQueryString('order', direction + $(this).attr('title'));
 });
 

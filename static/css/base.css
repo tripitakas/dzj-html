@@ -208,7 +208,18 @@ a:hover, a:visited, a:focus {
   width: 100%;
 }
 
-.main-menu .menu-title, .main-menu .leaf {
+.menu-item i[class^="icon-"] {
+  color: #333;
+  font-weight: 300;
+}
+
+.menu-item .icon-subitem {
+  color: #333;
+  font-size: 12px;
+  font-weight: 300;
+}
+
+.main-menu .menu-title {
   display: block;
 }
 
@@ -244,6 +255,10 @@ a:hover, a:visited, a:focus {
 
 .main-menu .sub-ul .sub-active {
   background: var(--Brown);
+}
+
+.main-menu .sub-ul-hidden {
+  display: none;
 }
 
 .main-header {
@@ -317,92 +332,6 @@ a:hover, a:visited, a:focus {
   padding: 5px;
 }
 
-.sub-ul-hidden {
-  display: none;
-}
-
-.pagers {
-  margin: 20px 0 0;
-  text-align: center;
-}
-
-.pagers img {
-  margin-top: -12px;
-  width: 150px;
-  height: 46px;
-  display: inline-block;
-}
-
-.pagers span {
-  color: #333;
-  font-size: 14px;
-  line-height: 36px;
-  margin-right: 15px;
-}
-
-.pagers span em {
-  color: #f56558;
-}
-
-.pagers ul {
-  display: inline-block;
-  /* 消除display:inline-block产生的间隙 */
-  font-size: 0;
-  margin-bottom: 0;
-}
-
-.pagers ul li {
-  height: 32px;
-  /*background: #fff;*/
-  color: #4e4e4e;
-  font-size: 14px;
-  line-height: 32px;
-  margin-right: -1px;
-  display: inline-flex;
-  /*border: 1px solid #d3dae7;*/
-}
-
-.pagers ul li input {
-  width: 45px;
-  height: 20px;
-  padding: 0 3px;
-  margin: auto 5px;
-  border: 1px solid #ccc;
-  background: transparent;
-}
-
-.pagers li.active a {
-  background: #b8906f;
-  color: #FFFFFF;
-}
-
-.pagers li a {
-  cursor: pointer;
-  color: #4e4e4e;
-  padding: 0 12px;
-}
-
-.pagers li a:hover {
-  color: #000000;
-}
-
-.pagers ul li:last-child {
-  padding: 0 10px;
-}
-
-.pagers .page-size {
-  border: none;
-  background-color: transparent;
-}
-
-.sub-ul-hidden {
-  display: none;
-}
-
-.operation .btn-img {
-  width: 22px;
-  height: 22px;
-}
 
 .sty-list {
   margin-bottom: 20px;
@@ -531,31 +460,8 @@ a:hover, a:visited, a:focus {
   display: none;
 }
 
-.modal-body .progress-lg {
-  margin-top: 20px;
-}
-
 .single-page-con .modal {
   padding: 0;
-}
-
-.preview-img {
-  width: 60%;
-  float: left;
-}
-
-.preview-img img {
-  width: 100%;
-}
-
-.preview-text {
-  float: left;
-  width: 40%;
-  padding: 20px;
-}
-
-.modal-footer .pagers {
-  margin: 20px 0;
 }
 
 .ion-arrow-down-b:before {
@@ -579,16 +485,78 @@ a:hover, a:visited, a:focus {
   color: #317EEB;
 }
 
-.table-wrapper {
-  position: relative;
+.pagers {
+  margin: 20px 0 0;
+  text-align: center;
 }
 
-.single-page-con.enlarge {
-  margin-left: 0;
+.pagers img {
+  margin-top: -12px;
+  width: 150px;
+  height: 46px;
+  display: inline-block;
 }
 
-.main-header.enlarge {
-  padding-left: 0;
+.pagers span {
+  color: #333;
+  font-size: 14px;
+  line-height: 36px;
+  margin-right: 15px;
+}
+
+.pagers span em {
+  color: #f56558;
+}
+
+.pagers ul {
+  display: inline-block;
+  /* 消除display:inline-block产生的间隙 */
+  font-size: 0;
+  margin-bottom: 0;
+}
+
+.pagers ul li {
+  height: 32px;
+  /*background: #fff;*/
+  color: #4e4e4e;
+  font-size: 14px;
+  line-height: 32px;
+  margin-right: -1px;
+  display: inline-flex;
+  /*border: 1px solid #d3dae7;*/
+}
+
+.pagers ul li input {
+  width: 45px;
+  height: 20px;
+  padding: 0 3px;
+  margin: auto 5px;
+  border: 1px solid #ccc;
+  background: transparent;
+}
+
+.pagers li.active a {
+  background: #b8906f;
+  color: #FFFFFF;
+}
+
+.pagers li a {
+  cursor: pointer;
+  color: #4e4e4e;
+  padding: 0 12px;
+}
+
+.pagers li a:hover {
+  color: #000000;
+}
+
+.pagers ul li:last-child {
+  padding: 0 10px;
+}
+
+.pagers .page-size {
+  border: none;
+  background-color: transparent;
 }
 
 .ajax-error {
@@ -606,29 +574,17 @@ a:hover, a:visited, a:focus {
 }
 
 .m-header {
+  top: 0;
+  right: 0;
+  left: 0;
+  position: fixed;
   background: var(--Grey_Light);
   height: 40px;
-  position: fixed;
   z-index: 1000;
   display: flex;
   justify-content: space-between;
   vertical-align: middle;
   user-select: none;
-  top: 0;
-  right: 0;
-  left: 0;
-}
-
-.m-bottom {
-  position: fixed;
-  bottom: 0;
-  opacity: .9;
-  width: 100%;
-  height: 20px;
-  line-height: 20px;
-  background-color: #fff;
-  border-top: 1px solid #ddd;
-  color: var(--Brown_Darker);
 }
 
 .m-header > div {
@@ -649,13 +605,6 @@ a:hover, a:visited, a:focus {
 
 .m-header .right {
   float: right;
-}
-
-.m-header .help img {
-  margin-right: 20px;
-  margin-top: 8px;
-  width: 18px;
-  height: 18px;
 }
 
 .m-header .title {
@@ -694,7 +643,7 @@ a:hover, a:visited, a:focus {
   transform: scale(1.2);
 }
 
-.btn-img.active, btn-txt.active {
+.btn-img.active, .btn-txt.active {
   border: 1px solid #999;
   padding: 1px;
 }
@@ -707,7 +656,7 @@ a:hover, a:visited, a:focus {
   font-weight: 400;
   line-height: 39px;
   margin: 0 4px;
-  font-size: 18px;
+  font-size: 20px;
   display: inline-block;
   vertical-align: middle;
   color: var(--Brown_Darker);
@@ -724,7 +673,7 @@ a:hover, a:visited, a:focus {
   width: 0;
   height: 36px;
   padding: 1px 1px 0 0;
-  background-color: var(--Brown_Dark);
+  background-color: var(--Brown_Darker);
   margin: 1px 1px;
   float: initial;
 }
@@ -791,6 +740,19 @@ a:hover, a:visited, a:focus {
   overflow: auto;
 }
 
+.m-footer {
+  position: fixed;
+  bottom: 0;
+  opacity: .9;
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  color: var(--Brown_Darker);
+}
+
+/*modal*/
 .modal {
   padding: 0;
 }
@@ -822,6 +784,11 @@ a:hover, a:visited, a:focus {
   margin: 10px 0;
 }
 
+.modal-footer .pagers {
+  margin: 20px 0;
+}
+
+/* 帮助文档modal */
 .modal a.more-help {
   color: var(--Brown_Dark);
   margin-left: 10px;
@@ -873,47 +840,7 @@ a:hover, a:visited, a:focus {
   margin-left: -6px;
 }
 
-.sweet-alert h2 {
-  font-size: 22px;
-  font-weight: 500;
-}
-
-.sweet-alert p {
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.sweet-alert a {
-  color: var(--Brown_Dark);
-}
-
-.sweet-alert .message {
-  text-align: left;
-  word-break: break-all;
-}
-
-.sweet-alert .tips {
-  width: 100%;
-}
-
-.sweet-alert .tips li {
-  font-weight: normal;
-  display: flex;
-  justify-content: center;
-}
-
-.sweet-alert .tips li span {
-  flex: 1;
-  display: inline-block;
-  text-align: left;
-}
-
-.sweet-alert .tips li span.head {
-  flex: 1;
-  text-align: right;
-  padding-right: 20px;
-}
-
+/*swal2*/
 .swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
   outline: 0;
   border: 1px solid var(--Brown_Dark);
@@ -926,4 +853,57 @@ a:hover, a:visited, a:focus {
 
 .swal2-label {
   font-size: 1em;
+}
+
+/*bootstrap tooltip*/
+.tooltip {
+  opacity: 1 !important;
+}
+
+.tooltip .tooltip-inner {
+  color: #333;
+  font-weight: 400;
+  border-radius: 1px;
+  background-color: #eee;
+  box-shadow: 5px 5px 3px #888888;
+}
+
+.tooltip .tooltip-arrow {
+  border-bottom-color: #eee !important;
+}
+
+/*loading*/
+.animate-spin {
+  -moz-animation: spin 2s infinite linear;
+  -o-animation: spin 2s infinite linear;
+  -webkit-animation: spin 2s infinite linear;
+  animation: spin 2s infinite linear;
+  display: inline-block;
+}
+
+@-moz-keyframes spin {
+  from {
+    -moz-transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
