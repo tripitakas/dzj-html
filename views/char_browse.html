@@ -34,7 +34,7 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item" id="{{d['name']}}" title="{{d['char_id']}} {{d['_id']}}">
+          <div class="char-item" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
@@ -231,7 +231,7 @@
   }
 
   $('.char-item').on('click', function () {
-    var id = $(this).attr('title');
+    var id = $(this).attr('data-id');
     var ch = id in chars ? chars[id] : {};
     // 更新当前参数
     $('#currentId').val(id);
@@ -240,7 +240,7 @@
     $('.char-items .current').removeClass('current');
     $(this).addClass('current');
     // 更新OCR候选
-    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
+    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
       return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
     // 更新校对历史
