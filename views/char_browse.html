@@ -34,7 +34,7 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item" id="{{d['name']}}" title="{{d['_id']}}">
+          <div class="char-item" id="{{d['name']}}" title="{{d['char_id']}} {{d['_id']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
