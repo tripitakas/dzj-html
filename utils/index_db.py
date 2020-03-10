@@ -10,9 +10,7 @@ def main(db_name='tripitaka', uri='localhost'):
     :param db_name: 数据库名
     :param uri: 数据库服务器的地址，可为localhost或mongodb://user:password@server
     """
-    # db = pymongo.MongoClient(uri)[db_name]
-    uri_dev = 'mongodb://tripitaka-dev:sm2019321-321.dev@47.95.216.233'
-    db = pymongo.MongoClient(uri_dev)['tripitaka']
+    db = pymongo.MongoClient(uri)[db_name]
     # 创建索引，加速检索
     fields2index1 = {
         'user': ['name', 'email', 'phone'],

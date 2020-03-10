@@ -170,6 +170,9 @@ class AddPage(object):
             if name != fn[:-5]:
                 sys.stderr.write('filename not equal to name in json %s \n' % pathname)
                 continue
+            if not info['chars']:
+                sys.stderr.write('%s no chars\n' % name)
+                continue
             if self.add_page_box(name, info):
                 page_names.add(name)
         return page_names
