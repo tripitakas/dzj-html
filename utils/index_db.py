@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pymongo
+from pymongo.errors import PyMongoError
 
 
 def main(db_name='tripitaka', uri='localhost'):
@@ -20,7 +21,10 @@ def main(db_name='tripitaka', uri='localhost'):
     }
     for collection, fields in fields2index1.items():
         for field in fields:
-            db[collection].create_index(field)
+            try:
+                db[collection].create_index(field)
+            except PyMongoError as e:
+                print(e)
 
 
 if __name__ == '__main__':
