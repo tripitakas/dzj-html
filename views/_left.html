@@ -8,14 +8,14 @@
       {% for item in display_items %}
       <li class="menu-item {{'has-sub' if item.get('sub_items') else ''}}" id="{{item['id']}}">
         <div class="menu-title">
-          <i><img src='{{static_url("imgs/%s.png" % item["icon"]) }}' style="margin-top:10px;"></i>
-          <span><a href="{{item['link'] if item.get('link') else '#'}}">{{item['name']}}</a></span>
+          <i class='{{item["icon"]}}'></i>
+          <span><a href="{{item.get('link', '#')}}">{{item['name']}}</a></span>
         </div>
         {% if item.get('sub_items') %}
         <ul class="sub-ul sub-ul-hidden">
           {% for sub_item in item.get('sub_items') %}
           <li class="sub-item" id="{{sub_item['id']}}">
-            <i><img src='{{static_url("imgs/%s.png" % sub_item["icon"]) }}' class="sub-img"/></i>
+            <i class="icon-subitem"></i>
             <span><a href="{{sub_item['link']}}">{{sub_item['name']}}</a></span>
           </li>
           {% end %}
@@ -44,7 +44,7 @@
   });
 
   $(document).ready(function () {
-    var activeId = '{{active_id}}';
+    var activeId = '#{{active_id}}';
     if (!activeId)
       activeId = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
     $(activeId).addClass('active');

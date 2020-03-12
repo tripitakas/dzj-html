@@ -9,7 +9,7 @@
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="btn-group">
         <span class="filter" title="{{f['id']}}" data-toggle="dropdown" aria-expanded="false">
-          {% raw f['name'] %}<span class="ion-android-sort"></span>
+          {% raw f['name'] %}<span class="icon-notes"></span>
         </span>
         <ul class="dropdown-menu" role="menu">
           {% for k, v in f.get('filter').items() %}
@@ -21,7 +21,7 @@
     {% else %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="sort {{'active' if order in [fid, '-'+fid] else ''}}" title="{{fid}}">
-      {{f['name']}}<span class="ion-arrow-down-b {{'toggle' if order == fid else ''}}"></span>
+      {{f['name']}}<span class="icon-triangle-{{'up' if order == fid else 'down'}}"></span>
       </span>
     </th>
     {% end %}

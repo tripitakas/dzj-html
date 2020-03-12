@@ -15,26 +15,27 @@
 
 {% block buttons %}
 <div class="btn-group">
-  <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img" data-toggle="modal" data-target="#helpModal" title="帮助"/>
-  <img src="{{static_url('imgs/icon_pic.png')}}" class="btn-img active" id="toggle-image" title="显隐图片"/>
-  <img src="{{static_url('imgs/icon_blur.png')}}" class="btn-img active" id="toggle-blur" title="模糊"/>
-  <img src="{{static_url('imgs/icon_zoom1.png')}}" class="btn-img" id="zoom-out" title="放大"/>
-  <img src="{{static_url('imgs/icon_zoom0.png')}}" class="btn-img" id="zoom-reset" title="原始"/>
-  <img src="{{static_url('imgs/icon_zoom2.png')}}" class="btn-img" id="zoom-in" title="缩小"/>
-  <img src="{{static_url('imgs/icon_lr.png')}}" class="btn-img" id="undo" title="撤销"/>
-  <img src="{{static_url('imgs/icon_rr.png')}}" class="btn-img" id="redo" title="重做"/>
-  <img src="{{static_url('imgs/icon_boxes.png')}}" class="btn-img toggle-box" id="toggle-three" title="显隐所有"/>
-  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img toggle-box" id="toggle-block" title="显隐栏框"/>
-  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img toggle-box" id="toggle-column" title="显隐列框"/>
-  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img toggle-box active" id="toggle-char" title="显隐字框"/>
+  <div class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+  <div class="btn-txt icon-info" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
+  <div class="btn-txt icon-image active" id="toggle-image" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+  <div class="btn-txt icon-blur active" id="toggle-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+  <div class="btn-txt icon-zoom-in" id="zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+  <div class="btn-txt icon-search" id="zoom-reset" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+  <div class="btn-txt icon-zoom-out" id="zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+  <div class="btn-txt icon-undo" id="undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+  <div class="btn-txt icon-redo" id="redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+  <div class="btn-txt icon-three" id="toggle-three" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+  <div class="btn-txt icon-blocks" id="toggle-block" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+  <div class="btn-txt icon-columns" id="toggle-column" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+  <div class="btn-txt icon-chars active" id="toggle-char" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
 </div>
-<div class="btn-group hl-box" style="margin-left: 10px">
-  <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐字框">所有<sup class="s-count"></sup></button>
+<div class="btn-group hl-box">
+  <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐所有字框">所有<sup class="s-count"></sup></button>
   <button type="button" class="btn btn-default btn-sm" id="toggle-overlap" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
   <button type="button" class="btn btn-default btn-sm" id="toggle-narrow" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
   <button type="button" class="btn btn-default btn-sm" id="toggle-flat" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-large" title="显隐大字框">大字<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-small" title="显隐小字框">小字<sup class="s-count"></sup></button>
+  <button type="button" class="btn btn-default btn-sm" id="toggle-large" title="显隐大字框">大框<sup class="s-count"></sup></button>
+  <button type="button" class="btn btn-default btn-sm" id="toggle-small" title="显隐小字框">小框<sup class="s-count"></sup></button>
 </div>
 {% end %}
 
@@ -42,7 +43,7 @@
 <div class="bd" id="holder-container">
   <div id="holder"></div>
 </div>
-<div class="m-bottom" id="cut-info">
+<div class="m-footer" id="cut-info">
   <span class="cur-char"></span>
   <span class="char-info"></span>
 </div>
@@ -72,23 +73,23 @@
         <div class="title">二、功能按钮</div>
         <table class="table">
           <tr>
-            <td><img src="{{static_url('imgs/icon_toggle.png')}}"/></td>
+            <td><i class="btn-txt icon-return-back"></i></td>
             <td>返回任务大厅</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_pic.png')}}"/></td>
+            <td><i class="btn-txt icon-image"></i></td>
             <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_char.png')}}"/></td>
+            <td><i class="btn-txt icon-chars"></i></td>
             <td>显示或隐藏字框。隐藏字框有助于仔细辨认图片</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_lr.png')}}"/></td>
+            <td><i class="btn-txt icon-undo"></i></td>
             <td>撤销上一步操作</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_rr.png')}}"/></td>
+            <td><i class="btn-txt icon-redo"></i></td>
             <td>取消撤销</td>
           </tr>
           <tr>

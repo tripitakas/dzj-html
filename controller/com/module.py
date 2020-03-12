@@ -20,49 +20,49 @@ class ComLeft(UIModule):
         can_access = self.handler.can_access
 
         items = [
-            dict(name='首页', icon='icon_home', link='/home'),
-            dict(name='大藏经', icon='icon_tripitaka', link='/tripitaka/list'),
-            dict(name='任务大厅', icon='icon_task_lobby', id='task-lobby', sub_items=[
-                dict(name='切分校对', icon='icon_subitem', link='/task/lobby/cut_proof'),
-                dict(name='切分审定', icon='icon_subitem', link='/task/lobby/cut_review'),
-                dict(name='文字校对', icon='icon_subitem', link='/task/lobby/text_proof'),
-                dict(name='文字审定', icon='icon_subitem', link='/task/lobby/text_review'),
-                dict(name='难字审定', icon='icon_subitem', link='/task/lobby/text_hard'),
+            dict(name='首页', icon='icon-home', link='/home'),
+            dict(name='大藏经', icon='icon-tripitaka', link='/tripitaka/list'),
+            dict(name='任务大厅', icon='icon-task-lobby', id='task-lobby', sub_items=[
+                dict(name='切分校对', icon='icon-subitem', link='/task/lobby/cut_proof'),
+                dict(name='切分审定', icon='icon-subitem', link='/task/lobby/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
+                dict(name='难字审定', icon='icon-subitem', link='/task/lobby/text_hard'),
             ]),
-            dict(name='我的任务', icon='icon_my_task', id='task-my', sub_items=[
-                dict(name='切分校对', icon='icon_subitem', link='/task/my/cut_proof'),
-                dict(name='切分审定', icon='icon_subitem', link='/task/my/cut_review'),
-                dict(name='文字校对', icon='icon_subitem', link='/task/my/text_proof'),
-                dict(name='文字审定', icon='icon_subitem', link='/task/my/text_review'),
-                dict(name='难字审定', icon='icon_subitem', link='/task/my/text_hard'),
+            dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
+                dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
+                dict(name='切分审定', icon='icon-subitem', link='/task/my/cut_review'),
+                dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
+                dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
+                dict(name='难字审定', icon='icon-subitem', link='/task/my/text_hard'),
             ]),
-            dict(name='任务管理', icon='icon_task_admin', id='task-admin', sub_items=[
-                dict(name='页图片', icon='icon_subitem', link='/task/admin/image'),
-                dict(name='页任务', icon='icon_subitem', link='/task/admin/page'),
-                # dict(name='字任务', icon='icon_subitem', link='/task/admin/char'),
+            dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
+                dict(name='页图片', icon='icon-subitem', link='/task/admin/image'),
+                dict(name='页任务', icon='icon-subitem', link='/task/admin/page'),
+                # dict(name='字任务', icon='icon-subitem', link='/task/admin/char'),
             ]),
-            dict(name='数据管理', icon='icon_data', id='data', sub_items=[
-                dict(name='藏数据', icon='icon_subitem', link='/data/tripitaka'),
-                dict(name='册数据', icon='icon_subitem', link='/data/volume'),
-                dict(name='经数据', icon='icon_subitem', link='/data/sutra'),
-                dict(name='卷数据', icon='icon_subitem', link='/data/reel'),
-                dict(name='页数据', icon='icon_subitem', link='/data/page'),
-                dict(name='字数据', icon='icon_subitem', link='/data/char'),
+            dict(name='数据管理', icon='icon-data', id='data', sub_items=[
+                dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),
+                dict(name='册数据', icon='icon-subitem', link='/data/volume'),
+                dict(name='经数据', icon='icon-subitem', link='/data/sutra'),
+                dict(name='卷数据', icon='icon-subitem', link='/data/reel'),
+                dict(name='页数据', icon='icon-subitem', link='/data/page'),
+                dict(name='字数据', icon='icon-subitem', link='/data/char'),
             ]),
-            dict(name='文章管理', icon='icon_article', link='/article'),
-            dict(name='人员管理', icon='icon_user', id='user', sub_items=[
-                dict(name='用户管理', icon='icon_subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon_subitem', link='/user/admin/role'),
+            dict(name='文章管理', icon='icon-article', link='/article'),
+            dict(name='人员管理', icon='icon-users', id='user', sub_items=[
+                dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
+                dict(name='授权管理', icon='icon-subitem', link='/user/admin/role'),
             ]),
-            dict(name='系统管理', icon='icon_admin', id='admin', sub_items=[
-                dict(name='脚本管理', icon='icon_subitem', link='/admin/script'),
-                dict(name='系统日志', icon='icon_subitem', link='/admin/oplog'),
+            dict(name='系统管理', icon='icon-admin', id='admin', sub_items=[
+                dict(name='脚本管理', icon='icon-subitem', link='/admin/script'),
+                dict(name='系统日志', icon='icon-subitem', link='/admin/oplog'),
             ]),
-            dict(name='相关工具', icon='icon_tool', id='tool', sub_items=[
-                dict(name='自动标点', icon='icon_subitem', link='/com/punctuate'),
-                dict(name='CBeta检索', icon='icon_subitem', link='/com/search'),
+            dict(name='相关工具', icon='icon-tool', id='tool', sub_items=[
+                dict(name='自动标点', icon='icon-subitem', link='/com/punctuate'),
+                dict(name='CBeta检索', icon='icon-subitem', link='/com/search'),
             ]),
-            dict(name='帮助中心', icon='icon_help', link='/help'),
+            dict(name='帮助中心', icon='icon-info', link='/help'),
         ]
 
         # 计算当前用户有权访问的item

@@ -3,6 +3,7 @@
 <head>
   <title>{{site['description']}}</title>
   {% include _base_css.html %}
+  <link href="{{static_url('assets/ionicons/css/ionicons.min.css')}}" rel="stylesheet">
   <link rel="stylesheet" href="{{static_url('css/login.css')}}">
 </head>
 
@@ -17,12 +18,11 @@
           <div class="log">
             <div class="item">
               <input type="text" placeholder='请输入手机号或邮箱账号' id="phone_or_email">
-<!--              <i class="user-icon"></i>-->
-              <i class="ion-ios7-person-outline"></i>
+              <i class="icon-user"></i>
             </div>
             <div class="item">
               <input type="password" placeholder='请输入密码' id="password">
-              <i class="ion-ios7-unlocked-outline"></i>
+              <i class="icon-lock"></i>
               <span class="forget hidden" data-toggle="modal" data-target="#forgetModal">忘记密码？</span>
             </div>
             <div class="other clearfix">

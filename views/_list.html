@@ -53,18 +53,17 @@
                 {% end %}
                 {% end %}
               </div>
-              <div style="margin: 5px; display: inline-block; cursor: pointer">
-                <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img btn-config {{'' if 'config' in img_operations else 'hide'}}" data-toggle="modal" data-target="#configModal"
-                     title="配置"/>
-                <img src="{{static_url('imgs/icon_hlp.png')}}" class="btn-img btn-help {{'' if 'help' in img_operations else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"/>
+              <div class="btn-group">
+                <i class="icon-config btn-txt btn-config {{'' if 'config' in img_operations else 'hide'}}" data-toggle="modal" data-target="#configModal" title="配置"></i>
+                <i class="icon-help btn-txt btn-help {{'' if 'help' in img_operations else 'hide'}}" data-toggle="modal" data-target="#helpModal" title="帮助"></i>
               </div>
             </div>
             {% end %}
 
             {% block search %}
             <div class="search fr{{'' if search_tips else ' hide'}}">
-              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}">
-              <i class="ser-btn"></i>
+              <input id="search-input" type="text" placeholder="{{search_tips}}" value="{{q}}" />
+              <i class="icon-search"></i>
             </div>
             {% end %}
 

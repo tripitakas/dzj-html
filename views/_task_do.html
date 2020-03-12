@@ -30,8 +30,8 @@
     <div class="m-header">
       <div class="left">
         <div class="btn-group back">
-          {% set title, img = ('任务大厅', 'icon_lobby') if handler.mode == 'do' else ('返回', 'icon_back') %}
-          <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
+          {% set title, icon = ('任务大厅', 'icon-list') if handler.mode == 'do' else ('返回', 'icon-return-back') %}
+          <span class="{{icon}}" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="{{title}}"></span>
         </div>
         <div class="btn-group title" title="{{handler.page['name']}}">
           {{handler.task_name()}}
@@ -46,21 +46,20 @@
       </div>
       <div class="right">
         {% block task-actions %}
-        <img src="{{static_url('imgs/loading.gif')}}" class="btn-img hide" id="progress" title="进行中"/>
-        <div class="btn-txt glyphicon glyphicon-cog {{'hide' if handler.readonly else ''}}" data-toggle="modal" data-target="#taskConfigModal" title="任务配置"></div>
-        <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
-        <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
-        <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
-        <img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
-        <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
+        <div class="btn-txt icon-config {{'hide' if handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="任务配置"></div>
+        <div class="btn-txt icon-prev-step {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" data-toggle="tooltip" data-placement="bottom" title="上一步"></div>
+        <div class="btn-txt icon-return-task  {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="退回任务"></div>
+        <div class="btn-txt icon-save {{'hide' if handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存任务"></div>
+        <div class="btn-txt icon-next-step {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" data-toggle="tooltip" data-placement="bottom" title="下一步"></div>
+        <div class="btn-txt icon-submit {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" data-toggle="tooltip" data-placement="bottom" title="提交任务"></div>
         {% end %}
 
         {% if handler.mode == 'browse' %}
         <div class="btn-txt btn-gap"></div>
-        <img src="{{static_url('imgs/icon_view.png')}}" class="btn-img" id="view-page" title="查看页面"/>
-        <img src="{{static_url('imgs/icon_remark.png')}}" class="btn-img" data-toggle="modal" data-target="#remarkModal" title="备注"/>
-        <img src="{{static_url('imgs/icon_prev2.png')}}" class="btn-img" id="prev-task" title="前一个任务"/>
-        <img src="{{static_url('imgs/icon_next2.png')}}" class="btn-img" id="next-task" title="后一个任务"/>
+        <div class="btn-txt icon-eye" id="view-page" data-toggle="tooltip" data-placement="bottom" title="查看任务"></div>
+        <div class="btn-txt icon-edit" id="remark-task" data-toggle="tooltip" data-placement="bottom" title="备注任务"></div>
+        <div class="btn-txt icon-backward" id="prev-task" data-toggle="tooltip" data-placement="bottom" title="前一个任务"></div>
+        <div class="btn-txt icon-forward" id="next-task" data-toggle="tooltip" data-placement="bottom" title="后一个任务"></div>
         {% end %}
       </div><!--right-->
     </div>
@@ -97,7 +96,7 @@
   var remark = '{{handler.task.get("remark") or ""}}';
   var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
 </script>
-<script src="{{static_url('js/pick-task.js')}}"></script>
+<script src="{{static_url('js/task-pick.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 {% block custom-js %}
 {% end %}
