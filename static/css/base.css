@@ -600,7 +600,6 @@ body.widescreen {
 }
 
 .m-header > div {
-  display: flex;
   flex: 0 1 auto;
   position: relative;
   vertical-align: middle;
@@ -619,6 +618,7 @@ body.widescreen {
 
 .m-header .right {
   float: right;
+  display: flex;
 }
 
 .m-header .btn-group {

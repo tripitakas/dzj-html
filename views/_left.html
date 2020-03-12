@@ -44,7 +44,7 @@
   });
 
   $(document).ready(function () {
-    var activeId = '#{{active_id}}';
+    var activeId = '{{active_id}}';
     if (!activeId)
       activeId = location.pathname.replace(/^\//, '#').replace(/[\/_]/g, '-');
     $(activeId).addClass('active');
