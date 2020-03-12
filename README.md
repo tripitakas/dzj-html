@@ -28,6 +28,10 @@
 - 在网页中要将python对象转为js对象时，可以用 `dumps` 函数先将python对象转为JSON串（用单引号括起来，例如 `modify('{{dumps(p)}}')` ），
   然后在js代码中使用 `decodeJSON` 转为 js对象。
 
+- 使用 webfont 代替按钮图标图片。网站所有的图标放在`static/assets/my-icon`下，
+  点击[demo.html](static/assets/my-icon/demo.html)可以看到有哪些可用的图标。
+  另一个图标来源是bootstrap自带的glyphicon。
+
 ## 安装
 
 本平台需要 Python 3.6+、MongoDB(可用远程数据库)，请参考下面的说明安装和部署。
