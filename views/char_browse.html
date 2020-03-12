@@ -34,7 +34,7 @@
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
-          <div class="char-item" id="{{d['name']}}" title="{{d['_id']}}">
+          <div class="char-item" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
             <div class="char-img">
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
@@ -193,7 +193,8 @@
   var paper, rect;
   var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-  var columnBaseUrl = "{{handler.get_web_img('%s_%s' % (docs[0]['page_name'], docs[0]['column']['cid']), 'column')}}";
+  {% set d0 = [c for i, c in enumerate(docs) if c['column']] %}
+  var columnBaseUrl = "{{d0 and handler.get_web_img('%s_%s' % (d0[0]['page_name'], d0[0]['column']['cid']), 'column') or ''}}";
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
@@ -235,7 +236,7 @@
   }
 
   $('.char-item').on('click', function () {
-    var id = $(this).attr('title');
+    var id = $(this).attr('data-id');
     var ch = id in chars ? chars[id] : {};
     // 更新当前参数
     $('#currentId').val(id);
@@ -244,8 +245,8 @@
     $('.char-items .current').removeClass('current');
     $(this).addClass('current');
     // 更新OCR候选
-    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt).split('').map(function (c) {
-      return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
+      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
     // 更新校对历史
     updateLogs(ch.txt_logs);

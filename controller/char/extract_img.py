@@ -32,7 +32,7 @@ class Cut(object):
     @staticmethod
     def get_hash_name(img_name, cid='', salt=''):
         img_name += '_' + cid if cid else ''
-        if salt:
+        if salt and len(img_name.split('_')[-1]) < 20:
             md5 = hashlib.md5()
             md5.update((img_name + salt).encode('utf-8'))
             return '%s_%s' % (img_name, md5.hexdigest())
@@ -98,7 +98,7 @@ class Cut(object):
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
                 except Exception as e:
-                    log['fail_char'].append(dict(id=c['id'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    log['fail_char'].append(dict(id=c['uid'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
 
             # 列框切图
@@ -144,6 +144,8 @@ class Cut(object):
             if not path.exists(img_file):
                 if path.exists(img_file.replace('pages/', '')):
                     img_file = img_file.replace('pages/', '')
+                elif path.exists(path.join(local_path, page_name + '.jpg')):
+                    img_file = path.join(local_path, page_name + '.jpg')
                 else:
                     alt_file = len(inner_path) > 2 and self.get_big_img(page_name, page_name[:2])
                     if alt_file:
