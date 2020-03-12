@@ -15,7 +15,7 @@ $(document).on('click', '#toggle-right', function () {
 });
 
 // 缩小图片
-$(document).on('click', '#zoom-in', function () {
+$(document).on('click', '#zoom-out', function () {
   var pageImg = $('#page-picture img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 0.9);
@@ -25,7 +25,7 @@ $(document).on('click', '#zoom-in', function () {
 });
 
 // 放大图片
-$(document).on('click', '#zoom-out', function () {
+$(document).on('click', '#zoom-in', function () {
   var pageImg = $('#page-picture img');
   if (pageImg.length) {
     pageImg.width(pageImg.width() * 1.5);
@@ -82,13 +82,10 @@ $(document).on('click', '#toggle-char', function () {
 // 显隐所有
 $(document).on('click', '#toggle-three', function () {
   $(this).toggleClass('active');
-  if ($(this).hasClass('active')) {
-    $('.toggle-box').addClass('active');
-    $.cut.toggleBox(true);
-  } else {
-    $('.toggle-box').removeClass('active');
-    $.cut.toggleBox(false);
-  }
+  $.cut.toggleBox($(this).hasClass('active'));
+  $('#toggle-char').toggleClass('active', $(this).hasClass('active'));
+  $('#toggle-column').toggleClass('active', $(this).hasClass('active'));
+  $('#toggle-block').toggleClass('active', $(this).hasClass('active'));
 });
 
 // 显隐字框编号

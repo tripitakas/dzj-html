@@ -139,6 +139,11 @@ a:hover, a:visited, a:focus {
   visibility: hidden
 }
 
+body.widescreen {
+  padding: 0 !important;
+  height: 100% !important;
+}
+
 .app-main {
   width: 100%;
   height: 100%;
@@ -306,8 +311,11 @@ a:hover, a:visited, a:focus {
   margin-right: 33px;
 }
 
-.main-header-right span img {
-  margin: 20px 10px 0;
+.main-header-right .logout {
+  color: #777;
+  font-size: 22px;
+  margin-left: 5px;
+  cursor: pointer;
 }
 
 .main .main-content {
@@ -353,12 +361,12 @@ a:hover, a:visited, a:focus {
 }
 
 .sty-list .search i {
-  position: absolute;
-  top: 5px;
   left: 0;
-  background: url(../imgs/search-icon.png) no-repeat;
-  width: 15px;
-  height: 17px;
+  top: 6px;
+  font-size: 15px;
+  position: absolute;
+  color: var(--Brown_Darker);
+  /*background: url(../imgs/search-icon.png) no-repeat;*/
 }
 
 .sty-list .operation span {
@@ -374,6 +382,10 @@ a:hover, a:visited, a:focus {
   font-size: 14px;
   cursor: pointer;
   margin-right: 10px;
+}
+
+.sty-list .operation i {
+  line-height: 32px;
 }
 
 .sty-list .sty-table {
@@ -582,15 +594,17 @@ a:hover, a:visited, a:focus {
   height: 40px;
   z-index: 1000;
   display: flex;
-  justify-content: space-between;
   vertical-align: middle;
+  align-content: center;
   user-select: none;
 }
 
 .m-header > div {
+  display: flex;
   flex: 0 1 auto;
   position: relative;
   vertical-align: middle;
+  align-content: center;
 }
 
 .m-header .left {
@@ -605,6 +619,20 @@ a:hover, a:visited, a:focus {
 
 .m-header .right {
   float: right;
+}
+
+.m-header .btn-group {
+  margin: auto 10px auto 0;
+}
+
+.m-header .back {
+  cursor: pointer;
+  font-size: 26px;
+  transition: all 0.2s;
+}
+
+.m-header .back:hover {
+  transform: scale(1.2);
 }
 
 .m-header .title {
@@ -624,49 +652,31 @@ a:hover, a:visited, a:focus {
   color: var(--Brown_Darker);
 }
 
-.m-header .tips {
-  margin: 0 5px;
-}
-
-.m-header .btn-group {
-}
-
-.m-header .btn-img {
-  width: 20px;
-  height: 20px;
-  margin: 10px 5px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.m-header .btn-img:hover {
-  transform: scale(1.2);
-}
-
-.btn-img.active, .btn-txt.active {
-  border: 1px solid #999;
-  padding: 1px;
-}
-
-.m-header .image {
-  margin-left: 40px;
-}
-
 .m-header .btn-txt {
-  font-weight: 400;
-  line-height: 39px;
+  line-height: 40px;
+}
+
+.btn-txt {
   margin: 0 4px;
   font-size: 20px;
+  font-weight: 400;
   display: inline-block;
-  vertical-align: middle;
   color: var(--Brown_Darker);
   transition: all 0.2s;
   cursor: pointer;
   float: none;
 }
 
-.m-header .btn-txt:hover {
+.btn-txt:hover {
   transform: scale(1.2);
+}
+
+.btn-txt.active {
+  border-bottom: 1px solid #999;
+}
+
+.btn-txt.disabled {
+  color: #999;
 }
 
 .m-header .btn-gap {
@@ -676,52 +686,6 @@ a:hover, a:visited, a:focus {
   background-color: var(--Brown_Darker);
   margin: 1px 1px;
   float: initial;
-}
-
-.m-header .font {
-  font-size: 18px;
-  margin-top: 3px;
-  margin-left: 20px;
-  margin-right: 10px;
-}
-
-.m-header .font div {
-  padding: 3px 5px;
-  color: var(--Brown_Darker);
-  font-weight: 500;
-}
-
-.m-header .font-reduce {
-  border: 0 solid var(--Brown_Darker);
-  border-radius: 15px 0 0 15px;
-  cursor: pointer;
-}
-
-.m-header .font-current {
-  border-top: 0 solid var(--Brown_Darker);
-  border-bottom: 0 solid var(--Brown_Darker);
-  width: 24px;
-}
-
-.m-header .font-enlarge {
-  border: 0 solid var(--Brown_Darker);
-  border-radius: 0 15px 15px 0;
-  cursor: pointer;
-}
-
-.m-header .font-reduce > a, .font-enlarge > a {
-  cursor: pointer;
-  text-decoration: none;
-  user-select: none;
-}
-
-.m-header .btn-empty-place {
-  width: 0;
-  padding: 0 4px;
-  font-size: 20px;
-  line-height: 20px;
-  background-color: #b68856;
-  margin: 10px 4px;
 }
 
 .flex-content {
@@ -778,7 +742,7 @@ a:hover, a:visited, a:focus {
   font-size: 1.1em;
 }
 
-.modal .title {
+.modal div.title {
   font-size: 1.1em;
   font-weight: 400;
   margin: 10px 0;
@@ -807,14 +771,6 @@ a:hover, a:visited, a:focus {
 .modal tr > td:first-child {
   width: 120px;
   color: var(--Brown_Darker);
-}
-
-.modal .btn-empty-place {
-  margin: 0;
-  padding: 5px 0;
-  font-size: 6px;
-  height: 20px;
-  background-color: #b68856;
 }
 
 .modal .intro {
@@ -866,6 +822,7 @@ a:hover, a:visited, a:focus {
   border-radius: 1px;
   background-color: #eee;
   box-shadow: 5px 5px 3px #888888;
+  word-break: keep-all;
 }
 
 .tooltip .tooltip-arrow {

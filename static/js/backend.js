@@ -132,3 +132,7 @@ function parseJSON(s) {
     console.info('invalid JSON: ' + s);
   }
 }
+
+
+// 激活bootstrap tooltip
+$(function () { $("[data-toggle='tooltip']").tooltip(); });

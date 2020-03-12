@@ -471,11 +471,6 @@
   padding: 8px;
 }
 
-#toggle-panel-no, #toggle-panel-txt {
-  height: 24px;
-  margin: 8px 5px;
-}
-
 /* svg 元素*/
 text tspan {
   color: #333333;

@@ -69,7 +69,7 @@ function previousDiff() {
   }
 }
 
-$('#previous-diff').on('click', previousDiff);
+$('#prev-diff').on('click', previousDiff);
 $.mapKey('tab', previousDiff);
 
 // 下一条异文
@@ -90,7 +90,7 @@ $('#next-diff').on('click', nextDiff);
 $.mapKey('shift+tab', nextDiff);
 
 if ($('.pfread .right .diff').length < 1) {
-  $('#previous-diff').remove();
+  $('#prev-diff').remove();
   $('#next-diff').remove();
 }
 
