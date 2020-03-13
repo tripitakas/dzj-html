@@ -40,10 +40,7 @@
           {% end %}
         </div>
       </div><!--left-->
-      <div class="center">
-        {% block buttons %}
-        {% end %}
-      </div>
+      <div class="center">{% block buttons %} {% end %}</div>
       <div class="right">
         {% block task-actions %}
         <div class="btn-txt icon-config {{'hide' if handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="任务配置"></div>
@@ -53,7 +50,6 @@
         <div class="btn-txt icon-next-step {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" data-toggle="tooltip" data-placement="bottom" title="下一步"></div>
         <div class="btn-txt icon-submit {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" data-toggle="tooltip" data-placement="bottom" title="提交任务"></div>
         {% end %}
-
         {% if handler.mode == 'browse' %}
         <div class="btn-txt btn-gap"></div>
         <div class="btn-txt icon-eye" id="view-page" data-toggle="tooltip" data-placement="bottom" title="查看任务"></div>
@@ -63,9 +59,15 @@
         {% end %}
       </div><!--right-->
     </div>
-    <div class="full-bd flex-content pfread">
-      {% block full-bd %}
-      {% end %}
+    <div class="m-body flex-content">
+      {% block m-body %}{% end %}
+    </div>
+    <div class="m-alert bs-alert alert alert-info" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title">成功！</strong><span class="text">提示消息。</span>
+    </div>
+    <div class="m-footer">
+      {% block m-footer %}{% end %}
     </div>
   </div>
 </div>
@@ -101,6 +103,10 @@
 {% block custom-js %}
 {% end %}
 <script>
+
+  $('#remark-task').click(function () {
+    showSuccess('text', 'text11');
+  });
   $(document).ready(function () {
     // 初始化设置备注、是否自动领任务、是否为示例任务
     $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));

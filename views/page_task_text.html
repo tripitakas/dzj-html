@@ -67,86 +67,86 @@
 </div>
 {% end %}
 
-{% block full-bd %}
-<div class="left" id="left-region">
-  <div class="bd" id="holder-container">
-    <div id="holder"></div>
-  </div>
-</div>
-<!--/.left-->
-<div class="right" id="right-region">
-  <div class="sutra-text-mode" id="toggle-text-mode">
-    <span class="html-edit" title="以纯文本方式修改内容"></span>
-    <span class="save-txt" title="应用此文本，切换到比对显示方式"></span>
-  </div>
-  <div class="bd sutra-html">
-    <div class="sutra-text active" id="sutra-text">
-      <div class="blocks">
-        {% if isinstance(cmp_data, str) %}
-        {% raw cmp_data %}
-        {% else %}
-        {% module TextArea(cmp_data=cmp_data) %}
-        {% end %}
-      </div>
+{% block m-body %}
+<div class="pfread">
+  <div class="left" id="left-region">
+    <div class="bd" id="holder-container">
+      <div id="holder"></div>
     </div>
-    <!--/.sutra-text-->
-    {% if handler.doubts %}
-    <div class="char-list doubt-list">
-      <div class="char-list-tab">
-        {% for i, doubt in enumerate(handler.doubts) %}
-        <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
-        {% end %}
-        <div class="char-list-tab-arrow" id="toggle-arrow">
-          <img src="{{static_url('imgs/up_arrow.png')}}">
-          <img src="{{static_url('imgs/down_arrow.png')}}" style="display: none">
+  </div>
+  <div class="right" id="right-region">
+    <div class="sutra-text-mode" id="toggle-text-mode">
+      <span class="html-edit" title="以纯文本方式修改内容"></span>
+      <span class="save-txt" title="应用此文本，切换到比对显示方式"></span>
+    </div>
+    <div class="bd sutra-html">
+      <div class="sutra-text active" id="sutra-text">
+        <div class="blocks">
+          {% if isinstance(cmp_data, str) %}
+          {% raw cmp_data %}
+          {% else %}
+          {% module TextArea(cmp_data=cmp_data) %}
+          {% end %}
         </div>
       </div>
-      {% for i, doubt in enumerate(handler.doubts) %}
-      <table class="char-list-table {{'' if i else 'editable active'}}">
-        <thead>
-        <tr>
-          <td>行号</td>
-          <td>字序号</td>
-          <td>存疑文本</td>
-          <td>存疑理由</td>
-          <td class="del-doubt">操作</td>
-        </tr>
-        </thead>
-        <tbody>
-        {% raw doubt[0] %}
-        </tbody>
-      </table>
-      {% end %}
-    </div>
-    {% end %}
-    <!--/.doubt-list-->
-    {% if handler.texts %}
-    <div class="pfread-dialog" id="pfread-dialog">
-      <div class="dialog-common dialog-abs">
-        <div class="dlg-before"></div>
-        {% for i, txt in enumerate(handler.texts) %}
-        <dl class="item">
-          <dt>{{txt[1]}}</dt>
-          <dd class="text option" id="pfread-dialog-{{'cmp%s' % i if i else 'base'}}"></dd>
-        </dl>
+      <!--/.sutra-text-->
+      {% if handler.doubts %}
+      <div class="char-list doubt-list">
+        <div class="char-list-tab">
+          {% for i, doubt in enumerate(handler.doubts) %}
+          <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
+          {% end %}
+          <div class="char-list-tab-arrow" id="toggle-arrow">
+            <img src="{{static_url('imgs/up_arrow.png')}}">
+            <img src="{{static_url('imgs/down_arrow.png')}}" style="display: none">
+          </div>
+        </div>
+        {% for i, doubt in enumerate(handler.doubts) %}
+        <table class="char-list-table {{'' if i else 'editable active'}}">
+          <thead>
+          <tr>
+            <td>行号</td>
+            <td>字序号</td>
+            <td>存疑文本</td>
+            <td>存疑理由</td>
+            <td class="del-doubt">操作</td>
+          </tr>
+          </thead>
+          <tbody>
+          {% raw doubt[0] %}
+          </tbody>
+        </table>
         {% end %}
-        <dl class="item">
-          <dt>选择结果</dt>
-          <dd class="text">
-            <span id="pfread-dialog-slct" contenteditable="true"></span>
-          </dd>
-        </dl>
-        <div class="dlg-after"></div>
       </div>
+      {% end %}
+      <!--/.doubt-list-->
+      {% if handler.texts %}
+      <div class="pfread-dialog" id="pfread-dialog">
+        <div class="dialog-common dialog-abs">
+          <div class="dlg-before"></div>
+          {% for i, txt in enumerate(handler.texts) %}
+          <dl class="item">
+            <dt>{{txt[1]}}</dt>
+            <dd class="text option" id="pfread-dialog-{{'cmp%s' % i if i else 'base'}}"></dd>
+          </dl>
+          {% end %}
+          <dl class="item">
+            <dt>选择结果</dt>
+            <dd class="text">
+              <span id="pfread-dialog-slct" contenteditable="true"></span>
+            </dd>
+          </dl>
+          <div class="dlg-after"></div>
+        </div>
+      </div>
+      {% end %}
+      <!--/.pfread-dialog-->
     </div>
-    {% end %}
-    <!--/.pfread-dialog-->
-  </div>
-  <div class="bd sutra-txt hide">
-    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
+    <div class="bd sutra-txt hide">
+      <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
+    </div>
   </div>
 </div>
-<!--/.right-->
 {% end %}
 
 {% block custom-modal %}

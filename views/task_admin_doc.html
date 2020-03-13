@@ -1,8 +1,6 @@
 {% extends "_list.html" %}
 {% block custom-css %}
-<link href="{{static_url('assets/jquery-multi-select/multi-select.css')}}" rel="stylesheet"/>
-<link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
-<link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+<link href="{{static_url('built/task_admin_assets_20200313102935.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 {% end %}
 
@@ -301,13 +299,7 @@
 {% end %}
 
 {% block custom-js %}
-<script src="{{static_url('js/l10n.js')}}"></script>
-<script src="{{static_url('assets/select2/select2.min.js')}}"></script>
-<script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
-<script src="{{static_url('assets/jquery-multi-select/jquery.multi-select.js')}}"></script>
-<script src="{{static_url('assets/jquery-multi-select/jquery.quicksearch.js')}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+<script src="{{static_url('built/task_admin_assets_20200313102935.js')}}"></script>
 <script>
   /*---公共设置---*/
   var taskTypes = decodeJSON('{{handler.task_types}}');

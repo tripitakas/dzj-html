@@ -100,7 +100,7 @@ $('#delete-line').on('click', function () {
   if (!$curSpan.length) {
     return showError('提示', '请先点击一行文本，然后再删除。');
   }
-  showConfirm('删除', '确定删除当前行吗？', function () {
+  swConfirm('删除', '确定删除当前行吗？', function () {
     var $currentLine = $curSpan.parent(".line");
     $currentLine.fadeOut(500).fadeIn(500);
     setTimeout(function () {
@@ -212,7 +212,7 @@ $('#ed-char-std').click(function () {
 
 // 重新比对选择本和OCR
 $('#re-compare').on("click", function () {
-  showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
+  swConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
     autoSave(function () {
       window.location = setQueryString('re_compare', 'true');
     });

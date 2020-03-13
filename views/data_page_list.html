@@ -316,7 +316,7 @@
     var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
     if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
-    showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
+    swConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
       postApi('/data/page/export_char', {data: {page_names: pageNames}}, (res) => {
         showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
       });
@@ -351,7 +351,7 @@
     var name = node.siblings('.name').text().trim();
     var sharedField = node.attr('class').indexOf('box') !== -1 ? 'box' : 'text';
     var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
+    swConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
         showSuccess('成功', '已成功解锁。');
         refresh(1000);

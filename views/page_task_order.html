@@ -7,7 +7,7 @@
     margin-left: 8px;
   }
 
-  .full-bd {
+  .m-body {
     padding-bottom: 20px;
   }
 
@@ -47,7 +47,7 @@
 </div>
 {% end %}
 
-{% block full-bd %}
+{% block m-body %}
 <div class="bd" id="holder-container">
   <div id="holder"></div>
 </div>
@@ -204,7 +204,7 @@
     }
     if (r.error) {
       if ('prev,next'.indexOf(type) > -1)
-        showConfirm('未保存，发现错误，是否继续？', r.error, () => goto(jumpUrl, 1000));
+        swConfirm('未保存，发现错误，是否继续？', r.error, () => goto(jumpUrl, 1000));
       else
         showError('发现错误，请修正', r.error)
     } else {

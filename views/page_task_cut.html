@@ -7,7 +7,7 @@
     margin-left: 8px;
   }
 
-  .full-bd {
+  .m-body {
     padding-bottom: 20px;
   }
 </style>
@@ -39,7 +39,7 @@
 </div>
 {% end %}
 
-{% block full-bd %}
+{% block m-body %}
 <div class="bd" id="holder-container">
   <div id="holder"></div>
 </div>
@@ -316,7 +316,7 @@
       // 弹框提示
       var tips = '检测到<b style="color: red">' + res.message + '</b>' + '并高亮显示';
       if (type === 'next') {
-        showConfirm('已保存，发现错误，是否继续？', tips, () => goto(url, 1000));
+        swConfirm('已保存，发现错误，是否继续？', tips, () => goto(url, 1000));
       } else {
         showWarning('已保存，发现错误', tips);
       }

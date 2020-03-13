@@ -648,10 +648,6 @@ body.widescreen {
   font-weight: 400;
 }
 
-.m-header .m-pager {
-  color: var(--Brown_Darker);
-}
-
 .m-header .btn-txt {
   line-height: 40px;
 }
@@ -688,20 +684,40 @@ body.widescreen {
   float: initial;
 }
 
+.m-body {
+  height: 100%;
+  padding: 40px 0 20px;
+}
+
+.m-body .bd {
+  flex: 1;
+  height: 100%;
+  overflow: auto;
+}
+
 .flex-content {
   width: 100%;
   display: flex;
 }
 
-.full-bd {
-  height: 100%;
-  padding-top: 40px;
+/*bootstrap alert*/
+.m-alert {
+  top: 45px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  position: fixed;
+  font-size: 14px;
+  width: 600px;
 }
 
-.full-bd .bd {
-  flex: 1;
-  height: 100%;
-  overflow: auto;
+.m-alert .close {
+  font-size: 22px;
+  margin-top: -3px;
+}
+
+.m-alert .loading {
+  font-size: 16px;
 }
 
 .m-footer {
@@ -715,6 +731,7 @@ body.widescreen {
   border-top: 1px solid #ddd;
   color: var(--Brown_Darker);
 }
+
 
 /*modal*/
 .modal {

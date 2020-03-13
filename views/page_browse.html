@@ -47,17 +47,17 @@
       color: var(--Color_333);
     }
 
-    .full-bd {
+    .m-body {
       overflow: auto;
       padding-top: 40px;
 
     }
 
-    .full-bd .left .bd {
+    .m-body .left .bd {
       padding-bottom: 20px;
     }
 
-    .full-bd .right .bd {
+    .m-body .right .bd {
       clear: both;
     }
 
@@ -177,7 +177,7 @@
 
     </div>
 
-    <div class="full-bd flex-content pfread">
+    <div class="m-body flex-content pfread">
       <div class="left" id="left-region">
         <div class="bd" id="holder-container">
           <div id="holder"></div>
@@ -375,7 +375,7 @@
     var name = '{{page["name"]}}';
     var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
     var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
+    swConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
         showSuccess('成功', '已成功解锁。');
         refresh(1000);
