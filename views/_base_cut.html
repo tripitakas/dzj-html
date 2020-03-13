@@ -1,10 +1,14 @@
-<script src="{{static_url('built/cut_assets_20200313100552.js')}}"></script>
-<!--<script src="{{static_url('js/cut/raphael.js')}}"></script>-->
-<!--<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>-->
-<!--<script src="{{static_url('js/cut/jquery.mapkey.js')}}"></script>-->
+{% if not debug or 0 %}
+<script src="{{static_url('built/cut_assets.js')}}"></script>
+<script src="{{static_url('built/cut_local.js')}}"></script>
+{% else %}
+<script src="{{static_url('js/cut/raphael.js')}}"></script>
+<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+<script src="{{static_url('js/cut/jquery.mapkey.js')}}"></script>
 <script src="{{static_url('js/cut/cut.js')}}"></script>
 <script src="{{static_url('js/cut/cut_keys.js')}}"></script>
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
+{% end %}
 
 <script>
   $('#undo').on('click', function () {

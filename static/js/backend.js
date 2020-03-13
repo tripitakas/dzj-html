@@ -139,6 +139,6 @@ $(function () {
 });
 
 // bootstrap alert
-$(".bs-alert .close").on('click', function () {
+$(".alert .close").on('click', function () {
   $(this).parent().addClass('hide');
 });

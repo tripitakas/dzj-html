@@ -47,20 +47,16 @@ function swConfirm(title, text, func) {
   return Swal2.fire({title: title, html: text, type: 'warning'}).then(result => result.value && func());
 }
 
-function bsProgress(title, text, selector) {
-
-}
-
 function bsAlert(title, text, type, timer, selector, progress) {
   // type的值为info/warning/success等几种类型
   type = typeof type !== 'undefined' ? type : 'info';
   selector = typeof selector !== 'undefined' ? selector : '#m-alert';
-  $(selector).removeClass('alert-info alert-warning alert-success').addClass('alert-' + type);
+  $(selector).removeClass('alert-info alert-warning alert-success hide').addClass('alert-' + type);
   $(selector).find('.text').text(text);
   $(selector).find('.title').text(title);
   progress = typeof progress !== 'undefined' ? type : false;
   $(selector).find('.loading').toggleClass('hide', progress);
-  timer && setTimeout(() => $selector.addClass('hide'), timer);
+  timer && setTimeout(() => $(selector).addClass('hide'), timer);
 }
 
 /* URL相关*/
