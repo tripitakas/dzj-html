@@ -5,11 +5,12 @@
   运行本文件后将 static/built 下的 _*.html 移到发布版本的 views 下，其余的js和css可压缩后发布到built目录。
 @time: 2019/7/12
 """
+import re
 import hashlib
 from os import path, mkdir
-import re
+from datetime import datetime
 
-NEED_BUILD = ['base_css', 'base_js', 'cut_base']
+NEED_BUILD = ['base_css', 'base_js', 'base_cut']
 PATH = path.dirname(path.dirname(__file__))
 DST_PATH = path.join(PATH, 'static', 'built')
 
@@ -71,13 +72,87 @@ def merge_css_js(name, html_lines):
 def merge_from_html(names):
     for name in names:
         html_file = path.join(PATH, 'views', '_%s.html' % name)
+        print(html_file)
         if path.exists(html_file):
             with open(html_file) as f:
                 html_lines = f.read().split('\n')
             merge_css_js(name, html_lines)
 
 
+def merge_assets(which=None):
+    """ 合并第三方资源"""
+    which = which or ['base_assets_css', 'base_assets_js', 'cut_assets_js',
+                      'task_admin_assets_js', 'task_admin_assets_css']
+    # 合并base css
+    if 'base_assets_css' in which:
+        files = [
+            'assets/bootstrap/css/bootstrap.min.css',
+            'assets/sweetalert2/sweetalert2.min.css',
+            'assets/css/waves-effect.css',
+            'assets/css/animate.css',
+        ]
+        dst_name = 'static/built/base_assets_%s.css' % datetime.now().strftime('%Y%m%d%H%M%S')
+        content = '\n'.join(open(path.join(PATH, 'static', fn)).read() for fn in files)
+        with open(path.join(PATH, dst_name), 'w') as fn:
+            fn.write(content)
+
+    # 合并base js
+    if 'base_assets_js' in which:
+        files = [
+            'assets/jquery/jquery.slimscroll.min.js',
+            'assets/bootstrap/js/bootstrap.min.js',
+            'assets/sweetalert2/sweetalert2.min.js',
+            'assets/sweetalert2/promise.min.js',
+            'assets/modal-effect/js/classie.js',
+            'assets/modal-effect/js/modalEffects.js',
+        ]
+        dst_name = 'static/built/base_assets_%s.js' % datetime.now().strftime('%Y%m%d%H%M%S')
+        content = '\n'.join(open(path.join(PATH, 'static', fn)).read() for fn in files)
+        with open(path.join(PATH, dst_name), 'w') as fn:
+            fn.write(content)
+
+    # 合并base_cut_js
+    if 'cut_assets_js' in which:
+        files = [
+            'js/cut/raphael.js',
+            'js/cut/raphael.zoom.js',
+            'js/cut/jquery.mapkey.js',
+        ]
+        dst_name = 'static/built/cut_assets_%s.js' % datetime.now().strftime('%Y%m%d%H%M%S')
+        content = '\n'.join(open(path.join(PATH, 'static', fn)).read() for fn in files)
+        with open(path.join(PATH, dst_name), 'w') as fn:
+            fn.write(content)
+
+    # 合并task_admin_assets.js
+    if 'task_admin_assets_js' in which:
+        files = [
+            'assets/select2/select2.min.js',
+            'assets/select2/zh-CN.js',
+            'assets/jquery-multi-select/jquery.multi-select.js',
+            'assets/jquery-multi-select/jquery.quicksearch.js',
+            'assets/flatpickr/flatpickr.js',
+            'assets/flatpickr/zh.js',
+        ]
+        dst_name = 'static/built/task_admin_assets_%s.js' % datetime.now().strftime('%Y%m%d%H%M%S')
+        content = '\n'.join(open(path.join(PATH, 'static', fn)).read() for fn in files)
+        with open(path.join(PATH, dst_name), 'w') as fn:
+            fn.write(content)
+
+    # 合并task_admin_assets.css
+    if 'task_admin_assets_css' in which:
+        files = [
+            'assets/jquery-multi-select/multi-select.css',
+            'assets/flatpickr/flatpickr.min.css',
+            'assets/select2/select2.css',
+        ]
+        dst_name = 'static/built/task_admin_assets_%s.css' % datetime.now().strftime('%Y%m%d%H%M%S')
+        content = '\n'.join(open(path.join(PATH, 'static', fn)).read() for fn in files)
+        with open(path.join(PATH, dst_name), 'w') as fn:
+            fn.write(content)
+
+
 if __name__ == '__main__':
-    if not path.exists(DST_PATH):
-        mkdir(DST_PATH)
-    merge_from_html(NEED_BUILD)
+    # if not path.exists(DST_PATH):
+    #     mkdir(DST_PATH)
+    # merge_from_html(NEED_BUILD)
+    merge_assets(['task_admin_assets_css', 'task_admin_assets_js'])
