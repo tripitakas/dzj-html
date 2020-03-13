@@ -133,6 +133,12 @@ function parseJSON(s) {
   }
 }
 
-
 // 激活bootstrap tooltip
-$(function () { $("[data-toggle='tooltip']").tooltip(); });
+$(function () {
+  $("[data-toggle='tooltip']").tooltip();
+});
+
+// bootstrap alert
+$(".bs-alert .close").on('click', function () {
+  $(this).parent().addClass('hide');
+});

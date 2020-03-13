@@ -2,6 +2,7 @@
  * 工具类js
  */
 
+let defaultTool = 'bs'; // 默认提示工具
 const Swal0 = Swal.mixin({confirmButtonColor: '#b8906f', showConfirmButton: false});
 const Swal1 = Swal0.mixin({confirmButtonText: '确定', showConfirmButton: true});
 const Swal2 = Swal1.mixin({cancelButtonText: '取消', showCancelButton: true});
@@ -10,63 +11,59 @@ function showError(title, text, timer) {
   // 在页面提示
   if ($('.ajax-error').length) {
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
-    return setTimeout(() => $('.ajax-error').hide(), 5000);
+    return setTimeout(() => $('.ajax-error').hide(), timer);
   }
-  // 没有错误
+  // bootstrap提示
+  if (defaultTool === 'bs' && $('#m-alert').length)
+    return bsAlert(title, text, 'warning', timer);
+  // sweetalert2提示
   var type = /失败|错误/.test(title) ? 'error' : 'warning';
-  if (text === '没有发生改变')
-    return showSuccess(title.replace(/失败|错误/, '跳过'), text);
-  // 弹框提示
-  if (typeof timer !== 'undefined')
-    return Swal0.fire({title: title, html: text, type: type, timer: 5000});
-  Swal0.fire({title: title, html: text, type: type});
+  Swal0.fire({title: title, html: text, type: type, timer: timer});
 }
 
 function showWarning(title, text, timer) {
-  if (typeof timer !== 'undefined')
-    Swal0.fire({title: title, html: text, type: 'warning', timer: 5000});
-  else
-    Swal0.fire({title: title, html: text, type: 'warning'});
+  if (defaultTool === 'bs' && $('#m-alert').length)
+    return bsAlert(title, text, 'warning', timer);
+  Swal0.fire({title: title, html: text, type: 'warning', timer: timer});
 }
 
 function showSuccess(title, text, timer) {
-  timer = typeof timer === 'undefined' ? 1000 : timer;
+  if (defaultTool === 'bs' && $('#m-alert').length)
+    return bsAlert(title, text, 'success', timer);
   Swal0.fire({title: title, html: text, type: 'success', timer: timer});
 }
 
-function showConfirm(title, text, func) {
+function showTips(title, text, timer, reload) {
+  if (defaultTool === 'bs' && $('#m-alert').length) {
+    bsAlert(title, text, 'info', timer);
+  } else {
+    Swal0.fire({title: title, html: text, type: 'info', timer: timer});
+  }
+  if (typeof reload !== 'undefined' && reload)
+    setTimeout(() => location.reload(), 1000);
+}
+
+function swConfirm(title, text, func) {
   return Swal2.fire({title: title, html: text, type: 'warning'}).then(result => result.value && func());
 }
 
-function showTips(title, text, reload, timer) {
-  if (typeof reload !== 'undefined' && reload) {
-    Swal0.fire({title: title, html: text, type: 'success'}, () => window.location.reload());
-  } else if (typeof timer !== 'undefined') {
-    Swal0.fire({title: title, html: text, timer: timer});
-  } else {
-    Swal0.fire({title: title, html: text});
-  }
+function bsProgress(title, text, selector) {
+
 }
 
-function bsAlert(title, text, type, hide, selector) {
+function bsAlert(title, text, type, timer, selector, progress) {
   // type的值为info/warning/success等几种类型
   type = typeof type !== 'undefined' ? type : 'info';
-  hide = typeof hide !== 'undefined' ? hide : true;
-  selector = typeof selector !== 'undefined' ? selector : '#bs-alert';
-  $(selector).attr('class', 'alert alert-' + type);
+  selector = typeof selector !== 'undefined' ? selector : '#m-alert';
+  $(selector).removeClass('alert-info alert-warning alert-success').addClass('alert-' + type);
   $(selector).find('.text').text(text);
   $(selector).find('.title').text(title);
-  if (hide)
-    setTimeout(() => $('#bs-alert').addClass('hide'), 1000);
+  progress = typeof progress !== 'undefined' ? type : false;
+  $(selector).find('.loading').toggleClass('hide', progress);
+  timer && setTimeout(() => $selector.addClass('hide'), timer);
 }
 
-function toLocalTime(isoTimeStamp) {
-  if (typeof isoTimeStamp['$date'] !== 'undefined')
-    isoTimeStamp = isoTimeStamp['$date'];
-  var times = new Date(isoTimeStamp).toISOString().split('T');
-  return times[0] + ' ' + times[1].substr(0, 5);
-}
-
+/* URL相关*/
 function refresh(timer) {
   timer = typeof timer !== 'undefined' ? timer : 1000;
   setTimeout(() => window.location.reload(), timer);
@@ -143,4 +140,12 @@ function decodeFrom() {
       from = from.replace('&', '?');
   }
   return deleteParam(from, 'to');
+}
+
+/* 时间相关*/
+function toLocalTime(isoTimeStamp) {
+  if (typeof isoTimeStamp['$date'] !== 'undefined')
+    isoTimeStamp = isoTimeStamp['$date'];
+  var times = new Date(isoTimeStamp).toISOString().split('T');
+  return times[0] + ' ' + times[1].substr(0, 5);
 }
