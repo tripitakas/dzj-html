@@ -454,7 +454,7 @@
     },
 
     _updateCharInfo: function (link) {
-      $('#cut-info > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
+      $('.m-footer > .char-info').text('字框连线: ' + (getId(link) || (this.state.dragLink ? '将断开' : '未选中')) +
           (this.state.inletHit ? '，可改终点' : (this.state.outletHit ? this.hover.line ? '，可改起点' : '，起点' : '')));
     },
 

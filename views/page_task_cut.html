@@ -1,41 +1,32 @@
-{% extends "_task_do.html" %}
+{% extends "page_task_do.html" %}
 
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-<style>
-  .m-bottom > span {
-    margin-left: 8px;
-  }
-
-  .m-body {
-    padding-bottom: 20px;
-  }
-</style>
 {% end %}
 
 {% block buttons %}
 <div class="btn-group">
-  <div class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div class="btn-txt icon-info" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
-  <div class="btn-txt icon-image active" id="toggle-image" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div class="btn-txt icon-blur active" id="toggle-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-  <div class="btn-txt icon-zoom-in" id="zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div class="btn-txt icon-search" id="zoom-reset" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div class="btn-txt icon-zoom-out" id="zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-  <div class="btn-txt icon-undo" id="undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
-  <div class="btn-txt icon-redo" id="redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-  <div class="btn-txt icon-three" id="toggle-three" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
-  <div class="btn-txt icon-blocks" id="toggle-block" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-  <div class="btn-txt icon-columns" id="toggle-column" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-  <div class="btn-txt icon-chars active" id="toggle-char" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+  <div id="info" class="btn-txt icon-info hide" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
+  <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+  <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+  <div id="zoom-reset" class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+  <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+  <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+  <div id="toggle-three" class="btn-txt icon-three" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+  <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+  <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+  <div id="toggle-char" class="btn-txt icon-chars active" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
 </div>
 <div class="btn-group hl-box">
-  <button type="button" class="btn btn-default btn-sm" id="toggle-all" title="显隐所有字框">所有<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-overlap" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-narrow" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-flat" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-large" title="显隐大字框">大框<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="toggle-small" title="显隐小字框">小框<sup class="s-count"></sup></button>
+  <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
+  <button class="btn btn-default btn-sm" id="toggle-overlap" type="button" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
+  <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
+  <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
+  <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框">大框<sup class="s-count"></sup></button>
+  <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框">小框<sup class="s-count"></sup></button>
 </div>
 {% end %}
 
@@ -43,10 +34,11 @@
 <div class="bd" id="holder-container">
   <div id="holder"></div>
 </div>
-<div class="m-footer" id="cut-info">
-  <span class="cur-char"></span>
-  <span class="char-info"></span>
-</div>
+{% end %}
+
+{% block m-footer %}
+<span class="cur-char"></span>
+<span class="char-info"></span>
 {% end %}
 
 {% block config-modal %}
@@ -241,7 +233,7 @@
       showHighLightCount();
       updateUndo();
     } else if (reason === 'navigate') {
-      $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中')
+      $('.m-footer > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中')
           + (info && info.is_small ? '，小字' : '') + ' ' + (info && info.txt || ''));
     } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function (c) {
@@ -330,5 +322,4 @@
     }
   };
 </script>
-
 {% end %}

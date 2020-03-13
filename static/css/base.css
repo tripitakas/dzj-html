@@ -608,12 +608,11 @@ body.widescreen {
 
 .m-header .left {
   float: left;
-  margin-left: 12px;
+  margin-left: 6px;
 }
 
 .m-header .center {
   flex: 1 1 auto;
-  margin-left: 10px;
 }
 
 .m-header .right {
@@ -700,7 +699,23 @@ body.widescreen {
   display: flex;
 }
 
+.m-footer {
+  position: fixed;
+  bottom: 0;
+  opacity: .9;
+  width: 100%;
+  height: 20px;
+  line-height: 20px;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
+  color: var(--Brown_Darker);
+}
+
 /*bootstrap alert*/
+.alert {
+  border: 0;
+}
+
 .m-alert {
   top: 45px;
   left: 0;
@@ -717,21 +732,14 @@ body.widescreen {
 }
 
 .m-alert .loading {
+  float: left;
   font-size: 16px;
+  margin: 2px 5px;
 }
 
-.m-footer {
-  position: fixed;
-  bottom: 0;
-  opacity: .9;
-  width: 100%;
-  height: 20px;
-  line-height: 20px;
-  background-color: #fff;
-  border-top: 1px solid #ddd;
-  color: var(--Brown_Darker);
+.m-alert .title {
+  margin-right: 10px;
 }
-
 
 /*modal*/
 .modal {

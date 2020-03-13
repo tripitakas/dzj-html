@@ -1,6 +1,12 @@
 {% extends "_list.html" %}
 {% block custom-css %}
-<link href="{{static_url('built/task_admin_assets_20200313102935.css')}}" rel="stylesheet"/>
+{% if not debug or 0 %}
+<link href="{{static_url('built/task_admin_assets.css')}}" rel="stylesheet"/>
+{% else %}
+<link href="{{static_url('assets/jquery-multi-select/multi-select.css')}}" rel="stylesheet"/>
+<link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
+<link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
+{% end %}
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 {% end %}
 
@@ -299,7 +305,16 @@
 {% end %}
 
 {% block custom-js %}
-<script src="{{static_url('built/task_admin_assets_20200313102935.js')}}"></script>
+{% if not debug or 0 %}
+<script src="{{static_url('built/task_admin_assets.js')}}"></script>
+{% else %}
+<script src="{{static_url('assets/select2/select2.min.js')}}"></script>
+<script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
+<script src="{{static_url('assets/jquery-multi-select/jquery.multi-select.js')}}"></script>
+<script src="{{static_url('assets/jquery-multi-select/jquery.quicksearch.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
+<script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
+{% end %}
 <script>
   /*---公共设置---*/
   var taskTypes = decodeJSON('{{handler.task_types}}');

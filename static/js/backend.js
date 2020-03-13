@@ -138,7 +138,7 @@ $(function () {
   $("[data-toggle='tooltip']").tooltip();
 });
 
-// bootstrap alert
+// bootstrap alert close
 $(".alert .close").on('click', function () {
   $(this).parent().addClass('hide');
 });
