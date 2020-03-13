@@ -188,14 +188,14 @@
   margin-left: 5px;
 }
 
-#bs-alert {
+#m-alert {
   margin-bottom: 0;
   padding: 7px 5px;
   display: inline-block;
   width: calc(100% - 80px);
 }
 
-#bs-alert .close {
+#m-alert .close {
   line-height: 16px;
 }
 

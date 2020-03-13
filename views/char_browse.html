@@ -114,7 +114,7 @@
               <input class="form-control remark" placeholder="备注，如果有的话"/>
             </div>
             <div class="tail submit" style="margin-top: 5px">
-              <span id="bs-alert" class="alert hide">
+              <span id="m-alert" class="alert hide">
                 <a class="close">×</a>
                 <strong class="title"></strong><span class="text"></span>
               </span>
@@ -246,7 +246,7 @@
     $(this).addClass('current');
     // 更新OCR候选
     $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
-      return '<span class="ocr-txt' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+      return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
     }));
     // 更新校对历史
     updateLogs(ch.txt_logs);
@@ -350,7 +350,8 @@
         data.txt_type = $('.proof .txt-type :checked').val();
       chars[id] = $.extend(chars[id], data);
       location.href = setAnchor(name);
-      bsAlert('成功！', '已保存成功', 'success');
+      showSuccess('成功！', '已保存成功', 1000);
+      // bsAlert('成功！', '已保存成功', 'success', 1000);
     });
   });
 
