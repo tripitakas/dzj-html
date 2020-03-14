@@ -7,7 +7,6 @@
 {% block buttons %}
 <div class="btn-group">
   <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div id="info" class="btn-txt icon-info hide" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
   <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
   <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
   <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
@@ -37,8 +36,10 @@
 {% end %}
 
 {% block m-footer %}
-<span class="cur-char"></span>
-<span class="char-info"></span>
+<div class="m-footer">
+  <span class="cur-char"></span>
+  <span class="char-info"></span>
+</div>
 {% end %}
 
 {% block config-modal %}
@@ -160,36 +161,18 @@
   $.cut.switchCurrentBox(null);
 
   // 初始化设置
-  if ($.cut.data.image.node) {
-    $.cut.data.image.node.style.opacity = 0.2;
-  }
+  $.cut.data.image.node ? $.cut.data.image.node.style.opacity = 0.2 : null;
+  $.cut.toggleBox(getStorage('toggleBlock', '-1') === '1', 'block');
+  $.cut.toggleBox(getStorage('toggleColumn', '-1') === '1', 'column');
+  $.cut.toggleBox(getStorage('toggleChar', '-1') === '1', 'char');
+  $('#toggle-block').toggleClass('active', getStorage('toggleBlock', '-1') === '1');
+  $('#toggle-column').toggleClass('active', getStorage('toggleColumn', '-1') === '1');
+  $('#toggle-char').toggleClass('active', getStorage('toggleChar', '-1') === '1');
 
-  var blockActive = localStorage.getItem('toggleBlock') || '-1';
-  if (blockActive === '1') {
-    $('#toggle-block').addClass('active');
-    $.cut.toggleBox(true, 'block');
-  } else {
-    $('#toggle-block').removeClass('active');
-    $.cut.toggleBox(false, 'block');
-  }
-
-  var columnActive = localStorage.getItem('toggleColumn') || '-1';
-  if (columnActive === '1') {
-    $('#toggle-column').addClass('active');
-    $.cut.toggleBox(true, 'column');
-  } else {
-    $('#toggle-column').removeClass('active');
-    $.cut.toggleBox(false, 'column');
-  }
-
-  var charActive = localStorage.getItem('toggleChar') || '1';
-  if (charActive === '1') {
-    $('#toggle-char').addClass('active');
-    $.cut.toggleBox(true, 'char');
-  } else {
-    $('#toggle-char').removeClass('active');
-    $.cut.toggleBox(false, 'char');
-  }
+  $(document).ready(function () {
+    $cfgModal.find('.detect-col :radio[value=' + getStorage('detectCol', '是') + ']').prop('checked', true);
+    $cfgModal.find('.auto-adjust :radio[value=' + getStorage('autoAdjust', '是') + ']').prop('checked', true);
+  });
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
@@ -197,15 +180,12 @@
     var blockActive = $('#toggle-block').hasClass('active');
     var columnActive = $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
-    if ((charActive || threeActive) && cls === 'char') {
+    if ((charActive || threeActive) && cls === 'char')
       return true;
-    }
-    if ((columnActive || threeActive) && cls === 'column') {
+    if ((columnActive || threeActive) && cls === 'column')
       return true;
-    }
-    if ((blockActive || threeActive) && cls === 'block') {
+    if ((blockActive || threeActive) && cls === 'block')
       return true;
-    }
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
@@ -216,10 +196,10 @@
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
       if (active.length > 6) {
         $.cut.removeBox();
-        showWarning('无法创建新框', '当前显示有多种切分框，请仅选择其中一个，然后再创建');
+        bsShow('失败！', '当前显示有多种切分框，请仅选择其中一个，然后再创建。', 'warning');
       } else if (!active.length) {
         $.cut.removeBox();
-        showWarning('无法创建新框', '当前没有显示任何切分框，请仅选择其中一个，然后再创建');
+        bsShow('失败！', '当前没有显示任何切分框，请仅选择其中一个，然后再创建。', 'warning');
       } else {
         $.cut.setClass([info], active);
         updateUndo();
@@ -242,39 +222,26 @@
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
-
   }, true);
 
 </script>
 
 <script>
-  $(document).ready(function () {
-    var autoAdjust = localStorage.getItem('autoAdjust') || '是';
-    $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
-    var detectCol = localStorage.getItem('detectCol') || '是';
-    $('#taskConfigModal .detect-col :radio[value=' + detectCol + ']').prop('checked', true);
-  });
-
   // 获取任务数据
   function getTaskData() {
-    var detectCol = $('#taskConfigModal .detect-col :checked').val() === '是';
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val() === '是';
     return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
       chars: $.cut.exportBoxes('char'), step: steps.current,
-      auto_adjust: autoAdjust, detect_col: detectCol
+      auto_adjust: $cfgModal.find('.detect-col :checked').val() === '是',
+      detect_col: $cfgModal.find('.auto-adjust :checked').val() === '是',
     };
   }
 
   // 是否自动调整栏框、列框大小，自适应检测字框在多列的情况
   $('#taskConfigModal .modal-confirm').click(function () {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked');
-    if (autoAdjust.length)
-      localStorage.setItem('autoAdjust', autoAdjust.val());
-    var detectCol = $('#taskConfigModal .detect-col :checked');
-    if (detectCol.length)
-      localStorage.setItem('detectCol', detectCol.val());
-    $('#taskConfigModal').modal('hide');
+    setStorage('detectCol', $cfgModal.find('.detect-col :checked').val(), true);
+    setStorage('autoAdjust', $cfgModal.find('.auto-adjust :checked').val(), true);
+    $cfgModal.modal('hide');
   });
 
   // 显示各种类型字框数量
@@ -301,24 +268,18 @@
 <script>
   // 保存之后
   afterSaved = function (type, res, url) {
-    if (!res.valid) {
+    if (res.valid) {
+      type === 'next' ? goto(url, 1000) : bsShow('成功！', '已保存。') || location.reload();
+    } else {
       // 高亮未被覆盖的框
       $.cut.toggleClass(res.out_boxes, 'highlight flash', true);
       $.cut.toggleBox(true, null, res.out_boxes);
-      // 弹框提示
-      var tips = '检测到<b style="color: red">' + res.message + '</b>' + '并高亮显示';
+      // 提示
+      let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
       if (type === 'next') {
-        swConfirm('已保存，发现错误，是否继续？', tips, () => goto(url, 1000));
-      } else {
-        showWarning('已保存，发现错误', tips);
+        tips += `<a href="${url}">继续</a>`;
       }
-    } else {
-      if (type === 'next') {
-        goto(url, 1000);
-      } else {
-        showSuccess('成功', '已保存');
-        location.reload();
-      }
+      bsShow('已保存，发现错误!', tips, 'warning');
     }
   };
 </script>

@@ -11,13 +11,20 @@
 {% end %}
 
 <script>
+  function updateUndo() {
+    $('#undo').toggleClass('disabled', !$.cut.canUndo());
+    $('#redo').toggleClass('disabled', $.cut.canUndo());
+  }
+
+  updateUndo();
+
   $('#undo').on('click', function () {
     $.cut.undo();
-    $(this).toggleClass('disabled', !$.cut.canUndo());
+    updateUndo();
   });
 
   $('#redo').on('click', function () {
     $.cut.redo();
-    $(this).toggleClass('disabled', !$.cut.canUndo());
+    updateUndo();
   });
 </script>

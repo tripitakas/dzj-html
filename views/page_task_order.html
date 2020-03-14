@@ -2,48 +2,29 @@
 
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
-<style>
-  .m-bottom > span {
-    margin-left: 8px;
-  }
-
-  .m-body {
-    padding-bottom: 20px;
-  }
-
-  text tspan {
-    fill: #f00;
-  }
-
-  .sweet-overlay {
-    background-color: transparent;
-  }
-
-</style>
 {% end %}
 
 {% block buttons %}
 <div class="btn-group">
-  <div class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div class="btn-txt icon-info" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
-  <div class="btn-txt icon-image active" id="toggle-image" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div class="btn-txt icon-blur active" id="toggle-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-  <div class="btn-txt icon-zoom-in" id="zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div class="btn-txt icon-search" id="zoom-reset" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div class="btn-txt icon-zoom-out" id="zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-  <div class="btn-txt icon-undo" id="undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
-  <div class="btn-txt icon-redo" id="redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-  <div class="btn-txt icon-blocks" id="toggle-block" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-  <div class="btn-txt icon-columns" id="toggle-column" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-  <div class="btn-txt icon-chars" id="toggle-char" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-  <div class="btn-txt icon-char-no" id="toggle-char-no" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
-  <div class="btn-txt icon-char-order active" id="toggle-order" data-toggle="tooltip" data-placement="bottom" title="显隐连线"></div>
-  <div class="btn-txt icon-check" id="show-err-box" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
-  <div class="btn-txt icon-more {{'hide' if handler.readonly else ''}}" id="toggle-more" title="更多"></div>
+  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+  <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+  <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+  <div id="zoom-reset" class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+  <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+  <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+  <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+  <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+  <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+  <div id="toggle-char-no" class="btn-txt icon-char-no" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+  <div id="toggle-order" class="btn-txt icon-char-order active" data-toggle="tooltip" data-placement="bottom" title="显隐连线"></div>
+  <div id="show-err-box" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
+  <div id="toggle-more" class="btn-txt icon-more {{'hide' if handler.readonly else ''}}" title="更多"></div>
 </div>
 <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
-  <button type="button" class="btn btn-default btn-sm" id="reorder">重新排序<sup class="s-count"></sup></button>
-  <button type="button" class="btn btn-default btn-sm" id="old-order">原始字序<sup class="s-count"></sup></button>
+  <button id="reorder" class="btn btn-default btn-sm" type="button">重新排序<sup class="s-count"></sup></button>
+  <button id="old-order" class="btn btn-default btn-sm" type="button">原始字序<sup class="s-count"></sup></button>
 </div>
 {% end %}
 
@@ -51,7 +32,10 @@
 <div class="bd" id="holder-container">
   <div id="holder"></div>
 </div>
-<div class="m-footer" id="cut-info">
+{% end %}
+
+{% block m-footer %}
+<div class="m-footer">
   <span class="cur-char"></span>
   <span class="char-info"></span>
 </div>
@@ -168,29 +152,25 @@
     columns: '{{handler.page["columns"]}}'
   });
   $.cut.bindKeys();
-  $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
+  $.cut.bindCharOrderKeys();
   $.cut.addCharOrderLinks(decodeJSON('{{handler.chars_col}}'));
 
   // 初始化设置
-  if ($.cut.data.image.node) {
-    $.cut.data.image.node.style.opacity = 0.2;
-  }
   $.cut.toggleBox(false);
   $.cut.setLabel(false);
   $.cut.setLink(true);
+  $.cut.data.image.node ? $.cut.data.image.node.style.opacity = 0.2 : null;
+  setTimeout(() => $.cut.showErrorBoxes(), 1000);
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char') {
+    if ($('#toggle-char').hasClass('active') && cls === 'char')
       return true;
-    }
-    if ($('#toggle-column').hasClass('active') && cls === 'column') {
+    if ($('#toggle-column').hasClass('active') && cls === 'column')
       return true;
-    }
-    if ($('#toggle-block').hasClass('active') && cls === 'block') {
+    if ($('#toggle-block').hasClass('active') && cls === 'block')
       return true;
-    }
   };
 
 </script>
@@ -203,30 +183,21 @@
       r.error = '字序中的列数跟字框中的列数不一致。';
     }
     if (r.error) {
-      if ('prev,next'.indexOf(type) > -1)
-        swConfirm('未保存，发现错误，是否继续？', r.error, () => goto(jumpUrl, 1000));
-      else
-        showError('发现错误，请修正', r.error)
+      var tips = ['prev', 'next'].indexOf(type) > -1 ? r.error + `<a href="${jumpUrl}">继续</a>` : r.error;
+      bsShow('未保存，发现错误！', tips, 'warning');
     } else {
       return {step: steps.current, chars_col: r.chars_col};
     }
   }
 
   // 显示字序待修正的字框
-  $('#show-err-box').click(function () {
-    $.cut.showErrorBoxes(true);
-  });
-  setTimeout(() => $.cut.showErrorBoxes(), 1000);
+  $('#show-err-box').on('click', () => $.cut.showErrorBoxes(true));
 
   // 重新计算字序
-  $('#reorder').click(function () {
-    location.href = setQueryString('reorder', 'down');
-  });
+  $('#reorder').on('click', () => location.href = setQueryString('reorder', 'down'));
 
   // 显示原始字序
-  $('#old-order').click(function () {
-    location.href = deleteQueryString('reorder');
-  });
+  $('#old-order').on('click', () => location.href = deleteQueryString('reorder'));
 
 </script>
 {% end %}

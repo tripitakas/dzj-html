@@ -21,14 +21,13 @@
           {% set title, icon = ('任务大厅', 'icon-list') if handler.mode == 'do' else ('返回', 'icon-return-back') %}
           <span class="{{icon}}" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="{{title}}"></span>
         </div>
-        <div class="btn-group title" title="{{handler.page['name']}}">
-          {{handler.task_name()}}
+        <div class="btn-group title" title="{{handler.page['name']}}">{{handler.task_name()}}
           {% block step_title %}
           <span class="sub-title {{'' if handler.step_name() else 'hide'}}">-{{handler.step_name()}}</span>
           {% end %}
         </div>
       </div><!--left-->
-      <div class="center">{% block buttons %} {% end %}</div>
+      <div class="center">{% block buttons %}{% end %}</div>
       <div class="right">
         {% block task-actions %}
         <div id="task-config" class="btn-txt icon-config {{'hide' if handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="任务配置"></div>
@@ -47,14 +46,16 @@
         {% end %}
       </div><!--right-->
     </div>
-    <div class="m-body flex-content">
+    <div class="m-body flex">
       {% block m-body %}{% end %}
     </div>
     <div class="m-alert alert alert-info hide" id="m-alert">
       <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
-      <strong class="title">成功！</strong><span class="text">提示消息。</span>
+      <strong class="title"></strong><span class="text"></span>
     </div>
-    <div class="m-footer">{% block m-footer %}{% end %}</div>
+    {% block m-footer %}
+    <div class="m-footer"></div>
+    {% end %}
   </div>
 </div>
 
@@ -76,10 +77,13 @@
   var taskType = '{{handler.task_type}}';
   var steps = decodeJSON('{{handler.steps}}');
   var readonly = '{{handler.readonly}}' === 'True';
-  var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
   var step = '{{handler.steps.get("current") or ""}}';
-  var remark = '{{handler.task.get("remark") or ""}}';
   var lobbyTaskType = taskType.replace(/text_proof_\d/, 'text_proof');
+  var remark = '{{handler.task.get("remark") or ""}}';
+  var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
+  var $remarkModal = $("#remarkModal");
+  var $returnModal = $("#returnModal");
+  var $cfgModal = $("#taskConfigModal");
 </script>
 <script src="{{static_url('js/task-pick.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
@@ -87,16 +91,15 @@
 
 <script>
   $('#help').on('click', () => $('#helpModal').modal());
-  $('#task-config').on('click', () => $('#taskConfigModal').modal());
-  $('#task-return').on('click', () => $('#returnModal').modal());
-  $('#task-remark').on('click', () => $('#remarkModal').modal());
+  $('#task-return').on('click', () => $returnModal.modal());
+  $('#task-remark').on('click', () => $remarkModal.modal());
+  $('#task-config').on('click', () => $cfgModal.modal());
 
-
+  // 初始化设置
   $(document).ready(function () {
-    // 初始化，设置备注、是否自动领任务、是否为示例任务
-    $("#remarkModal .remark").val(remark || localStorage.getItem('taskRemark'));
-    $('#remarkModal .is_sample :radio[value="' + isSample + '"]').prop('checked', true);
-    $('#taskConfigModal .auto-pick :radio[value=' + (localStorage.getItem('autoPick') || '是') + ']').prop('checked', true);
+    $remarkModal.find(".remark").val(remark || getStorage('taskRemark'));
+    $remarkModal.find('.is_sample :radio[value="' + isSample + '"]').prop('checked', true);
+    $cfgModal.find('.auto-pick :radio[value=' + getStorage('autoPick', '是') + ']').prop('checked', true);
   });
 
   // 离开页面前的提醒
@@ -111,7 +114,7 @@
   // 离开页面
   window.leave = function () {
     // 释放临时数据锁
-    if ('edit,update'.indexOf(mode) > -1 && !readonly) {
+    if (['edit', 'update'].indexOf(mode) > -1 && !readonly) {
       if (taskType.indexOf('cut_') !== -1) {
         postApi('/data/unlock/box/' + docId, {});
       } else if (taskType.indexOf('text_') !== -1) {
@@ -135,109 +138,92 @@
     // type有四种类型：prev/next/save/submit
     var data = getTaskData(type, jumpUrl);
     if (data && !data.error) {
-      data.submit = 'next,submit'.indexOf(type) > -1;
-      $('#progress').removeClass('hide');
+      data.submit = ['next', 'submit'].indexOf(type) > -1;
+      bsLoading('保存中‧‧‧');
       postApi(location.pathname, {data: data}, function (res) {
         workChanged = 0;
-        $('#progress').addClass('hide');
         saveEnded(type, res, jumpUrl);
       }, errorHandle);
     }
   }
 
   function errorHandle(res) {
-    showError('操作失败', res.message || '');
-    $('#progress').addClass('hide');
+    bsShow('失败！', res.message || '', 'warning');
   }
 
   function afterSaved(type, res, url) {
-    showSuccess('成功', '已保存');
-    if (type !== 'save')
-      goto(url, 1000);
+    type === 'save' ? bsShow('成功！', '保存成功。', 'info', 1000) : goto(url, 1000);
   }
 
   function afterSubmitted(type, res, url) {
-    var autoPick = localStorage.getItem('autoPick') || '是';
-    setTimeout(function () {
-      if (mode === 'do' && autoPick === '是') {
-        pick('/task/pick/' + lobbyTaskType);
-      } else {
-        window.leave();
-      }
-    }, 1000);
+    let autoPick = getStorage('autoPick', true) === '是';
+    setTimeout(() => autoPick ? pick('/task/pick/' + lobbyTaskType) : window.leave(), 1000);
   }
 
   // 步骤导航
   function navigate(to) {
     var url = setQueryString('step', steps[to]);
-    if (!readonly) {
-      saveTask(to, url, afterSaved);
-    } else {
-      goto(url, 1000);
-    }
+    readonly ? goto(url, 1000) : saveTask(to, url, afterSaved);
   }
 
   // 上一步
-  $(document).on("click", '#prev-step', function () {
+  $(document).on("click", '#step-prev', function () {
     navigate('prev');
   });
 
   // 下一步
-  $(document).on("click", '#next-step', function () {
+  $(document).on("click", '#step-next', function () {
     navigate('next');
   });
 
   // 任务保存
-  $(document).on('click', '#save-task', function () {
-    // 去掉重新排序、重新比对等参数
-    var url = deleteQueryString(['reorder', 're_compare']);
+  $(document).on('click', '#task-save', function () {
+    var url = deleteQueryString(['reorder', 're_compare']); // 去掉重新排序、重新比对等参数
     saveTask('save', url, afterSaved);
   });
 
 
   // 任务提交
-  $(document).on('click', '#submit-task', function () {
+  $(document).on('click', '#task-submit', function () {
     saveTask('submit', null, afterSubmitted);
   });
 
-  // 退回任务提交
+  // 任务退回
   $(document).on('click', '#returnModal .modal-confirm', function () {
-    var reason = $('#returnModal .return_reason').val().trim();
-    if (!reason.length)
-      return showError('请填写退回理由', '尚未填写退回理由');
+    var reason = $returnModal.find('.return_reason').val().trim();
+    if (!reason.length) {
+      return showError('失败', '尚未填写退回理由');
+    }
     postApi('/task/return/' + taskId, {data: {reason: reason}}, function () {
-      showSuccess('退回成功', docId + ' 已退回成功。');
+      showSuccess('成功', docId + ' 已退回成功。');
       goto('/task/lobby/' + lobbyTaskType, 1000);
     });
   });
 
   // 查看页面
-  $(document).on('click', '#view-page', function () {
+  $(document).on('click', '#page-view', function () {
     location.href = '/page/browse/' + docId + '?from=' + encodeFrom();
   });
 
   // 前一个任务
-  $(document).on('click', '#prev-task', function () {
+  $(document).on('click', '#task-prev', function () {
     var path = '/task/browse/' + taskType + '/' + taskId;
     location.href = path + setQueryString('to', 'prev', true);
   });
 
   // 后一个任务
-  $(document).on('click', '#next-task', function () {
+  $(document).on('click', '#task-next', function () {
     var path = '/task/browse/' + taskType + '/' + taskId;
     location.href = path + setQueryString('to', 'next', true);
   });
 
   // 备注任务
   var $remarkModal = $('#remarkModal');
-  $remarkModal.find('.options :radio').click(function () {
-    $('#remarkModal .remark').val($(this).val());
-  });
+  $remarkModal.find('.options :radio').click(() => $remarkModal.find('.remark').val($(this).val()));
   $remarkModal.find('.modal-confirm').click(function () {
-    var isSample = $remarkModal.find('.is_sample :checked').val() || '否';
     var remark = $remarkModal.find('.remark').val().trim();
-    if (!remark.length)
-      localStorage.setItem('taskRemark', remark);
+    remark && setStorage('taskRemark', remark);
+    var isSample = $remarkModal.find('.is_sample :checked').val() || '否';
     postApi('/task/remark', {data: {_id: taskId, remark: remark, is_sample: isSample}}, function () {
       showSuccess('成功', '已备注');
       navigate(getQueryString('to') || 'next');
@@ -245,12 +231,12 @@
   });
 
   // 是否自动领取新任务
-  $('#taskConfigModal .modal-confirm').click(function () {
-    var autoPick = $('#taskConfigModal .auto-pick :checked');
-    if (autoPick.length)
-      localStorage.setItem('autoPick', autoPick.val());
-    $('#taskConfigModal').modal('hide');
+  $cfgModal.find('.modal-confirm').click(function () {
+    var autoPick = $cfgModal.find('.auto-pick :checked');
+    autoPick && setStorage('autoPick', autoPick.val());
+    $cfgModal.modal('hide');
   });
+
 </script>
 
 {% block final-js %}{% end %}

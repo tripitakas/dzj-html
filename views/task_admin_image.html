@@ -114,7 +114,7 @@
     if (!node.find('.status').text().trim().match(regex)) {
       return showWarning('状态有误', '只能重新发布进行中或已失败的任务！');
     }
-    swConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
+    showConfirm("确定重新发布吗？", "任务" + node.find('.doc_id').text().trim() + "将被重新发布！", function () {
       postApi('/task/republish/' + node.attr('id'), {data: {}}, function () {
         window.location.reload();
       });

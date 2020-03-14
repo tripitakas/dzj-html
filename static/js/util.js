@@ -2,7 +2,7 @@
  * 工具类js
  */
 
-let defaultTool = 'bs'; // 默认提示工具
+/* SweetAlert2*/
 const Swal0 = Swal.mixin({confirmButtonColor: '#b8906f', showConfirmButton: false});
 const Swal1 = Swal0.mixin({confirmButtonText: '确定', showConfirmButton: true});
 const Swal2 = Swal1.mixin({cancelButtonText: '取消', showCancelButton: true});
@@ -13,74 +13,60 @@ function showError(title, text, timer) {
     $('.ajax-error').text(text.replace(/[。！]$/, '')).show(200);
     return setTimeout(() => $('.ajax-error').hide(), timer);
   }
-  // bootstrap提示
-  if (defaultTool === 'bs' && $('#m-alert').length)
-    return bsAlert(title, text, 'warning', timer);
-  // sweetalert2提示
+  // sweet alert
   var type = /失败|错误/.test(title) ? 'error' : 'warning';
-  Swal0.fire({title: title, html: text, type: type, timer: timer});
+  Swal0.fire({title: title, html: text, type: type, timer: timer || 1000});
 }
 
 function showWarning(title, text, timer) {
-  if (defaultTool === 'bs' && $('#m-alert').length)
-    return bsAlert(title, text, 'warning', timer);
-  Swal0.fire({title: title, html: text, type: 'warning', timer: timer});
+  Swal0.fire({title: title, html: text, type: 'warning', timer: timer || 1000});
 }
 
 function showSuccess(title, text, timer) {
-  if (defaultTool === 'bs' && $('#m-alert').length)
-    return bsAlert(title, text, 'success', timer);
-  Swal0.fire({title: title, html: text, type: 'success', timer: timer});
+  Swal0.fire({title: title, html: text, type: 'success', timer: timer || 1000});
 }
 
-function showTips(title, text, timer, reload) {
-  if (defaultTool === 'bs' && $('#m-alert').length) {
-    bsAlert(title, text, 'info', timer);
-  } else {
-    Swal0.fire({title: title, html: text, type: 'info', timer: timer});
-  }
-  if (typeof reload !== 'undefined' && reload)
-    setTimeout(() => location.reload(), 1000);
+function showTips(title, text, reload) {
+  Swal0.fire({title: title, html: text, type: 'warning'});
+  reload && setTimeout(() => location.reload(), 1000);
 }
 
-function swConfirm(title, text, func) {
+function showConfirm(title, text, func) {
   return Swal2.fire({title: title, html: text, type: 'warning'}).then(result => result.value && func());
 }
 
-function bsAlertWithLoading(title, text, type, selector) {
-  bsAlert(title, text, type, null, selector, true);
+/* Bootstrap Alert*/
+function bsShow(title, text, type, timer, selector, loading) {
+  type = type || 'info';
+  selector = selector || '#m-alert';
+  $(selector).removeClass('alert-info alert-warning alert-success hide').addClass('alert-' + type);
+  $(selector).find('.title').html(title);
+  $(selector).find('.text').html(text || '');
+  $(selector).find('.loading').toggleClass('hide', !(loading || false));
+  timer && setTimeout(() => $(selector).addClass('hide'), timer);
 }
 
-function bsAlert(title, text, type, timer, selector, loading) {
-  // type的值为info/warning/success等几种类型
-  type = typeof type !== 'undefined' ? type : 'info';
-  selector = typeof selector !== 'undefined' ? selector : '#m-alert';
-  $(selector).removeClass('alert-info alert-warning alert-success hide').addClass('alert-' + type);
-  $(selector).find('.text').text(text);
-  $(selector).find('.title').text(title);
-  loading = typeof loading !== 'undefined' ? type : false;
-  $(selector).find('.loading').toggleClass('hide', !loading);
-  timer && setTimeout(() => $(selector).addClass('hide'), timer);
+function bsLoading(title, text, type, selector) {
+  bsShow(title, text, type, null, selector, true);
+}
+
+function bsHide() {
+  $('#m-alert').addClass('hide');
 }
 
 /* URL相关*/
 function refresh(timer) {
-  timer = typeof timer !== 'undefined' ? timer : 1000;
-  setTimeout(() => window.location.reload(), timer);
+  setTimeout(() => window.location.reload(), timer || 1000);
 }
 
 function goto(url, timer) {
-  timer = typeof timer !== 'undefined' ? timer : 1000;
-  setTimeout(() => window.location = url, timer);
+  setTimeout(() => window.location = url, timer || 1000);
 }
 
 function getQueryString(name) {
   var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
   var r = window.location.search.substr(1).match(reg);
-  if (r != null) {
-    return unescape(r[2]);
-  }
-  return '';
+  return r != null ? unescape(r[2]) : '';
 }
 
 function setQueryString(name, value, onlySearch) {
@@ -94,19 +80,13 @@ function setQueryString(name, value, onlySearch) {
   } else {
     search = '?' + add;
   }
-  if (typeof onlySearch !== 'undefined' && onlySearch)
-    return search;
-  else
-    return location.pathname + search;
+  return onlySearch ? search : location.pathname + search;
 }
 
 function deleteQueryString(names) {
   var url = location.href;
-  if (typeof names === 'string')
-    names = names.split(',');
-  names.forEach(function (name) {
-    url = deleteParam(url, name);
-  });
+  names = typeof names === 'string' ? names.split(',') : names;
+  names.forEach((name) => url = deleteParam(url, name));
   return url;
 }
 
@@ -148,4 +128,14 @@ function toLocalTime(isoTimeStamp) {
     isoTimeStamp = isoTimeStamp['$date'];
   var times = new Date(isoTimeStamp).toISOString().split('T');
   return times[0] + ' ' + times[1].substr(0, 5);
+}
+
+/* localStorage*/
+function getStorage(key, defaultValue) {
+  return localStorage.getItem(key) || defaultValue
+}
+
+function setStorage(key, value, ignoreEmpty) {
+  if (value || !ignoreEmpty)
+    localStorage.setItem(key, value)
 }

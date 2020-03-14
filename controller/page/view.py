@@ -25,7 +25,7 @@ class TaskCutHandler(PageHandler):
         try:
             template = 'page_task_cut.html'
             if self.steps['current'] == 'order':
-                template = 'task_cut_order.html'
+                template = 'page_task_order.html'
                 reorder = self.get_query_argument('reorder', '')
                 if reorder:
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)

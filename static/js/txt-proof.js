@@ -54,7 +54,6 @@ function getLineText($line) {
     } else {
       var mb4Chars = ($(el).attr('utf8mb4') || '').split(',');
       var mb4Map = {}, order = 'a', c;
-
       mb4Chars.forEach(function (mb4Char) {
         if (mb4Char && text.indexOf(mb4Char) !== -1) {
           mb4Map[order] = mb4Char;
@@ -62,7 +61,6 @@ function getLineText($line) {
           order = String.fromCharCode(order.charCodeAt() + 1);
         }
       });
-
       text = text.split('').map(function (c) {
         return mb4Map[c] || c;
       });
@@ -104,9 +102,9 @@ function highlightBox($span, first, keyCode) {
   if (!$span) {
     $span = currentSpan[0];
     first = currentSpan[1];
-    if (!$span)
-      return;
   }
+  if (!$span)
+    return;
 
   var $line = $span.parent();
   var line_no = getLineNo($line);
@@ -216,9 +214,8 @@ $.cut.onBoxChanged(function (char, box, reason) {
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
     $('.current-span').removeClass('current-span');
-    $(span).addClass('current-span');
     $('.current-line').removeClass('current-line');
-    span.parent().addClass('current-line');
+    $(span).addClass('current-span').parent().addClass('current-line')
   }
 }
 
@@ -232,61 +229,50 @@ $(document).on('click', '.same, .diff', function () {
 $(document).on('dblclick', '.diff', function (e) {
   e.stopPropagation();
   setCurrent($(this));
-
   // 设置当前异文
-  $(".current-diff").removeClass('current-diff');
+  $('.current-diff').removeClass('current-diff');
   $(this).addClass('current-diff');
-
   // 设置弹框文本
-  var baseText = $(this).attr("base");
-  $("#pfread-dialog-base").text(baseText);
-  $("#pfread-dialog-cmp1").text($(this).attr("cmp1"));
-  $("#pfread-dialog-cmp2").text($(this).attr("cmp2"));
-  $("#pfread-dialog-slct").text($(this).text());
-  $("#pfread-dialog-cmp1").toggleClass('same-base', baseText && baseText === $(this).attr("cmp1"));
-  $("#pfread-dialog-cmp2").toggleClass('same-base', baseText && baseText === $(this).attr("cmp2"));
-
+  var base = $(this).attr("base");
+  var cmp1 = $(this).attr("cmp1");
+  var cmp2 = $(this).attr("cmp2");
+  $("#dlg-base").text(base);
+  $("#dlg-cmp1").text(cmp1).toggleClass('same-base', base && base === cmp1);
+  $("#dlg-cmp2").text(cmp2).toggleClass('same-base', base && base === cmp2);
+  $("#dlg-slct").text($(this).text());
   // 设置弹框位置
   var $dlg = $("#pfread-dialog");
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
-
   // 当弹框超出文字框时，向上弹出
-  var r_h = $(".pfread .right #sutra-text").height();
   var o_t = $dlg.offset().top;
+  var r_h = $("#sutra-text").height();
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
     $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
-
   // 设置弹框小箭头
   if (o_t + d_h > r_h) {
     var $mark = $dlg.find('.dlg-after');
     var ml = $mark.attr('last-left') || $mark.css('marginLeft');
-    $mark.attr('last-left', ml);
-    $mark.css('marginLeft', parseInt(ml) - offset);
+    $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
   } else {
     $mark = $dlg.find('.dlg-before');
     ml = $mark.attr('last-left') || $mark.css('marginLeft');
-    $mark.attr('last-left', ml);
-    $mark.css('marginLeft', parseInt(ml) - offset);
+    $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
   }
-
   // 当弹框右边出界时，向左移动
-  var r_w = $dlg.parent()[0].getBoundingClientRect().right;
   var o_l = $dlg.offset().left;
+  var r_w = $dlg.parent()[0].getBoundingClientRect().right;
   var d_r = $dlg[0].getBoundingClientRect().right;
-  var offset = 0;
   if (d_r > r_w - 20) {
-    offset = parseInt(r_w - d_r - 20);
-    $dlg.offset({left: o_l + offset});
+    $dlg.offset({left: o_l + parseInt(r_w - d_r - 20)});
   }
-
 });
 
 // 单击文本区的空白区域
-$('.pfread .right').on('click', function (e) {
+$('#sutra-text').on('click', function (e) {
   var dlg = $('#pfread-dialog');
   if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
     dlg.offset({top: 0, left: 0}).hide();
@@ -294,19 +280,19 @@ $('.pfread .right').on('click', function (e) {
 });
 
 // 滚动文本区滚动条
-$('.pfread .right').scroll(function () {
+$('#sutra-text').scroll(function () {
   $("#pfread-dialog").offset({top: 0, left: 0}).hide();
 });
 
 // 点击异文选择框的各个选项
 $('#pfread-dialog .option').on('click', function () {
-  $('#pfread-dialog-slct').text($(this).text());
+  $('#dlg-slct').text($(this).text());
   if (!$(this).text().length)
     $('.current-diff').text($(this).text()).addClass('selected');
 });
 
 // 对话框选择文本input发生修改
-$("#pfread-dialog-slct").on('DOMSubtreeModified', function () {
+$("#dlg-slct").on('DOMSubtreeModified', function () {
   $('.current-diff').text($(this).text()).addClass('selected');
   if ($(this).text() === '') {
     $('.current-diff').addClass('empty-place');
@@ -564,7 +550,7 @@ function updateWideChars(lineNos, ended) {
     });
   });
 
-  postApi('/task/detect_chars', {data: {texts: texts}}, function (res) {
+  postApi('/task/text/detect_chars', {data: {texts: texts}}, function (res) {
     lineNos.forEach(function (no, lineIdx) {
       var $line = getLine(no.blockNo, no.lineNo);
       $line.find('span').each(function (i, el) {

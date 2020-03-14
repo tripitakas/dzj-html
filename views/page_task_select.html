@@ -1,11 +1,15 @@
-{% extends "_task_do.html" %}
+{% extends "page_task_do.html" %}
 
 {% block custom-css %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 {% include _font_css.html %}
 <style>
-  .right .bd .selectable {
+  .m-body {
+    padding-bottom: 0;
+  }
+
+  .m-right .selectable {
     height: 50%;
     font-size: 18px;
     overflow-y: auto;
@@ -13,11 +17,11 @@
     border-bottom: 1px solid #ccc;
   }
 
-  .right .bd .selectable .more {
+  .m-right .selectable .more {
     display: block;
   }
 
-  .right .bd .selected {
+  .m-right .selected {
     max-height: 50%;
     font-size: 18px;
     width: calc(100% - 30px);
@@ -27,11 +31,11 @@
     overflow-y: auto;
   }
 
-  .right .bd kw {
+  .m-right kw {
     color: var(--Brown_Darker);
   }
 
-  .right .bd .cmp-more {
+  .m-right .cmp-more {
     cursor: pointer;
     line-height: 20px;
     user-select: none;
@@ -42,7 +46,7 @@
     color: white;
   }
 
-  .right .bd .search-pagination {
+  .m-right .search-pagination {
     margin-left: 8px;
     font-size: 16px;
     padding: 5px 0;
@@ -58,27 +62,26 @@
 
 {% block buttons %}
 <div class="btn-group">
-  <div class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div class="btn-txt icon-info" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
-  <div class="btn-txt icon-image active" id="toggle-left" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div class="btn-txt icon-txt active" id="toggle-right" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-  <div class="btn-txt icon-zoom-in" id="zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div class="btn-txt icon-search" id="zoom-reset" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div class="btn-txt icon-zoom-out" id="zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+  <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+  <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+  <div id="zoom-reset" class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
 </div>
 <div class="btn-group right">
-  <div class="btn-txt icon-check" id="select-txt" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
-  <div class="btn-txt icon-article" id="show-txt" data-toggle="tooltip" data-placement="bottom" title="OCR文本"></div>
+  <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
+  <div id="show-txt" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
 </div>
 {% end %}
 
 {% block m-body %}
-<div class="left fl" id="left-region">
+<div class="m-left fl" id="left-region">
   <div class="bd" id="holder-container">
     <div id="holder"></div>
   </div>
 </div><!--left-->
-<div class="right fr" id="right-region">
+<div class="m-right fr" id="right-region">
   <div class="bd">
     <div class="selectable" id="selectable">
       <span class="cmp-more" id="prev" title="更多">···</span>
@@ -86,23 +89,16 @@
       <span class="cmp-more" id="next" title="更多">···</span>
     </div>
     <div id="pagination" class="search-pagination ms-search-pagination"></div>
-    <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if handler.readonly else ''}}>{{cmp or ''}}</textarea>
+    <textarea class="form-control selected" id="selected" placeholder="请从上文中选择与图片相似的文字……" {{'disabled' if handler.readonly else ''}}>
+    {{cmp or ''}}
+    </textarea>
   </div>
 </div><!--right-->
 {% end %}
 
+{% block m-footer %}{% end %}
+
 {% block custom-modal %}
-<div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <div class="modal-header">OCR</div>
-      <div class="modal-body">
-        {% raw handler.get_ocr().replace('|', '<br>') %}
-      </div>
-    </div>
-  </div>
-</div>
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -149,6 +145,17 @@
     </div>
   </div>
 </div>
+<div id="ocrModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ocrModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <div class="modal-header">OCR</div>
+      <div class="modal-body">
+        {% raw handler.get_ocr().replace('|', '<br>') %}
+      </div>
+    </div>
+  </div>
+</div>
 {% end %}
 
 {% block custom-js %}
@@ -177,7 +184,10 @@
   }
 
   createPage();
+
   $('#holder-container').focus();
+
+  $('#show-txt').on('click', () => $('#ocrModal').modal());
 
   // 检查数据有效性，然后返回任务数据
   function getTaskData() {
@@ -193,11 +203,9 @@
 
   // 初始化加载比对本
   $(document).ready(function () {
-    if (mode === 'do' || mode === 'update') {
+    if (['do', 'update'].indexOf(mode) > -1) {
       postApi('/task/text_select/' + docId, {data: {}}, function (data) {
-        // 设置文本
         $('#cmp').html(data.cmp);
-        // 设置分页
         var count = data.hit_page_codes.length;
         var html = "<a title='" + data.hit_page_codes[0] + "' class='cur'>1</a>";
         for (var i = 2; i <= count; i++) {

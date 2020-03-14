@@ -135,6 +135,10 @@ a:hover, a:visited, a:focus {
   text-align: right;
 }
 
+.flex {
+  display: flex;
+}
+
 .invisible {
   visibility: hidden
 }
@@ -694,17 +698,13 @@ body.widescreen {
   overflow: auto;
 }
 
-.flex-content {
-  width: 100%;
-  display: flex;
-}
-
 .m-footer {
-  position: fixed;
   bottom: 0;
   opacity: .9;
   width: 100%;
   height: 20px;
+  position: fixed;
+  padding: 0 6px;
   line-height: 20px;
   background-color: #fff;
   border-top: 1px solid #ddd;
@@ -739,6 +739,11 @@ body.widescreen {
 
 .m-alert .title {
   margin-right: 10px;
+}
+
+.m-alert .text a {
+  text-decoration: underline;
+  color: var(--Brown_Darker);
 }
 
 /*modal*/

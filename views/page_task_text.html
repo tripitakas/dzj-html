@@ -28,151 +28,128 @@
 {% end %}
 
 {% block buttons %}
-<div class="btn-group">
-  <div class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div class="btn-txt icon-info" data-toggle="tooltip" data-placement="bottom" title="基本信息"></div>
-  <div class="btn-txt icon-image active" id="toggle-left" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div class="btn-txt icon-txt active" id="toggle-right" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-  <div class="btn-txt icon-blur active" id="toggle-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-  <div class="btn-txt icon-zoom-in" id="zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div class="btn-txt icon-search" id="zoom-reset" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div class="btn-txt icon-zoom-out" id="zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-  <div class="btn-txt icon-chars" id="toggle-char" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-  <div class="btn-txt icon-panel-txt" id="toggle-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的文字"></div>
-  <div class="btn-txt icon-panel-no" id="toggle-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的序号"></div>
-  <div class="btn-txt icon-font-plus" id="enlarge-panel-font" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
-  <div class="btn-txt icon-font-minus" id="reduce-panel-font" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
-  <div class="btn-txt icon-pencil" id="toggle-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
+<div class="btn-group" style="margin-right: 0">
+  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+  <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+  <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+  <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+  <div id="zoom-reset" class="btn-txt icon-search" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+  <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+  <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的文字"></div>
+  <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的序号"></div>
+  <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
+  <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
+  <div id="toggle-more" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
 </div>
 <div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
   {% if not handler.readonly %}
-  <button type="button" class="btn btn-default btn-sm" id="btn-ed-box">修改切分</button>
-  <button type="button" class="btn btn-default btn-sm" id="btn-ed-order">修改字序</button>
+  <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
+  <button id="btn-ed-order" type="button" class="btn btn-default btn-sm">修改字序</button>
   {% else %}
-  <button type="button" class="btn btn-default btn-sm" id="btn-vw-box">查看切分</button>
-  <button type="button" class="btn btn-default btn-sm" id="btn-vw-order">查看字序</button>
+  <button id="btn-vw-box" type="button" class="btn btn-default btn-sm">查看切分</button>
+  <button id="btn-vw-order" type="button" class="btn btn-default btn-sm">查看字序</button>
   {% end %}
 </div>
 <div class="btn-group right">
-  <div class="btn-txt icon-font-plus" id="enlarge-font" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
-  <div class="btn-txt icon-font-minus" id="reduce-font" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
-  <div class="btn-txt icon-prev" id="prev-diff" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
-  <div class="btn-txt icon-next" id="next-diff" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
-  <div class="btn-txt icon-empty" id="toggle-empty-place" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
-  <div class="btn-txt icon-delete-line" id="delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
-  <div class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" id="save-doubt" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
-  <div class="btn-txt icon-done-all" id="check-match" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
-  <div class="btn-txt icon-cmp-txt {{'' if 'text_proof' in handler.task_type else 'hide'}}" id="re-compare" data-toggle="tooltip" data-placement="bottom" title="重新比对"></div>
-  <div class="btn-txt icon-article {{'' if handler.texts else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显示所有文本"></div>
+  <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+  <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
+  <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
+  <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
+  <div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
+  <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
+  <div id="save-doubt" class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
+  <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
+  <div id="re-compare" class="btn-txt icon-cmp-txt {{'' if 'text_proof' in handler.task_type else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="重新比对"></div>
+  <div id="show-txt" class="btn-txt icon-article {{'' if handler.texts else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显示所有文本"></div>
 </div>
 {% end %}
 
 {% block m-body %}
-<div class="pfread">
-  <div class="left" id="left-region">
-    <div class="bd" id="holder-container">
-      <div id="holder"></div>
-    </div>
+<div class="m-left" id="left-region">
+  <div class="bd" id="holder-container">
+    <div id="holder"></div>
   </div>
-  <div class="right" id="right-region">
-    <div class="sutra-text-mode" id="toggle-text-mode">
-      <span class="html-edit" title="以纯文本方式修改内容"></span>
-      <span class="save-txt" title="应用此文本，切换到比对显示方式"></span>
-    </div>
-    <div class="bd sutra-html">
-      <div class="sutra-text active" id="sutra-text">
-        <div class="blocks">
-          {% if isinstance(cmp_data, str) %}
-          {% raw cmp_data %}
-          {% else %}
-          {% module TextArea(cmp_data=cmp_data) %}
-          {% end %}
-        </div>
-      </div>
-      <!--/.sutra-text-->
-      {% if handler.doubts %}
-      <div class="char-list doubt-list">
-        <div class="char-list-tab">
-          {% for i, doubt in enumerate(handler.doubts) %}
-          <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
-          {% end %}
-          <div class="char-list-tab-arrow" id="toggle-arrow">
-            <img src="{{static_url('imgs/up_arrow.png')}}">
-            <img src="{{static_url('imgs/down_arrow.png')}}" style="display: none">
-          </div>
-        </div>
-        {% for i, doubt in enumerate(handler.doubts) %}
-        <table class="char-list-table {{'' if i else 'editable active'}}">
-          <thead>
-          <tr>
-            <td>行号</td>
-            <td>字序号</td>
-            <td>存疑文本</td>
-            <td>存疑理由</td>
-            <td class="del-doubt">操作</td>
-          </tr>
-          </thead>
-          <tbody>
-          {% raw doubt[0] %}
-          </tbody>
-        </table>
+</div>
+<div class="m-right" id="right-region">
+  <div class="sutra-text-mode" id="toggle-text-mode">
+    <span id="html-edit" class="html-edit" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本编辑模式"></span>
+    <span id="save-txt" class="save-txt" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></span>
+  </div>
+  <div class="bd sutra-html wide-txt">
+    <div id="sutra-text" class="sutra-text active">
+      <div class="blocks">
+        {% if isinstance(cmp_data, str) %}
+        {% raw cmp_data %}
+        {% else %}
+        {% module TextArea(cmp_data=cmp_data) %}
         {% end %}
       </div>
-      {% end %}
-      <!--/.doubt-list-->
-      {% if handler.texts %}
-      <div class="pfread-dialog" id="pfread-dialog">
-        <div class="dialog-common dialog-abs">
-          <div class="dlg-before"></div>
-          {% for i, txt in enumerate(handler.texts) %}
-          <dl class="item">
-            <dt>{{txt[1]}}</dt>
-            <dd class="text option" id="pfread-dialog-{{'cmp%s' % i if i else 'base'}}"></dd>
-          </dl>
-          {% end %}
-          <dl class="item">
-            <dt>选择结果</dt>
-            <dd class="text">
-              <span id="pfread-dialog-slct" contenteditable="true"></span>
-            </dd>
-          </dl>
-          <div class="dlg-after"></div>
+    </div>
+    <!--/.sutra-text-->
+    {% if handler.doubts %}
+    <div class="char-list doubt-list">
+      <div class="char-list-tab">
+        {% for i, doubt in enumerate(handler.doubts) %}
+        <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
+        {% end %}
+        <div class="char-list-tab-arrow" id="toggle-arrow">
+          <img src="{{static_url('imgs/up_arrow.png')}}">
+          <img src="{{static_url('imgs/down_arrow.png')}}" style="display: none">
         </div>
       </div>
+      {% for i, doubt in enumerate(handler.doubts) %}
+      <table class="char-list-table {{'' if i else 'editable active'}}">
+        <thead>
+        <tr>
+          <td>行号</td>
+          <td>字序号</td>
+          <td>存疑文本</td>
+          <td>存疑理由</td>
+          <td class="del-doubt">操作</td>
+        </tr>
+        </thead>
+        <tbody>
+        {% raw doubt[0] %}
+        </tbody>
+      </table>
       {% end %}
-      <!--/.pfread-dialog-->
     </div>
-    <div class="bd sutra-txt hide">
-      <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
+    {% end %}
+    <!--/.doubt-list-->
+    {% if handler.texts %}
+    <div class="pfread-dialog" id="pfread-dialog">
+      <div class="dialog-common dialog-abs">
+        <div class="dlg-before"></div>
+        {% for i, txt in enumerate(handler.texts) %}
+        <dl class="item">
+          <dt>{{txt[1]}}</dt>
+          <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
+        </dl>
+        {% end %}
+        <dl class="item">
+          <dt>选择结果</dt>
+          <dd class="text">
+            <span id="dlg-slct" contenteditable="true"></span>
+          </dd>
+        </dl>
+        <div class="dlg-after"></div>
+      </div>
     </div>
+    {% end %}
+    <!--/.pfread-dialog-->
+  </div>
+  <div class="bd sutra-txt wide-txt hide">
+    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
   </div>
 </div>
 {% end %}
 
+{% block m-footer %}{% end %}
+
 {% block custom-modal %}
 {% module DoubtModal() %}
-<div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <div class="modal-header">
-        <div class="btn-group" role="group">
-          {% for i, txt in enumerate(handler.texts) %}
-          <button class="btn btn-txt btn-default" id="show-txt{{i}}">{{txt[1]}}</button>
-          {% end %}
-          <button class="btn btn-txt btn-default{{'' if len(handler.texts) > 1 else ' hide'}}" id="show-all">所有</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        {% for i, txt in enumerate(handler.texts) %}
-        <textarea id="txt{{i}}" class="{{'hide' if i else ''}}" rows="26" readonly>
-            {{txt[0].replace('|', '\n')}}
-          </textarea>
-        {% end %}
-      </div>
-    </div>
-  </div>
-</div>
 <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -250,6 +227,28 @@
             <td>按照方向键↑→↓←的指示，切换当前字框</td>
           </tr>
         </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <div class="modal-header">
+        <div class="btn-group" role="group">
+          {% for i, txt in enumerate(handler.texts) %}
+          <button class="btn btn-txt btn-default" id="show-txt{{i}}">{{txt[1]}}</button>
+          {% end %}
+          <button class="btn btn-txt btn-default{{'' if len(handler.texts) > 1 else ' hide'}}" id="show-all">所有</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        {% for i, txt in enumerate(handler.texts) %}
+        <textarea id="txt{{i}}" class="{{'hide' if i else ''}}" rows="26" readonly>
+            {{txt[0].replace('|', '\n')}}
+          </textarea>
+        {% end %}
       </div>
     </div>
   </div>

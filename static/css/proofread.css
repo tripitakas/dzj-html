@@ -1,99 +1,35 @@
-.pfread {
-  padding-top: 40px;
+.m-body {
+  padding-bottom: 0;
 }
 
-.pfread .left {
+.m-left {
   flex: 1;
   width: 50%;
 }
 
-.pfread .left .hd {
-  line-height: 45px;
-  border-bottom: 1px solid #ccc;
-  padding: 0 10px;
-}
-
-.pfread .left .hd span i {
-  top: 8px;
-  display: block;
-  background-position: center;
-  background-size: cover;
-  width: 25px;
-  height: 25px;
-}
-
-.pfread .left .hd .btns {
-  display: inline-block;
-}
-
-.pfread .left .hd .btns span {
-  display: inline-block;
-  width: auto;
-  border-radius: 18px;
-  text-align: center;
-  line-height: 30px;
-  border: 1px solid #fff;
-  font-size: 16px;
-  cursor: pointer;
-  color: #2e363f;
-}
-
-.pfread .left .bd {
-  overflow: auto;
-}
-
-.pfread .right {
+.m-right {
   flex: 1;
   border-left: 1px solid #ccc;
   background: var(--Grey_Content);
 }
 
-.pfread .right .hd {
-  line-height: 45px;
-  border-bottom: 1px solid #ccc;
-  padding: 0 10px;
-  color: #2e363f;
-}
-
-.pfread .right .hd span i {
-  top: 8px;
-  display: block;
-  background-position: center;
-  background-size: cover;
-  width: 25px;
-  height: 25px;
-}
-
-.pfread .right .hd .btns {
-  display: inline-block;
-}
-
-.pfread .right .hd .btns span {
-  display: inline-block;
-  width: auto;
-  border-radius: 18px;
-  text-align: center;
-  line-height: 30px;
-  border: 1px solid #fff;
-  font-size: 16px;
-  cursor: pointer;
-  color: #2e363f;
-}
-
-.pfread .right .bd {
+.m-right .bd {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
 /* 文本区域 */
-.right .sutra-text {
-  /*font-size: 0;*/
+.m-right .sutra-text {
   overflow: auto;
   padding-top: 5px;
   height: 100%;
   display: none;
   flex: 1 1 auto;
+}
+
+.sutra-text.active {
+  display: block;
 }
 
 .sutra-text-mode .html-edit, .sutra-text-mode .save-txt {
@@ -137,7 +73,6 @@
   font-weight: 300;
   border: 0;
 }
-
 
 .right .sutra-text.active {
   display: block;
@@ -336,17 +271,17 @@
   display: none;
 }
 
-.pfread .pfread-dialog {
+.pfread-dialog {
   position: absolute;
   max-width: 600px;
   min-width: 240px;
 }
 
-.pfread .pfread-dialog .item {
+.pfread-dialog .item {
   margin-bottom: 10px;
 }
 
-.pfread .pfread-dialog .item dt {
+.pfread-dialog .item dt {
   display: inline-block;
   width: 72px;
   text-align: right;
@@ -356,11 +291,11 @@
   padding-top: 10px;
 }
 
-.pfread .pfread-dialog .item dd {
+.pfread-dialog .item dd {
   display: inline-block;
 }
 
-.pfread .pfread-dialog .item input[type="text"] {
+.pfread-dialog .item input[type="text"] {
   display: inline-block;
   padding: 0 5px;
   height: 36px;
@@ -368,7 +303,7 @@
   font-size: 16px;
 }
 
-.pfread .pfread-dialog .item .text {
+.pfread-dialog .item .text {
   display: inline-block;
   width: calc(100% - 80px);
   padding: 0 5px;
@@ -382,7 +317,7 @@
   word-break: break-all;
 }
 
-.pfread .pfread-dialog .same-base {
+.pfread-dialog .same-base {
   color: #0f0;
 }
 

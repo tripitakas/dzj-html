@@ -177,7 +177,7 @@
 
     </div>
 
-    <div class="m-body flex-content pfread">
+    <div class="m-body flex pfread">
       <div class="left" id="left-region">
         <div class="bd" id="holder-container">
           <div id="holder"></div>
@@ -375,7 +375,7 @@
     var name = '{{page["name"]}}';
     var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
     var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    swConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
+    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
       postApi(url, {data: {}}, function () {
         showSuccess('成功', '已成功解锁。');
         refresh(1000);

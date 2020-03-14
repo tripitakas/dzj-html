@@ -19,13 +19,13 @@ function error_callback(res) {
     if (location.pathname.indexOf('/task/do') !== -1)
       window.location = res.url;
     else
-      swConfirm("是否继续未完成的任务？", "您还有未完成的任务" + res.doc_id + "，不能领取新任务！", function () {
+      showConfirm("是否继续未完成的任务？", "您还有未完成的任务" + res.doc_id + "，不能领取新任务！", function () {
         window.location = res.url;
       });
   } else if (res.code === 3003) { // error.no_task_to_pick
     window.location = '/task/lobby/' + lobbyTaskType;
   } else if (res.code !== 500) {
-    swConfirm("是否领取其它任务？", res.message, function () {
+    showConfirm("是否领取其它任务？", res.message, function () {
       pick("/task/pick/" + lobbyTaskType);
     });
   } else {
