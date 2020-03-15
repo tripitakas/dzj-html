@@ -20,62 +20,11 @@
 }
 
 /* 文本区域 */
-.m-right .sutra-text {
+.sutra-text {
   overflow: auto;
   padding-top: 5px;
   height: 100%;
-  display: none;
   flex: 1 1 auto;
-}
-
-.sutra-text.active {
-  display: block;
-}
-
-.sutra-text-mode .html-edit, .sutra-text-mode .save-txt {
-  top: 45px;
-  right: 20px;
-  width: 20px;
-  height: 20px;
-  z-index: 1000;
-  cursor: pointer;
-  position: fixed;
-  background-size: 20px 20px;
-}
-
-.sutra-text-mode .html-edit {
-  display: block;
-  background: url(../imgs/icon_edit2.png);
-  background-size: 20px;
-  opacity: 0.5;
-}
-
-.sutra-text-mode .save-txt {
-  display: none;
-  background: url(../imgs/icon_save2.png);
-  background-size: 20px;
-  opacity: 0.5;
-}
-
-.txt-mode .save-txt {
-  display: block;
-}
-
-.txt-mode .html-edit {
-  display: none;
-}
-
-.bd .raw-txt {
-  line-height: 40px;
-  letter-spacing: 1px;
-  font-size: 20px;
-  color: #333;
-  font-weight: 300;
-  border: 0;
-}
-
-.right .sutra-text.active {
-  display: block;
 }
 
 .sutra-text .blocks {
@@ -156,6 +105,15 @@
   display: none !important;
 }
 
+#raw-textarea {
+  line-height: 40px;
+  letter-spacing: 1px;
+  font-size: 20px;
+  color: #333;
+  font-weight: 300;
+  border: 0;
+}
+
 .mismatch span:last-child {
   border-right: 1px solid red;
 }
@@ -205,20 +163,20 @@
 
 .char-list-tab-arrow {
   float: right;
-  margin-right: 5px;
-  margin-top: 5px;
   width: 20px;
   height: 20px;
+  cursor: pointer;
+  margin: 8px 5px 0 0;
   transform: rotate(180deg);
   transition: all ease 0.3s 0s;
 }
 
-.char-list-tab-arrow img {
-  width: 20px;
-  height: 20px;
+.char-list-tab-arrow i {
+  font-size: 20px;
 }
 
 .char-list-tab-arrow.active {
+  margin-top: 5px;
   transform: rotate(0deg);
   transition: all ease 0.3s 0s;
 }
@@ -288,7 +246,8 @@
   margin-right: 5px;
   font-weight: normal;
   font-size: 14px;
-  padding-top: 10px;
+  line-height: 36px;
+  float: left;
 }
 
 .pfread-dialog .item dd {
@@ -378,7 +337,6 @@
 }
 
 /* 模态框 */
-
 .modal-content .modal-header {
   height: 40px;
   padding-bottom: 0;
@@ -388,6 +346,10 @@
   color: var(--Brown_Darker);
   margin-top: -25px;
   margin-right: -20px;
+}
+
+.match-tips span {
+  margin-right: 8px;
 }
 
 .match-tips .head {

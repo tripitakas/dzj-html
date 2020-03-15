@@ -62,7 +62,7 @@
   <div id="save-doubt" class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
   <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
   <div id="re-compare" class="btn-txt icon-cmp-txt {{'' if 'text_proof' in handler.task_type else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="重新比对"></div>
-  <div id="show-txt" class="btn-txt icon-article {{'' if handler.texts else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显示所有文本"></div>
+  <div id="show-txts" class="btn-txt icon-article {{'' if handler.texts else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显示所有文本"></div>
 </div>
 {% end %}
 
@@ -73,12 +73,8 @@
   </div>
 </div>
 <div class="m-right" id="right-region">
-  <div class="sutra-text-mode" id="toggle-text-mode">
-    <span id="html-edit" class="html-edit" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本编辑模式"></span>
-    <span id="save-txt" class="save-txt" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></span>
-  </div>
-  <div class="bd sutra-html wide-txt">
-    <div id="sutra-text" class="sutra-text active">
+  <div class="bd cmp-txt wide-txt">
+    <div id="work-text" class="sutra-text">
       <div class="blocks">
         {% if isinstance(cmp_data, str) %}
         {% raw cmp_data %}
@@ -95,8 +91,7 @@
         <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
         {% end %}
         <div class="char-list-tab-arrow" id="toggle-arrow">
-          <img src="{{static_url('imgs/up_arrow.png')}}">
-          <img src="{{static_url('imgs/down_arrow.png')}}" style="display: none">
+          <i class="icon-up"></i>
         </div>
       </div>
       {% for i, doubt in enumerate(handler.doubts) %}
@@ -131,7 +126,7 @@
         <dl class="item">
           <dt>选择结果</dt>
           <dd class="text">
-            <span id="dlg-slct" contenteditable="true"></span>
+            <span id="dlg-select" contenteditable="true"></span>
           </dd>
         </dl>
         <div class="dlg-after"></div>
@@ -140,9 +135,13 @@
     {% end %}
     <!--/.pfread-dialog-->
   </div>
-  <div class="bd sutra-txt wide-txt hide">
-    <textarea type="text" class="form-control raw-txt" id="raw-txt" rows="200"></textarea>
+  <div class="bd raw-txt wide-txt hide">
+    <textarea id="raw-textarea" class="form-control" type="text" rows="200"></textarea>
   </div>
+</div>
+<div class="right-toolbar">
+  <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本编辑模式"></i>
+  <i id="btn-cmp-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
 </div>
 {% end %}
 
@@ -238,9 +237,9 @@
       <div class="modal-header">
         <div class="btn-group" role="group">
           {% for i, txt in enumerate(handler.texts) %}
-          <button class="btn btn-txt btn-default" id="show-txt{{i}}">{{txt[1]}}</button>
+          <button class="btn page-txt btn-default" id="show-txt{{i}}">{{txt[1]}}</button>
           {% end %}
-          <button class="btn btn-txt btn-default{{'' if len(handler.texts) > 1 else ' hide'}}" id="show-all">所有</button>
+          <button class="btn page-txt btn-default{{'' if len(handler.texts) > 1 else ' hide'}}" id="show-all">所有</button>
         </div>
       </div>
       <div class="modal-body">

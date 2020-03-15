@@ -4,7 +4,6 @@
  */
 
 /** 文字校对-切分字框相关代码 */
-
 var showText = false;                     // 是否显示字框对应文字
 var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
@@ -13,7 +12,7 @@ var offsetInSpan;                         // 当前选中范围开始位置
 var currentSpan = [null];                 // $(当前span)，是否第一个
 
 function getBlock(blockNo) {
-  return $('#sutra-text .block').eq(blockNo - 1);
+  return $('#work-text .block').eq(blockNo - 1);
 }
 
 function getLine(blockNo, lineNo) {
@@ -21,7 +20,7 @@ function getLine(blockNo, lineNo) {
 }
 
 function getBlockNo(block) {
-  return $('#sutra-text .block').index(block) + 1;
+  return $('#work-text .block').index(block) + 1;
 }
 
 function getLineNo(line) {
@@ -209,6 +208,7 @@ $.cut.onBoxChanged(function (char, box, reason) {
 
 
 /** 文字校对-文本区域相关代码 */
+var $dlg = $("#pfread-dialog");
 
 // 设置当前span和line
 function setCurrent(span) {
@@ -233,24 +233,30 @@ $(document).on('dblclick', '.diff', function (e) {
   $('.current-diff').removeClass('current-diff');
   $(this).addClass('current-diff');
   // 设置弹框文本
-  var base = $(this).attr("base");
-  var cmp1 = $(this).attr("cmp1");
-  var cmp2 = $(this).attr("cmp2");
-  $("#dlg-base").text(base);
+  var base = $(this).attr("base"), cmp1 = $(this).attr("cmp1"), cmp2 = $(this).attr("cmp2");
   $("#dlg-cmp1").text(cmp1).toggleClass('same-base', base && base === cmp1);
   $("#dlg-cmp2").text(cmp2).toggleClass('same-base', base && base === cmp2);
-  $("#dlg-slct").text($(this).text());
+  $("#dlg-select").text($(this).text());
+  $("#dlg-base").text(base);
   // 设置弹框位置
-  var $dlg = $("#pfread-dialog");
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
   // 当弹框超出文字框时，向上弹出
   var o_t = $dlg.offset().top;
-  var r_h = $("#sutra-text").height();
+  var r_h = $("#work-text").height();
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
     $dlg.offset({top: $(this).offset().top - 5 - $dlg.height()});
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
+  }
+  // 当弹框右边出界时，向左移动
+  var o_l = $dlg.offset().left;
+  var d_r = $dlg[0].getBoundingClientRect().right;
+  var r_w = $dlg.parent()[0].getBoundingClientRect().right;
+  var offset = 0;
+  if (d_r > r_w - 20) {
+    offset = r_w - d_r - 20;
+    $dlg.offset({left: o_l + offset});
   }
   // 设置弹框小箭头
   if (o_t + d_h > r_h) {
@@ -258,90 +264,74 @@ $(document).on('dblclick', '.diff', function (e) {
     var ml = $mark.attr('last-left') || $mark.css('marginLeft');
     $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
   } else {
-    $mark = $dlg.find('.dlg-before');
-    ml = $mark.attr('last-left') || $mark.css('marginLeft');
+    var $mark = $dlg.find('.dlg-before');
+    var ml = $mark.attr('last-left') || $mark.css('marginLeft');
     $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
   }
-  // 当弹框右边出界时，向左移动
-  var o_l = $dlg.offset().left;
-  var r_w = $dlg.parent()[0].getBoundingClientRect().right;
-  var d_r = $dlg[0].getBoundingClientRect().right;
-  if (d_r > r_w - 20) {
-    $dlg.offset({left: o_l + parseInt(r_w - d_r - 20)});
-  }
+
 });
 
 // 单击文本区的空白区域
-$('#sutra-text').on('click', function (e) {
-  var dlg = $('#pfread-dialog');
-  if (!dlg.is(e.target) && dlg.has(e.target).length === 0) {
-    dlg.offset({top: 0, left: 0}).hide();
+$('#work-text').on('click', function (e) {
+  if (!$dlg.is(e.target) && $dlg.has(e.target).length === 0) {
+    $dlg.offset({top: 0, left: 0}).hide();
   }
 });
 
 // 滚动文本区滚动条
-$('#sutra-text').scroll(function () {
-  $("#pfread-dialog").offset({top: 0, left: 0}).hide();
+$('#work-text').on('scroll', function () {
+  $dlg.offset({top: 0, left: 0}).hide();
 });
 
 // 点击异文选择框的各个选项
 $('#pfread-dialog .option').on('click', function () {
-  $('#dlg-slct').text($(this).text());
+  $('#dlg-select').text($(this).text());
   if (!$(this).text().length)
     $('.current-diff').text($(this).text()).addClass('selected');
 });
 
 // 对话框选择文本input发生修改
-$("#dlg-slct").on('DOMSubtreeModified', function () {
+$("#dlg-select").on('DOMSubtreeModified', function () {
   $('.current-diff').text($(this).text()).addClass('selected');
-  if ($(this).text() === '') {
-    $('.current-diff').addClass('empty-place');
-  } else {
-    $('.current-diff').removeClass('empty-place');
-  }
+  $('.current-diff').toggleClass('empty-place', $(this).text() === '');
 });
 
 
 /** 文字校对-编辑模式相关代码 */
+function toggleMode(mode) {
+  $('#btn-cmp-txt').toggleClass('hide', mode === 'cmp');
+  $('.bd.cmp-txt').toggleClass('hide', mode !== 'cmp');
+  $('#btn-raw-txt').toggleClass('hide', mode === 'raw');
+  $('.bd.raw-txt').toggleClass('hide', mode !== 'raw');
+}
 
-// 切换文本编辑模式
-$('#toggle-text-mode').click(function () {
-  $(this).toggleClass('txt-mode');
+// 从文本比对模式进入纯文本编辑模式
+$('#btn-raw-txt').on('click', function () {
+  toggleMode('raw');
+  $('#raw-textarea').text(getPageText());
 });
 
-// 点击编辑，进入纯文本模式
-$('.sutra-text-mode .html-edit').click(function () {
-  $('.bd.sutra-html').addClass('hide');
-  $('.bd.sutra-txt').removeClass('hide');
-  $('#raw-txt').text(getPageText());
-});
-
-// 点击保存，保存后进入html模式
-$('.sutra-text-mode .save-txt').click(function () {
-  if ($('#raw-txt').text().trim() === $('#raw-txt').val().trim()) {
-    $('.bd.sutra-html').removeClass('hide');
-    $('.bd.sutra-txt').addClass('hide');
-    return;
+// 从纯文本编辑模式进入文本比对模式
+$('#btn-cmp-txt').on('click', function () {
+  if ($('#raw-textarea').text().trim() === $('#raw-textarea').val().trim()) {
+    return toggleMode('cmp');
   }
-  var texts = $.map($('#txtModal').find('textarea'), function (item) {
-    return $(item).text();
-  });
-  texts[0] = $('#raw-txt').val();
-  var hints = $.map($('.sutra-text .selected'), function (i) {
+  var texts = $.map($('#txtModal textarea'), (item) => $(item).text());
+  texts[0] = $('#raw-textarea').val();
+  var hints = $.map($('#work-text .selected'), function (i) {
     return {
       block_no: getBlockNo($(i).parent().parent()), line_no: getLineNo($(i).parent()),
       base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
     }
   });
   postApi('/task/text/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    $('.sutra-text .blocks').html(res.cmp_data);
-    $('.bd.sutra-html').removeClass('hide');
-    $('.bd.sutra-txt').addClass('hide');
+    $('#work-text .blocks').html(res.cmp_data);
+    toggleMode('cmp');
   });
 });
 
 function getPageText() {
-  return $.map($('#sutra-text .block'), function (block) {
+  return $.map($('#work-text .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
       return $.map($(line).find('span'), function (span) {
         return $(span).text();
@@ -352,7 +342,6 @@ function getPageText() {
 
 
 /** 文字校对-存疑相关代码 */
-
 // 点击存疑，弹出对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -366,20 +355,20 @@ $('#save-doubt').on('click', function () {
 
 // 存疑对话框，点击确认
 $('#doubtModal .modal-confirm').on('click', function () {
-  var txt = $('#doubtModal .doubt_input').val().trim();
   var reason = $('#doubtModal .doubt_reason').val().trim();
   if (reason.length <= 0)
-    return showTips('请填写存疑理由');
+    return showWarning('请填写存疑理由');
+  var txt = $('#doubtModal .doubt_input').val().trim();
   var $span = $('.current-span');
   var offset0 = parseInt($span.attr('offset') || 0);
   var offsetInLine = offsetInSpan + offset0;
   var lineId = $span.parent().attr('id');
   if (!lineId)
-    return showTips('请先在文本区内选择文本');
+    return showWarning('请先在文本区内选择文本');
   var line = "<tr class='char-list-tr' data='" + lineId + "' data-offset='" + offsetInLine +
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
-      "</td><td class='del-doubt'><img src='/static/imgs/del_icon.png'></td></tr>";
+      "</td><td class='del-doubt'><i class='icon-bin'></i></td></tr>";
 
   // 提交之后底部列表自动展开
   $('.doubt-list .toggle-tab').eq(0).click();
@@ -450,7 +439,7 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
   var txt = $tr.find('td:nth-child(3)').text();
 
-  $('.right .bd .sutra-text').animate({scrollTop: $li.offset().top}, 100);
+  $('#work-text').animate({scrollTop: $li.offset().top}, 100);
 
   if (pos[0]) {
     highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
@@ -467,7 +456,7 @@ function checkMismatch(report, fromApi) {
   var lineCountMisMatch = '', ocrColumns = [];
 
   // 文本区每行的栏号和列号
-  var lineNos = $('#sutra-text .line').map(function (i, line) {
+  var lineNos = $('#work-text .line').map(function (i, line) {
     var blockNo = getBlockNo($(line).parent());
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
@@ -526,10 +515,10 @@ function checkMismatch(report, fromApi) {
         var ts = t.split('#');
         return '<li><span class="head">' + ts[0] + ':</span><span>' + ts[1] + '</span><span>' + ts[2] + '</span></li>';
       }).join('');
-      text = '<ul class="tips">' + text + '</ul>';
-      showWarning("图文不匹配", text);
+      text = '<ul class="match-tips">' + text + '</ul>';
+      showTips("图文不匹配", text);
     } else {
-      showTips("成功", "图文匹配");
+      showTips("成功", "图文匹配", 1000);
     }
   }
 }
@@ -584,7 +573,7 @@ $(document).on('paste', 'span', function (e) {
 });
 
 // 自动保存修改
-$('#sutra-text').on('DOMSubtreeModified', markChanged);
+$('#work-text').on('DOMSubtreeModified', markChanged);
 
 function markChanged() {
   workChanged++;

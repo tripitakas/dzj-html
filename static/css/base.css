@@ -711,6 +711,19 @@ body.widescreen {
   color: var(--Brown_Darker);
 }
 
+.right-toolbar {
+  top: 50px;
+  right: 20px;
+  position: fixed;
+}
+
+.right-toolbar i{
+  color: #333;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+}
+
 /*bootstrap alert*/
 .alert {
   border: 0;

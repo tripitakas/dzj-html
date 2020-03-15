@@ -45,7 +45,7 @@ function previousDiff() {
     return;
   $diff.eq(idx - 1).click().dblclick();
   if ($('.dialog-abs').offset().top < 55) {
-    $('#sutra-text').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
+    $('#work-text').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
     setTimeout(() => $diff.eq(idx - 1).click().dblclick(), 500);
   }
 }
@@ -58,8 +58,8 @@ function nextDiff() {
   var $diff = $('.diff');
   var idx = $diff.index($('.current-diff'));
   $diff.eq(idx + 1).click().dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#sutra-text').height()) {
-    $('.right #sutra-text').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#work-text').height()) {
+    $('.right #work-text').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
     setTimeout(() => $diff.eq(idx + 1).click().dblclick(), 500);
   }
 }
@@ -86,7 +86,7 @@ $('#delete-line').on('click', function () {
 $('#toggle-empty').on('click', () => $('.empty-place').toggleClass("hidden"));
 
 // 弹出原文
-$('#toggle-txts').on('click', () => $('#txtModal').modal());
+$('#show-txts').on('click', () => $('#txtModal').modal());
 
 // 缩小图片
 $('#zoom-in').on('click', () => highlightBox());
@@ -167,7 +167,7 @@ $('#txtModal .modal-header').on('mousedown', function (downEvt) {
 });
 
 // 切换弹出文本
-$('#txtModal .btn-txt').click(function () {
+$('#txtModal .page-txt').click(function () {
   $(this).removeClass('btn-default').addClass('btn-primary');
   $(this).siblings().removeClass('btn-primary').addClass('btn-default');
   var txtType = $(this).attr('id').replace('show-', '');
@@ -180,17 +180,11 @@ $('#txtModal .btn-txt').click(function () {
 // 增加字体
 $('#enlarge-font').click(function () {
   var size = parseInt($('#raw-txt').css('font-size'));
-  if (size < 36) {
-    size++;
-    $('#raw-txt').css('font-size', size + 'px');
-  }
+  $('#raw-txt').css('font-size', ++size + 'px');
 });
 
 // 减少字体
 $('#reduce-font').click(function () {
   var size = parseInt($('#raw-txt').css('font-size'));
-  if (size > 8) {
-    size--;
-    $('#raw-txt').css('font-size', size + 'px');
-  }
+  $('#raw-txt').css('font-size', --size + 'px');
 });

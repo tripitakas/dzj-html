@@ -71,7 +71,7 @@
 </div>
 <div class="btn-group right">
   <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
-  <div id="show-txt" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
+  <div id="show-txts" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
 </div>
 {% end %}
 
@@ -187,7 +187,7 @@
 
   $('#holder-container').focus();
 
-  $('#show-txt').on('click', () => $('#ocrModal').modal());
+  $('#show-txts').on('click', () => $('#ocrModal').modal());
 
   // 检查数据有效性，然后返回任务数据
   function getTaskData() {

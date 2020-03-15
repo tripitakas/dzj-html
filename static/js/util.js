@@ -26,8 +26,8 @@ function showSuccess(title, text, timer) {
   Swal0.fire({title: title, html: text, type: 'success', timer: timer || 1000});
 }
 
-function showTips(title, text, reload) {
-  Swal0.fire({title: title, html: text, type: 'warning'});
+function showTips(title, text, timer, reload) {
+  Swal0.fire({title: title, html: text, type: 'warning', timer: timer});
   reload && setTimeout(() => location.reload(), 1000);
 }
 
