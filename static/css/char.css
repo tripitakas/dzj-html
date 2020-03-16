@@ -1,3 +1,23 @@
+/* 导航工具*/
+.filter-menu {
+  width: 220px;
+}
+
+.filter-menu .input-line {
+  margin: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.filter-menu .input-line input {
+  width: 45%;
+}
+
+.filter-menu button {
+  margin: 5px;
+  float: right;
+}
+
 /* 字图面板*/
 .flex .char-panel {
   flex: 1;
@@ -182,7 +202,7 @@
   margin-top: 5px;
 }
 
-.proof-help {
+#proof-help {
   cursor: pointer;
   font-size: 16px;
   margin-left: 5px;
@@ -199,7 +219,7 @@
   line-height: 16px;
 }
 
-.debug {
+.work-panel .debug {
   right: 0;
   bottom: 0;
   width: 300px;

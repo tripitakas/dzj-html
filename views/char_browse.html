@@ -5,7 +5,6 @@
   <title>聚类校对</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/char.css')}}" rel="stylesheet">
-  <link href="{{static_url('assets/modal-effect/css/component.css')}}" rel="stylesheet">
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
@@ -18,19 +17,32 @@
     <div class="m-header">
       <div class="left">
         <div class="btn-group back">
-          {% set title, img = ('返回', 'icon_back') %}
-          <img src="{{static_url('imgs/%s.png' % img)}}" class="btn-img" onclick="leave()" title="{{title}}"/>
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title">
           聚类校对
         </div>
+        <div id="btn-sort" class="btn-group" title="排序">
+          <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu">
+            <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
+            <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
+          </ul>
+        </div>
+        <div class="btn-group" title="过滤">
+          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
+          <div class="dropdown-menu filter-menu">
+            <div class="input-line">
+              <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
+              <span>~</span>
+              <input id="filter-end" type="text" class="form-control input-sm" placeholder="终止值">
+            </div>
+            <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
+          </div>
+        </div>
       </div><!--left-->
-      <div class="right">
-        <div class="btn-txt glyphicon glyphicon-sort" id="sort-char" title="排序"></div>
-        <div class="btn-txt glyphicon glyphicon-filter" data-toggle="modal" data-target="#filterModal" title="过虑"></div>
-      </div>
     </div>
-    <div class="m-body flex">
+    <div class="m-body no-footer flex">
       <div class="char-panel">
         <div class="char-items">
           {% for d in docs %}
@@ -39,7 +51,7 @@
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
-              <span class="txt">{{d.get('txt', '')}}</span>|<span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <span class="txt">{{d.get('txt', '')}}|</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
             </div>
           </div>
           {% end %}
@@ -98,8 +110,8 @@
         </div>
         <div class="items user-work">
           <div class="item proof">
-            <label class="head">请您校对
-              <span class="proof-help glyphicon glyphicon-question-sign"></span>
+            <label class="head">
+              请您校对<span id="proof-help" class="icon-help"></span>
             </label>
             <div class="body">
               <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
@@ -163,37 +175,16 @@
       </div>
     </div>
   </div>
-  <div id="filterModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="filterModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-body">
-          <form class="form-horizontal">
-            <div class="form-group">
-              <h4 class="col-sm-2 control-label">置信度</h4>
-              <div class="col-sm-8">
-                <input type="text" class="form-control start" placeholder="起始值" style="float: left;width: 45%">
-                <span style="margin-left: 4%; line-height: 32px">~</span>
-                <input type="text" class="form-control end" placeholder="终止值" style="float: right;width: 45%">
-              </div>
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 {% include _base_js.html %}
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+{% set d0 = [c for i, c in enumerate(docs) if c['column']] %}
 <script>
   var paper, rect;
+  var from = decodeFrom();
   var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-  {% set d0 = [c for i, c in enumerate(docs) if c['column']] %}
   var columnBaseUrl = "{{d0 and handler.get_web_img('%s_%s' % (d0[0]['page_name'], d0[0]['column']['cid']), 'column') or ''}}";
 
   function updateLogs(logs) {
@@ -209,7 +200,7 @@
       return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
     }).join('');
     $('.logs .body').html(html);
-    html.length ? $('.logs').removeClass('hide') : $('.logs').addClass('hide');
+    $('.logs').toggleClass('hide', !html.length);
   }
 
   function updateColumnImg(ch) {
@@ -237,7 +228,7 @@
 
   $('.char-item').on('click', function () {
     var id = $(this).attr('data-id');
-    var ch = id in chars ? chars[id] : {};
+    var ch = chars[id] || {};
     // 更新当前参数
     $('#currentId').val(id);
     $('#currentName').val(ch.name);
@@ -264,47 +255,31 @@
   getAnchor() ? $('#' + getAnchor()).click() : $('.char-item:first').click();
 
 </script>
+
 <script>
   // 离开页面
   window.leave = function () {
-    var from = decodeFrom();
-    if (from) {
-      window.location = from;
-    } else {
-      window.history.back();
-    }
+    from ? window.location = from : window.history.back();
   };
 
   // 帮助
-  $('.proof-help').click(function () {
-    $('#helpModal').modal();
-  });
+  $('#proof-help').on('click', () => $('#helpModal').modal());
 
   // 排序
-  $('#sort-char').on('click', function (e) {
-    var inputOptions = {cc_asc: '按置信度升序', cc_desc: '按置信度降序'};
-    Swal2.fire({input: 'radio', title: '排序', inputOptions: inputOptions}).then((result) => {
-      if (!result.value)
-        return;
-      if (result.value === 'cc_asc') {
-        location.href = setQueryString('order', 'cc');
-      }
-      if (result.value === 'cc_desc') {
-        location.href = setQueryString('order', '-cc');
-      }
-    });
-  });
+  $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'));
+  $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
+
 
   // 过滤
-  $('#filterModal .modal-confirm').on('click', function () {
-    var start = $('#filterModal .start').val();
-    var end = $('#filterModal .end').val();
+  $('#btn-filter').on('click', function () {
+    var start = $('#filter-start').val();
+    var end = $('#filter-end').val();
     if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)
-      return showTips('提示', '起始值不符合要求');
+      return showWarning('提示', '起始值不符合要求');
     if (end && end.match(/^(0\.\d+|0|1|1\.0)$/) === null)
-      return showTips('提示', '终止值不符合要求');
+      return showWarning('提示', '终止值不符合要求');
     if (!start.length && !end.length)
-      return showTips('提示', '请输入起始值或终止值');
+      return showWarning('提示', '请输入起始值或终止值');
     if (start.length && !end.length) {
       location.href = setQueryString('cc', '>=' + start);
     } else if (end.length && !start.length) {
@@ -317,8 +292,7 @@
   // 点击候选字
   var $txt = $('.proof .txt');
   $(document).on('click', '.txt-item', function () {
-    var txt = $txt.val();
-    $txt.val($(this).text() + txt.replace(/[^A-Z*]/, ''));
+    $txt.val($(this).text() + $txt.val().replace(/[^A-Z*]/, ''));
     $('.txt-item.active').removeClass('active');
     if ($txt.val().indexOf($(this).text()) >= 0) {
       $(this).addClass('active');
@@ -327,15 +301,10 @@
 
   // 点击文字类型
   $('.txt-type .radio-item').click(function () {
-    var $radio = $(this).find(':radio');
-    var txtType = $radio.val();
-    $radio.prop('checked', true)
+    $(this).find(':radio').prop('checked', true);
+    var txtType = $(this).find(':radio').val();
     $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
-    if (txtType === 'X' || txtType === 'Y') {
-      $('.proof .normal-txt').removeClass('hide');
-    } else {
-      $('.proof .normal-txt').addClass('hide');
-    }
+    $('.proof .normal-txt').toggleClass('hide', txtType !== 'X' && txtType !== 'Y');
   });
 
   // 提交
@@ -343,15 +312,14 @@
     var id = $('#currentId').val();
     var name = $('#currentName').val();
     var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
-    postApi('/char/' + id, {data: data}, (res) => {
+    postApi('/char/' + id, {data: data}, function (res) {
       updateLogs(res.txt_logs);
       data.txt_logs = res.txt_logs;
       if ($('.proof .txt-type :checked').length)
         data.txt_type = $('.proof .txt-type :checked').val();
       chars[id] = $.extend(chars[id], data);
       location.href = setAnchor(name);
-      showSuccess('成功！', '已保存成功', 1000);
-      // bsAlert('成功！', '已保存成功', 'success', 1000);
+      bsShow('成功！', '已保存成功', 'success', 1000);
     });
   });
 
