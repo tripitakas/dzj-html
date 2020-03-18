@@ -1,7 +1,7 @@
 from . import view, api, ocr
 
 views = [
-    view.PageBrowseHandler,
+    view.PageBrowseHandler, view.PageViewHandler,
     view.TaskCutHandler, view.CutEditHandler,
     view.TaskTextProofHandler, view.TaskTextReviewHandler, view.TextEditHandler,
 ]

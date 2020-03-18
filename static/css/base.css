@@ -591,24 +591,25 @@ body.widescreen {
 
 .m-header {
   top: 0;
-  right: 0;
   left: 0;
+  right: 0;
   position: fixed;
   background: var(--Grey_Light);
   height: 40px;
   z-index: 1000;
+  user-select: none;
   display: flex;
+  align-content: center;
   vertical-align: middle;
   justify-content: space-between;
-  align-content: center;
-  user-select: none;
 }
 
 .m-header > div {
   flex: 0 1 auto;
   position: relative;
+  display: flex;
+  align-items: center;
   vertical-align: middle;
-  align-content: center;
 }
 
 .m-header .left {
@@ -623,6 +624,7 @@ body.widescreen {
 .m-header .right {
   float: right;
   display: flex;
+  margin-right: 6px;
 }
 
 .m-header .btn-group {
@@ -654,19 +656,18 @@ body.widescreen {
   font-weight: 400;
 }
 
-.m-header .btn-txt {
-  line-height: 40px;
-}
-
 .btn-txt {
-  margin: 0 4px;
+  float: none;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  cursor: pointer;
+  margin: auto 3px;
   font-size: 20px;
   font-weight: 400;
   display: inline-block;
-  color: var(--Brown_Darker);
   transition: all 0.2s;
-  cursor: pointer;
-  float: none;
+  color: var(--Brown_Darker);
 }
 
 .btn-txt:hover {
@@ -674,8 +675,8 @@ body.widescreen {
 }
 
 .btn-txt.active {
-  border-bottom: 1px solid #999;
-  /*box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);*/
+  /*border: 1px solid #999;*/
+  box-shadow: inset 0 5px 8px rgba(0, 0, 0, .125);
 }
 
 .btn-txt.disabled {
@@ -689,11 +690,6 @@ body.widescreen {
   background-color: var(--Brown_Darker);
   margin: 1px 1px;
   float: initial;
-}
-
-.btn-gap {
-  width: 6px;
-  display: inline-block;
 }
 
 .m-body {
@@ -771,6 +767,17 @@ body.widescreen {
   text-decoration: underline;
   color: var(--Brown_Darker);
 }
+
+.dropdown-menu > .active > a {
+  color: #333;
+  background-color: var(--Grey_Line);
+}
+
+.dropdown-menu > .active > a:hover {
+  color: #333;
+  background-color: var(--Grey_Line);
+}
+
 
 /*modal*/
 .modal {
@@ -882,6 +889,7 @@ body.widescreen {
 }
 
 .tooltip .tooltip-arrow {
+  /*display: none;*/
   border-bottom-color: #eee !important;
 }
 

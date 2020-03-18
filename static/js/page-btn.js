@@ -102,7 +102,7 @@ $(document).on('click', '#toggle-order', function () {
 
 // 更多操作
 $(document).on('click', '#toggle-more', function () {
-  $('#more-group').toggleClass('hidden');
+  $('#more-group').toggleClass('hide');
 });
 
 // 减少文本字号

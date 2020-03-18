@@ -60,6 +60,7 @@ role_route_maps = {
         'routes': {
             '/': ['GET'],
             '/(home|help|announce)': ['GET'],
+            '/task/sample/@task_type': ['GET'],
             '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka': ['GET'],
@@ -68,14 +69,20 @@ role_route_maps = {
             '/api/com/punctuate': ['POST'],
             '/com/search': ['GET'],
             '/api/com/search': ['POST'],
-            # 以下为任务相关请求
+        }
+    },
+    '工作人员': {
+        'is_assignable': False,
+        'remark': '工作人员公共请求',
+        'roles': ['普通用户'],
+        'routes': {
             '/api/session/config': ['POST'],
-            '/task/sample/@task_type': ['GET'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
             '/api/task/text/diff': ['POST'],
             '/api/task/text/detect_chars': ['POST'],
             '/api/task/text/neighbor': ['POST'],
+            '/page/@page_name': ['GET'],
             '/page/cut_view/@page_name': ['GET'],
             '/page/text_view/@page_name': ['GET'],
             '/api/data/unlock/@shared_field/@doc_id': ['POST'],
@@ -83,7 +90,7 @@ role_route_maps = {
     },
     '切分校对员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/cut_proof': ['GET'],
             '/api/task/pick/cut_proof': ['POST'],
@@ -93,7 +100,7 @@ role_route_maps = {
     },
     '切分审定员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/cut_review': ['GET'],
             '/api/task/pick/cut_review': ['POST'],
@@ -111,7 +118,7 @@ role_route_maps = {
     },
     '文字校对员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/text_proof': ['GET'],
             '/api/task/pick/text_proof': ['POST'],
@@ -125,7 +132,7 @@ role_route_maps = {
     },
     '文字审定员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/task/(lobby|my)/text_review': ['GET'],
             '/api/task/pick/text_review': ['POST'],
@@ -137,7 +144,7 @@ role_route_maps = {
     },
     '文字专家': {
         'is_assignable': True,
-        'roles': ['普通用户', '文字校对员', '文字审定员'],
+        'roles': ['工作人员', '文字校对员', '文字审定员'],
         'routes': {
             '/task/(lobby|my)/text_hard': ['GET'],
             '/api/task/pick/text_hard': ['POST'],
@@ -149,7 +156,7 @@ role_route_maps = {
     },
     '任务浏览员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/api/user/list': ['POST'],
             '/task/page/statistic': ['GET'],
@@ -161,7 +168,7 @@ role_route_maps = {
     },
     '任务管理员': {
         'is_assignable': True,
-        'roles': ['普通用户', '任务浏览员'],
+        'roles': ['工作人员', '任务浏览员'],
         'routes': {
             '/api/task/ready/@task_type': ['POST'],
             '/api/task/publish/page': ['POST'],
@@ -174,7 +181,7 @@ role_route_maps = {
     },
     'OCR加工员': {
         'is_assignable': True,
-        'roles': ['普通用户'],
+        'roles': ['工作人员'],
         'routes': {
             '/api/task/init': ['POST'],
             '/task/(lobby|my)/@ocr_task': ['GET'],
@@ -186,7 +193,7 @@ role_route_maps = {
     },
     '数据管理员': {
         'is_assignable': True,
-        'roles': ['普通用户', 'OCR加工员'],
+        'roles': ['工作人员', 'OCR加工员'],
         'routes': {
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],

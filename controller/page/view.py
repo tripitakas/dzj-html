@@ -171,6 +171,25 @@ class PageBrowseHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class PageViewHandler(PageHandler):
+    URL = '/page/@page_name'
+
+    def get(self, page_name):
+        """ 查看页面数据"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            texts = self.get_all_txt(page)
+            img_url = self.get_web_img(page['name'])
+            chars_col = self.get_chars_col(page['chars'])
+            self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class TextArea(UIModule):
     """文字校对的文字区"""
 

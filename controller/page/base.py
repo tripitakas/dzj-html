@@ -127,6 +127,12 @@ class PageHandler(TaskHandler, Page, Box):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
+    @staticmethod
+    def get_all_txt(page):
+        labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
+        texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+        return texts
+
     def get_box_update(self):
         """ 获取切分校对的提交
         detect_col, 是否自动检测、调整小字框在多列的情况
@@ -215,7 +221,7 @@ class PageHandler(TaskHandler, Page, Box):
     @classmethod
     def diff(cls, base, cmp1='', cmp2='', cmp3=''):
         """ 生成文字校对的segment"""
-        # 1. 生成segments
+        # 1.生成segments
         segments = []
         pre_empty_line_no = 0
         block_no, line_no = 1, 1
@@ -234,7 +240,7 @@ class PageHandler(TaskHandler, Page, Box):
                 s['block_no'], s['line_no'] = block_no, line_no
                 segments.append(s)
                 pre_empty_line_no = 0
-        # 2. 结构化，以便页面输出
+        # 2.结构化，以便页面输出
         blocks = {}
         for s in segments:
             b_no, l_no = s['block_no'], s['line_no']

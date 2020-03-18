@@ -5,80 +5,11 @@
   <title>{{page['name']}}</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/txt.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
-  <style>
-    .m-body {
-      padding-bottom: 0;
-    }
-
-    .m-body .left {
-      flex: 1;
-      width: 50%;
-    }
-
-    .m-body .right {
-      flex: 1;
-      overflow: hidden;
-      border-left: 1px solid #ccc;
-      background: var(--Grey_Content);
-    }
-
-    .sutra-texts {
-      height: 100%;
-      overflow: auto;
-    }
-
-    .sutra-textarea {
-      border: 0;
-      width: 100%;
-      padding-left: 5px;
-      font-size: 20px;
-      font-weight: 300;
-      line-height: 40px;
-      letter-spacing: 1px;
-      color: rgba(0, 0, 0, 0.6);
-      background: transparent !important;
-    }
-
-    .txt-nav {
-      width: 100%;
-      color: #333;
-      height: 30px;
-      font-size: 14px;
-      line-height: 30px;
-      background-color: var(--Grey_Line);
-    }
-
-    .txt-nav li {
-      padding: 0 8px;
-      cursor: pointer;
-    }
-
-    .txt-nav li.active {
-      background-color: var(--Grey_Lighter);
-    }
-
-    .txt-nav li:hover {
-      color: var(--Brown_Darker);
-    }
-
-    .txt-nav .icon-save {
-      float: right;
-      line-height: 30px;
-      margin-right: 9px;
-    }
-
-    #remarkModal .modal-content {
-      width: 720px;
-    }
-
-    #helpModal i {
-      font-size: 20px;
-    }
-  </style>
 </head>
 
 <body class="widescreen">
@@ -89,63 +20,68 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title" style="user-select: text">
+        <div class="btn-group title" data-toggle="tooltip" data-placement="bottom" title="查看页面基本信息" style="user-select: text">
           <a href="/data/page/info/{{page['name']}}">{{page['name']}}</a>
         </div>
       </div>
       <div class="center">
         <div class="btn-group">
           <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-          <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-          <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-          <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+          <div id="toggle-image" class="btn-txt icon-image{{'' if btn_config['toggle-image'] == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+          <div id="toggle-right" class="btn-txt icon-txt{{'' if btn_config['toggle-right'] == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+          <div id="toggle-blur" class="btn-txt icon-blur{{' active' if btn_config['toggle-blur'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
           <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
           <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
           <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-          <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-          <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-          <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-          <div id="toggle-order" class="btn-txt icon-char-order" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
-          <div id="btn-update" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="修改基本信息"></div>
+          <div id="toggle-block" class="btn-txt icon-blocks{{' active' if btn_config['toggle-block'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+          <div id="toggle-column" class="btn-txt icon-columns{{' active' if btn_config['toggle-column'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+          <div id="toggle-char" class="btn-txt icon-chars{{' active' if btn_config['toggle-char'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+          <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config['toggle-order'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
           <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
         </div>
-        <div class="btn-group hidden" id="more-group">
+        <div class="btn-group hide" id="more-group">
           <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
           <button id="btn-ed-order" type="button" class="btn btn-default btn-sm">修改字序</button>
           <button id="btn-ed-text" type="button" class="btn btn-default btn-sm">审定文本</button>
         </div>
       </div>
+      {% set fields = [t[0] for t in texts] %}
+      {% set which = btn_config.get('sutra-txt') or '' %}
       <div class="right">
-        <div class="btn-group" style="margin-right: 6px">
+        <div id="btn-show-txts" class="btn-group" title="查看文本">
+          <span class="btn-txt icon-article dropdown-toggle" data-toggle="dropdown"></span>
+          <ul class="dropdown-menu">
+            {% for i, (field, txt, label) in enumerate(texts) %}
+            {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
+            <li data-id="{{field}}" class="btn-show-txt {{'active' if is_active else ''}}">
+              <a href="#">{{label}}</a>
+            </li>
+            {% end %}
+          </ul>
+          <div id="btn-save" class="btn-txt icon-save" data-toggle="tooltip" data-placement="bottom" title="保存当前文本"></div>
+        </div>
+        <div class="btn-group">
+          <div id="btn-update" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="修改基本信息"></div>
           <div id="btn-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注"></div>
           <div id="btn-prev" class="btn-txt icon-backward" data-toggle="tooltip" data-placement="bottom" title="上一页"></div>
           <div id="btn-next" class="btn-txt icon-forward" data-toggle="tooltip" data-placement="bottom" title="下一页"></div>
         </div>
       </div>
     </div>
-    <div class="m-body flex pfread">
+    <div class="m-body flex">
       <div class="left bd" id="left-region">
         <div id="holder-container">
           <div id="holder"></div>
         </div>
       </div>
       {% if texts %}
-      {% set fields = [t[0] for t in texts] %}
-      {% set which = btn_config.get('sutra-txt') or '' %}
       <div class="right bd {{'hide' if btn_config.get('toggle-right') == -1 else ''}}" id="right-region">
-        <div class="txt-nav">
-          <ul class="nav navbar-nav">
-            {% for i, (field, txt, label) in enumerate(texts) %}
-            <li data-id="{{field}}" class="{{'active' if (which in fields and field == which) or (which not in fields and i == 0) else ''}}">{{label}}</li>
-            {% end %}
-          </ul>
-          <i id="btn-save" class="icon-save btn-txt"></i>
-        </div>
         <div class="sutra-texts">
           {% for i, (field, txt, label) in enumerate(texts) %}
-          <div class="sutra-text {{field}} {{'' if (which in fields and field == which) or (which not in fields and i == 0) else 'hide'}}">
-            <textarea class="sutra-textarea" rows="{{len(txt.split('|'))+5}}" {{'readonly' if field == 'text' and page.get('txt_html') else ''}}>
-            {% raw txt.replace('|', '\n') %}
+          {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
+          <div class="sutra-text {{field}}{{'' if is_active else ' hide'}}">
+            <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
+              {% raw txt.replace('|', '\n') %}
             </textarea>
           </div>
           {% end %}
@@ -153,295 +89,277 @@
       </div>
       {% end %}
     </div>
+    <div class="m-footer">
+      <span class="cur-char"></span>
+      <span class="char-info"></span>
+      <span class="txt-info fr"></span>
+    </div>
   </div>
-</div>
 
-<div class="panel-body" style="padding: 0">
-  {% module PageRemarkModal() %}
-  {% module ComModal(edit_fields, 'editModal', '更新基本信息') %}
-  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">帮助文档</h4>
-        </div>
-        <div class="modal-body">
-          <div class="title">一、简介</div>
-          <div class="intro">
-            页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
-            栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
-            另外，本页面还可以发布任务。<br/>
-            <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+  <div class="panel-body" style="padding: 0">
+    {% module PageRemarkModal() %}
+    {% module ComModal(edit_fields, 'editModal', '修改基本信息') %}
+    <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h4 class="modal-title">帮助文档</h4>
           </div>
-          <div class="title">二、操作</div>
-          <table class="table">
-            <tr>
-              <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
-              <td>返回</td>
-            </tr>
-            <tr>
-              <td>页码</td>
-              <td>查看页面详情</td>
-            </tr>
-            <tr>
-              <td><i class="icon-image"></i></td>
-              <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
-            </tr>
-            <tr>
-              <td><i class="icon-txt"></i></td>
-              <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
-            </tr>
-            <tr>
-              <td><i class="icon-blur"></i></td>
-              <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
-            </tr>
-            <tr>
-              <td><i class="icon-edit"></i></td>
-              <td>修改页面基本信息</td>
-            </tr>
-            <tr>
-              <td><i class="icon-more"></i></td>
-              <td>更多操作，包括修改栏框、列框、字框、审定文本等</td>
-            </tr>
-            <tr>
-              <td><i class="icon-save"></i></td>
-              <td>保存当前选中的字框OCR或列框OCR</td>
-            </tr>
-          </table>
+          <div class="modal-body">
+            <div class="title">一、简介</div>
+            <div class="intro">
+              页面浏览可以针对一个页面集合逐条浏览，页面集合有检索参数决定。 浏览时可以看到页面的切分信息、文本信息、任务信息等。其中，
+              栏框、列框、字框等切分信息以及审定文本可以通过更多按钮进行修改，字框OCR和列框OCR可以直接在本页面修改保存。<br/>
+              另外，本页面还可以发布任务。<br/>
+              <b>注：</b>点击上一页或下一页时，系统将记住文本区域的显示或隐藏状态，从而可以选择仅仅浏览切分信息，或者同时浏览文本信息。
+            </div>
+            <div class="title">二、操作</div>
+            <table class="table">
+              <tr>
+                <td><img src="{{static_url('imgs/icon_back.png')}}"/></td>
+                <td>返回</td>
+              </tr>
+              <tr>
+                <td>页码</td>
+                <td>查看页面详情</td>
+              </tr>
+              <tr>
+                <td><i class="icon-image"></i></td>
+                <td>显示或隐藏图片。隐藏图片有助于看清所要校对的切分框</td>
+              </tr>
+              <tr>
+                <td><i class="icon-txt"></i></td>
+                <td>打开或关闭右侧文本。关闭文本可以更好的查看切分信息</td>
+              </tr>
+              <tr>
+                <td><i class="icon-blur"></i></td>
+                <td>图片虚化处理。虚化后可以更好的看清字框、字序等信息</td>
+              </tr>
+              <tr>
+                <td><i class="icon-edit"></i></td>
+                <td>修改页面基本信息</td>
+              </tr>
+              <tr>
+                <td><i class="icon-more"></i></td>
+                <td>更多操作，包括修改栏框、列框、字框、审定文本等</td>
+              </tr>
+              <tr>
+                <td><i class="icon-save"></i></td>
+                <td>保存当前选中的字框OCR或列框OCR</td>
+              </tr>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div id="selectModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="selectModal"
-       aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">选择文本</h4>
-        </div>
-        <div class="modal-body">
-          <div class="select-txt">
 
-            {% for i, (field, txt, label) in enumerate(texts) %}
-            <label class="radio-inline">
-              <input type="radio" name="select-txt" value="{{field}}" {{'checked' if (which in fields and field == which) or (which not in fields and i == 0) else ''}}>{{label}}
-            </label>
-            {% end %}
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">关闭</button>
-          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  {% include _base_js.html %}
+  {% include _base_cut.html %}
+  <script src="{{static_url('js/l10n.js')}}"></script>
+  <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
+  <script src="{{static_url('js/cut/char_order.js')}}"></script>
+  <script src="{{static_url('js/com-table.js')}}"></script>
+  <script src="{{static_url('js/page-btn.js')}}"></script>
+  <script>
+    // 公共参数
+    var from = decodeFrom();
+    var info = decodeJSON('{{info}}');
+    var btnConfig = decodeJSON('{{btn_config}}');
 
-{% include _base_js.html %}
-{% include _base_cut.html %}
-<script src="{{static_url('js/l10n.js')}}"></script>
-<script src="{{static_url('js/cut/cut_adv.js')}}"></script>
-<script src="{{static_url('js/cut/char_order.js')}}"></script>
-<script src="{{static_url('js/com-table.js')}}"></script>
-<script src="{{static_url('js/page-btn.js')}}"></script>
-<script>
-  // 公共参数
-  var from = decodeFrom();
-  var info = decodeJSON('{{info}}');
-  var btnConfig = decodeJSON('{{btn_config}}');
+    $('#help').on('click', () => $('#helpModal').modal());
 
-  $('#help').on('click', () => $('#helpModal').modal());
+    // 初始化
+    $(document).ready(function () {
+      var field = getStorage('pageRemarkField', '切分');
+      $('#remarkModal .fields :radio[value="' + field + '"]').prop('checked', true);
+      var which = field === '切分' ? 'box' : 'text';
+      var remarks = decodeJSON('{{page.get("remark") or "{}"}}');
+      var remark = which in remarks ? remarks[which] : getStorage('pageRemark');
+      $("#remarkModal .remark").val(remark);
+      $('.m-footer .txt-info').html('当前文本：' + $('.btn-show-txt.active').text());
+    });
 
-  // 初始化
-  $(document).ready(function () {
-    var field = getStorage('pageRemarkField', '切分');
-    $('#remarkModal .fields :radio[value="' + field + '"]').prop('checked', true);
-    var which = field === '切分' ? 'box' : 'text';
-    var remarks = decodeJSON('{{page.get("remark") or "{}"}}');
-    var remark = which in remarks ? remarks[which] : getStorage('pageRemark');
-    $("#remarkModal .remark").val(remark);
-  });
+    // 高度自适应
+    $('.sutra-text:not(.hide) textarea').each(function () {
+      $(this).attr('style', 'height:' + (this.scrollHeight) + 'px');
+    });
 
-  // 离开页面
-  window.leave = function () {
-    if (from) {
-      window.location = from;
-    } else {
-      window.location = '/data/page' + deleteParam(location.search, 'to');
+    // 离开页面
+    window.leave = function () {
+      if (from) {
+        window.location = from;
+      } else {
+        window.location = '/data/page' + deleteParam(location.search, 'to');
+      }
+    };
+
+    // 修改字框
+    $('#btn-ed-box').click(function () {
+      location = '/page/cut_edit/{{page["name"]}}?from=' + encodeFrom();
+    });
+
+    // 修改字序
+    $('#btn-ed-order').click(function () {
+      location = '/page/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
+    });
+
+    // 修改审定文本
+    $('#btn-ed-text').click(function () {
+      location = '/page/text_edit/{{page["name"]}}?from=' + encodeFrom();
+    });
+
+    // 获取当前按钮状态
+    function getConfig() {
+      var config = {};
+      var buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
+      buttons.forEach((button) => config['toggle-' + button] = $('.m-header #toggle-' + button).hasClass('active') ? 1 : -1);
+      config['sutra-txt'] = $('.btn-show-txt.active').attr('data-id');
+      config['fields'] = $('#remarkModal :radio[name="fields"]:checked').val() || '';
+      return config;
     }
-  };
 
-  // 修改字框
-  $('#btn-ed-box').click(function () {
-    location = '/page/cut_edit/{{page["name"]}}?from=' + encodeFrom();
-  });
-
-  // 修改字序
-  $('#btn-ed-order').click(function () {
-    location = '/page/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
-  });
-
-  // 修改审定文本
-  $('#btn-ed-text').click(function () {
-    location = '/page/text_edit/{{page["name"]}}?from=' + encodeFrom();
-  });
-
-  // 跳转
-  function go(to) {
-    var url = setQueryString('to', to).replace(location.pathname, '/page/browse/{{page["name"]}}');
-    var config = getConfig();
-    if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
-      postApi('/session/config', {data: {data_page_button: config}}, function (res) {
+    // 跳转
+    function go(to) {
+      var url = setQueryString('to', to).replace(location.pathname, '/page/browse/{{page["name"]}}');
+      var config = getConfig();
+      if (JSON.stringify(btnConfig) !== JSON.stringify(config)) {
+        postApi('/session/config', {data: {data_page_button: config}}, function (res) {
+          location.href = url;
+        });
+      } else {
         location.href = url;
-      });
-    } else {
-      location.href = url;
+      }
     }
-  }
 
-  // 上一页
-  $('#btn-prev').click(function () {
-    go('prev');
-  });
+    // 上一页
+    $('#btn-prev').click(function () {
+      go('prev');
+    });
 
-  // 下一页
-  $('#btn-next').click(function () {
-    go('next');
-  });
+    // 下一页
+    $('#btn-next').click(function () {
+      go('next');
+    });
 
-  // 解锁临时锁
-  $('.lock').click(function () {
-    var name = '{{page["name"]}}';
-    var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
-    var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
-      postApi(url, {data: {}}, function () {
-        showSuccess('成功', '已成功解锁。');
+    // 解锁临时锁
+    $('.lock').click(function () {
+      var name = '{{page["name"]}}';
+      var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
+      var url = '/data/admin/unlock/' + sharedField + '/' + name;
+      showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
+        postApi(url, {data: {}}, function () {
+          showSuccess('成功', '已成功解锁。');
+          refresh(1000);
+        }, function (error) {
+          showError('失败', error.message);
+        });
+      });
+    });
+
+    // 修改基本信息
+    var $editModal = $('#editModal');
+    var fields = decodeJSON('{{edit_fields}}').concat({id: '_id'});
+    $('#btn-update').on('click', function () {
+      info['_id'] = '{{page["_id"]}}';
+      setModal($editModal, info, fields);
+      $editModal.modal();
+    });
+
+    $("#editModal .modal-confirm").on('click', function () {
+      var data = getModal($editModal, fields);
+      postApi('/data/page', {data: data}, function () {
+        showSuccess('成功', '数据已提交。');
         refresh(1000);
       }, function (error) {
         showError('失败', error.message);
       });
     });
-  });
 
-  // 修改基本信息
-  var $editModal = $('#editModal');
-  var fields = decodeJSON('{{edit_fields}}').concat({id: '_id'});
-  $('#btn-update').on('click', function () {
-    info['_id'] = '{{page["_id"]}}';
-    setModal($editModal, info, fields);
-    $editModal.modal();
-  });
-
-  $editModal.find(".modal-confirm").on('click', function () {
-    var data = getModal($editModal, fields);
-    postApi('/data/page', {data: data}, function () {
-      showSuccess('成功', '数据已提交。');
-      refresh(1000);
-    }, function (error) {
-      showError('失败', error.message);
+    // 备注
+    $('#btn-remark').on('click', () => $('#remarkModal').modal());
+    $("#remarkModal .options :radio").on('click', function () {
+      $('#remarkModal .remark').val($(this).val());
     });
-  });
-
-  // 备注
-  $('#btn-remark').on('click', () => $('#remarkModal').modal());
-  $("#remarkModal .options :radio").on('click', function () {
-    $('#remarkModal .remark').val($(this).val());
-  });
-  $('#remarkModal .modal-confirm').click(function () {
-    var remark = $('#remarkModal .remark').val().trim();
-    if (!remark.length)
-      return showWarning('提示', '请输入备注内容');
-    var field = $('#remarkModal .fields :checked').val();
-    if (typeof field === 'undefined')
-      return showWarning('提示', '请选择备注字段');
-    localStorage.setItem('pageRemark', remark);
-    localStorage.setItem('pageRemarkField', field);
-    var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
-    data[field === '切分' ? 'remark.box' : 'remark.text'] = remark;
-    postApi('/data/page', {data: data}, function () {
-      showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
-      go(getQueryString('to') || 'next');
+    $('#remarkModal .modal-confirm').on('click', function () {
+      var remark = $('#remarkModal .remark').val();
+      if (!remark)
+        return showWarning('提示', '请输入备注内容');
+      var field = $('#remarkModal .fields :checked').val();
+      if (!field)
+        return showWarning('提示', '请选择备注字段');
+      localStorage.setItem('pageRemark', remark);
+      localStorage.setItem('pageRemarkField', field);
+      var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
+      data[field === '切分' ? 'remark.box' : 'remark.text'] = remark;
+      postApi('/data/page', {data: data}, function () {
+        showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
+        go(getQueryString('to') || 'next');
+      });
     });
-  });
 
-  // 获取当前按钮状态
-  function getConfig() {
-    var config = {};
-    var buttons = ['toggle-image', 'toggle-right', 'toggle-blur', 'toggle-block',
-      'toggle-column', 'toggle-char', 'toggle-order'];
-    buttons.forEach(function (button) {
-      config[button] = $('.m-header #' + button).hasClass('active') ? 1 : -1;
+    // 切换文本
+    $('.btn-show-txt').on('click', function () {
+      $('.btn-show-txt').removeClass('active');
+      $(this).addClass('active');
+      $('.sutra-text').addClass('hide');
+      $('.' + $(this).attr('data-id')).removeClass('hide');
+      $('.m-footer .txt-info').html('当前文本：' + $(this).text());
     });
-    config['sutra-txt'] = $('.txt-nav li.active').attr('data-id');
-    if ($('#remarkModal :radio[name="operation"]:checked').length)
-      config['operation'] = $('#remarkModal :radio[name="operation"]:checked').val();
-    return config;
-  }
 
-  // 切换文本
-  $('.txt-nav li').click(function () {
-    $('.txt-nav li').removeClass('active');
-    $(this).addClass('active');
-    $('.sutra-text').addClass('hide');
-    $('.' + $(this).attr('data-id')).removeClass('hide');
-  });
-
-  // 保存文本
-  $('#btn-save').click(function () {
-    var which = $('.txt-nav li.active').attr('data-id');
-    var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
-    data[which] = $('.sutra-text.' + which + ' textarea').val();
-    postApi('/data/page', {data: data}, function () {
-      showSuccess('修改成功');
-      refresh(1000);
+    // 保存文本
+    $('#btn-save').on('click', function () {
+      var data = {_id: "{{page['_id']}}", name: "{{page['name']}}"};
+      var which = $('.btn-show-txt.active').attr('data-id');
+      data[which] = $('.sutra-text.' + which + ' .text-editable').val();
+      console.log(data);
+      postApi('/data/page', {data: data}, function () {
+        showSuccess('修改成功');
+        // refresh(1000);
+      });
     });
-  });
-</script>
+  </script>
 
-<script>
-  $.cut.create({
-    readonly: true,
-    holder: 'holder',
-    image: '{{img_url}}',
-    scrollContainer: '#holder-container',
-    name: '{{page["name"]}}',
-    width: '{{page["width"]}}',
-    height: '{{page["height"]}}',
-    chars: '{{page["chars"]}}',
-    blocks: '{{page["blocks"]}}',
-    columns: '{{page["columns"]}}',
-  });
-  $.cut.switchCurrentBox(null);
-  $.cut.bindKeys();
-  $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  <script>
+    $.cut.create({
+      readonly: true,
+      holder: 'holder',
+      image: '{{img_url}}',
+      scrollContainer: '#holder-container',
+      name: '{{page["name"]}}',
+      width: '{{page["width"]}}',
+      height: '{{page["height"]}}',
+      chars: '{{page["chars"]}}',
+      blocks: '{{page["blocks"]}}',
+      columns: '{{page["columns"]}}',
+    });
+    $.cut.switchCurrentBox(null);
+    $.cut.bindKeys();
+    $.cut.bindCharOrderKeys();
+    $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
 
-  $.cut.state.canHitBox = function (el) {
-    var cls = el.data('class');
-    if ($('#toggle-char').hasClass('active') && cls === 'char')
-      return true;
-    if ($('#toggle-column').hasClass('active') && cls === 'column')
-      return true;
-    if ($('#toggle-block').hasClass('active') && cls === 'block')
-      return true;
-  };
+    $.cut.state.canHitBox = function (el) {
+      if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')
+        return true;
+      if ($('#toggle-column').hasClass('active') && el.data('class') === 'column')
+        return true;
+      if ($('#toggle-block').hasClass('active') && el.data('class') === 'block')
+        return true;
+    };
 
-  // 初始化设置
-  $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
-  $.cut.setLink(btnConfig['toggle-order'] === 1);
-  $.cut.toggleBox(btnConfig['toggle-char'] === 1, 'char');
-  $.cut.toggleBox(btnConfig['toggle-block'] === 1, 'block');
-  $.cut.toggleBox(btnConfig['toggle-column'] === 1, 'column');
-  $('#toggle-order').toggleClass('active', btnConfig['toggle-order'] === 1);
-  $('#toggle-char').toggleClass('active', btnConfig['toggle-char'] === 1);
-  $('#toggle-block').toggleClass('active', btnConfig['toggle-block'] === 1);
-  $('#toggle-column').toggleClass('active', btnConfig['toggle-column'] === 1);
-</script>
+    // 初始化设置
+    $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
+    $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
+    $.cut.setLink(btnConfig['toggle-order'] === 1);
+    $.cut.toggleBox(btnConfig['toggle-char'] === 1, 'char');
+    $.cut.toggleBox(btnConfig['toggle-block'] === 1, 'block');
+    $.cut.toggleBox(btnConfig['toggle-column'] === 1, 'column');
+    $('#toggle-order').toggleClass('active', btnConfig['toggle-order'] === 1);
+    $('#toggle-char').toggleClass('active', btnConfig['toggle-char'] === 1);
+    $('#toggle-block').toggleClass('active', btnConfig['toggle-block'] === 1);
+    $('#toggle-column').toggleClass('active', btnConfig['toggle-column'] === 1);
+  </script>
 
 </body>
 </html>
