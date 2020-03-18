@@ -11,8 +11,8 @@ from controller import errors as e
 from controller.task.base import TaskHandler
 
 
-class DocTaskAdminHandler(TaskHandler):
-    URL = '/task/admin/(page)'
+class PageTaskAdminHandler(TaskHandler):
+    URL = '/task/admin/page'
 
     page_title = '页任务管理'
     search_tips = '请搜索页编码、批次号或备注'
@@ -38,7 +38,7 @@ class DocTaskAdminHandler(TaskHandler):
     hide_fields = ['_id', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
 
-    def get(self, collection):
+    def get(self):
         """ 任务管理-页任务管理"""
         try:
             # 模板参数
@@ -50,7 +50,7 @@ class DocTaskAdminHandler(TaskHandler):
                 {'id': '_id', 'name': '主键'},
                 {'id': 'doc_id', 'name': '页编码'},
                 {'id': 'batch', 'name': '批次号'},
-                {'id': 'task_type', 'name': '类型', 'filter': self.get_task_types(collection)},
+                {'id': 'task_type', 'name': '类型', 'filter': self.get_task_types('page')},
                 {'id': 'status', 'name': '状态', 'filter': self.task_statuses},
                 {'id': 'priority', 'name': '优先级', 'filter': self.priorities},
                 {'id': 'steps', 'name': '步骤'},
@@ -65,12 +65,12 @@ class DocTaskAdminHandler(TaskHandler):
                 {'id': 'finished_time', 'name': '完成时间'},
                 {'id': 'remark', 'name': '备注'},
             ]
-            condition, params = self.get_task_search_condition(self.request.query, collection)
+            condition, params = self.get_task_search_condition(self.request.query, 'page')
             p = {f: 0 for f in ['input', 'result']}
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id', p)
             self.render(
-                'task_admin_doc.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                collection=collection, format_value=self.format_value, **kwargs,
+                'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
+                format_value=self.format_value, **kwargs,
             )
         except Exception as error:
             return self.send_db_error(error)
@@ -79,7 +79,7 @@ class DocTaskAdminHandler(TaskHandler):
 class ImageTaskAdminHandler(TaskHandler):
     URL = '/task/admin/image'
 
-    page_title = '页图片任务管理'
+    page_title = '页图片管理'
     search_tips = '请搜索批次、网盘名称或导入文件夹'
     search_fields = ['batch', 'input.pan_name', 'input.import_dir']
     operations = [
@@ -114,7 +114,7 @@ class ImageTaskAdminHandler(TaskHandler):
     update_fields = []
 
     def get(self):
-        """ 任务管理/页图片任务 """
+        """ 任务管理-页图片任务 """
         try:
             # 模板参数
             kwargs = self.get_template_kwargs()
@@ -137,17 +137,17 @@ class ImageTaskAdminHandler(TaskHandler):
             return self.send_db_error(error)
 
 
-class DocTaskStatisticHandler(TaskHandler):
-    URL = '/task/(page)/statistic'
+class PageTaskStatisticHandler(TaskHandler):
+    URL = '/task/page/statistic'
 
-    def get(self, collection):
+    def get(self):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
-            condition = self.get_task_search_condition(self.request.query, collection)[0]
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status']:
                 return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
 
+            condition = self.get_task_search_condition(self.request.query, 'page')[0]
             counts = list(self.db.task.aggregate([
                 {'$match': condition},
                 {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},
@@ -249,7 +249,7 @@ class PageTaskResumeHandler(TaskHandler):
     ]
 
     def get(self, page_name):
-        """ 页面任务简历"""
+        """ 页任务简历"""
         from functools import cmp_to_key
         try:
             page = self.db.page.find_one({'name': page_name}) or dict(name=page_name)

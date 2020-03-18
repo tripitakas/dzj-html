@@ -15,7 +15,7 @@ from controller.auth import can_access, get_all_roles
 from controller.task.publish import PublishBaseHandler
 
 
-class GetReadyDocsApi(TaskHandler):
+class GetReadyPagesApi(TaskHandler):
     URL = '/api/task/ready/@task_type'
 
     def post(self, task_type):
@@ -46,13 +46,12 @@ class GetReadyDocsApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class PublishDocTasksApi(PublishBaseHandler):
-    URL = r'/api/task/publish/(page)'
+class PublishPageTasksApi(PublishBaseHandler):
+    URL = r'/api/task/publish/page'
 
     def post(self, collection):
         """ 发布任务"""
-        model = eval(collection.capitalize())
-        self.data['doc_ids'] = self.get_doc_ids(self.data, model)
+        self.data['doc_ids'] = self.get_doc_ids(self.data, Page)
         assert isinstance(self.data['doc_ids'], list)
         rules = [
             (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),

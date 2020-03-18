@@ -79,7 +79,7 @@ class TaskHandler(BaseHandler, Task, Lock):
                     return self.send_error_response(error, links=links)
         # 设置其它参数
         self.steps = self.init_steps(self.task, self.task_type)
-        self.readonly = self.mode in ['view', 'browse', '']
+        self.readonly = self.mode in ['view', 'browse', '', None]
 
     def get_task(self, task_id):
         """ 根据task_id/to以及相关条件查找任务"""
