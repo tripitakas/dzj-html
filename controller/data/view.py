@@ -167,7 +167,7 @@ class CharListHandler(BaseHandler, Char):
     page_title = '字数据管理'
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
-        {'id': 'source', 'name': '分类'},
+        {'id': 'batch', 'name': '批次'},
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'name', 'name': '字编码'},
@@ -184,12 +184,14 @@ class CharListHandler(BaseHandler, Char):
         {'id': 'ocr_txt', 'name': 'OCR文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt_logs', 'name': '校对记录'},
+        {'id': 'proof_count', 'name': '校对次数'},
+        {'id': 'review_count', 'name': '审定次数'},
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-source', 'label': '更新分类'},
+        {'operation': 'bat-batch', 'label': '更新批次'},
         {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},

@@ -94,8 +94,25 @@ class DataDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class UpdateSourceApi(BaseHandler):
-    URL = '/api/data/(page|char)/source'
+class PageExportCharsApi(BaseHandler):
+    URL = '/api/data/page/export_char'
+
+    def post(self):
+        """ 批量生成字表"""
+        try:
+            rules = [(v.not_empty, 'page_names')]
+            self.validate(self.data, rules)
+            # 启动脚本，生成字表
+            script = 'nohup python3 %s/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
+            os.system(script % (path.dirname(__file__), ','.join(self.data['page_names']), self.username))
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class UpdatePageSourceApi(BaseHandler):
+    URL = '/api/data/(page)/source'
 
     def post(self, collection):
         """ 批量更新分类"""
@@ -116,18 +133,23 @@ class UpdateSourceApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class PageExportCharsApi(BaseHandler):
-    URL = '/api/data/page/export_char'
+class UpdateCharBatchApi(BaseHandler):
+    URL = '/api/data/(char)/batch'
 
-    def post(self):
-        """ 批量生成字表"""
+    def post(self, collection):
+        """ 批量更新批次"""
         try:
-            rules = [(v.not_empty, 'page_names')]
+            rules = [(v.not_empty, 'batch'), (v.not_both_empty, '_id', '_ids')]
             self.validate(self.data, rules)
-            # 启动脚本，生成字表
-            script = 'nohup python3 %s/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
-            os.system(script % (path.dirname(__file__), ','.join(self.data['page_names']), self.username))
-            self.send_data_response()
+
+            update = {'$set': {'batch': self.data['batch']}}
+            if self.data.get('_id'):
+                r = self.db[collection].update_one({'_id': ObjectId(self.data['_id'])}, update)
+                self.add_log('update_' + collection, target_id=self.data['_id'])
+            else:
+                r = self.db[collection].update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
+                self.add_log('update_' + collection, target_id=self.data['_ids'])
+            self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:
             return self.send_db_error(error)

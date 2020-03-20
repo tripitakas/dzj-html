@@ -99,7 +99,6 @@ class Task(Model):
         },
         'char_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'id'}},
         'char_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'id'}},
-        'char_hard': {'name': '僻字校对', 'data': {'collection': 'char', 'id': 'id'}},
     }
 
     # 其它任务定义

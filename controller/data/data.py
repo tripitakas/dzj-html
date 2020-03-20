@@ -291,7 +291,7 @@ class Char(Model):
         {'id': 'char_id', 'name': 'char_id'},
         {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
-        {'id': 'source', 'name': '分类'},
+        {'id': 'batch', 'name': '批次'},
         {'id': 'data_level', 'name': '数据等级'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
@@ -305,7 +305,8 @@ class Char(Model):
         {'id': 'normal_txt', 'name': '正字'},
         {'id': 'txt_type', 'name': '类型'},
         {'id': 'txt_logs', 'name': '校对历史'},
-        {'id': 'box_logs', 'name': '校对历史'},
+        {'id': 'proof_count', 'name': '校对次数'},
+        {'id': 'review_count', 'name': '审定次数'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
@@ -330,7 +331,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['name', 'source', 'remark']:
+        for field in ['name', '批次', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

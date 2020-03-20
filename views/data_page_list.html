@@ -224,10 +224,10 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for t, v in Task.task_types.items() %}
-          {% if handler.is_mod_enabled(v['name']) %}
+          {% for t, name in Task.get_task_types('page').items() %}
+          {% if handler.is_mod_enabled(name) %}
           <label class="checkbox-inline">
-            <input type="checkbox" class="{{t}}" title="{{t}}">{{v['name']}}
+            <input type="checkbox" class="{{t}}" title="{{t}}">{{name}}
           </label>
           {% end %}
           {% end %}
@@ -237,14 +237,14 @@
         </div>
         <h4 class="control-label">选择优先级</h4>
         <div class="priority">
-          <input type="radio" name="priority" value="3" style="margin-right: 10px">高
-          <input type="radio" name="priority" value="2" style="margin: 0 10px" checked>中
-          <input type="radio" name="priority" value="1" style="margin: 0 10px">低
+          <label class="radio-inline"><input type="radio" name="priority" value="3">高</label>
+          <label class="radio-inline"><input type="radio" name="priority" value="2" checked>中</label>
+          <label class="radio-inline"><input type="radio" name="priority" value="1">低</label>
         </div>
         <h4 class="control-label">任务已完成时，是否重新发布？</h4>
         <div class="force">
-          <input type="radio" name="force" value="否" style="margin: 0 10px 0 0" checked>否
-          <input type="radio" name="force" value="是" style="margin: 0 10px">是
+          <label class="radio-inline"><input type="radio" name="force" value="否" checked>否</label>
+          <label class="radio-inline"><input type="radio" name="force" value="是">是</label>
         </div>
         <div class="modal-tab">
           <h4 class="control-label">选择待发布的任务</h4>

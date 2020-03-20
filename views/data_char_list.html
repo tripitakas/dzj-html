@@ -201,13 +201,13 @@
 <script src="{{static_url('js/l10n.js')}}"></script>
 <script>
   // 更新分类
-  $('.operation .bat-source').click(function () {
+  $('.operation .bat-batch').click(function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
-    Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+    Swal2.fire({title: '请输入批次', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/data/char/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/data/char/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
       }
     });
   });
