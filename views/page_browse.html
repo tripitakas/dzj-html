@@ -39,7 +39,7 @@
           <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config['toggle-order'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
           <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
         </div>
-        <div class="btn-group hide" id="more-group">
+        <div class="btn-group more-group hide" id="more-group">
           <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
           <button id="btn-ed-order" type="button" class="btn btn-default btn-sm">修改字序</button>
           <button id="btn-ed-text" type="button" class="btn btn-default btn-sm">审定文本</button>
@@ -51,7 +51,7 @@
         <div id="btn-show-txts" class="btn-group" title="查看文本">
           <span class="btn-txt icon-article dropdown-toggle" data-toggle="dropdown"></span>
           <ul class="dropdown-menu">
-            {% for i, (field, txt, label) in enumerate(texts) %}
+            {% for i, (txt, field, label) in enumerate(texts) %}
             {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
             <li data-id="{{field}}" class="btn-show-txt {{'active' if is_active else ''}}">
               <a href="#">{{label}}</a>
@@ -77,7 +77,7 @@
       {% if texts %}
       <div class="right bd {{'hide' if btn_config.get('toggle-right') == -1 else ''}}" id="right-region">
         <div class="sutra-texts">
-          {% for i, (field, txt, label) in enumerate(texts) %}
+          {% for i, (txt, field, label) in enumerate(texts) %}
           {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
           <div class="sutra-text {{field}}{{'' if is_active else ' hide'}}">
             <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
@@ -196,17 +196,17 @@
     };
 
     // 修改字框
-    $('#btn-ed-box').click(function () {
+    $('#btn-ed-box').on('click', function () {
       location = '/page/cut_edit/{{page["name"]}}?from=' + encodeFrom();
     });
 
     // 修改字序
-    $('#btn-ed-order').click(function () {
+    $('#btn-ed-order').on('click', function () {
       location = '/page/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
     });
 
     // 修改审定文本
-    $('#btn-ed-text').click(function () {
+    $('#btn-ed-text').on('click', function () {
       location = '/page/text_edit/{{page["name"]}}?from=' + encodeFrom();
     });
 
@@ -234,17 +234,17 @@
     }
 
     // 上一页
-    $('#btn-prev').click(function () {
+    $('#btn-prev').on('click', function () {
       go('prev');
     });
 
     // 下一页
-    $('#btn-next').click(function () {
+    $('#btn-next').on('click', function () {
       go('next');
     });
 
     // 解锁临时锁
-    $('.lock').click(function () {
+    $('.lock').on('click', function () {
       var name = '{{page["name"]}}';
       var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
       var url = '/data/admin/unlock/' + sharedField + '/' + name;

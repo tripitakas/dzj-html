@@ -3,10 +3,25 @@
 {% block step_title %}{% end %}
 
 {% block custom-css %}
+{% include _font_css.html %}
 <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
-{% include _font_css.html %}
 <style>
+  .m-header .dropdown-menu {
+    margin-top: 10px;
+  }
+
+  .dropdown-menu .title {
+    font-size: 14px;
+    color: var(--Grey);
+    text-align: center;
+  }
+
+  .dropdown-menu.cmp-menu {
+    min-width: 300px !important;
+    padding: 10px 15px;
+  }
+
   @media screen and (max-width: 1100px) {
     #enlarge-font, #reduce-font {
       display: none;
@@ -28,22 +43,22 @@
 {% end %}
 
 {% block buttons %}
-<div class="btn-group" style="margin-right: 0">
+<div class="btn-group">
   <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
   <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
   <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-  <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+  <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
   <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
   <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
   <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
   <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-  <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的文字"></div>
-  <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板的序号"></div>
+  <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+  <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
   <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
   <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
-  <div id="toggle-more" class="btn-txt icon-pencil" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
+  <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
 </div>
-<div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
+<div class="btn-group more-group hide" id="more-group">
   {% if not handler.readonly %}
   <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
   <button id="btn-ed-order" type="button" class="btn btn-default btn-sm">修改字序</button>
@@ -52,7 +67,41 @@
   <button id="btn-vw-order" type="button" class="btn btn-default btn-sm">查看字序</button>
   {% end %}
 </div>
-<div class="btn-group right">
+<div class="btn-group fr">
+  <i class="btn-txt icon-cmp-txt dropdown-toggle" data-toggle="dropdown" title="重新比对"></i>
+  <div class="dropdown-menu dropdown-menu-right cmp-menu" data-stopPropagation="true">
+    <div class="title">文本比对</div>
+    <li class="divider"></li>
+    <label class="control-label">选择底本</label>
+    <div class="form-group base-txt">
+      {% for i, (txt, field, label) in enumerate(texts) %}
+      <label class="radio-inline inline{{i}}"><input type="radio" name="base-txt" value="{{field}}">{{label}}</label>
+      {% end %}
+    </div>
+    <label class="control-label">选择校本</label>
+    <div class="form-group cmp-txt">
+      {% for i, (txt, field, label) in enumerate(texts) %}
+      <label class="checkbox-inline inline{{i}}"><input type="checkbox" value="{{field}}" checked>{{label}}</label>
+      {% end %}
+    </div>
+    <div class="btn-group fr">
+      <button id="btn-cmp-txt" type="button" class="btn btn-primary btn-sm">确定</button>
+    </div>
+  </div>
+</div>
+<div class="btn-group fr">
+  <i id="btn-show-txt" class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown" title="查看文本"></i>
+  <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
+    <li class="title">查看文本</li>
+    <li class="divider"></li>
+    <li data-id="work-panel" class="btn-show-txt"><a href="#">工作面板</a></li>
+    <li class="divider"></li>
+    {% for i, (txt, field, label) in enumerate(texts) %}
+    <li data-id="text-{{field}}" class="btn-show-txt"><a href="#">{{label}}</a></li>
+    {% end %}
+  </ul>
+</div>
+<div class="btn-group fr">
   <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
   <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
   <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
@@ -61,20 +110,18 @@
   <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
   <div id="save-doubt" class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
   <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
-  <div id="re-compare" class="btn-txt icon-cmp-txt {{'' if 'text_proof' in handler.task_type else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="重新比对"></div>
-  <div id="show-txts" class="btn-txt icon-article {{'' if handler.texts else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="显示所有文本"></div>
 </div>
 {% end %}
 
 {% block m-body %}
-<div class="m-left" id="left-region">
-  <div class="bd" id="holder-container">
+<div id="left-region" class="m-left">
+  <div id="holder-container" class="bd">
     <div id="holder"></div>
   </div>
 </div>
-<div class="m-right" id="right-region">
-  <div class="bd cmp-txt wide-txt">
-    <div id="work-text" class="sutra-text">
+<div id="right-region" class="m-right wide-txt">
+  <div id="work-panel" class="sutra-text bd">
+    <div id="work-html" class="html-text">
       <div class="blocks">
         {% if isinstance(cmp_data, str) %}
         {% raw cmp_data %}
@@ -83,18 +130,16 @@
         {% end %}
       </div>
     </div>
-    <!--/.sutra-text-->
-    {% if handler.doubts %}
+    <!--/.work-html-->
+    {% if doubts %}
     <div class="char-list doubt-list">
       <div class="char-list-tab">
-        {% for i, doubt in enumerate(handler.doubts) %}
+        {% for i, doubt in enumerate(doubts) %}
         <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[1]}}</div>
         {% end %}
-        <div class="char-list-tab-arrow" id="toggle-arrow">
-          <i class="icon-up"></i>
-        </div>
+        <div class="char-list-tab-arrow" id="toggle-arrow"><i class="icon-up"></i></div>
       </div>
-      {% for i, doubt in enumerate(handler.doubts) %}
+      {% for i, doubt in enumerate(doubts) %}
       <table class="char-list-table {{'' if i else 'editable active'}}">
         <thead>
         <tr>
@@ -113,17 +158,18 @@
     </div>
     {% end %}
     <!--/.doubt-list-->
-    {% if handler.texts %}
-    <div class="pfread-dialog" id="pfread-dialog">
+    <div id="pfread-dialog" class="pfread-dialog">
       <div class="dialog-common dialog-abs">
         <div class="dlg-before"></div>
-        {% for i, txt in enumerate(handler.texts) %}
-        <dl class="item">
-          <dt>{{txt[1]}}</dt>
-          <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
-        </dl>
-        {% end %}
-        <dl class="item">
+        <div id="dlg-items" class="items">
+          {% for i, (txt, field, label) in enumerate(texts) %}
+          <dl class="item">
+            <dt>{{label}}</dt>
+            <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
+          </dl>
+          {% end %}
+        </div>
+        <dl class="item res">
           <dt>选择结果</dt>
           <dd class="text">
             <span id="dlg-select" contenteditable="true"></span>
@@ -132,16 +178,22 @@
         <div class="dlg-after"></div>
       </div>
     </div>
-    {% end %}
     <!--/.pfread-dialog-->
   </div>
-  <div class="bd raw-txt wide-txt hide">
-    <textarea id="raw-textarea" class="form-control" type="text" rows="200"></textarea>
+  <div id="text-work" class="sutra-text hide">
+    <textarea class="text-editable"></textarea>
   </div>
+  {% for i, (txt, field, label) in enumerate(texts) %}
+  <div id="text-{{field}}" class="sutra-text hide">
+      <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
+        {% raw txt.replace('|', '\n') %}
+      </textarea>
+  </div>
+  {% end %}
 </div>
 <div class="right-toolbar">
-  <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本编辑模式"></i>
-  <i id="btn-cmp-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+  <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
+  <i id="btn-html-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
 </div>
 {% end %}
 
@@ -174,40 +226,36 @@
         <div class="title">二、功能按钮</div>
         <table class="table">
           <tr>
-            <td><img src="{{static_url('imgs/icon_char_no.png')}}"/></td>
+            <td><i class="btn-txt icon-panel-no"></i></td>
             <td>显示或隐藏浮动面板上的字框序号</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_char_txt.png')}}"/></td>
+            <td><i class="btn-txt icon-panel-txt"></i></td>
             <td>显示或隐藏浮动面板上的字框文字</td>
           </tr>
           <tr>
-            <td><span class="btn-txt">A+、A-</span></td>
-            <td>调整浮动面板或者右侧文本区域的字体大小</td>
+            <td><i class="btn-txt icon-font-plus"></i></td>
+            <td>增加浮动面板或者右侧文本区域的字体大小</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_edit.png')}}"/></td>
+            <td><i class="btn-txt icon-font-minus"></i></td>
+            <td>减少浮动面板或者右侧文本区域的字体大小</td>
+          </tr>
+          <tr>
+            <td><i class="btn-txt icon-more"></i></td>
             <td>修改栏框、列框、字框、字序等。文字校对时，可以修改本页面的切分框数据</td>
           </tr>
           <tr>
-            <td><span class="btn-txt btn-empty-place">　</span></td>
+            <td><i class="btn-txt icon-empty"></i></td>
             <td>显示或隐藏空位符。空位符是一个占位符，如果异文中选中的文本为空，则显示为空位符，表示此处有异文</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_doubt.png')}}"/></td>
+            <td><i class="btn-txt icon-doubt"></i></td>
             <td>存疑，以便后续环节处理。请先用鼠标选中文本，然后点击存疑</td>
           </tr>
           <tr>
-            <td><img src="{{static_url('imgs/icon_match.png')}}"/></td>
+            <td><i class="btn-txt icon-done-all"></i></td>
             <td>图文匹配检查。检查左侧图片字框以及右侧文字的匹配情况，包括总列数，以及每列字数。针对不匹配的行，右侧将出现红色竖线进行提示。</td>
-          </tr>
-          <tr>
-            <td><img src="{{static_url('imgs/icon_compare.png')}}"/></td>
-            <td>重新比对。如果返回上一步重新选择文本后，可以选择重新比对。重新比对将清空当前所有校对结果</td>
-          </tr>
-          <tr>
-            <td><img src="{{static_url('imgs/icon_txts.png')}}"/></td>
-            <td>弹出来源文本面板。该面板显示所有的来源文本，包括一至两份OCR、一份比对文本等。点击该面板顶部的按钮可以进行拖拽</td>
           </tr>
           {% include _task_help.html %}
         </table>
@@ -230,28 +278,6 @@
     </div>
   </div>
 </div>
-<div id="txtModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="txtModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <div class="modal-header">
-        <div class="btn-group" role="group">
-          {% for i, txt in enumerate(handler.texts) %}
-          <button class="btn page-txt btn-default" id="show-txt{{i}}">{{txt[1]}}</button>
-          {% end %}
-          <button class="btn page-txt btn-default{{'' if len(handler.texts) > 1 else ' hide'}}" id="show-all">所有</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        {% for i, txt in enumerate(handler.texts) %}
-        <textarea id="txt{{i}}" class="{{'hide' if i else ''}}" rows="26" readonly>
-            {{txt[0].replace('|', '\n')}}
-          </textarea>
-        {% end %}
-      </div>
-    </div>
-  </div>
-</div>
 {% end %}
 
 {% block custom-js %}
@@ -260,35 +286,38 @@
 <script src="{{static_url('js/txt-proof.js')}}"></script>
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
+  // 公共参数
+  var textDict = decodeJSON('{{text_dict}}');
+  var textKeys = decodeJSON('{{[t[1] for t in texts]}}');
+
   // 页面图和切分框
-  var canvasName = taskType + step + docId;
-  var chars = decodeJSON('{{handler.page.get("chars", [])}}');
-  var blocks = decodeJSON('{{handler.page.get("blocks", [])}}');
-  var columns = decodeJSON('{{handler.page.get("columns", [])}}');
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    name: taskType + step + docId,
+    scrollContainer: '#holder-container',
+    chars: '{{page["chars"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+  });
 
-  function createPage() {
-    $.cut.create({
-      readonly: true,
-      name: canvasName,
-      holder: 'holder',
-      width: '{{handler.page["width"]}}',
-      height: '{{handler.page["height"]}}',
-      scrollContainer: '#holder-container',
-      image: '{{handler.get_page_img(handler.page)}}',
-      chars: chars
-    });
-    $.cut.bindMatchingKeys();
-    $.cut.toggleBox(false);
-    $.cut.switchCurrentBox(null);
-    $.cut.bindKeys();
-  }
-
-  createPage();
+  // 初始化设置
+  $.cut.bindKeys();
+  $.cut.bindMatchingKeys();
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
   $('#holder-container').focus();
+  showOrder = getStorage('togglePanelNo') === '1';
+  showText = getStorage('togglePanelTxt') === '1';
+  $('#toggle-panel-no').toggleClass('active', showOrder);
+  $('#toggle-panel-txt').toggleClass('active', showText);
 
   // 获取任务数据
   function getTaskData() {
-    var txt_html = $('#sutra-text .block').parent().html();
+    if ($('#btn-raw-txt').hasClass('hide'))
+      return bsShow('提醒！', '请先切换至文本比对模式，然后再保存或提交。', 'warning');
+    var txt_html = $('#work-html .block').parent().html();
     var doubt = $('.char-list-table.editable tbody').html();
     return {step: step, name: docId, doubt: doubt, txt_html: txt_html};
   }

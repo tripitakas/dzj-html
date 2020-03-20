@@ -8,8 +8,6 @@ $('#toggle-panel-no').on('click', function () {
   highlightBox();
   setStorage('togglePanelNo', $(this).hasClass('active') ? '1' : '-1');
 });
-showOrder = getStorage('togglePanelNo') === '1';
-$('#toggle-panel-no').toggleClass('active', getStorage('togglePanelNo') === '1');
 
 // 显隐浮动面板的文本
 $('#toggle-panel-txt').on('click', function () {
@@ -18,8 +16,6 @@ $('#toggle-panel-txt').on('click', function () {
   highlightBox();
   setStorage('togglePanelTxt', $(this).hasClass('active') ? '1' : '-1');
 });
-showText = getStorage('togglePanelTxt') === '1';
-$('#toggle-panel-txt').toggleClass('active', getStorage('togglePanelTxt') === '1');
 
 // 增加浮动面板的字体
 $('#enlarge-panel-font').on('click', function () {
@@ -45,7 +41,7 @@ function previousDiff() {
     return;
   $diff.eq(idx - 1).click().dblclick();
   if ($('.dialog-abs').offset().top < 55) {
-    $('#work-text').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
+    $('#work-html').animate({scrollTop: $('.dialog-abs').offset().top - 50}, 300);
     setTimeout(() => $diff.eq(idx - 1).click().dblclick(), 500);
   }
 }
@@ -58,8 +54,8 @@ function nextDiff() {
   var $diff = $('.diff');
   var idx = $diff.index($('.current-diff'));
   $diff.eq(idx + 1).click().dblclick();
-  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#work-text').height()) {
-    $('.right #work-text').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
+  if ($('.dialog-abs').offset().top + $('.dialog-abs').height() > $('#work-html').height()) {
+    $('.right #work-html').animate({scrollTop: $('.dialog-abs').offset().top + 50}, 300);
     setTimeout(() => $diff.eq(idx + 1).click().dblclick(), 500);
   }
 }
@@ -83,10 +79,7 @@ $('#delete-line').on('click', function () {
 });
 
 // 显示空位符
-$('#toggle-empty').on('click', () => $('.empty-place').toggleClass("hidden"));
-
-// 弹出原文
-$('#show-txts').on('click', () => $('#txtModal').modal());
+$('#toggle-empty').on('click', () => $('.empty-place').toggleClass("hide"));
 
 // 缩小图片
 $('#zoom-in').on('click', () => highlightBox());
@@ -128,10 +121,16 @@ $('#btn-ed-txt').click(function () {
   });
 });
 
-$('#ed-char-std').click(function () {
-  autoSave(function () {
-    location = location.href.replace(/\?.+$/, '');
-  });
+// 增加字体
+$('#enlarge-font').click(function () {
+  var size = parseInt($('#raw-txt').css('font-size'));
+  $('#raw-txt').css('font-size', ++size + 'px');
+});
+
+// 减少字体
+$('#reduce-font').click(function () {
+  var size = parseInt($('#raw-txt').css('font-size'));
+  $('#raw-txt').css('font-size', --size + 'px');
 });
 
 // 重新比对选择本和OCR
@@ -142,6 +141,9 @@ $('#re-compare').on("click", function () {
     });
   });
 });
+
+// 弹出原文
+$('#show-txts').on('click', () => $('#txtModal').modal());
 
 // 弹出的文本可以拖拽
 $('#txtModal .modal-header').on('mousedown', function (downEvt) {
@@ -177,14 +179,3 @@ $('#txtModal .page-txt').click(function () {
     $('#txtModal #' + txtType).removeClass('hide').siblings().addClass('hide');
 });
 
-// 增加字体
-$('#enlarge-font').click(function () {
-  var size = parseInt($('#raw-txt').css('font-size'));
-  $('#raw-txt').css('font-size', ++size + 'px');
-});
-
-// 减少字体
-$('#reduce-font').click(function () {
-  var size = parseInt($('#raw-txt').css('font-size'));
-  $('#raw-txt').css('font-size', --size + 'px');
-});

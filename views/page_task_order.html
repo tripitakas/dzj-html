@@ -22,7 +22,7 @@
   <div id="show-err-box" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
   <div id="toggle-more" class="btn-txt icon-more {{'hide' if handler.readonly else ''}}" title="更多"></div>
 </div>
-<div class="btn-group hidden" id="more-group" role="group" aria-label="更多">
+<div class="btn-group more-group hide" id="more-group">
   <button id="reorder" class="btn btn-default btn-sm" type="button">重新排序<sup class="s-count"></sup></button>
   <button id="old-order" class="btn btn-default btn-sm" type="button">原始字序<sup class="s-count"></sup></button>
 </div>
@@ -136,25 +136,23 @@
 {% include _base_cut.html %}
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script>
-  var canvasName = taskType + step + docId;
-  var columnCount = parseInt('{{len(handler.page["columns"])}}');
   $.cut.create({
     readonly: true,
     orderMode: true,
-    name: canvasName,
-    scrollContainer: '#holder-container',
     holder: 'holder',
-    width: '{{handler.page["width"]}}',
-    height: '{{handler.page["height"]}}',
-    image: '{{handler.get_page_img(handler.page)}}',
-    chars: '{{handler.page["chars"]}}',
-    blocks: '{{handler.page["blocks"]}}',
-    columns: '{{handler.page["columns"]}}'
+    name: taskType + step + docId,
+    scrollContainer: '#holder-container',
+    image: '{{img_url}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    chars: '{{page["chars"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}'
   });
   $.cut.bindKeys();
   $.cut.switchCurrentBox(null);
   $.cut.bindCharOrderKeys();
-  $.cut.addCharOrderLinks(decodeJSON('{{handler.chars_col}}'));
+  $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'));
 
   // 初始化设置
   $.cut.toggleBox(false);
@@ -176,6 +174,8 @@
 </script>
 
 <script>
+  var columnCount = parseInt('{{len(page["columns"])}}');
+
   // 获取任务数据
   function getTaskData(type, jumpUrl) {
     var r = $.cut.getCharsCol();

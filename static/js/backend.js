@@ -133,12 +133,7 @@ function parseJSON(s) {
   }
 }
 
-// 激活bootstrap tooltip
-$(function () {
-  $("[data-toggle='tooltip']").tooltip();
-});
-
-// bootstrap alert close
-$(".alert .close").on('click', function () {
-  $(this).parent().addClass('hide');
-});
+// bootstrap相关
+$("[data-toggle='tooltip']").tooltip();
+$('.alert .close').on('click', () => this.parent().addClass('hide'));
+$('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());

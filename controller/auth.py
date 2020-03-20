@@ -79,7 +79,7 @@ role_route_maps = {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/task/text/diff': ['POST'],
+            '/api/page/text/diff': ['POST'],
             '/api/task/text/detect_chars': ['POST'],
             '/api/task/text/neighbor': ['POST'],
             '/page/@page_name': ['GET'],

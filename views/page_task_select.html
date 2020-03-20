@@ -69,7 +69,7 @@
   <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
   <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
 </div>
-<div class="btn-group right">
+<div class="btn-group fr">
   <div id="select-txt" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="选中文本"></div>
   <div id="show-txts" class="btn-txt icon-article" data-toggle="tooltip" data-placement="bottom" title="显示OCR文本"></div>
 </div>
@@ -151,7 +151,7 @@
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
       <div class="modal-header">OCR</div>
       <div class="modal-body">
-        {% raw handler.get_ocr().replace('|', '<br>') %}
+        {% raw ocr.replace('|', '<br>') %}
       </div>
     </div>
   </div>
@@ -164,18 +164,16 @@
 <script src="{{static_url('js/txt-btn.js')}}"></script>
 <script>
   // 页面图和切分框
-  var canvasName = taskType + step + docId;
-
   function createPage() {
     $.cut.create({
       readonly: true,
-      name: canvasName,
       holder: 'holder',
-      width: '{{handler.page["width"]}}',
-      height: '{{handler.page["height"]}}',
+      name: taskType + step + docId,
+      image: '{{img_url}}',
+      width: '{{page["width"]}}',
+      height: '{{page["height"]}}',
       scrollContainer: '#holder-container',
-      image: '{{handler.get_page_img(handler.page)}}',
-      chars: []
+      chars: [],
     });
     $.cut.bindMatchingKeys();
     $.cut.toggleBox(false);

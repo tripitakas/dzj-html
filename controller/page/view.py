@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from bson import json_util
 from tornado.web import UIModule
 from tornado.escape import to_basestring
-from bson import json_util
 from .base import PageHandler
 from controller import errors as e
 
@@ -14,14 +14,15 @@ class TaskCutHandler(PageHandler):
            '/task/browse/@cut_task/@task_id',
            '/task/update/@cut_task/@task_id']
 
-    config_fields = [
-        dict(id='auto-pick', name='提交后自动领新任务', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='detect-col', name='自适应调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
-    ]
-
     def get(self, task_type, task_id):
         """ 切分校对页面"""
+        kwargs = dict(input_type='radio', options=['是', '否'], default='是')
+        config_fields = [
+            dict(id='auto-pick', name='提交后自动领新任务', **kwargs),
+            dict(id='auto-adjust', name='自适应调整栏框和列框', **kwargs),
+            dict(id='detect-col', name='自适应调整字框在多列的情况', **kwargs),
+        ]
+
         try:
             template = 'page_task_cut.html'
             if self.steps['current'] == 'order':
@@ -31,7 +32,8 @@ class TaskCutHandler(PageHandler):
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)
                     self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
-            self.render(template)
+            self.render(template, page=self.page, img_url=self.get_page_img(self.page),
+                        config_fields=config_fields, chars_col=self.chars_col)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -41,13 +43,14 @@ class CutEditHandler(PageHandler):
     URL = ['/page/cut_edit/@page_name',
            '/page/cut_view/@page_name']
 
-    config_fields = [
-        dict(id='auto-adjust', name='自适应调整栏框和列框', input_type='radio', options=['是', '否'], default='是'),
-        dict(id='detect-col', name='自动调整字框在多列的情况', input_type='radio', options=['是', '否'], default='是'),
-    ]
-
     def get(self, page_name):
         """ 切分编辑页面"""
+        kwargs = dict(input_type='radio', options=['是', '否'], default='是')
+        config_fields = [
+            dict(id='auto-adjust', name='自适应调整栏框和列框', **kwargs),
+            dict(id='detect-col', name='自适应调整字框在多列的情况', **kwargs),
+        ]
+
         try:
             template = 'page_task_cut.html'
             if self.steps['current'] == 'order':
@@ -57,7 +60,8 @@ class CutEditHandler(PageHandler):
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)
                     self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
-            self.render(template)
+            self.render(template, page=self.page, img_url=self.get_page_img(self.page),
+                        config_fields=config_fields, chars_col=self.chars_col)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -72,16 +76,20 @@ class TaskTextProofHandler(PageHandler):
     def get(self, num, task_id):
         """ 文字校对页面"""
         try:
-            self.texts, self.doubts = self.get_cmp_txt()
+            img_url = self.get_page_img(self.page)
             if self.steps['current'] == 'select':
+                ocr = self.get_txt('ocr')
                 cmp = self.prop(self.task, 'result.cmp')
-                return self.render('page_task_select.html', cmp=cmp)
+                return self.render('page_task_select.html', page=self.page, img_url=img_url, ocr=ocr, cmp=cmp)
             else:
+                texts, doubts = self.get_cmp_data()
+                text_dict = {t[1]: t for t in texts}
                 cmp_data = self.prop(self.task, 'result.txt_html')
-                if not cmp_data or self.get_query_argument('re_compare', '') == 'true':
-                    cmp_data = self.diff(*[t[0] for t in self.texts])
+                if not cmp_data:
+                    cmp_data = self.diff(*[t[0] for t in texts])
                     cmp_data = to_basestring(TextArea(self).render(cmp_data))
-                return self.render('page_task_text.html', cmp_data=cmp_data)
+                return self.render('page_task_text.html', page=self.page, img_url=img_url, texts=texts,
+                                   text_dict=text_dict, doubts=doubts, cmp_data=cmp_data)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -96,7 +104,7 @@ class TaskTextReviewHandler(PageHandler):
     def get(self, task_type, task_id):
         """ 文字审定、难字审定页面"""
         try:
-            self.texts, self.doubts = self.get_cmp_txt()
+            self.texts, self.doubts = self.get_cmp_data()
             cmp_data = self.prop(self.page, 'txt_html')
             if not cmp_data and len(self.texts):
                 cmp_data = self.diff(*[t[0] for t in self.texts])
@@ -113,7 +121,7 @@ class TextEditHandler(PageHandler):
     def get(self, page_name):
         """ 文字查看、修改页面"""
         try:
-            self.texts, self.doubts = self.get_cmp_txt()
+            self.texts, self.doubts = self.get_cmp_data()
             cmp_data, text = self.page.get('txt_html') or '', self.page.get('text') or ''
             if not cmp_data and not text:
                 self.send_error_response(e.no_object, message='没有找到审定文本')
@@ -163,7 +171,7 @@ class PageBrowseHandler(PageHandler):
             btn_config = json_util.loads(self.get_secure_cookie('data_page_button') or '{}')
             info = {f['id']: self.prop(page, f['id'].replace('-', '.'), '') for f in edit_fields}
             labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-            texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
+            texts = [(page.get(f), f, labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             self.render('page_browse.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, info=info, edit_fields=edit_fields, img_url=img_url)
 

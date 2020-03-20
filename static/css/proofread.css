@@ -21,30 +21,34 @@
 
 /* 文本区域 */
 .sutra-text {
+  height: 100%;
+}
+
+.html-text {
+  height: 100%;
   overflow: auto;
   padding-top: 5px;
-  height: 100%;
   flex: 1 1 auto;
 }
 
-.sutra-text .blocks {
+.html-text .blocks {
   margin-left: 10px;
   font-size: 0;
 }
 
-.sutra-text .block:not(:last-child) {
-  border-bottom: 1px solid #ccc;
+.html-text .block:not(:last-child) {
   margin-bottom: 10px;
   padding-bottom: 10px;
+  border-bottom: 1px solid #ccc;
 }
 
-.sutra-text .line.current-line {
-  border-left: 6px solid rgba(255, 0, 0, .4);
-  margin-left: -10px;
+.html-text .line.current-line {
   padding-left: 4px;
+  margin-left: -10px;
+  border-left: 6px solid rgba(255, 0, 0, .4);
 }
 
-.sutra-text .line span {
+.html-text .line span {
   font-size: 20px;
   font-weight: 300;
   letter-spacing: 1px;
@@ -53,29 +57,29 @@
   word-break: break-all;
 }
 
-.sutra-text .line span:last-child(:not .empty-place) {
+.html-text .line span:last-child(:not .empty-place) {
   padding-right: 10px;
   min-width: 20px;
   min-height: 40px;
 }
 
-.sutra-text .diff {
+.html-text .diff {
   color: red;
 }
 
-.sutra-text .same {
+.html-text .same {
   color: black;
 }
 
-.sutra-text .selected {
+.html-text .selected {
   color: green;
 }
 
-.sutra-text .variant {
+.html-text .variant {
   color: black;
 }
 
-.sutra-text span.empty-place {
+.html-text span.empty-place {
   width: 4px;
   height: 24px;
   padding: 0 4px;
@@ -85,24 +89,38 @@
   background-color: var(--Brown_Darker);
 }
 
-.sutra-text span.empty-place.selected {
+.html-text span.empty-place.selected {
   background-color: green;
 }
 
-.sutra-text .current-span {
+.html-text .current-span {
   border: 1px solid #C1C1C1;
 }
 
-.sutra-text .variant-highlight {
+.html-text .variant-highlight {
   color: blue;
 }
 
-.sutra-text .hidden {
+.html-text .hidden {
   display: none;
 }
 
-.sutra-text .delete {
+.html-text .delete {
   display: none !important;
+}
+
+.text-editable {
+  width: 100%;
+  height: auto;
+  overflow-y: hidden;
+  padding-left: 5px;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 40px;
+  letter-spacing: 1px;
+  border: 1px solid #ccc;
+  color: rgba(0, 0, 0, 0.6);
+  background: transparent !important;
 }
 
 #raw-textarea {
@@ -115,6 +133,7 @@
 }
 
 .mismatch span:last-child {
+  padding-right: 8px;
   border-right: 1px solid red;
 }
 
@@ -277,7 +296,7 @@
 }
 
 .pfread-dialog .same-base {
-  color: #0f0;
+  color: var(--Brown_Darker);
 }
 
 .dialog-common {
@@ -348,12 +367,14 @@
   margin-right: -20px;
 }
 
-.match-tips span {
-  margin-right: 8px;
+.match-tips li {
+  display: flex;
+  justify-content: center;
 }
 
-.match-tips .head {
-  max-width: 40%;
+.match-tips li span {
+  flex: 1;
+  margin-right: 8px;
 }
 
 #txtModal .modal-body {

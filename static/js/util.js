@@ -139,3 +139,8 @@ function setStorage(key, value, ignoreEmpty) {
   if (value || !ignoreEmpty)
     localStorage.setItem(key, value)
 }
+
+/* 高度自适应*/
+function resetHeight(element) {
+  $(element).css({'height': 'auto'}).height($(element).prop('scrollHeight'));
+}

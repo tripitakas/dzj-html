@@ -24,18 +24,22 @@ class PageHandler(TaskHandler, Page, Box):
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
 
-    def get_ocr(self):
-        return self.page.get('ocr') or self.get_ocr_txt(self.page.get('chars'))
-
-    def get_ocr_col(self):
-        return self.page.get('ocr_col') or self.get_ocr_txt(self.page.get('columns'))
+    def get_txt(self, key):
+        if key == 'cmp':
+            return self.page.get('cmp')
+        if key == 'ocr':
+            return self.page.get('ocr') or self.get_box_ocr(self.page.get('chars'))
+        if key == 'ocr_col':
+            return self.page.get('ocr_col') or self.get_box_ocr(self.page.get('columns'))
+        if key == 'text':
+            return self.page.get('text') or self.html2txt(self.page.get('txt_html', ''))
 
     def get_page_img(self, page=None, page_name=None):
         page_name = page_name if page_name else page.get('name')
         return self.get_web_img(page_name)
 
     @classmethod
-    def get_ocr_txt(cls, boxes):
+    def get_box_ocr(cls, boxes):
         """ 获取chars或columns里的ocr文本"""
         if not boxes:
             return ''
@@ -82,35 +86,26 @@ class PageHandler(TaskHandler, Page, Box):
             txt += '|'
         return re.sub(r'\|{2,}', '||', txt.rstrip('|'))
 
-    def get_cmp_txt(self):
+    def get_cmp_data(self):
         """ 获取比对文本、存疑文本"""
         texts, doubts = [], []
         if 'text_proof_' in self.task_type:
-            doubt = self.prop(self.task, 'result.doubt', '')
-            doubts.append([doubt, '我的存疑'])
-            ocr = self.get_ocr()
-            if ocr:
-                texts.append([ocr, '字框OCR'])
-            ocr_col = self.get_ocr_col()
-            if ocr_col:
-                texts.append([ocr_col, '列框OCR'])
-            cmp = self.prop(self.task, 'result.cmp')
-            if cmp:
-                texts.append([cmp, '比对文本'])
+            doubts.append([self.prop(self.task, 'result.doubt', ''), '我的存疑'])
+            for field in ['text', 'ocr', 'ocr_col', 'cmp']:
+                if self.get_txt(field):
+                    texts.append([self.get_txt(field), field, Page.get_field_name(field)])
         elif self.task_type == 'text_review':
-            doubt = self.prop(self.task, 'result.doubt', '')
-            doubts.append([doubt, '我的存疑'])
+            doubts.append([self.prop(self.task, 'result.doubt', ''), '我的存疑'])
             proof_doubt = ''
             condition = dict(task_type={'$regex': 'text_proof'}, doc_id=self.page_name, status=self.STATUS_FINISHED)
             for task in list(self.db.task.find(condition)):
                 txt = self.html2txt(self.prop(task, 'result.txt_html', ''))
-                texts.append([txt, self.get_task_name(task['task_type'])])
+                texts.append([txt, task['task_type'], self.get_task_name(task['task_type'])])
                 proof_doubt += self.prop(task, 'result.doubt', '')
             if proof_doubt:
                 doubts.append([proof_doubt, '校对存疑'])
         elif self.task_type == 'text_hard':
-            doubt = self.prop(self.task, 'result.doubt', '')
-            doubts.append([doubt, '难字列表'])
+            doubts.append([self.prop(self.task, 'result.doubt', ''), '难字列表'])
             condition = dict(task_type='text_review', doc_id=self.page['name'], status=self.STATUS_FINISHED)
             review_task = self.db.task.find_one(condition)
             review_doubt = self.prop(review_task, 'result.doubt', '')
@@ -127,17 +122,11 @@ class PageHandler(TaskHandler, Page, Box):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
-    @staticmethod
-    def get_all_txt(page):
-        labels = dict(text='审定文本', ocr='字框OCR', ocr_col='列框OCR')
-        texts = [(f, page.get(f), labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
-        return texts
+    def get_all_txt(self, page):
+        return [(page[f], f, self.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
 
     def get_box_update(self):
-        """ 获取切分校对的提交
-        detect_col, 是否自动检测、调整小字框在多列的情况
-        auto_adjust, 是否根据字框自适应调整栏框和列框的边界
-        """
+        """ 获取切分校对的提交"""
         # 过滤页面外的切分框
         blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
         # 更新cid

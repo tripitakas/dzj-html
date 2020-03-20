@@ -593,42 +593,32 @@ body.widescreen {
   top: 0;
   left: 0;
   right: 0;
+  padding: 0 6px;
   position: fixed;
   background: var(--Grey_Light);
   height: 40px;
   z-index: 1000;
   user-select: none;
   display: flex;
-  align-content: center;
-  vertical-align: middle;
+  align-items: center;
   justify-content: space-between;
 }
 
 .m-header > div {
+  margin: auto;
   flex: 0 1 auto;
   position: relative;
   display: flex;
   align-items: center;
-  vertical-align: middle;
-}
-
-.m-header .left {
-  float: left;
-  margin-left: 6px;
 }
 
 .m-header .center {
-  flex: 1 1 auto;
+  flex-grow: 1;
+  display: inline-block;
 }
 
-.m-header .right {
-  float: right;
-  display: flex;
-  margin-right: 6px;
-}
-
-.m-header .btn-group {
-  margin: auto 0;
+.m-header .more-group {
+  margin-top: -3px;
 }
 
 .m-header .back {
@@ -662,11 +652,11 @@ body.widescreen {
   height: 24px;
   padding: 2px;
   cursor: pointer;
-  margin: auto 3px;
   font-size: 20px;
+  margin: auto 2px;
   font-weight: 400;
-  display: inline-block;
   transition: all 0.2s;
+  display: inline-block;
   color: var(--Brown_Darker);
 }
 
@@ -724,16 +714,31 @@ body.widescreen {
   top: 50px;
   right: 20px;
   position: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-toolbar > .btn-group {
+  margin-bottom: 4px;
 }
 
 .right-toolbar i {
+  flex: 1;
+  opacity: 0.5;
   color: #333;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 400;
+  transition: all 0.2s;
 }
 
-/*bootstrap alert*/
+.right-toolbar i:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* bootstrap */
+
 .alert {
   border: 0;
 }
@@ -778,8 +783,11 @@ body.widescreen {
   background-color: var(--Grey_Line);
 }
 
+.top-right {
+  top: 0;
+  right: 24px;
+}
 
-/*modal*/
 .modal {
   padding: 0;
 }
@@ -859,22 +867,6 @@ body.widescreen {
   margin-left: -6px;
 }
 
-/*swal2*/
-.swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
-  outline: 0;
-  border: 1px solid var(--Brown_Dark);
-  box-shadow: 0 0 3px var(--Brown);
-}
-
-.swal2-title {
-  font-size: 1.8em;
-}
-
-.swal2-label {
-  font-size: 1em;
-}
-
-/*bootstrap tooltip*/
 .tooltip {
   opacity: 1 !important;
 }
@@ -891,6 +883,25 @@ body.widescreen {
 .tooltip .tooltip-arrow {
   /*display: none;*/
   border-bottom-color: #eee !important;
+}
+
+.inline0 {
+  margin-left: 10px;
+}
+
+/*swal2*/
+.swal2-file:focus, .swal2-input:focus, .swal2-textarea:focus {
+  outline: 0;
+  border: 1px solid var(--Brown_Dark);
+  box-shadow: 0 0 3px var(--Brown);
+}
+
+.swal2-title {
+  font-size: 1.8em;
+}
+
+.swal2-label {
+  font-size: 1em;
 }
 
 /*loading*/

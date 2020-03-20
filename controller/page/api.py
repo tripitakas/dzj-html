@@ -216,7 +216,7 @@ class TaskTextSelectApi(PageHandler):
             self.page = self.db.page.find_one({'name': page_name})
             if not self.page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            ocr = self.get_ocr()
+            ocr = self.get_txt('ocr')
             num = self.prop(self.data, 'num', 1)
             cmp, hit_page_codes = find_one(ocr, int(num))
             if cmp:
@@ -252,7 +252,7 @@ class TextNeighborApi(PageHandler):
 
 
 class TextsDiffApi(PageHandler):
-    URL = '/api/task/text/diff'
+    URL = '/api/page/text/diff'
 
     def post(self):
         """ 用户提交纯文本后重新比较，并设置修改痕迹"""
@@ -260,7 +260,7 @@ class TextsDiffApi(PageHandler):
             rules = [(v.not_empty, 'texts')]
             self.validate(self.data, rules)
             diff_blocks = self.diff(*self.data['texts'])
-            if self.data['hints']:
+            if self.data.get('hints'):
                 diff_blocks = self.set_hints(diff_blocks, self.data['hints'])
             cmp_data = self.render_string('page_text_area.html', blocks=diff_blocks)
             cmp_data = native_str(cmp_data)

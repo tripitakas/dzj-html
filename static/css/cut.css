@@ -22,6 +22,10 @@ rect.highlight {
   stroke-width: 2;
 }
 
+text tspan{
+  fill: red;
+}
+
 @keyframes fade {
     from {
         opacity: 1.0;

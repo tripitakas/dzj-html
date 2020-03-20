@@ -165,6 +165,7 @@ class Page(Model):
         {'id': 'blocks', 'name': '栏框数据'},
         {'id': 'columns', 'name': '列框数据'},
         {'id': 'chars', 'name': '字框数据'},
+        {'id': 'cmp', 'name': '比对文本'},
         {'id': 'ocr', 'name': '字框OCR'},
         {'id': 'ocr_col', 'name': '列框OCR'},
         {'id': 'text', 'name': '审定文本'},

@@ -3,16 +3,16 @@
  * Date: 2018-9-19
  */
 
-/** 文字校对-切分字框相关代码 */
+/** 切分字框相关代码 */
 var showText = false;                     // 是否显示字框对应文字
 var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
 var showColumnBox = false;                // 是否显示列框切分坐标
-var offsetInSpan;                         // 当前选中范围开始位置
+var offsetInSpan = null;                  // 当前选中范围开始位置
 var currentSpan = [null];                 // $(当前span)，是否第一个
 
 function getBlock(blockNo) {
-  return $('#work-text .block').eq(blockNo - 1);
+  return $('#work-html .block').eq(blockNo - 1);
 }
 
 function getLine(blockNo, lineNo) {
@@ -20,7 +20,7 @@ function getLine(blockNo, lineNo) {
 }
 
 function getBlockNo(block) {
-  return $('#work-text .block').index(block) + 1;
+  return $('#work-html .block').index(block) + 1;
 }
 
 function getLineNo(line) {
@@ -28,8 +28,8 @@ function getLineNo(line) {
 }
 
 function findBestBoxes(offset, block_no, column_no, cmp) {
-  var minNo = 10;
   var ret;
+  var minNo = 10;
   $.cut.findCharsByLine(block_no, column_no, function (ch, box) {
     if (cmp(ch)) {
       if (minNo > Math.abs(offset + 1 - box.char_no)) {
@@ -75,7 +75,6 @@ function getCursorPosition(element) {
   var doc = element.ownerDocument || element.document;
   var win = doc.defaultView || doc.parentWindow;
   var sel, range, preCaretRange;
-
   if (typeof win.getSelection !== 'undefined') {    // 谷歌、火狐
     sel = win.getSelection();
     if (sel.rangeCount > 0) {                       // 选中的区域
@@ -98,10 +97,8 @@ function getCursorPosition(element) {
 
 // 点击文字区域时，高亮与文字对应的字框
 function highlightBox($span, first, keyCode) {
-  if (!$span) {
-    $span = currentSpan[0];
-    first = currentSpan[1];
-  }
+  $span = $span || currentSpan[0];
+  first = first || currentSpan[1];
   if (!$span)
     return;
 
@@ -154,14 +151,12 @@ function highlightBox($span, first, keyCode) {
   if (!boxes.length) {
     boxes = $.cut.findCharsByLine(block_no, line_no);
   }
-
   $.cut.removeBandNumber(0, true);
   $.cut.state.focus = false;
   $.fn.mapKey.enabled = false;
   $.cut.data.block_no = block_no;
   $.cut.data.line_no = line_no;
   currentSpan = [$span, first];
-
   $.cut.switchCurrentBox((boxes[0] || {}).shape);
 }
 
@@ -172,14 +167,12 @@ $.cut.onBoxChanged(function (char, box, reason) {
     var $line = getLine(char.block_no, char.column_no);
     var text = getLineText($line);
     var all = $.cut.findCharsByLine(char.block_no, char.column_no);
-
     // 如果字框对应的文本行不是当前行，则更新相关设置
     var currentLineNo = getLineNo($('.current-span').parent());
     if (currentLineNo !== char.column_no) {
       var $firstSpan = $line.find('span:first-child');
       currentSpan = [$firstSpan, true];
     }
-
     $.cut.removeBandNumber(0, true);
     $.cut.showFloatingPanel(
         (showOrder || showText) ? all : [],
@@ -193,12 +186,10 @@ $.cut.onBoxChanged(function (char, box, reason) {
         },
         highlightBox
     );
-
     // 显示当前栏框
     if (showBlockBox) {
       $.cut.showBox('blockBox', window.blocks, all.length && all[0].char_id.split('c')[0]);
     }
-
     // 显示当前列框
     if (showColumnBox) {
       $.cut.showBox('columnBox', window.columns, all.length && all[0].char_id.split('c').slice(0, 2).join('c'));
@@ -207,7 +198,7 @@ $.cut.onBoxChanged(function (char, box, reason) {
 });
 
 
-/** 文字校对-文本区域相关代码 */
+/** 对话框相关代码 */
 var $dlg = $("#pfread-dialog");
 
 // 设置当前span和line
@@ -234,15 +225,15 @@ $(document).on('dblclick', '.diff', function (e) {
   $(this).addClass('current-diff');
   // 设置弹框文本
   var base = $(this).attr("base"), cmp1 = $(this).attr("cmp1"), cmp2 = $(this).attr("cmp2");
-  $("#dlg-cmp1").text(cmp1).toggleClass('same-base', base && base === cmp1);
-  $("#dlg-cmp2").text(cmp2).toggleClass('same-base', base && base === cmp2);
   $("#dlg-select").text($(this).text());
-  $("#dlg-base").text(base);
+  $("#dlg-cmp1").text(cmp1).toggleClass('same-base', base === cmp1);
+  $("#dlg-cmp2").text(cmp2).toggleClass('same-base', base === cmp2);
+  $("#dlg-base").text(base).toggleClass('same-base', base === cmp2 || base === cmp2);
   // 设置弹框位置
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
   // 当弹框超出文字框时，向上弹出
   var o_t = $dlg.offset().top;
-  var r_h = $("#work-text").height();
+  var r_h = $(".html-text").height();
   var d_h = $('.dialog-abs').height();
   $('.dialog-abs').removeClass('dialog-common-t').addClass('dialog-common');
   if (o_t + d_h > r_h) {
@@ -268,18 +259,17 @@ $(document).on('dblclick', '.diff', function (e) {
     var ml = $mark.attr('last-left') || $mark.css('marginLeft');
     $mark.attr('last-left', ml).css('marginLeft', parseInt(ml) - offset);
   }
-
 });
 
 // 单击文本区的空白区域
-$('#work-text').on('click', function (e) {
+$('.m-right').on('click', function (e) {
   if (!$dlg.is(e.target) && $dlg.has(e.target).length === 0) {
     $dlg.offset({top: 0, left: 0}).hide();
   }
 });
 
 // 滚动文本区滚动条
-$('#work-text').on('scroll', function () {
+$('#work-html').on('scroll', function () {
   $dlg.offset({top: 0, left: 0}).hide();
 });
 
@@ -297,41 +287,9 @@ $("#dlg-select").on('DOMSubtreeModified', function () {
 });
 
 
-/** 文字校对-编辑模式相关代码 */
-function toggleMode(mode) {
-  $('#btn-cmp-txt').toggleClass('hide', mode === 'cmp');
-  $('.bd.cmp-txt').toggleClass('hide', mode !== 'cmp');
-  $('#btn-raw-txt').toggleClass('hide', mode === 'raw');
-  $('.bd.raw-txt').toggleClass('hide', mode !== 'raw');
-}
-
-// 从文本比对模式进入纯文本编辑模式
-$('#btn-raw-txt').on('click', function () {
-  toggleMode('raw');
-  $('#raw-textarea').text(getPageText());
-});
-
-// 从纯文本编辑模式进入文本比对模式
-$('#btn-cmp-txt').on('click', function () {
-  if ($('#raw-textarea').text().trim() === $('#raw-textarea').val().trim()) {
-    return toggleMode('cmp');
-  }
-  var texts = $.map($('#txtModal textarea'), (item) => $(item).text());
-  texts[0] = $('#raw-textarea').val();
-  var hints = $.map($('#work-text .selected'), function (i) {
-    return {
-      block_no: getBlockNo($(i).parent().parent()), line_no: getLineNo($(i).parent()),
-      base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')
-    }
-  });
-  postApi('/task/text/diff', {data: {texts: texts, hints: hints}}, function (res) {
-    $('#work-text .blocks').html(res.cmp_data);
-    toggleMode('cmp');
-  });
-});
-
-function getPageText() {
-  return $.map($('#work-text .block'), function (block) {
+/** 文本比对相关代码 */
+function getWorkText() {
+  return $.map($('#work-html .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
       return $.map($(line).find('span'), function (span) {
         return $(span).text();
@@ -340,8 +298,91 @@ function getPageText() {
   }).join("\n\n");
 }
 
+function showTxt(txtId) {
+  if (txtId === 'text-work') {
+    $('#text-work textarea').val(getWorkText());
+  }
+  $('.sutra-text').addClass('hide');
+  $('#' + txtId).removeClass('hide');
+  resetHeight($('#' + txtId + ' textarea'));
+}
 
-/** 文字校对-存疑相关代码 */
+function getText(txtType) {
+  return $('#text-' + txtType).find('textarea').val();
+}
+
+function setDialogLabel(labels) {
+  $('#dlg-items').html(labels.map(function (label, i) {
+    var key = i ? 'cmp' + i : 'base';
+    return `<dl class="item"><dt>${label}</dt><dd class="text option" id="dlg-${key}"></dd></dl>`;
+  }).join(''));
+}
+
+// 查看文本
+$('.btn-show-txt').on('click', function () {
+  showTxt($(this).attr('data-id'));
+});
+
+// 重新比对
+$('#btn-cmp-txt').on('click', function () {
+  var base = $('.cmp-menu .base-txt :checked').val();
+  if (!base)
+    return showTips('提示', '请选择底本');
+  var cmps = $.map($('.cmp-menu .cmp-txt :checked'), (item) => {
+    if ($(item).val() && $(item).val() !== base)
+      return $(item).val();
+  });
+  if (!cmps.length)
+    return showTips('提示', '请选择校本');
+  var texts = [base].concat(cmps).map((field) => getText(field));
+  postApi('/page/text/diff', {data: {texts: texts}}, function (res) {
+    $('#work-html .blocks').html(res['cmp_data']);
+    showTxt('work-panel');
+    setDialogLabel([base].concat(cmps).map((field) => textDict[field][2]));
+    textKeys = [base].concat(cmps).map((field) => textDict[field][1]);
+  });
+});
+
+function toggleWorkText(mode) {
+  if (mode === 'raw') {
+    showTxt('text-work');
+    $('#btn-raw-txt').addClass('hide');
+    $('#btn-html-txt').removeClass('hide');
+  }
+  if (mode === 'html') {
+    showTxt('work-panel');
+    $('#btn-raw-txt').removeClass('hide');
+    $('#btn-html-txt').addClass('hide');
+  }
+}
+
+// 进入工作文本
+$('#btn-raw-txt').on('click', function () {
+  toggleWorkText('raw');
+});
+
+// 回到工作面板
+$('#btn-html-txt').on('click', function () {
+  // 用工作文本替代底本与比对文本比对
+  var texts = textKeys.map((txt) => getText(txt));
+  texts[0] = $('#text-work textarea').val();
+  var hints = $.map($('#work-html .selected'), function (i) {
+    var lineNo = getLineNo($(i).parent());
+    var blockNo = getBlockNo($(i).parent().parent());
+    return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
+  });
+  postApi('/page/text/diff', {data: {texts: texts, hints: hints}}, function (res) {
+    $('#work-html .blocks').html(res['cmp_data']);
+    toggleWorkText('html');
+  });
+});
+
+$('.m-right textarea').on('input', function () {
+  resetHeight($(this));
+});
+
+
+/** 存疑相关代码 */
 // 点击存疑，弹出对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -438,9 +479,7 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   var $tr = $(this), id = $tr.attr('data'), $li = $('#' + id);
   var pos = findSpanByOffset($li, parseInt($tr.attr('data-offset')));
   var txt = $tr.find('td:nth-child(3)').text();
-
-  $('#work-text').animate({scrollTop: $li.offset().top}, 100);
-
+  $('#work-html').animate({scrollTop: $li.offset().top}, 100);
   if (pos[0]) {
     highlightInSpan(pos[0][0], pos[1], pos[1] + txt.length);
     setCurrent(pos[0]);
@@ -448,26 +487,23 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
 });
 
 
-/** 文字校对-图文匹配相关代码 */
+/** 图文匹配相关代码 */
 
 // 检查图文匹配
 function checkMismatch(report, fromApi) {
   var mismatch = [];
   var lineCountMisMatch = '', ocrColumns = [];
-
   // 文本区每行的栏号和列号
-  var lineNos = $('#work-text .line').map(function (i, line) {
+  var lineNos = $('#work-html .line').map(function (i, line) {
     var blockNo = getBlockNo($(line).parent());
     var lineNo = getLineNo($(line));
     return {blockNo: blockNo, lineNo: lineNo};
   }).get();
-
   if (!fromApi) {
     return updateWideChars(lineNos, function () {
       checkMismatch(report, true);
     });
   }
-
   // ocrColumns: 从字框提取所有列（栏号和列号）
   $.cut.data.chars.forEach(function (c) {
     if (c.shape && c.column_no && (!c.class || c.class === 'char')) {
@@ -477,7 +513,6 @@ function checkMismatch(report, fromApi) {
       }
     }
   });
-
   // 先检查行列数是否匹配
   if (lineNos.length !== ocrColumns.length) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
@@ -538,7 +573,6 @@ function updateWideChars(lineNos, ended) {
       }
     });
   });
-
   postApi('/task/text/detect_chars', {data: {texts: texts}}, function (res) {
     lineNos.forEach(function (no, lineIdx) {
       var $line = getLine(no.blockNo, no.lineNo);
@@ -563,7 +597,7 @@ $('#check-match').on('click', function () {
 });
 
 
-/** 文字校对-其它代码 */
+/** 其它代码 */
 
 // 粘贴时去掉格式
 $(document).on('paste', 'span', function (e) {
@@ -573,7 +607,7 @@ $(document).on('paste', 'span', function (e) {
 });
 
 // 自动保存修改
-$('#work-text').on('DOMSubtreeModified', markChanged);
+$('#work-html').on('DOMSubtreeModified', markChanged);
 
 function markChanged() {
   workChanged++;
