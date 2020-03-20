@@ -339,7 +339,7 @@ $('#btn-cmp-txt').on('click', function () {
     $('#work-html .blocks').html(res['cmp_data']);
     showTxt('work-panel');
     setDialogLabel([base].concat(cmps).map((field) => textDict[field][2]));
-    textKeys = [base].concat(cmps).map((field) => textDict[field][1]);
+    textFields = [base].concat(cmps).map((field) => textDict[field][1]);
   });
 });
 
@@ -364,7 +364,7 @@ $('#btn-raw-txt').on('click', function () {
 // 回到工作面板
 $('#btn-html-txt').on('click', function () {
   // 用工作文本替代底本与比对文本比对
-  var texts = textKeys.map((txt) => getText(txt));
+  var texts = textFields.map((txt) => getText(txt));
   texts[0] = $('#text-work textarea').val();
   var hints = $.map($('#work-html .selected'), function (i) {
     var lineNo = getLineNo($(i).parent());

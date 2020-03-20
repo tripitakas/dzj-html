@@ -899,7 +899,7 @@ body.widescreen {
   border-bottom-color: #eee !important;
 }
 
-.inline0 {
+.checkbox-inline:first-child, .radio-inline:first-child {
   margin-left: 10px;
 }
 

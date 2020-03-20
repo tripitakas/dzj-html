@@ -202,6 +202,7 @@ class MyTaskHandler(TaskHandler):
         {'id': 'finished_time', 'name': '完成时间'},
     ]
     hide_fields = ['task_type']
+    info_fields = ['doc_id', 'task_type', 'status', 'picked_time', 'finished_time']
     update_fields = []
 
     def get(self, task_type):

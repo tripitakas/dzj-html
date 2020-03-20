@@ -8,7 +8,7 @@
 <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
 <style>
   .dropdown-menu.cmp-menu {
-    min-width: 300px !important;
+    min-width: 310px !important;
     padding: 10px 15px;
   }
 
@@ -65,13 +65,13 @@
     <label class="control-label">选择底本</label>
     <div class="form-group base-txt">
       {% for i, (txt, field, label) in enumerate(texts) %}
-      <label class="radio-inline inline{{i}}"><input type="radio" name="base-txt" value="{{field}}">{{label}}</label>
+      <label class="radio-inline"><input type="radio" name="base-txt" value="{{field}}">{{label}}</label>
       {% end %}
     </div>
     <label class="control-label">选择校本</label>
     <div class="form-group cmp-txt">
       {% for i, (txt, field, label) in enumerate(texts) %}
-      <label class="checkbox-inline inline{{i}}"><input type="checkbox" value="{{field}}" checked>{{label}}</label>
+      <label class="checkbox-inline"><input type="checkbox" value="{{field}}" checked>{{label}}</label>
       {% end %}
     </div>
     <div class="btn-group fr">
@@ -278,7 +278,7 @@
 <script>
   // 公共参数
   var textDict = decodeJSON('{{text_dict}}');
-  var textKeys = decodeJSON('{{[t[1] for t in texts]}}');
+  var textFields = decodeJSON('{{text_fields}}');
 
   // 页面图和切分框
   $.cut.create({
@@ -302,6 +302,7 @@
   showText = getStorage('togglePanelTxt') === '1';
   $('#toggle-panel-no').toggleClass('active', showOrder);
   $('#toggle-panel-txt').toggleClass('active', showText);
+  setDialogLabel(textFields.map((e) => textDict[e][2]));
 
   // 获取任务数据
   function getTaskData() {
@@ -309,7 +310,7 @@
       return bsShow('提醒！', '请先切换至文本比对模式，然后再保存或提交。', 'warning');
     var txt_html = $('#work-html .block').parent().html();
     var doubt = $('.char-list-table.editable tbody').html();
-    return {step: step, name: docId, doubt: doubt, txt_html: txt_html};
+    return {step: step, name: docId, doubt: doubt, txt_html: txt_html, text_fields: textFields};
   }
 </script>
 {% end %}

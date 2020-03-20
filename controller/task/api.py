@@ -49,9 +49,9 @@ class GetReadyPagesApi(TaskHandler):
 class PublishPageTasksApi(PublishBaseHandler):
     URL = r'/api/task/publish/page'
 
-    def post(self, collection):
+    def post(self):
         """ 发布任务"""
-        self.data['doc_ids'] = self.get_doc_ids(self.data, Page)
+        self.data['doc_ids'] = self.get_doc_ids(self.data)
         assert isinstance(self.data['doc_ids'], list)
         rules = [
             (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),
@@ -75,7 +75,7 @@ class PublishPageTasksApi(PublishBaseHandler):
         except self.DbError as error:
             return self.send_db_error(error)
 
-    def get_doc_ids(self, data, model):
+    def get_doc_ids(self, data):
         """ 获取页码，有四种方式：页编码、文件、前缀、检索参数"""
         doc_ids = data.get('doc_ids') or []
         if doc_ids:
@@ -95,7 +95,7 @@ class PublishPageTasksApi(PublishBaseHandler):
                 condition[input_field] = {"$nin": [None, '']}
             doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
         elif data.get('search'):
-            condition = model.get_page_search_condition(data['search'])[0]
+            condition = Page.get_page_search_condition(data['search'])[0]
             query = self.db[collection].find(condition)
             page = get_url_param('page', data['search'])
             if page:

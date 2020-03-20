@@ -77,19 +77,24 @@ class TaskTextProofHandler(PageHandler):
         """ 文字校对页面"""
         try:
             img_url = self.get_page_img(self.page)
+            if not self.get_query_argument('step', '') and self.steps['current'] == 'select' and self.page.get('cmp'):
+                self.steps.update(dict(current='proof', is_first=False, is_last=True, prev='select', next=None))
+
             if self.steps['current'] == 'select':
-                ocr = self.get_txt('ocr')
-                cmp = self.prop(self.task, 'result.cmp')
-                return self.render('page_task_select.html', page=self.page, img_url=img_url, ocr=ocr, cmp=cmp)
+                return self.render('page_task_select.html', page=self.page, img_url=img_url,
+                                   ocr=self.get_txt('ocr'), cmp=self.get_txt('cmp'))
             else:
                 texts, doubts = self.get_cmp_data()
                 text_dict = {t[1]: t for t in texts}
                 cmp_data = self.prop(self.task, 'result.txt_html')
+                text_fields = self.prop(self.task, 'result.text_fields')
                 if not cmp_data:
+                    text_fields = [t[1] for t in texts]
                     cmp_data = self.diff(*[t[0] for t in texts])
                     cmp_data = to_basestring(TextArea(self).render(cmp_data))
                 return self.render('page_task_text.html', page=self.page, img_url=img_url, texts=texts,
-                                   text_dict=text_dict, doubts=doubts, cmp_data=cmp_data)
+                                   text_dict=text_dict, doubts=doubts, cmp_data=cmp_data,
+                                   text_fields=text_fields)
 
         except Exception as error:
             return self.send_db_error(error)

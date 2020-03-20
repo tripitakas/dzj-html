@@ -108,16 +108,17 @@ class TaskTextProofApi(PageHandler):
             return self.send_db_error(error)
 
     def save_select(self, data):
-        update = {'result.cmp': data.get('cmp', '').strip('\n'), 'updated_time': self.now()}
+        self.db.page.update_one({'_id': self.page['_id']}, {'$set': {'cmp': data.get('cmp', '').strip('\n')}})
         if data.get('submit'):
-            update.update({'steps.submitted': self.get_submitted(data['step'])})
-        self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+            update = {'steps.submitted': self.get_submitted(data['step']), 'updated_time': self.now()}
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
 
     def save_proof(self, data):
         doubt = data.get('doubt', '').strip('\n')
+        text_fields = data.get('text_fields', [])
         txt_html = data.get('txt_html', '').strip('\n')
-        info = {'result.doubt': doubt, 'result.txt_html': txt_html, 'updated_time': self.now()}
-        self.update_task(data.get('submit'), info)
+        result = {'doubt': doubt, 'txt_html': txt_html, 'text_fields': text_fields}
+        self.update_task(data.get('submit'), {'result': result, 'updated_time': self.now()})
         self.update_my_doc({}, data.get('submit'))
         if data.get('submit') and self.mode == 'update':
             self.release_temp_lock(self.task['doc_id'], 'box', self.current_user)
