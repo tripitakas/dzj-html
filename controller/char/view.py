@@ -15,14 +15,17 @@ class CharBrowseHandler(BaseHandler, Char):
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
             docs, pager, q, order = self.find_by_page(self, condition)
+            column_url = ''
             for d in docs:
                 if not d['column']:
                     print('%s no column' % d['name'])
                     continue
-                d['column']['hash'] = h.md5_encode('%s_%s' % (d['page_name'], d['column']['cid']),
-                                                   self.get_config('web_img.salt'))
+                column_name = '%s_%s' % (d['page_name'], d['column']['cid'])
+                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
+                if not column_url:
+                    column_url = self.get_web_img(column_name, 'column')
             self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
-                        chars={str(d['_id']): d for d in docs})
+                        column_url=column_url, chars={str(d['_id']): d for d in docs})
 
         except Exception as error:
             return self.send_db_error(error)

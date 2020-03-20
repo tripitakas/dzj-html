@@ -24,14 +24,14 @@
         </div>
         <div id="btn-sort" class="btn-group" title="排序">
           <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
-          <ul class="dropdown-menu">
+          <ul class="dropdown-menu" data-stopPropagation="true">
             <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
             <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
           </ul>
         </div>
         <div class="btn-group" title="过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
-          <div class="dropdown-menu filter-menu">
+          <div class="dropdown-menu filter-menu" data-stopPropagation="true">
             <div class="input-line">
               <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
               <span>~</span>
@@ -41,6 +41,7 @@
           </div>
         </div>
       </div><!--left-->
+      <div class="center"></div>
     </div>
     <div class="m-body no-footer flex">
       <div class="char-panel">
@@ -179,13 +180,12 @@
 {% include _base_js.html %}
 <script src="{{static_url('js/cut/raphael.js')}}"></script>
 <script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
-{% set d0 = [c for i, c in enumerate(docs) if c['column']] %}
 <script>
   var paper, rect;
   var from = decodeFrom();
+  var columnBaseUrl = "{{column_url}}";
   var chars = decodeJSON('{{dumps(chars)}}');
   var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
-  var columnBaseUrl = "{{d0 and handler.get_web_img('%s_%s' % (d0[0]['page_name'], d0[0]['column']['cid']), 'column') or ''}}";
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
@@ -321,6 +321,12 @@
       location.href = setAnchor(name);
       bsShow('成功！', '已保存成功', 'success', 1000);
     });
+  });
+
+  // 查看切分
+  $('.column-panel').on('dblclick', function () {
+    var pageName = $('#currentName').val().split('_').slice(0, -1).join('_');
+    window.open('/page/cut_view/' + pageName, '_blank');
   });
 
 </script>

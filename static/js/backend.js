@@ -135,5 +135,7 @@ function parseJSON(s) {
 
 // bootstrap相关
 $("[data-toggle='tooltip']").tooltip();
-$('.alert .close').on('click', () => this.parent().addClass('hide'));
+$('.alert .close').on('click', function () {
+  $(this).parent().addClass('hide');
+});
 $('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());
