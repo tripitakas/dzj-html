@@ -34,16 +34,3 @@
   background: transparent !important;
 }
 
-#btn-show-txts .dropdown-menu {
-  left: unset;
-  right: 4px;
-}
-
-#helpModal i {
-  font-size: 20px;
-}
-
-#remarkModal .modal-content {
-  width: 720px;
-}
-

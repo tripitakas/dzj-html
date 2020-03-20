@@ -646,6 +646,16 @@ body.widescreen {
   font-weight: 400;
 }
 
+.m-header .dropdown-menu {
+  margin-top: 10px;
+}
+
+.dropdown-menu .title {
+  font-size: 14px;
+  color: var(--Grey);
+  text-align: center;
+}
+
 .btn-txt {
   float: none;
   width: 24px;
@@ -867,6 +877,10 @@ body.widescreen {
   margin-left: -6px;
 }
 
+#helpModal i {
+  font-size: 20px;
+}
+
 .tooltip {
   opacity: 1 !important;
 }
@@ -938,4 +952,8 @@ body.widescreen {
   to {
     transform: rotate(360deg);
   }
+}
+
+#remarkModal .modal-content {
+  width: 720px;
 }

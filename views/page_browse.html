@@ -49,8 +49,8 @@
       {% set which = btn_config.get('sutra-txt') or '' %}
       <div class="right">
         <div id="btn-show-txts" class="btn-group" title="查看文本">
-          <span class="btn-txt icon-article dropdown-toggle" data-toggle="dropdown"></span>
-          <ul class="dropdown-menu">
+          <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
+          <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
             {% for i, (txt, field, label) in enumerate(texts) %}
             {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
             <li data-id="{{field}}" class="btn-show-txt {{'active' if is_active else ''}}">

@@ -123,7 +123,7 @@ class PageHandler(TaskHandler, Page, Box):
         return update
 
     def get_all_txt(self, page):
-        return [(page[f], f, self.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
+        return [(page[f], f, Page.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
 
     def get_box_update(self):
         """ 获取切分校对的提交"""

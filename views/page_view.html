@@ -41,8 +41,8 @@
       </div>
       <div class="right">
         <div id="btn-show-txts" class="btn-group" title="查看文本">
-          <span class="btn-txt icon-article dropdown-toggle" data-toggle="dropdown"></span>
-          <ul class="dropdown-menu">
+          <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
+          <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
             {% for i, (txt, field, label) in enumerate(texts) %}
             <li data-id="{{field}}" class="btn-show-txt {{'' if i else 'active'}}">
               <a href="#">{{label}}</a>
