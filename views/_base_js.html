@@ -5,7 +5,7 @@
 </script>
 
 <script src="{{static_url('assets/bootstrap/js/bootstrap.min.js')}}"></script>
-{% if not debug or 0 %}
+{% if not debug and 0 %}
 <script src="{{static_url('built/base_assets.js')}}"></script>
 <script src="{{static_url('built/base_local.js')}}"></script>
 {% else %}

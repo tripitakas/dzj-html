@@ -1,4 +1,4 @@
-{% if not debug or 0 %}
+{% if not debug and 0 %}
 <script src="{{static_url('built/cut_assets.js')}}"></script>
 <script src="{{static_url('built/cut_local.js')}}"></script>
 {% else %}

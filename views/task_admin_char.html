@@ -1,6 +1,6 @@
 {% extends "_list.html" %}
 {% block custom-css %}
-{% if not debug or 0 %}
+{% if not debug and 0 %}
 <link href="{{static_url('built/task_admin_assets.css')}}" rel="stylesheet"/>
 {% else %}
 <link href="{{static_url('assets/jquery-multi-select/multi-select.css')}}" rel="stylesheet"/>
@@ -201,7 +201,7 @@
 {% end %}
 
 {% block custom-js %}
-{% if not debug or 0 %}
+{% if not debug and 0 %}
 <script src="{{static_url('built/task_admin_assets.js')}}"></script>
 {% else %}
 <script src="{{static_url('assets/select2/select2.min.js')}}"></script>
