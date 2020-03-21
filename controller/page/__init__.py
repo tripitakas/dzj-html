@@ -8,7 +8,7 @@ views = [
 
 handlers = [
     ocr.FetchTasksApi, ocr.SubmitTasksApi, ocr.ConfirmFetchTasksApi,
-    api.TaskCutApi, api.CutEditApi,
+    api.PublishPageTasksApi, api.TaskCutApi, api.CutEditApi,
     api.TaskTextSelectApi, api.TaskTextProofApi, api.TaskTextReviewApi, api.TaskTextHardApi,
     api.TextEditApi, api.TextNeighborApi, api.TextsDiffApi, api.DetectWideCharsApi,
 ]

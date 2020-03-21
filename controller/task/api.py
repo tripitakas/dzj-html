@@ -8,11 +8,8 @@ import json
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller import validate as v
-from controller.data.data import Page
-from controller.helper import get_url_param
 from controller.task.base import TaskHandler
 from controller.auth import can_access, get_all_roles
-from controller.task.publish import PublishBaseHandler
 
 
 class GetReadyPagesApi(TaskHandler):
@@ -44,65 +41,6 @@ class GetReadyPagesApi(TaskHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
-
-
-class PublishPageTasksApi(PublishBaseHandler):
-    URL = r'/api/task/publish/page'
-
-    def post(self):
-        """ 发布任务"""
-        self.data['doc_ids'] = self.get_doc_ids(self.data)
-        assert isinstance(self.data['doc_ids'], list)
-        rules = [
-            (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),
-            (v.in_list, 'task_type', list(self.task_types.keys())),
-            (v.in_list, 'pre_tasks', list(self.task_types.keys())),
-            (v.is_priority, 'priority'),
-        ]
-        self.validate(self.data, rules)
-
-        try:
-            if len(self.data['doc_ids']) > self.MAX_PUBLISH_RECORDS:
-                message = '任务数量不能超过%s' % self.MAX_PUBLISH_RECORDS
-                return self.send_error_response(e.task_count_exceed, message=message)
-            log = self.publish_many(
-                self.data['task_type'], self.data.get('pre_tasks', []), self.data.get('steps', []),
-                self.data['priority'], self.data['force'] == '是',
-                self.data['doc_ids'], self.data['batch']
-            )
-            return self.send_data_response({k: value for k, value in log.items() if value})
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-    def get_doc_ids(self, data):
-        """ 获取页码，有四种方式：页编码、文件、前缀、检索参数"""
-        doc_ids = data.get('doc_ids') or []
-        if doc_ids:
-            return doc_ids
-        ids_file = self.request.files.get('ids_file')
-        collection, id_name, input_field = self.get_data_conf(data['task_type'])[:3]
-        if ids_file:
-            ids_str = str(ids_file[0]['body'], encoding='utf-8').strip('\n') if ids_file else ''
-            try:
-                doc_ids = json.loads(ids_str)
-            except json.decoder.JSONDecodeError:
-                ids_str = re.sub(r'\n+', '|', ids_str)
-                doc_ids = ids_str.split(r'|')
-        elif data.get('prefix'):
-            condition = {id_name: {'$regex': data['prefix'], '$options': '$i'}}
-            if input_field:
-                condition[input_field] = {"$nin": [None, '']}
-            doc_ids = [doc.get(id_name) for doc in self.db[collection].find(condition)]
-        elif data.get('search'):
-            condition = Page.get_page_search_condition(data['search'])[0]
-            query = self.db[collection].find(condition)
-            page = get_url_param('page', data['search'])
-            if page:
-                size = get_url_param('page_size', data['search']) or self.prop(self.config, 'pager.page_size', 10)
-                query = query.skip((int(page) - 1) * int(size)).limit(int(size))
-            doc_ids = [doc.get(id_name) for doc in list(query)]
-        return doc_ids
 
 
 class PublishImageTasksApi(TaskHandler):
