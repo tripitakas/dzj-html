@@ -55,7 +55,7 @@
               <tbody>
               {% for t in tasks %}
               <tr>
-                <td>{{t['doc_id']}}</td>
+                <td>{{get_task_title(t)}}</td>
                 <td>{{handler.get_priority_name(t['priority']) or ''}}</td>
                 <td><a class="pick-task" id="{{t['_id']}}" href="/task/pick/{{t['task_type']}}">领取</a></td>
               </tr>

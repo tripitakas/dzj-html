@@ -24,7 +24,7 @@ url_placeholder = {
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
-    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|upload_cloud|import_image',
+    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|char_\w+|rare_\w+|upload_cloud|import_image',
 }
 
 """ 
@@ -142,6 +142,50 @@ role_route_maps = {
             '/api/page/cut_edit/@page_name': ['POST'],
         }
     },
+    '聚类校对员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/api/char/@oid': ['POST'],
+            '/task/(lobby|my)/char_proof': ['GET'],
+            '/api/task/pick/char_proof': ['POST'],
+            '/task/(do|update|view)/char_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/char_proof/@task_id': ['POST'],
+        }
+    },
+    '聚类审定员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/api/char/@oid': ['POST'],
+            '/task/(lobby|my)/char_review': ['GET'],
+            '/api/task/pick/char_review': ['POST'],
+            '/task/(do|update|view)/char_review/@task_id': ['GET'],
+            '/api/task/(do|update)/char_review/@task_id': ['POST'],
+        }
+    },
+    '僻字校对员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/api/char/@oid': ['POST'],
+            '/task/(lobby|my)/rare_proof': ['GET'],
+            '/api/task/pick/rare_proof': ['POST'],
+            '/task/(do|update|view)/rare_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
+        }
+    },
+    '僻字审定员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
+        'routes': {
+            '/api/char/@oid': ['POST'],
+            '/task/(lobby|my)/rare_review': ['GET'],
+            '/api/task/pick/rare_review': ['POST'],
+            '/task/(do|update|view)/rare_review/@task_id': ['GET'],
+            '/api/task/(do|update)/rare_review/@task_id': ['POST'],
+        }
+    },
     '文字专家': {
         'is_assignable': True,
         'roles': ['工作人员', '文字校对员', '文字审定员'],
@@ -243,14 +287,6 @@ role_route_maps = {
             '/admin/oplog/@oid': ['GET'],
             '/api/admin/oplog/delete': ['POST'],
         }
-    },
-
-    # 下列角色供其他系统用，SSO登录获取角色
-    'OCR校对员': {
-        'is_assignable': True
-    },
-    'OCR审定员': {
-        'is_assignable': True
     },
 }
 

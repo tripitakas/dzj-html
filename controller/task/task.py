@@ -236,7 +236,7 @@ class Task(Model):
         if key == 'steps':
             return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
         if key == 'priority':
-            return cls.get_priority_name(int(value))
+            return cls.get_priority_name(int(value or 0))
         return h.format_value(value, key, doc)
 
     @classmethod

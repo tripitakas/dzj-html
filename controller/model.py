@@ -115,7 +115,7 @@ class Model(object):
             query.sort(o, asc)
         doc_count = self.db[cls.collection].count_documents(condition)
         cur_page = int(self.get_query_argument('page', 1))
-        page_size = int(self.get_query_argument('page_size', 0) or cls.page_size or self.get_config('pager.page_size'))
+        page_size = int(self.get_query_argument('page_size', 0) or self.page_size or self.get_config('pager.page_size'))
         max_page = math.ceil(doc_count / page_size)
         cur_page = max_page if max_page and max_page < cur_page else cur_page
         docs = list(query.skip((cur_page - 1) * page_size).limit(page_size))

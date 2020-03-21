@@ -28,6 +28,10 @@ class ComLeft(UIModule):
                 dict(name='文字校对', icon='icon-subitem', link='/task/lobby/text_proof'),
                 dict(name='文字审定', icon='icon-subitem', link='/task/lobby/text_review'),
                 dict(name='难字审定', icon='icon-subitem', link='/task/lobby/text_hard'),
+                dict(name='聚类校对', icon='icon-subitem', link='/task/lobby/char_proof'),
+                dict(name='僻字校对', icon='icon-subitem', link='/task/lobby/rare_proof'),
+                dict(name='聚类审定', icon='icon-subitem', link='/task/lobby/char_review'),
+                dict(name='僻字审定', icon='icon-subitem', link='/task/lobby/rare_review'),
             ]),
             dict(name='我的任务', icon='icon-task-my', id='task-my', sub_items=[
                 dict(name='切分校对', icon='icon-subitem', link='/task/my/cut_proof'),
@@ -35,11 +39,15 @@ class ComLeft(UIModule):
                 dict(name='文字校对', icon='icon-subitem', link='/task/my/text_proof'),
                 dict(name='文字审定', icon='icon-subitem', link='/task/my/text_review'),
                 dict(name='难字审定', icon='icon-subitem', link='/task/my/text_hard'),
+                dict(name='聚类校对', icon='icon-subitem', link='/task/my/char_proof'),
+                dict(name='僻字校对', icon='icon-subitem', link='/task/my/rare_proof'),
+                dict(name='聚类审定', icon='icon-subitem', link='/task/my/char_review'),
+                dict(name='僻字审定', icon='icon-subitem', link='/task/my/rare_review'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
                 dict(name='页图片', icon='icon-subitem', link='/task/admin/image'),
                 dict(name='页任务', icon='icon-subitem', link='/task/admin/page'),
-                # dict(name='字任务', icon='icon-subitem', link='/task/admin/char'),
+                dict(name='字任务', icon='icon-subitem', link='/task/admin/char'),
             ]),
             dict(name='数据管理', icon='icon-data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),

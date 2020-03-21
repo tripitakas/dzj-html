@@ -9,6 +9,7 @@ from controller import errors  as e
 from controller import validate as v
 from controller.data.data import Char
 from controller.base import BaseHandler
+from .base import CharHandler
 from .publish import PublishHandler
 
 
@@ -118,5 +119,18 @@ class CharUpdateApi(BaseHandler, Char):
             self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
 
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class TaskCharClusterProofApi(CharHandler):
+    URL = ['/api/task/do/char_proof/@task_id',
+           '/api/task/update/char_proof/@task_id']
+
+    def post(self, task_id):
+        """ 提交聚类校对任务"""
+        try:
+            self.update_task(self.data.get('submit'))
+            self.send_data_response()
         except self.DbError as error:
             return self.send_db_error(error)

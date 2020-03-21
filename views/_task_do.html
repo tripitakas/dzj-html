@@ -21,7 +21,7 @@
           {% set title, icon = ('任务大厅', 'icon-list') if handler.mode == 'do' else ('返回', 'icon-return-back') %}
           <span class="{{icon}}" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="{{title}}"></span>
         </div>
-        <div class="btn-group title" title="{{handler.page['name']}}">{{handler.task_name()}}
+        <div class="btn-group title">{{handler.task_name()}}
           {% block step_title %}
           <span class="sub-title {{'' if handler.step_name() else 'hide'}}">-{{handler.step_name()}}</span>
           {% end %}

@@ -341,9 +341,10 @@ class TaskHandler(BaseHandler, Task, Lock):
         info.update({'status': self.STATUS_FINISHED, 'finished_time': self.now()})
         self.db.task.update_one({'_id': task['_id']}, {'$set': info})
         # 更新后置任务
-        doc_tasks = list(self.db.task.find({
-            'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']
-        }))
+        if not task['doc_id']:
+            return
+        condition = {'collection': task['collection'], 'id_name': task['id_name'], 'doc_id': task['doc_id']}
+        doc_tasks = list(self.db.task.find(condition))
         finished_types = [t['task_type'] for t in doc_tasks if t['status'] == self.STATUS_FINISHED]
         for _task in doc_tasks:
             # 更新_task的pre_tasks

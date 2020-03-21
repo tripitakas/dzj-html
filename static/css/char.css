@@ -83,7 +83,8 @@
   overflow: auto;
   max-width: 120px;
   text-align: center;
-  border: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
   justify-content: space-between;
 }
 
@@ -91,8 +92,6 @@
   cursor: pointer;
   margin: 1px 0;
   height: calc(100% - 3px);
-  /*border-top: 1px solid #ccc;*/
-  /*border-bottom: 1px solid #ccc;*/
   overflow-y: hidden;
 }
 
@@ -208,14 +207,14 @@
   margin-left: 5px;
 }
 
-#m-alert {
+#s-alert {
   margin-bottom: 0;
   padding: 7px 5px;
   display: inline-block;
   width: calc(100% - 80px);
 }
 
-#m-alert .close {
+#s-alert .close {
   line-height: 16px;
 }
 

@@ -1,0 +1,333 @@
+{% extends "_task_do.html" %}
+
+{% block step_title %}{% end %}
+
+{% block custom-css %}
+{% include _font_css.html %}
+<link href="{{static_url('css/char.css')}}" rel="stylesheet">
+<style>
+  .char-info .txt {
+    display: none;
+  }
+</style>
+{% end %}
+
+{% block buttons %}
+<div id="btn-sort" class="btn-group" title="排序">
+  <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
+  <ul class="dropdown-menu" data-stopPropagation="true">
+    <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
+    <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
+  </ul>
+</div>
+<div class="btn-group" title="过滤">
+  <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
+  <div class="dropdown-menu filter-menu" data-stopPropagation="true">
+    <div class="title">按置信度过滤</div>
+    <li class="divider"></li>
+    <div class="input-line">
+      <input id="filter-start" type="text" class="form-control input-sm" placeholder="起始值">
+      <span>~</span>
+      <input id="filter-end" type="text" class="form-control input-sm" placeholder="终止值">
+    </div>
+    <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
+  </div>
+</div>
+{% end %}
+
+{% block m-body %}
+<div class="char-panel">
+  <div class="char-items">
+    {% for d in docs %}
+    <div class="char-item" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
+      <div class="char-img">
+        <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
+      </div>
+      <div class="char-info">
+        <span class="txt">{{d.get('txt', '')}}|</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
+      </div>
+    </div>
+    {% end %}
+  </div>
+  {% module Pager(pager) %}
+</div>
+<div class="column-panel">
+  <div id="col-holder"></div>
+</div>
+<div class="work-panel">
+  {% set c = docs and docs[0] or {}%}
+  <input type="hidden" id="currentId">
+  <input type="hidden" id="currentName">
+  <div class="items txt-list">
+    <div class="item ocr-alternatives">
+      <label class="head">OCR候选</label>
+      <div class="body">
+        {% for t in c.get('alternatives', '')%}
+        <span class="ocr-txt txt-item">{{t}}</span>
+        {% end %}
+      </div>
+    </div>
+    <div class="item cur-meta hide">
+      <label class="head">当前信息</label>
+      <div class="body">
+        <div class="log">
+          <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('normal_txt')}}</span></div>
+          <div class="log-meta">
+            {% for f in [i for i in ['name', 'page_name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
+            <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
+            {% end %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="item logs">
+      <label class="head">校对记录</label>
+      <div class="body">
+        {% for log in c.get('txt_logs', '')%}
+        <div class="log current">
+          <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('normal_txt')}}</span></div>
+          <div class="log-meta">
+            {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
+            {% if log.get(f) %}
+            <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+            {% end %}
+            {% end %}
+            <label>校对人</label><span>{{log['username']}}</span><br/>
+            <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
+            <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
+          </div>
+        </div>
+        {% end %}
+      </div>
+    </div>
+  </div>
+  <div class="items user-work">
+    <div class="item proof">
+      <label class="head">
+        请您校对<span id="proof-help" class="icon-help"></span>
+      </label>
+      <div class="body">
+        <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
+        <div class="txt-type">
+          {% for k, v in handler.txt_types.items() %}
+          <span class="radio-item {{'long' if len(v) > 3 else ''}}">
+            <input type="radio" name="txt-type" value="{{k}}" {{'checked' if k == 'Z' else ''}}>{{v}}
+          </span>
+          {% end %}
+        </div>
+        <input class="form-control normal-txt hide" style="display: none" placeholder="如果字框的文字为异体字，请录入正字"/>
+        <input class="form-control remark" placeholder="备注，如果有的话"/>
+      </div>
+      <div class="tail submit" style="margin-top: 5px">
+        <span id="s-alert" class="alert hide">
+          <a class="close">×</a>
+          <strong class="title"></strong><span class="text"></span>
+        </span>
+        <button class="btn btn-primary fr" id="submit-proof">确认</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block m-footer %}
+<div class="m-footer">
+  <div class="info debug fr">字编码：<span class="name"></span></div>
+</div>
+{% end %}
+
+{% block custom-modal %}
+<div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+      </div>
+      <div class="modal-body">
+        <div class="title">一、录入文字</div>
+        <div class="intro">
+          请录入字框中的文字。以下两种情况都是准确的录入：<br/>
+          1. 录入原字，即跟图片中字形完全一样（包括笔画和结构）的文字。如果有多笔少划或者结构上的差异，则不宜直接认为是同一个字。<br/>
+          2. 录入正字。如果原字无法打出，且经查字典等工具后也找不到原字，则可以录入对应的正字。<br/>
+        </div>
+        <div class="title">二、校对符号</div>
+        <div class="intro">
+          根据录入的文字不同，可能还需要录入以下校对符号。<br/>
+          1. 原字。不需要任何校对符号。<br/>
+          2. Y，广义异体字。如果录入的是正字，认为图片中的文字是广义异体字，或者不确定是广义还是狭义，请带上Y符号。<br/>
+          3. X，狭义异体字。如果录入的是正字，认为图片中的文字是狭义异体字，请带上X符号。<br/>
+          4. M，模糊字。如果图片中的字很模糊或有残损，请带上M符号。<br/>
+          5. N，不确定。如果不确定自己录入的文字是否就是图片中的字，请带上N符号。<br/>
+          6. *，不认识。如果图片中的字完全不认识，请直接录入*。<br/>
+          注：最多只能有一个校对符号。
+        </div>
+        <div class="title">三、简捷办法</div>
+        <div class="intro">
+          如果图片中的文字很生僻而不易录入，简单起见，可根据字形以及上下文直接判定所属正字而录入正字，然后加上Y，表示广义异体字。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% end %}
+
+{% block custom-js %}
+<script src="{{static_url('js/cut/raphael.js')}}"></script>
+<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+<script>
+  var paper, rect;
+  var from = decodeFrom();
+  var columnBaseUrl = "{{column_url}}";
+  var chars = decodeJSON('{{dumps(chars)}}');
+  var txtTypes = decodeJSON('{{dumps(handler.txt_types)}}');
+
+  function updateLogs(logs) {
+    var html = (logs || []).map(function (log) {
+      var head = `<span class="log-txt txt-item">${log.txt || log.normal_txt}</span>`;
+      var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
+      meta += log.normal_txt ? `<label>正字</label><span>${log.normal_txt}</span><br/>` : '';
+      meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
+      meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
+      meta += `<label>校对人</label><span>${log.username}</span><br/>`;
+      meta += `<label>创建时间</label><span>${toLocalTime(log.create_time)}</span><br/>`;
+      meta += `<label>更新时间</label><span>${toLocalTime(log.updated_time)}</span><br/>`;
+      return `<div class="log"><div class="log-head">${head}</div><div class="log-meta">${meta}</div></div>`;
+    }).join('');
+    $('.logs .body').html(html);
+    $('.logs').toggleClass('hide', !html.length);
+  }
+
+  function updateColumnImg(ch) {
+    var column = ch.column;
+    var columnImg = $('#col-holder');
+    var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);
+    var imgName = ch.page_name + '_' + ch.column.cid;
+    rect && rect.remove();
+    rect = null;
+    if (imgName !== columnImg.attr('data-id')) {
+      columnImg.attr('data-id', imgName);
+      paper && paper.remove();
+      var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
+      var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath);
+      paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
+      paper.image(columnUrl, 4, 4, column.w, column.h).initZoom();
+      rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
+          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'});
+      paper.setZoom(ratio).setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
+    } else if (paper) {
+      rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
+          .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'}).setZoom(ratio);
+    }
+  }
+
+  $('.char-item').on('click', function () {
+    var id = $(this).attr('data-id');
+    var ch = chars[id] || {};
+    // 更新当前参数
+    $('#currentId').val(id);
+    $('#currentName').val(ch.name);
+    $('.debug .name').text(ch.name);
+    $('.char-items .current').removeClass('current');
+    $(this).addClass('current');
+    // 更新OCR候选
+    $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
+      return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+    }));
+    // 更新校对历史
+    updateLogs(ch.txt_logs);
+    // 更新请您校对
+    $('.proof .remark').val('');
+    $('.proof .txt').val(ch.txt || ch.ocr_txt);
+    $('.txt-type .radio-item :radio').each(function (i, item) {
+      $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+    });
+    // 更新列图和字框
+    updateColumnImg(ch);
+  });
+
+  // 初始化
+  getAnchor() ? $('#' + getAnchor()).click() : $('.char-item:first').click();
+
+</script>
+<script>
+
+  // 获取任务数据
+  function getTaskData() {
+    return {};
+  }
+
+  // 离开页面
+  window.leave = function () {
+    from ? window.location = from : window.history.back();
+  };
+
+  // 帮助
+  $('#proof-help').on('click', () => $('#helpModal').modal());
+
+  // 排序
+  $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'));
+  $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
+
+
+  // 过滤
+  $('#btn-filter').on('click', function () {
+    var start = $('#filter-start').val();
+    var end = $('#filter-end').val();
+    if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)
+      return showWarning('提示', '起始值不符合要求');
+    if (end && end.match(/^(0\.\d+|0|1|1\.0)$/) === null)
+      return showWarning('提示', '终止值不符合要求');
+    if (!start.length && !end.length)
+      return showWarning('提示', '请输入起始值或终止值');
+    if (start.length && !end.length) {
+      location.href = setQueryString('cc', '>=' + start);
+    } else if (end.length && !start.length) {
+      location.href = setQueryString('cc', '<=' + end);
+    } else {
+      location.href = setQueryString('cc', start + ',' + end);
+    }
+  });
+
+  // 点击候选字
+  var $txt = $('.proof .txt');
+  $(document).on('click', '.txt-item', function () {
+    $txt.val($(this).text() + $txt.val().replace(/[^A-Z*]/, ''));
+    $('.txt-item.active').removeClass('active');
+    if ($txt.val().indexOf($(this).text()) >= 0) {
+      $(this).addClass('active');
+    }
+  });
+
+  // 点击文字类型
+  $('.txt-type .radio-item').click(function () {
+    $(this).find(':radio').prop('checked', true);
+    var txtType = $(this).find(':radio').val();
+    $txt.val($txt.val().replace(/[A-Z*]/g, '') + txtType.replace('Z', ''));
+    $('.proof .normal-txt').toggleClass('hide', txtType !== 'X' && txtType !== 'Y');
+  });
+
+  // 提交
+  $('#submit-proof').click(function () {
+    var id = $('#currentId').val();
+    var name = $('#currentName').val();
+    var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
+    postApi('/char/' + id, {data: data}, function (res) {
+      updateLogs(res.txt_logs);
+      data.txt_logs = res.txt_logs;
+      if ($('.proof .txt-type :checked').length)
+        data.txt_type = $('.proof .txt-type :checked').val();
+      chars[id] = $.extend(chars[id], data);
+      location.href = setAnchor(name);
+      bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+    });
+  });
+
+  // 查看切分
+  $('.column-panel').on('dblclick', function () {
+    var pageName = $('#currentName').val().split('_').slice(0, -1).join('_');
+    window.open('/page/cut_view/' + pageName, '_blank');
+  });
+
+</script>
+{% end %}
