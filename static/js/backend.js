@@ -13,7 +13,7 @@
  */
 function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
   error_callback = error_callback || Swal0 && function (obj) {
-    showError('操作失败', data.message || obj.message || '');
+    showError('操作失败', data.message || obj.message || '', 5000);
   } || console.log.bind(console);
 
   if (data && typeof data.data === 'object') {

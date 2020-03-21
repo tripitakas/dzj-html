@@ -133,28 +133,6 @@ class UpdatePageSourceApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class UpdateCharBatchApi(BaseHandler):
-    URL = '/api/data/(char)/batch'
-
-    def post(self, collection):
-        """ 批量更新批次"""
-        try:
-            rules = [(v.not_empty, 'batch'), (v.not_both_empty, '_id', '_ids')]
-            self.validate(self.data, rules)
-
-            update = {'$set': {'batch': self.data['batch']}}
-            if self.data.get('_id'):
-                r = self.db[collection].update_one({'_id': ObjectId(self.data['_id'])}, update)
-                self.add_log('update_' + collection, target_id=self.data['_id'])
-            else:
-                r = self.db[collection].update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
-                self.add_log('update_' + collection, target_id=self.data['_ids'])
-            self.send_data_response(dict(matched_count=r.matched_count))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
 class DataGenJsApi(BaseHandler):
     URL = '/api/data/gen_js'
 

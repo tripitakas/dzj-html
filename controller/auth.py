@@ -171,7 +171,7 @@ role_route_maps = {
         'roles': ['工作人员', '任务浏览员'],
         'routes': {
             '/api/task/ready/@task_type': ['POST'],
-            '/api/task/publish/page': ['POST'],
+            '/api/(page|char)/publish_task': ['POST'],
             '/api/task/publish/import': ['POST'],
             '/api/task/publish/(box|text)': ['POST'],
             '/api/task/republish/@task_id': ['POST'],

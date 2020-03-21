@@ -11,6 +11,28 @@ from controller.data.data import Char
 from controller.base import BaseHandler
 
 
+class PublishCharTasksApi(BaseHandler, Char):
+    URL = r'/api/char/publish_task'
+
+    def post(self):
+        """ 发布字任务 """
+        try:
+            rules = [(v.not_empty, 'task_type', 'batch')]
+            self.validate(self.data, rules)
+
+            if not self.db.char.count_documents({'batch': self.data['batch']}):
+                self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
+
+            # 启动脚本，生成字图
+            s = 'nohup python3 %s/publish.py --batch=%s --task_type=%s --username="%s" >> log/publish_char.log 2>&1 &'
+            print(s % (path.dirname(__file__), self.data['batch'], self.data['task_type'], self.username))
+            os.system(s % (path.dirname(__file__), self.data['batch'], self.data['task_type'], self.username))
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class CharGenImgApi(BaseHandler, Char):
     URL = '/api/char/gen_img'
 
@@ -30,6 +52,25 @@ class CharGenImgApi(BaseHandler, Char):
             print(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
             os.system(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
             self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class UpdateCharBatchApi(BaseHandler, Char):
+    URL = '/api/data/char/batch'
+
+    def post(self):
+        """ 批量更新批次"""
+        try:
+            rules = [(v.not_empty, 'type', 'batch'), (v.not_both_empty, 'search', '_ids')]
+            self.validate(self.data, rules)
+            if self.data['type'] == 'selected':
+                condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
+            else:
+                condition = self.get_char_search_condition(self.data['search'])[0]
+            r = self.db.char.update_many(condition, {'$set': {'batch': self.data['batch']}})
+            self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:
             return self.send_db_error(error)

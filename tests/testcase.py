@@ -214,7 +214,7 @@ class APITestCase(AsyncHTTPTestCase):
     def publish_page_tasks(self, data):
         """ 发布页面任务"""
         assert 'task_type' in data and ('doc_ids' in data or 'prefix' in data)
-        return self.fetch('/api/task/publish/page', body={'data': self.init_data(data)})
+        return self.fetch('/api/page/publish_task', body={'data': self.init_data(data)})
 
     def delete_tasks_and_locks(self):
         """ 清空任务以及数据锁 """

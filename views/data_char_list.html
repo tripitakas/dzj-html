@@ -3,22 +3,9 @@
 {% block custom-css %}
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 <style>
-  .swal2-label {
-    font-size: 0.875em;
-  }
-
   .char-img {
     width: 60px;
   }
-
-  #searchModal .control-label, #searchModal .control-label + div {
-    margin: 5px 0;
-  }
-
-  #genModal .control-label, #genModal .control-label + div {
-    padding: 8px 5px;
-  }
-
 </style>
 {% include _font_css.html %}
 {% end %}
@@ -101,18 +88,26 @@
             <div class="col-sm-10">
               <input type="text" class="form-control name" value="{{params.get('name') or ''}}" placeholder="请输入字编码，可部分输入">
             </div>
-            <h4 class="col-sm-2 control-label">分　类</h4>
+          </div>
+          <div class="form-group">
+            <h4 class="col-sm-2 control-label">批　次</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control source" value="{{params.get('source') or ''}}" placeholder="请输入分类">
+              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次">
             </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">OCR文字</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control ocr_txt" value="{{params.get('ocr_txt') or ''}}" placeholder="请输入OCR文字，一个汉字">
             </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">校对文字</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control txt" value="{{params.get('txt') or ''}}" placeholder="请输入校对文字，一个汉字">
             </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">文字类型</h4>
             <div class="col-sm-10">
               <select class="form-control txt_type">
@@ -126,10 +121,14 @@
                 {% end %}
               </select>
             </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">置信度</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control cc" value="{{params.get('cc') or ''}}" placeholder="请输入置信度，支持范围如>0.5、>=0.5、<0.9、<=0.9等，默认为等于">
             </div>
+          </div>
+          <div class="form-group">
             <h4 class="col-sm-2 control-label">备　注</h4>
             <div class="col-sm-10">
               <input type="text" class="form-control remark" value="{{params.get('remark') or ''}}" placeholder="请输入备注">
@@ -145,22 +144,54 @@
     </div>
   </div>
 </div>
+<div id="batchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h4 class="modal-title">更新批次</h4>
+      </div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group">
+            <h4 class="item-title">选择范围</h4>
+            <div class="range">
+              <label class="radio-inline"><input type="radio" name="range" value="selected" checked>选中记录(<span class="selected-count">0</span>条)</label>
+              <label class="radio-inline"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <h4 class="item-title">输入批次</h4>
+            <input type="text" class="form-control batch" placeholder="请输入字编码，可部分输入">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div id="genModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"><h4 class="modal-title">生成字图</h4></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h4 class="modal-title">生成字图</h4>
+      </div>
       <div class="modal-body">
-        <form class="form-horizontal">
+        <form role="form">
           <div class="form-group">
-            <h4 class="col-sm-4 control-label">针对哪些数据？</h4>
-            <div class="col-sm-8 range">
-              <input type="radio" name="range" value="selected" style="margin-right: 10px" checked>选中记录(<span id="selected-count">0</span>条)
-              <input type="radio" name="range" value="searched" style="margin: 0 10px">检索结果({{pager['doc_count']}}条)
+            <h4 class="item-title">针对哪些数据？</h4>
+            <div class="range">
+              <label class="radio-inline"><input type="radio" name="range" value="selected" checked>选中记录(<span class="selected-count">0</span>条)</label>
+              <label class="radio-inline"><input type="radio" name="range" value="searched">检索结果({{pager['doc_count']}}条)</label>
             </div>
-            <h4 class="col-sm-4 control-label">已有字图时是否重新生成？</h4>
-            <div class="col-sm-8 regen">
-              <input type="radio" name="regen" value="否" style="margin-right: 10px" checked>否
-              <input type="radio" name="regen" value="是" style="margin: 0 10px">是
+          </div>
+          <div class="form-group">
+            <h4 class="item-title">已有字图时是否重新生成？</h4>
+            <div class="regen">
+              <label class="radio-inline"><input type="radio" name="regen" value="否" checked>否</label>
+              <label class="radio-inline"><input type="radio" name="regen" value="是">是</label>
             </div>
           </div>
         </form>
@@ -174,34 +205,35 @@
 </div>
 <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content modal-sm">
+      <input class="task-type" type="hidden" value="">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">发布任务/<span id="task-name"></span></h4>
+        <h4 class="modal-title">发布任务/<span class="task-name"></span></h4>
       </div>
-      <div class="modal-body">
-        <input class="task_type" type="hidden" value="">
-        <h4 class="control-label">任务批次</h4>
-        <div>
-          <input type="text" class="form-control batch" placeholder="请输入批次号">
-        </div>
+      <div class="modal-body" style="height: 80px">
+        <input type="text" class="form-control batch" placeholder="请输入批次"/>
+        <div class="tips">注：请先设置批次，然后根据批次发布任务。</div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
-        <button type="button" class="btn btn-default waves-effect waves-light modal-refresh">确定</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">发布</button>
+        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
       </div>
     </div>
   </div>
 </div>
-
 {% end %}
 
 {% block custom-js %}
 <script src="{{static_url('js/l10n.js')}}"></script>
 <script>
+  // 统计结果
+  $('.operation .btn-statistic a').on('click', function () {
+    location.href = '/data/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+  });
+
   // 更新分类
-  $('.operation .bat-batch').click(function () {
+  $('.operation .bat-batch2').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
@@ -211,15 +243,20 @@
       }
     });
   });
-
-  // 统计检索结果
-  $('.operation .btn-statistic a').click(function () {
-    location.href = '/data/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+  $('.operation .bat-batch').on('click', function () {
+    $('#batchModal .selected-count').text($('table tbody :checked').length);
+    $('#batchModal').modal();
+  });
+  $('#batchModal .modal-confirm').on('click', function () {
+    var batch = $('#batchModal .batch').val();
+    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
+    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, batch: batch};
+    postApi('/data/char/batch', {data: data}, () => location.reload());
   });
 
   // 生成字图
-  $('.operation .bat-gen-img').click(function () {
-    $('#genModal #selected-count').text($('table tbody :checked').length);
+  $('.operation .bat-gen-img').on('click', function () {
+    $('#genModal .selected-count').text($('table tbody :checked').length);
     $('#genModal').modal();
   });
   $('#genModal .modal-confirm').on('click', function () {
@@ -232,12 +269,12 @@
   });
 
   // 查找重复
-  $('.operation .btn-duplicate').click(function () {
+  $('.operation .btn-duplicate').on('click', function () {
     location.href = location.pathname + '?duplicate=true';
   });
 
   // 浏览结果
-  $('.operation .btn-browse').click(function () {
+  $('.operation .btn-browse').on('click', function () {
     location.href = '/char/browse' + setQueryString('from', '/data/char', true);
   });
 
@@ -245,9 +282,9 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
+  var inputFields = ['name', 'batch', 'ocr_txt', 'txt', 'remark', 'cc'];
   var selectFields = ['txt_type'];
-  $searchModal.find('.modal-confirm').click(function () {
+  $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {
       var value = $searchModal.find('.' + field).val();
@@ -265,7 +302,7 @@
   });
 
   // 重置检索条件
-  $searchModal.find('.reset').click(function () {
+  $searchModal.find('.reset').on('click', function () {
     inputFields.forEach(function (field) {
       $searchModal.find('.' + field).val('');
     });
@@ -274,10 +311,19 @@
 </script>
 <script>
   /*---发布任务---*/
-  var docs = [];
-  var taskType = '';
-  var $publishModal = $('#publishModal');
-  var $publishResultModal = $('#publishResultModal');
+  $('.btn-publish a').on('click', function () {
+    $('#publishModal').modal();
+    $('#publishModal .task-name').text($(this).text());
+    $('#publishModal .task-type').val($(this).attr('title'));
+  });
+
+  $('#publishModal .modal-confirm').on('click', function () {
+    var batch = $('#publishModal .batch').val();
+    var taskType = $('#publishModal .task-type').val();
+    postApi('/char/publish_task', {data: {batch: batch, task_type: taskType}}, (res) => {
+      showSuccess('成功', '已启动脚本，请在操作日志中查看脚本进度。', 5000);
+    });
+  });
 </script>
 {% end %}
 

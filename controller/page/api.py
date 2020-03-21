@@ -16,7 +16,7 @@ from elasticsearch.exceptions import ConnectionTimeout
 
 
 class PublishPageTasksApi(PublishBaseHandler):
-    URL = r'/api/task/publish/page'
+    URL = r'/api/page/publish_task'
 
     def post(self):
         """ 发布任务"""

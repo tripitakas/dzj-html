@@ -486,7 +486,7 @@
         isFile = true;
         break;
     }
-    postApi('/task/publish/page', isFile ? formData : {data: data}, function (res) {
+    postApi('/page/publish_task', isFile ? formData : {data: data}, function (res) {
       var html = $.map(res.data, function (value, key) {
         return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
       }).join('');

@@ -144,7 +144,7 @@ a:hover, a:visited, a:focus {
 }
 
 body.widescreen {
-  padding: 0 !important;
+  padding: auto !important;
   height: 100% !important;
 }
 
@@ -802,8 +802,23 @@ body.widescreen {
   padding: 0;
 }
 
-.modal .modal-dialog {
-  width: 680px;
+.modal-sm {
+  margin: auto;
+  width: 380px;
+}
+
+.modal .item-title {
+  margin: 12px 0 8px;
+}
+
+.modal .modal-title {
+  font-size: 1.1em;
+}
+
+.modal div.title {
+  font-size: 1.1em;
+  font-weight: 400;
+  margin: 10px 0;
 }
 
 .modal-radio, .modal-select, .modal-checkbox {
@@ -819,14 +834,10 @@ body.widescreen {
   margin-left: 0;
 }
 
-.modal .modal-title {
-  font-size: 1.1em;
-}
-
-.modal div.title {
-  font-size: 1.1em;
-  font-weight: 400;
-  margin: 10px 0;
+.modal .tips {
+  font-weight: 300;
+  color: var(--Grey);
+  font-style: italic;
 }
 
 .modal-footer .pagers {
