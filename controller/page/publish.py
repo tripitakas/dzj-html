@@ -19,7 +19,7 @@ Task.task_types[task_type].input_field定义。
 from controller.task.base import TaskHandler
 
 
-class PublishBaseHandler(TaskHandler):
+class PublishHandler(TaskHandler):
     MAX_PUBLISH_RECORDS = 10000  # 用户单次发布任务最大值
 
     def publish_many(self, task_type, pre_tasks, steps, priority, force, doc_ids, batch=None):

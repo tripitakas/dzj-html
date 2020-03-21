@@ -1,28 +1,44 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import re
-import sys
-import oss2
-import json
-import math
-import hashlib
-from os import path
-from PIL import Image
-
-BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
-sys.path.append(BASE_DIR)
-
-from controller import helper as hp
-from controller.base import BaseHandler as Bh
+from controller.task.base import TaskHandler
 
 
-def publish_char_task():
-    return True
+class PublishHandler(TaskHandler):
 
+    def publish_many(self, batch='', task_type=''):
+        """ 发布聚类校对、审定任务 """
 
-if __name__ == '__main__':
-    import fire
+        def get_task(param, _task_type):
+            return self.get_publish_meta(_task_type, dict(status=self.STATUS_PUBLISHED, input=param))
 
-    fire.Fire(publish_char_task)
+        # 统计字频
+        counts = list(self.db.char.aggregate([
+            {'$match': {'batch': batch}},
+            {'$group': {'_id': '$ocr_txt', 'count': {'$sum': 1}}},
+            {'$sort': {'count': -1}},
+        ]))
+
+        # 发布聚类校对
+        counts1 = [c for c in counts if c['count'] >= 50]
+        cluster_tasks = [get_task(dict(ocr_txt=c['_id'], count=c['count']), task_type) for c in counts1]
+        self.db.task.insert_many(cluster_tasks)
+        self.add_log('publish_task', context='%s,%s,%s' % (batch, task_type, len(cluster_tasks)),
+                     username=self.username)
+
+        # 发布僻字校对
+        counts2 = [c for c in counts if c['count'] < 50]
+        rare_tasks = []
+        params, total_count = [], 0
+        rare_type = 'rare_proof' if task_type == 'char_proof' else 'rare_review'
+        for c in counts2:
+            total_count += c['count']
+            params.append(dict(ocr_txt=c['_id'], count=c['count']))
+            if total_count > 50:
+                rare_tasks.append(get_task(params, rare_type))
+                params, total_count = [], 0
+        self.db.task.insert_many(rare_tasks)
+        self.add_log('publish_task', context='%s,%s,%s' % (batch, rare_type, len(rare_tasks)),
+                     username=self.username)
+
+        return dict(cluster_count=len(cluster_tasks), rare_count=len(rare_tasks))

@@ -98,7 +98,9 @@ class Task(Model):
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
         'char_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'id'}},
+        'rare_proof': {'name': '僻字校对', 'data': {'collection': 'char', 'id': 'id'}},
         'char_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'id'}},
+        'rare_review': {'name': '僻字审定', 'data': {'collection': 'char', 'id': 'id'}},
     }
 
     # 其它任务定义

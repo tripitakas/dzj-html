@@ -9,25 +9,27 @@ from controller import errors  as e
 from controller import validate as v
 from controller.data.data import Char
 from controller.base import BaseHandler
+from .publish import PublishHandler
 
 
-class PublishCharTasksApi(BaseHandler, Char):
+class PublishCharTasksApi(PublishHandler):
     URL = r'/api/char/publish_task'
 
     def post(self):
         """ 发布字任务 """
         try:
-            rules = [(v.not_empty, 'task_type', 'batch')]
+            rules = [(v.not_empty, 'batch', 'task_type')]
             self.validate(self.data, rules)
 
             if not self.db.char.count_documents({'batch': self.data['batch']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
 
-            # 启动脚本，生成字图
-            s = 'nohup python3 %s/publish.py --batch=%s --task_type=%s --username="%s" >> log/publish_char.log 2>&1 &'
-            print(s % (path.dirname(__file__), self.data['batch'], self.data['task_type'], self.username))
-            os.system(s % (path.dirname(__file__), self.data['batch'], self.data['task_type'], self.username))
-            self.send_data_response()
+            try:
+                log = self.publish_many(self.data['batch'], self.data['task_type'])
+                return self.send_data_response(log)
+
+            except self.DbError as error:
+                return self.send_db_error(error)
 
         except self.DbError as error:
             return self.send_db_error(error)

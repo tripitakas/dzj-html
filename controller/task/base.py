@@ -229,16 +229,16 @@ class TaskHandler(BaseHandler, Task, Lock):
             condition.update({'picked_user_id': self.user_id})
         return self.db.task.count_documents(condition)
 
-    def get_publish_meta(self, task_type):
-        now = self.now()
+    def get_publish_meta(self, task_type, meta=None):
         collection, id_name = self.get_data_conf(task_type)[:2]
-        return dict(
+        task_meta = dict(
             task_type=task_type, batch='', collection=collection, id_name=id_name, doc_id='',
             status='', priority='', steps={}, pre_tasks=[], input=None, result={},
-            create_time=now, updated_time=now, publish_time=now,
-            publish_user_id=self.user_id,
-            publish_by=self.username
+            create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
+            publish_user_id=self.user_id, publish_by=self.username
         )
+        task_meta.update(meta or {})
+        return task_meta
 
     def init_steps(self, task, task_type=None):
         """ 检查当前任务的步骤，缺省时自动填充默认设置，有误时报错

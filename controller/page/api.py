@@ -10,12 +10,12 @@ from controller import validate as v
 from controller.data.data import Page
 from .tool.diff import Diff
 from .base import PageHandler
-from .publish import PublishBaseHandler
+from .publish import PublishHandler
 from .tool.esearch import find_one, find_neighbor
 from elasticsearch.exceptions import ConnectionTimeout
 
 
-class PublishPageTasksApi(PublishBaseHandler):
+class PublishPageTasksApi(PublishHandler):
     URL = r'/api/page/publish_task'
 
     def post(self):

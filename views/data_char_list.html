@@ -321,7 +321,7 @@
     var batch = $('#publishModal .batch').val();
     var taskType = $('#publishModal .task-type').val();
     postApi('/char/publish_task', {data: {batch: batch, task_type: taskType}}, (res) => {
-      showSuccess('成功', '已启动脚本，请在操作日志中查看脚本进度。', 5000);
+      showSuccess('成功', `已发布${res['cluster_count']}条聚类任务，${res['rare_count']}条僻字任务，`, 5000);
     });
   });
 </script>

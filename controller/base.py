@@ -11,6 +11,7 @@ import traceback
 from os import path
 from bson import json_util
 from bson.errors import BSONError
+from bson.objectid import ObjectId
 from datetime import datetime
 from pymongo.errors import PyMongoError
 from tornado import gen
@@ -293,8 +294,16 @@ class BaseHandler(CorsMixin, RequestHandler):
     @classmethod
     def add_op_log(cls, db, op_type, content, username):
         try:
-            assert isinstance(content, dict)
+            content = [content] if not isinstance(content, list) else content
             db.oplog.insert_one(dict(op_type=op_type, content=content, create_by=username, create_time=cls.now()))
+        except cls.MongoError:
+            pass
+
+    @classmethod
+    def update_op_log(cls, db, _id, content):
+        try:
+            _id = ObjectId(_id) if isinstance(_id, str) else _id
+            db.oplog.update_one({'_id', _id}, {'$addToSet': {'content': dict(updated_time=cls.now(), content=content)}})
         except cls.MongoError:
             pass
 
