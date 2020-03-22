@@ -605,8 +605,9 @@ body.widescreen {
 }
 
 .m-header > div {
-  margin: auto;
+  margin: auto 0;
   flex: 0 1 auto;
+  line-height: 40px;
   position: relative;
   display: flex;
   align-items: center;
@@ -614,11 +615,11 @@ body.widescreen {
 
 .m-header .center {
   flex-grow: 1;
-  display: inline-block;
 }
 
-.m-header .more-group {
-  margin-top: -3px;
+.m-header .btn-group {
+  display: flex;
+  align-items: center;
 }
 
 .m-header .back {
@@ -663,7 +664,7 @@ body.widescreen {
   padding: 2px;
   cursor: pointer;
   font-size: 20px;
-  margin: auto 2px;
+  margin: auto 5px;
   font-weight: 400;
   transition: all 0.2s;
   display: inline-block;
@@ -680,7 +681,7 @@ body.widescreen {
 }
 
 .btn-txt.disabled {
-  color: #999;
+  color: #aaa;
 }
 
 .btn-line {

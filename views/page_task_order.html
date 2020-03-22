@@ -5,23 +5,21 @@
 {% end %}
 
 {% block buttons %}
-<div class="btn-group">
-  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-  <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
-  <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
-  <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-  <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-  <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-  <div id="toggle-char-no" class="btn-txt icon-char-no" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
-  <div id="toggle-order" class="btn-txt icon-char-order active" data-toggle="tooltip" data-placement="bottom" title="显隐连线"></div>
-  <div id="show-err-box" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
-  <div id="toggle-more" class="btn-txt icon-more {{'hide' if handler.readonly else ''}}" title="更多"></div>
-</div>
+<div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+<div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+<div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+<div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+<div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+<div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+<div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+<div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+<div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+<div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+<div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+<div id="toggle-char-no" class="btn-txt icon-char-no" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+<div id="toggle-order" class="btn-txt icon-char-order active" data-toggle="tooltip" data-placement="bottom" title="显隐连线"></div>
+<div id="show-err-box" class="btn-txt icon-check" data-toggle="tooltip" data-placement="bottom" title="检查字序"></div>
+<div id="toggle-more" class="btn-txt icon-more {{'hide' if handler.readonly else ''}}" title="更多"></div>
 <div class="btn-group more-group hide" id="more-group">
   <button id="reorder" class="btn btn-default btn-sm" type="button">重新排序<sup class="s-count"></sup></button>
   <button id="old-order" class="btn btn-default btn-sm" type="button">原始字序<sup class="s-count"></sup></button>

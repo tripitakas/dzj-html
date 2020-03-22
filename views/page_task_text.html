@@ -33,21 +33,19 @@
 {% end %}
 
 {% block buttons %}
-<div class="btn-group">
-  <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-  <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-  <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-  <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
-  <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
-  <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
-  <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-  <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-  <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
-  <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
-  <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
-  <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
-  <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
-</div>
+<div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+<div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+<div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+<div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+<div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+<div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+<div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+<div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+<div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+<div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
+<div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
+<div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
+<div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
 <div class="btn-group more-group hide" id="more-group">
   {% if not handler.readonly %}
   <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
@@ -57,7 +55,16 @@
   <button id="btn-vw-order" type="button" class="btn btn-default btn-sm">查看字序</button>
   {% end %}
 </div>
-<div class="btn-group fr">
+<div class="center"></div>
+<div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+<div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
+<div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
+<div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
+<div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
+<div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
+<div id="save-doubt" class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
+<div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
+<div class="btn-group">
   <i class="btn-txt icon-cmp-txt dropdown-toggle" data-toggle="dropdown" title="重新比对"></i>
   <div class="dropdown-menu dropdown-menu-right cmp-menu" data-stopPropagation="true">
     <div class="title">文本比对</div>
@@ -79,7 +86,7 @@
     </div>
   </div>
 </div>
-<div class="btn-group fr">
+<div class="btn-group">
   <i id="btn-show-txt" class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown" title="查看文本"></i>
   <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
     <li class="title">查看文本</li>
@@ -90,16 +97,6 @@
     <li data-id="text-{{field}}" class="btn-show-txt"><a href="#">{{label}}</a></li>
     {% end %}
   </ul>
-</div>
-<div class="btn-group fr">
-  <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
-  <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
-  <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
-  <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
-  <div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
-  <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
-  <div id="save-doubt" class="btn-txt icon-doubt {{'hide' if 'text_hard' in handler.task_type else ''}}" data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
-  <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
 </div>
 {% end %}
 
