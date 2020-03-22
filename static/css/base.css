@@ -649,9 +649,10 @@ body.widescreen {
 
 .m-header .dropdown-menu {
   margin-top: 10px;
+  line-height: normal;
 }
 
-.dropdown-menu .title {
+.dropdown-menu .menu-title {
   font-size: 14px;
   color: var(--Grey);
   text-align: center;

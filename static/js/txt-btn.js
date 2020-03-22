@@ -9,7 +9,7 @@ $('#toggle-panel-no').on('click', function () {
   setStorage('togglePanelNo', $(this).hasClass('active') ? '1' : '-1');
 });
 
-// 显隐浮动面板的文本
+// 显隐浮动面板文本
 $('#toggle-panel-txt').on('click', function () {
   $(this).toggleClass('active');
   showText = $(this).hasClass('active');
@@ -17,7 +17,7 @@ $('#toggle-panel-txt').on('click', function () {
   setStorage('togglePanelTxt', $(this).hasClass('active') ? '1' : '-1');
 });
 
-// 增加浮动面板的字体
+// 增加浮动面板字体
 $('#enlarge-panel-font').on('click', function () {
   var $tspan = $('#holder tspan');
   var size = parseInt($tspan.css('font-size'));
@@ -25,7 +25,7 @@ $('#enlarge-panel-font').on('click', function () {
   $.cut.data.fontSize = size;
 });
 
-// 减少浮动面板的字体
+// 减少浮动面板字体
 $('#reduce-panel-font').on('click', function () {
   var $tspan = $('#holder tspan');
   var size = parseInt($tspan.css('font-size'));
@@ -132,50 +132,3 @@ $('#reduce-font').click(function () {
   var size = parseInt($('#raw-txt').css('font-size'));
   $('#raw-txt').css('font-size', --size + 'px');
 });
-
-// 重新比对选择本和OCR
-$('#re-compare').on("click", function () {
-  showConfirm("确定重新比对吗？", "将使用第一步选择的文本重新比对，并清空当前的校对结果！", function () {
-    autoSave(function () {
-      window.location = setQueryString('re_compare', 'true');
-    });
-  });
-});
-
-// 弹出原文
-$('#show-txts').on('click', () => $('#txtModal').modal());
-
-// 弹出的文本可以拖拽
-$('#txtModal .modal-header').on('mousedown', function (downEvt) {
-  var $txtModel = $('#txtModal');
-  var dragging = false, downX = downEvt.pageX, downY = downEvt.pageY;
-  var x = downEvt.pageX - $txtModel.offset().left;
-  var y = downEvt.pageY - $txtModel.offset().top;
-  $('body').on('mousemove.draggable', function (moveEvt) {
-    dragging = dragging || Math.hypot(moveEvt.pageX - downX, moveEvt.pageY - downY) > 10;
-    if (dragging) {
-      $txtModel.offset({
-        left: moveEvt.pageX - x,
-        top: moveEvt.pageY - y
-      });
-    }
-  });
-  $('body').one('mouseup', function () {
-    $('body').off('mousemove.draggable');
-  });
-  $(this).closest('.modal').one('bs.modal.hide', function () {
-    $('body').off('mousemove.draggable');
-  });
-});
-
-// 切换弹出文本
-$('#txtModal .page-txt').click(function () {
-  $(this).removeClass('btn-default').addClass('btn-primary');
-  $(this).siblings().removeClass('btn-primary').addClass('btn-default');
-  var txtType = $(this).attr('id').replace('show-', '');
-  if (txtType === 'all')
-    $('#txtModal textarea').removeClass('hide');
-  else
-    $('#txtModal #' + txtType).removeClass('hide').siblings().addClass('hide');
-});
-

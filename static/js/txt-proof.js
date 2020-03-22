@@ -197,11 +197,33 @@ $.cut.onBoxChanged(function (char, box, reason) {
   }
 });
 
+// 记下当前span
+$('.line > span').on('mousedown', function () {
+  currentSpan[0] = $(this);
+});
+
+// 记下选中位置
+$('.line > span').on('mouseup', function () {
+  offsetInSpan = getCursorPosition(this);
+});
+
+$('.line > span').on('keydown', function (e) {
+  var keyCode = e.keyCode || e.which;
+  highlightBox($(this), false, keyCode);
+});
 
 /** 对话框相关代码 */
 var $dlg = $("#pfread-dialog");
 
-// 设置当前span和line
+function resetDialogClass() {
+  var base = $("#dlg-base").text(), cmp1 = $("#dlg-cmp1").text();
+  var cmp2 = $("#dlg-cmp2").text(), select = $("#dlg-select").text();
+  $("#dlg-base").toggleClass('same-base', base === select);
+  $("#dlg-cmp1").toggleClass('same-base', cmp1 === select);
+  $("#dlg-cmp2").toggleClass('same-base', cmp2 === select);
+  $("#dlg-select").toggleClass('same-base', select === base || select === cmp1 || select === cmp2);
+}
+
 function setCurrent(span) {
   if (!$('.current-span').is(span)) {
     $('.current-span').removeClass('current-span');
@@ -210,13 +232,13 @@ function setCurrent(span) {
   }
 }
 
-// 单击同文、异文，设置当前span
+// 单击同文、异文
 $(document).on('click', '.same, .diff', function () {
   setCurrent($(this));
   highlightBox($(this));
 });
 
-// 双击异文，弹框提供选择
+// 双击异文
 $(document).on('dblclick', '.diff', function (e) {
   e.stopPropagation();
   setCurrent($(this));
@@ -224,11 +246,11 @@ $(document).on('dblclick', '.diff', function (e) {
   $('.current-diff').removeClass('current-diff');
   $(this).addClass('current-diff');
   // 设置弹框文本
-  var base = $(this).attr("base"), cmp1 = $(this).attr("cmp1"), cmp2 = $(this).attr("cmp2");
+  $("#dlg-base").text($(this).attr("base"));
+  $("#dlg-cmp1").text($(this).attr("cmp1"));
+  $("#dlg-cmp2").text($(this).attr("cmp2"));
   $("#dlg-select").text($(this).text());
-  $("#dlg-cmp1").text(cmp1).toggleClass('same-base', base === cmp1);
-  $("#dlg-cmp2").text(cmp2).toggleClass('same-base', base === cmp2);
-  $("#dlg-base").text(base).toggleClass('same-base', base === cmp2 || base === cmp2);
+  resetDialogClass();
   // 设置弹框位置
   $dlg.show().offset({top: $(this).offset().top + 45, left: $(this).offset().left - 4});
   // 当弹框超出文字框时，向上弹出
@@ -241,10 +263,10 @@ $(document).on('dblclick', '.diff', function (e) {
     $('.dialog-abs').removeClass('dialog-common').addClass('dialog-common-t');
   }
   // 当弹框右边出界时，向左移动
+  var offset = 0;
   var o_l = $dlg.offset().left;
   var d_r = $dlg[0].getBoundingClientRect().right;
   var r_w = $dlg.parent()[0].getBoundingClientRect().right;
-  var offset = 0;
   if (d_r > r_w - 20) {
     offset = r_w - d_r - 20;
     $dlg.offset({left: o_l + offset});
@@ -274,14 +296,13 @@ $('#work-html').on('scroll', function () {
 });
 
 // 点击异文选择框的各个选项
-$('#pfread-dialog .option').on('click', function () {
+$(document).on('click', '#pfread-dialog .option', function () {
   $('#dlg-select').text($(this).text());
-  if (!$(this).text().length)
-    $('.current-diff').text($(this).text()).addClass('selected');
+  resetDialogClass();
 });
 
 // 对话框选择文本input发生修改
-$("#dlg-select").on('DOMSubtreeModified', function () {
+$(document).on('DOMSubtreeModified', '#dlg-select', function () {
   $('.current-diff').text($(this).text()).addClass('selected');
   $('.current-diff').toggleClass('empty-place', $(this).text() === '');
 });
@@ -410,7 +431,6 @@ $('#doubtModal .modal-confirm').on('click', function () {
       "'><td>" + lineId.replace(/[^0-9]/g, '') + "</td><td>" + offsetInLine +
       "</td><td>" + txt + "</td><td>" + reason +
       "</td><td class='del-doubt'><i class='icon-bin'></i></td></tr>";
-
   // 提交之后底部列表自动展开
   $('.doubt-list .toggle-tab').eq(0).click();
   $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
@@ -435,21 +455,6 @@ $('#toggle-arrow').on('click', function () {
 // 删除存疑记录
 $(document).on('click', '.del-doubt', function () {
   $(this).parent().remove();
-});
-
-// 记下当前span
-$('.line > span').on('mousedown', function () {
-  currentSpan[0] = $(this);
-});
-
-// 记下选中位置
-$('.line > span').on('mouseup', function () {
-  offsetInSpan = getCursorPosition(this);
-});
-
-$('.line > span').on('keydown', function (e) {
-  var keyCode = e.keyCode || e.which;
-  highlightBox($(this), false, keyCode);
 });
 
 function findSpanByOffset($li, offset) {
@@ -485,7 +490,6 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
     setCurrent(pos[0]);
   }
 });
-
 
 /** 图文匹配相关代码 */
 
@@ -598,7 +602,6 @@ $('#check-match').on('click', function () {
 
 
 /** 其它代码 */
-
 // 粘贴时去掉格式
 $(document).on('paste', 'span', function (e) {
   e.preventDefault();

@@ -178,8 +178,7 @@
 
   // 任务保存
   $(document).on('click', '#task-save', function () {
-    var url = deleteQueryString(['reorder', 're_compare']); // 去掉重新排序、重新比对等参数
-    saveTask('save', url, afterSaved);
+    saveTask('save', deleteQueryString('reorder'), afterSaved);
   });
 
 
