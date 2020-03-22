@@ -92,7 +92,7 @@
           <div class="form-group">
             <h4 class="col-sm-2 control-label">批　次</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control batch" value="{{params.get('batch') or ''}}" placeholder="请输入批次">
+              <input type="text" class="form-control batch" value="{{params.get('source') or ''}}" placeholder="请输入批次">
             </div>
           </div>
           <div class="form-group">
@@ -144,11 +144,11 @@
     </div>
   </div>
 </div>
-<div id="batchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
+<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
-        <h4 class="modal-title">更新批次</h4>
+        <h4 class="modal-title">更新分类</h4>
       </div>
       <div class="modal-body">
         <form role="form">
@@ -160,8 +160,8 @@
             </div>
           </div>
           <div class="form-group">
-            <h4 class="item-title">输入批次</h4>
-            <input type="text" class="form-control batch" placeholder="请输入字编码，可部分输入">
+            <h4 class="item-title">输入分类</h4>
+            <input type="text" class="form-control source" placeholder="请输入分类">
           </div>
         </form>
       </div>
@@ -205,15 +205,30 @@
 </div>
 <div id="publishModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishModal" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content modal-sm">
+    <div class="modal-content">
       <input class="task-type" type="hidden" value="">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
         <h4 class="modal-title">发布任务/<span class="task-name"></span></h4>
       </div>
-      <div class="modal-body" style="height: 80px">
-        <input type="text" class="form-control batch" placeholder="请输入批次"/>
-        <div class="tips">注：请先设置批次，然后根据批次发布任务。</div>
+      <div class="modal-body">
+        <form role="form">
+          <div class="form-group batch">
+            <h4 class="item-title">任务批次</h4>
+            <input type="text" class="form-control batch" placeholder="请输入批次"/>
+          </div>
+          <div class="form-group num">
+            <h4 class="item-title">任务序号</h4>
+            <label class="radio-inline"><input type="radio" name="num" value="1">校一</label>
+            <label class="radio-inline"><input type="radio" name="num" value="2">校二</label>
+            <label class="radio-inline"><input type="radio" name="num" value="3">校三</label>
+          </div>
+          <div class="form-group source">
+            <h4 class="item-title">数据分类</h4>
+            <input type="text" class="form-control source" placeholder="请输入分类"/>
+            <div class="tips">注：请先设置分类，然后根据分类发布任务。</div>
+          </div>
+        </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
@@ -233,25 +248,15 @@
   });
 
   // 更新分类
-  $('.operation .bat-batch2').on('click', function () {
-    var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    if (!ids.length)
-      return showWarning('请选择', '当前没有选中任何记录。');
-    Swal2.fire({title: '请输入批次', input: 'text', showLoaderOnConfirm: true}).then((result) => {
-      if (result.value) {
-        postApi('/data/char/batch', {data: {_ids: ids, batch: result.value}}, () => location.reload());
-      }
-    });
+  $('.operation .bat-source').on('click', function () {
+    $('#sourceModal .selected-count').text($('table tbody :checked').length);
+    $('#sourceModal').modal();
   });
-  $('.operation .bat-batch').on('click', function () {
-    $('#batchModal .selected-count').text($('table tbody :checked').length);
-    $('#batchModal').modal();
-  });
-  $('#batchModal .modal-confirm').on('click', function () {
-    var batch = $('#batchModal .batch').val();
+  $('#sourceModal .modal-confirm').on('click', function () {
+    var source = $('#sourceModal .source').val();
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, batch: batch};
-    postApi('/data/char/batch', {data: data}, () => location.reload());
+    var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
+    postApi('/data/char/source', {data: data}, () => location.reload());
   });
 
   // 生成字图
@@ -282,7 +287,7 @@
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'batch', 'ocr_txt', 'txt', 'remark', 'cc'];
+  var inputFields = ['name', 'source', 'ocr_txt', 'txt', 'remark', 'cc'];
   var selectFields = ['txt_type'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
@@ -318,9 +323,12 @@
   });
 
   $('#publishModal .modal-confirm').on('click', function () {
-    var batch = $('#publishModal .batch').val();
+    var num = $('#publishModal .num :checked').val();
+    var batch = $('#publishModal input.batch').val();
+    var source = $('#publishModal input.source').val();
     var taskType = $('#publishModal .task-type').val();
-    postApi('/char/publish_task', {data: {batch: batch, task_type: taskType}}, (res) => {
+    var data = {task_type: taskType, num: num, batch: batch, source: source};
+    postApi('/char/publish_task', {data: data}, (res) => {
       showSuccess('成功', `已发布${res['cluster_count']}条聚类任务，${res['rare_count']}条僻字任务，`, 5000);
     });
   });

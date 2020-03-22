@@ -32,7 +32,7 @@ class PublishHandler(TaskHandler):
         counts2 = [c for c in counts if c['count'] < 50]
         rare_tasks = []
         params, total_count = [], 0
-        rare_type = 'rare_proof' if task_type == 'char_proof' else 'rare_review'
+        rare_type = 'separate_proof' if task_type == 'cluster_proof' else 'separate_review'
         for c in counts2:
             total_count += c['count']
             params.append(dict(ocr_txt=c['_id'], count=c['count']))

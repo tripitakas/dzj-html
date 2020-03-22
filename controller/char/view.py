@@ -31,10 +31,10 @@ class CharBrowseHandler(BaseHandler, Char):
 
 
 class TaskCharProofHandler(CharHandler):
-    URL = ['/task/char_proof/@task_id',
-           '/task/do/char_proof/@task_id',
-           '/task/browse/char_proof/@task_id',
-           '/task/update/char_proof/@task_id']
+    URL = ['/task/cluster_proof/@task_id',
+           '/task/do/cluster_proof/@task_id',
+           '/task/browse/cluster_proof/@task_id',
+           '/task/update/cluster_proof/@task_id']
 
     page_size = 50
 

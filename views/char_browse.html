@@ -79,9 +79,9 @@
             <label class="head">当前信息</label>
             <div class="body">
               <div class="log">
-                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('normal_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{c.get('txt') or c.get('ori_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in [i for i in ['name', 'page_name', 'txt', 'normal_txt', 'txt_type'] if c.get(i)]%}
+                  {% for f in [i for i in ['name', 'page_name', 'txt', 'ori_txt', 'txt_type'] if c.get(i)]%}
                   <label>{{handler.get_field_name(f)}}</label><span>{{c[f]}}</span><br/>
                   {% end %}
                 </div>
@@ -93,9 +93,9 @@
             <div class="body">
               {% for log in c.get('txt_logs', '')%}
               <div class="log current">
-                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('normal_txt')}}</span></div>
+                <div class="log-head"><span class="log-txt txt-item">{{log.get('txt') or log.get('ori_txt')}}</span></div>
                 <div class="log-meta">
-                  {% for f in ['txt', 'normal_txt', 'txt_type', 'remark'] %}
+                  {% for f in ['txt', 'ori_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
                   <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
@@ -188,9 +188,9 @@
 
   function updateLogs(logs) {
     var html = (logs || []).map(function (log) {
-      var head = `<span class="log-txt txt-item">${log.txt || log.normal_txt}</span>`;
-      var meta = log.txt ? `<label>原字</label><span>${log.txt}</span><br/>` : '';
-      meta += log.normal_txt ? `<label>正字</label><span>${log.normal_txt}</span><br/>` : '';
+      var head = `<span class="log-txt txt-item">${log.txt || log.ori_txt}</span>`;
+      var meta = log.txt ? `<label>正字</label><span>${log.txt}</span><br/>` : '';
+      meta += log.ori_txt ? `<label>原字</label><span>${log.ori_txt}</span><br/>` : '';
       meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
       meta += log.remark ? `<label>备注</label><span>${log.remark}</span><br/>` : '';
       meta += `<label>校对人</label><span>${log.username}</span><br/>`;
@@ -310,7 +310,7 @@
   $('#submit-proof').click(function () {
     var id = $('#currentId').val();
     var name = $('#currentName').val();
-    var data = {txt: $('.proof .txt').val(), normal_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
+    var data = {txt: $('.proof .txt').val(), ori_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
     postApi('/char/' + id, {data: data}, function (res) {
       updateLogs(res.txt_logs);
       data.txt_logs = res.txt_logs;

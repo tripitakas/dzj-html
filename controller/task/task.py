@@ -18,6 +18,8 @@ class Task(Model):
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型'},
+        {'id': 'sub_type', 'name': '子类型'},
+        {'id': 'num', 'name': '校次'},
         {'id': 'collection', 'name': '数据表'},
         {'id': 'id_name', 'name': '主键名'},
         {'id': 'doc_id', 'name': '数据ID'},
@@ -97,10 +99,10 @@ class Task(Model):
             'name': '难字处理', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
-        'char_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'id'}},
-        'rare_proof': {'name': '僻字校对', 'data': {'collection': 'char', 'id': 'id'}},
-        'char_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'id'}},
-        'rare_review': {'name': '僻字审定', 'data': {'collection': 'char', 'id': 'id'}},
+        'cluster_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'}, 'num': [1, 2, 3]},
+        'cluster_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'}},
+        'separate_proof': {'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'}, 'num': [1, 2, 3]},
+        'separate_review': {'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'}},
     }
 
     # 其它任务定义

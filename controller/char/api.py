@@ -60,19 +60,19 @@ class CharGenImgApi(BaseHandler, Char):
             return self.send_db_error(error)
 
 
-class UpdateCharBatchApi(BaseHandler, Char):
-    URL = '/api/data/char/batch'
+class UpdateCharSourceApi(BaseHandler, Char):
+    URL = '/api/data/char/source'
 
     def post(self):
         """ 批量更新批次"""
         try:
-            rules = [(v.not_empty, 'type', 'batch'), (v.not_both_empty, 'search', '_ids')]
+            rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
                 condition = self.get_char_search_condition(self.data['search'])[0]
-            r = self.db.char.update_many(condition, {'$set': {'batch': self.data['batch']}})
+            r = self.db.char.update_many(condition, {'$set': {'source': self.data['source']}})
             self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:
@@ -102,7 +102,7 @@ class CharUpdateApi(BaseHandler, Char):
                 self.data['txt_type'] = r[0]
                 self.data['txt'] = self.data['txt'].replace(r[0], '')
 
-            my_log = {k: self.data[k] for k in ['txt', 'normal_txt', 'remark'] if self.data.get(k)}
+            my_log = {k: self.data[k] for k in ['txt', 'ori_txt', 'remark'] if self.data.get(k)}
             my_log.update({'edit_type': 'char_edit', 'txt_type': self.data.get('txt_type'), 'updated_time': self.now()})
             new_log = True
             logs = char.get('txt_logs') or []
@@ -114,7 +114,7 @@ class CharUpdateApi(BaseHandler, Char):
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
 
-            update = {k: self.data[k] for k in ['txt', 'txt_type', 'normal_txt'] if self.data.get(k)}
+            update = {k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)}
             update['txt_logs'] = logs
             self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
@@ -124,8 +124,8 @@ class CharUpdateApi(BaseHandler, Char):
 
 
 class TaskCharClusterProofApi(CharHandler):
-    URL = ['/api/task/do/char_proof/@task_id',
-           '/api/task/update/char_proof/@task_id']
+    URL = ['/api/task/do/cluster_proof/@task_id',
+           '/api/task/update/cluster_proof/@task_id']
 
     def post(self, task_id):
         """ 提交聚类校对任务"""

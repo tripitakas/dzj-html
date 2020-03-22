@@ -147,10 +147,10 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/api/char/@oid': ['POST'],
-            '/task/(lobby|my)/char_proof': ['GET'],
-            '/api/task/pick/char_proof': ['POST'],
-            '/task/(do|update|view)/char_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/char_proof/@task_id': ['POST'],
+            '/task/(lobby|my)/cluster_proof': ['GET'],
+            '/api/task/pick/cluster_proof': ['POST'],
+            '/task/(do|update|view)/cluster_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
         }
     },
     '聚类审定员': {
@@ -158,32 +158,32 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/api/char/@oid': ['POST'],
-            '/task/(lobby|my)/char_review': ['GET'],
-            '/api/task/pick/char_review': ['POST'],
-            '/task/(do|update|view)/char_review/@task_id': ['GET'],
-            '/api/task/(do|update)/char_review/@task_id': ['POST'],
+            '/task/(lobby|my)/cluster_review': ['GET'],
+            '/api/task/pick/cluster_review': ['POST'],
+            '/task/(do|update|view)/cluster_review/@task_id': ['GET'],
+            '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
         }
     },
-    '僻字校对员': {
+    '分类校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
             '/api/char/@oid': ['POST'],
-            '/task/(lobby|my)/rare_proof': ['GET'],
-            '/api/task/pick/rare_proof': ['POST'],
-            '/task/(do|update|view)/rare_proof/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_proof/@task_id': ['POST'],
+            '/task/(lobby|my)/separate_proof': ['GET'],
+            '/api/task/pick/separate_proof': ['POST'],
+            '/task/(do|update|view)/separate_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/separate_proof/@task_id': ['POST'],
         }
     },
-    '僻字审定员': {
+    '分类审定员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
             '/api/char/@oid': ['POST'],
-            '/task/(lobby|my)/rare_review': ['GET'],
-            '/api/task/pick/rare_review': ['POST'],
-            '/task/(do|update|view)/rare_review/@task_id': ['GET'],
-            '/api/task/(do|update)/rare_review/@task_id': ['POST'],
+            '/task/(lobby|my)/separate_review': ['GET'],
+            '/api/task/pick/separate_review': ['POST'],
+            '/task/(do|update|view)/separate_review/@task_id': ['GET'],
+            '/api/task/(do|update)/separate_review/@task_id': ['POST'],
         }
     },
     '文字专家': {
@@ -248,7 +248,7 @@ role_route_maps = {
             '/data/char/statistic': ['GET'],
             '/api/data/page/export_char': ['POST'],
             '/api/data/page/source': ['POST'],
-            '/api/data/char/batch': ['POST'],
+            '/api/data/char/source': ['POST'],
             '/api/char/gen_img': ['POST'],
             '/api/char/@oid': ['POST'],
             '/char/browse': ['GET'],

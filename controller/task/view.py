@@ -238,7 +238,7 @@ class LobbyTaskHandler(TaskHandler):
         """ 任务大厅"""
 
         def get_task_title(task):
-            if task_type == 'char_proof':
+            if task_type == 'cluster_proof':
                 return '%s(%s字)' % (self.prop(task, 'input.ocr_txt'), self.prop(task, 'input.count'))
             return task['doc_id']
 

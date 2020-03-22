@@ -291,7 +291,7 @@ class Char(Model):
         {'id': 'char_id', 'name': 'char_id'},
         {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
-        {'id': 'batch', 'name': '批次'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'data_level', 'name': '数据等级'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
@@ -299,10 +299,12 @@ class Char(Model):
         {'id': 'sc', 'name': '相似度'},
         {'id': 'pos', 'name': '坐标'},
         {'id': 'column', 'name': '所属列'},
-        {'id': 'ocr_txt', 'name': 'OCR文字'},
+        {'id': 'ocr_txt', 'name': '字框OCR'},
+        {'id': 'col_txt', 'name': '列框OCR'},
+        {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'normal_txt', 'name': '正字'},
+        {'id': 'txt', 'name': '正字'},
+        {'id': 'ori_txt', 'name': '原字'},
         {'id': 'txt_type', 'name': '类型'},
         {'id': 'txt_logs', 'name': '校对历史'},
         {'id': 'proof_count', 'name': '校对次数'},
@@ -331,7 +333,7 @@ class Char(Model):
             if value:
                 params[field] = value
                 condition.update({field: value})
-        for field in ['name', '批次', 'remark']:
+        for field in ['name', 'source', 'remark']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value

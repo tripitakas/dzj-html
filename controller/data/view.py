@@ -167,7 +167,7 @@ class CharListHandler(BaseHandler, Char):
     page_title = '字数据管理'
     table_fields = [
         {'id': 'has_img', 'name': '字图'},
-        {'id': 'batch', 'name': '批次'},
+        {'id': 'source', 'name': '分类'},
         {'id': 'page_name', 'name': '页编码'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'name', 'name': '字编码'},
@@ -179,9 +179,11 @@ class CharListHandler(BaseHandler, Char):
         {'id': 'pos', 'name': '坐标'},
         {'id': 'column', 'name': '所属列'},
         {'id': 'txt_type', 'name': '文字类型'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'normal_txt', 'name': '正字'},
-        {'id': 'ocr_txt', 'name': 'OCR文字'},
+        {'id': 'txt', 'name': '正字'},
+        {'id': 'ori_txt', 'name': '原字'},
+        {'id': 'ocr_txt', 'name': '字框OCR'},
+        {'id': 'col_txt', 'name': '列框OCR'},
+        {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt_logs', 'name': '校对记录'},
         {'id': 'proof_count', 'name': '校对次数'},
@@ -191,15 +193,15 @@ class CharListHandler(BaseHandler, Char):
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
-        {'operation': 'bat-batch', 'label': '更新批次'},
+        {'operation': 'bat-source', 'label': '更新分类'},
         {'operation': 'bat-gen-img', 'label': '生成字图'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-browse', 'label': '浏览结果'},
         {'operation': 'btn-statistic', 'label': '结果统计', 'groups': [
             {'operation': 'source', 'label': '按分类'},
-            {'operation': 'txt', 'label': '按原字'},
+            {'operation': 'txt', 'label': '按正字'},
             {'operation': 'ocr_txt', 'label': '按OCR'},
-            {'operation': 'normal_txt', 'label': '按正字'},
+            {'operation': 'ori_txt', 'label': '按原字'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': v} for k, v in Task.get_task_types('char').items()
@@ -210,13 +212,13 @@ class CharListHandler(BaseHandler, Char):
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]
-    hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column']
-    info_fields = ['has_img', 'source', 'txt', 'normal_txt', 'txt_type', 'remark']
+    hide_fields = ['page_name', 'cid', 'uid', 'data_level', 'txt_logs', 'sc', 'pos', 'column', 'proof_count']
+    info_fields = ['has_img', 'source', 'txt', 'ori_txt', 'txt_type', 'remark']
     update_fields = [
         {'id': 'txt_type', 'name': '类型', 'input_type': 'radio', 'options': Char.txt_types},
         {'id': 'source', 'name': '分类'},
-        {'id': 'txt', 'name': '原字'},
-        {'id': 'normal_txt', 'name': '正字'},
+        {'id': 'txt', 'name': '正字'},
+        {'id': 'ori_txt', 'name': '原字'},
         {'id': 'remark', 'name': '备注'},
     ]
 
@@ -269,7 +271,7 @@ class CharStatisticHandler(BaseHandler, Char):
         try:
             condition = self.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
-            if kind not in ['source', 'txt', 'ocr_txt', 'normal_txt']:
+            if kind not in ['source', 'txt', 'ocr_txt', 'ori_txt']:
                 return self.send_error_response(e.statistic_type_error, message='只能按分类、原字、正字和OCR文字统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
             docs, pager, q, order = self.aggregate_by_page(self, condition, aggregates, default_order='-count')

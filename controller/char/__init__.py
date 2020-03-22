@@ -5,6 +5,6 @@ views = [
 ]
 
 handlers = [
-    api.CharGenImgApi, api.CharUpdateApi, api.PublishCharTasksApi, api.UpdateCharBatchApi,
+    api.CharGenImgApi, api.CharUpdateApi, api.PublishCharTasksApi, api.UpdateCharSourceApi,
     api.TaskCharClusterProofApi,
 ]
