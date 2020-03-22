@@ -23,9 +23,10 @@ class PublishHandler(TaskHandler):
         # 发布聚类校对
         counts1 = [c for c in counts if c['count'] >= 50]
         cluster_tasks = [get_task(task_type, dict(ocr_txt=c['_id'], count=c['count'])) for c in counts1]
-        self.db.task.insert_many(cluster_tasks)
-        self.add_log('publish_task', context='%s,%s,%s' % (batch, task_type, len(cluster_tasks)),
-                     username=self.username)
+        if cluster_tasks:
+            self.db.task.insert_many(cluster_tasks)
+            self.add_log('publish_task', context='%s,%s,%s' % (batch, task_type, len(cluster_tasks)),
+                         username=self.username)
 
         # 发布僻字校对
         counts2 = [c for c in counts if c['count'] < 50]
@@ -38,8 +39,11 @@ class PublishHandler(TaskHandler):
             if total_count > 50:
                 rare_tasks.append(get_task(rare_type, params))
                 params, total_count = [], 0
-        self.db.task.insert_many(rare_tasks)
-        self.add_log('publish_task', context='%s,%s,%s' % (batch, rare_type, len(rare_tasks)),
-                     username=self.username)
+        if total_count:
+            rare_tasks.append(get_task(rare_type, params))
+        if rare_tasks:
+            self.db.task.insert_many(rare_tasks)
+            self.add_log('publish_task', context='%s,%s,%s' % (batch, rare_type, len(rare_tasks)),
+                         username=self.username)
 
         return dict(cluster_count=len(cluster_tasks), rare_count=len(rare_tasks))
