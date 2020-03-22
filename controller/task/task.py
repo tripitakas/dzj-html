@@ -94,7 +94,7 @@ class Task(Model):
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
         'text_hard': {
-            'name': '难字审定', 'pre_tasks': ['text_review'],
+            'name': '难字处理', 'pre_tasks': ['text_review'],
             'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
         },
         'char_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'id'}},

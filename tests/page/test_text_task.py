@@ -95,11 +95,11 @@ class TestTextTask(APITestCase):
         docs = [t['doc_id'] for t in r.get('tasks', [])]
         self.assertEqual(set(docs), {docs_ready[0]})
 
-        # 领取难字审定
+        # 领取难字处理
         r = self.fetch('/api/task/pick/text_hard', body={'data': {}})
         self.assert_code(200, r)
 
-        # 完成难字审定
+        # 完成难字处理
         data = self.parse_response(r)
         r = self.fetch('/api/task/do/text_hard/%s?_raw=1' % data.get('task_id'),
                        body={'data': dict(submit=True, txt_html=json_encode(page1.get('ocr')))})

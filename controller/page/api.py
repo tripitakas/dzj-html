@@ -232,7 +232,7 @@ class TaskTextHardApi(PageHandler):
            '/api/task/update/text_hard/@task_id']
 
     def post(self, task_id):
-        """ 提交难字审定任务"""
+        """ 提交难字处理任务"""
         try:
             # 更新任务
             doubt = self.data.get('doubt', '').strip('\n')

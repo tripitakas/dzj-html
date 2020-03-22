@@ -107,7 +107,7 @@ class TaskTextReviewHandler(PageHandler):
            '/task/update/(text_review|text_hard)/@task_id']
 
     def get(self, task_type, task_id):
-        """ 文字审定、难字审定页面"""
+        """ 文字审定、难字处理页面"""
         try:
             self.texts, self.doubts = self.get_cmp_data()
             cmp_data = self.prop(self.page, 'txt_html')
