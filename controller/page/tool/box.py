@@ -31,12 +31,12 @@ class Box(BoxOrder):
                 box['h'] = height - box['h'] if box['y'] + box['h'] > height else box['h']
             return is_valid
 
+        chars = cls.decode_box(page['chars'])
         blocks = cls.decode_box(page['blocks'])
         columns = cls.decode_box(page['columns'])
-        chars = cls.decode_box(page['chars'])
+        chars = [box for box in chars if valid(box)]
         blocks = [box for box in blocks if valid(box)]
         columns = [box for box in columns if valid(box)]
-        chars = [box for box in chars if valid(box)]
 
         return blocks, columns, chars
 
@@ -48,8 +48,8 @@ class Box(BoxOrder):
             col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
             return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
 
-        width = width if width else page.get('width')
-        height = height if height else page.get('height')
+        width = width or page.get('width')
+        height = height or page.get('height')
         blocks, columns, chars = cls.filter_box(page, width, height)
         char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
         if char_out_block:

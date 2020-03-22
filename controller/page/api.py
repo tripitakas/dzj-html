@@ -4,6 +4,7 @@
 import re
 import json
 from tornado.escape import native_str
+from elasticsearch.exceptions import ConnectionTimeout
 from controller import errors as e
 from controller import helper as h
 from controller import validate as v
@@ -12,16 +13,14 @@ from .tool.diff import Diff
 from .base import PageHandler
 from .publish import PublishHandler
 from .tool.esearch import find_one, find_neighbor
-from elasticsearch.exceptions import ConnectionTimeout
 
 
-class PublishPageTasksApi(PublishHandler):
+class TaskPublishApi(PublishHandler):
     URL = r'/api/page/publish_task'
 
     def post(self):
         """ 发布任务"""
         self.data['doc_ids'] = self.get_doc_ids(self.data)
-        assert isinstance(self.data['doc_ids'], list)
         rules = [
             (v.not_empty, 'doc_ids', 'task_type', 'priority', 'force', 'batch'),
             (v.in_list, 'task_type', list(self.task_types.keys())),
@@ -96,7 +95,7 @@ class TaskCutApi(PageHandler):
         self.validate(self.data, rules)
         self.update_task(self.data.get('submit'))
         # 要提前检查，否则char_id可能重新设置
-        valid, message, out_boxes = self.check_box_cover(self.page)
+        valid, message, out_boxes = self.check_box_cover(self.data, self.page['width'], self.page['height'])
         update = self.get_box_update()
         self.update_my_doc(update)
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
@@ -133,7 +132,7 @@ class CutEditApi(PageHandler):
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
         # 要提前检查，否则char_id可能重新设置
-        valid, message, out_boxes = self.check_box_cover(self.page)
+        valid, message, out_boxes = self.check_box_cover(self.data, self.page['width'], self.page['height'])
         update = self.get_box_update()
         self.update_edit_doc(self.task_type, page_name, self.data.get('submit'), update)
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
