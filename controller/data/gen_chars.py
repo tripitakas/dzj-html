@@ -4,6 +4,7 @@
 import sys
 import json
 import math
+import pymongo
 from os import path
 
 BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
@@ -13,7 +14,8 @@ from controller import helper as hp
 from controller.base import BaseHandler as Bh
 
 
-def gen_chars(db=None, condition=None, page_names=None, username=None):
+def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
+              condition=None, page_names=None, username=None):
     """ 从页数据中导出字数据"""
 
     def is_changed(a, b):
@@ -26,14 +28,17 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
                 return True
         return False
 
-    cfg = hp.load_config()
-    db = db or hp.connect_db(cfg['database'])[0]
-    if not condition:
-        assert page_names
+    db = db or pymongo.MongoClient(uri)[db_name]
+    if reset:
+        db.char.delete_many({})
+
+    if page_names:
         page_names = page_names.split(',') if isinstance(page_names, str) else page_names
         condition = {'name': {'$in': page_names}}
     elif isinstance(condition, str):
         condition = json.loads(condition)
+    elif not condition:
+        condition = {}
 
     once_size = 50
     total_count = db.page.count_documents(condition)
@@ -49,7 +54,8 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
                     try:
                         meta = dict(page_name=p['name'])
                         meta['name'] = '%s_%s' % (p['name'], c['cid'])
-                        meta.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
+                        meta.update(
+                            {k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
                         meta.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                         meta['txt'] = c.get('txt') or c.get('ocr_txt')
                         meta['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
@@ -63,6 +69,7 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
         # 更新已存在的chars
         chars_dict = {c['name']: c for c in chars}
         existed = list(db.char.find({'name': {'$in': [c['name'] for c in chars]}}))
+        print('update existed %s records: %s' % (len(existed), ','.join([c['name'] for c in existed])))
         for e in existed:
             c = chars_dict.get(e['name'])
             if is_changed(e, c):
@@ -72,6 +79,7 @@ def gen_chars(db=None, condition=None, page_names=None, username=None):
         un_existed = [c for c in chars if c['name'] not in existed_id]
         if un_existed:
             db.char.insert_many(un_existed, ordered=False)
+        print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
         log = dict(inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
                    invalid_char=invalid_chars, invalid_pages=invalid_pages)
         Bh.add_op_log(db, 'gen_chars', log, username)
