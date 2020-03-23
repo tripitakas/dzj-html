@@ -238,8 +238,10 @@ class LobbyTaskHandler(TaskHandler):
         """ 任务大厅"""
 
         def get_task_title(task):
-            if task_type == 'cluster_proof':
-                return '%s(%s字)' % (self.prop(task, 'input.ocr_txt'), self.prop(task, 'input.count'))
+            if task['collection'] == 'char':
+                txt = ''.join([p.get('ocr_txt') or p.get('txt') for p in task['params']])
+                txt = '%s%s' % (txt[:5], '...' if len(txt) > 5 else '')
+                return '%s(%s字)' % (txt, task.get('char_count'))
             return task['doc_id']
 
         try:

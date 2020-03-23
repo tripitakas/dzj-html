@@ -24,7 +24,7 @@ url_placeholder = {
     'cut_task': r'cut_proof|cut_review',
     'text_task': r'text_proof_\d|text_review',
     'ocr_task': r'ocr_box|ocr_text|upload_cloud|import_image',
-    'task_type': r'cut_[a-z]+|ocr_[a-z]+|text_\w+|char_\w+|rare_\w+|upload_cloud|import_image',
+    'task_type': r'ocr_\w+|cut_\w+|text_\w+|cluster_\w+|separate_\w+|upload_cloud|import_image',
 }
 
 """ 

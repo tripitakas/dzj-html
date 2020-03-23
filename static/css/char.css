@@ -22,11 +22,21 @@
 .flex .char-panel {
   flex: 1;
   overflow: auto;
+  margin: 10px 20px;
   padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.char-panel .txt-kinds {
+  display: flex;
+  overflow-x: auto;
+  max-height: 100px;
+  padding-left: 10px;
+  border-bottom: 1px solid #ccc;
 }
 
 .char-panel .char-items {
-  margin: 10px 20px;
 }
 
 .char-panel .pagers {
@@ -58,6 +68,18 @@
   display: flex;
   align-items: flex-start;
   /*align-items: center;*/
+}
+
+.char-item.proof1 {
+  background: #669966;
+}
+
+.char-item.proof2 {
+  background: #66CC33;
+}
+
+.char-item.proof3 {
+  background: #66FF00;
 }
 
 .char-img img {
@@ -99,8 +121,8 @@
 .flex .work-panel {
   flex: 1;
   height: 100%;
-  width: 300px;
-  max-width: 300px;
+  width: 360px;
+  max-width: 360px;
   background: var(--Grey_Content);
   display: flex;
   flex-direction: column;
@@ -186,11 +208,7 @@
 }
 
 .radio-item.long {
-  width: 33%;
-}
-
-.radio-item:last-child {
-  margin-left: 9px;
+  width: 40%;
 }
 
 .radio-item input[type=radio] {
@@ -216,16 +234,4 @@
 
 #s-alert .close {
   line-height: 16px;
-}
-
-.work-panel .debug {
-  right: 0;
-  bottom: 0;
-  width: 300px;
-  height: 20px;
-  position: fixed;
-  text-align: center;
-  background-color: #fff;
-  border-top: 1px solid #ddd;
-  opacity: 0.75;
 }

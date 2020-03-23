@@ -37,12 +37,25 @@ class TaskCharProofHandler(CharHandler):
            '/task/update/cluster_proof/@task_id']
 
     page_size = 50
+    txt_types = {'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
 
     def get(self, task_id):
         """ 聚类校对页面"""
         try:
-            condition = dict(batch=self.task['batch'], ocr_txt=self.prop(self.task, 'input.ocr_txt'))
-            docs, pager, q, order = Char.find_by_page(self, condition, default_order='cc')
+            params = self.task['params']
+            ocr_txts = [c['ocr_txt'] for c in params]
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}}
+            # 统计字字种
+            counts = list(self.db.char.aggregate([
+                {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
+                {'$sort': {'count': -1}},
+            ]))
+            txts = [c['_id'] for c in counts]
+            # 设置当前正字
+            txt = self.get_query_argument('txt', txts[0])
+            cond.update({'txt': txt})
+            # 查找单字数据
+            docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
@@ -50,7 +63,9 @@ class TaskCharProofHandler(CharHandler):
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
             self.render('char_cluster_proof.html', docs=docs, pager=pager, q=q, order=order,
-                        column_url=column_url, chars={str(d['_id']): d for d in docs})
+                        char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
+                        txts=txts, txt=txt, column_url=column_url,
+                        chars={str(d['_id']): d for d in docs})
 
         except Exception as error:
             return self.send_db_error(error)

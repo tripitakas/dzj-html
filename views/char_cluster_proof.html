@@ -37,9 +37,14 @@
 
 {% block m-body %}
 <div class="char-panel">
+  <div class="txt-kinds">
+    {% for t in txts %}
+    <div class="txt-item{{' active' if t == txt else ''}}">{{t}}</div>
+    {% end %}
+  </div>
   <div class="char-items">
     {% for d in docs %}
-    <div class="char-item" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
+    <div class="char-item proof{{len(d.get('txt_logs') or [])}}" id="{{d['name']}}" data-id="{{d['_id']}}" title="{{d['char_id']}} #{{d['cid']}}">
       <div class="char-img">
         <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
       </div>
@@ -110,12 +115,11 @@
         <input class="form-control txt" placeholder="请输入字框中的文字，可带校对符号"/>
         <div class="txt-type">
           {% for k, v in handler.txt_types.items() %}
-          <span class="radio-item {{'long' if len(v) > 3 else ''}}">
+          <span class="radio-item {{'long' if len(v) > 6 else ''}}">
             <input type="radio" name="txt-type" value="{{k}}" {{'checked' if k == 'Z' else ''}}>{{v}}
           </span>
           {% end %}
         </div>
-        <input class="form-control normal-txt hide" style="display: none" placeholder="如果字框的文字为异体字，请录入正字"/>
         <input class="form-control remark" placeholder="备注，如果有的话"/>
       </div>
       <div class="tail submit" style="margin-top: 5px">
@@ -132,6 +136,8 @@
 
 {% block m-footer %}
 <div class="m-footer">
+  <div class="fl">当前任务总字数：{{char_count}}，</div>
+  <div class="fl">聚类字种：{{ocr_txts}}</div>
   <div class="info debug fr">字编码：<span class="name"></span></div>
 </div>
 {% end %}
@@ -311,7 +317,7 @@
   $('#submit-proof').click(function () {
     var id = $('#currentId').val();
     var name = $('#currentName').val();
-    var data = {txt: $('.proof .txt').val(), ori_txt: $('.proof .normal-txt').val(), remark: $('.proof .remark').val()};
+    var data = {txt: $('.proof .txt').val(), remark: $('.proof .remark').val()};
     postApi('/char/' + id, {data: data}, function (res) {
       updateLogs(res.txt_logs);
       data.txt_logs = res.txt_logs;
@@ -323,10 +329,15 @@
     });
   });
 
+  // 切换字种
+  $('.txt-kinds .txt-item').on('click', function () {
+    location.href = setQueryString('txt', $(this).text());
+  });
+
   // 查看切分
   $('.column-panel').on('dblclick', function () {
     var pageName = $('#currentName').val().split('_').slice(0, -1).join('_');
-    window.open('/page/cut_view/' + pageName, '_blank');
+    window.open('/page/' + pageName + '?txt=0&char_id=' + $('#currentName').val(), '_blank');
   });
 
 </script>
