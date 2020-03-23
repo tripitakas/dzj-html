@@ -13,6 +13,7 @@
 {% end %}
 
 {% block buttons %}
+<div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
 <div id="btn-sort" class="btn-group" title="排序">
   <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
   <ul class="dropdown-menu" data-stopPropagation="true">
@@ -39,7 +40,7 @@
 <div class="char-panel">
   <div class="txt-kinds">
     {% for t in txts %}
-    <div class="txt-item{{' active' if t == txt else ''}}">{{t}}</div>
+    <div class="txt-item{{' current' if t == txt else ''}}">{{t}}</div>
     {% end %}
   </div>
   <div class="char-items">
