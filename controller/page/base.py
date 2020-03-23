@@ -122,9 +122,6 @@ class PageHandler(TaskHandler, Page, Box):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
-    def get_all_txt(self, page):
-        return [(page[f], f, Page.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
-
     def get_box_update(self):
         """ 获取切分校对的提交"""
         # 过滤页面外的切分框
@@ -151,6 +148,10 @@ class PageHandler(TaskHandler, Page, Box):
         if chars_col:
             ret['chars_col'] = chars_col
         return ret
+
+    @staticmethod
+    def get_all_txt(page):
+        return [(page[f], f, Page.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
 
     @classmethod
     def check_utf8mb4(cls, seg, base=None):

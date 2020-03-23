@@ -27,7 +27,7 @@
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
         <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-right" class="btn-txt icon-txt{{'' if txt_off else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
         <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
@@ -56,7 +56,7 @@
           <div id="holder"></div>
         </div>
       </div>
-      <div class="right bd {{'' if texts else 'hide'}}" id="right-region">
+      <div class="right bd {{'hide' if (not texts or txt_off) else ''}}" id="right-region">
         <div class="sutra-texts">
           {% for i, (txt, field, label) in enumerate(texts) %}
           <div class="sutra-text {{field}}{{'' if i else ' hide'}}">

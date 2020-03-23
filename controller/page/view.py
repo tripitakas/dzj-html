@@ -77,6 +77,7 @@ class TaskTextProofHandler(PageHandler):
         """ 文字校对页面"""
         try:
             img_url = self.get_page_img(self.page)
+            x
             if not self.get_query_argument('step', '') and self.steps['current'] == 'select' and self.page.get('cmp'):
                 self.steps.update(dict(current='proof', is_first=False, is_last=True, prev='select', next=None))
 
@@ -197,7 +198,10 @@ class PageViewHandler(PageHandler):
             texts = self.get_all_txt(page)
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
-            self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col)
+            char_id = self.get_query_argument('char_id', None)
+            txt_off = self.get_query_argument('txt', None) == '0'
+            self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col,
+                        txt_off=txt_off, char_id=char_id)
 
         except Exception as error:
             return self.send_db_error(error)
