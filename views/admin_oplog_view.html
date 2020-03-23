@@ -9,6 +9,12 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  <style>
+    .block-sub-head {
+      margin: 8px;
+      font-size: 1.1em;
+    }
+  </style>
 </head>
 
 <body>
@@ -34,15 +40,31 @@
               <span class="value">{{to_date_str(log['create_time'])}}</span>
             </div>
           </div>
+          {% set content = log.get('content') %}
+          {% if isinstance(content, dict) %}
           <div class="block">
             <div class="block-head">日志内容</div>
-            {% for k, v in log.get('content', {}).items() %}
+            {% for k, v in content.items() %}
             <div class="info long">
               <label class="label">{{_t(k)}}</label>
-              <span class="value">{{','.join(v) if isinstance(v, list) else v}}</span>
+              <span class="value">{{v or ''}}</span>
             </div>
             {% end %}
           </div>
+          {% elif isinstance(content, list) %}
+          <div class="block">
+            <div class="block-head">日志内容</div>
+            {% for item in content %}
+            <li class="block-sub-head">{{to_date_str(item.get('updated_time'))}}</li>
+            {% for k, v in item['content'].items() %}
+            <div class="info long">
+              <label class="label">{{_t(k)}}</label>
+              <span class="value">{{v or ''}}</span>
+            </div>
+            {% end %}
+            {% end %}
+          </div>
+          {% end %}
         </div>
       </div>
     </div>

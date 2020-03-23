@@ -6,6 +6,12 @@
   .char-img {
     width: 60px;
   }
+
+  .swal2-footer a {
+    color: var(--Brown_Darker);
+    text-decoration: underline;
+  }
+
 </style>
 {% include _font_css.html %}
 {% end %}
@@ -318,8 +324,10 @@
   /*---发布任务---*/
   $('.btn-publish a').on('click', function () {
     $('#publishModal').modal();
+    var taskType = $(this).attr('title');
+    $('#publishModal .task-type').val(taskType);
     $('#publishModal .task-name').text($(this).text());
-    $('#publishModal .task-type').val($(this).attr('title'));
+    $('#publishModal .form-group.num').toggleClass('hide', taskType.indexOf('review') > -1);
   });
 
   $('#publishModal .modal-confirm').on('click', function () {
@@ -329,7 +337,8 @@
     var taskType = $('#publishModal .task-type').val();
     var data = {task_type: taskType, num: num, batch: batch, source: source};
     postApi('/char/publish_task', {data: data}, (res) => {
-      showSuccess('成功', `已发布${res['cluster_count']}条聚类任务，${res['rare_count']}条僻字任务，`, 5000);
+      var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
+      Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/admin/oplog/latest">日志</a>'});
     });
   });
 </script>

@@ -35,14 +35,14 @@ class PublishHandler(TaskHandler):
 
         # 发布聚类校对-常见字
         counts1 = [c for c in counts if c['count'] >= 50]
-        cluster_tasks = [
+        normal_tasks = [
             get_task([dict(ocr_txt=c['_id'], count=c['count'], source=source)], c['count'])
             for c in counts1
         ]
-        if cluster_tasks:
-            self.db.task.insert_many(cluster_tasks)
-            task_params = [t['params'] for t in cluster_tasks]
-            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, tasks=task_params), self.username)
+        if normal_tasks:
+            self.db.task.insert_many(normal_tasks)
+            task_params = [t['params'] for t in normal_tasks]
+            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
 
         # 发布聚类校对-生僻字
         counts2 = [c for c in counts if c['count'] < 50]
@@ -58,7 +58,7 @@ class PublishHandler(TaskHandler):
             rare_tasks.append(get_task(params, total_count))
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
-            task_params = [t['params'] for t in cluster_tasks]
-            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, tasks=task_params), self.username)
+            task_params = [t['params'] for t in normal_tasks]
+            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
 
-        return dict(published=published, cluster_count=len(cluster_tasks), rare_count=len(rare_tasks))
+        return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))

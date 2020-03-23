@@ -35,7 +35,6 @@ class Oplog(Model):
         if key == 'op_type':
             return _t(value)
         if key == 'content':
-            return ', '.join(['<span class="key">%s</span>: <span class="value">%s</span>' % (
-                _t(k), '%s%s' % (','.join(v[:10]), '...' if len(v) > 10 else '')
-            ) for k, v in value.items()])
+            value, size = str(value), 80
+            return '%s%s' % (value[:size], '...' if len(value) > size else '')
         return h.format_value(value, key, doc)

@@ -285,6 +285,7 @@ role_route_maps = {
             '/admin/script': ['GET'],
             '/admin/oplog': ['GET'],
             '/admin/oplog/@oid': ['GET'],
+            '/admin/oplog/latest': ['GET'],
             '/api/admin/oplog/delete': ['POST'],
         }
     },

@@ -28,18 +28,23 @@ class AdminOplogHandler(BaseHandler, Oplog):
 
     def get(self):
         """ 管理日志"""
+        condition = {}
+        docs, pager, q, order = self.find_by_page(self, condition, default_order='-_id')
         kwargs = self.get_template_kwargs()
-        docs, pager, q, order = self.find_by_page(self, default_order='-_id')
         self.render('admin_oplog.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 
 class AdminOplogViewHandler(BaseHandler, Oplog):
-    URL = '/admin/oplog/@oid'
+    URL = ['/admin/oplog/@oid', '/admin/oplog/(latest)']
 
     def get(self, oid):
         """ 管理日志"""
-        log = self.db.oplog.find_one({'_id': ObjectId(oid)})
+        if oid == 'latest':
+            log = list(self.db.oplog.find().sort('_id', -1).limit(1))
+            log = log and log[0]
+        else:
+            log = self.db.oplog.find_one({'_id': ObjectId(oid)})
         if not log:
             self.send_error_response(e.no_object, message='日志不存在')
         self.render('admin_oplog_view.html', log=log)

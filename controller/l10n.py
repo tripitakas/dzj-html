@@ -22,4 +22,5 @@ l10n = {
     'exist_char': '字图已存在',
     'success_column': '列图生成成功',
     'fail_column': '列图生成失败',
+    'publish_task': '发布任务',
 }
