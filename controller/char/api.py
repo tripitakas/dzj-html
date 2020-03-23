@@ -19,14 +19,15 @@ class PublishCharTasksApi(PublishHandler):
     def post(self):
         """ 发布字任务 """
         try:
-            rules = [(v.not_empty, 'batch', 'task_type')]
+            rules = [(v.not_empty, 'batch', 'task_type', 'source')]
             self.validate(self.data, rules)
 
-            if not self.db.char.count_documents({'batch': self.data['batch']}):
+            if not self.db.char.count_documents({'source': self.data['source']}):
                 self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
 
             try:
-                log = self.publish_many(self.data['batch'], self.data['task_type'])
+                log = self.publish_many(self.data['batch'], self.data['task_type'], self.data['source'],
+                                        self.data.get('num'))
                 return self.send_data_response(log)
 
             except self.DbError as error:

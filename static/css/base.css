@@ -370,7 +370,6 @@ body.widescreen {
   font-size: 15px;
   position: absolute;
   color: var(--Brown_Darker);
-  /*background: url(../imgs/search-icon.png) no-repeat;*/
 }
 
 .sty-list .operation span {
@@ -386,10 +385,6 @@ body.widescreen {
   font-size: 14px;
   cursor: pointer;
   margin-right: 10px;
-}
-
-.sty-list .operation i {
-  line-height: 32px;
 }
 
 .sty-list .sty-table {
