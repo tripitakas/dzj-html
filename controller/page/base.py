@@ -48,7 +48,7 @@ class PageHandler(TaskHandler, PageTool):
                 texts.append([ocr_col, '列框OCR', 'ocr_col'])
             cmp = self.prop(self.task, 'result.cmp')
             if cmp:
-                texts.append([cmp, '比对文本'])
+                texts.append([cmp, '比对文本', 'cmp'])
         elif self.task_type == 'text_review':
             doubt = self.prop(self.task, 'result.doubt', '')
             doubts.append([doubt, '我的存疑'])
