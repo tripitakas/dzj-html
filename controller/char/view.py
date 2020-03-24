@@ -30,21 +30,21 @@ class CharBrowseHandler(BaseHandler, Char):
             return self.send_db_error(error)
 
 
-class TaskCharProofHandler(CharHandler):
-    URL = ['/task/cluster_proof/@task_id',
-           '/task/do/cluster_proof/@task_id',
-           '/task/browse/cluster_proof/@task_id',
-           '/task/update/cluster_proof/@task_id']
+class TaskCharClusterHandler(CharHandler):
+    URL = ['/task/(cluster_proof|cluster_review)/@task_id',
+           '/task/do/(cluster_proof|cluster_review)/@task_id',
+           '/task/browse/(cluster_proof|cluster_review)/@task_id',
+           '/task/update/(cluster_proof|cluster_review)/@task_id']
 
     page_size = 50
     txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
 
-    def get(self, task_id):
+    def get(self, task_type, task_id):
         """ 聚类校对页面"""
         try:
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
-            data_level = self.get_task_level('cluster_proof')
+            data_level = self.get_task_level(task_type)
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'data_level': {'$lte': data_level}}
             # 统计字种
             counts = list(self.db.char.aggregate([

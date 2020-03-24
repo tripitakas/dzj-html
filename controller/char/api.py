@@ -128,16 +128,16 @@ class CharUpdateApi(CharHandler):
 
 
 class TaskCharClusterProofApi(CharHandler):
-    URL = ['/api/task/do/cluster_proof/@task_id',
-           '/api/task/update/cluster_proof/@task_id']
+    URL = ['/api/task/do/(cluster_proof|cluster_review)/@task_id',
+           '/api/task/update/(cluster_proof|cluster_review)/@task_id']
 
-    def post(self, task_id):
+    def post(self, task_type, task_id):
         """ 提交聚类校对任务"""
         try:
             # 更新char
             params = self.task['params']
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}}
-            self.db.char.update_many(cond, {'$inc': {'proof_count': 1}})
+            self.db.char.update_many(cond, {'$inc': {task_type.replace('cluster_', '') + '_count': 1}})
             # 提交任务
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': self.now()

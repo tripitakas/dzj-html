@@ -1,7 +1,7 @@
 from . import api, view
 
 views = [
-    view.CharBrowseHandler, view.TaskCharProofHandler,
+    view.CharBrowseHandler, view.TaskCharClusterHandler,
 ]
 
 handlers = [
