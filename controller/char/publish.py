@@ -11,7 +11,9 @@ class PublishHandler(TaskHandler):
         """ 发布聚类、分类的校对、审定任务 """
 
         def get_task(ps, cnt, tips=None):
-            meta = dict(batch=batch, num=num, params=ps, char_count=cnt, type_tips=tips, status=self.STATUS_PUBLISHED)
+            status = self.STATUS_PUBLISHED
+            tk = ''.join([p.get('ocr_txt') or p.get('txt') for p in ps])
+            meta = dict(batch=batch, num=num, params=ps, txt_kind=tk, char_count=cnt, type_tips=tips, status=status)
             return self.get_publish_meta(task_type, meta)
 
         def get_txt(task):

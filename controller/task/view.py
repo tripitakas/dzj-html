@@ -99,15 +99,8 @@ class CharTaskAdminHandler(TaskHandler):
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
-    hide_fields = ['_id', 'input', 'return_reason', 'create_time', 'updated_time', 'publish_by']
+    hide_fields = ['_id', 'params', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
-
-    @classmethod
-    def format_value(cls, value, key=None, doc=None):
-        if key == 'txt_kind':
-            txts = ''.join([p.get('ocr_txt') or p.get('ocr') for p in doc['params']])
-            return txts if len(txts) <= 5 else (txts[:5] + '...')
-        return super().format_value(value, key, doc)
 
     def get(self):
         """ 任务管理-字任务管理"""
@@ -246,18 +239,14 @@ class LobbyTaskHandler(TaskHandler):
     def get(self, task_type):
         """ 任务大厅"""
 
-        def get_task_title(task):
-            if task['collection'] == 'char':
-                txt = ''.join([p.get('ocr_txt') or p.get('txt') for p in task['params']])
-                txt = '%s%s' % (txt[:5], '...' if len(txt) > 5 else '')
-                return '%s(%s字)' % (txt, task.get('char_count'))
-            return task['doc_id']
-
         try:
             q = self.get_query_argument('q', '')
             tasks, total_count = self.find_lobby(task_type, q=q)
+            collection = self.get_data_collection(task_type)
+            fields = [('doc_id', '页编码'), ('priority', '优先级')] if collection == 'page' else [
+                ('txt_kind', '字种'), ('char_count', '单字数量')]
             self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        get_task_title=get_task_title)
+                        fields=fields, format_value=self.format_value)
         except Exception as error:
             return self.send_db_error(error)
 

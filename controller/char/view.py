@@ -45,15 +45,16 @@ class TaskCharProofHandler(CharHandler):
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}}
-            # 统计字字种
+            # 统计字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},
                 {'$sort': {'count': -1}},
             ]))
             txts = [c['_id'] for c in counts]
             # 设置当前正字
-            txt = self.get_query_argument('txt', txts[0])
-            cond.update({'txt': txt})
+            txt = self.get_query_argument('txt', 0)
+            if txt:
+                cond.update({'txt': txt})
             # 查找单字数据
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             column_url = ''
