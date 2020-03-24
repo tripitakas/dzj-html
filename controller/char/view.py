@@ -44,7 +44,8 @@ class TaskCharProofHandler(CharHandler):
         try:
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
-            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}}
+            data_level = self.get_task_level('cluster_proof')
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'data_level': {'$lte': data_level}}
             # 统计字种
             counts = list(self.db.char.aggregate([
                 {'$match': cond}, {'$group': {'_id': '$txt', 'count': {'$sum': 1}}},

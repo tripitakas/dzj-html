@@ -27,11 +27,21 @@ class CharHandler(TaskHandler, Char):
 
     def get_user_level(self):
         user_roles = auth.get_all_roles(self.current_user['roles'])
-        role_level = max([self.data_level['role'].get(r, 0) for r in user_roles])
+        return max([self.data_level['role'].get(r, 0) for r in user_roles]) or 0
+
+    def get_edit_level(self, edit_type):
+        if edit_type == 'char_edit':
+            return self.get_user_level()
+        if edit_type in list(self.data_level['task'].keys()):
+            return self.get_task_level(edit_type)
+
+    def get_char_count_by_task(self):
         char_tasks = list(self.db.task.find(
             {'collection': 'char', 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED},
             {'char_count': 1}
         ))
         char_count = sum([int(t.get('char_count', 0)) for t in char_tasks])
-        work_level = int(char_count / 5000)  # 5000个字加1分
-        return role_level + work_level
+        return char_count
+
+    def get_updated_char_count(self):
+        return self.db.char.count_documents({'txt_logs.user_id': self.user_id})

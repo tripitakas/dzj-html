@@ -107,7 +107,7 @@ class TaskHandler(BaseHandler, Task, Lock):
 
     def get_task_id(self):
         s = re.search(r'/([0-9a-z]{24})(\?|$|\/)', self.request.path)
-        return s.group(1) if s else ''
+        return s.group(1) if (s and '/task' in self.request.path) else ''
 
     def get_doc_id(self):
         """ 获取数据id。子类可重载，以便prepare函数调用"""

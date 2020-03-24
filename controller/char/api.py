@@ -80,22 +80,26 @@ class UpdateCharSourceApi(BaseHandler, Char):
             return self.send_db_error(error)
 
 
-class CharUpdateApi(BaseHandler, Char):
+class CharUpdateApi(CharHandler):
     URL = '/api/char/@oid'
 
     def post(self, _id):
         """ 更新字符"""
 
         def check_level():
-            return True
+            # 暂时简单考虑data_level和updated_count两个参数
+            has_data_level = self.get_user_level() >= (char.get('data_level') or 0)
+            updated_count = len(char.get('txt_logs') or [])
+            is_count_qualified = self.get_updated_char_count() >= updated_count * 100
+            return has_data_level and is_count_qualified
 
         try:
-            rules = [(v.not_empty, 'txt'), (v.is_proof_txt, 'txt')]
+            rules = [(v.not_empty, 'txt', 'edit_type'), (v.is_proof_txt, 'txt')]
             self.validate(self.data, rules)
             char = self.db.char.find_one({'_id': ObjectId(_id)})
             if not char:
                 self.send_error_response(e.no_object, message='没有找到字符')
-            if not check_level():
+            if not check_level() and char.get('txt_logs')[-1]['user_id'] != self.user_id:
                 self.send_error_response(e.data_level_unqualified, message='数据等级不够')
 
             r = re.findall(r'[XYMN*]', self.data['txt'])
@@ -103,8 +107,8 @@ class CharUpdateApi(BaseHandler, Char):
                 self.data['txt_type'] = r[0]
                 self.data['txt'] = self.data['txt'].replace(r[0], '')
 
-            my_log = {k: self.data[k] for k in ['txt', 'ori_txt', 'remark'] if self.data.get(k)}
-            my_log.update({'edit_type': 'char_edit', 'txt_type': self.data.get('txt_type'), 'updated_time': self.now()})
+            my_log = {k: self.data[k] for k in ['txt', 'ori_txt', 'remark', 'edit_type'] if self.data.get(k)}
+            my_log.update({'txt_type': self.data.get('txt_type'), 'updated_time': self.now()})
             new_log = True
             logs = char.get('txt_logs') or []
             for i, log in enumerate(logs):
@@ -114,9 +118,8 @@ class CharUpdateApi(BaseHandler, Char):
             if new_log:
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
-
-            update = {k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)}
-            update['txt_logs'] = logs
+            update = {'txt_logs': logs, 'data_level': self.get_edit_level(self.data['edit_type'])}
+            update.update({k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)})
             self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
 
@@ -137,8 +140,8 @@ class TaskCharClusterProofApi(CharHandler):
             self.db.char.update_many(cond, {'$inc': {'proof_count': 1}})
             # 提交任务
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'status': self.STATUS_FINISHED, 'finished_time': self.now()}
-            })
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()
+            }})
             self.send_data_response()
 
         except self.DbError as error:

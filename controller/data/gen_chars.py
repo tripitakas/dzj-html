@@ -52,16 +52,15 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
-                        meta = dict(page_name=p['name'])
-                        meta['name'] = '%s_%s' % (p['name'], c['cid'])
-                        meta.update(
-                            {k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
-                        meta.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
-                        meta['txt'] = c.get('txt') or c.get('ocr_txt')
-                        meta['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
-                        meta['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
-                        meta['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
-                        chars.append(meta)
+                        m = dict(page_name=p['name'], data_level=0)
+                        m['name'] = '%s_%s' % (p['name'], c['cid'])
+                        m.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
+                        m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
+                        m['txt'] = c.get('txt') or c.get('ocr_txt')
+                        m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
+                        m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
+                        m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
+                        chars.append(m)
                     except KeyError:
                         invalid_chars.append('%s_%s' % (p['name'], c['cid']))
             except KeyError:

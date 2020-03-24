@@ -314,13 +314,12 @@ class Char(Model):
     rules = [
         (v.is_page, 'page_name'),
     ]
-    primary = 'id'
+    primary = 'name'
 
-    txt_types = {'Z': '正字', 'Y': '广义异体字', 'X': '狭义异体字', 'M': '模糊字', 'N': '不确定', '*': '不认识'}
-    edit_types = {'char_edit': '单字校对', 'cluster_proof': '聚类校对', 'cluster_review': '聚类审定'}
+    txt_types = {'': '正字', 'Y': '广义异体字', 'X': '狭义异体字', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
     # search_fields在这里定义，这样find_by_page时q参数才会起作用
     search_tips = '请搜索字编码、分类、文字'
-    search_fields = ['name', 'source', 'ocr', 'txt', 'txt_normal']
+    search_fields = ['name', 'source', 'txt', 'ocr_txt', 'ori_txt']
 
     @classmethod
     def get_char_search_condition(cls, request_query):
@@ -328,7 +327,7 @@ class Char(Model):
             return int(float(c) * 1000)
 
         condition, params = dict(), dict()
-        for field in ['ocr_txt', 'txt', 'txt_type']:
+        for field in ['txt', 'ocr_txt', 'txt_type']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
