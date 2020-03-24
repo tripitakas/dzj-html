@@ -150,12 +150,16 @@
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
-    scrollContainer: '#holder-container',
+    scrollContainer: '#left-region',
   });
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+  setTimeout(function () {
+    $.cut.switchCurrentBox('{{cur_cid}}');
+    $.cut.toggleClass(['{{cur_cid}}'], 'flash', true);
+  }, 500);
 
   $.cut.state.canHitBox = function (el) {
     if ($('#toggle-char').hasClass('active') && el.data('class') === 'char')

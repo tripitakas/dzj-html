@@ -198,10 +198,10 @@ class PageViewHandler(PageHandler):
             texts = self.get_all_txt(page)
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
-            char_id = self.get_query_argument('char_id', None)
-            txt_off = self.get_query_argument('txt', None) == '0'
+            cid = self.get_query_argument('char_id', '').split('_')[-1]
+            txt_off = self.get_query_argument('txt', None) == 'off'
             self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col,
-                        txt_off=txt_off, char_id=char_id)
+                        txt_off=txt_off, cur_cid=cid)
 
         except Exception as error:
             return self.send_db_error(error)

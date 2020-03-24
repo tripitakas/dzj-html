@@ -323,9 +323,10 @@
   });
 
   // 查看切分
-  $('.column-panel').on('dblclick', function () {
-    var pageName = $('#currentName').val().split('_').slice(0, -1).join('_');
-    window.open('/page/cut_view/' + pageName, '_blank');
+  $('.column-panel').on('click', function () {
+    var cid = $('#currentName').val();
+    var pageName = cid.split('_').slice(0, -1).join('_');
+    window.open('/page/' + pageName + '?txt=off&char_id=' + cid, '_blank');
   });
 
 </script>
