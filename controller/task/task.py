@@ -18,7 +18,6 @@ class Task(Model):
         {'id': '_id', 'name': '主键'},
         {'id': 'batch', 'name': '批次号'},
         {'id': 'task_type', 'name': '类型'},
-        {'id': 'type_tips', 'name': '类型说明'},
         {'id': 'num', 'name': '校次'},
         {'id': 'collection', 'name': '数据表'},
         {'id': 'id_name', 'name': '主键名'},
@@ -29,6 +28,8 @@ class Task(Model):
         {'id': 'pre_tasks', 'name': '前置任务'},
         {'id': 'params', 'name': '输入参数'},
         {'id': 'result', 'name': '输出结果'},
+        {'id': 'char_count', 'name': '单字总数'},
+        {'id': 'type_tips', 'name': '类型说明'},
         {'id': 'return_reason', 'name': '退回理由'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
@@ -245,14 +246,11 @@ class Task(Model):
     def get_task_search_condition(cls, request_query, collection=None, mode=None):
         """ 获取任务的查询条件"""
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        value = h.get_url_param('task_type', request_query)
+        value = h.get_url_param('txt_kind', request_query)
         if value:
-            params['task_type'] = value
-            condition.update({'task_type': value})
-        elif mode == 'browse':
-            # 浏览模式过滤掉小欧任务
-            condition.update({'task_type': {'$nin': cls.get_ocr_tasks()}})
-        for field in ['collection', 'status', 'priority']:
+            params['txt_kind'] = value
+            condition.update({'$or': [{'params.ocr_txt': value}]})
+        for field in ['task_type', 'collection', 'status', 'priority']:
             value = h.get_url_param(field, request_query)
             if value:
                 params[field] = value
@@ -293,4 +291,6 @@ class Task(Model):
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}
             condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
+        if mode == 'browse':  # 浏览模式过滤掉小欧任务
+            condition['task_type'] = {'$nin': cls.get_ocr_tasks()}
         return condition, params

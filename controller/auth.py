@@ -203,7 +203,7 @@ role_route_maps = {
         'roles': ['工作人员'],
         'routes': {
             '/api/user/list': ['POST'],
-            '/task/page/statistic': ['GET'],
+            '/task/(page|char)/statistic': ['GET'],
             '/task/detail/@task_id': ['GET'],
             '/task/resume/page/@page_name': ['GET'],
             '/task/admin/(image|page|char)': ['GET'],

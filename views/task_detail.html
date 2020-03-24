@@ -10,9 +10,10 @@
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
   <style>
-    .doubt img{
+    .doubt img {
       width: 18px;
     }
+
     .txt_html .block {
       padding: 0;
     }
@@ -30,7 +31,7 @@
           <div class="block">
             <div class="block-head">基本信息</div>
             {% for k, v in task.items() %}
-            {% if k not in ['input', 'result'] %}
+            {% if k not in ['params', 'result'] %}
             <div class="info">
               <label class="label">{{handler.get_field_name(k)}}</label>
               <span class="value">{% raw handler.format_value(task[k], k) %}</span>
@@ -38,13 +39,26 @@
             {% end %}
             {% end %}
           </div>
-          {% if task.get('input') %}
+          {% if task.get('params') %}
           <div class="block input">
             <div class="block-head">输入参数</div>
-            {% for k, v in task.get('input').items() %}
+            {% if isinstance(task['params'], dict) %}
+            {% for k, v in task.get('params').items() %}
             <div class="info long">
               <label class="label">{{k}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>
+            </div>
+            {% end %}
+            {% elif isinstance(task['params'], list) %}
+            <div class="info long">
+              {% for p in task['params'] %}
+              <span class="value">{{p}}</span>
+              {% end %}
+            </div>
+            {% else %}
+            <div class="info long">
+              <label class="label">　</label>
+              <span class="value">{{task['params']}}}</span>
             </div>
             {% end %}
           </div>

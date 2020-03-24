@@ -81,7 +81,7 @@ class CharTaskAdminHandler(TaskHandler):
 
     page_title = '字任务管理'
     search_tips = '请搜索字种、批次号或备注'
-    search_fields = ['input.ocr_txt', 'batch', 'remark']
+    search_fields = ['params.ocr_txt', 'params.txt', 'batch', 'remark']
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'title': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
@@ -96,12 +96,18 @@ class CharTaskAdminHandler(TaskHandler):
     actions = [
         {'action': 'btn-nav', 'label': '浏览'},
         {'action': 'btn-detail', 'label': '详情'},
-        {'action': 'btn-history', 'label': '历程'},
         {'action': 'btn-delete', 'label': '删除'},
         {'action': 'btn-republish', 'label': '重新发布', 'disabled': lambda d: d['status'] not in ['picked', 'failed']},
     ]
     hide_fields = ['_id', 'input', 'return_reason', 'create_time', 'updated_time', 'publish_by']
     update_fields = []
+
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        if key == 'txt_kind':
+            txts = ''.join([p.get('ocr_txt') or p.get('ocr') for p in doc['params']])
+            return txts if len(txts) <= 5 else (txts[:5] + '...')
+        return super().format_value(value, key, doc)
 
     def get(self):
         """ 任务管理-字任务管理"""
@@ -114,10 +120,13 @@ class CharTaskAdminHandler(TaskHandler):
             kwargs['table_fields'] = [
                 {'id': '_id', 'name': '主键'},
                 {'id': 'batch', 'name': '批次号'},
-                {'id': 'task_type', 'name': '类型', 'filter': self.get_task_types('page')},
+                {'id': 'txt_kind', 'name': '字种'},
+                {'id': 'char_count', 'name': '单字数量'},
+                {'id': 'task_type', 'name': '类型', 'filter': self.get_task_types('char')},
+                {'id': 'type_tips', 'name': '类型说明'},
                 {'id': 'status', 'name': '状态', 'filter': self.task_statuses},
                 {'id': 'priority', 'name': '优先级', 'filter': self.priorities},
-                {'id': 'input', 'name': '输入参数'},
+                {'id': 'params', 'name': '输入参数'},
                 {'id': 'return_reason', 'name': '退回理由'},
                 {'id': 'create_time', 'name': '创建时间'},
                 {'id': 'updated_time', 'name': '更新时间'},
@@ -200,16 +209,16 @@ class ImageTaskAdminHandler(TaskHandler):
 
 
 class PageTaskStatisticHandler(TaskHandler):
-    URL = '/task/page/statistic'
+    URL = '/task/(page|char)/statistic'
 
-    def get(self):
+    def get(self, collection):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status']:
                 return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
 
-            condition = self.get_task_search_condition(self.request.query, 'page')[0]
+            condition = self.get_task_search_condition(self.request.query, collection)[0]
             counts = list(self.db.task.aggregate([
                 {'$match': condition},
                 {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},

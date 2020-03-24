@@ -233,7 +233,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         collection, id_name = self.get_data_conf(task_type)[:2]
         task_meta = dict(
             task_type=task_type, num='', batch='', collection=collection, id_name=id_name, doc_id='',
-            status='', priority='', steps={}, pre_tasks=[], input=None, result={},
+            status='', priority='', steps={}, pre_tasks=[], params=None, result={},
             create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
             publish_user_id=self.user_id, publish_by=self.username
         )
