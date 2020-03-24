@@ -37,7 +37,7 @@ class TaskCharProofHandler(CharHandler):
            '/task/update/cluster_proof/@task_id']
 
     page_size = 50
-    txt_types = {'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
 
     def get(self, task_id):
         """ 聚类校对页面"""
@@ -62,7 +62,7 @@ class TaskCharProofHandler(CharHandler):
                 d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
                 if not column_url:
                     column_url = self.get_web_img(column_name, 'column')
-            self.render('char_cluster_proof.html', docs=docs, pager=pager, q=q, order=order,
+            self.render('char_task_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
                         txts=txts, txt=txt, column_url=column_url,
                         chars={str(d['_id']): d for d in docs})

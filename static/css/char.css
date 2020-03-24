@@ -23,32 +23,38 @@
   flex: 1;
   overflow: auto;
   margin: 10px 20px;
-  padding-bottom: 20px;
   display: flex;
   flex-direction: column;
 }
 
 .char-panel .txt-kinds {
   display: flex;
-  overflow-x: auto;
+  flex-wrap: wrap;
   padding-left: 10px;
   border-bottom: 1px solid #ccc;
 }
 
-.txt-kinds .txt-item.current {
-  /*width: 55px;*/
-  /*height: 70px;*/
-  /*font-size: 48px;*/
+.txt-kind {
+  width: 45px;
+  height: 55px;
+  font-size: 36px;
+  display: inline-block;
+  cursor: pointer;
+  text-align: center;
+  margin: 0 12px 5px 0;
+  border: 1px solid #ccc;
+}
+
+.txt-kind.current {
   background-color: rgba(0, 0, 0, .1);
 }
 
 .char-panel .char-items {
-  overflow: auto;
 }
 
 .char-panel .pagers {
   clear: both;
-  margin: 40px 0 20px;
+  margin: 20px 0;
 }
 
 .char-items .char-item {
@@ -216,10 +222,12 @@
 
 .txt-type {
   margin-top: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .txt-type .radio-item {
-  width: 30%;
   display: inline-block;
   cursor: pointer;
 }

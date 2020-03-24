@@ -39,7 +39,6 @@
         {% end %}
         {% if handler.mode == 'browse' %}
         <div class="btn-txt btn-line"></div>
-        <div id="page-view" class="btn-txt icon-eye" data-toggle="tooltip" data-placement="bottom" title="查看页面"></div>
         <div id="task-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注任务"></div>
         <div id="task-prev" class="btn-txt icon-backward" data-toggle="tooltip" data-placement="bottom" title="前一个任务"></div>
         <div id="task-next" class="btn-txt icon-forward" data-toggle="tooltip" data-placement="bottom" title="后一个任务"></div>
@@ -197,11 +196,6 @@
       showSuccess('成功', docId + ' 已退回成功。');
       goto('/task/lobby/' + lobbyTaskType, 1000);
     });
-  });
-
-  // 查看页面
-  $(document).on('click', '#page-view', function () {
-    location.href = '/page/browse/' + docId + '?from=' + encodeFrom();
   });
 
   // 前一个任务

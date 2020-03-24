@@ -131,7 +131,15 @@ class TaskCharClusterProofApi(CharHandler):
     def post(self, task_id):
         """ 提交聚类校对任务"""
         try:
-            self.update_task(self.data.get('submit'))
+            # 更新char
+            params = self.task['params']
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}}
+            self.db.char.update_many(cond, {'$inc': {'proof_count': 1}})
+            # 提交任务
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()}
+            })
             self.send_data_response()
+
         except self.DbError as error:
             return self.send_db_error(error)
