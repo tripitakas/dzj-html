@@ -57,7 +57,7 @@ class PublishHandler(TaskHandler):
                 rare_tasks.append(get_task(params, total_count, '生僻字'))
                 params, total_count = [], 0
         if total_count:
-            rare_tasks.append(get_task(params, total_count))
+            rare_tasks.append(get_task(params, total_count, '生僻字'))
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
             task_params = [t['params'] for t in normal_tasks]

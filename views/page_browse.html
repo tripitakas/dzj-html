@@ -66,9 +66,7 @@
     </div>
     <div class="m-body flex">
       <div class="left bd" id="left-region">
-        <div id="holder-container">
-          <div id="holder"></div>
-        </div>
+        <div id="holder"></div>
       </div>
       {% if texts %}
       <div class="right bd {{'hide' if btn_config.get('toggle-right') == -1 else ''}}" id="right-region">
@@ -321,13 +319,13 @@
     readonly: true,
     holder: 'holder',
     image: '{{img_url}}',
-    scrollContainer: '#holder-container',
     name: '{{page["name"]}}',
     width: '{{page["width"]}}',
     height: '{{page["height"]}}',
     chars: '{{page["chars"]}}',
     blocks: '{{page["blocks"]}}',
     columns: '{{page["columns"]}}',
+    scrollContainer: '#left-region',
   });
   $.cut.bindKeys();
   $.cut.bindCharOrderKeys();

@@ -5,16 +5,6 @@
 {% block custom-css %}
 {% include _font_css.html %}
 <link href="{{static_url('css/char.css')}}" rel="stylesheet">
-<style>
-  .char-info .txt {
-    display: none;
-  }
-</style>
-<script>
-  window.onerror = function () {
-    return true;
-  };
-</script>
 {% end %}
 
 {% block buttons %}
@@ -44,6 +34,7 @@
 {% block m-body %}
 <div class="char-panel">
   <div class="txt-kinds">
+    <div class="txt-kind{{' current' if not txt else ''}}"></div>
     {% for t in txts %}
     <div class="txt-kind{{' current' if t == txt else ''}}">{{t}}</div>
     {% end %}
@@ -55,7 +46,7 @@
         <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
       </div>
       <div class="char-info">
-        <span class="txt">{{d.get('txt', '')}}|</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
+        <span class="txt">{{d.get('txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
       </div>
     </div>
     {% end %}
@@ -144,7 +135,7 @@
 <div class="m-footer">
   <div class="fl">当前任务总字数：{{char_count}}，</div>
   <div class="fl">聚类字种：{{'、'.join(ocr_txts)}}</div>
-  <div class="info debug fr">字编码：<span class="name"></span></div>
+  <div class="debug fr">字编码：<span class="name"></span></div>
 </div>
 {% end %}
 
@@ -256,11 +247,9 @@
     // 更新列图和字框
     updateColumnImg(ch);
   });
-
-
 </script>
-<script>
 
+<script>
   // 获取任务数据
   function getTaskData() {
     return {};
@@ -277,7 +266,6 @@
   // 排序
   $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'));
   $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
-
 
   // 过滤
   $('#btn-filter').on('click', function () {
@@ -318,21 +306,29 @@
   $('#submit-proof').click(function () {
     var id = $('#currentId').val();
     var name = $('#currentName').val();
-    var data = {txt: $('.proof .txt').val(), remark: $('.proof .remark').val()};
+    var data = {txt: $txt.val(), remark: $('.proof .remark').val()};
     postApi('/char/' + id, {data: data}, function (res) {
       updateLogs(res.txt_logs);
+      location.href = setAnchor(name);
       data.txt_logs = res.txt_logs;
       if ($('.proof .txt-type :checked').length)
         data.txt_type = $('.proof .txt-type :checked').val();
       chars[id] = $.extend(chars[id], data);
-      location.href = setAnchor(name);
+      var $curItem = $('#' + name);
+      $curItem.find('.txt').text($txt.val());
+      var index = $curItem.attr('class').search(/proof\d/);
+      var no = $curItem.attr('class').substr(index + 5, 1);
+      $curItem.removeClass('proof' + no).addClass('proof' + (parseInt(no) + 1));
       bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
     });
   });
 
   // 切换字种
   $('.txt-kind').on('click', function () {
-    location.href = setQueryString('txt', $(this).text());
+    if (!$(this).text().trim())
+      location.href = deleteQueryString('txt');
+    else
+      location.href = setQueryString('txt', $(this).text());
   });
 
   // 查看切分

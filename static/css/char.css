@@ -83,16 +83,16 @@
   /*align-items: center;*/
 }
 
-.char-item.proof1 {
-  background: #669966;
+.char-item.proof3 {
+  background: #EEFFBB;
 }
 
 .char-item.proof2 {
-  background: #66CC33;
+  background: #CCFF99;
 }
 
-.char-item.proof3 {
-  background: #66FF00;
+.char-item.proof1 {
+  background: #99FF99;
 }
 
 .char-img img {

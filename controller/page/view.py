@@ -77,7 +77,6 @@ class TaskTextProofHandler(PageHandler):
         """ 文字校对页面"""
         try:
             img_url = self.get_page_img(self.page)
-            x
             if not self.get_query_argument('step', '') and self.steps['current'] == 'select' and self.page.get('cmp'):
                 self.steps.update(dict(current='proof', is_first=False, is_last=True, prev='select', next=None))
 
