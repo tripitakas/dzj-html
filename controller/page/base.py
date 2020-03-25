@@ -68,6 +68,21 @@ class PageHandler(TaskHandler, Page, Box):
         return html
 
     @classmethod
+    def char2html(cls, chars, field='txt'):
+        if not chars:
+            return ''
+        pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
+        for b in chars[1:]:
+            if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
+                html += '</div></div><div class="block"><div class="line">'
+            elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
+                html += '</div><div class="line">'
+            if b.get(field):
+                html += '<span id="%s" class="char">%s</span>' % (b['cid'], b[field])
+            pre = b
+        return html + '</div></div></div>'
+
+    @classmethod
     def html2txt(cls, html):
         """ 从html中获取txt文本，换行用|、换栏用||表示"""
         txt = ''

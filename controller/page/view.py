@@ -141,6 +141,28 @@ class TextEditHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class CharEditHandler(PageHandler):
+    URL = ['/page/char_edit/@page_name']
+
+    def get(self, page_name):
+        """ 单字修改页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='页面%s不存在' % page_name)
+
+            chars = page['chars']
+            chars_col = self.get_chars_col(chars)
+            char_dict = {c['cid']: c for c in chars}
+            img_url = self.get_web_img(page['name'])
+            txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+            self.render('page_char_edit.html', img_url=img_url, page=page, chars=chars, chars_col=chars_col,
+                        char_dict=char_dict, txt_types=txt_types)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class PageBrowseHandler(PageHandler):
     URL = '/page/browse/@page_name'
 

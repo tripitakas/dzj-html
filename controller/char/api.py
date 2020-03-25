@@ -81,9 +81,9 @@ class UpdateCharSourceApi(BaseHandler, Char):
 
 
 class CharUpdateApi(CharHandler):
-    URL = '/api/char/@oid'
+    URL = '/api/char/@char_name'
 
-    def post(self, _id):
+    def post(self, char_name):
         """ 更新字符"""
 
         def check_level():
@@ -96,7 +96,7 @@ class CharUpdateApi(CharHandler):
         try:
             rules = [(v.not_empty, 'txt', 'edit_type'), (v.is_proof_txt, 'txt')]
             self.validate(self.data, rules)
-            char = self.db.char.find_one({'_id': ObjectId(_id)})
+            char = self.db.char.find_one({'name': char_name})
             if not char:
                 self.send_error_response(e.no_object, message='没有找到字符')
             if not check_level() and char.get('txt_logs')[-1]['user_id'] != self.user_id:

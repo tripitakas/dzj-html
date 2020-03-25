@@ -46,6 +46,29 @@ function updateLogs(logs) {
   $('.logs').toggleClass('hide', !html.length);
 }
 
+function updateWorkPanel(ch) {
+  // 更新当前参数
+  $('#currentName').val(ch.name || pageName + '_' + ch.cid);
+  $('.m-footer .name').text(ch.name);
+  $('.char-items .current').removeClass('current');
+  $(this).addClass('current');
+  // 更新OCR候选
+  $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
+    return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
+  }));
+  // 更新校对历史
+  updateLogs(ch.txt_logs);
+  // 更新请您校对
+  $('.proof .remark').val('');
+  $('.proof .txt').val(ch.txt || ch.ocr_txt);
+  $('.txt-type .radio-item :radio').each(function (i, item) {
+    $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
+  });
+  // 更新列图和字框
+  if ($('#col-holder').length)
+    updateColumnImg(ch);
+}
+
 // 离开页面
 var from = decodeFrom();
 window.leave = function () {
@@ -106,39 +129,19 @@ $('.column-panel').on('click', function () {
 $('.char-panel .char-item').on('click', function () {
   var id = $(this).attr('data-id');
   var ch = chars[id] || {};
-  // 更新当前参数
-  $('#currentId').val(id);
-  $('#currentName').val(ch.name);
-  $('.debug .name').text(ch.name);
-  $('.char-items .current').removeClass('current');
-  $(this).addClass('current');
-  // 更新OCR候选
-  $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
-    return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
-  }));
-  // 更新校对历史
-  updateLogs(ch.txt_logs);
-  // 更新请您校对
-  $('.proof .remark').val('');
-  $('.proof .txt').val(ch.txt || ch.ocr_txt);
-  $('.txt-type .radio-item :radio').each(function (i, item) {
-    $(item).val() === ch.txt_type ? $(item).prop('checked', true) : $(item).removeAttr('checked');
-  });
-  // 更新列图和字框
-  updateColumnImg(ch);
+  updateWorkPanel(id, ch);
 });
 
 // 提交修改
 $('#submit-proof').click(function () {
-  var id = $('#currentId').val();
   var name = $('#currentName').val();
   var data = {
-    edit_type: editType,
+    edit_type: typeof editType !== 'undefined' ? editType : 'char_edit',
     txt: $('.proof .txt').val(),
     ori_txt: $('.proof .ori-txt').val() || '',
     remark: $('.proof .remark').val()
   };
-  postApi('/char/' + id, {data: data}, function (res) {
+  postApi('/char/' + name, {data: data}, function (res) {
     updateLogs(res.txt_logs);
     location.href = setAnchor(name);
     data.txt_logs = res.txt_logs;

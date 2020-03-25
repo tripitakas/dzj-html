@@ -17,7 +17,7 @@ url_placeholder = {
     'oid': r'[a-z0-9]{24}',
     'task_id': r'[a-z0-9]{24}',
     'doc_id': r'[a-zA-Z]{2}_[_0-9]+',
-    'char_id': r'[a-zA-Z]{2}_[_0-9]+',
+    'char_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
     'metadata': r'tripitaka|sutra|volume|reel|page|char',
@@ -146,7 +146,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@oid': ['POST'],
+            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_proof': ['GET'],
             '/api/task/pick/cluster_proof': ['POST'],
             '/task/(do|update|view)/cluster_proof/@task_id': ['GET'],
@@ -157,7 +157,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@oid': ['POST'],
+            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_review': ['GET'],
             '/api/task/pick/cluster_review': ['POST'],
             '/task/(do|update|view)/cluster_review/@task_id': ['GET'],
@@ -168,7 +168,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@oid': ['POST'],
+            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_proof': ['GET'],
             '/api/task/pick/separate_proof': ['POST'],
             '/task/(do|update|view)/separate_proof/@task_id': ['GET'],
@@ -179,7 +179,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@oid': ['POST'],
+            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_review': ['GET'],
             '/api/task/pick/separate_review': ['POST'],
             '/task/(do|update|view)/separate_review/@task_id': ['GET'],
@@ -194,7 +194,7 @@ role_route_maps = {
             '/api/task/pick/text_hard': ['POST'],
             '/task/(do|update)/text_hard/@task_id': ['GET'],
             '/api/task/(do|update)/text_hard/@task_id': ['POST'],
-            '/page/text_edit/@page_name': ['GET'],
+            '/page/(text_edit|char_edit)/@page_name': ['GET'],
             '/api/page/text_edit/@page_name': ['POST'],
         }
     },
@@ -250,7 +250,7 @@ role_route_maps = {
             '/api/data/page/source': ['POST'],
             '/api/data/char/source': ['POST'],
             '/api/char/gen_img': ['POST'],
-            '/api/char/@oid': ['POST'],
+            '/api/char/@char_name': ['POST'],
             '/char/browse': ['GET'],
         }
     },

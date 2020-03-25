@@ -4,6 +4,7 @@ views = [
     view.PageBrowseHandler, view.PageViewHandler,
     view.TaskCutHandler, view.CutEditHandler,
     view.TaskTextProofHandler, view.TaskTextReviewHandler, view.TextEditHandler,
+    view.CharEditHandler,
 ]
 
 handlers = [
