@@ -8,6 +8,7 @@ import re
 import oss2
 import logging
 import traceback
+from oss2.exceptions import OssError
 from os import path
 from bson import json_util
 from bson.errors import BSONError
@@ -240,7 +241,7 @@ class BaseHandler(CorsMixin, RequestHandler):
         code = type(error.args) == tuple and len(error.args) > 1 and error.args[0] or 0
         if not isinstance(code, int):
             code = 0
-        reason = re.sub(r'[<{;:].+$', '', error.args[1]) if code else re.sub(r'\(0.+$', '', str(error))
+        reason = re.sub(r'[<{;:].+$', '', str(error.args[1])) if code else re.sub(r'\(0.+$', '', str(error))
         if not code and '[Errno' in reason and isinstance(error, self.MongoError):
             code = int(re.sub(r'^.+Errno |\].+$', '', reason))
             reason = re.sub(r'^.+\]', '', reason)
@@ -340,11 +341,15 @@ class BaseHandler(CorsMixin, RequestHandler):
             cloud_host = my_cloud.replace(bucket_name + '.', '')
             img_bucket = oss2.Bucket(auth, cloud_host, bucket_name)
             img_url = path.join(my_cloud.replace('-internal', ''), relative_url)
-            if img_bucket.object_exists(relative_url):
-                return img_url
-            elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
-                return path.join(shared_cloud, relative_url)
-            else:
+            try:
+                if img_bucket.object_exists(relative_url):
+                    return img_url
+                elif shared_cloud and img_type in (self.get_config('web_img.shared_type') or ''):
+                    return path.join(shared_cloud, relative_url)
+                else:
+                    return img_url + '?err=1'
+            except OssError as err:
+                logging.error(err)
                 return img_url + '?err=1'
 
     @gen.coroutine

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
 # 本脚本的执行结果相当于在“数据管理-页数据”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
-# python utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
+# python3 utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 import re
 import sys
@@ -115,7 +115,8 @@ class AddPage(object):
             meta['name'] = name
             fields1 = ['width', 'height']
             meta.update({k: int(v) for k, v in info.get('imgsize', info).items() if v and k in fields1})
-            fields2 = ['source', 'blocks', 'columns', 'chars', 'ocr', 'ocr_col', 'char_ocr', 'create_time']
+            fields2 = ['source', 'blocks', 'columns', 'chars', 'ocr', 'ocr_col', 'char_ocr', 'create_time',
+                       'text']  # 将文字审定的text也导入
             meta.update({k: v for k, v in info.items() if v and k in fields2})
             meta['source'] = self.source if self.source else meta.get('source')
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
