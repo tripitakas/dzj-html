@@ -120,7 +120,7 @@ class CharUpdateApi(CharHandler):
                 logs.append(my_log)
             update = {'txt_logs': logs, 'data_level': self.get_edit_level(self.data['edit_type'])}
             update.update({k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)})
-            self.db.char.update_one({'_id': ObjectId(_id)}, {'$set': update})
+            self.db.char.update_one({'name': char_name}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
 
         except self.DbError as error:
