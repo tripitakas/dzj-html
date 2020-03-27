@@ -258,8 +258,9 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, reg
     elif isinstance(condition, str):
         condition = json.loads(condition)
 
-    once_size = 1000
+    once_size = 5000
     total_count = db.char.count_documents(condition)
+    print('%d chars to check...' % total_count)
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         print('%d chars to generate' % len(chars))
