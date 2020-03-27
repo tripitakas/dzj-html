@@ -8,6 +8,7 @@ import oss2
 import json
 import math
 import hashlib
+import pymongo
 from os import path
 from PIL import Image
 
@@ -237,10 +238,10 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, condition=None, chars=None, regen=False, username=None, host=None):
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
-    db = db or hp.connect_db(cfg['database'], host=host)[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], host=host)[0]
     cut = Cut(db, cfg, regen=regen)
 
     if chars:
