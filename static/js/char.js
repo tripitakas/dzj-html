@@ -48,7 +48,7 @@ function updateLogs(logs) {
 
 function updateWorkPanel(ch) {
   // 更新当前参数
-  $('#currentName').val(ch.name || pageName + '_' + ch.cid);
+  $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   $('.m-footer .name').text(ch.name);
   $('.char-items .current').removeClass('current');
   $(this).addClass('current');
@@ -129,7 +129,7 @@ $('.column-panel').on('click', function () {
 $('.char-panel .char-item').on('click', function () {
   var id = $(this).attr('data-id');
   var ch = chars[id] || {};
-  updateWorkPanel(id, ch);
+  updateWorkPanel(ch);
 });
 
 // 提交修改
