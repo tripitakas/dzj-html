@@ -28,9 +28,9 @@ def main(db_name='tripitaka', uri='localhost'):
 
         page['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
 
-        r = fix_page(page, page['text'], False)
-        if r == -1:
-            r = fix_page(page, page.get('text_proof_1') or page['text'], True)
+        r = fix_page(page, page['text'], not page.get('text_proof_1'))
+        if r == -1 and page.get('text_proof_1'):
+            r = fix_page(page, page.get('text_proof_1'), True)
         if r > 0:
             r = db.page.update_one({'name': page['name']}, {'$set': {'chars': page['chars']}})
             if r.modified_count:
@@ -40,7 +40,7 @@ def main(db_name='tripitaka', uri='localhost'):
 
 def fix_page(page, text, prompt):
     text_blks = re.sub('[XYMN　 ]', '', text).split('||')
-    changed = 0
+    changed, has_err = 0, False
 
     # 检查字框的列号与列框是否匹配
     column_ids = [c['column_id'] for c in page['columns']]
@@ -57,6 +57,7 @@ def fix_page(page, text, prompt):
         if len(columns_blk) != len(rows):
             if prompt:
                 print('E %s.b%d columns mismatch: %d, %d rows' % (page['name'], blk + 1, len(columns_blk), len(rows)))
+            has_err = True
             continue
 
         for i, (col_id, text) in enumerate(zip(columns_blk, rows)):
@@ -79,7 +80,7 @@ def fix_page(page, text, prompt):
             if old_text != new_text:
                 print('I %s %s chars changed: %s -> %s' % (page['name'], col_id, old_text, new_text))
 
-    return changed
+    return changed or (-1 if has_err else 0)
 
 
 if __name__ == '__main__':
