@@ -26,16 +26,16 @@
       </div>
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="toggle-image" class="btn-txt icon-image{{'' if btn_config['toggle-image'] == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
-        <div id="toggle-right" class="btn-txt icon-txt{{'' if btn_config['toggle-right'] == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
-        <div id="toggle-blur" class="btn-txt icon-blur{{' active' if btn_config['toggle-blur'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="toggle-image" class="btn-txt icon-image{{'' if btn_config.get('toggle-image') == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt{{'' if btn_config.get('toggle-right') == -1 else ' active'}}" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur{{' active' if btn_config.get('toggle-blur') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
         <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
         <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
         <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
-        <div id="toggle-block" class="btn-txt icon-blocks{{' active' if btn_config['toggle-block'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
-        <div id="toggle-column" class="btn-txt icon-columns{{' active' if btn_config['toggle-column'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
-        <div id="toggle-char" class="btn-txt icon-chars{{' active' if btn_config['toggle-char'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
-        <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config['toggle-order'] == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks{{' active' if btn_config.get('toggle-block') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns{{' active' if btn_config.get('toggle-column') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars{{' active' if btn_config.get('toggle-char') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-order" class="btn-txt icon-char-order{{' active' if btn_config.get('toggle-order') == 1 else ''}}" data-toggle="tooltip" data-placement="bottom" title="显隐字序"></div>
         <div id="toggle-more" class="btn-txt icon-more" data-toggle="tooltip" data-placement="bottom" title="更多"></div>
         <div class="btn-group more-group hide" id="more-group">
           <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
@@ -342,8 +342,10 @@
   };
 
   // 初始化设置
-  $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
-  $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
+  if ($.cut.data.image.node) {
+    $.cut.data.image.node.style.display = btnConfig['toggle-image'] === -1 ? 'none' : 'block';
+    $.cut.data.image.node.style.opacity = btnConfig['toggle-blur'] !== 1 ? 1 : 0.2;
+  }
   $.cut.setLink(btnConfig['toggle-order'] === 1);
   $.cut.toggleBox(btnConfig['toggle-char'] === 1, 'char');
   $.cut.toggleBox(btnConfig['toggle-block'] === 1, 'block');

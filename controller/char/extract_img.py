@@ -8,6 +8,7 @@ import oss2
 import json
 import math
 import hashlib
+import pymongo
 from os import path
 from PIL import Image
 
@@ -237,10 +238,10 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, condition=None, chars=None, regen=False, username=None, host=None):
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
-    db = db or hp.connect_db(cfg['database'], host=host)[0]
+    db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], host=host)[0]
     cut = Cut(db, cfg, regen=regen)
 
     if chars:
@@ -257,8 +258,9 @@ def extract_img(db=None, condition=None, chars=None, regen=False, username=None,
     elif isinstance(condition, str):
         condition = json.loads(condition)
 
-    once_size = 1000
+    once_size = 5000
     total_count = db.char.count_documents(condition)
+    print('%d chars to check...' % total_count)
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         print('%d chars to generate' % len(chars))
