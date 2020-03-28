@@ -111,7 +111,7 @@
     // 得到左边的入点和右边的出点坐标
     getLets: function () {
       var box = this.getBox(), y = (box.y + box.y2) / 2;
-      return [{x: box.x + box.width * 0.3, y: y}, {x: box.x + box.width * 0.7, y: y}];
+      return [{x: box.x + box.width * 0.4, y: y}, {x: box.x + box.width * 0.6, y: y}];
     },
 
     // 创建亮显矩形

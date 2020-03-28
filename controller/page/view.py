@@ -94,7 +94,7 @@ class TaskTextProofHandler(PageHandler):
                     cmp_data = to_basestring(TextArea(self).render(cmp_data))
                 return self.render('page_task_text.html', page=self.page, img_url=img_url, texts=texts,
                                    text_dict=text_dict, doubts=doubts, cmp_data=cmp_data,
-                                   text_fields=text_fields)
+                                   text_fields=text_fields or list(text_dict.keys()))
 
         except Exception as error:
             return self.send_db_error(error)
@@ -232,4 +232,5 @@ class TextArea(UIModule):
     """文字校对的文字区"""
 
     def render(self, cmp_data):
-        return self.render_string('page_text_area.html', blocks=cmp_data)
+        return self.render_string('page_text_area.html', blocks=cmp_data,
+                                  sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))

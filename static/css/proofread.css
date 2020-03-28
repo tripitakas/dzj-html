@@ -123,6 +123,12 @@
   background: transparent !important;
 }
 
+.line-no-head {
+  min-width: 4px;
+  min-height: 15px;
+  background-color: #eee;
+}
+
 #raw-textarea {
   line-height: 40px;
   letter-spacing: 1px;
