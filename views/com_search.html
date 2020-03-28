@@ -110,7 +110,7 @@
     $this.text("检索中...");
     postApi('/com/search', {data: {q: q}}, function (res) {
       var $html = res.matches.map(function (item) {
-        return "<div class='item'><div class='title'>" + item['_source']['page_code']
+        return "<div class='item'><div class='title'>" + (item['_source'] ? item['_source']['page_code'] : 'error')
             + "</div><div class='content'>" + item['hits'].join('') + "</div></div>";
       }).join('');
       $('#search-results').html($html);
