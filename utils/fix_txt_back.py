@@ -18,7 +18,7 @@ def main(db_name='tripitaka', uri='localhost'):
     db = pymongo.MongoClient(uri)[db_name]
     pages = list(db.page.find({'text': {'$nin': ['', None]}}))
     print('%d pages' % len(pages))
-    changed = 0
+    changed, not_matches = 0, []
     for page in pages:
         try:
             page['columns'].sort(key=itemgetter('block_no', 'column_no'))
@@ -28,18 +28,23 @@ def main(db_name='tripitaka', uri='localhost'):
 
         page['chars'].sort(key=itemgetter('block_no', 'column_no', 'char_no'))
 
-        r = fix_page(page, page['text'], not page.get('text_proof_1'))
+        not_match = []
+        r = fix_page(page, page['text'], not page.get('text_proof_1'), not_match=not_match)
         if r == -1 and page.get('text_proof_1'):
-            r = fix_page(page, page.get('text_proof_1'), True)
+            not_match = []
+            r = fix_page(page, page.get('text_proof_1'), True, not_match)
+        if not_match:
+            not_matches.append(page['name'] + ':%d' % len(not_match))
         if r > 0:
             r = db.page.update_one({'name': page['name']}, {'$set': {'chars': page['chars']}})
             if r.modified_count:
                 changed += 1
     print('%d page changed' % changed)
+    print('%s pages mismatch:\n%s' % (len(not_matches), ','.join(not_matches)))
 
 
-def fix_page(page, text, prompt):
-    text_blks = re.sub('[XYMN　 ]', '', text).split('||')
+def fix_page(page, text, prompt, not_match):
+    rows = re.split(r'\|+', re.sub('[XYMN　 ]', '', text))
     changed, has_err = 0, False
 
     # 检查字框的列号与列框是否匹配
@@ -51,34 +56,34 @@ def fix_page(page, text, prompt):
         return -1
 
     # 检查文字的列与列框是否匹配
-    for blk, rows in enumerate(text_blks):
-        rows = rows.split('|')
-        columns_blk = [c for c in column_ids if c.startswith('b%dc' % (blk + 1))]
-        if len(columns_blk) != len(rows):
-            if prompt:
-                print('E %s.b%d columns mismatch: %d, %d rows' % (page['name'], blk + 1, len(columns_blk), len(rows)))
-            has_err = True
-            continue
+    if len(column_ids) != len(rows):
+        if prompt:
+            print('E %s columns mismatch: %d, %d rows' % (page['name'], len(column_ids), len(rows)))
+        has_err = True
 
-        for i, (col_id, text) in enumerate(zip(columns_blk, rows)):
-            chars = [c for c in page['chars'] if c['char_id'].startswith(col_id + 'c')]
-            old_text = ''.join(c.get('txt') or '?' for c in chars)
-            if len(chars) != len(text):
-                print('W %s %s chars mismatch: %d boxes, %d chars, %s : %s' % (
-                    page['name'], col_id, len(chars), len(text), old_text, text))
-                for c in chars:
-                    if c.get('ocr_txt'):
-                        if c.get('txt') != c.get('ocr_txt'):
-                            changed += 1
-                        c['txt'] = c['ocr_txt']
-            else:
-                for c, txt in zip(chars, text):
-                    if c.get('txt') != txt:
+    for i, col_id in enumerate(column_ids):
+        if i == len(rows):
+            break
+        text = rows[i]
+        chars = [c for c in page['chars'] if c['char_id'].startswith(col_id + 'c')]
+        old_text = ''.join(c.get('txt') or '?' for c in chars)
+        if len(chars) != len(text):
+            not_match.append(col_id)
+            print('W %s %s chars mismatch: %d boxes, %d chars, %s : %s' % (
+                page['name'], col_id, len(chars), len(text), old_text, text))
+            for c in chars:
+                if c.get('ocr_txt'):
+                    if c.get('txt') != c.get('ocr_txt'):
                         changed += 1
-                    c['txt'] = txt
-            new_text = ''.join(c.get('txt') or '?' for c in chars)
-            if old_text != new_text:
-                print('I %s %s chars changed: %s -> %s' % (page['name'], col_id, old_text, new_text))
+                    c['txt'] = c['ocr_txt']
+        else:
+            for c, txt in zip(chars, text):
+                if c.get('txt') != txt:
+                    changed += 1
+                c['txt'] = txt
+        new_text = ''.join(c.get('txt') or '?' for c in chars)
+        if old_text != new_text:
+            print('I %s %s chars changed: %s -> %s' % (page['name'], col_id, old_text, new_text))
 
     return changed or (-1 if has_err else 0)
 
