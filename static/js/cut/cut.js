@@ -1043,6 +1043,9 @@
             $(box.shape.node).toggle(!!visible);
         }
       });
+      if (window.showHighLightCount) {
+        window.showHighLightCount();
+      }
     },
 
     toggleClass: function (boxIds, className, value) {
