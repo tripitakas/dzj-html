@@ -475,7 +475,7 @@
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        } else if (!lockBox) {
+        } else if (!lockBox && !state.readonly) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
