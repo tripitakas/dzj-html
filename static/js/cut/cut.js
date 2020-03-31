@@ -468,7 +468,7 @@
         var lockBox = e.altKey;
         if (e.shiftKey) {
           self.switchCurrentBox(null);
-        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox) {
+        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox && state.hover) {
           self.switchCurrentBox(state.hover);
         }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
