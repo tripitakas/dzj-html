@@ -301,7 +301,7 @@ class TaskHandler(BaseHandler, Task, Lock):
             if not has_lock:
                 error = e.data_is_locked
         # update/模式下，尝试分配临时数据锁
-        if shared_field and self.mode in ['update', 'edit']:
+        if shared_field and self.mode in ['update', 'edit'] and self.current_user:
             r = self.assign_temp_lock(self.doc_id, shared_field, self.current_user, self.doc)
             has_lock = r is True
             error = None if has_lock else r
