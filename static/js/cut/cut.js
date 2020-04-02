@@ -468,14 +468,15 @@
         var lockBox = e.altKey;
         if (e.shiftKey) {
           self.switchCurrentBox(null);
-        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox) {
+        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox
+          && (state.hover || !self.isInRect(state.down, state.edit, 1))) {
           self.switchCurrentBox(state.hover);
         }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        } else if (!lockBox) {
+        } else if (!lockBox && !self.isInRect(state.down, state.edit, 1)) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -771,23 +772,24 @@
       });
     },
 
+    isInRect: function (pt, el, tol) {
+      var box = el && el.getBBox();
+      return box && pt.x > box.x - tol &&
+          pt.y > box.y - tol &&
+          pt.x < box.x + box.width + tol &&
+          pt.y < box.y + box.height + tol;
+    },
+
     findBoxByPoint: function (pt, lockBox) {
       var ret = null, dist = 1e5, d, i, j, el;
-      var isInRect = function (el, tol) {
-        var box = el && el.getBBox();
-        return box && pt.x > box.x - tol &&
-            pt.y > box.y - tol &&
-            pt.x < box.x + box.width + tol &&
-            pt.y < box.y + box.height + tol;
-      };
 
-      if (state.edit && (isInRect(state.edit, state.readonly ? 1 : 10) || lockBox)
+      if (state.edit && (this.isInRect(pt, state.edit, state.readonly ? 1 : 10) || lockBox)
           && (!state.canHitBox || state.canHitBox(state.edit))) {
         return state.edit;
       }
       for (i = 0; i < data.chars.length; i++) {
         el = data.chars[i].shape;
-        if (el && isInRect(el, 5) && (!state.canHitBox || state.canHitBox(el))) {
+        if (el && this.isInRect(pt, el, 5) && (!state.canHitBox || state.canHitBox(el))) {
           for (j = 0; j < 8; j++) {
             d = getDistance(pt, getHandle(el, j)) + (el === state.edit ? 0 : 5);
             if (dist > d) {
