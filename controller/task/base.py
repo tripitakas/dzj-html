@@ -347,7 +347,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         finished_types = [t['task_type'] for t in doc_tasks if t['status'] == self.STATUS_FINISHED]
         for _task in doc_tasks:
             # 更新_task的pre_tasks
-            pre_tasks = self.prop(_task, 'pre_tasks', {})
+            pre_tasks = self.prop(_task, 'pre_tasks') or {}
             pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
             _update = {'pre_tasks': pre_tasks}
             # 如果_task状态为悬挂，且pre_tasks均已完成，则修改状态为已发布

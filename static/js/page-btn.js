@@ -47,15 +47,19 @@ $(document).on('click', '#zoom-reset', function () {
 // 显隐图片
 $(document).on('click', '#toggle-image', function () {
   $(this).toggleClass('active');
-  var style = $.cut.data.image.node.style;
-  style.display = style.display === 'none' ? '' : 'none';
+  if ($.cut.data.image.node) {
+    var style = $.cut.data.image.node.style;
+    style.display = style.display === 'none' ? '' : 'none';
+  }
 });
 
 // 模糊图片
 $(document).on('click', '#toggle-blur', function () {
   $(this).toggleClass('active');
-  var style = $.cut.data.image.node.style;
-  style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+  if ($.cut.data.image.node) {
+    var style = $.cut.data.image.node.style;
+    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+  }
 });
 
 // 显隐栏框
