@@ -138,7 +138,7 @@ class PickTaskApi(TaskHandler):
             # 检查是否有未完成的任务
             task_type = 'text_proof' if 'text_proof' in task_type else task_type
             uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
-            if uncompleted and 0:
+            if uncompleted and 'guest' not in self.username:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
                 return self.send_error_response(e.task_uncompleted, **{'url': url, 'doc_id': uncompleted[0]['doc_id']})
 
