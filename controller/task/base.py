@@ -348,15 +348,16 @@ class TaskHandler(BaseHandler, Task, Lock):
         for _task in doc_tasks:
             # 更新_task的pre_tasks
             pre_tasks = self.prop(_task, 'pre_tasks', {})
-            pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
-            _update = {'pre_tasks': pre_tasks}
-            # 如果_task状态为悬挂，且pre_tasks均已完成，则修改状态为已发布
-            unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
-            if _task['status'] == self.STATUS_PENDING and not unfinished:
-                _update.update({'status': self.STATUS_PUBLISHED})
-                # 更新_task关联数据的tasks字段
-                self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
-            self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
+            if pre_tasks:
+                pre_tasks.update({p: self.STATUS_FINISHED for p in pre_tasks if p in finished_types})
+                _update = {'pre_tasks': pre_tasks}
+                # 如果_task状态为悬挂，且pre_tasks均已完成，则修改状态为已发布
+                unfinished = [v for v in pre_tasks.values() if v != self.STATUS_FINISHED]
+                if _task['status'] == self.STATUS_PENDING and not unfinished:
+                    _update.update({'status': self.STATUS_PUBLISHED})
+                    # 更新_task关联数据的tasks字段
+                    self.update_task_doc(_task, status=self.STATUS_PUBLISHED)
+                self.db.task.update_one({'_id': _task['_id']}, {'$set': _update})
 
     def update_my_doc(self, info, submit=None):
         """ 更新本任务的数据提交"""
