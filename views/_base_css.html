@@ -1,10 +1,15 @@
 <meta charset="UTF-8">
 <meta name="HandheldFriendly" content="True"/>
 <meta name="MobileOptimized" content="320"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="description" content="{{site['description']}}"/>
 <meta name="keywords" content="{{site['keywords']}}"/>
+
+<!--[if IE]>
+<script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+<![endif]-->
 
 {% if not debug and 0 %}
 <link rel="shortcut icon" href="{{static_url('imgs/favicon.ico')}}" type="image/x-icon">
