@@ -4,25 +4,145 @@
 import re
 from .tool.box import Box
 from .tool.diff import Diff
+from controller import auth
 from tornado.escape import url_escape
-from controller.data.data import Page
+from controller.page.model import Page
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
+    # 数据等级
+    role2dataLevel = {
+        'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
+        'txt': dict(聚类校对员=1, 聚类审定员=10, 文字专家=100),
+    }
+    # 数据任务
+    data2taskType = {
+        'box': ['cut_proof', 'cut_review'],
+        'txt': ['cluster_proof', 'cluster_review'],
+    }
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
-        self.chars_col = self.texts = self.doubts = []
-        self.page_name = ''
-        self.page = {}
+        self.chars_col = self.texts = self.doubts = self.page_name = self.page = None
 
     def prepare(self):
         super().prepare()
-        self.page_name, self.page = self.doc_id, self.doc
 
     def page_title(self):
         return '%s-%s' % (self.task_name(), self.page.get('name') or '')
+
+    def pack_boxes(self, page):
+        self.pop_fields(page['blocks'], 'box_logs')
+        self.pop_fields(page['columns'], 'box_logs')
+        self.pop_fields(page['chars'], ['box_logs', 'alternatives'])
+
+    def get_user_level(self, data_type, user=None):
+        """ 根据用户角色，计算用户的数据等级"""
+        assert data_type in ['box', 'txt']
+        user = self.current_user if not user else user
+        user_roles = auth.get_all_roles(user['roles'])
+        return max([self.role2dataLevel[data_type].get(r, 0) for r in user_roles])
+
+    def get_user_point(self, data_type):
+        """ 根据用户的工作经验，计算用户积分"""
+        task_count = self.db.task.count_documents({'task_type': {'$in': self.data2taskType.get(data_type)}})
+        return task_count
+
+    def get_box_point(self, box, data_type):
+        """ 根据字框的校对历史，计算字框积分"""
+        box_count = self.prop(box, '%s_count' % data_type)
+        box_count = box_count and sum(self.prop(box, '%s_count' % data_type).values()) or 0
+        # 每经过一次修改，相当于100个积分。待完善。
+        return box_count * 100
+
+    def can_write(self, box, data_type, write_type='raw'):
+        """ 检查写权限"""
+        user_level = self.get_user_level(data_type)
+        level_ok = user_level >= (box.get(data_type) or 0)
+        if write_type == 'task':
+            return level_ok
+        else:
+            user_point = self.get_user_point(data_type)
+            box_point = self.get_box_point(box, data_type)
+            point_ok = user_point >= box_point
+            return point_ok and level_ok
+
+    def check_box_access(self, page, write_type='raw'):
+        """ 设置切分框的读写权限"""
+        for b in page['blocks']:
+            b['readonly'] = not self.can_write(b, 'box', write_type)
+        for b in page['chars']:
+            b['readonly'] = not self.can_write(b, 'box', write_type)
+        for b in page['columns']:
+            b['readonly'] = not self.can_write(b, 'box', write_type)
+
+    def merge_post_boxes(self, post_boxes, box_type, page, write_type='raw'):
+        """ 合并用户提交和数据库中已有数据"""
+        post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
+        # 检查删除
+        post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
+        to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
+        can_delete = [b['cid'] for b in to_delete if self.can_write(b, 'box', write_type)]
+        cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
+        boxes = [b for b in page[box_type] if b['cid'] not in can_delete]
+        # 检查修改
+        change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
+        to_change = [b for b in boxes if b['cid'] in change_cids]
+        can_change = [b for b in to_change if self.can_write(b, 'box', write_type)]
+        cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_delete]
+        for b in can_change:
+            b.pop('changed', 0)
+            pb = post_box_dict.get(b['cid'])
+            if self.is_box_pos_equal(b, pb):
+                continue
+            update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
+            my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
+            box_logs = b.get('box_logs') or [{k: b.get(k) for k in ['x', 'y', 'w', 'h']}]
+            box_logs.append(my_log)
+            status = 'added#changed' if b.get('status') == 'added' else 'changed'
+            update.update({'box_logs': box_logs, 'status': status})
+            b.update(update)
+        # 检查新增
+        added = [b for b in post_boxes if b.get('added') is True]
+        for pb in added:
+            pb.pop('added', 0)
+            update = {k: pb.get(k) for k in ['x', 'y', 'w', 'h']}
+            my_log = {**update, 'user_id': self.user_id, 'username': self.username, 'create_time': self.now()}
+            pb.update({'box_logs': [my_log], 'status': 'added'})
+        boxes.extend(added)
+        page[box_type] = boxes
+        return boxes, cannot_delete, cannot_change
+
+    def get_box_update(self, post_data, page):
+        """ 获取切分校对的提交"""
+        # 合并用户提交和已有数据
+        self.merge_post_boxes(post_data['chars'], 'chars', page)
+        self.merge_post_boxes(post_data['blocks'], 'blocks', page)
+        self.merge_post_boxes(post_data['columns'], 'columns', page)
+        # 过滤页面外的切分框
+        blocks, columns, chars = self.filter_box(page, page['width'], page['height'])
+        # 更新cid
+        self.update_box_cid(chars)
+        self.update_box_cid(blocks)
+        self.update_box_cid(columns)
+        # 重新排序
+        blocks = self.calc_block_id(blocks)
+        columns = self.calc_column_id(columns, blocks)
+        chars = self.calc_char_id(chars, columns)
+        # 根据字框调整列框和栏框的边界
+        if post_data.get('auto_adjust'):
+            blocks = self.adjust_blocks(blocks, chars)
+            columns = self.adjust_columns(columns, chars)
+        # 合并用户字序和算法字序
+        chars_col = []
+        if page.get('chars_col'):
+            algorithm_chars_col = self.get_chars_col(chars)
+            chars_col = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
+            chars = self.update_char_order(chars, chars_col)
+        # 设置更新字段
+        ret = dict(chars=chars, blocks=blocks, columns=columns, chars_col=chars_col)
+        return {k: v for k, v in ret.items() if v}
 
     def get_txt(self, key):
         if key == 'cmp':
@@ -136,33 +256,6 @@ class PageHandler(TaskHandler, Page, Box):
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
-
-    def get_box_update(self):
-        """ 获取切分校对的提交"""
-        # 过滤页面外的切分框
-        blocks, columns, chars = self.filter_box(self.data, self.page['width'], self.page['height'])
-        # 更新cid
-        self.update_box_cid(chars)
-        self.update_box_cid(columns)
-        # 重新排序
-        blocks = self.calc_block_id(blocks)
-        columns = self.calc_column_id(columns, blocks)
-        chars = self.calc_char_id(chars, columns, detect_col=self.data.get('detect_col', True))
-        # 根据字框调整列框和栏框的边界
-        if self.data.get('auto_adjust'):
-            blocks = self.adjust_blocks(blocks, chars)
-            columns = self.adjust_columns(columns, chars)
-        # 合并用户字序和算法字序
-        chars_col = []
-        if self.page.get('chars_col'):
-            algorithm_chars_col = self.get_chars_col(chars)
-            chars_col = self.merge_chars_col(algorithm_chars_col, self.page['chars_col'])
-            chars = self.update_char_order(chars, chars_col)
-        # 设置更新字段
-        ret = dict(chars=chars, blocks=blocks, columns=columns)
-        if chars_col:
-            ret['chars_col'] = chars_col
-        return ret
 
     @staticmethod
     def get_all_txt(page):

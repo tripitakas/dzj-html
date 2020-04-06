@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>切分校对-{{page['name']}}</title>
+  {% include _base_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">切分校对</div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-image" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur active" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="undo" class="btn-txt icon-undo" data-toggle="tooltip" data-placement="bottom" title="撤销"></div>
+        <div id="redo" class="btn-txt icon-redo" data-toggle="tooltip" data-placement="bottom" title="重做"></div>
+        <div id="toggle-three" class="btn-txt icon-three" data-toggle="tooltip" data-placement="bottom" title="显隐所有"></div>
+        <div id="toggle-block" class="btn-txt icon-blocks" data-toggle="tooltip" data-placement="bottom" title="显隐栏框"></div>
+        <div id="toggle-column" class="btn-txt icon-columns" data-toggle="tooltip" data-placement="bottom" title="显隐列框"></div>
+        <div id="toggle-char" class="btn-txt icon-chars active" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-more" class="btn-txt icon-more" title="更多"></div>
+        <div class="btn-group hl-box more-group hide" id="more-group">
+          <button id="toggle-all" class="btn btn-default btn-sm" type="button" title="显隐所有字框">所有<sup class="s-count"></sup></button>
+          <button id="toggle-overlap" class="btn btn-default btn-sm" type="button" title="显隐重叠字框">重叠<sup class="s-count"></sup></button>
+          <button id="toggle-narrow" class="btn btn-default btn-sm" type="button" title="显隐窄字框">窄框<sup class="s-count"></sup></button>
+          <button id="toggle-flat" class="btn btn-default btn-sm" type="button" title="显隐扁字框">扁框<sup class="s-count"></sup></button>
+          <button id="toggle-large" class="btn btn-default btn-sm" type="button" title="显隐大字框">大框<sup class="s-count"></sup></button>
+          <button id="toggle-small" class="btn btn-default btn-sm" type="button" title="显隐小字框">小框<sup class="s-count"></sup></button>
+          <span id="btn-order" class="btn btn-default btn-sm" type="button" title="跳转字序">{{'查看' if readonly else '修改'}}字序</span>
+        </div>
+      </div>
+      <div class="right">
+        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+        {% if handler.is_task %} {% include _task_btns.html %} {% end %}
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div class="bd" id="holder-container">
+        <div id="holder"></div>
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="page-name">页编码：{{page['name']}}</span>
+      <span class="readonly">权限：{{'只读' if readonly else '读写'}}</span>
+      <span class="cur-char fr"></span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、概述</div>
+          <div class="intro">
+            本页面用于检查图片的栏框、字框、列框等是否正确，并对不正确的切分框进行修改。<br/>
+            栏框要求将图片的正文（不包括边缘的页码等）用栏框框住，尽量不要包括正文外的边缘线。如果图片有多栏，则需要多个栏框。<br/>
+            列框要求用列框将图片的每列文字框住。<br/>
+            字框要求将图片的正文用字框框住，因文字紧凑而导致字框交叠时，首要原则是尽量把笔画都框住，其次是尽量减少交叠。<br/>
+            <b>注：</b>请您看下面的快捷键介绍。通过键盘快捷键进行操作，可以很好的提升效率。
+          </div>
+          <div class="title">二、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+            <tr>
+              <td>wsad</td>
+              <td>按照指示（wsad代表上下左右四个方向）移动当前字框</td>
+            </tr>
+            <tr>
+              <td>shift + 方向键</td>
+              <td>shift表示扩大字框，方向键代表字框的四条边</td>
+            </tr>
+            <tr>
+              <td>alt + 方向键</td>
+              <td>alt表示缩小字框，方向键代表字框的四条边</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+{% if handler.is_task %} {% include _base_task.html %} {% end %}
+<script src="{{static_url('js/box-btn.js')}}"></script>
+<script>
+  // 页面图
+  $.cut.create({
+    holder: 'holder',
+    image: "{{img_url}}",
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_box',
+    chars: '{{page["chars"]}}',
+    blocks: '{{page["blocks"]}}',
+    columns: '{{page["columns"]}}',
+    scrollContainer: '#holder-container',
+  });
+  $.cut.bindKeys();
+  $.cut.switchCurrentBox(null);
+
+  // 初始化设置
+  $.cut.data.image.node.style.display = getStorage('toggleImage', '1') === '1' ? '' : 'none';
+  $.cut.data.image.node.style.opacity = getStorage('toggleBlur', '1') === '1' ? 0.2 : null;
+  $.cut.toggleBox(getStorage('toggleBlock', '-1') === '1', 'block');
+  $.cut.toggleBox(getStorage('toggleColumn', '-1') === '1', 'column');
+  $.cut.toggleBox(getStorage('toggleChar', '-1') === '1', 'char');
+  $('#toggle-image').toggleClass('active', getStorage('toggleImage', '1') === '1');
+  $('#toggle-blur').toggleClass('active', getStorage('toggleBlur', '1') === '1');
+  $('#toggle-block').toggleClass('active', getStorage('toggleBlock', '-1') === '1');
+  $('#toggle-column').toggleClass('active', getStorage('toggleColumn', '-1') === '1');
+  $('#toggle-char').toggleClass('active', getStorage('toggleChar', '-1') === '1');
+  showHighLightCount();
+
+  $.cut.state.canHitBox = function (el) {
+    var charActive = $('#toggle-char').hasClass('active');
+    var blockActive = $('#toggle-block').hasClass('active');
+    var columnActive = $('#toggle-column').hasClass('active');
+    var threeActive = $('#toggle-three').hasClass('active');
+    if ((charActive || threeActive) && el.data('class') === 'char')
+      return true;
+    if ((columnActive || threeActive) && el.data('class') === 'column')
+      return true;
+    if ((blockActive || threeActive) && el.data('class') === 'block')
+      return true;
+  };
+
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (reason === 'added') {
+      var charActive = $('#toggle-char').hasClass('active');
+      var blockActive = $('#toggle-block').hasClass('active');
+      var columnActive = $('#toggle-column').hasClass('active');
+      var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
+      if (active.length > 6) {
+        $.cut.removeBox();
+        bsShow('失败！', '当前显示有多种切分框，请仅选择其中一个，然后再创建。', 'warning');
+      } else if (!active.length) {
+        $.cut.removeBox();
+        bsShow('失败！', '当前没有显示任何切分框，请仅选择其中一个，然后再创建。', 'warning');
+      } else {
+        $.cut.setClass([info], active);
+        updateUndo();
+      }
+    } else if (reason === 'removed' || reason === 'changed') {
+      if ($.cut.data.hlType) {
+        $.cut.clearHighlight();
+        $.cut.highlightBoxes($.cut.data.hlType, false, true);
+        $.cut.toggleClass([info.char_id], 'flash', false);
+      }
+      showHighLightCount();
+      updateUndo();
+    } else if (reason === 'navigate') {
+      var tips = '当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中');
+      tips += ' ' + (info && info.txt || '') + (info && info['is_small'] ? '（小字）' : '');
+      tips += ' ' + (info && info.readonly ? '权限：只读' : '权限：读写');
+      $('.m-footer > .cur-char').text(tips);
+    } else if (reason === 'initial') {
+      var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      });
+      $.cut.toggleClass(invalid, 'flash', true);
+      $.cut.toggleBox(true, null, invalid);
+    }
+  }, true);
+
+  // 高亮各种类型字框数量
+  function showHighLightCount() {
+    $('.hl-box > button').each(function (i, btn) {
+      var type = btn.getAttribute('id').replace(/^.*-/, '');
+      var boxes = $.cut.highlightBoxes(type, true);
+      $(btn).find('.s-count').text(boxes.length);
+    });
+  }
+
+  // 切换切分框状态
+  $('.hl-box > button').on('click', function () {
+    $.cut.switchHighlightBoxes(this.getAttribute('id').replace(/^.*-/, ''));
+  });
+
+  // 跳转字序
+  $('#btn-order').on('click', function () {
+    var from = decodeFrom() ? '?from=' + decodeFrom() : '';
+    location.href = '/page/order{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
+  });
+
+  saveData = function (jumpUrl) {
+    var data = {
+      blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
+      chars: $.cut.exportBoxes('char'), auto_adjust: true,
+    };
+    bsLoading('保存中‧‧‧');
+    postApi('/page/box/{{page["name"]}}', {data: data}, function (res) {
+      if (res.valid) {
+        bsShow('成功!', '已保存。');
+        jumpUrl ? location.href = jumpUrl : refresh(500);
+      } else {
+        // 高亮未被覆盖的框
+        $.cut.toggleClass(res['out_boxes'], 'highlight flash', true);
+        $.cut.toggleBox(true, null, res['out_boxes']);
+        // 提示
+        let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
+        if (jumpUrl) {
+          tips += `<a href="${jumpUrl}">继续</a>`;
+        }
+        bsShow('已保存，发现错误!', tips, 'warning');
+      }
+    });
+  };
+
+  // 保存数据
+  $('#save').on('click', function () {
+    saveData();
+  });
+
+</script>
+</body>
+</html>

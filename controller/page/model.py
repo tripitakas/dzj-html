@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import re
 import json
-from controller.model import Model
 from controller import helper as h
 from controller import validate as v
+from controller.model import Model
 from controller.task.task import Task
 
 
@@ -46,9 +47,9 @@ class Page(Model):
         (v.is_digit, 'reel_page_no')
     ]
     primary = 'name'
-    layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']  # 图片的版面结构
     search_tips = '请搜索页编码、分类、页面结构、统一经编码、卷编码'
     search_fields = ['name', 'source', 'layout', 'uni_sutra_code', 'reel_code']
+    layouts = ['上下一栏', '上下两栏', '上下三栏', '左右两栏']  # 图片的版面结构
 
     @classmethod
     def metadata(cls):
@@ -148,7 +149,6 @@ class Char(Model):
         {'id': 'uid', 'name': 'uid', 'remark': 'page_name和char_id的整型值'},
         {'id': 'cid', 'name': 'cid'},
         {'id': 'source', 'name': '分类'},
-        {'id': 'data_level', 'name': '数据等级'},
         {'id': 'has_img', 'name': '是否已有字图'},
         {'id': 'img_need_updated', 'name': '是否需要更新字图'},
         {'id': 'cc', 'name': '置信度'},
@@ -162,9 +162,12 @@ class Char(Model):
         {'id': 'txt', 'name': '正字'},
         {'id': 'ori_txt', 'name': '原字'},
         {'id': 'txt_type', 'name': '类型'},
-        {'id': 'txt_logs', 'name': '校对历史'},
-        {'id': 'proof_count', 'name': '校对次数'},
-        {'id': 'review_count', 'name': '审定次数'},
+        {'id': 'box_level', 'name': '切分等级'},
+        {'id': 'box_logs', 'name': '切分校对历史'},
+        {'id': 'box_count', 'name': '切分校对次数'},
+        {'id': 'txt_level', 'name': '文字等级'},
+        {'id': 'txt_logs', 'name': '文字校对历史'},
+        {'id': 'txt_count', 'name': '文字校对次数'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [

@@ -7,7 +7,7 @@ from os import path
 from bson.objectid import ObjectId
 from controller import errors  as e
 from controller import validate as v
-from controller.data.data import Char
+from controller.page.model import Char
 from controller.base import BaseHandler
 from .base import CharHandler
 from .publish import PublishHandler

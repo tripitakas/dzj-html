@@ -1,0 +1,9 @@
+<div id="task-config" class="btn-txt icon-config {{'hide' if handler.mode == 'do' else ''}}" data-toggle="tooltip" data-placement="bottom" title="任务配置"></div>
+<div id="task-return" class="btn-txt icon-return-task {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="退回任务"></div>
+<div id="step-next" class="btn-txt icon-next-step" data-toggle="tooltip" data-placement="bottom" title="下一步"></div>
+{% if handler.mode == 'browse' %}
+<div class="btn-txt btn-line"></div>
+<div id="task-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注任务"></div>
+<div id="task-prev" class="btn-txt icon-backward" data-toggle="tooltip" data-placement="bottom" title="前一个任务"></div>
+<div id="task-next" class="btn-txt icon-forward" data-toggle="tooltip" data-placement="bottom" title="后一个任务"></div>
+{% end %}

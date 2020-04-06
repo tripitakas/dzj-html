@@ -122,6 +122,7 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
             Ph.update_box_cid(meta['chars'])
+            Ph.update_box_cid(meta['blocks'])
             Ph.update_box_cid(meta['columns'])
             for f in ['ocr', 'ocr_col']:
                 if meta.get(f):

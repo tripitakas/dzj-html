@@ -692,6 +692,16 @@
     canUndo: undoData.canUndo.bind(undoData),
     canRedo: undoData.canRedo.bind(undoData),
 
+    _getMaxCid: function (cls) {
+      var maxCid = 0;
+      for (var i = 0; i < data.chars.length; i++) {
+        var c = data.chars[i];
+        if (c.class === cls && c.cid > maxCid)
+          maxCid = c.cid;
+      }
+      return maxCid;
+    },
+
     _changeBox: function (src, dst) {
       var box = dst && dst.getBBox();
       if (!box) {
@@ -715,12 +725,15 @@
       } else {
         info.changed = true;
       }
+
+      info.shape = dst;
       dst.data('char_id', info.char_id).data('char', dst.txt);
       dst.data('class', info.class).data('cid', dst.cid);
 
-      info.shape = dst;
       if (added) {
         notifyChanged(dst, 'added');
+        info.cid = this._getMaxCid(info.class) + 1;
+        dst.data('cid', info.cid);
       }
 
       if (src) {
@@ -804,9 +817,10 @@
       var r = function (v) {
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       };
-      var chars = data.chars.filter(function (c) {
+      var f = function (c) {
         return c.w && c.h && c.shape && c.shape.getBBox() && (!boxType || boxType === c.class);
-      }).map(function (c) {
+      };
+      var m = function (c) {
         var box = c.shape.getBBox();
         var ret = {}, ignoreValues = [null, undefined, ''];
         var ignoreFields = ['shape', 'ch', 'class', 'line_no', 'index'];
@@ -817,18 +831,17 @@
             ret[k] = c[k];
           }
         });
-        if (c.class === 'block' || c.class === 'column') {
-          if (ret.char_id.indexOf('new') === -1)
-            delete ret.char_id;
+        if (c.class.indexOf('block') >= 0 || c.class.indexOf('column') >= 0) {
+          delete ret.char_id;
           delete ret.char_no;
-          delete ret.cid;
         }
-        if (c.class === 'block') {
+        if (c.class.indexOf('block') >= 0) {
           delete ret.column_no;
         }
         return ret;
-      });
+      };
 
+      var chars = data.chars.filter(f).map(m);
       chars.sort(function (a, b) {
         return (a.block_no || 0) - (b.block_no || 0)
             || (a.column_no || 0) - (b.column_no || 0)
@@ -1038,9 +1051,11 @@
 
     toggleBox: function (visible, cls, boxIds) {
       data.chars.forEach(function (box) {
-        if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
-          if (!$(box.shape.node).hasClass('flash'))
-            $(box.shape.node).toggle(!!visible);
+        if (box.shape
+            && (!cls || cls === box.shape.data('class'))
+            && (!boxIds || boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0)
+            && (!$(box.shape.node).hasClass('flash'))) {
+          $(box.shape.node).toggle(!!visible);
         }
       });
       if (window.showHighLightCount) {

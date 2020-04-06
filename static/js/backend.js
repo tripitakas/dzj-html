@@ -135,7 +135,16 @@ function parseJSON(s) {
 
 // bootstrap相关
 $("[data-toggle='tooltip']").tooltip();
+$('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());
+
+// 共通函数
+$('#help').on('click', () => $('#helpModal').modal());
 $('.alert .close').on('click', function () {
   $(this).parent().addClass('hide');
 });
-$('body').on('click', '[data-stopPropagation]', (e) => e.stopPropagation());
+
+function leave() {
+  decodeFrom() ? window.location = decodeFrom() : window.history.back();
+}
+
+

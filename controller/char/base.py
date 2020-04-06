@@ -3,7 +3,7 @@
 
 import re
 from controller import auth
-from controller.data.data import Char
+from controller.page.model import Char
 from controller.task.base import TaskHandler
 
 

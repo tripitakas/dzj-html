@@ -37,7 +37,6 @@ class Box(BoxOrder):
         chars = [box for box in chars if valid(box)]
         blocks = [box for box in blocks if valid(box)]
         columns = [box for box in columns if valid(box)]
-
         return blocks, columns, chars
 
     @classmethod
@@ -51,12 +50,12 @@ class Box(BoxOrder):
         width = width or page.get('width')
         height = height or page.get('height')
         blocks, columns, chars = cls.filter_box(page, width, height)
-        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
-        if char_out_block:
-            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
         if column_out_block:
             return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
+        char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
+        if char_out_block:
+            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
         char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
         if char_out_column:
             return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
@@ -165,6 +164,17 @@ class Box(BoxOrder):
                 max_cid += 1
                 updated = True
         return updated
+
+    @staticmethod
+    def is_box_pos_equal(box1, box2):
+        for k in ['x', 'y', 'w', 'h']:
+            if box1.get(k) != box2.get(k):
+                return False
+        return True
+
+    @staticmethod
+    def pack_box(box, fields):
+        return {k: box.get(k) for k in fields}
 
     @staticmethod
     def merge_narrow_columns(columns):

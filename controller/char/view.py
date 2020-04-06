@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from .base import CharHandler
 from controller import helper as h
-from controller.data.data import Char
+from controller.page.model import Char
 from controller.base import BaseHandler
 from controller.task.base import TaskHandler
 

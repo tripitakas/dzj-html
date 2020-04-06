@@ -717,6 +717,10 @@ body.widescreen {
   color: var(--Brown_Darker);
 }
 
+.m-footer > span {
+  margin-right: 6px;
+}
+
 .right-toolbar {
   top: 50px;
   right: 20px;

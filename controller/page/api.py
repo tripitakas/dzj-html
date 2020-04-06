@@ -2,17 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
 import json
+from os import path
 from tornado.escape import native_str
 from elasticsearch.exceptions import ConnectionTimeout
 from controller import errors as e
 from controller import helper as h
 from controller import validate as v
-from controller.data.data import Page
+from controller.page.model import Page
 from .tool.diff import Diff
 from .base import PageHandler
 from .publish import PublishHandler
 from .tool.esearch import find_one, find_neighbor
+from controller.base import BaseHandler
+from controller.task.base import TaskHandler
 
 
 class TaskPublishApi(PublishHandler):
@@ -73,43 +77,85 @@ class TaskPublishApi(PublishHandler):
         return doc_ids
 
 
-class TaskCutApi(PageHandler):
-    URL = ['/api/task/do/@cut_task/@task_id',
-           '/api/task/update/@cut_task/@task_id']
+class PageBoxApi(PageHandler):
+    URL = ['/api/page/box/@page_name']
 
-    def post(self, task_type, task_id):
-        """ 提交切分校对任务"""
-
+    def post(self, page_name):
+        """ 提交切分校对"""
         try:
-            if self.steps['current'] == 'order':
-                self.save_order()
-            else:
-                self.save_box()
-            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.page_name)
+            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+            self.validate(self.data, rules)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            update = self.get_box_update(self.data, page)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': update})
+            valid, message, out_boxes = self.check_box_cover(page)
+            self.send_data_response(valid=valid, message=message, out_boxes=out_boxes)
+            self.add_log('update_box', target_id=page['_id'], context=page['name'])
 
         except self.DbError as error:
             return self.send_db_error(error)
 
-    def save_box(self):
-        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
-        self.validate(self.data, rules)
-        self.update_task(self.data.get('submit'))
-        # 要提前检查，否则char_id可能重新设置
-        valid, message, out_boxes = self.check_box_cover(self.data, self.page['width'], self.page['height'])
-        update = self.get_box_update()
-        self.update_my_doc(update)
-        self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
-    def save_order(self):
-        self.validate(self.data, [(v.not_empty, 'chars_col')])
-        self.update_task(self.data.get('submit'))
-        if not self.cmp_char_cid(self.page['chars'], self.data['chars_col']):
-            return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
-        if len(self.data['chars_col']) != len(self.page['columns']):
-            return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
-        chars = self.update_char_order(self.page['chars'], self.data['chars_col'])
-        self.update_my_doc(dict(chars=chars, chars_col=self.data['chars_col']))
-        self.send_data_response()
+class PageOrderApi(PageHandler):
+    URL = ['/api/page/order/@page_name']
+
+    def post(self, page_name):
+        """ 提交字序校对"""
+        try:
+            # 检查参数
+            rules = [(v.not_empty, 'chars_col')]
+            self.validate(self.data, rules)
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            # 检查字框的相互覆盖情况（要在get_box_update之前检查，否则char_id可能重新设置）
+            valid, message, out_boxes = self.check_box_cover(self.data, page['width'], page['height'])
+            update = self.get_box_update(self.data, page)
+            self.db.page.update_one({'_id': page['_id']}, {'$set': update})
+            self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+            self.add_log('update_order', target_id=page['_id'], context=page['name'])
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class TaskCutApi(TaskHandler, Page):
+    URL = '/api/task/(do|update)/@cut_task/@task_id'
+
+    def post(self, mode, task_type, task_id):
+        """ 提交切分、字序校审任务"""
+        try:
+            page = self.db.page.find_one({'name': self.task['doc_id']})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+
+            if self.steps['current'] == 'order':
+                self.validate(self.data, [(v.not_empty, 'chars_col')])
+                self.update_task(self.data.get('submit'))
+                if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
+                    return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
+                if len(self.data['chars_col']) != len(page['columns']):
+                    return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
+                chars = self.update_char_order(page['chars'], self.data['chars_col'])
+                self.update_my_doc(dict(chars=chars, chars_col=self.data['chars_col']))
+                self.send_data_response()
+            else:
+                rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+                self.validate(self.data, rules)
+                self.update_task(self.data.get('submit'))
+                # 要提前检查，否则char_id可能重新设置
+                valid, message, out_boxes = self.check_box_cover(self.data, page['width'], page['height'])
+                update = self.get_box_update()
+                self.update_my_doc(update)
+                self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=page['name'])
+
+        except self.DbError as error:
+            return self.send_db_error(error)
 
 
 class CutEditApi(PageHandler):
@@ -355,4 +401,43 @@ class DetectWideCharsApi(PageHandler):
             mb4 = [[self.check_utf8mb4({}, t)['utf8mb4'] for t in s] for s in self.data['texts']]
             self.send_data_response(mb4)
         except Exception as error:
+            return self.send_db_error(error)
+
+
+class PageExportCharsApi(BaseHandler):
+    URL = '/api/data/page/export_char'
+
+    def post(self):
+        """ 批量生成字表"""
+        try:
+            rules = [(v.not_empty, 'page_names')]
+            self.validate(self.data, rules)
+            # 启动脚本，生成字表
+            script = 'nohup python3 %s/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
+            os.system(script % (path.dirname(__file__), ','.join(self.data['page_names']), self.username))
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class UpdatePageSourceApi(BaseHandler):
+    URL = '/api/data/(page)/source'
+
+    def post(self, collection):
+        """ 批量更新分类"""
+        try:
+            rules = [(v.not_empty, 'source'), (v.not_both_empty, '_id', '_ids')]
+            self.validate(self.data, rules)
+
+            update = {'$set': {'source': self.data['source']}}
+            if self.data.get('_id'):
+                r = self.db[collection].update_one({'_id': ObjectId(self.data['_id'])}, update)
+                self.add_log('update_' + collection, target_id=self.data['_id'])
+            else:
+                r = self.db[collection].update_many({'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}, update)
+                self.add_log('update_' + collection, target_id=self.data['_ids'])
+            self.send_data_response(dict(matched_count=r.matched_count))
+
+        except self.DbError as error:
             return self.send_db_error(error)

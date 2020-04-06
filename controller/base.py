@@ -41,9 +41,10 @@ class BaseHandler(CorsMixin, RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseHandler, self).__init__(application, request, **kwargs)
         self.db = self.application.db_test if self.get_query_argument('_test', 0) == '1' else self.application.db
-        self.error = self.is_api = self.user = self.user_id = self.username = None
+        self.data = self.error = self.is_api = self.is_task = self.mode = None
+        self.user = self.user_id = self.username = None
         self.config = self.application.config
-        self.more = self.data = {}  # 给子类使用
+        self.more = {}  # 给子类使用
 
     def set_default_headers(self):
         self.set_header('Access-Control-Allow-Origin', '*' if options.debug else self.application.site['domain'])
