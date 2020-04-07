@@ -52,6 +52,7 @@ role_route_maps = {
             '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
             '/api/user/forget_pwd': ['POST'],
             '/article/@article_id': ['GET'],
+            '/page/cut_edit/@page_name': ['GET'],
         }
     },
     '普通用户': {
