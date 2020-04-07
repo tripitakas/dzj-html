@@ -11,7 +11,23 @@ $(document).on('click', '#toggle-left', function () {
 // 隐藏右侧区域
 $(document).on('click', '#toggle-right', function () {
   $(this).toggleClass('active');
-  $('#right-region').toggleClass('hide', $(this).hasClass('active'));
+  $('#right-region').toggleClass('hide', !$(this).hasClass('active'));
+});
+
+// 显隐图片
+$(document).on('click', '#toggle-image', function () {
+  $(this).toggleClass('active');
+  $.cut.data.image.node.style.display = $(this).hasClass('active') ? '' : 'none';
+  var key = $(this).parent().hasClass('order') ? 'toggleOrderImage' : 'toggleImage';
+  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
+});
+
+// 模糊图片
+$(document).on('click', '#toggle-blur', function () {
+  $(this).toggleClass('active');
+  $.cut.data.image.node.style.opacity = $(this).hasClass('active') ? 0.2 : 1;
+  var key = $(this).parent().hasClass('order') ? 'toggleOrderBlur' : 'toggleBlur';
+  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 缩小图片
@@ -44,43 +60,28 @@ $(document).on('click', '#zoom-reset', function () {
   }
 });
 
-// 显隐图片
-$(document).on('click', '#toggle-image', function () {
-  $(this).toggleClass('active');
-  if ($.cut.data.image.node) {
-    var style = $.cut.data.image.node.style;
-    style.display = style.display === 'none' ? '' : 'none';
-  }
-});
-
-// 模糊图片
-$(document).on('click', '#toggle-blur', function () {
-  $(this).toggleClass('active');
-  if ($.cut.data.image.node) {
-    var style = $.cut.data.image.node.style;
-    style.opacity = $(this).hasClass('active') ? 0.2 : 1;
-  }
-});
-
 // 显隐栏框
 $(document).on('click', '#toggle-block', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'block');
-  localStorage.setItem('toggleBlock', $(this).hasClass('active') ? '1' : '-1');
+  var key = $(this).parent().hasClass('order') ? 'toggleOrderBlock' : 'toggleBlock';
+  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐列框
 $(document).on('click', '#toggle-column', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'column');
-  localStorage.setItem('toggleColumn', $(this).hasClass('active') ? '1' : '-1');
+  var key = $(this).parent().hasClass('order') ? 'toggleOrderColumn' : 'toggleColumn';
+  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐字框
 $(document).on('click', '#toggle-char', function () {
   $(this).toggleClass('active');
   $.cut.toggleBox($(this).hasClass('active'), 'char');
-  localStorage.setItem('toggleChar', $(this).hasClass('active') ? '1' : '-1');
+  var key = $(this).parent().hasClass('order') ? 'toggleOrderChar' : 'toggleChar';
+  setStorage(key, $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐所有
@@ -95,13 +96,15 @@ $(document).on('click', '#toggle-three', function () {
 // 显隐字框编号
 $(document).on('click', '#toggle-char-no', function () {
   $(this).toggleClass('active');
-  $.cut.toggleLabel();
+  $.cut.setLabel($(this).hasClass('active'));
+  setStorage('toggleCharNo', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 显隐字序连线
 $(document).on('click', '#toggle-order', function () {
   $(this).toggleClass('active');
-  $.cut.toggleLink();
+  $.cut.setLink($(this).hasClass('active'));
+  setStorage('toggleOrder', $(this).hasClass('active') ? '1' : '-1');
 });
 
 // 更多操作
@@ -128,3 +131,21 @@ $(document).on('click', '#enlarge-font', function () {
     $div.css('font-size', size + 'px');
   }
 });
+
+// 查看page页面
+$(document).on('click', '.m-footer .page-name', function () {
+  if ($(this).hasClass('disabled'))
+    return;
+  var from = decodeFrom();
+  var pageName = $(this).text();
+  location.href = '/page/' + pageName + (from ? '?from=' + from : '');
+});
+
+// 查看char页面
+$(document).on('click', '.m-footer .char-name', function () {
+  var from = decodeFrom();
+  var cid = $(this).text().split('#')[1];
+  var charName = $('.m-footer .page-name').text() + '_' + cid;
+  location.href = '/char/' + charName + (from ? '?from=' + from : '');
+});
+

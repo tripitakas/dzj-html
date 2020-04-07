@@ -13,6 +13,30 @@ from controller.task.task import Task
 from controller.task.base import TaskHandler
 
 
+class PageViewHandler(PageHandler):
+    URL = '/page/@page_name'
+
+    def get(self, page_name):
+        """ 查看页面数据"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+
+            self.pack_boxes(page)
+            img_url = self.get_web_img(page['name'])
+            chars_col = self.get_chars_col(page['chars'])
+            txt_off = self.get_query_argument('txt', None) == 'off'
+            cid = self.get_query_argument('char_name', '').split('_')[-1]
+            texts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp']]
+            texts = [t for t in texts if t[0]]
+            self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col,
+                        txt_off=txt_off, cur_cid=cid)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class BoxHandler(PageHandler):
     URL = ['/page/box/@page_name',
            '/page/box/edit/@page_name']
@@ -33,7 +57,7 @@ class BoxHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class OrderHandler(BaseHandler, Page):
+class OrderHandler(PageHandler):
     URL = ['/page/order/@page_name',
            '/page/order/edit/@page_name']
 
@@ -43,6 +67,7 @@ class OrderHandler(BaseHandler, Page):
             page = self.db.page.find_one({'name': page_name})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            self.pack_boxes(page)
             readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             reorder = self.get_query_argument('reorder', '')
@@ -55,7 +80,7 @@ class OrderHandler(BaseHandler, Page):
             return self.send_db_error(error)
 
 
-class TaskCutHandler(TaskHandler, Page):
+class TaskCutHandler(PageHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
            '/task/browse/@cut_task/@task_id',
@@ -67,6 +92,7 @@ class TaskCutHandler(TaskHandler, Page):
             page = self.db.page.find_one({'name': self.task['doc_id']})
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+            self.pack_boxes(page)
             img_url = self.get_web_img(page['name'], 'page')
             if self.steps['current'] == 'order':
                 reorder = self.get_query_argument('reorder', '')
@@ -251,28 +277,6 @@ class PageBrowseHandler(PageHandler):
             texts = [(page.get(f), f, labels.get(f)) for f in ['ocr', 'ocr_col', 'text'] if page.get(f)]
             self.render('page_browse.html', page=page, chars_col=chars_col, btn_config=btn_config,
                         texts=texts, info=info, edit_fields=edit_fields, img_url=img_url)
-
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageViewHandler(PageHandler):
-    URL = '/page/@page_name'
-
-    def get(self, page_name):
-        """ 查看页面数据"""
-        try:
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            texts = self.get_all_txt(page)
-            img_url = self.get_web_img(page['name'])
-            chars_col = self.get_chars_col(page['chars'])
-            cid = self.get_query_argument('char_id', '').split('_')[-1]
-            txt_off = self.get_query_argument('txt', None) == 'off'
-            self.render('page_view.html', texts=texts, img_url=img_url, page=page, chars_col=chars_col,
-                        txt_off=txt_off, cur_cid=cid)
 
         except Exception as error:
             return self.send_db_error(error)

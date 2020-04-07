@@ -67,9 +67,11 @@
       </div>
     </div>
     <div class="m-footer">
-      <span class="cur-char"></span>
-      <span class="char-info"></span>
-      <span class="txt-info fr"></span>
+      <span class="fl">
+        页编码：<span class="page-name disabled">{{page['name']}}</span>
+        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
+      <span class="fr"><span class="txt-info"></span></span>
     </div>
   </div>
 </div>
@@ -171,6 +173,19 @@
   // 初始化设置
   $.cut.setLink(false);
   $.cut.toggleBox(false);
+
+  $.cut.onBoxChanged(function (info, box, reason) {
+    if (reason === 'navigate') {
+      var curId = $.cut.getCurrentCharID(true);
+      if (curId) {
+        $('.m-footer .char-name').text(curId);
+        $('.m-footer .char-info').text((info.txt || '') + (info['is_small'] ? '（小字）' : ''));
+      } else {
+        $('.m-footer .char-name').text('未选中');
+        $('.m-footer .char-info').text('');
+      }
+    }
+  }, true);
 
 </script>
 

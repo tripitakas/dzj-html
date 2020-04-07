@@ -24,13 +24,6 @@ class PageHandler(TaskHandler, Page, Box):
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
-        self.chars_col = self.texts = self.doubts = self.page_name = self.page = None
-
-    def prepare(self):
-        super().prepare()
-
-    def page_title(self):
-        return '%s-%s' % (self.task_name(), self.page.get('name') or '')
 
     def pack_boxes(self, page):
         self.pop_fields(page['blocks'], 'box_logs')
@@ -134,29 +127,18 @@ class PageHandler(TaskHandler, Page, Box):
         if post_data.get('auto_adjust'):
             blocks = self.adjust_blocks(blocks, chars)
             columns = self.adjust_columns(columns, chars)
-        # 合并用户字序和算法字序
-        chars_col = []
-        if page.get('chars_col'):
-            algorithm_chars_col = self.get_chars_col(chars)
-            chars_col = self.merge_chars_col(algorithm_chars_col, page['chars_col'])
-            chars = self.update_char_order(chars, chars_col)
-        # 设置更新字段
-        ret = dict(chars=chars, blocks=blocks, columns=columns, chars_col=chars_col)
-        return {k: v for k, v in ret.items() if v}
 
-    def get_txt(self, key):
+        return dict(chars=chars, blocks=blocks, columns=columns)
+
+    def get_txt(self, page, key):
         if key == 'cmp':
-            return self.page.get('cmp')
+            return page.get('cmp')
         if key == 'ocr':
-            return self.page.get('ocr') or self.get_box_ocr(self.page.get('chars'))
+            return self.get_box_ocr(page.get('chars'))
         if key == 'ocr_col':
-            return self.page.get('ocr_col') or self.get_box_ocr(self.page.get('columns'))
+            return self.get_box_ocr(page.get('columns'))
         if key == 'text':
-            return self.page.get('text') or self.html2txt(self.page.get('txt_html', ''))
-
-    def get_page_img(self, page=None, page_name=None):
-        page_name = page_name if page_name else page.get('name')
-        return self.get_web_img(page_name)
+            return page.get('text') or self.html2txt(page.get('txt_html', ''))
 
     @classmethod
     def get_box_ocr(cls, boxes):
@@ -257,9 +239,6 @@ class PageHandler(TaskHandler, Page, Box):
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
 
-    @staticmethod
-    def get_all_txt(page):
-        return [(page[f], f, Page.get_field_name(f)) for f in ['text', 'ocr', 'ocr_col', 'cmp'] if page.get(f)]
 
     @classmethod
     def check_utf8mb4(cls, seg, base=None):

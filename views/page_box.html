@@ -60,9 +60,13 @@
       <strong class="title"></strong><span class="text"></span>
     </div>
     <div class="m-footer">
-      <span class="page-name">页编码：{{page['name']}}</span>
-      <span class="readonly">权限：{{'只读' if readonly else '读写'}}</span>
-      <span class="cur-char fr"></span>
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+        权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
+      </span>
+      <span class="fr">
+        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
     </div>
   </div>
 </div>
@@ -120,7 +124,7 @@
 {% include _base_js.html %}
 {% include _base_cut.html %}
 {% if handler.is_task %} {% include _base_task.html %} {% end %}
-<script src="{{static_url('js/box-btn.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   // 页面图
   $.cut.create({
@@ -188,10 +192,14 @@
       showHighLightCount();
       updateUndo();
     } else if (reason === 'navigate') {
-      var tips = '当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中');
-      tips += ' ' + (info && info.txt || '') + (info && info['is_small'] ? '（小字）' : '');
-      tips += ' ' + (info && info.readonly ? '权限：只读' : '权限：读写');
-      $('.m-footer > .cur-char').text(tips);
+      var curId = $.cut.getCurrentCharID(true);
+      if (curId) {
+        $('.m-footer .char-name').text(curId);
+        $('.m-footer .char-info').text((info.txt || '') + (info['is_small'] ? '（小字）' : '') + (info.readonly ? ' 权限：只读' : ' 权限：读写'));
+      } else {
+        $('.m-footer .char-name').text('未选中');
+        $('.m-footer .char-info').text('');
+      }
     } else if (reason === 'initial') {
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;

@@ -83,20 +83,22 @@ class PageBoxApi(PageHandler):
     def post(self, page_name):
         """ 提交切分校对"""
         try:
-            rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
-            self.validate(self.data, rules)
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            update = self.get_box_update(self.data, page)
-            self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-            valid, message, box_type, out_boxes = self.check_box_cover(page)
-            self.send_data_response(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
-            self.add_log('update_box', target_id=page['_id'], context=page['name'])
-
+            self.save_box(self, page_name)
         except self.DbError as error:
             return self.send_db_error(error)
+
+    @staticmethod
+    def save_box(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+        rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
+        self.validate(self.data, rules)
+        update = self.get_box_update(self.data, page)
+        self.db.page.update_one({'_id': page['_id']}, {'$set': update})
+        valid, message, box_type, out_boxes = self.check_box_cover(page)
+        self.send_data_response(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
+        self.add_log('update_box', target_id=page['_id'], context=page['name'])
 
 
 class PageOrderApi(PageHandler):
@@ -105,54 +107,44 @@ class PageOrderApi(PageHandler):
     def post(self, page_name):
         """ 提交字序校对"""
         try:
-            # 检查参数
-            rules = [(v.not_empty, 'chars_col')]
-            self.validate(self.data, rules)
-            page = self.db.page.find_one({'name': page_name})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-
-            # 检查字框的相互覆盖情况（要在get_box_update之前检查，否则char_id可能重新设置）
-            valid, message, out_boxes = self.check_box_cover(self.data, page['width'], page['height'])
-            update = self.get_box_update(self.data, page)
-            self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-            self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
-            self.add_log('update_order', target_id=page['_id'], context=page['name'])
-
+            self.save_order(self, page_name)
         except self.DbError as error:
             return self.send_db_error(error)
 
+    @staticmethod
+    def save_order(self, page_name):
+        page = self.db.page.find_one({'name': page_name})
+        if not page:
+            self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+        self.validate(self.data, [(v.not_empty, 'chars_col')])
+        if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
+            return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
+        if len(self.data['chars_col']) != len(page['columns']):
+            return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
+        chars = self.update_char_order(page['chars'], self.data['chars_col'])
+        update = dict(chars=chars, chars_col=self.data['chars_col'])
+        self.db.page.update_one({'_id': page['_id']}, {'$set': update})
+        self.send_data_response()
+        self.add_log('update_order', target_id=page['_id'], context=page['name'])
 
-class TaskCutApi(TaskHandler, Page):
+
+class TaskCutApi(PageHandler):
     URL = '/api/task/(do|update)/@cut_task/@task_id'
 
     def post(self, mode, task_type, task_id):
         """ 提交切分、字序校审任务"""
         try:
-            page = self.db.page.find_one({'name': self.task['doc_id']})
-            if not page:
-                self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
-
             if self.steps['current'] == 'order':
-                self.validate(self.data, [(v.not_empty, 'chars_col')])
-                self.update_task(self.data.get('submit'))
-                if not self.cmp_char_cid(page['chars'], self.data['chars_col']):
-                    return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
-                if len(self.data['chars_col']) != len(page['columns']):
-                    return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
-                chars = self.update_char_order(page['chars'], self.data['chars_col'])
-                self.update_my_doc(dict(chars=chars, chars_col=self.data['chars_col']))
-                self.send_data_response()
+                PageOrderApi.save_order(self, self.task['doc_id'])
+                if self.data.get('submit'):
+                    update = {'status': self.STATUS_FINISHED, 'steps.submitted': ['box', 'order']}
+                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
             else:
-                rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
-                self.validate(self.data, rules)
-                self.update_task(self.data.get('submit'))
-                # 要提前检查，否则char_id可能重新设置
-                valid, message, out_boxes = self.check_box_cover(self.data, page['width'], page['height'])
-                update = self.get_box_update()
-                self.update_my_doc(update)
-                self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
-            self.add_log(self.mode + '_task', target_id=self.task_id, context=page['name'])
+                PageBoxApi.save_box(self, self.task['doc_id'])
+                if self.data.get('submit'):
+                    update = {'steps.submitted': ['box']}
+                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+            self.add_log(self.mode + '_task', target_id=self.task_id, context=self.task['doc_id'])
 
         except self.DbError as error:
             return self.send_db_error(error)
