@@ -42,24 +42,19 @@ class Box(BoxOrder):
     @classmethod
     def check_box_cover(cls, page, width=None, height=None):
         """ 检查页面字框覆盖情况"""
-
-        def get_column_id(c):
-            col_id = 'b%sc%s' % (c.get('block_no'), c.get('column_no'))
-            return c.get('column_id') or re.sub(r'(c\d+)c\d+', r'\1', c.get('char_id', '')) or col_id
-
         width = width or page.get('width')
         height = height or page.get('height')
         blocks, columns, chars = cls.filter_box(page, width, height)
         column_out_block, column_in_block = cls.boxes_out_of_boxes(columns, blocks)
         if column_out_block:
-            return False, '列框不在栏框内', [get_column_id(c) for c in column_out_block]
+            return False, '列框不在栏框内', 'column', [c['cid'] for c in column_out_block]
         char_out_block, char_in_block = cls.boxes_out_of_boxes(chars, blocks)
         if char_out_block:
-            return False, '字框不在栏框内', [c['char_id'] for c in char_out_block]
+            return False, '字框不在栏框内', 'char', [c['cid'] for c in char_out_block]
         char_out_column, char_in_column = cls.boxes_out_of_boxes(chars, columns)
         if char_out_column:
-            return False, '字框不在列框内', [c['char_id'] for c in char_out_column]
-        return True, None, []
+            return False, '字框不在列框内', 'char', [c['cid'] for c in char_out_column]
+        return True, None, None, []
 
     @classmethod
     def reorder_boxes(cls, chars=None, columns=None, blocks=None, page=None, direction=None):

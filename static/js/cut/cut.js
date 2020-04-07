@@ -96,7 +96,13 @@
 
   function findCharById(id) {
     return id && data.chars.filter(function (box) {
-      return box.char_id === id || box.cid == id;
+      return box.char_id === id || box.cid === id;
+    })[0];
+  }
+
+  function findCharByCid(cid, boxType) {
+    return data.chars.filter(function (box) {
+      return box.cid === cid || box.class === boxType;
     })[0];
   }
 
@@ -692,11 +698,11 @@
     canUndo: undoData.canUndo.bind(undoData),
     canRedo: undoData.canRedo.bind(undoData),
 
-    _getMaxCid: function (cls) {
+    _getMaxCid: function (boxType) {
       var maxCid = 0;
       for (var i = 0; i < data.chars.length; i++) {
         var c = data.chars[i];
-        if (c.class === cls && c.cid > maxCid)
+        if (c.class === boxType && c.cid > maxCid)
           maxCid = c.cid;
       }
       return maxCid;
@@ -1049,10 +1055,10 @@
       }
     },
 
-    toggleBox: function (visible, cls, boxIds) {
+    toggleBox: function (visible, boxType, boxIds) {
       data.chars.forEach(function (box) {
         if (box.shape
-            && (!cls || cls === box.shape.data('class'))
+            && (!boxType || boxType === box.shape.data('class'))
             && (!boxIds || boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0)
             && (!$(box.shape.node).hasClass('flash'))) {
           $(box.shape.node).toggle(!!visible);
@@ -1063,10 +1069,12 @@
       }
     },
 
-    toggleClass: function (boxIds, className, value) {
+    toggleClass: function (boxIds, boxType, className, value) {
       var res = [];
-      boxIds.map(findCharById).forEach(function (c) {
-        if (c && c.shape && res.indexOf(c) < 0) {
+      boxIds.forEach(function (cid) {
+        var c = findCharByCid(cid, boxType);
+        console.log(c);
+        if (c && c.shape && c.class === boxType && res.indexOf(c) < 0) {
           res.push(c);
           var el = $(c.shape.node), old = el.attr('class') + ' ';
           if (value === undefined ? old.indexOf(className + ' ') < 0 : value) {

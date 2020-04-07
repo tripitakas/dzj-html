@@ -233,8 +233,8 @@
         jumpUrl ? location.href = jumpUrl : refresh(500);
       } else {
         // 高亮未被覆盖的框
-        $.cut.toggleClass(res['out_boxes'], 'highlight flash', true);
-        $.cut.toggleBox(true, null, res['out_boxes']);
+        $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
+        $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
         // 提示
         let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
         if (jumpUrl) {

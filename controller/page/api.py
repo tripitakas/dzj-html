@@ -91,8 +91,8 @@ class PageBoxApi(PageHandler):
 
             update = self.get_box_update(self.data, page)
             self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-            valid, message, out_boxes = self.check_box_cover(page)
-            self.send_data_response(valid=valid, message=message, out_boxes=out_boxes)
+            valid, message, box_type, out_boxes = self.check_box_cover(page)
+            self.send_data_response(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
             self.add_log('update_box', target_id=page['_id'], context=page['name'])
 
         except self.DbError as error:
