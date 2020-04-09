@@ -205,29 +205,14 @@
       charActive = localStorage.getItem('toggleChar') || '1';
     }
 
-    if (blockActive === '1') {
-      $('#toggle-block').addClass('active');
-      $.cut.toggleBox(true, 'block');
-    } else {
-      $('#toggle-block').removeClass('active');
-      $.cut.toggleBox(false, 'block');
-    }
+    $('#toggle-block').toggleClass('active', blockActive === '1');
+    $.cut.toggleBox(blockActive === '1', 'block');
 
-    if (columnActive === '1') {
-      $('#toggle-column').addClass('active');
-      $.cut.toggleBox(true, 'column');
-    } else {
-      $('#toggle-column').removeClass('active');
-      $.cut.toggleBox(false, 'column');
-    }
+    $('#toggle-column').toggleClass('active', columnActive === '1');
+    $.cut.toggleBox(columnActive === '1', 'column');
 
-    if (charActive === '1') {
-      $('#toggle-char').addClass('active');
-      $.cut.toggleBox(true, 'char');
-    } else {
-      $('#toggle-char').removeClass('active');
-      $.cut.toggleBox(false, 'char');
-    }
+    $('#toggle-char').addClass('active', charActive === '1');
+    $.cut.toggleBox(charActive === '1', 'char');
   }
   updateThreeBoxes();
 
