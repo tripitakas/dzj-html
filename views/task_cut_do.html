@@ -339,7 +339,7 @@
     $.cut.switchHighlightBoxes(type);
   });
 
-  var cutStep = parseInt('{{not handler.readonly and handler.data.get("cut_step") or 0}}');
+  var cutStep = parseInt('{{handler.data.get("cut_step") or 0}}');
 
   function updateCutStep(showBoxes) {
     $('[data-target="#taskConfigModal"]').toggle(!cutStep);
