@@ -233,9 +233,9 @@
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    var charActive = $('#toggle-char').hasClass('active');
-    var blockActive = $('#toggle-block').hasClass('active');
-    var columnActive = $('#toggle-column').hasClass('active');
+    var charActive = cutStep ? cutStep === 2 : $('#toggle-char').hasClass('active');
+    var blockActive = cutStep ? cutStep === 1 : $('#toggle-block').hasClass('active');
+    var columnActive = cutStep ? cutStep === 3 : $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
     if ((charActive || threeActive) && cls === 'char') {
       return true;
@@ -250,9 +250,9 @@
 
   $.cut.onBoxChanged(function (info, box, reason) {
     if (reason === 'added') {
-      var charActive = $('#toggle-char').hasClass('active');
-      var blockActive = $('#toggle-block').hasClass('active');
-      var columnActive = $('#toggle-column').hasClass('active');
+      var charActive = cutStep ? cutStep === 2 : $('#toggle-char').hasClass('active');
+      var blockActive = cutStep ? cutStep === 1 : $('#toggle-block').hasClass('active');
+      var columnActive = cutStep ? cutStep === 3 : $('#toggle-column').hasClass('active');
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
       if (active.length > 6) {
         $.cut.removeBox();
