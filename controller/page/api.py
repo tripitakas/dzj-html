@@ -38,10 +38,6 @@ class CutTaskApi(PageHandler):
         # 要提前检查，否则char_id可能重新设置
         valid, message, out_boxes = self.check_box_cover(self.data, self.page['width'], self.page['height'])
         update = self.get_box_updated()
-        cut_step = self.data.get('cut_step')
-        if cut_step is not None:
-            update['cut_step'] = cut_step
-
         self.update_my_doc(update)
         self.send_data_response(dict(valid=valid, message=message, out_boxes=out_boxes))
 
