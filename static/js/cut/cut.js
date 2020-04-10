@@ -704,6 +704,8 @@
       var info = src && this.findCharById(src.data('char_id')) || {};
       var added = !info.char_id;
 
+      info.added = added;
+      info.changed = !added;
       if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
@@ -714,9 +716,6 @@
             break;
           }
         }
-        info.added = true;
-      } else {
-        info.changed = true;
       }
       dst.data('char_id', info.char_id).data('char', dst.txt);
       dst.data('class', info.class).data('cid', dst.cid);

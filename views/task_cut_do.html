@@ -56,9 +56,9 @@
   <img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
   <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
 
-  <img src="{{static_url('imgs/icon_block.png')}}" class="btn-img step-box" id="step-block" title="栏框校对"/>
-  <img src="{{static_url('imgs/icon_char.png')}}" class="btn-img step-box active" id="step-char" title="字框校对"/>
-  <img src="{{static_url('imgs/icon_column.png')}}" class="btn-img step-box" id="step-column" title="列框校对"/>
+  <img src="{{static_url('imgs/icon_block_1.png')}}" class="btn-img step-box" id="step-block" title="栏框校对"/>
+  <img src="{{static_url('imgs/icon_char_2.png')}}" class="btn-img step-box active" id="step-char" title="字框校对"/>
+  <img src="{{static_url('imgs/icon_column_3.png')}}" class="btn-img step-box" id="step-column" title="列框校对"/>
   <img src="{{static_url('imgs/char_icon9.png')}}" class="btn-img" id="finish-box" title="确认切分框"/>
 {% end %}
 
@@ -263,13 +263,29 @@
     } else if (reason === 'initial' || reason === 'undo') {
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
-      });
+      }).filter(function (c) { return c; });
+      if (invalid.length) {
+        var n1 = invalid[0].split('c').length;
+        cutStep = n1 > 1 ? 2 : n1 == 1 ? 3 : 1;
+      }
       updateCutStep(true);
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
 
   }, true);
+
+  // 任务提交
+  $(document).on('click', '#submit-task', function () {
+    var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      }).filter(function (c) { return c; });
+    if (invalid.length) {
+      showWarning('不能提交', '请修正高亮显示的切分框。');
+    } else {
+      saveTask(true, null, afterSubmitted);
+    }
+  });
 
 </script>
 
@@ -287,7 +303,7 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val();
+    var autoAdjust = false; // $('#taskConfigModal .auto-adjust :checked').val();
     var detectCol = $('#taskConfigModal .detect-col :checked').val();
     return {
       cut_step: cutStep,
@@ -299,7 +315,7 @@
 
   // 是否自动调整栏框、列框大小，自适应检测字框在多列的情况
   $('#taskConfigModal .modal-confirm').click(function () {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked');
+    var autoAdjust = !cutStep && $('#taskConfigModal .auto-adjust :checked');
     if (autoAdjust.length)
       localStorage.setItem('autoAdjust', autoAdjust.val());
     var detectCol = $('#taskConfigModal .detect-col :checked');
@@ -348,13 +364,24 @@
     $('#step-char').toggleClass('active', cutStep === 2);
     $('#step-column').toggleClass('active', cutStep === 3);
 
-    if (showBoxes && cutStep) {
-      $.cut.toggleBox(cutStep === 1, 'block');
-      $.cut.toggleBox(cutStep === 2, 'char');
-      $.cut.toggleBox(cutStep === 3, 'column');
-    }
-    else if (showBoxes) {
-      updateThreeBoxes();
+    if (showBoxes) {
+      $.cut.switchCurrentBox(null);
+      if (cutStep) {
+        $.cut.toggleBox(cutStep === 1, 'block');
+        $.cut.toggleBox(cutStep === 2, 'char');
+        $.cut.toggleBox(cutStep === 3, 'column');
+      }
+      else {
+        updateThreeBoxes();
+      }
+
+      var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      }).filter(function (c) { return c; });
+      $.cut.toggleClass(invalid, 'flash', true);
+      setTimeout(function () {
+        $.cut.toggleClass(invalid, 'flash', false);
+      }, 2000);
     }
   }
   updateCutStep(true);
@@ -372,8 +399,14 @@
     updateCutStep(true);
   });
   $('#finish-box').click(function () {
-    cutStep = 0;
-    updateCutStep(true);
+    saveTask(false, null, function (submit, res) {
+      if (res.valid) {
+        cutStep = 0;
+        updateCutStep(true);
+      } else {
+        afterSaved(false, res);
+      }
+    });
   });
 
 </script>
