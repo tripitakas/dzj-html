@@ -33,6 +33,7 @@ class CutTaskHandler(PageHandler):
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)
                     self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
+            self.data['cut_step'] = self.page.get('cut_step', 1)
             self.render(template)
 
         except Exception as error:
@@ -59,6 +60,7 @@ class CutEditHandler(PageHandler):
                     boxes = self.reorder_boxes(page=self.page, direction=reorder)
                     self.page['blocks'], self.page['columns'], self.page['chars'] = boxes
                 self.chars_col = self.get_chars_col(self.page['chars'])
+            self.data['cut_step'] = self.get_query_argument('cut_step', '1')
             self.render(template)
 
         except Exception as error:
