@@ -50,7 +50,7 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
     while cnt < 1000:
         cnt += 1
         project = {k: 1 for k in ['name', 'chars', 'blocks', 'columns']}
-        condition = {'source': {'$regex': '1200'}, 'name': {'$nin': handled}}
+        condition = {'name': {'$nin': handled}}
         if debug_name:
             condition = {'name': debug_name}
         pages = list(db.page.find(condition, project).limit(10))
@@ -65,7 +65,7 @@ def check_chars_col(db_name='tripitaka', uri='localhost'):
             new_chars_col = PageTool.get_chars_col(chars)
             if not cmp_chars_col(old_chars_col, new_chars_col):
                 invalid_order.append(p['name'])
-                # print('invalid:', p['name'])
+                print('invalid:', p['name'])
         if debug_name:
             break
 

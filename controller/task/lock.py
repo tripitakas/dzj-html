@@ -146,4 +146,4 @@ class Lock(object):
             'is_temp': False, 'qualification': qualification, 'locked_time': datetime.now(),
             'locked_by': user['name'], 'locked_user_id': user['_id']
         }}})
-        return True if r.matched_count else e.data_lock_failed
+        return (True if r.matched_count else e.data_lock_failed) if r.matched_count else e.data_lock_not_exist

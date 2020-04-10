@@ -5,7 +5,6 @@
 """
 import re
 import json
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.base import DbError
@@ -166,6 +165,8 @@ class PickTaskApi(TaskHandler):
             # 分配数据锁
             r = self.assign_task_lock(task['doc_id'], task_type, self.current_user)
             if isinstance(r, tuple):
+                if r == e.data_lock_not_exist:
+                    self.db.task.delete_one({'_id': task['_id']})
                 return self.send_error_response(r)
             # 分配任务
             self.db.task.update_one({'_id': task['_id']}, {'$set': {
