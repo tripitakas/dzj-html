@@ -264,7 +264,7 @@
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
       });
-      updateThreeBoxes();
+      updateCutStep(true);
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
