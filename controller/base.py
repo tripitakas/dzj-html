@@ -308,9 +308,11 @@ class BaseHandler(CorsMixin, RequestHandler):
         return not disabled_mods or mod not in disabled_mods
 
     def update_user_time(self):
-        agent = self.request.headers['user-agent']
-        self.db.user.update_one(dict(_id=self.user_id), {'$set': {
-            'updated_time': self.now(), 'ip': self.get_ip(), 'agent': agent}})
+        info = {'updated_time': self.now(), 'ip': self.get_ip()}
+        agent = self.request.headers.get('user-agent')
+        if agent:
+            info['agent'] = agent
+        self.db.user.update_one(dict(_id=self.user_id), {'$set': info})
 
     @staticmethod
     def now():
