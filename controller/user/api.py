@@ -260,6 +260,8 @@ class UploadUserAvatarApi(BaseHandler):
                 f.write(upload_img[0]['body'])
             self.db.user.update_one(dict(_id=self.user_id), {'$set': dict(img=img)})
             self.current_user['img'] = img
+            self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
+
             self.send_data_response()
 
         except DbError as error:

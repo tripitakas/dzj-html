@@ -69,7 +69,9 @@ function refresh(timer) {
 function goto(url, timer) {
   timer = typeof timer !== 'undefined' ? timer : 1000;
   setTimeout(function () {
-    window.location = url;
+    if (url) {
+      window.location = url;
+    }
   }, timer);
 }
 

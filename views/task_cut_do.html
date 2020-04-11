@@ -264,11 +264,23 @@
 
   }, true);
 
+  // 任务提交
+  $(document).on('click', '#submit-task', function () {
+    var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      }).filter(function (c) { return c; });
+    if (invalid.length) {
+      showWarning('不能提交', '请修正高亮显示的切分框。');
+    } else {
+      saveTask(true, null, afterSubmitted);
+    }
+  });
+
 </script>
 
 <script>
   $(document).ready(function () {
-    var autoAdjust = localStorage.getItem('autoAdjust') || '是';
+    var autoAdjust = null; // localStorage.getItem('autoAdjust') || '是';
     if (autoAdjust.length) {
       $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
     }
