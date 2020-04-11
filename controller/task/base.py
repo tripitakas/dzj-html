@@ -279,6 +279,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         if mode in ['do', 'update']:
             if not task:
                 error = e.task_not_existed
+            elif not self.current_user:
+                error = e.auth_changed
             elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_unauthorized_locked
             elif mode == 'do' and task['status'] != self.STATUS_PICKED:
