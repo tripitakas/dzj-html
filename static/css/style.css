@@ -1285,6 +1285,10 @@ a:focus {
 	padding-left: 10px !important;
 }
 
+table .agent {
+  max-width: 180px;
+}
+
 
 /* 2.13 Alerts */
 

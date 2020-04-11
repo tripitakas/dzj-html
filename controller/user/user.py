@@ -16,7 +16,9 @@ class User(Model):
         {'id': 'password', 'name': '密码'},
         {'id': 'create_time', 'name': '创建时间'},
         {'id': 'updated_time', 'name': '更新时间'},
+        {'id': 'agent', 'name': '浏览器类型'},
     ]
+    hide_fields = ['agent']
     rules = [
         (v.not_empty, 'name', 'password'),
         (v.not_both_empty, 'email', 'phone'),

@@ -33,7 +33,7 @@ hook = {}
 
 class BaseHandler(CorsMixin, RequestHandler):
     """ 后端API响应类的基类 """
-    CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
+    CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,X-Real-Ip,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
     def __init__(self, application, request, **kwargs):
@@ -75,6 +75,8 @@ class BaseHandler(CorsMixin, RequestHandler):
             return self.send_db_error(error)
         # 设置参数
         self.user_id, self.username = self.current_user.get('_id'), self.current_user.get('name')
+        if self.is_api:
+            self.update_user_time()
         # 检查是否不需授权（即普通用户可访问）
         if can_access('普通用户', p, m):
             return
@@ -261,6 +263,8 @@ class BaseHandler(CorsMixin, RequestHandler):
 
     def get_ip(self):
         ip = self.request.headers.get('x-forwarded-for') or self.request.remote_ip
+        ip = ip.split(',')[-1].strip()
+        ip = self.request.headers.get('X-Real-Ip') or ip
         return ip and re.sub(r'^::\d$', '', ip[:15]) or '127.0.0.1'
 
     def add_op_log(self, op_type, target_id=None, context=None, username=None):
@@ -302,6 +306,11 @@ class BaseHandler(CorsMixin, RequestHandler):
     def is_mod_enabled(self, mod):
         disabled_mods = self.prop(self.config, 'modules.disabled_mods')
         return not disabled_mods or mod not in disabled_mods
+
+    def update_user_time(self):
+        agent = self.request.headers['user-agent']
+        self.db.user.update_one(dict(_id=self.user_id), {'$set': {
+            'updated_time': self.now(), 'ip': self.get_ip(), 'agent': agent}})
 
     @staticmethod
     def now():

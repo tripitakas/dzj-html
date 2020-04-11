@@ -50,6 +50,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         self.task_id = self.get_task_id()
         # 检查任务
         if self.task_id:
+            self.update_user_time()
             # 任务是否存在
             self.task, self.error = self.get_task(self.task_id)
             if not self.task:
