@@ -80,6 +80,26 @@ class OrderHandler(PageHandler):
             return self.send_db_error(error)
 
 
+class CmpTxtHandler(PageHandler):
+    URL = ['/page/cmp_txt/@page_name', '/page/cmp_txt/edit/@page_name']
+
+    def get(self, page_name):
+        """ 比对文本页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            self.pack_boxes(page)
+            ocr = self.get_txt(page, 'ocr')
+            cmp = self.get_txt(page, 'cmp')
+            readonly = '/edit' not in self.request.path
+            img_url = self.get_web_img(page['name'], 'page')
+            self.render('page_cmp_txt.html', page=page, ocr=ocr, cmp=cmp, img_url=img_url, readonly=readonly)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
 class TaskCutHandler(PageHandler):
     URL = ['/task/@cut_task/@task_id',
            '/task/do/@cut_task/@task_id',
@@ -335,6 +355,7 @@ class PageListHandler(BaseHandler, Page):
         {'action': 'btn-detail', 'label': '详情'},
         {'action': 'btn-box', 'label': '字框'},
         {'action': 'btn-order', 'label': '字序'},
+        {'action': 'btn-cmp-txt', 'label': '比对文本'},
         {'action': 'btn-update', 'label': '更新'},
         {'action': 'btn-remove', 'label': '删除'},
     ]

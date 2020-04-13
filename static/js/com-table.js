@@ -135,7 +135,6 @@ var fields = decodeJSON($('#updateModal .fields').val() || '[]').concat({id: '_i
 $('.btn-add').click(function () {
   $modal.find('.modal-title').html('新增数据');
   $modal.find('.update-url').val($(this).attr('url') || location.pathname);
-  console.log($(this).attr('url') || location.pathname);
   toggleModal($modal, fields, false);
   resetModal($modal, fields);
   $modal.modal();
@@ -145,8 +144,6 @@ $('.btn-add').click(function () {
 $('.btn-view').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
-  console.log(data);
-
   var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
   $modal.find('.modal-title').html(title);
   toggleModal($modal, fields, true);

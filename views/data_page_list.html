@@ -94,7 +94,7 @@
 <div id="searchModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="searchModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-     <div class="modal-header"><h4 class="modal-title">综合检索</h4></div>
+      <div class="modal-header"><h4 class="modal-title">综合检索</h4></div>
       <div class="modal-body">
         <form class="form-horizontal">
           <div class="form-group">
@@ -297,10 +297,9 @@
 {% end %}
 
 {% block custom-js %}
-<script src="{{static_url('js/l10n.js')}}"></script>
 <script>
   // 更新分类
-  $('.operation .bat-source').click(function () {
+  $('.operation .bat-source').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     if (!ids.length)
       return showWarning('请选择', '当前没有选中任何记录。');
@@ -312,7 +311,7 @@
   });
 
   // 生成字表
-  $('.operation .bat-export-char').click(function () {
+  $('.operation .bat-export-char').on('click', function () {
     var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
     if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
@@ -324,27 +323,34 @@
   });
 
   // 查找重复
-  $('.operation .btn-duplicate').click(function () {
+  $('.operation .btn-duplicate').on('click', function () {
     location.href = location.pathname + '?duplicate=true';
   });
 
 
   // 修改字框
-  $('.action .btn-box').click(function () {
+  $('.action .btn-box').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/cut_edit/' + name;
+    var url = '/page/box/edit/' + name;
     location.href = url + '?from=' + encodeFrom();
   });
 
   // 修改字序
-  $('.action .btn-order').click(function () {
+  $('.action .btn-order').on('click', function () {
     var name = $(this).parent().parent().find('.name').text();
-    var url = '/page/cut_edit/' + name;
-    location.href = url + '?step=order&from=' + encodeFrom();
+    var url = '/page/order/edit/' + name;
+    location.href = url + '?from=' + encodeFrom();
+  });
+
+  // 修改比对文本
+  $('.action .btn-cmp-txt').on('click', function () {
+    var name = $(this).parent().parent().find('.name').text();
+    var url = '/page/cmp_txt/edit/' + name;
+    location.href = url + '?from=' + encodeFrom();
   });
 
   // 解锁
-  $('.lock-box a, .lock-text a').click(function () {
+  $('.lock-box a, .lock-text a').on('click', function () {
     if (!$(this).text().length)
       return;
     var node = $(this).parent();
@@ -362,12 +368,12 @@
   });
 
   // 详情
-  $('.action .btn-detail').click(function () {
+  $('.action .btn-detail').on('click', function () {
     location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
   });
 
   // 浏览
-  $('.action .btn-nav').click(function () {
+  $('.action .btn-nav').on('click', function () {
     var name = $(this).parent().siblings('.name').text();
     location.href = '/page/browse/' + name + location.search;
   });
@@ -378,7 +384,7 @@
   var $searchModal = $("#searchModal");
   var inputFields = ['name', 'source', 'txt', 'remark-box', 'remark-text', 'level-box', 'level-text'];
   var selectFields = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
-  $searchModal.find('.modal-confirm').click(function () {
+  $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {
       var value = $searchModal.find('.' + field).val();
@@ -396,7 +402,7 @@
   });
 
   // 重置检索条件
-  $searchModal.find('.reset').click(function () {
+  $searchModal.find('.reset').on('click', function () {
     inputFields.forEach(function (field) {
       $searchModal.find('.' + field).val('');
     });
@@ -419,7 +425,7 @@
     {id: 'force', input_type: 'radio'}
   ];
   // 弹框
-  $('.btn-publish a').click(function () {
+  $('.btn-publish a').on('click', function () {
     taskType = $(this).attr('title');
     $publishModal.find('.task_type').val(taskType);
     $publishModal.find('#task-name').text(taskTypes[taskType].name);
@@ -448,14 +454,14 @@
     $publishModal.modal();
   });
   // 刷新
-  $publishModal.find('.modal-refresh').click(function () {
+  $publishModal.find('.modal-refresh').on('click', function () {
     location.reload();
   });
-  $publishResultModal.find('.modal-confirm').click(function () {
+  $publishResultModal.find('.modal-confirm').on('click', function () {
     location.reload();
   });
   // 提交
-  $publishModal.find('.modal-confirm').click(function () {
+  $publishModal.find('.modal-confirm').on('click', function () {
     var isFile = false;
     var formData = new FormData();
     var data = getModal($publishModal, publishFields);

@@ -18,7 +18,7 @@
     <div class="m-header">
       <div class="left">
         <div class="btn-group back">
-          <span class="icon-return-back" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
         <div class="btn-group title" style="user-select: text">
           <a href="#">{{page['name']}}</a>
@@ -118,27 +118,10 @@
 
 {% include _base_js.html %}
 {% include _base_cut.html %}
-<script src="{{static_url('js/l10n.js')}}"></script>
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
-<script>
-  var from = decodeFrom();
-  $('#help').on('click', () => $('#helpModal').modal());
-  window.leave = () => from ? window.location = from : window.history.back();
-
-  // 切换文本
-  $('.btn-show-txt').click(function () {
-    $('.btn-show-txt').removeClass('active');
-    $(this).addClass('active');
-    $('.sutra-text').addClass('hide');
-    $('.' + $(this).attr('data-id')).removeClass('hide');
-    $('.m-footer .txt-info').html('当前文本：' + $(this).text());
-  });
-
-</script>
-
 <script>
   $.cut.create({
     readonly: true,
@@ -156,6 +139,7 @@
   $.cut.bindCharOrderKeys();
   $.cut.switchCurrentBox(null);
   $.cut.addCharOrderLinks(decodeJSON('{{chars_col}}'), true);
+
   setTimeout(function () {
     $.cut.switchCurrentBox('{{cur_cid}}');
     $.cut.toggleClass(['{{cur_cid}}'], 'flash', true);
@@ -186,6 +170,18 @@
       }
     }
   }, true);
+
+</script>
+
+<script>
+  // 切换文本
+  $('.btn-show-txt').click(function () {
+    $('.btn-show-txt').removeClass('active');
+    $(this).addClass('active');
+    $('.sutra-text').addClass('hide');
+    $('.' + $(this).attr('data-id')).removeClass('hide');
+    $('.m-footer .txt-info').html('当前文本：' + $(this).text());
+  });
 
 </script>
 

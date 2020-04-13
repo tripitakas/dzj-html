@@ -309,16 +309,16 @@ class TextEditApi(PageHandler):
             return self.send_db_error(error)
 
 
-class TaskTextSelectApi(PageHandler):
-    URL = '/api/task/text_select/@page_name'
+class SelectCmpTxtApi(PageHandler):
+    URL = '/api/page/cmp_txt/@page_name'
 
     def post(self, page_name):
-        """ 寻找比对本。根据OCR文本从CBETA库中查找相似文本作为比对本"""
+        """ 根据OCR文本从CBETA库中查找相似文本作为比对本"""
         try:
-            self.page = self.db.page.find_one({'name': page_name})
-            if not self.page:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
-            ocr = self.get_txt('ocr')
+            ocr = self.get_txt(page, 'ocr')
             num = self.prop(self.data, 'num', 1)
             cmp, hit_page_codes = find_one(ocr, int(num))
             if cmp:
@@ -333,7 +333,7 @@ class TaskTextSelectApi(PageHandler):
 
 
 class TextNeighborApi(PageHandler):
-    URL = '/api/task/text/neighbor'
+    URL = '/api/page/cmp_txt/neighbor'
 
     def post(self):
         """ 获取比对文本的前后页文本"""
