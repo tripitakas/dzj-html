@@ -17,7 +17,7 @@ class PageViewHandler(PageHandler):
     URL = '/page/@page_name'
 
     def get(self, page_name):
-        """ 查看页面数据"""
+        """ 查看Page页面"""
         try:
             page = self.db.page.find_one({'name': page_name})
             if not page:
@@ -81,7 +81,8 @@ class OrderHandler(PageHandler):
 
 
 class CmpTxtHandler(PageHandler):
-    URL = ['/page/cmp_txt/@page_name', '/page/cmp_txt/edit/@page_name']
+    URL = ['/page/cmp_txt/@page_name',
+           '/page/cmp_txt/edit/@page_name']
 
     def get(self, page_name):
         """ 比对文本页面"""
@@ -95,6 +96,36 @@ class CmpTxtHandler(PageHandler):
             readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             self.render('page_cmp_txt.html', page=page, ocr=ocr, cmp=cmp, img_url=img_url, readonly=readonly)
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class TxtHandler(PageHandler):
+    URL = ['/page/txt/@page_name',
+           '/page/txt/edit/@page_name']
+
+    def get(self, page_name):
+        """ 文字校对页面"""
+        try:
+            page = self.db.page.find_one({'name': page_name})
+            if not page:
+                self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
+            txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
+            txts = [t for t in txts if t[0]]
+            txt_dict = {t[1]: t for t in txts}
+            cmp_data = self.prop(page, 'txt_html')
+            txt_fields = self.prop(page, 'txt_fields')
+            doubts = [(self.prop(page, 'txt_doubt', ''), '校对存疑')]
+            if not cmp_data:
+                txt_fields = [t[1] for t in txts]
+                cmp_data = self.diff(*[t[0] for t in txts])
+                cmp_data = to_basestring(TextArea(self).render(cmp_data))
+            readonly = '/edit' not in self.request.path
+            img_url = self.get_web_img(page['name'], 'page')
+            return self.render('page_txt.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+                               txt_fields=txt_fields, cmp_data=cmp_data,
+                               doubts=doubts, readonly=readonly)
 
         except Exception as error:
             return self.send_db_error(error)

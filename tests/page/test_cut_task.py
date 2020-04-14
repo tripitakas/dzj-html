@@ -24,7 +24,7 @@ class TestCutTask(APITestCase):
         super(TestCutTask, self).tearDown()
 
     def test_page_box(self):
-        """ 测试修改切分数据"""
+        """ 测试切分校对"""
         self.login(u.expert1[0], u.expert1[1])
         # 测试进入页面
         name = 'YB_22_346'
@@ -41,6 +41,14 @@ class TestCutTask(APITestCase):
         data = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
         r = self.fetch('/api/page/box/' + name, body={'data': data})
         self.assert_code(200, r)
+
+    def test_page_txt(self):
+        """ 测试文字校对"""
+        self.login(u.expert1[0], u.expert1[1])
+        # 测试进入页面
+        name = 'YB_22_346'
+        r = self.fetch('/page/txt/edit/%s?_raw=1' % name)
+        d = self.parse_response(r)
 
     def test_cut_task_flow(self):
         """ 测试切分任务流程 """

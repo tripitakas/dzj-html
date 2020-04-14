@@ -6,7 +6,7 @@ views = [
     view.TaskTextProofHandler, view.TaskTextReviewHandler, view.TextEditHandler,
     view.CharEditHandler, view.BoxHandler, view.OrderHandler,
     view.PageListHandler, view.PageInfoHandler, view.CharListHandler,
-    view.CharStatisticHandler, view.CmpTxtHandler,
+    view.CharStatisticHandler, view.CmpTxtHandler, view.TxtHandler,
 ]
 
 handlers = [

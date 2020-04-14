@@ -5,6 +5,7 @@
 
 .m-right {
   flex: 1;
+  overflow: auto;
   border-left: 1px solid #ccc;
   background: var(--Grey_Content);
 }
@@ -23,8 +24,8 @@
 .html-text {
   height: 100%;
   overflow: auto;
-  padding-top: 5px;
   flex: 1 1 auto;
+  padding-top: 5px;
 }
 
 .html-text .blocks {
@@ -47,16 +48,16 @@
 .html-text .line span {
   font-size: 20px;
   font-weight: 300;
-  letter-spacing: 1px;
+  margin: 5px 0;
   line-height: 40px;
-  display: inline-block;
+  letter-spacing: 1px;
   word-break: break-all;
 }
 
 .html-text .line span:last-child(:not .empty-place) {
-  padding-right: 10px;
   min-width: 20px;
   min-height: 40px;
+  padding-right: 10px;
 }
 
 .html-text .diff {

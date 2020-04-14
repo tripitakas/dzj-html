@@ -475,7 +475,7 @@
         if (e.shiftKey) {
           self.switchCurrentBox(null);
         } else if ((!state.edit || state.editHandle.index < 0) && !lockBox
-          && (state.hover || !self.isInRect(state.down, state.edit, 1))) {
+            && (state.hover || !self.isInRect(state.down, state.edit, 1))) {
           self.switchCurrentBox(state.hover);
         }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
@@ -839,11 +839,11 @@
             ret[k] = c[k];
           }
         });
-        if (c.class.indexOf('block') >= 0 || c.class.indexOf('column') >= 0) {
+        if (c.class && (c.class.indexOf('block') >= 0 || c.class.indexOf('column') >= 0)) {
           delete ret.char_id;
           delete ret.char_no;
         }
-        if (c.class.indexOf('block') >= 0) {
+        if (c.class && c.class.indexOf('block') >= 0) {
           delete ret.column_no;
         }
         return ret;

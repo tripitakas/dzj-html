@@ -181,6 +181,6 @@ class TestDiff(APITestCase):
             ]
         }
 
-        r = self.fetch('/api/page/text/diff', body={'data': data})
+        r = self.fetch('/api/page/txt/diff', body={'data': data})
         d = self.parse_response(r)
         self.assert_code(200, r)

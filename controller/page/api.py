@@ -354,7 +354,7 @@ class TextNeighborApi(PageHandler):
 
 
 class TextsDiffApi(PageHandler):
-    URL = '/api/page/text/diff'
+    URL = '/api/page/txt/diff'
 
     def post(self):
         """ 用户提交纯文本后重新比较，并设置修改痕迹"""
@@ -385,7 +385,7 @@ class TextsDiffApi(PageHandler):
 
 
 class DetectWideCharsApi(PageHandler):
-    URL = '/api/task/text/detect_chars'
+    URL = '/api/page/txt/detect_chars'
 
     def post(self):
         """ 根据文本行内容识别宽字符"""

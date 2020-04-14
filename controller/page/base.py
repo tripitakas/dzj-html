@@ -131,14 +131,14 @@ class PageHandler(TaskHandler, Page, Box):
         return dict(chars=chars, blocks=blocks, columns=columns)
 
     def get_txt(self, page, key):
+        if key == 'txt':
+            return page.get('txt') or ''
         if key == 'cmp':
-            return page.get('cmp')
+            return page.get('cmp') or ''
         if key == 'ocr':
             return self.get_box_ocr(page.get('chars'))
         if key == 'ocr_col':
             return self.get_box_ocr(page.get('columns'))
-        if key == 'text':
-            return page.get('text') or self.html2txt(page.get('txt_html', ''))
 
     @classmethod
     def get_box_ocr(cls, boxes):
@@ -149,7 +149,7 @@ class PageHandler(TaskHandler, Page, Box):
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
                 txt += '||'
-            elif pre.get('line_no') and b.get('line_no') and pre['line_no'] != b['line_no']:
+            elif pre.get('column_no') and b.get('column_no') and pre['column_no'] != b['column_no']:
                 txt += '|'
             txt += b.get('ocr_txt', '')
             pre = b
@@ -238,7 +238,6 @@ class PageHandler(TaskHandler, Page, Box):
         if is_match:
             update['chars'] = self.update_chars_txt(self.page.get('chars'), text)
         return update
-
 
     @classmethod
     def check_utf8mb4(cls, seg, base=None):

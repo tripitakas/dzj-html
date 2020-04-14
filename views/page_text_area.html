@@ -2,7 +2,6 @@
 <ul class="block" id="block-{{i}}">
   {% for k, line in sort_by_key(block) %}
   <li class="line{{'' if len(line) else ' empty-line'}}" id="line-{{k}}">
-    <span class="line-no-head" title="b{{i}}c{{k}}"></span>
     {% for s in line %}
     {% set selected = ' selected' if s.get('selected') else '' %}
     {% set empty_place = '' if s.get('base') else ' empty-place' %}

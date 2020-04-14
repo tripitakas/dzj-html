@@ -4,6 +4,7 @@
  */
 
 /** 切分字框相关代码 */
+
 var showText = false;                     // 是否显示字框对应文字
 var showOrder = false;                    // 是否显示字框对应序号
 var showBlockBox = false;                 // 是否显示栏框切分坐标
@@ -107,7 +108,7 @@ function highlightBox($span, first, keyCode) {
   var $block = $line.parent();
   var block_no = getBlockNo($block);
   var offset0 = parseInt($span.attr('offset'));
-  offsetInSpan = first ? 0 : getCursorPosition($span[0]);
+  offsetInSpan = offsetInSpan ? offsetInSpan : getCursorPosition($span[0]);
   offsetInSpan = offsetInSpan + (keyCode === 39 ? 1 : keyCode === 37 ? -1 : 0);
   offsetInSpan = offsetInSpan || 1;
   var offsetInLine = offsetInSpan + offset0;
@@ -212,8 +213,8 @@ $('.line > span').on('keydown', function (e) {
   highlightBox($(this), false, keyCode);
 });
 
+
 /** 对话框相关代码 */
-var $dlg = $("#pfread-dialog");
 
 function resetDialogClass() {
   var base = $("#dlg-base").text(), cmp1 = $("#dlg-cmp1").text();
@@ -239,6 +240,7 @@ $(document).on('click', '.same, .diff', function () {
 });
 
 // 双击异文
+var $dlg = $("#pfread-dialog");
 $(document).on('dblclick', '.diff', function (e) {
   e.stopPropagation();
   setCurrent($(this));
@@ -309,6 +311,7 @@ $(document).on('DOMSubtreeModified', '#dlg-select', function () {
 
 
 /** 文本比对相关代码 */
+
 function getWorkText() {
   return $.map($('#work-html .block'), function (block) {
     return $.map($(block).find('.line'), function (line) {
@@ -356,7 +359,7 @@ $('#btn-cmp-txt').on('click', function () {
   if (!cmps.length)
     return showTips('提示', '请选择校本');
   var texts = [base].concat(cmps).map((field) => getText(field));
-  postApi('/page/text/diff', {data: {texts: texts}}, function (res) {
+  postApi('/page/txt/diff', {data: {texts: texts}}, function (res) {
     $('#work-html .blocks').html(res['cmp_data']);
     showTxt('work-panel');
     setDialogLabel([base].concat(cmps).map((field) => textDict[field][2]));
@@ -385,14 +388,14 @@ $('#btn-raw-txt').on('click', function () {
 // 回到工作面板
 $('#btn-html-txt').on('click', function () {
   // 用工作文本替代底本与比对文本比对
-  var texts = textFields.map((txt) => getText(txt));
+  var texts = txtFields.map((txt) => getText(txt));
   texts[0] = $('#text-work textarea').val();
   var hints = $.map($('#work-html .selected'), function (i) {
     var lineNo = getLineNo($(i).parent());
     var blockNo = getBlockNo($(i).parent().parent());
     return {line_no: lineNo, block_no: blockNo, base: $(i).text(), cmp1: $(i).attr('cmp1'), offset: $(i).attr('offset')}
   });
-  postApi('/page/text/diff', {data: {texts: texts, hints: hints}}, function (res) {
+  postApi('/page/txt/diff', {data: {texts: texts, hints: hints}}, function (res) {
     $('#work-html .blocks').html(res['cmp_data']);
     toggleWorkText('html');
   });
@@ -404,6 +407,7 @@ $('.m-right textarea').on('input', function () {
 
 
 /** 存疑相关代码 */
+
 // 点击存疑，弹出对话框
 $('#save-doubt').on('click', function () {
   var txt = window.getSelection ? window.getSelection().toString() : '';
@@ -436,7 +440,6 @@ $('#doubtModal .modal-confirm').on('click', function () {
   $('.doubt-list .char-list-table.editable').append(line).removeClass('hidden');
   $('#toggle-arrow').removeClass('active');
   $('#doubtModal').modal('hide');
-  markChanged();
 });
 
 // 切换存疑列表
@@ -491,6 +494,7 @@ $(document).on('click', '.char-list-tr:not(.del-doubt)', function () {
   }
 });
 
+
 /** 图文匹配相关代码 */
 
 // 检查图文匹配
@@ -522,7 +526,6 @@ function checkMismatch(report, fromApi) {
     lineCountMisMatch = '总行数#文本' + lineNos.length + '行#图片' + ocrColumns.length + '行';
     mismatch.splice(0, 0, lineCountMisMatch);
   }
-  var oldChanged = workChanged;
   lineNos.forEach(function (no) {
     var boxes = $.cut.findCharsByLine(no.blockNo, no.lineNo);
     var $line = getLine(no.blockNo, no.lineNo);
@@ -547,7 +550,6 @@ function checkMismatch(report, fromApi) {
     }
   });
   $.cut.updateText && $.cut.updateText();
-  workChanged = oldChanged;
   if (report) {
     if (mismatch.length) {
       var text = mismatch.map(function (t) {
@@ -565,7 +567,6 @@ function checkMismatch(report, fromApi) {
 // 调用后台API，根据文本行内容识别宽字符
 function updateWideChars(lineNos, ended) {
   var texts = [];
-  var oldChanged = workChanged;
   lineNos.forEach(function (no) {
     var $line = getLine(no.blockNo, no.lineNo);
     var spans = [];
@@ -577,7 +578,7 @@ function updateWideChars(lineNos, ended) {
       }
     });
   });
-  postApi('/task/text/detect_chars', {data: {texts: texts}}, function (res) {
+  postApi('/page/txt/detect_chars', {data: {texts: texts}}, function (res) {
     lineNos.forEach(function (no, lineIdx) {
       var $line = getLine(no.blockNo, no.lineNo);
       $line.find('span').each(function (i, el) {
@@ -587,7 +588,6 @@ function updateWideChars(lineNos, ended) {
         }
       });
     });
-    workChanged = oldChanged;
     ended();
   }, ended);
 }
@@ -602,6 +602,7 @@ $('#check-match').on('click', function () {
 
 
 /** 其它代码 */
+
 // 粘贴时去掉格式
 $(document).on('paste', 'span', function (e) {
   e.preventDefault();
@@ -613,7 +614,6 @@ $(document).on('paste', 'span', function (e) {
 $('#work-html').on('DOMSubtreeModified', markChanged);
 
 function markChanged() {
-  workChanged++;
 }
 
 function autoSave(ended) {
