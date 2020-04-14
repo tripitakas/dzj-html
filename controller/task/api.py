@@ -12,58 +12,6 @@ from controller.task.base import TaskHandler
 from controller.auth import can_access, get_all_roles
 
 
-class GetReadyPagesApi(TaskHandler):
-    URL = '/api/task/ready/@task_type'
-
-    def post(self, task_type):
-        """ 获取数据已就绪的任务列表。已就绪有两种情况：1. 任务不依赖任何数据；2. 任务依赖的数据已就绪"""
-        try:
-            assert task_type in self.task_types
-            doc_filter = dict()
-            if self.data.get('prefix'):
-                doc_filter.update({'$regex': self.data.get('prefix'), '$options': '$i'})
-            if self.data.get('exclude'):
-                doc_filter.update({'$nin': self.data.get('exclude')})
-            collection, id_name, input_field = self.get_data_conf(task_type)[:3]
-            output_field = self.prop(self.task_types, '%s.data.output_field' % task_type)
-            condition = {id_name: doc_filter} if doc_filter else {}
-            if input_field:
-                condition.update({input_field: {'$nin': [None, '']}})  # 任务所依赖的数据字段存在且不为空
-            if output_field:
-                condition.update({output_field: {'$in': [None, '']}})  # 任务字段为空，则表示任务未完成
-            page_no = int(self.data.get('page', 0)) if int(self.data.get('page', 0)) > 1 else 1
-            page_size = int(self.config['pager']['page_size'])
-            count = self.db[collection].count_documents(condition)
-            docs = self.db[collection].find(condition).limit(page_size).skip(page_size * (page_no - 1))
-            doc_ids = [d[id_name] for d in list(docs)]
-            response = {'docs': doc_ids, 'page_size': page_size, 'page_no': page_no, 'total_count': count}
-            return self.send_data_response(response)
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class PublishImageTasksApi(TaskHandler):
-    URL = r'/api/task/publish/import'
-
-    def post(self):
-        """ 发布图片导入任务"""
-        try:
-            rules = [(v.not_empty, 'source', 'import_dir', 'priority', 'redo', 'layout')]
-            self.validate(self.data, rules)
-
-            task = self.get_publish_meta('import_image')
-            param = {k: self.data.get(k) for k in ['source', 'pan_name', 'import_dir', 'layout', 'redo']}
-            task.update(dict(status=self.STATUS_PUBLISHED, priority=int(self.data['priority']), input=param))
-            r = self.db.task.insert_one(task)
-            message = '%s, %s,%s' % ('import_image', self.data['import_dir'], self.data['redo'])
-            self.add_log('publish_task', target_id=r.inserted_id, context=message)
-            self.send_data_response(dict(_id=r.inserted_id))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
 class PickTaskApi(TaskHandler):
     URL = '/api/task/pick/@task_type'
 
@@ -71,7 +19,6 @@ class PickTaskApi(TaskHandler):
         """ 领取任务"""
         try:
             # 检查是否有未完成的任务
-            task_type = 'text_proof' if 'text_proof' in task_type else task_type
             uncompleted = self.find_mine(task_type, 1, status=self.STATUS_PICKED)
             if uncompleted:
                 url = '/task/do/%s/%s' % (uncompleted[0]['task_type'], uncompleted[0]['_id'])
@@ -118,6 +65,28 @@ class PickTaskApi(TaskHandler):
             return self.send_db_error(error)
 
 
+class ReturnTaskApi(TaskHandler):
+    URL = '/api/task/return/@task_id'
+
+    def post(self, task_id):
+        """ 退回任务"""
+        try:
+            if self.task['picked_user_id'] != self.user_id:
+                return self.send_error_response(e.unauthorized, message='您没有该任务的权限')
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'return_reason': self.prop(self.data, 'reason', ''),
+                'status': self.STATUS_RETURNED,
+                'updated_time': self.now(),
+            }})
+            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_RETURNED)
+
+            self.add_log('return_task', target_id=self.task['_id'])
+            return self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class UpdateTaskApi(TaskHandler):
     URL = '/api/task/(batch|remark)'
 
@@ -138,27 +107,6 @@ class UpdateTaskApi(TaskHandler):
                 r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
                 self.add_log('update_task', target_id=_ids, context=self.data[field])
             self.send_data_response(dict(count=r.matched_count))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class ReturnTaskApi(TaskHandler):
-    URL = '/api/task/return/@task_id'
-
-    def post(self, task_id):
-        """ 退回任务 """
-        try:
-            if self.task['picked_user_id'] != self.user_id:
-                return self.send_error_response(e.unauthorized, message='您没有该任务的权限')
-            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
-                'return_reason': self.prop(self.data, 'reason', ''),
-                'status': self.STATUS_RETURNED, 'updated_time': self.now(),
-            }})
-            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_RETURNED)
-
-            self.add_log('return_task', target_id=self.task['_id'])
-            return self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -287,75 +235,6 @@ class FinishTaskApi(TaskHandler):
             self.finish_task(self.task)
             self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, {})
             return self.send_data_response()
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class LockTaskApi(TaskHandler):
-    URL = '/api/data/lock/@shared_field/@doc_id'
-
-    def post(self, shared_field, doc_id):
-        """ 获取临时数据锁"""
-        assert shared_field in self.data_auth_maps
-        try:
-            r = self.assign_temp_lock(doc_id, shared_field, self.current_user)
-            if r is True:
-                return self.send_data_response()
-            else:
-                return self.send_error_response(r)
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class UnlockTaskApi(TaskHandler):
-    URL = ['/api/data/admin/unlock/@shared_field/@doc_id',
-           '/api/data/unlock/@shared_field/@doc_id']
-
-    def post(self, shared_field, doc_id):
-        """ 释放临时数据锁"""
-        assert shared_field in self.data_auth_maps
-        try:
-            user = None if 'admin/unlock' in self.request.uri else self.user
-            count = self.release_temp_lock(doc_id, shared_field, user)
-            return self.send_data_response(dict(count=count))
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class InitTestTasksApi(TaskHandler):
-    URL = '/api/task/init'
-
-    def post(self):
-        """ 初始化数据处理任务，以便OP平台进行测试。注意：该API仅仅是配合OP平台测试使用"""
-        rules = [(v.not_empty, 'page_names', 'import_dirs', 'layout')]
-        self.validate(self.data, rules)
-
-        try:
-            tasks, task_types = [], ['import_image', 'ocr_box', 'ocr_text', 'upload_cloud']
-            # 清空数据处理任务
-            self.db.task.delete_many({'task_type': {'$in': task_types}})
-            # 创建导入图片任务
-            for import_dir in self.data['import_dirs']:
-                task = self.get_publish_meta('import_image')
-                params = dict(import_dir=import_dir, redo=True, layout=self.data['layout'], batch='测试批次')
-                task.update(dict(task_type='import_image', status='published', input=params))
-                tasks.append(task)
-            # 创建其它类型的任务
-            for task_type in ['ocr_box', 'ocr_text', 'upload_cloud']:
-                for page_name in self.data['page_names']:
-                    task = self.get_publish_meta(task_type)
-                    task.update(dict(task_type=task_type, status='published', collection='page', doc_id=page_name))
-                    if task_type == 'ocr_text':
-                        page = self.db.page.find_one({'name': page_name})
-                        if page:
-                            task['input'] = {k: page[k] for k in ['blocks', 'columns', 'chars']}
-                    tasks.append(task)
-            r = self.db.task.insert_many(tasks)
-            if r.inserted_ids:
-                self.send_data_response(dict(ids=r.inserted_ids))
 
         except self.DbError as error:
             return self.send_db_error(error)

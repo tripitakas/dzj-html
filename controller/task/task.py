@@ -45,97 +45,13 @@ class Task(Model):
         {'id': 'remark', 'name': '备注'},
     ]
 
-    # 任务类型定义
-    # pre_tasks：默认的前置任务
-    # data.collection：任务所对应数据表
-    # data.id：数据表的主键名称
-    # data.input_field：任务所依赖的数据字段。如果该字段不为空，则可以发布任务
-    # data.output_field：任务输出的字段。如果该字段不为空，则表示任务已完成
-    # data.shared_field：任务共享和保护的数据字段
+    # 任务类型，具体由子类定义
     task_types = {
-        'import_image': {
-            'name': '导入图片',
-        },
-        'upload_cloud': {
-            'name': '上传云端',
-            'data': {'collection': 'page', 'id': 'name', 'output_field': 'img_cloud_path'},
-        },
-        'ocr_box': {
-            'name': 'OCR字框',
-            'data': {'collection': 'page', 'id': 'name'},
-        },
         'cut_proof': {
-            'name': '切分校对', 'pre_tasks': ['ocr_box', 'upload_cloud'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
+            'name': '示例任务', 'data': {'collection': 'page', 'id': 'name'},
+            'steps': [['step1', '第一步'], ['step2', '第二步']],
+            'num': [1, 2, 3]
         },
-        'cut_review': {
-            'name': '切分审定', 'pre_tasks': ['cut_proof'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'chars', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
-        },
-        'ocr_text': {
-            'name': 'OCR文字', 'pre_tasks': ['cut_review'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-        },
-        'text_proof_1': {
-            'name': '文字校一', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
-        },
-        'text_proof_2': {
-            'name': '文字校二', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
-        },
-        'text_proof_3': {
-            'name': '文字校三', 'pre_tasks': ['ocr_text'],
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
-        },
-        'text_review': {
-            'name': '文字审定', 'pre_tasks': ['text_proof_1', 'text_proof_2', 'text_proof_3'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'text_hard': {
-            'name': '难字处理', 'pre_tasks': ['text_review'],
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'cluster_proof': {'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'}, 'num': [1, 2, 3]},
-        'cluster_review': {'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'}},
-        'separate_proof': {'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'}, 'num': [1, 2, 3]},
-        'separate_review': {'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'}},
-    }
-
-    # 其它任务定义
-    # 1. groups表示组任务，对于同一数据的一组任务而言，用户只能领取其中的一个。
-    #    在任务大厅和我的任务中，任务组中的任务将合并显示。 组任务仅在以上两处起作用，不影响其他任务管理功能。
-    # 2. 数据编辑伪任务。数据编辑需要仿照任务，按照一定的步骤进行。在这里定义。
-    task_extras = {
-        'text_proof': {
-            'name': '文字校对',
-            'data': {'collection': 'page', 'id': 'name', 'input_field': 'ocr'},
-            'steps': [['select', '选择比对文本'], ['proof', '校对']],
-            'groups': ['text_proof_1', 'text_proof_2', 'text_proof_3']
-        },
-        'cut_edit': {
-            'name': '切分修改',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
-        },
-        'cut_view': {
-            'name': '切分查看',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'box'},
-            'steps': [['box', '字框'], ['order', '字序']],
-        },
-        'text_edit': {
-            'name': '文字修改',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        },
-        'text_view': {
-            'name': '文字查看',
-            'data': {'collection': 'page', 'id': 'name', 'shared_field': 'text'},
-        }
     }
 
     # 任务状态表
@@ -156,57 +72,8 @@ class Task(Model):
     priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
-    def all_task_types(cls):
-        task_types = cls.task_types.copy()
-        task_types.update(cls.task_extras)
-        return task_types
-
-    @classmethod
-    def is_group(cls, task_type):
-        return 'groups' in h.prop(cls.all_task_types(), task_type)
-
-    @classmethod
-    def get_ocr_tasks(cls):
-        """ 获取OCR任务类型，即小欧处理的任务"""
-        return ['import_image', 'upload_cloud', 'ocr_box', 'ocr_text']
-
-    @classmethod
-    def get_task_types(cls, collection):
-        return {t: v['name'] for t, v in cls.task_types.items() if h.prop(v, 'data.collection') == collection}
-
-    @classmethod
-    def get_task_meta(cls, task_type):
-        return cls.all_task_types().get(task_type)
-
-    @classmethod
-    def get_data_conf(cls, task_type):
-        d = h.prop(cls.all_task_types(), '%s.data' % task_type) or dict()
-        return d.get('collection'), d.get('id'), d.get('input_field'), d.get('shared_field')
-
-    @classmethod
-    def get_shared_field(cls, task_type):
-        return h.prop(cls.all_task_types(), '%s.data.shared_field' % task_type)
-
-    @classmethod
-    def get_data_collection(cls, task_type):
-        return h.prop(cls.all_task_types(), '%s.data.collection' % task_type)
-
-    @classmethod
-    def get_pre_tasks(cls, task_type):
-        return h.prop(cls.all_task_types(), task_type + '.pre_tasks', [])
-
-    @classmethod
-    def task_names(cls):
-        return {k: v.get('name') for k, v in cls.all_task_types().items()}
-
-    @classmethod
     def get_task_name(cls, task_type):
-        return cls.task_names().get(task_type) or task_type
-
-    @classmethod
-    def get_steps(cls, task_type):
-        steps = h.prop(cls.all_task_types(), '%s.steps' % task_type, [])
-        return [s[0] for s in steps] if steps else []
+        return h.prop(cls.task_types, '%s.name' % task_type)
 
     @classmethod
     def step_names(cls):
@@ -241,18 +108,12 @@ class Task(Model):
             return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
         if key == 'priority':
             return cls.get_priority_name(int(value or 0))
-        if key == 'txt_kind':
-            return value if len(value) <= 5 else (value[:5] + '...')
         return h.format_value(value, key, doc)
 
     @classmethod
-    def get_task_search_condition(cls, request_query, collection=None, mode=None):
+    def get_task_search_condition(cls, request_query, collection=None):
         """ 获取任务的查询条件"""
         condition, params = dict(collection=collection) if collection else dict(), dict()
-        value = h.get_url_param('txt_kind', request_query)
-        if value:
-            params['txt_kind'] = value
-            condition.update({'$or': [{'params.ocr_txt': value}]})
         for field in ['task_type', 'collection', 'status', 'priority']:
             value = h.get_url_param(field, request_query)
             if value:
@@ -294,6 +155,4 @@ class Task(Model):
             params['finished_end'] = finished_end
             condition['finished_time'] = condition.get('finished_time') or {}
             condition['finished_time'].update({'$lt': datetime.strptime(finished_end, '%Y-%m-%d %H:%M:%S')})
-        if mode == 'browse':  # 浏览模式过滤掉小欧任务
-            condition['task_type'] = {'$nin': cls.get_ocr_tasks()}
         return condition, params

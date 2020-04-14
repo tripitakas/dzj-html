@@ -1,15 +1,10 @@
 from . import api, view
 
 views = [
-    view.LobbyTaskHandler, view.MyTaskHandler, view.PageTaskAdminHandler,
-    view.ImageTaskAdminHandler, view.CharTaskAdminHandler,
-    view.PageTaskResumeHandler, view.PageTaskStatisticHandler,
-    view.TaskDetailHandler, view.TaskSampleHandler,
+    view.TaskInfoHandler, view.TaskSampleHandler,
 ]
 
 handlers = [
-    api.PublishImageTasksApi, api.RepublishTaskApi,
-    api.GetReadyPagesApi, api.AssignTasksApi, api.DeleteTasksApi, api.UpdateTaskApi,
-    api.PickTaskApi, api.ReturnTaskApi, api.FinishTaskApi, api.LockTaskApi,
-    api.UnlockTaskApi, api.InitTestTasksApi,
+    api.PickTaskApi, api.ReturnTaskApi, api.UpdateTaskApi, api.RepublishTaskApi,
+    api.DeleteTasksApi, api.AssignTasksApi, api.FinishTaskApi,
 ]
