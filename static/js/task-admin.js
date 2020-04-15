@@ -35,7 +35,7 @@ $('.sty-table .action .btn-nav').click(function () {
 // 任务详情
 $('.sty-table .action .btn-detail').click(function () {
   var node = $(this).parent().parent();
-  location.href = '/task/detail/' + node.attr('id');
+  location.href = '/task/info/' + node.attr('id');
 });
 // 任务历程
 $('.sty-table .action .btn-history').click(function () {

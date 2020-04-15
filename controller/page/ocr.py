@@ -58,7 +58,7 @@ class FetchTasksApi(TaskHandler):
             return self.send_db_error(error)
 
 
-class ConfirmFetchTasksApi(TaskHandler):
+class ConfirmFetchApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
     def post(self, data_task):

@@ -21,6 +21,27 @@ class PageHandler(TaskHandler, Page, Box):
         'box': ['cut_proof', 'cut_review'],
         'txt': ['cluster_proof', 'cluster_review'],
     }
+    # 任务类型
+    task_types = {
+        'cut_proof': {
+            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
+            'steps': [['box', '字框'], ['order', '字序']],
+            'num': [1, 2, 3],
+        },
+        'cut_review': {
+            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
+            'steps': [['box', '字框'], ['order', '字序']],
+            'pre_tasks': ['cut_proof'],
+        },
+        'txt_proof': {
+            'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
+            'num': [1, 2, 3]
+        },
+        'txt_review': {
+            'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
+            'pre_tasks': ['cut_proof'],
+        },
+    }
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
