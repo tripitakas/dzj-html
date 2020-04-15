@@ -37,6 +37,8 @@ class HomeHandler(TaskHandler):
             user_names = {u['_id']: u['name'] for u in list(self.db.user.find({'_id': {'$in': user_ids}}, {'name': 1}))}
             for star in month_stars:
                 star['username'] = user_names.get(star['_id']) or ''
+                if star['username'] == '王伟华':
+                    star['username'] = '王**'
             month_stars.sort(key=itemgetter('count'), reverse=True)
             return month_stars[:10]
 
