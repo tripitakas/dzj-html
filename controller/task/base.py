@@ -50,6 +50,7 @@ class TaskHandler(BaseHandler, Task, Lock):
         self.task_id = self.get_task_id()
         # 检查任务
         if self.task_id:
+            self.update_user_time()
             # 任务是否存在
             self.task, self.error = self.get_task(self.task_id)
             if not self.task:
@@ -278,6 +279,8 @@ class TaskHandler(BaseHandler, Task, Lock):
         if mode in ['do', 'update']:
             if not task:
                 error = e.task_not_existed
+            elif not self.current_user:
+                error = e.auth_changed
             elif task.get('picked_user_id') != self.current_user.get('_id'):
                 error = e.task_unauthorized_locked
             elif mode == 'do' and task['status'] != self.STATUS_PICKED:

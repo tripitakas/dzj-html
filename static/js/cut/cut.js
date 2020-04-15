@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-02-11
+ * Date: 2020-04-05
  */
 (function () {
   'use strict';
@@ -273,19 +273,21 @@
       var d, i;
 
       handle.index = -1;
-      for (i = el && pt ? 7 : -1; i >= 0; i--) {
-        d = getDistance(pt, getHandle(el, i));
-        if (dist > d) {
-          dist = d;
-          handle.index = i;
+      if (pt && this.isInRect(pt, el, 8)) {
+        for (i = el && pt ? 7 : -1; i >= 0; i--) {
+          d = getDistance(pt, getHandle(el, i));
+          if (dist > d) {
+            dist = d;
+            handle.index = i;
+          }
         }
       }
       this.showHandles(el, handle);
     },
 
     hoverIn: function (box) {
+      state.hover = box;
       if (box && box !== state.edit) {
-        state.hover = box;
         state.hoverHandle.index = -1;
         state.hoverStroke = box.attr('stroke');
         state.hoverHandle.fill = box.attr('fill');
@@ -293,7 +295,9 @@
         state.hoverHandle.hidden = box.node.style.display === 'none';
         box.attr({
           stroke: data.hoverColor,
-          'stroke-opacity': data.boxOpacity
+          'stroke-opacity': data.boxOpacity,
+          fill: data.hoverFill,
+          'fill-opacity': 0.2
         });
       }
     },
@@ -382,18 +386,22 @@
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       }
 
+      // 去掉当前高亮显示
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
       state.hover = null;
       this.showHandles(state.hover, state.hoverHandle);
 
+      // 设置当前框
       el = typeof el === 'string' ? (this.findCharById(el) || {}).shape : el;
       state.edit = el;
       if (el) {
+        // 记下当前框的显示属性，以便高亮后能恢复
         state.editStroke = el.attr('stroke');
         state.editHandle.fill = el.attr('fill');
         state.editHandle.fillOpacity = el.attr('fill-opacity');
         state.editHandle.hidden = el.node && el.node.style.display === 'none';
+        // 当前框高亮显示
         el.attr({
           stroke: data.changedColor,
           fill: data.hoverFill,
@@ -410,7 +418,7 @@
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
             + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
-      this.showHandles(state.edit, state.editHandle);
+      this.showHandles(state.edit, state.editHandle); // 当前框显示控制点
       notifyChanged(state.edit, 'navigate');
       return el;
     },
@@ -427,29 +435,18 @@
 
       var mouseHover = function (e) {
         var pt = getPoint(e);
-        var box = e.shiftKey ? null : self.findBoxByPoint(pt, e.altKey);
+        var box = self.findBoxByPoint(pt, e.altKey);
 
         if (state.hover !== box) {
-          self.hoverOut(state.hover);
+          if (state.hover !== state.edit) {
+            self.hoverOut(state.hover);
+          }
           self.hoverIn(box);
         }
-        if (box === state.edit) {
-          self.activateHandle(state.edit, state.editHandle, pt);
-          state.hover = null;
-          self.showHandles(null, state.hoverHandle);
-        } else {
-          state.editHandle.index = -1;
-          self.showHandles(null, state.editHandle);
-          self.activateHandle(state.hover, state.hoverHandle, pt);
-        }
 
-        if (state.hover && !state.hoverHandle.fill && state.hoverHandle.index < 0) {
-          self.hoverOut(state.hover);
-          state.hover = null;
-          self.showHandles(state.hover, state.hoverHandle);
-        } else {
-          state.mouseHover(pt, e);
-        }
+        self.activateHandle(state.edit, state.editHandle, box === state.edit && pt);
+
+        state.mouseHover(pt, e);
         e.preventDefault();
       };
 
@@ -458,25 +455,19 @@
         if (e.button === 2) { // right button
           return;
         }
+        // 记下鼠标位置
         state.downOrigin = state.down = getPoint(e);
         state.focus = true;
-        if ($.fn.mapKey) {
+        if ($.fn.mapKey) {  // 激活快捷键
           $.fn.mapKey.enabled = true;
         }
 
-        // 鼠标掠过控制点时，当前字框的控制点不能被选中，则切换为另外已亮显热点控制点的字框
-        var lockBox = e.altKey;
-        if (e.shiftKey) {
-          self.switchCurrentBox(null);
-        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox
-          && (state.hover || !self.isInRect(state.down, state.edit, 1))) {
-          self.switchCurrentBox(state.hover);
-        }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        } else if (!lockBox && !self.isInRect(state.down, state.edit, 1)) {
+        }
+        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -512,7 +503,7 @@
           }
           state.edit = box;
         }
-        self.showHandles(state.edit, state.editHandle);
+        self.showHandles(state.edit, state.editHandle); // 更新控制点坐标
       };
 
       var mouseUp = function (e) {
@@ -520,12 +511,23 @@
         if (state.down) {
           var pt = getPoint(e);
           state.mouseUp(pt, e);
-          if (state.originBox && getDistance(pt, state.down) > 1) {
-            self._changeBox(state.originBox, state.edit);
-          } else {
-            self.cancelDrag();
-            self.switchCurrentBox(state.edit);
+
+          // 开始拖动了就应用改动或放弃很小的移动
+          if (state.originBox) {
+            if (getDistance(pt, state.down) > 1) {
+              self._changeBox(state.originBox, state.edit);
+            } else {
+              self.cancelDrag();
+              self.switchCurrentBox(state.edit);
+            }
           }
+          // 点击时切换当前框
+          else if (getDistance(pt, state.downOrigin) < 3) {
+            self.switchCurrentBox(state.hover);
+            self.activateHandle(state.edit, state.editHandle);
+          }
+
+          state.down = null;
         }
       };
 
@@ -702,6 +704,8 @@
       var info = src && this.findCharById(src.data('char_id')) || {};
       var added = !info.char_id;
 
+      info.added = added;
+      info.changed = !added;
       if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
@@ -712,9 +716,6 @@
             break;
           }
         }
-        info.added = true;
-      } else {
-        info.changed = true;
       }
       dst.data('char_id', info.char_id).data('char', dst.txt);
       dst.data('class', info.class).data('cid', dst.cid);
