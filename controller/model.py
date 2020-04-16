@@ -151,7 +151,7 @@ class Model(object):
 
     @classmethod
     def ignore_existed_check(cls, doc):
-        """ 哪些情况忽略重复检查 """
+        """ 哪些情况忽略重复检查"""
         return False
 
     @classmethod

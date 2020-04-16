@@ -63,7 +63,7 @@ class TripitakaViewHandler(BaseHandler):
 
 
 class TripitakaListHandler(BaseHandler):
-    URL = '/tripitaka'
+    URL = '/tripitaka/list'
 
     def get(self):
         """ 藏经列表 """

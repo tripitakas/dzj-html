@@ -55,7 +55,7 @@ class TestTripitakaApi(APITestCase):
         self.assert_code(200, r)
 
     def test_tripitaka_view(self):
-        """ 测试藏经阅读 """
+        """ 测试藏经阅读"""
         tripitakas = []
         for _, code in glob(path.join(self._app.BASE_DIR, 'meta', 'meta', 'Volume-*.csv'), True):
             tripitakas.append(code[0])

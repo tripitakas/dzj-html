@@ -57,13 +57,8 @@ class DataUploadApi(BaseHandler):
         upload_file = self.request.files.get('csv') or self.request.files.get('json')
         content = to_basestring(upload_file[0]['body'])
         with StringIO(content) as fn:
-            if collection == 'page':
-                assert self.data.get('layout'), 'need layout'
-                r = Page.insert_many(self.db, file_stream=fn, layout=self.data['layout'])
-            else:
-                update = False if collection == 'tripitaka' else True
-                r = model.save_many(self.db, collection, file_stream=fn, update=update)
-
+            update = False if collection == 'tripitaka' else True
+            r = model.save_many(self.db, collection, file_stream=fn, update=update)
             if r.get('status') == 'success':
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
