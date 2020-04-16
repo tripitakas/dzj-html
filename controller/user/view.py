@@ -55,7 +55,7 @@ class UsersAdminHandler(BaseHandler, User):
 
 
 class UserRolesHandler(BaseHandler, User):
-    URL = '/user/admin/role'
+    URL = '/user/role'
 
     operations = []
     img_operations = []

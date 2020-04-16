@@ -15,7 +15,7 @@ from controller.helper import get_date_time
 
 
 class ArticleDeleteApi(BaseHandler):
-    URL = '/api/article/delete'
+    URL = '/api/article/admin/delete'
 
     def post(self):
         """ 删除文章"""
@@ -36,7 +36,7 @@ class ArticleDeleteApi(BaseHandler):
 
 
 class ArticleUpsertApi(BaseHandler):
-    URL = '/api/article/(add|update)'
+    URL = '/api/article/admin/(add|update)'
 
     def post(self, mode):
         """ 保存文章"""

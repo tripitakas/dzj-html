@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?t4u1jf');
-  src:  url('fonts/icomoon.eot?t4u1jf#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?t4u1jf') format('truetype'),
-    url('fonts/icomoon.woff?t4u1jf') format('woff'),
-    url('fonts/icomoon.svg?t4u1jf#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?t8x2ud');
+  src:  url('fonts/icomoon.eot?t8x2ud#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?t8x2ud') format('truetype'),
+    url('fonts/icomoon.woff?t8x2ud') format('woff'),
+    url('fonts/icomoon.svg?t8x2ud#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,9 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-uniE989:before {
+  content: "\e989";
+}
 .icon-history:before {
   content: "\e988";
 }
@@ -255,6 +258,9 @@
 }
 .icon-edit2:before {
   content: "\e904";
+}
+.icon-eye:before {
+  content: "\e98a";
 }
 .icon-file-text:before {
   content: "\e93b";
@@ -492,6 +498,12 @@
 }
 .icon-triangle-up:before {
   content: "\e958";
+}
+.icon-ccw:before {
+  content: "\e98b";
+}
+.icon-cw:before {
+  content: "\e98c";
 }
 .icon-information:before {
   content: "\e946";

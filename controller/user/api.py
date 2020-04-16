@@ -388,7 +388,7 @@ class UserlistApi(BaseHandler):
 
 
 class ChangeUserRoleApi(BaseHandler):
-    URL = r'/api/user/admin/role'
+    URL = r'/api/user/role'
 
     def post(self):
         """ 修改用户角色 """
