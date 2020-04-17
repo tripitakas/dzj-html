@@ -292,7 +292,7 @@
 <script>
   $(document).ready(function () {
     var autoAdjust = null; // localStorage.getItem('autoAdjust') || '是';
-    if (autoAdjust.length) {
+    if (autoAdjust && autoAdjust.length) {
       $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
     }
     var detectCol = localStorage.getItem('detectCol') || '是';
@@ -316,7 +316,7 @@
   // 是否自动调整栏框、列框大小，自适应检测字框在多列的情况
   $('#taskConfigModal .modal-confirm').click(function () {
     var autoAdjust = !cutStep && $('#taskConfigModal .auto-adjust :checked');
-    if (autoAdjust.length)
+    if (autoAdjust && autoAdjust.length)
       localStorage.setItem('autoAdjust', autoAdjust.val());
     var detectCol = $('#taskConfigModal .detect-col :checked');
     if (detectCol.length)
