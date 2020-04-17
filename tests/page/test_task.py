@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+import os
 import tests.users as u
-from controller import errors as e
 from tests.testcase import APITestCase
+from controller import errors as e
+from controller import helper as h
+from controller.page.base import PageHandler
 
 
 class TestCutTask(APITestCase):
+    task_types = ['cut_proof', 'cut_review', 'txt_proof', 'txt_review', 'ocr_box', 'ocr_txt']
+    page_names = ['QL_25_16', 'QL_25_313', 'QL_25_416', 'QL_25_733', 'YB_22_346', 'YB_22_389']
 
     def setUp(self):
         super(TestCutTask, self).setUp()
@@ -18,37 +24,70 @@ class TestCutTask(APITestCase):
             [dict(email=r[0], name=r[2], password=r[1]) for r in [u.user1, u.user2, u.user3]],
             '普通用户,单元测试用户'
         )
-        self.delete_tasks_and_locks()
 
     def tearDown(self):
         super(TestCutTask, self).tearDown()
 
-    def test_page_box(self):
-        """ 测试切分校对"""
-        self.login(u.expert1[0], u.expert1[1])
-        # 测试进入页面
-        name = 'YB_22_346'
-        r = self.fetch('/page/box/edit/%s?_raw=1' % name)
-        d = self.parse_response(r)
-        self.assertFalse(d.get('readonly'))
-        # 测试提交修改
-        page = self._app.db.page.find_one({'name': name})
-        page['chars'].pop(-1)
-        page['chars'].append({'x': 1, 'y': 1, 'w': 10, 'h': 10, 'added': True})
-        page['chars'][0].update({'changed': True, 'w': page['chars'][0]['w'] + 1})
-        page['blocks'][0].update({'changed': True, 'w': page['blocks'][0]['w'] + 1})
-        page['columns'][0].update({'changed': True, 'w': page['columns'][0]['w'] + 1})
-        data = {k: page.get(k) for k in ['chars', 'columns', 'blocks']}
-        r = self.fetch('/api/page/box/' + name, body={'data': data})
-        self.assert_code(200, r)
+    def test_publish_page_tasks_simple(self):
+        # 测试任务类型有误
+        data = self.init_data(dict(task_type='cut_proof', page_names=self.page_names))
+        data['task_type'] = 'error_type'
+        r = self.parse_response(self.fetch('/api/page/task/publish', body={'data': data}))
+        self.assertIn('task_type', r['error'])
 
-    def test_page_txt(self):
-        """ 测试文字校对"""
-        self.login(u.expert1[0], u.expert1[1])
-        # 测试进入页面
-        name = 'YB_22_346'
-        r = self.fetch('/page/txt/edit/%s?_raw=1' % name)
-        d = self.parse_response(r)
+        # 测试依次发布任务
+        page_name = self.page_names[0]
+        self._app.db.task.delete_many({})
+        for task_type in self.task_types:
+            num = h.prop(PageHandler.task_types, task_type + '.num')
+            data = self.init_data(dict(task_type=task_type, num=num and num[0], page_names=self.page_names))
+            r = self.fetch('/api/page/task/publish', body={'data': data})
+            self.assert_code(200, r)
+            task = self._app.db.task.find_one({'task_type': task_type, 'doc_id': page_name})
+            status = 'pending' if '_review' in task_type else 'published'
+            self.assertEqual(status, task['status'], msg=task_type)
+
+        # 测试已发布的页面不能再发布
+        data = self.init_data(dict(task_type='cut_proof', num=1, page_names=page_name))
+        d = self.parse_response(self.fetch('/api/page/task/publish', body={'data': data}))
+        self.assertIn(page_name, d['data']['published_before'])
+
+        # 测试已完成的页面不能再发布
+        self._app.db.task.update_one({'task_type': 'cut_proof', 'doc_id': page_name}, {'$set': {'status': 'finished'}})
+        data = self.init_data(dict(task_type='cut_proof', num=1, force=0, page_names=page_name))
+        d = self.parse_response(self.fetch('/api/page/task/publish', body={'data': data}))
+        self.assertIn(page_name, d['data']['finished_before'])
+
+        # 测试已完成的页面可强制发布
+        data = self.init_data(dict(task_type='cut_proof', num=1, force=1, page_names=page_name))
+        d = self.parse_response(self.fetch('/api/page/task/publish', body={'data': data}))
+        self.assertIn(page_name, d['data']['published'])
+
+    def test_publish_page_tasks_extra(self):
+        # 测试按检索表达式发布
+        self._app.db.task.delete_many({})
+        for task_type in self.task_types:
+            num = h.prop(PageHandler, task_type + '.num')
+            data = self.init_data(dict(task_type=task_type, num=num and num[0], search='?name=GL'))
+            r = self.fetch('/api/page/task/publish', body={'data': data})
+            self.assert_code(200, r)
+
+        # 测试按文件发布
+        filename = os.path.join(self._app.BASE_DIR, 'static', 'upload', 'file2upload.txt')
+        with open(filename, 'w') as f:
+            for name in self.page_names:
+                f.write(name + '\n')
+
+        for task_type in self.task_types:
+            # 测试正常情况
+            num = h.prop(PageHandler, task_type + '.num')
+            data = self.init_data(dict(task_type=task_type, num=num and num[0]))
+            r = self.fetch('/api/page/task/publish', body={'data': data}, files=dict(names_file=filename))
+            self.assert_code(200, r, msg=task_type)
+
+            # 测试文件为空
+            d = self.parse_response(self.fetch('/api/page/task/publish', files=dict(), body={'data': data}))
+            self.assertIn('error', d, msg=task_type)
 
     def test_cut_task_flow(self):
         """ 测试切分任务流程 """

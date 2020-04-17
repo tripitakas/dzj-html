@@ -16,10 +16,11 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.escape import to_basestring, native_str
 import controller as c
 from controller import auth
-from controller.task.task import Task
 from controller.app import Application
 from controller.page.base import PageHandler
+from controller.char.base import CharHandler
 from tests.users import admin
+from controller import helper as h
 
 if PY3:
     import http.cookies as Cookie
@@ -200,15 +201,15 @@ class APITestCase(AsyncHTTPTestCase):
 
     @staticmethod
     def init_data(data):
+        assert data.get('task_type')
+        task_type = data['task_type']
+        task_types = {**PageHandler.task_types, **CharHandler.task_types}
+        steps = h.prop(task_types, task_type + '.steps')
         data['force'] = data.get('force', '0')
+        data['priority'] = data.get('priority', 2)
         data['batch'] = data.get('batch', '测试批次号')
-        data['priority'] = data.get('priority', 3)
-        task_type = data.get('task_type') or data.get('task_types')[0]
-        data['pre_tasks'] = data.get('pre_tasks', Task.prop(Task.task_types, '%s.pre_tasks' % task_type))
-        if 'cut' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['box', 'order'])
-        if 'text_proof' in task_type and 'steps' not in data:
-            data['steps'] = data.get('steps', ['select', 'proof'])
+        data['steps'] = data.get('steps') or (steps and [s[0] for s in steps])
+        data['pre_tasks'] = data.get('pre_tasks') or h.prop(task_types, task_type + '.pre_tasks')
         return data
 
     def publish_page_tasks(self, data):

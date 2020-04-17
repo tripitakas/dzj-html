@@ -216,17 +216,18 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for t, name in handler.task_types.items() %}
-          {% if handler.is_mod_enabled(name) %}
+          {% for k, t in handler.task_types.items() %}
+          {% if handler.is_mod_enabled(t['name']) %}
           <label class="checkbox-inline">
-            <input type="checkbox" class="{{t}}" title="{{t}}">{{name}}
+            <input type="checkbox" class="{{k}}" title="{{k}}">{{t['name']}}
           </label>
           {% end %}
           {% end %}
         </div>
-        <h4 class="control-label steps-label">选择子步骤</h4>
-        <div class="steps">
-        </div>
+        <h4 class="control-label label-num">选择校次</h4>
+        <div class="num"></div>
+        <h4 class="control-label label-steps">选择子步骤</h4>
+        <div class="steps"></div>
         <h4 class="control-label">选择优先级</h4>
         <div class="priority">
           <label class="radio-inline"><input type="radio" name="priority" value="3">高</label>
@@ -242,14 +243,14 @@
           <h4 class="control-label">选择待发布的任务</h4>
           <ul class="nav nav-tabs" id="tabContent">
             <li class="active"><a href="#source-select" data-toggle="tab">按选中页码</a></li>
-            <li class="hide"><a href="#source-search" data-toggle="tab">按检索参数</a></li>
+            <li><a href="#source-search" data-toggle="tab">按检索参数</a></li>
             <li><a href="#source-file" data-toggle="tab">上传编码文件</a></li>
           </ul>
           <div class="tab-content">
             <div class="tab-pane active" id="source-select">
-              <textarea type="text" class="form-control" id="doc-ids" placeholder="所选中的页码"></textarea>
+              <textarea type="text" class="form-control" id="page-names" placeholder="所选中的页码"></textarea>
             </div>
-            <div class="tab-pane hide" id="source-search">
+            <div class="tab-pane" id="source-search">
               <input type="text" class="form-control" id="search-param" placeholder="检索参数"/>
             </div>
             <div class="tab-pane" id="source-file">
@@ -386,23 +387,24 @@
   });
 
 </script>
+
 <script>
   /*---发布任务---*/
   var docs = [];
   var taskType = '';
   var $publishModal = $('#publishModal');
   var $publishResultModal = $('#publishResultModal');
-  var taskTypes = decodeJSON('{{Task.task_types}}');
+  var taskTypes = decodeJSON('{{handler.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
-    {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},
-    {id: 'force', input_type: 'radio'}
+    {id: 'num', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
+    {id: 'priority', input_type: 'radio'}, {id: 'force', input_type: 'radio'}
   ];
   // 弹框
   $('.btn-publish a').on('click', function () {
     taskType = $(this).attr('title');
     $publishModal.find('.task_type').val(taskType);
-    $publishModal.find('#task-name').text(taskTypes[taskType].name);
+    $publishModal.find('#task-name').text($(this).text());
     // 前置任务
     var preTasks = taskTypes[taskType].pre_tasks || [];
     preTasks.forEach(function (item) {
@@ -410,21 +412,22 @@
     });
     // 子步骤
     var steps = taskTypes[taskType].steps || [];
-    if (steps.length)
-      $publishModal.find('.steps-label').removeClass('hide');
-    else
-      $publishModal.find('.steps-label').addClass('hide');
-    var html = $.map(steps, function (item) {
+    $publishModal.find('.label-steps').toggleClass('hide', !steps.length);
+    $publishModal.find('.steps').html($.map(steps, function (item) {
       return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
-    }).join('');
-    $publishModal.find('.steps').html(html);
+    }).join(''));
+    // 校次
+    var num = taskTypes[taskType].num || [];
+    $publishModal.find('.label-num').toggleClass('hide', !num.length);
+    $publishModal.find('.num').html($.map(num, function (item) {
+      return `<label class="radio-inline"><input type="radio" name="num" ${item===1 ? "checked" : ""}>${item}</label>`;
+    }).join(''));
     // 检索参数
     $publishModal.find('#search-param').val(location.search);
     // 选中页码
-    var docIds = $.map($('table tbody :checked'), function (item) {
+    $publishModal.find('#page-names').val($.map($('table tbody :checked'), function (item) {
       return $(item).parent().parent().find('.name').text().trim();
-    });
-    $publishModal.find('#doc-ids').val(docIds);
+    }));
     $publishModal.modal();
   });
   // 刷新
@@ -448,10 +451,10 @@
         data['search'] = searchParam;
         break;
       case 'source-select':
-        var docIds = $('#doc-ids').val().trim();
-        if (!docIds.length)
+        var pageNames = $('#page-names').val().trim();
+        if (!pageNames.length)
           return showError('请选择页码');
-        data['doc_ids'] = docIds.split(',');
+        data['page_names'] = pageNames.split(',');
         break;
       case 'source-file':
         var idsFile = $('#upload')[0].files[0];
@@ -466,7 +469,7 @@
         isFile = true;
         break;
     }
-    postApi('/page/publish_task', isFile ? formData : {data: data}, function (res) {
+    postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
       var html = $.map(res.data, function (value, key) {
         return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
       }).join('');

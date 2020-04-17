@@ -28,7 +28,7 @@ class PageHandler(TaskHandler, Page, Box):
         },
         'txt_review': {
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'pre_tasks': ['cut_proof'],
+            'pre_tasks': ['txt_proof'],
         },
         'ocr_box': {
             'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
