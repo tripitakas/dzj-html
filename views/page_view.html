@@ -41,7 +41,7 @@
         <div id="btn-show-txts" class="btn-group" title="查看文本">
           <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
           <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
-            {% for i, (txt, field, label) in enumerate(texts) %}
+            {% for i, (txt, field, label) in enumerate(txts) %}
             <li data-id="{{field}}" class="btn-show-txt {{'' if i else 'active'}}">
               <a href="#">{{label}}</a>
             </li>
@@ -54,9 +54,9 @@
       <div class="left bd" id="left-region">
         <div id="holder"></div>
       </div>
-      <div class="right bd {{'hide' if (not texts or txt_off) else ''}}" id="right-region">
+      <div class="right bd {{'hide' if (not txts or txt_off) else ''}}" id="right-region">
         <div class="sutra-texts">
-          {% for i, (txt, field, label) in enumerate(texts) %}
+          {% for i, (txt, field, label) in enumerate(txts) %}
           <div class="sutra-text {{field}}{{'' if i else ' hide'}}">
             <div class="text-editable">
               {% raw txt.replace('|', '<br/>') %}

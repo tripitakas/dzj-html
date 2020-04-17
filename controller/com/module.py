@@ -54,13 +54,13 @@ class ComLeft(UIModule):
                 dict(name='册数据', icon='icon-subitem', link='/data/volume'),
                 dict(name='经数据', icon='icon-subitem', link='/data/sutra'),
                 dict(name='卷数据', icon='icon-subitem', link='/data/reel'),
-                dict(name='页数据', icon='icon-subitem', link='/data/page'),
-                dict(name='字数据', icon='icon-subitem', link='/data/char'),
+                dict(name='页数据', icon='icon-subitem', link='/page/admin'),
+                dict(name='字数据', icon='icon-subitem', link='/char/admin'),
             ]),
-            dict(name='文章管理', icon='icon-article', link='/article'),
+            dict(name='文章管理', icon='icon-article', link='/article/admin'),
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[
                 dict(name='用户管理', icon='icon-subitem', link='/user/admin'),
-                dict(name='授权管理', icon='icon-subitem', link='/user/admin/role'),
+                dict(name='授权管理', icon='icon-subitem', link='/user/role'),
             ]),
             dict(name='系统管理', icon='icon-admin', id='admin', sub_items=[
                 dict(name='脚本管理', icon='icon-subitem', link='/admin/script'),

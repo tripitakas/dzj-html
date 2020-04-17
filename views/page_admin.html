@@ -112,19 +112,11 @@
             </div>
             <h4 class="col-sm-2 control-label">切分备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark-box" value="{{params.get('remark-box') or ''}}" placeholder="请输入备注">
+              <input type="text" class="form-control remark-box" value="{{params.get('remark-box') or ''}}" placeholder="请输入切分备注">
             </div>
             <h4 class="col-sm-2 control-label">文字备注</h4>
             <div class="col-sm-10">
-              <input type="text" class="form-control remark-text" value="{{params.get('remark-text') or ''}}" placeholder="请输入备注">
-            </div>
-            <h4 class="col-sm-2 control-label">切分等级</h4>
-            <div class="col-sm-10">
-              <input type="text" class="form-control level-box" value="{{params.get('level-box') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
-            </div>
-            <h4 class="col-sm-2 control-label">文本等级</h4>
-            <div class="col-sm-10">
-              <input type="text" class="form-control level-text" value="{{params.get('level-text') or ''}}" placeholder="请输入，支持范围如>5、>=5、<10、<=10等，默认为等于">
+              <input type="text" class="form-control remark-text" value="{{params.get('remark-text') or ''}}" placeholder="请输入文字备注">
             </div>
             <h4 class="col-sm-2 control-label">切分校对</h4>
             <div class="col-sm-10">
@@ -150,35 +142,11 @@
                 {% end %}
               </select>
             </div>
-            <h4 class="col-sm-2 control-label">文字校一</h4>
+            <h4 class="col-sm-2 control-label">文字校对</h4>
             <div class="col-sm-10">
-              <select class="form-control text_proof_1">
+              <select class="form-control txt_proof">
                 {% for k,v in task_statuses.items() %}
-                {% if params.get('text_proof_1', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">文字校二</h4>
-            <div class="col-sm-10">
-              <select class="form-control text_proof_2">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('text_proof_2', '') == k %}
-                <option value="{{k}}" selected="selected">{{v}}</option>
-                {% else %}
-                <option value="{{k}}">{{v}}</option>
-                {% end %}
-                {% end %}
-              </select>
-            </div>
-            <h4 class="col-sm-2 control-label">文字校三</h4>
-            <div class="col-sm-10">
-              <select class="form-control text_proof_3">
-                {% for k,v in task_statuses.items() %}
-                {% if params.get('text_proof_3', '') == k %}
+                {% if params.get('txt_proof', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -188,9 +156,33 @@
             </div>
             <h4 class="col-sm-2 control-label">文字审定</h4>
             <div class="col-sm-10">
-              <select class="form-control text_review">
+              <select class="form-control txt_review">
                 {% for k,v in task_statuses.items() %}
-                {% if params.get('text_review', '') == k %}
+                {% if params.get('txt_review', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">OCR字框</h4>
+            <div class="col-sm-10">
+              <select class="form-control ocr_box">
+                {% for k,v in task_statuses.items() %}
+                {% if params.get('ocr_box', '') == k %}
+                <option value="{{k}}" selected="selected">{{v}}</option>
+                {% else %}
+                <option value="{{k}}">{{v}}</option>
+                {% end %}
+                {% end %}
+              </select>
+            </div>
+            <h4 class="col-sm-2 control-label">OCR文字</h4>
+            <div class="col-sm-10">
+              <select class="form-control ocr_txt">
+                {% for k,v in task_statuses.items() %}
+                {% if params.get('ocr_txt', '') == k %}
                 <option value="{{k}}" selected="selected">{{v}}</option>
                 {% else %}
                 <option value="{{k}}">{{v}}</option>
@@ -224,7 +216,7 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for t, name in Task.get_task_types('page').items() %}
+          {% for t, name in handler.task_types.items() %}
           {% if handler.is_mod_enabled(name) %}
           <label class="checkbox-inline">
             <input type="checkbox" class="{{t}}" title="{{t}}">{{name}}
@@ -298,6 +290,17 @@
 
 {% block custom-js %}
 <script>
+  // 浏览
+  $('.action .btn-nav').on('click', function () {
+    var name = $(this).parent().siblings('.name').text();
+    location.href = '/page/browse/' + name + location.search;
+  });
+
+  // 查找重复
+  $('.operation .btn-duplicate').on('click', function () {
+    location.href = location.pathname + '?duplicate=true';
+  });
+
   // 更新分类
   $('.operation .bat-source').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
@@ -305,7 +308,7 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入分类', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/data/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
+        postApi('/page/source', {data: {_ids: ids, source: result.value}}, () => location.reload());
       }
     });
   });
@@ -316,17 +319,11 @@
     if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
-      postApi('/data/page/export_char', {data: {page_names: pageNames}}, (res) => {
+      postApi('/page/export_char', {data: {page_names: pageNames}}, (res) => {
         showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
       });
     });
   });
-
-  // 查找重复
-  $('.operation .btn-duplicate').on('click', function () {
-    location.href = location.pathname + '?duplicate=true';
-  });
-
 
   // 修改字框
   $('.action .btn-box').on('click', function () {
@@ -349,41 +346,18 @@
     location.href = url + '?from=' + encodeFrom();
   });
 
-  // 解锁
-  $('.lock-box a, .lock-text a').on('click', function () {
-    if (!$(this).text().length)
-      return;
-    var node = $(this).parent();
-    var name = node.siblings('.name').text().trim();
-    var sharedField = node.attr('class').indexOf('box') !== -1 ? 'box' : 'text';
-    var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
-      postApi(url, {data: {}}, function () {
-        showSuccess('成功', '已成功解锁。');
-        refresh(1000);
-      }, function (error) {
-        showError('失败', error.message);
-      });
-    });
-  });
-
   // 详情
   $('.action .btn-detail').on('click', function () {
-    location.href = '/data/page/info/' + $(this).parent().siblings('.name').text();
-  });
-
-  // 浏览
-  $('.action .btn-nav').on('click', function () {
-    var name = $(this).parent().siblings('.name').text();
-    location.href = '/page/browse/' + name + location.search;
+    location.href = '/page/info/' + $(this).parent().siblings('.name').text();
   });
 
 </script>
+
 <script>
   /*---综合检索---*/
   var $searchModal = $("#searchModal");
-  var inputFields = ['name', 'source', 'txt', 'remark-box', 'remark-text', 'level-box', 'level-text'];
-  var selectFields = ['cut_proof', 'cut_review', 'text_proof_1', 'text_proof_1', 'text_proof_3', 'text_review'];
+  var inputFields = ['name', 'source', 'txt', 'remark_box', 'remark_text'];
+  var selectFields = ['cut_proof', 'cut_review', 'txt_proof', 'txt_review', 'ocr_box', 'ocr_txt'];
   $searchModal.find('.modal-confirm').on('click', function () {
     var search = '';
     inputFields.forEach(function (field) {

@@ -20,8 +20,8 @@
         <div class="btn-group back">
           <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
         </div>
-        <div class="btn-group title" data-toggle="tooltip" data-placement="bottom" title="查看页面基本信息" style="user-select: text">
-          <a href="/data/page/info/{{page['name']}}">{{page['name']}}</a>
+        <div class="btn-group title" data-toggle="tooltip" data-placement="bottom" title="查看基本信息" style="user-select: text">
+          <a href="/page/info/{{page['name']}}">{{page['name']}}</a>
         </div>
       </div>
       <div class="center">
@@ -40,16 +40,15 @@
         <div class="btn-group more-group hide" id="more-group">
           <button id="btn-ed-box" type="button" class="btn btn-default btn-sm">修改切分</button>
           <button id="btn-ed-order" type="button" class="btn btn-default btn-sm">修改字序</button>
-          <button id="btn-ed-text" type="button" class="btn btn-default btn-sm">审定文本</button>
         </div>
       </div>
-      {% set fields = [t[0] for t in texts] %}
+      {% set fields = [t[0] for t in txts] %}
       {% set which = btn_config.get('sutra-txt') or '' %}
       <div class="right">
         <div id="btn-show-txts" class="btn-group" title="查看文本">
           <span class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown"></span>
           <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
-            {% for i, (txt, field, label) in enumerate(texts) %}
+            {% for i, (txt, field, label) in enumerate(txts) %}
             {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
             <li data-id="{{field}}" class="btn-show-txt {{'active' if is_active else ''}}">
               <a href="#">{{label}}</a>
@@ -68,10 +67,10 @@
       <div class="left bd" id="left-region">
         <div id="holder"></div>
       </div>
-      {% if texts %}
+      {% if txts %}
       <div class="right bd {{'hide' if btn_config.get('toggle-right') == -1 else ''}}" id="right-region">
         <div class="sutra-texts">
-          {% for i, (txt, field, label) in enumerate(texts) %}
+          {% for i, (txt, field, label) in enumerate(txts) %}
           {% set is_active = (which in fields and field == which) or (which not in fields and i == 0) %}
           <div class="sutra-text {{field}}{{'' if is_active else ' hide'}}">
             <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
@@ -84,9 +83,11 @@
       {% end %}
     </div>
     <div class="m-footer">
-      <span class="cur-char"></span>
-      <span class="char-info"></span>
-      <span class="txt-info fr"></span>
+      <span class="fl">
+        页编码：<span class="page-name disabled">{{page['name']}}</span>
+        当前字框：<span class="char-name">未选中</span><span class="char-info"></span>
+      </span>
+      <span class="fr"><span class="txt-info"></span></span>
     </div>
   </div>
 </div>
@@ -151,18 +152,14 @@
 
 {% include _base_js.html %}
 {% include _base_cut.html %}
-<script src="{{static_url('js/l10n.js')}}"></script>
 <script src="{{static_url('js/cut/cut_adv.js')}}"></script>
 <script src="{{static_url('js/cut/char_order.js')}}"></script>
 <script src="{{static_url('js/com-table.js')}}"></script>
 <script src="{{static_url('js/page-btn.js')}}"></script>
 <script>
   // 公共参数
-  var from = decodeFrom();
   var info = decodeJSON('{{info}}');
   var btnConfig = decodeJSON('{{btn_config}}');
-
-  $('#help').on('click', () => $('#helpModal').modal());
 
   // 初始化
   $(document).ready(function () {
@@ -180,35 +177,22 @@
     $(this).attr('style', 'height:' + (this.scrollHeight) + 'px');
   });
 
-  // 离开页面
-  window.leave = function () {
-    if (from) {
-      window.location = from;
-    } else {
-      window.location = '/data/page' + deleteParam(location.search, 'to');
-    }
-  };
-
   // 修改字框
   $('#btn-ed-box').on('click', function () {
-    location = '/page/cut_edit/{{page["name"]}}?from=' + encodeFrom();
+    location = '/page/box/edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
   // 修改字序
   $('#btn-ed-order').on('click', function () {
-    location = '/page/cut_edit/{{page["name"]}}?step=order&from=' + encodeFrom();
+    location = '/page/order/edit/{{page["name"]}}?from=' + encodeFrom();
   });
 
-  // 修改审定文本
-  $('#btn-ed-text').on('click', function () {
-    location = '/page/text_edit/{{page["name"]}}?from=' + encodeFrom();
-  });
 
   // 获取当前按钮状态
   function getConfig() {
     var config = {};
     var buttons = ['image', 'right', 'blur', 'block', 'column', 'char', 'order'];
-    buttons.forEach((button) => config['toggle-' + button] = $('.m-header #toggle-' + button).hasClass('active') ? 1 : -1);
+    buttons.forEach((b) => config['toggle-' + b] = $('.m-header #toggle-' + b).hasClass('active') ? 1 : -1);
     config['sutra-txt'] = $('.btn-show-txt.active').attr('data-id');
     config['fields'] = $('#remarkModal :radio[name="fields"]:checked').val() || '';
     return config;
@@ -237,21 +221,6 @@
     go('next');
   });
 
-  // 解锁临时锁
-  $('.lock').on('click', function () {
-    var name = '{{page["name"]}}';
-    var sharedField = $(this).attr('class').indexOf('box') !== -1 ? 'box' : 'text';
-    var url = '/data/admin/unlock/' + sharedField + '/' + name;
-    showConfirm("确定解锁吗？", "页面" + name + "的数据锁将被释放！", function () {
-      postApi(url, {data: {}}, function () {
-        showSuccess('成功', '已成功解锁。');
-        refresh(1000);
-      }, function (error) {
-        showError('失败', error.message);
-      });
-    });
-  });
-
   // 修改基本信息
   var $editModal = $('#editModal');
   var fields = decodeJSON('{{edit_fields}}').concat({id: '_id'});
@@ -263,7 +232,7 @@
 
   $("#editModal .modal-confirm").on('click', function () {
     var data = getModal($editModal, fields);
-    postApi('/data/page', {data: data}, function () {
+    postApi('/page', {data: data}, function () {
       showSuccess('成功', '数据已提交。');
       refresh(1000);
     }, function (error) {
@@ -287,7 +256,7 @@
     localStorage.setItem('pageRemarkField', field);
     var data = {_id: '{{page["_id"]}}', name: '{{page["name"]}}'};
     data[field === '切分' ? 'remark.box' : 'remark.text'] = remark;
-    postApi('/data/page', {data: data}, function () {
+    postApi('/page', {data: data}, function () {
       showSuccess('成功', '{{page["name"]}} ' + '备注成功。');
       go(getQueryString('to') || 'next');
     });
@@ -308,7 +277,7 @@
     var which = $('.btn-show-txt.active').attr('data-id');
     data[which] = $('.sutra-text.' + which + ' .text-editable').val();
     console.log(data);
-    postApi('/data/page', {data: data}, function () {
+    postApi('/page', {data: data}, function () {
       showSuccess('修改成功');
       // refresh(1000);
     });

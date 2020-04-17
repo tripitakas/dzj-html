@@ -62,7 +62,7 @@ class ConfirmFetchApi(TaskHandler):
     URL = '/api/task/confirm_fetch/@ocr_task'
 
     def post(self, data_task):
-        """ 确认批量领取任务成功 """
+        """ 确认批量领取任务成功"""
 
         try:
             rules = [(v.not_empty, 'tasks')]
@@ -208,7 +208,7 @@ class SubmitTasksApi(TaskHandler):
         }})
 
     def submit_import_image(self, task):
-        """ 提交import_image任务 """
+        """ 提交import_image任务"""
         self.db.task.update_one({'_id': ObjectId(task['task_id'])}, {'$set': {
             'result': task.get('result'), 'message': task.get('message'),
             'status': self.STATUS_FINISHED, 'finished_time': self.now(),

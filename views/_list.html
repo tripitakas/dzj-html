@@ -40,12 +40,12 @@
                 <button type="button" class="btn btn-default waves-effect" data-toggle="modal" data-target="#{{o['data-target']}}">
                   {{o.get('label')}}
                 </button>
-                {% elif 'url' in o %}
+                {% elif 'href' in o %}
                 <button type="button" class="btn btn-default waves-effect">
-                  <a href="{{o['url']}}">{{o.get('label')}}</a>
+                  <a href="{{o['href']}}">{{o.get('label')}}</a>
                 </button>
                 {% else %}
-                <button type="button" class="btn btn-default waves-effect {{o.get('operation') or ''}}" title="{{o.get('title') or ''}}">
+                <button type="button" class="btn btn-default waves-effect {{o.get('operation') or ''}}" url="{{o.get('url') or ''}}">
                   {{o.get('label')}}
                 </button>
                 {% end %}

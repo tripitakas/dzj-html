@@ -5,43 +5,16 @@ import re
 import os
 from os import path
 from bson.objectid import ObjectId
-from controller import errors  as e
-from controller import validate as v
-from controller.page.model import Char
-from controller.base import BaseHandler
 from .base import CharHandler
-from .publish import PublishHandler
+from controller import errors as e
+from controller import validate as v
 
 
-class PublishCharTasksApi(PublishHandler):
-    URL = r'/api/char/publish_task'
-
-    def post(self):
-        """ 发布字任务 """
-        try:
-            rules = [(v.not_empty, 'batch', 'task_type', 'source')]
-            self.validate(self.data, rules)
-
-            if not self.db.char.count_documents({'source': self.data['source']}):
-                self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
-
-            try:
-                log = self.publish_many(self.data['batch'], self.data['task_type'], self.data['source'],
-                                        self.data.get('num'))
-                return self.send_data_response(log)
-
-            except self.DbError as error:
-                return self.send_db_error(error)
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class CharGenImgApi(BaseHandler, Char):
+class CharGenImgApi(CharHandler):
     URL = '/api/char/gen_img'
 
     def post(self):
-        """ 批量生成字图 """
+        """ 批量生成字图"""
         try:
             rules = [(v.not_empty, 'type'), (v.not_both_empty, 'search', '_ids')]
             self.validate(self.data, rules)
@@ -56,25 +29,6 @@ class CharGenImgApi(BaseHandler, Char):
             print(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
             os.system(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
             self.send_data_response()
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class UpdateCharSourceApi(BaseHandler, Char):
-    URL = '/api/data/char/source'
-
-    def post(self):
-        """ 批量更新批次"""
-        try:
-            rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
-            self.validate(self.data, rules)
-            if self.data['type'] == 'selected':
-                condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
-            else:
-                condition = self.get_char_search_condition(self.data['search'])[0]
-            r = self.db.char.update_many(condition, {'$set': {'source': self.data['source']}})
-            self.send_data_response(dict(matched_count=r.matched_count))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -127,7 +81,50 @@ class CharUpdateApi(CharHandler):
             return self.send_db_error(error)
 
 
-class TaskCharClusterProofApi(CharHandler):
+class CharSourceApi(CharHandler):
+    URL = '/api/data/char/source'
+
+    def post(self):
+        """ 批量更新批次"""
+        try:
+            rules = [(v.not_empty, 'type', 'source'), (v.not_both_empty, 'search', '_ids')]
+            self.validate(self.data, rules)
+            if self.data['type'] == 'selected':
+                condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
+            else:
+                condition = self.get_char_search_condition(self.data['search'])[0]
+            r = self.db.char.update_many(condition, {'$set': {'source': self.data['source']}})
+            self.send_data_response(dict(matched_count=r.matched_count))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class CharTaskPublishApi(CharHandler):
+    URL = r'/api/char/task/publish'
+
+    def post(self):
+        """ 发布字任务"""
+        try:
+            rules = [(v.not_empty, 'batch', 'task_type', 'source')]
+            self.validate(self.data, rules)
+
+            if not self.db.char.count_documents({'source': self.data['source']}):
+                self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
+
+            try:
+                log = self.publish_many(self.data['batch'], self.data['task_type'], self.data['source'],
+                                        self.data.get('num'))
+                return self.send_data_response(log)
+
+            except self.DbError as error:
+                return self.send_db_error(error)
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class CharTaskClusterApi(CharHandler):
     URL = ['/api/task/do/(cluster_proof|cluster_review)/@task_id',
            '/api/task/update/(cluster_proof|cluster_review)/@task_id']
 

@@ -8,7 +8,8 @@ from controller import validate as v
 from controller.base import BaseHandler
 
 
-class DeleteOplogApi(BaseHandler):
+
+class OplogDeleteApi(BaseHandler):
     URL = r'/api/admin/oplog/delete'
 
     def post(self):

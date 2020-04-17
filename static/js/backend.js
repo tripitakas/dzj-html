@@ -21,9 +21,10 @@ function ajaxApi(url, type, data, success_callback, error_callback, is_file) {
   }
   data = data || {};
 
+  url = url.substr(0, 4) === '/api' ? url : '/api' + url;
   var args = {
+    url: url,
     type: type,
-    url: '/api' + url,
     cache: false,
     crossDomain: true,
     xhrFields: {withCredentials: true},

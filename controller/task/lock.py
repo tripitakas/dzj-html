@@ -59,7 +59,7 @@ class Lock(object):
         return shared_field_meta['collection'], shared_field_meta['id']
 
     def get_user_qualification(self, user, doc_id, shared_field):
-        """ 检查用户是否有数据锁资质并返回资质 """
+        """ 检查用户是否有数据锁资质并返回资质"""
         shared_field_meta = self.data_auth_maps[shared_field]
         id_name, collection = shared_field_meta['id'], shared_field_meta['collection']
 

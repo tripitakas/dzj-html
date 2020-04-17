@@ -2,15 +2,34 @@
 # -*- coding: utf-8 -*-
 
 import re
+from .char import Char
 from controller import auth
-from controller.page.model import Char
 from controller.task.base import TaskHandler
 
 
 class CharHandler(TaskHandler, Char):
-    data_level = {
-        'task': {'cluster_proof': 1, 'cluster_review': 10, 'separate_proof': 20, 'separate_review': 30},
-        'role': {'聚类校对员': 1, '聚类审定员': 10, '分类校对员': 20, '分类审定员': 30},
+    task_types = {
+        'cluster_proof': {
+            'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3],
+        },
+        'cluster_review': {
+            'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['cluster_proof'],
+        },
+        'separate_proof': {
+            'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3]
+        },
+        'separate_review': {
+            'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['separate_proof'],
+        },
+    }
+
+    role2level = {
+        'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
+        'txt': dict(聚类校对员=1, 聚类审定员=10, 分类校对员=20, 分类审定员=30),
     }
 
     def __init__(self, application, request, **kwargs):
@@ -18,22 +37,6 @@ class CharHandler(TaskHandler, Char):
 
     def prepare(self):
         super().prepare()
-
-    def page_title(self):
-        return self.task_name()
-
-    def get_task_level(self, task_type):
-        return self.prop(self.data_level['task'], task_type, 0)
-
-    def get_user_level(self):
-        user_roles = auth.get_all_roles(self.current_user['roles'])
-        return max([self.data_level['role'].get(r, 0) for r in user_roles]) or 0
-
-    def get_edit_level(self, edit_type):
-        if edit_type == 'char_edit':
-            return self.get_user_level()
-        if edit_type in list(self.data_level['task'].keys()):
-            return self.get_task_level(edit_type)
 
     def get_char_count_by_task(self):
         char_tasks = list(self.db.task.find(

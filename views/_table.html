@@ -4,7 +4,7 @@
   <tr>
     <th><input id="check-all" type="checkbox"/></th>
     {% for f in table_fields %}
-    {% set fid = f['id'].replace('-', '.') %}
+    {% set fid = f['id'] %}
     {% if f.get('filter') %}
     <th class="{{'%s %s' % (f['id'], 'hide') if f['id'] in hide_fields else f['id']}}">
       <span class="btn-group">
@@ -45,7 +45,7 @@
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
       {% set disabled = a.get('disabled') and a['disabled'](d) %}
-      <a class="{{a['action']}}{{' disabled' if disabled else ''}}" title="{{a.get('title') or ''}}">{{a['label']}}</a>
+      <a class="{{a['action']}}{{' disabled' if disabled else ''}}" url="{{a.get('url') or ''}}">{{a['label']}}</a>
       {% end %}
     </td>
   </tr>

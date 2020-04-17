@@ -171,7 +171,7 @@ class APITestCase(AsyncHTTPTestCase):
         if roles:
             for u in users:
                 u['roles'] = u.get('roles', roles)
-                r = self.fetch('/api/user/admin/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
+                r = self.fetch('/api/user/role', body={'data': dict(_id=u['_id'], roles=u['roles'])})
                 self.assert_code(200, r)
         return users
 
@@ -184,7 +184,7 @@ class APITestCase(AsyncHTTPTestCase):
         r = self.register_and_login(dict(email=admin[0], password=admin[1], name=admin[2]))
         self.assert_code(200, r)
         u = self.parse_response(r)
-        r = self.fetch('/api/user/admin/role',
+        r = self.fetch('/api/user/role',
                        body={'data': dict(_id=u['_id'], roles=','.join(auth.get_assignable_roles()))})
         self.assert_code(200, r)
         return r

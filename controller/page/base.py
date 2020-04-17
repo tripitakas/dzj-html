@@ -6,22 +6,11 @@ from .tool.box import Box
 from .tool.diff import Diff
 from controller import auth
 from tornado.escape import url_escape
-from controller.page.model import Page
+from controller.page.page import Page
 from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
-    # 数据等级
-    role2dataLevel = {
-        'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
-        'txt': dict(聚类校对员=1, 聚类审定员=10, 文字专家=100),
-    }
-    # 数据任务
-    data2taskType = {
-        'box': ['cut_proof', 'cut_review'],
-        'txt': ['cluster_proof', 'cluster_review'],
-    }
-    # 任务类型
     task_types = {
         'cut_proof': {
             'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
@@ -41,6 +30,17 @@ class PageHandler(TaskHandler, Page, Box):
             'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
             'pre_tasks': ['cut_proof'],
         },
+        'ocr_box': {
+            'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
+        },
+        'ocr_txt': {
+            'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
+        },
+    }
+
+    role2level = {
+        'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
+        'txt': dict(文字校对员=1, 文字审定员=10, 文字专家=100),
     }
 
     def __init__(self, application, request, **kwargs):
@@ -56,11 +56,15 @@ class PageHandler(TaskHandler, Page, Box):
         assert data_type in ['box', 'txt']
         user = self.current_user if not user else user
         user_roles = auth.get_all_roles(user['roles'])
-        return max([self.role2dataLevel[data_type].get(r, 0) for r in user_roles])
+        return max([self.role2level[data_type].get(r, 0) for r in user_roles])
 
     def get_user_point(self, data_type):
         """ 根据用户的工作经验，计算用户积分"""
-        task_count = self.db.task.count_documents({'task_type': {'$in': self.data2taskType.get(data_type)}})
+        data2task = {
+            'box': ['cut_proof', 'cut_review'],
+            'txt': ['cluster_proof', 'cluster_review'],
+        }
+        task_count = self.db.task.count_documents({'task_type': {'$in': data2task.get(data_type)}})
         return task_count
 
     def get_box_point(self, box, data_type):
@@ -160,6 +164,11 @@ class PageHandler(TaskHandler, Page, Box):
             return self.get_box_ocr(page.get('chars'))
         if key == 'ocr_col':
             return self.get_box_ocr(page.get('columns'))
+
+    def get_txts(self, page):
+        txts = [(self.get_txt(page, f), f, Page.get_field_name(f)) for f in ['txt', 'ocr', 'ocr_col', 'cmp']]
+        txts = [t for t in txts if t[0]]
+        return txts
 
     @classmethod
     def get_box_ocr(cls, boxes):

@@ -179,7 +179,7 @@ $('.btn-remove').click(function () {
   var id = $(this).parent().parent().attr('id');
   var data = getData(id);
   var name = 'name' in data ? data.name : '';
-  var url = $(this).attr('title') || location.pathname + '/delete';
+  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定删除" + name + "吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_id: data._id}}, function (res) {
       if (res.count) {
@@ -201,7 +201,7 @@ $('.operation .bat-remove').click(function () {
   });
   if (!ids.length)
     return showWarning('请选择', '当前没有选中任何记录。');
-  var url = $(this).attr('title') || location.pathname + '/delete';
+  var url = $(this).attr('url') || $(this).attr('title') || location.pathname + '/delete';
   showConfirm("确定批量删除吗？", "删除后无法恢复！", function () {
     postApi(url, {data: {_ids: ids}}, function (res) {
       if (res.count) {

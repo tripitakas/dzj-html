@@ -40,12 +40,12 @@
   text-align: left;
   color: #333;
   flex-grow: 0;
+  padding-left: 0;
 }
 
 .info .value {
   overflow: auto;
   margin-right: 5px;
-  max-height: 280px;
   display: inline-block;
   word-break: break-all;
 }

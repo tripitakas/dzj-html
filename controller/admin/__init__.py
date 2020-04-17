@@ -9,5 +9,5 @@ views = [
 ]
 
 handlers = [
-    api.DeleteOplogApi,
+    api.OplogDeleteApi,
 ]
