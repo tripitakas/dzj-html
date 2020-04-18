@@ -5,7 +5,7 @@ views = [
     view.PageBoxHandler, view.PageOrderHandler, view.PageCmpTxtHandler,
     view.PageTxtHandler, view.PageTextHandler,
     task.PageTaskAdminHandler, task.PageTaskStatHandler, task.PageTaskResumeHandler,
-    task.PageTaskLobbyHandler, task.PageTaskMyHandler,
+    task.PageCutTaskHandler,
 ]
 
 handlers = [

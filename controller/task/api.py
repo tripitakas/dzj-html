@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-@time: 2018/12/27
-"""
+
 import re
 import json
 from bson.objectid import ObjectId
@@ -32,34 +30,28 @@ class PickTaskApi(TaskHandler):
                 if task['status'] != self.STATUS_PUBLISHED:
                     return self.send_error_response(e.task_not_published)
             else:
-                # 如果task_id为空，则从任务大厅任取一个
                 tasks = self.find_lobby(task_type, page_size=1)[0]
                 if not tasks:
                     return self.send_error_response(e.no_task_to_pick)
                 task = tasks[0]
 
-            # 如果任务为组任务，则检查用户是否曾领取过该组任务
-            if self.is_group(task_type) and self.db.task.find_one(dict(
-                    status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]}, doc_id=task['doc_id'],
-                    picked_user_id=self.user_id, task_type={'$regex': task_type},
+            # 如果任务有多个校次，则检查用户是否曾领取过某校次
+            if task.get('doc_id') and self.has_num(task_type) and self.db.task.find_one(dict(
+                    task_type=task_type, status={'$in': [self.STATUS_FINISHED, self.STATUS_PICKED]},
+                    doc_id=task['doc_id'], picked_user_id=self.user_id,
             )):
-                message = '您曾领取过本页面组任务中的一个，不能再领取其它任务'
+                message = '您曾领取过本任务中的某校次，不能再领取其它校次。'
                 return self.send_error_response(e.group_task_duplicated, message=message)
-            # 分配数据锁
-            r = self.assign_task_lock(task['doc_id'], task_type, self.current_user)
-            if isinstance(r, tuple):
-                return self.send_error_response(r)
             # 分配任务
             self.db.task.update_one({'_id': task['_id']}, {'$set': {
                 'status': self.STATUS_PICKED, 'picked_user_id': self.user_id, 'picked_by': self.username,
                 'picked_time': self.now(), 'updated_time': self.now(),
             }})
-            self.add_log('pick_task', target_id=task['_id'], context=task['task_type'])
-            # 更新doc
-            self.update_task_doc(task, status=self.STATUS_PICKED)
-            # 设置返回参数
+            # 更新页面
+            self.update_page_status(self.STATUS_PICKED, task)
+
             url = '/task/do/%s/%s' % (task['task_type'], task['_id'])
-            return self.send_data_response({'url': url, 'doc_id': task['doc_id'], 'task_id': task['_id']})
+            return self.send_data_response({'url': url, 'doc_id': task.get('doc_id'), 'task_id': task['_id']})
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -78,8 +70,7 @@ class ReturnTaskApi(TaskHandler):
                 'status': self.STATUS_RETURNED,
                 'updated_time': self.now(),
             }})
-            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_RETURNED)
-
+            self.update_page_status(self.STATUS_RETURNED)
             self.add_log('return_task', target_id=self.task['_id'])
             return self.send_data_response()
 
@@ -127,8 +118,7 @@ class RepublishTaskApi(TaskHandler):
             self.db.task.update_one({'_id': self.task['_id']}, {'$unset': {k: '' for k in [
                 'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
             ]}})
-            self.update_task_doc(self.task, release_lock=True, status=self.STATUS_PUBLISHED)
-
+            self.update_page_status(self.STATUS_PUBLISHED)
             self.add_log('republish_task', target_id=self.task['_id'])
             return self.send_data_response()
 
@@ -150,9 +140,9 @@ class DeleteTasksApi(TaskHandler):
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in _ids]}, 'status': {'$in': status}}))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
             self.add_log('delete_task', target_id=_ids)
-            # 更新doc
+
             for task in tasks:
-                self.update_task_doc(task, release_lock=True, status='')
+                self.update_page_status(None, task)
             return self.send_data_response({'count': r.deleted_count})
 
         except self.DbError as error:
@@ -168,7 +158,7 @@ class AssignTasksApi(TaskHandler):
         return can_access(user_roles, '/api/task/pick/%s' % task_type, 'POST')
 
     def post(self):
-        """ 批量指派已发布的任务给某用户
+        """ 批量指派已发布的任务给某用户，一次只能指派一种任务类型
         :param tasks, 格式为 [[_id, task_type, doc_id], ]
         :return dict, 如{'un_existed':[], 'un_published':[], 'lock_failed':[], 'assigned':[]}
         """
@@ -178,7 +168,12 @@ class AssignTasksApi(TaskHandler):
             user = self.db.user.find_one({'_id': ObjectId(self.data['user_id'])})
             if not user:
                 return self.send_error_response(e.no_user)
+            type_count = len(set(t[1] for t in self.data['tasks']))
+            if type_count > 1:
+                return self.send_error_response(e.task_type_error, message='一次只能指派一种任务类型')
 
+            task_type = self.data['tasks'][1]
+            collection = self.prop(self.task_types, task_type + '.collection')
             log, lock_failed, assigned = dict(), [], []
             now, user_id, user_name = self.now(), user['_id'], user['name']
             # 去掉用户无权访问的任务
@@ -187,54 +182,27 @@ class AssignTasksApi(TaskHandler):
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in authorized]}}))
             # 去掉不存在的任务
             log['un_existed'] = set(authorized) - set([str(t['_id']) for t in tasks])
-            # 去掉未发布的任务
+            # 去掉非「已发布」的任务
             log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_PUBLISHED]
             published = [t for t in tasks if t['status'] == self.STATUS_PUBLISHED]
-            # 去掉用户已领取的文字校对页面
-            text_proof_tasks = [t['doc_id'] for t in published if 'text_proof' in t['task_type']]
-            log['duplicated_text'] = set(d for d in text_proof_tasks if text_proof_tasks.count(d) > 1)
-            published = [t for t in published if t['doc_id'] not in log['duplicated_text']]
-            text_proof_tasks = set(text_proof_tasks) - log['duplicated_text']
-            if text_proof_tasks:
-                user_picked_tasks = self.find_mine('text_proof', user_id=user_id)
-                log['picked_before'] = set(t['doc_id'] for t in user_picked_tasks) & set(text_proof_tasks)
-                published = [t for t in published if t['doc_id'] not in log['picked_before']]
+            # 去掉用户曾领取过的任务
+            cond = {'task_type': task_type, 'doc_id': {'$in': [t[2] for t in published], 'picked_user_id': user_id}}
+            tasks = list(self.db.task.find(cond, {'doc_id': 1}))
+            log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
             # 指派已发布的任务
-            for task in published:
-                # 尝试分配数据锁
-                shared_field = self.get_shared_field(task['task_type'])
-                if shared_field and task.get('doc_id'):
-                    r = self.assign_task_lock(task['doc_id'], task['task_type'], user)
-                    if r is not True:
-                        lock_failed.append(task['doc_id'] + ':' + r[1])
-                        continue
-                # 分配任务
-                self.db.task.update_one({'_id': task['_id']}, {'$set': {
-                    'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': user_name,
-                    'picked_time': now, 'updated_time': now,
-                }})
-                assigned.append(task['doc_id'])
-                # 更新doc的任务状态
-                self.update_task_doc(task, status=self.STATUS_PICKED)
+            to_assign = [t for t in published if t['doc_id'] not in log['picked_before']]
+            self.db.task.update_one({'_id': [t['_id'] for t in to_assign]}, {'$set': {
+                'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': user_name,
+                'picked_time': now, 'updated_time': now,
+            }})
+            log['assigned'] = [t['doc_id'] for t in to_assign]
+            # 更新page的任务状态
+            if collection == 'page':
+                cond = {'name': {'$in': [t['doc_id'] for t in to_assign]}}
+                self.db.page.update_many(cond, {'$set': {'tasks.' + task_type: self.STATUS_PICKED}})
 
-            log['lock_failed'] = lock_failed
-            log['assigned'] = assigned
             self.add_log('assign_task', context='%s, %s' % (user_id, assigned))
-            self.send_data_response({k: v for k, v in log.items() if v})
-
-        except self.DbError as error:
-            return self.send_db_error(error)
-
-
-class FinishTaskApi(TaskHandler):
-    URL = '/api/task/finish/@task_id'
-
-    def post(self, task_id):
-        """ 提交任务，释放数据锁，并且更新后置任务状态。仅供测试使用"""
-        try:
-            self.finish_task(self.task)
-            self.update_task_doc(self.task, True, True, self.STATUS_FINISHED, {})
-            return self.send_data_response()
+            self.send_data_response({k: i for k, i in log.items() if i})
 
         except self.DbError as error:
             return self.send_db_error(error)

@@ -115,7 +115,12 @@ class PageTaskPublishApi(PageHandler):
                         publish_user_id=self.user_id, publish_by=self.username)
 
         if page_names:
-            self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
+            ids = self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
+            tasks = list(self.db.task.find({'_id': {'$in': ids}}, {'doc_id'}))
+            for task in tasks:
+                self.db.page.update_one({'name': task['doc_id']}, {'$addToSet': {'tasks': dict(
+                    task_id=task['_id'], task_type=self.data['task_type'], num=self.data.get('num'),
+                    status=self.STATUS_PUBLISHED)}})
 
 
 class PageTaskAdminHandler(PageHandler):
@@ -128,7 +133,7 @@ class PageTaskAdminHandler(PageHandler):
         {'id': '_id', 'name': '主键'},
         {'id': 'doc_id', 'name': '页编码'},
         {'id': 'batch', 'name': '批次号'},
-        {'id': 'task_type', 'name': '类型', 'filter': PageHandler.task_types},
+        {'id': 'task_type', 'name': '类型', 'filter': {k: t['name'] for k, t in PageHandler.task_types.items()}},
         {'id': 'status', 'name': '状态', 'filter': PageHandler.task_statuses},
         {'id': 'priority', 'name': '优先级', 'filter': PageHandler.priorities},
         {'id': 'steps', 'name': '步骤'},
@@ -172,12 +177,11 @@ class PageTaskAdminHandler(PageHandler):
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
             condition, params = self.get_task_search_condition(self.request.query, 'page')
-            p = {f: 0 for f in ['input', 'result']}
-            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id', p)
-            self.render(
-                'task_admin_page.html', docs=docs, pager=pager, order=order, q=q, params=params,
-                format_value=self.format_value, **kwargs,
-            )
+            docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id',
+                                                      {'input': 0, 'result': 0})
+            self.render('page_task_admin.html', docs=docs, pager=pager, order=order, q=q, params=params,
+                        format_value=self.format_value,
+                        **kwargs)
         except Exception as error:
             return self.send_db_error(error)
 
@@ -185,16 +189,15 @@ class PageTaskAdminHandler(PageHandler):
 class PageTaskStatHandler(PageHandler):
     URL = '/page/task/statistic'
 
-    def get(self, collection):
+    def get(self):
         """ 根据用户、任务类型或任务状态统计页任务"""
         try:
             kind = self.get_query_argument('kind', '')
             if kind not in ['picked_user_id', 'task_type', 'status']:
                 return self.send_error_response(e.statistic_type_error, message='只能按用户、任务类型或任务状态统计')
 
-            condition = self.get_task_search_condition(self.request.query, collection)[0]
             counts = list(self.db.task.aggregate([
-                {'$match': condition},
+                {'$match': self.get_task_search_condition(self.request.query, 'page')[0]},
                 {'$group': {'_id': '$%s' % kind, 'count': {'$sum': 1}}},
             ]))
 
@@ -203,11 +206,10 @@ class PageTaskStatHandler(PageHandler):
                 users = list(self.db.user.find({'_id': {'$in': [c['_id'] for c in counts]}}))
                 trans = {u['_id']: u['name'] for u in users}
             elif kind == 'task_type':
-                trans = self.task_names()
+                trans = {k: t['name'] for k, t in PageHandler.task_types.items()}
             elif kind == 'status':
                 trans = self.task_statuses
             label = dict(picked_user_id='用户', task_type='任务类型', status='任务状态')[kind]
-
             self.render('task_statistic.html', counts=counts, kind=kind, label=label, trans=trans)
 
         except Exception as error:
@@ -240,59 +242,25 @@ class PageTaskResumeHandler(PageHandler):
             return self.send_db_error(error)
 
 
-class PageTaskLobbyHandler(PageHandler):
-    URL = '/task/lobby/@page_task'
+class PageCutTaskHandler(PageHandler):
+    URL = ['/task/(cut_proof|cut_review)/@task_id',
+           '/task/do/(cut_proof|cut_review)/@task_id',
+           '/task/browse/(cut_proof|cut_review)/@task_id',
+           '/task/update/(cut_proof|cut_review)/@task_id']
 
-    def get(self, task_type):
-        """ 任务大厅"""
-
-        try:
-            q = self.get_query_argument('q', '')
-            tasks, total_count = self.find_lobby(task_type, q=q)
-            collection = self.get_data_collection(task_type)
-            fields = [('doc_id', '页编码'), ('priority', '优先级')] if collection == 'page' else [
-                ('txt_kind', '字种'), ('char_count', '单字数量')]
-            self.render('task_lobby.html', tasks=tasks, task_type=task_type, total_count=total_count,
-                        fields=fields, format_value=self.format_value)
-        except Exception as error:
-            return self.send_db_error(error)
-
-
-class PageTaskMyHandler(PageHandler):
-    URL = '/task/my/@page_task'
-
-    search_tips = '请搜索页编码'
-    search_fields = ['doc_id']
-    operations = []
-    img_operations = []
-    actions = [
-        {'action': 'my-task-view', 'label': '查看'},
-        {'action': 'my-task-do', 'label': '继续', 'disabled': lambda d: d['status'] == 'finished'},
-        {'action': 'my-task-update', 'label': '更新', 'disabled': lambda d: d['status'] == 'picked'},
-    ]
-    table_fields = [
-        {'id': 'doc_id', 'name': '页编码'},
-        {'id': 'task_type', 'name': '类型'},
-        {'id': 'status', 'name': '状态'},
-        {'id': 'picked_time', 'name': '领取时间'},
-        {'id': 'finished_time', 'name': '完成时间'},
-    ]
-    hide_fields = ['task_type']
-    info_fields = ['doc_id', 'task_type', 'status', 'picked_time', 'finished_time']
-    update_fields = []
-
-    def get(self, task_type):
-        """ 我的任务"""
-        try:
-            condition = {
-                'task_type': {'$regex': task_type} if self.is_group(task_type) else task_type,
-                'status': {'$in': [self.STATUS_PICKED, self.STATUS_FINISHED]},
-                'picked_user_id': self.user_id
-            }
-            docs, pager, q, order = self.find_by_page(self, condition, default_order='-picked_time')
-            kwargs = self.get_template_kwargs()
-            self.render('task_my.html', docs=docs, pager=pager, q=q, order=order,
-                        format_value=self.format_value, **kwargs)
-
-        except Exception as error:
-            return self.send_db_error(error)
+    def get(self, task_type, task_id):
+        """ 切分校对、审定页面"""
+        page = self.db.page.find_one({'name': self.task['doc_id']})
+        if not page:
+            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+        self.pack_boxes(page)
+        img_url = self.get_web_img(page['name'], 'page')
+        if self.steps['current'] == 'order':
+            reorder = self.get_query_argument('reorder', '')
+            if reorder:
+                page['chars'] = self.reorder_boxes(page=page, direction=reorder)[2]
+            chars_col = self.get_chars_col(page['chars'])
+            self.render('page_order.html', page=page, chars_col=chars_col, img_url=img_url, readonly=self.readonly)
+        else:
+            self.set_box_access(page, 'task')
+            self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)

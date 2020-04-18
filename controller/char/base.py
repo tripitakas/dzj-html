@@ -8,25 +8,6 @@ from controller.task.base import TaskHandler
 
 
 class CharHandler(TaskHandler, Char):
-    task_types = {
-        'cluster_proof': {
-            'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3],
-        },
-        'cluster_review': {
-            'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['cluster_proof'],
-        },
-        'separate_proof': {
-            'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'},
-            'num': [1, 2, 3]
-        },
-        'separate_review': {
-            'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'},
-            'pre_tasks': ['separate_proof'],
-        },
-    }
-
     role2level = {
         'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
         'txt': dict(聚类校对员=1, 聚类审定员=10, 分类校对员=20, 分类审定员=30),

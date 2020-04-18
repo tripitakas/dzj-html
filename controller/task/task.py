@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-@desc: 任务基础表。
+@desc: 任务基础表
 @time: 2019/10/16
 """
 from datetime import datetime
@@ -45,12 +45,47 @@ class Task(Model):
         {'id': 'remark', 'name': '备注'},
     ]
 
-    # 任务类型，具体由子类定义
+    # 任务类型定义
     task_types = {
         'cut_proof': {
-            'name': '示例任务', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['step1', '第一步'], ['step2', '第二步']],
+            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
+            'steps': [['box', '字框'], ['order', '字序']],
+            'num': [1, 2, 3],
+        },
+        'cut_review': {
+            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
+            'steps': [['box', '字框'], ['order', '字序']],
+            'pre_tasks': ['cut_proof'],
+        },
+        'txt_proof': {
+            'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
             'num': [1, 2, 3]
+        },
+        'txt_review': {
+            'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
+            'pre_tasks': ['txt_proof'],
+        },
+        'ocr_box': {
+            'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
+        },
+        'ocr_txt': {
+            'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
+        },
+        'cluster_proof': {
+            'name': '聚类校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3],
+        },
+        'cluster_review': {
+            'name': '聚类审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['cluster_proof'],
+        },
+        'separate_proof': {
+            'name': '分类校对', 'data': {'collection': 'char', 'id': 'name'},
+            'num': [1, 2, 3]
+        },
+        'separate_review': {
+            'name': '分类审定', 'data': {'collection': 'char', 'id': 'name'},
+            'pre_tasks': ['separate_proof'],
         },
     }
 
@@ -72,8 +107,24 @@ class Task(Model):
     priorities = {3: '高', 2: '中', 1: '低'}
 
     @classmethod
-    def get_task_name(cls, task_type):
-        return h.prop(cls.task_types, '%s.name' % task_type)
+    def has_num(cls, task_type):
+        num = cls.prop(cls.task_types, task_type + '.num')
+        return num is not None
+
+    @classmethod
+    def get_page_tasks(cls):
+        return {k: t for k, t in cls.task_types.items() if t['collection'] == 'page'}
+
+    @classmethod
+    def get_char_tasks(cls):
+        return {k: t for k, t in cls.task_types.items() if t['collection'] == 'char'}
+
+    @classmethod
+    def task_names(cls, collection=None):
+        if collection:
+            return {k: t['name'] for k, t in cls.task_types.items() if t['collection'] == collection}
+        else:
+            return {k: t['name'] for k, t in cls.task_types.items()}
 
     @classmethod
     def step_names(cls):
@@ -88,6 +139,10 @@ class Task(Model):
         return cls.step_names().get(step) or step
 
     @classmethod
+    def get_task_name(cls, task_type):
+        return h.prop(cls.task_types, '%s.name' % task_type)
+
+    @classmethod
     def get_status_name(cls, status):
         return cls.task_statuses.get(status) or status
 
@@ -100,13 +155,13 @@ class Task(Model):
         """ 格式化task表的字段输出"""
         if key == 'task_type':
             return cls.get_task_name(value)
-        if key == 'status':
+        if key == 'status' and value:
             return cls.get_status_name(value)
-        if key == 'pre_tasks':
+        if key == 'pre_tasks' and value:
             return '/'.join([cls.get_task_name(t) for t in value])
-        if key == 'steps':
+        if key == 'steps' and value:
             return '/'.join([cls.get_step_name(t) for t in value.get('todo', [])])
-        if key == 'priority':
+        if key == 'priority' and value:
             return cls.get_priority_name(int(value or 0))
         return h.format_value(value, key, doc)
 

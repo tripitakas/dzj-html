@@ -1,11 +1,7 @@
 {% extends "_list.html" %}
 {% block custom-css %}
-{% if not debug and 0 %}
-<link href="{{static_url('built/task_admin_assets.css')}}" rel="stylesheet"/>
-{% else %}
 <link href="{{static_url('assets/flatpickr/flatpickr.min.css')}}" rel="stylesheet"/>
 <link href="{{static_url('assets/select2/select2.css')}}" rel="stylesheet"/>
-{% end %}
 <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
 {% end %}
 
@@ -90,11 +86,11 @@
             <div class="col-sm-10">
               <select class="form-control task_type">
                 <option value=""></option>
-                {% for k, name in handler.get_task_types('page').items() %}
+                {% for k, t in handler.task_types.items() %}
                 {% if params.get('task_type') and params.get('task_type') == k %}
-                <option value="{{k}}" selected="selected">{{name}}</option>
+                <option value="{{k}}" selected="selected">{{t['name']}}</option>
                 {% else %}
-                <option value="{{k}}">{{name}}</option>
+                <option value="{{k}}">{{t['name']}}</option>
                 {% end %}
                 {% end %}
               </select>
@@ -200,18 +196,13 @@
 {% end %}
 
 {% block custom-js %}
-{% if not debug and 0 %}
-<script src="{{static_url('built/task_admin_assets.js')}}"></script>
-{% else %}
 <script src="{{static_url('assets/select2/select2.min.js')}}"></script>
 <script src="{{static_url('assets/select2/zh-CN.js')}}"></script>
 <script src="{{static_url('assets/flatpickr/flatpickr.js')}}"></script>
 <script src="{{static_url('assets/flatpickr/zh.js')}}"></script>
 <script src="{{static_url('js/task-admin.js')}}"></script>
-{% end %}
 <script>
   /*---公共设置---*/
-  var taskTypes = decodeJSON('{{handler.task_types}}');
   $.fn.modal.Constructor.prototype.enforceFocus = function () {
   };
 

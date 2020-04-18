@@ -1075,7 +1075,6 @@
       var res = [];
       boxIds.forEach(function (cid) {
         var c = findCharByCid(cid, boxType);
-        console.log(c);
         if (c && c.shape && c.class === boxType && res.indexOf(c) < 0) {
           res.push(c);
           var el = $(c.shape.node), old = el.attr('class') + ' ';

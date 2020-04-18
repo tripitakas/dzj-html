@@ -12,7 +12,7 @@ $('.operation .bat-batch').click(function () {
 // 统计检索结果
 $('.operation .btn-statistic a').click(function () {
   var collection = location.pathname.indexOf('page') > -1 ? 'page' : 'char';
-  location.href = '/task/' + collection + '/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+  location.href = '/' + collection + '/task/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
 });
 // 显示退回理由、失败理由等
 $('.sty-table td.return_reason').click(function () {

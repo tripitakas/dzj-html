@@ -230,9 +230,10 @@
   });
 
   saveData = function (jumpUrl) {
+    var taskType = '{{handler.task_type if handler.is_task else ""}}';
     var data = {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), auto_adjust: true,
+      chars: $.cut.exportBoxes('char'), auto_adjust: true, task_type: taskType,
     };
     bsLoading('保存中‧‧‧');
     postApi('/page/box/{{page["name"]}}', {data: data}, function (res) {

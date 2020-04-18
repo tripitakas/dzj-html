@@ -11,33 +11,6 @@ from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
-    task_types = {
-        'cut_proof': {
-            'name': '切分校对', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'num': [1, 2, 3],
-        },
-        'cut_review': {
-            'name': '切分审定', 'data': {'collection': 'page', 'id': 'name'},
-            'steps': [['box', '字框'], ['order', '字序']],
-            'pre_tasks': ['cut_proof'],
-        },
-        'txt_proof': {
-            'name': '文字校对', 'data': {'collection': 'page', 'id': 'name'},
-            'num': [1, 2, 3]
-        },
-        'txt_review': {
-            'name': '文字审定', 'data': {'collection': 'page', 'id': 'name'},
-            'pre_tasks': ['txt_proof'],
-        },
-        'ocr_box': {
-            'name': 'OCR切分', 'data': {'collection': 'page', 'id': 'name'},
-        },
-        'ocr_txt': {
-            'name': 'OCR文字', 'data': {'collection': 'page', 'id': 'name'},
-        },
-    }
-
     role2level = {
         'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
         'txt': dict(文字校对员=1, 文字审定员=10, 文字专家=100),
@@ -86,7 +59,7 @@ class PageHandler(TaskHandler, Page, Box):
             point_ok = user_point >= box_point
             return point_ok and level_ok
 
-    def check_box_access(self, page, write_type='raw'):
+    def set_box_access(self, page, write_type='raw'):
         """ 设置切分框的读写权限"""
         for b in page['blocks']:
             b['readonly'] = not self.can_write(b, 'box', write_type)

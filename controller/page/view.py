@@ -8,6 +8,7 @@ from tornado.escape import to_basestring
 from .page import Page
 from .base import PageHandler
 from controller import errors as e
+from controller import helper as h
 from controller.task.task import Task
 
 
@@ -19,7 +20,6 @@ class PageAdminHandler(PageHandler):
         {'id': 'name', 'name': '页编码'},
         {'id': 'source', 'name': '分类'},
         {'id': 'layout', 'name': '页面结构'},
-        {'id': 'img_cloud_path', 'name': '云图路径'},
         {'id': 'uni_sutra_code', 'name': '统一经编码'},
         {'id': 'sutra_code', 'name': '经编码'},
         {'id': 'reel_code', 'name': '卷编码'},
@@ -57,7 +57,7 @@ class PageAdminHandler(PageHandler):
         {'id': 'name', 'name': '页编码', 'readonly': True},
         {'id': 'source', 'name': '分　类'},
         {'id': 'box_ready', 'name': '切分就绪', 'input_type': 'radio', 'options': ['是', '否']},
-        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': Page.layouts},
+        {'id': 'layout', 'name': '图片结构', 'input_type': 'radio', 'options': PageHandler.layouts},
         {'id': 'remark_box', 'name': '切分备注'},
         {'id': 'remark_text', 'name': '文本备注'},
     ]
@@ -65,6 +65,16 @@ class PageAdminHandler(PageHandler):
         '': '', 'un_published': '未发布', 'published': '已发布未领取', 'pending': '等待前置任务',
         'picked': '进行中', 'returned': '已退回', 'finished': '已完成',
     }
+
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化page表的字段输出"""
+        if key == 'tasks' and value:
+            return '<br/>'.join([
+                '%s%s|%s' % (self.get_task_name(t['task_type']), ('#' + t['num']) if t.get('num') else '',
+                             self.get_status_name(t['status']))
+                for t in value
+            ])
+        return h.format_value(value, key, doc)
 
     def get_duplicate_condition(self):
         pages = list(self.db.page.aggregate([
@@ -89,9 +99,9 @@ class PageAdminHandler(PageHandler):
                 condition, params = Page.get_page_search_condition(self.request.query)
             fields = ['chars', 'columns', 'blocks', 'cmp', 'ocr', 'ocr_col', 'txt']
             docs, pager, q, order = Page.find_by_page(self, condition, None, 'page_code', {f: 0 for f in fields})
-            self.render('page_admin.html', docs=docs, pager=pager, q=q, order=order, params=params,
+            self.render('page_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         task_statuses=self.task_statuses, format_value=self.format_value,
-                        Task=Task, **kwargs)
+                        **kwargs)
 
         except Exception as error:
             return self.send_db_error(error)
@@ -196,7 +206,7 @@ class PageBoxHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             self.pack_boxes(page)
-            self.check_box_access(page, 'raw')
+            self.set_box_access(page, 'raw')
             readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
             self.render('page_box.html', page=page, img_url=img_url, readonly=readonly)
@@ -308,5 +318,5 @@ class TextArea(UIModule):
     """ 文字校对的文字区"""
 
     def render(self, cmp_data):
-        return self.render_string('page_text_area.html', blocks=cmp_data,
-                                  sort_by_key=lambda d: sorted(d.items(), key=lambda t: t[0]))
+        f = lambda d: sorted(d.items(), key=lambda t: t[0])
+        return self.render_string('page_text_area.html', blocks=cmp_data, sort_by_key=f)

@@ -236,8 +236,8 @@
         </div>
         <h4 class="control-label">任务已完成时，是否重新发布？</h4>
         <div class="force">
-          <label class="radio-inline"><input type="radio" name="force" value="否" checked>否</label>
-          <label class="radio-inline"><input type="radio" name="force" value="是">是</label>
+          <label class="radio-inline"><input type="radio" name="force" value="0" checked>否</label>
+          <label class="radio-inline"><input type="radio" name="force" value="1">是</label>
         </div>
         <div class="modal-tab">
           <h4 class="control-label">选择待发布的任务</h4>
@@ -397,8 +397,8 @@
   var taskTypes = decodeJSON('{{handler.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
-    {id: 'num', input_type: 'checkbox'}, {id: 'steps', input_type: 'checkbox'},
-    {id: 'priority', input_type: 'radio'}, {id: 'force', input_type: 'radio'}
+    {id: 'steps', input_type: 'checkbox'}, {id: 'priority', input_type: 'radio'},
+    {id: 'num', input_type: 'radio'}, {id: 'force', input_type: 'radio'}
   ];
   // 弹框
   $('.btn-publish a').on('click', function () {
@@ -414,13 +414,13 @@
     var steps = taskTypes[taskType].steps || [];
     $publishModal.find('.label-steps').toggleClass('hide', !steps.length);
     $publishModal.find('.steps').html($.map(steps, function (item) {
-      return '<label class="checkbox-inline"><input type="checkbox" title="' + item[0] + '" checked>' + item[1] + '</label>';
+      return `<label class="checkbox-inline"><input type="checkbox" title="${item[0]}" checked>${item[1]}</label>`;
     }).join(''));
     // 校次
     var num = taskTypes[taskType].num || [];
     $publishModal.find('.label-num').toggleClass('hide', !num.length);
     $publishModal.find('.num').html($.map(num, function (item) {
-      return `<label class="radio-inline"><input type="radio" name="num" ${item===1 ? "checked" : ""}>${item}</label>`;
+      return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
     }).join(''));
     // 检索参数
     $publishModal.find('#search-param').val(location.search);

@@ -38,20 +38,16 @@ role_route_maps = {
         'is_assignable': False,
         'routes': {
             '/api/user/list': ['POST'],
-            '/api/task/ready/@task_type': ['POST'],
-            '/api/task/finish/@task_id': ['POST'],
-            '/api/data/lock/@shared_field/@doc_id': ['POST'],
         }
     },
     '访客': {
         'is_assignable': False,
         'remark': '任何人都可访问，无需登录',
         'routes': {
-            '/user/(login|register)': ['GET'],
-            '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
-            '/api/user/forget_pwd': ['POST'],
             '/article/@article_id': ['GET'],
-            '/page/cut_edit/@page_name': ['GET'],
+            '/user/(login|register)': ['GET'],
+            '/api/user/forget_pwd': ['POST'],
+            '/api/user/(login|logout|register|email_code|phone_code)': ['POST'],
         }
     },
     '普通用户': {
@@ -59,33 +55,29 @@ role_route_maps = {
         'remark': '登录用户均可访问，无需授权',
         'routes': {
             '/': ['GET'],
+            '/user/my/profile': ['GET'],
             '/(home|help|announce)': ['GET'],
             '/task/sample/@task_type': ['GET'],
-            '/user/my/profile': ['GET'],
             '/api/user/my/(pwd|profile|avatar)': ['POST'],
             '/tripitaka': ['GET'],
             '/tripitaka/@page_prefix': ['GET'],
-            '/com/punctuate': ['GET'],
-            '/api/com/punctuate': ['POST'],
             '/com/search': ['GET'],
+            '/com/punctuate': ['GET'],
             '/api/com/search': ['POST'],
+            '/api/com/punctuate': ['POST'],
         }
     },
     '工作人员': {
         'is_assignable': False,
-        'remark': '工作人员公共请求',
+        'remark': '工作人员公共链接',
         'roles': ['普通用户'],
         'routes': {
             '/api/session/config': ['POST'],
             '/task/@task_type/@task_id': ['GET'],
             '/api/task/return/@task_id': ['POST'],
-            '/api/page/txt/diff': ['POST'],
-            '/api/page/txt/detect_chars': ['POST'],
-            '/api/page/cmp_txt/neighbor': ['POST'],
             '/page/@page_name': ['GET'],
-            '/page/cut_view/@page_name': ['GET'],
-            '/page/text_view/@page_name': ['GET'],
-            '/api/data/unlock/@shared_field/@doc_id': ['POST'],
+            '/api/page/cmp_txt/neighbor': ['POST'],
+            '/api/page/txt/(diff|detect_chars)': ['POST'],
         }
     },
     '切分校对员': {
@@ -110,36 +102,27 @@ role_route_maps = {
     },
     '切分专家': {
         'is_assignable': True,
-        'roles': ['切分校对员', '切分审定员', 'OCR校对员', 'OCR审定员'],
-        'routes': {
-            '/page/cut_edit/@page_name': ['GET'],
-            '/api/page/cut_edit/@page_name': ['POST'],
-        }
+        'roles': ['切分校对员', '切分审定员'],
+        'routes': {}
     },
     '文字校对员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/text_proof': ['GET'],
-            '/api/task/pick/text_proof': ['POST'],
-            '/api/task/pick/text_proof_@num': ['POST'],
-            '/api/task/text_select/@page_name': ['POST'],
-            '/task/(do|update|view)/text_proof_@num/@task_id': ['GET'],
-            '/api/task/(do|update)/text_proof_@num/@task_id': ['POST'],
-            '/page/cut_edit/@page_name': ['GET'],
-            '/api/page/cut_edit/@page_name': ['POST'],
+            '/task/(lobby|my)/txt_proof': ['GET'],
+            '/api/task/pick/txt_proof': ['POST'],
+            '/task/(do|update)/txt_proof/@task_id': ['GET'],
+            '/api/task/(do|update)/txt_proof/@task_id': ['POST'],
         }
     },
     '文字审定员': {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/text_review': ['GET'],
-            '/api/task/pick/text_review': ['POST'],
-            '/task/(do|update|view)/text_review/@task_id': ['GET'],
-            '/api/task/(do|update)/text_review/@task_id': ['POST'],
-            '/page/cut_edit/@page_name': ['GET'],
-            '/api/page/cut_edit/@page_name': ['POST'],
+            '/task/(lobby|my)/txt_review': ['GET'],
+            '/api/task/pick/txt_review': ['POST'],
+            '/task/(do|update)/txt_review/@task_id': ['GET'],
+            '/api/task/(do|update)/txt_review/@task_id': ['POST'],
         }
     },
     '聚类校对员': {
@@ -149,7 +132,7 @@ role_route_maps = {
             '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_proof': ['GET'],
             '/api/task/pick/cluster_proof': ['POST'],
-            '/task/(do|update|view)/cluster_proof/@task_id': ['GET'],
+            '/task/(do|update)/cluster_proof/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_proof/@task_id': ['POST'],
         }
     },
@@ -160,7 +143,7 @@ role_route_maps = {
             '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_review': ['GET'],
             '/api/task/pick/cluster_review': ['POST'],
-            '/task/(do|update|view)/cluster_review/@task_id': ['GET'],
+            '/task/(do|update)/cluster_review/@task_id': ['GET'],
             '/api/task/(do|update)/cluster_review/@task_id': ['POST'],
         }
     },
@@ -171,7 +154,7 @@ role_route_maps = {
             '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_proof': ['GET'],
             '/api/task/pick/separate_proof': ['POST'],
-            '/task/(do|update|view)/separate_proof/@task_id': ['GET'],
+            '/task/(do|update)/separate_proof/@task_id': ['GET'],
             '/api/task/(do|update)/separate_proof/@task_id': ['POST'],
         }
     },
@@ -182,20 +165,25 @@ role_route_maps = {
             '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_review': ['GET'],
             '/api/task/pick/separate_review': ['POST'],
-            '/task/(do|update|view)/separate_review/@task_id': ['GET'],
+            '/task/(do|update)/separate_review/@task_id': ['GET'],
             '/api/task/(do|update)/separate_review/@task_id': ['POST'],
         }
     },
     '文字专家': {
         'is_assignable': True,
         'roles': ['工作人员', '文字校对员', '文字审定员'],
+        'routes': {}
+    },
+    'OCR加工员': {
+        'is_assignable': True,
+        'roles': ['工作人员'],
         'routes': {
-            '/task/(lobby|my)/text_hard': ['GET'],
-            '/api/task/pick/text_hard': ['POST'],
-            '/task/(do|update)/text_hard/@task_id': ['GET'],
-            '/api/task/(do|update)/text_hard/@task_id': ['POST'],
-            '/page/(text_edit|char_edit)/@page_name': ['GET'],
-            '/api/page/text_edit/@page_name': ['POST'],
+            '/api/task/init': ['POST'],
+            '/task/(lobby|my)/@ocr_task': ['GET'],
+            '/api/task/pick/@ocr_task': ['POST'],
+            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
+            '/api/task/submit/@ocr_task': ['POST'],
+            '/api/data/@metadata/upload': ['POST'],
         }
     },
     '任务浏览员': {
@@ -214,6 +202,7 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员', '任务浏览员'],
         'routes': {
+            '/(page|char)/task/(admin|statistic)': ['GET'],
             '/api/task/ready/@task_type': ['POST'],
             '/api/(page|char)/task/publish': ['POST'],
             '/api/task/publish/import': ['POST'],
@@ -223,21 +212,9 @@ role_route_maps = {
             '/api/data/admin/unlock/@shared_field/@doc_id': ['POST'],
         }
     },
-    'OCR加工员': {
-        'is_assignable': True,
-        'roles': ['工作人员'],
-        'routes': {
-            '/api/task/init': ['POST'],
-            '/task/(lobby|my)/@ocr_task': ['GET'],
-            '/api/task/pick/@ocr_task': ['POST'],
-            '/api/task/(fetch_many|confirm_fetch)/@ocr_task': ['POST'],
-            '/api/task/submit/@ocr_task': ['POST'],
-            '/api/data/@metadata/upload': ['POST'],
-        }
-    },
     '数据管理员': {
         'is_assignable': True,
-        'roles': ['工作人员', 'OCR加工员'],
+        'roles': ['工作人员'],
         'routes': {
             '/data/@metadata': ['GET'],
             '/api/data/@metadata': ['POST'],
