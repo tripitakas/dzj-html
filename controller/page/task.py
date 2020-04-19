@@ -116,7 +116,7 @@ class PageTaskPublishApi(PageHandler):
 
         if page_names:
             ids = self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
-            tasks = list(self.db.task.find({'_id': {'$in': ids}}, {'doc_id': 1}))
+            tasks = list(self.db.task.find({'_id': {'$in': ids.inserted_ids}}, {'doc_id': 1}))
             for task in tasks:
                 self.db.page.update_one({'name': task['doc_id']}, {'$addToSet': {'tasks': dict(
                     task_id=task['_id'], task_type=self.data['task_type'], num=self.data.get('num'),
