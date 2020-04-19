@@ -1,11 +1,11 @@
 from . import view, api, ocr, task
 
 views = [
-    view.PageAdminHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
+    view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageCmpTxtHandler,
     view.PageTxtHandler, view.PageTextHandler,
     task.PageTaskAdminHandler, task.PageTaskStatHandler, task.PageTaskResumeHandler,
-    task.PageCutTaskHandler,
+    task.PageCutTaskHandler, task.PageTxtTaskHandler,
 ]
 
 handlers = [

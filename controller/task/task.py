@@ -113,16 +113,17 @@ class Task(Model):
 
     @classmethod
     def get_page_tasks(cls):
-        return {k: t for k, t in cls.task_types.items() if t['collection'] == 'page'}
+
+        return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'page'}
 
     @classmethod
     def get_char_tasks(cls):
-        return {k: t for k, t in cls.task_types.items() if t['collection'] == 'char'}
+        return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'char'}
 
     @classmethod
     def task_names(cls, collection=None):
         if collection:
-            return {k: t['name'] for k, t in cls.task_types.items() if t['collection'] == collection}
+            return {k: t['name'] for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == collection}
         else:
             return {k: t['name'] for k, t in cls.task_types.items()}
 

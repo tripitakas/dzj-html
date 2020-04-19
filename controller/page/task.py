@@ -116,7 +116,7 @@ class PageTaskPublishApi(PageHandler):
 
         if page_names:
             ids = self.db.task.insert_many([get_task(name) for name in page_names], ordered=False)
-            tasks = list(self.db.task.find({'_id': {'$in': ids}}, {'doc_id'}))
+            tasks = list(self.db.task.find({'_id': {'$in': ids}}, {'doc_id': 1}))
             for task in tasks:
                 self.db.page.update_one({'name': task['doc_id']}, {'$addToSet': {'tasks': dict(
                     task_id=task['_id'], task_type=self.data['task_type'], num=self.data.get('num'),
@@ -264,3 +264,26 @@ class PageCutTaskHandler(PageHandler):
         else:
             self.set_box_access(page, 'task')
             self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
+
+
+class PageTxtTaskHandler(PageHandler):
+    URL = ['/task/(txt_proof|txt_review)/@task_id',
+           '/task/do/(txt_proof|txt_review)/@task_id',
+           '/task/browse/(txt_proof|txt_review)/@task_id',
+           '/task/update/(txt_proof|txt_review)/@task_id']
+
+    def get(self, task_type, task_id):
+        """ 文字校对、审定页面"""
+        page = self.db.page.find_one({'name': self.task['doc_id']})
+        if not page:
+            self.send_error_response(e.no_object, message='没有找到页面%s' % self.task['doc_id'])
+
+        self.pack_boxes(page)
+        chars = page['chars']
+        chars_col = self.get_chars_col(chars)
+        char_dict = {c['cid']: c for c in chars}
+        img_url = self.get_web_img(page['name'])
+        readonly = '/edit' not in self.request.path
+        txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+        self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
+                    txt_types=txt_types, img_url=img_url, readonly=self.readonly)

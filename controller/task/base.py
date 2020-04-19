@@ -205,7 +205,8 @@ class TaskHandler(BaseHandler, Task):
         """
         steps = dict()
         task_type = task_type or task['task_type']
-        default_steps = [s[0] for s in self.prop(self.task_types, task_type + '.steps')]
+        default_steps = self.prop(self.task_types, task_type + '.steps') or []
+        default_steps = default_steps and [s[0] for s in default_steps]
         todo = self.prop(task, 'steps.todo') or default_steps
         submitted = self.prop(task, 'steps.submitted') or []
         un_submitted = [s for s in todo if s not in submitted]

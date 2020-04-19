@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>文字校对-{{page['name']}}</title>
+  {% include _base_css.html %}
+  {% include _font_css.html %}
+  <link href="{{static_url('css/cut.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/proofread.css')}}" rel="stylesheet"/>
+  <!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+  <![endif]-->
+  <style>
+    .dropdown-menu.cmp-menu {
+      padding: 10px 15px;
+      min-width: 310px !important;
+    }
+
+    @media screen and (max-width: 1100px) {
+      #enlarge-font, #reduce-font {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 1024px) {
+      .m-header .title {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 940px) {
+      #enlarge-panel-font, #reduce-panel-font {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="widescreen">
+<div class="app-main">
+  <div class="main">
+    <div class="m-header">
+      <div class="left">
+        <div class="btn-group back">
+          <span class="icon-return-back" onclick="leave()" data-toggle="tooltip" data-placement="bottom" title="返回"></span>
+        </div>
+        <div class="btn-group title">文字校对</div>
+      </div><!--left-->
+      <div class="center">
+        <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
+        <div id="toggle-left" class="btn-txt icon-image active" data-toggle="tooltip" data-placement="bottom" title="显隐图片"></div>
+        <div id="toggle-right" class="btn-txt icon-txt active" data-toggle="tooltip" data-placement="bottom" title="显隐文本"></div>
+        <div id="toggle-blur" class="btn-txt icon-blur" data-toggle="tooltip" data-placement="bottom" title="模糊图片"></div>
+        <div id="zoom-in" class="btn-txt icon-zoom-in" data-toggle="tooltip" data-placement="bottom" title="放大图片"></div>
+        <div id="zoom-reset" class="btn-txt icon-zoom-back" data-toggle="tooltip" data-placement="bottom" title="原始大小"></div>
+        <div id="zoom-out" class="btn-txt icon-zoom-out" data-toggle="tooltip" data-placement="bottom" title="缩小图片"></div>
+        <div id="toggle-char" class="btn-txt icon-chars" data-toggle="tooltip" data-placement="bottom" title="显隐字框"></div>
+        <div id="toggle-panel-txt" class="btn-txt icon-panel-txt" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板文字"></div>
+        <div id="toggle-panel-no" class="btn-txt icon-panel-no" data-toggle="tooltip" data-placement="bottom" title="显隐浮动面板序号"></div>
+        <div id="enlarge-panel-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加浮动面板字号"></div>
+        <div id="reduce-panel-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少浮动面板字号"></div>
+      </div>
+      <div class="right">
+        <div id="enlarge-font" class="btn-txt icon-font-plus" data-toggle="tooltip" data-placement="bottom" title="增加字号"></div>
+        <div id="reduce-font" class="btn-txt icon-font-minus" data-toggle="tooltip" data-placement="bottom" title="减少字号"></div>
+        <div id="prev-diff" class="btn-txt icon-prev" data-toggle="tooltip" data-placement="bottom" title="上一条异文"></div>
+        <div id="next-diff" class="btn-txt icon-next" data-toggle="tooltip" data-placement="bottom" title="下一条异文"></div>
+        <div id="toggle-empty" class="btn-txt icon-empty" data-toggle="tooltip" data-placement="bottom" title="显示空位符"></div>
+        <div id="delete-line" class="btn-txt icon-delete-line" data-toggle="tooltip" data-placement="bottom" title="删除当前行"></div>
+        <div id="save-doubt" class="btn-txt icon-doubt " data-toggle="tooltip" data-placement="bottom" title="存疑选中文本"></div>
+        <div id="check-match" class="btn-txt icon-done-all" data-toggle="tooltip" data-placement="bottom" title="检查图文匹配"></div>
+        <div class="btn-group">
+          <i class="btn-txt icon-cmp-txt dropdown-toggle" data-toggle="dropdown" title="重新比对"></i>
+          <div class="dropdown-menu dropdown-menu-right cmp-menu" data-stopPropagation="true">
+            <div class="menu-title">文本比对</div>
+            <li class="divider"></li>
+            <label class="control-label">选择底本</label>
+            <div class="form-group base-txt">
+              {% for i, (txt, field, label) in enumerate(txts) %}
+              <label class="radio-inline"><input type="radio" name="base-txt" value="{{field}}">{{label}}</label>
+              {% end %}
+            </div>
+            <label class="control-label">选择校本</label>
+            <div class="form-group cmp-txt">
+              {% for i, (txt, field, label) in enumerate(txts) %}
+              <label class="checkbox-inline"><input type="checkbox" value="{{field}}" checked>{{label}}</label>
+              {% end %}
+            </div>
+            <div class="btn-group fr">
+              <button id="btn-cmp-txt" type="button" class="btn btn-primary btn-sm">确定</button>
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <i id="btn-show-txt" class="btn-txt icon-history dropdown-toggle" data-toggle="dropdown" title="查看文本"></i>
+          <ul class="dropdown-menu dropdown-menu-right" data-stopPropagation="true">
+            <li class="menu-title">查看文本</li>
+            <li class="divider"></li>
+            <li data-id="work-panel" class="btn-show-txt"><a href="#">工作面板</a></li>
+            <li class="divider"></li>
+            {% for i, (txt, field, label) in enumerate(txts) %}
+            <li data-id="text-{{field}}" class="btn-show-txt"><a href="#">{{label}}</a></li>
+            {% end %}
+          </ul>
+        </div>
+        <div id="save" class="btn-txt icon-save {{'hide' if readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="保存"></div>
+      </div><!--right-->
+    </div>
+    <div class="m-body flex">
+      <div id="left-region" class="m-left">
+        <div id="holder-container" class="bd">
+          <div id="holder"></div>
+        </div>
+      </div>
+      <div id="right-region" class="m-right wide-txt">
+        <div id="work-panel" class="sutra-text bd">
+          <div id="work-html" class="html-text">
+            <div class="blocks">
+              {% if isinstance(cmp_data, str) %}
+              {% raw cmp_data %}
+              {% else %}
+              {% module TextArea(cmp_data=cmp_data) %}
+              {% end %}
+            </div>
+          </div>
+          <!--/.work-html-->
+          {% if doubts %}
+          <div class="char-list doubt-list">
+            <div class="char-list-tab">
+              {% for i, doubt in enumerate(doubts) %}
+              <div class="char-list-tab-item toggle-tab {{'' if i else 'active'}}">{{doubt[i]}}</div>
+              {% end %}
+              <div class="char-list-tab-arrow" id="toggle-arrow"><i class="icon-up"></i></div>
+            </div>
+            {% for i, doubt in enumerate(doubts) %}
+            <table class="char-list-table {{'' if i else 'editable active'}}">
+              <thead>
+              <tr>
+                <td>行号</td>
+                <td>字序号</td>
+                <td>存疑文本</td>
+                <td>存疑理由</td>
+                <td class="del-doubt">操作</td>
+              </tr>
+              </thead>
+              <tbody>
+              {% raw doubt[0] %}
+              </tbody>
+            </table>
+            {% end %}
+          </div>
+          {% end %}
+          <!--/.doubt-list-->
+          <div id="pfread-dialog" class="pfread-dialog">
+            <div class="dialog-common dialog-abs">
+              <div class="dlg-before"></div>
+              <div id="dlg-items" class="items">
+                {% for i, (txt, field, label) in enumerate(txts) %}
+                <dl class="item">
+                  <dt>{{label}}</dt>
+                  <dd class="text option" id="dlg-{{'cmp%s' % i if i else 'base'}}"></dd>
+                </dl>
+                {% end %}
+              </div>
+              <dl class="item res">
+                <dt>选择结果</dt>
+                <dd class="text">
+                  <span id="dlg-select" contenteditable="true"></span>
+                </dd>
+              </dl>
+              <div class="dlg-after"></div>
+            </div>
+          </div>
+          <!--/.pfread-dialog-->
+        </div>
+        <div id="text-work" class="sutra-text hide">
+          <textarea class="text-editable"></textarea>
+        </div>
+        {% for i, (txt, field, label) in enumerate(txts) %}
+        <div id="text-{{field}}" class="sutra-text hide">
+          <textarea class="text-editable" rows="{{len(txt.split('|'))}}">
+            {% raw txt.replace('|', '\n') %}
+          </textarea>
+        </div>
+        {% end %}
+      </div>
+      <div class="right-toolbar">
+        <i id="btn-raw-txt" class="icon-pencil" data-toggle="tooltip" data-placement="bottom" title="切换为纯文本模式"></i>
+        <i id="btn-html-txt" class="icon-file-text hide" data-toggle="tooltip" data-placement="bottom" title="切换为文本比对模式"></i>
+      </div>
+    </div>
+    <div class="m-alert alert alert-info hide" id="m-alert">
+      <a class="close">×</a><i class="loading icon-spinner1 animate-spin"></i>
+      <strong class="title"></strong><span class="text"></span>
+    </div>
+    <div class="m-footer">
+      <span class="fl">
+        页编码：<span class="page-name">{{page['name']}}</span>
+        权限：<span class="page-info">{{'只读' if readonly else '读写'}}</span>
+      </span>
+      <span class="fr"></span>
+    </div>
+  </div>
+</div>
+
+<div class="panel-body" style="padding: 0">
+  {% module DoubtModal() %}
+  <div id="helpModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="helpModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">帮助文档<a class="more-help" href="/help">更多</a></h4>
+        </div>
+        <div class="modal-body">
+          <div class="title">一、工作目标</div>
+          <div class="intro">
+            根据图片进行文字校对，包括文字和字序两部分。<br/>
+            校对以如实为原则，即图片上是什么字，就输入什么字。如果遇到一些无法输入的字，请先使用相关工具进行查找，
+            比如<a href="http://hanzi.lqdzj.cn" target="_blank">龙泉字库</a>或<a href="http://www.guoxuedashi.com/zidian/bujian" target="_blank">国学大师</a>。
+            确实找不到时，也可以输入<a href="http://www.cbeta.org/data-format/rare-rule.htm">组字式</a>。如果拿不准，请您进行存疑，以便后续环节处理。<br/>
+            如果图片的文本有多个来源，如OCR文本或从古籍文库中选择的相似文本等，系统将会进行横向比对，找出文本间的差异，即所谓的异文。异文将以红色高亮显示。
+            双击异文，将弹框展示各个来源的文本，您可以点选，也可以在选择结果中进行修改。<br/>
+            如果只有OCR文本，则您需要逐字检查；如果有古籍文库中的相似文本，则您只需要检查异文，同文浏览一下即可。<br/>
+            文字校对完毕后，请您做一次图文匹配检查，确保您校对的文字和图片的字框的一致性。<br/>
+            注：请下载<a href=" https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/KaiXinSong.ttf">开心宋</a>或者
+            <a href="https://tripitaka-assets.oss-cn-beijing.aliyuncs.com/font/hanazono-20170904.zip">花园明朝</a>
+            字体并安装，以便显示UTF-8扩展区域的字符。
+          </div>
+          <div class="title">二、功能按钮</div>
+          <table class="table">
+            <tr>
+              <td><i class="btn-txt icon-panel-no"></i></td>
+              <td>显示或隐藏浮动面板上的字框序号</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-panel-txt"></i></td>
+              <td>显示或隐藏浮动面板上的字框文字</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-plus"></i></td>
+              <td>增加浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-font-minus"></i></td>
+              <td>减少浮动面板或者右侧文本区域的字体大小</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-more"></i></td>
+              <td>修改栏框、列框、字框、字序等。文字校对时，可以修改本页面的切分框数据</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-empty"></i></td>
+              <td>显示或隐藏空位符。空位符是一个占位符，如果异文中选中的文本为空，则显示为空位符，表示此处有异文</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-doubt"></i></td>
+              <td>存疑，以便后续环节处理。请先用鼠标选中文本，然后点击存疑</td>
+            </tr>
+            <tr>
+              <td><i class="btn-txt icon-done-all"></i></td>
+              <td>图文匹配检查。检查左侧图片字框以及右侧文字的匹配情况，包括总列数，以及每列字数。针对不匹配的行，右侧将出现红色竖线进行提示。</td>
+            </tr>
+          </table>
+          <div class="title">三、快捷键</div>
+          <table class="table" id="hot-key">
+            <tr>
+              <td>1/2/3/4/5</td>
+              <td>图片放大1~5倍</td>
+            </tr>
+            <tr>
+              <td>6/7/8/9</td>
+              <td>图片缩小至60%~90%</td>
+            </tr>
+            <tr>
+              <td>方向键</td>
+              <td>按照方向键↑→↓←的指示，切换当前字框</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include _base_js.html %}
+{% include _base_cut.html %}
+<script src="{{static_url('js/cut/proof_keys.js')}}"></script>
+<script src="{{static_url('js/page-btn.js')}}"></script>
+<script src="{{static_url('js/txt-proof.js')}}"></script>
+<script src="{{static_url('js/txt-btn.js')}}"></script>
+<script>
+  // 公共参数
+  var txtFields = decodeJSON('{{txt_fields}}');
+  var txtDict = decodeJSON('{{dumps(txt_dict)}}');
+
+  // 页面图和切分框
+  $.cut.create({
+    readonly: true,
+    holder: 'holder',
+    image: '{{img_url}}',
+    chars: '{{page["chars"]}}',
+    width: '{{page["width"]}}',
+    height: '{{page["height"]}}',
+    name: '{{page["name"]}}_txt',
+    scrollContainer: '#left-region',
+  });
+
+  // 初始化设置
+  $.cut.bindKeys();
+  $.cut.bindMatchingKeys();
+  $.cut.toggleBox(false);
+  $.cut.switchCurrentBox(null);
+  $('#holder-container').focus();
+
+  showOrder = getStorage('togglePanelNo') === '1';
+  showText = getStorage('togglePanelTxt') === '1';
+  $('#toggle-panel-no').toggleClass('active', showOrder);
+  $('#toggle-panel-txt').toggleClass('active', showText);
+  setDialogLabel(txtFields.map((e) => txtDict[e][2]));
+
+</script>

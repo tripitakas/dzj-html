@@ -9,8 +9,8 @@ from controller import helper as h
 from controller import errors as e
 
 
-class CharAdminHandler(CharHandler):
-    URL = '/char/admin'
+class CharListHandler(CharHandler):
+    URL = '/char/list'
 
     page_title = '字数据管理'
     table_fields = [
@@ -52,7 +52,7 @@ class CharAdminHandler(CharHandler):
             {'operation': 'ori_txt', 'label': '按原字'},
         ]},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v} for k, v in CharHandler.task_types.items()
+            {'operation': k, 'label': name} for k, name in CharHandler.task_names('char').items()
         ]},
     ]
     actions = [
@@ -81,9 +81,9 @@ class CharAdminHandler(CharHandler):
 
     def format_value(self, value, key=None, doc=None):
         """ 格式化page表的字段输出"""
-        if key == 'pos':
+        if key == 'pos' and value:
             return '/'.join([str(value.get(f)) for f in ['x', 'y', 'w', 'h']])
-        if key == 'txt_type':
+        if key == 'txt_type' and value:
             return self.txt_types.get(value, value)
         if key in ['cc', 'sc'] and value:
             return value / 1000
@@ -101,8 +101,8 @@ class CharAdminHandler(CharHandler):
             if self.get_query_argument('duplicate', '') == 'true':
                 condition, params = self.get_duplicate_condition()
             else:
-                condition, params = self.get_char_search_condition(self.request.query)
-            docs, pager, q, order = self.find_by_page(self, condition)
+                condition, params = Char.get_char_search_condition(self.request.query)
+            docs, pager, q, order = Char.find_by_page(self, condition)
             self.render('char_list.html', docs=docs, pager=pager, q=q, order=order, params=params,
                         txt_types=self.txt_types, format_value=self.format_value,
                         **kwargs)
@@ -120,7 +120,7 @@ class CharBrowseHandler(CharHandler):
         """ 浏览字图"""
         try:
             condition = Char.get_char_search_condition(self.request.query)[0]
-            docs, pager, q, order = self.find_by_page(self, condition)
+            docs, pager, q, order = Char.find_by_page(self, condition)
             column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
@@ -140,12 +140,12 @@ class CharStatHandler(CharHandler):
     def get(self):
         """ 统计字数据"""
         try:
-            condition = self.get_char_search_condition(self.request.query)[0]
+            condition = Char.get_char_search_condition(self.request.query)[0]
             kind = self.get_query_argument('kind', '')
             if kind not in ['source', 'txt', 'ocr_txt', 'ori_txt']:
                 return self.send_error_response(e.statistic_type_error, message='只能按分类、原字、正字和OCR文字统计')
             aggregates = [{'$group': {'_id': '$' + kind, 'count': {'$sum': 1}}}]
-            docs, pager, q, order = self.aggregate_by_page(self, condition, aggregates, default_order='-count')
+            docs, pager, q, order = Char.aggregate_by_page(self, condition, aggregates, default_order='-count')
             self.render('char_statistic.html', docs=docs, pager=pager, q=q, order=order, kind=kind)
 
         except Exception as error:

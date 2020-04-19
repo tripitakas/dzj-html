@@ -12,8 +12,8 @@ from controller import helper as h
 from controller.task.task import Task
 
 
-class PageAdminHandler(PageHandler):
-    URL = '/page/admin'
+class PageListHandler(PageHandler):
+    URL = '/page/list'
 
     page_title = '页数据管理'
     table_fields = [
@@ -41,7 +41,7 @@ class PageAdminHandler(PageHandler):
         {'operation': 'bat-export-char', 'label': '生成字表'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
-            {'operation': k, 'label': v['name']} for k, v in PageHandler.task_types.items()
+            {'operation': k, 'label': name} for k, name in PageHandler.task_names('page').items()
         ]},
     ]
     actions = [
@@ -70,7 +70,7 @@ class PageAdminHandler(PageHandler):
         """ 格式化page表的字段输出"""
         if key == 'tasks' and value:
             return '<br/>'.join([
-                '%s%s|%s' % (self.get_task_name(t['task_type']), ('#' + t['num']) if t.get('num') else '',
+                '%s%s/%s' % (self.get_task_name(t['task_type']), ('#' + t['num']) if t.get('num') else '',
                              self.get_status_name(t['status']))
                 for t in value
             ])
@@ -180,15 +180,15 @@ class PageInfoHandler(PageHandler):
             if not page:
                 self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
 
+            page_tasks = self.prop(page, 'tasks') or []
             fields1 = ['txt', 'ocr', 'ocr_col', 'cmp']
-            page_txt = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
+            page_txts = {k: self.get_txt(page, k) for k in fields1 if self.get_txt(page, k)}
             fields2 = ['blocks', 'columns', 'chars', 'chars_col']
-            page_box = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
-            fields3 = list(set(page.keys()) - set(fields1 + fields2))
+            page_boxes = {k: self.prop(page, k) for k in fields2 if self.prop(page, k)}
+            fields3 = list(set(page.keys()) - set(fields1 + fields2) - {'tasks'})
             metadata = {k: self.prop(page, k) for k in fields3 if self.prop(page, k)}
-            page_tasks = self.prop(page, 'tasks') or {}
 
-            self.render('page_info.html', page=page, metadata=metadata, page_txt=page_txt, page_box=page_box,
+            self.render('page_info.html', page=page, metadata=metadata, page_txts=page_txts, page_boxes=page_boxes,
                         page_tasks=page_tasks, Page=Page, Task=Task)
 
         except Exception as error:
@@ -277,7 +277,7 @@ class PageTxtHandler(PageHandler):
             img_url = self.get_web_img(page['name'])
             readonly = '/edit' not in self.request.path
             txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
-            self.render('page_char.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
+            self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
                         txt_types=txt_types, img_url=img_url, readonly=readonly)
 
         except Exception as error:
@@ -285,8 +285,8 @@ class PageTxtHandler(PageHandler):
 
 
 class PageTextHandler(PageHandler):
-    URL = ['/page/txt/@page_name',
-           '/page/txt/edit/@page_name']
+    URL = ['/page/text/@page_name',
+           '/page/text/edit/@page_name']
 
     def get(self, page_name):
         """ 文字校对页面"""
@@ -306,7 +306,7 @@ class PageTextHandler(PageHandler):
                 cmp_data = to_basestring(TextArea(self).render(cmp_data))
             readonly = '/edit' not in self.request.path
             img_url = self.get_web_img(page['name'], 'page')
-            return self.render('page_txt.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
+            return self.render('page_text.html', page=page, img_url=img_url, txts=txts, txt_dict=txt_dict,
                                txt_fields=txt_fields, cmp_data=cmp_data,
                                doubts=doubts, readonly=readonly)
 

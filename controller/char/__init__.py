@@ -1,7 +1,7 @@
 from . import api, view, task
 
 views = [
-    view.CharBrowseHandler, view.CharBrowseHandler, view.CharStatHandler,
+    view.CharListHandler, view.CharBrowseHandler, view.CharStatHandler,
     task.CharTaskAdminHandler, task.CharTaskStatHandler, task.CharTaskClusterHandler,
 ]
 

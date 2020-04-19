@@ -250,7 +250,7 @@
 <script>
   // 统计结果
   $('.operation .btn-statistic a').on('click', function () {
-    location.href = '/data/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
+    location.href = '/char/statistic?kind=' + $(this).attr('title') + location.search.replace('?', '&');
   });
 
   // 更新分类
@@ -262,7 +262,7 @@
     var source = $('#sourceModal .source').val();
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
     var data = {_ids: ids, type: $('.range :checked').val(), search: location.search, source: source};
-    postApi('/data/char/source', {data: data}, () => location.reload());
+    postApi('/char/source', {data: data}, () => location.reload());
   });
 
   // 生成字图
@@ -286,7 +286,7 @@
 
   // 浏览结果
   $('.operation .btn-browse').on('click', function () {
-    location.href = '/char/browse' + setQueryString('from', '/data/char', true);
+    location.href = '/char/browse' + setQueryString('from', location.pathname, true);
   });
 
 </script>

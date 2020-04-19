@@ -96,13 +96,13 @@
 
   function findCharById(id) {
     return id && data.chars.filter(function (box) {
-      return box.char_id === id || box.cid === id;
+      return box.char_id === id || box.cid == id;
     })[0];
   }
 
   function findCharByCid(cid, boxType) {
     return data.chars.filter(function (box) {
-      return box.cid === cid || box.class === boxType;
+      return box.cid == cid || box.class === boxType;
     })[0];
   }
 

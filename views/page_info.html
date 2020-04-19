@@ -30,16 +30,16 @@
           </div>
           <div class="block">
             <div class="block-head">相关任务</div>
-            {% for k, v in page_tasks.items() %}
+            {% for t in page_tasks %}
             <div class="info">
-              <label class="label">{{Task.get_task_name(k)}}</label>
-              <span class="value">{{Task.get_status_name(v)}}</span>
+              <label class="label">{{Task.get_task_name(t['task_type'])}}</label>
+              <span class="value">{{t}}</span>
             </div>
             {% end %}
           </div>
           <div class="block">
             <div class="block-head">文本信息</div>
-            {% for k, v in page_txt.items() %}
+            {% for k, v in page_txts.items() %}
             <div class="info long">
               <label class="label">{{Page.get_field_name(k)}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>
@@ -48,7 +48,7 @@
           </div>
           <div class="block">
             <div class="block-head">切分信息</div>
-            {% for k, v in page_box.items() %}
+            {% for k, v in page_boxes.items() %}
             <div class="info long">
               <label class="label">{{Page.get_field_name(k)}}</label>
               <span class="value">{% raw handler.format_value(v, k) %}</span>

@@ -20,9 +20,9 @@ class PageHandler(TaskHandler, Page, Box):
         super(PageHandler, self).__init__(application, request, **kwargs)
 
     def pack_boxes(self, page):
+        self.pop_fields(page['chars'], 'box_logs')
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
-        self.pop_fields(page['chars'], ['box_logs', 'alternatives'])
 
     def get_user_level(self, data_type, user=None):
         """ 根据用户角色，计算用户的数据等级"""
@@ -177,6 +177,7 @@ class PageHandler(TaskHandler, Page, Box):
         if not chars:
             return ''
         pre, html = chars[0], '<div class="blocks"><div class="block"><div class="line">'
+        html += '<span id="%s" class="char">%s</span>' % (pre['cid'], pre[field])
         for b in chars[1:]:
             if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
                 html += '</div></div><div class="block"><div class="line">'
