@@ -16,6 +16,26 @@ class CharTaskAdminHandler(CharHandler):
     page_title = '字任务管理'
     search_tips = '请搜索字种、批次号或备注'
     search_fields = ['params.ocr_txt', 'params.txt', 'batch', 'remark']
+    table_fields = [
+        {'id': '_id', 'name': '主键'},
+        {'id': 'batch', 'name': '批次号'},
+        {'id': 'task_type', 'name': '类型', 'filter': CharHandler.task_names('char')},
+        {'id': 'num', 'name': '校次'},
+        {'id': 'txt_kind', 'name': '字种'},
+        {'id': 'char_count', 'name': '单字数量'},
+        {'id': 'status', 'name': '状态', 'filter': CharHandler.task_statuses},
+        {'id': 'priority', 'name': '优先级', 'filter': CharHandler.priorities},
+        {'id': 'params', 'name': '输入参数'},
+        {'id': 'return_reason', 'name': '退回理由'},
+        {'id': 'create_time', 'name': '创建时间'},
+        {'id': 'updated_time', 'name': '更新时间'},
+        {'id': 'publish_time', 'name': '发布时间'},
+        {'id': 'publish_by', 'name': '发布人'},
+        {'id': 'picked_time', 'name': '领取时间'},
+        {'id': 'picked_by', 'name': '领取人'},
+        {'id': 'finished_time', 'name': '完成时间'},
+        {'id': 'remark', 'name': '备注'},
+    ]
     operations = [
         {'operation': 'bat-remove', 'label': '批量删除', 'title': '/task/delete'},
         {'operation': 'bat-assign', 'label': '批量指派', 'data-target': 'assignModal'},
@@ -50,26 +70,6 @@ class CharTaskAdminHandler(CharHandler):
             key = re.sub(r'[\-/]', '_', self.request.path.strip('/'))
             hide_fields = json_util.loads(self.get_secure_cookie(key) or '[]')
             kwargs['hide_fields'] = hide_fields if hide_fields else kwargs['hide_fields']
-            kwargs['table_fields'] = [
-                {'id': '_id', 'name': '主键'},
-                {'id': 'batch', 'name': '批次号'},
-                {'id': 'txt_kind', 'name': '字种'},
-                {'id': 'char_count', 'name': '单字数量'},
-                {'id': 'task_type', 'name': '类型', 'filter': self.task_types},
-                {'id': 'type_tips', 'name': '类型说明'},
-                {'id': 'status', 'name': '状态', 'filter': self.task_statuses},
-                {'id': 'priority', 'name': '优先级', 'filter': self.priorities},
-                {'id': 'params', 'name': '输入参数'},
-                {'id': 'return_reason', 'name': '退回理由'},
-                {'id': 'create_time', 'name': '创建时间'},
-                {'id': 'updated_time', 'name': '更新时间'},
-                {'id': 'publish_time', 'name': '发布时间'},
-                {'id': 'publish_by', 'name': '发布人'},
-                {'id': 'picked_time', 'name': '领取时间'},
-                {'id': 'picked_by', 'name': '领取人'},
-                {'id': 'finished_time', 'name': '完成时间'},
-                {'id': 'remark', 'name': '备注'},
-            ]
             condition, params = self.get_task_search_condition(self.request.query, 'char')
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
