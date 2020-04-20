@@ -14,16 +14,16 @@ from controller.auth import get_route_roles
 from controller.task.base import TaskHandler
 
 
-class AdminScriptHandler(BaseHandler):
+class SysScriptHandler(BaseHandler):
     URL = '/sys/script'
 
     def get(self):
         """ 系统脚本管理"""
         tripitakas = ['所有'] + self.db.tripitaka.find().distinct('tripitaka_code')
-        self.render('admin_script.html', tripitakas=tripitakas)
+        self.render('sys_script.html', tripitakas=tripitakas)
 
 
-class AdminOplogHandler(BaseHandler, Oplog):
+class SysOplogListHandler(BaseHandler, Oplog):
     URL = '/sys/oplog'
 
     def get(self):
@@ -31,11 +31,11 @@ class AdminOplogHandler(BaseHandler, Oplog):
         condition = {}
         docs, pager, q, order = self.find_by_page(self, condition, default_order='-_id')
         kwargs = self.get_template_kwargs()
-        self.render('admin_oplog.html', docs=docs, pager=pager, q=q, order=order,
+        self.render('sys_oplog_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 
-class AdminOplogViewHandler(BaseHandler, Oplog):
+class SysOplogHandler(BaseHandler, Oplog):
     URL = ['/sys/oplog/@oid', '/sys/oplog/(latest)']
 
     def get(self, oid):
@@ -47,7 +47,7 @@ class AdminOplogViewHandler(BaseHandler, Oplog):
             log = self.db.oplog.find_one({'_id': ObjectId(oid)})
         if not log:
             self.send_error_response(e.no_object, message='日志不存在')
-        self.render('admin_oplog_view.html', log=log)
+        self.render('sys_oplog.html', log=log)
 
 
 class ApiTableHandler(TaskHandler):

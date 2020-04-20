@@ -5,6 +5,7 @@ import re
 import os
 from os import path
 from bson.objectid import ObjectId
+from .char import Char
 from .base import CharHandler
 from controller import errors as e
 from controller import validate as v
@@ -82,7 +83,7 @@ class CharUpdateApi(CharHandler):
 
 
 class CharSourceApi(CharHandler):
-    URL = '/api/data/char/source'
+    URL = '/api/char/source'
 
     def post(self):
         """ 批量更新批次"""
@@ -92,7 +93,7 @@ class CharSourceApi(CharHandler):
             if self.data['type'] == 'selected':
                 condition = {'_id': {'$in': [ObjectId(i) for i in self.data['_ids']]}}
             else:
-                condition = self.get_char_search_condition(self.data['search'])[0]
+                condition = Char.get_char_search_condition(self.data['search'])[0]
             r = self.db.char.update_many(condition, {'$set': {'source': self.data['source']}})
             self.send_data_response(dict(matched_count=r.matched_count))
 

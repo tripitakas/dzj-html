@@ -86,11 +86,11 @@
             <div class="col-sm-10">
               <select class="form-control task_type">
                 <option value=""></option>
-                {% for k, t in handler.task_types.items() %}
+                {% for k, name in handler.task_names('page').items() %}
                 {% if params.get('task_type') and params.get('task_type') == k %}
-                <option value="{{k}}" selected="selected">{{t['name']}}</option>
+                <option value="{{k}}" selected="selected">{{name}}</option>
                 {% else %}
-                <option value="{{k}}">{{t['name']}}</option>
+                <option value="{{k}}">{{name}}</option>
                 {% end %}
                 {% end %}
               </select>

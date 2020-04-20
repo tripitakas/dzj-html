@@ -140,12 +140,20 @@ class TaskHandler(BaseHandler, Task):
 
         def de_duplicate():
             """ 组任务去重"""
-            _tasks, _doc_ids = [], []
-            for task in tasks:
-                if task.get('doc_id') not in _doc_ids:
-                    _tasks.append(task)
-                    _doc_ids.append(task.get('doc_id'))
-            return _tasks[:page_size]
+            if task_type in self.get_page_tasks():
+                _tasks, page_names = [], []
+                for task in tasks:
+                    if task.get('doc_id') not in page_names:
+                        _tasks.append(task)
+                        page_names.append(task['doc_id'])
+                return _tasks[:page_size]
+            if task_type in self.get_char_tasks():
+                _tasks, txt_kinds = [], []
+                for task in tasks:
+                    if task.get('txt_kind') not in txt_kinds:
+                        _tasks.append(task)
+                        txt_kinds.append(task['txt_kind'])
+                return _tasks[:page_size]
 
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
         condition = {'doc_id': {'$regex': q, '$options': '$i'}} if q else {}

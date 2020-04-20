@@ -4,8 +4,8 @@
 from . import view, api
 
 views = [
-    view.ApiTableHandler, view.ApiSourceHandler, view.AdminScriptHandler,
-    view.AdminOplogHandler, view.AdminOplogViewHandler,
+    view.ApiTableHandler, view.ApiSourceHandler, view.SysScriptHandler,
+    view.SysOplogListHandler, view.SysOplogHandler,
 ]
 
 handlers = [

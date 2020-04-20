@@ -113,7 +113,6 @@ class Task(Model):
 
     @classmethod
     def get_page_tasks(cls):
-
         return {k: t for k, t in cls.task_types.items() if cls.prop(t, 'data.collection') == 'page'}
 
     @classmethod

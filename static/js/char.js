@@ -48,10 +48,11 @@ function updateLogs(logs) {
 
 function updateWorkPanel(ch) {
   // 更新当前参数
-  $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
-  $('.m-footer .name').text(ch.name);
-  $('.char-items .current').removeClass('current');
   $(this).addClass('current');
+  $('.m-footer .char-name').text(ch.cid);
+  $('.m-footer .page-name').text(ch.page_name);
+  $('.char-items .current').removeClass('current');
+  $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新OCR候选
   $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
     return '<span class="ocr-txt txt-item' + (c === ch.txt ? ' active' : '') + '">' + c + '</span>';
