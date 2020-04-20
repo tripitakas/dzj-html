@@ -62,14 +62,16 @@
   };
 
   // 步骤导航
-  var saveData = jumpUrl => true;
+  var saveData = (submit, jumpUrl) => {
+    return true;
+  };
 
   function navigate(to) {
-    var url = setQueryString('step', steps[to]);
+    var jumpUrl = setQueryString('step', steps[to]);
     if (!readonly) {
-      saveData(url);
+      saveData(to === 'next', jumpUrl);
     } else {
-      location.href = url;
+      location.href = jumpUrl;
     }
   }
 
@@ -81,6 +83,11 @@
   // 下一步
   $('#step-next').on("click", function () {
     navigate('next');
+  });
+
+  // 提交任务
+  $('#task-submit').on("click", function () {
+    saveData(true, null);
   });
 
   // 任务退回

@@ -248,7 +248,7 @@ class CharTaskClusterApi(CharHandler):
             # 更新char
             params = self.task['params']
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}}
-            self.db.char.update_many(cond, {'$inc': {task_type.replace('cluster_', '') + '_count': 1}})
+            self.db.char.update_many(cond, {'$inc': {'txt_count.' + task_type: 1}})
             # 提交任务
             self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
                 'status': self.STATUS_FINISHED, 'finished_time': self.now()

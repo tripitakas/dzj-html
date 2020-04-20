@@ -138,44 +138,32 @@ class TaskHandler(BaseHandler, Task):
             skip = n3 if n3 > page_size else n3 + n2 if n3 + n2 > page_size else total_count
             return random.randint(1, skip - page_size) if skip > page_size else 0
 
-        def de_duplicate():
-            """ 组任务去重"""
-            if task_type in self.get_page_tasks():
-                _tasks, page_names = [], []
-                for task in tasks:
-                    if task.get('doc_id') not in page_names:
-                        _tasks.append(task)
-                        page_names.append(task['doc_id'])
-                return _tasks[:page_size]
-            if task_type in self.get_char_tasks():
-                _tasks, txt_kinds = [], []
-                for task in tasks:
-                    if task.get('txt_kind') not in txt_kinds:
-                        _tasks.append(task)
-                        txt_kinds.append(task['txt_kind'])
-                return _tasks[:page_size]
-
         page_size = page_size or self.prop(self.config, 'pager.page_size', 10)
-        condition = {'doc_id': {'$regex': q, '$options': '$i'}} if q else {}
-        if self.has_num(task_type):
-            condition.update({'task_type': {'$regex': task_type}, 'status': self.STATUS_PUBLISHED})
-            # 去掉同组的我的任务
+        field = 'doc_id' if task_type in self.get_page_tasks() else 'txt_kind'
+        condition = {field: {'$regex': q, '$options': '$i'}} if q else {}
+        condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
+        total_count = self.db.task.count_documents(condition)
+        if self.has_num(task_type):  # 任务类型有多个校次的情况
+            tasks = []
             my_tasks = self.find_mine(task_type)
-            if my_tasks:
-                condition['doc_id'] = condition.get('doc_id') or {}
-                condition['doc_id'].update({'$nin': [t['doc_id'] for t in my_tasks]})
-            total_count = self.db.task.count_documents(condition)
-            skip_no = get_random_skip()
-            # 按3倍量查询，然后对结果去重
-            tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
-            tasks = de_duplicate()
+            while len(tasks) < page_size:
+                not_allowed = [t[field] for t in my_tasks + tasks] if (my_tasks or tasks) else []
+                if not_allowed:
+                    condition[field] = condition.get(field) or {}
+                    condition[field].update({'$nin': not_allowed})
+                skip_no = get_random_skip()
+                tasks_in_db = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size * 3))
+                if not tasks_in_db:
+                    break
+                for t in tasks_in_db:
+                    if t[field] not in [t[field] for t in tasks]:
+                        tasks.append(t)
         else:
             condition.update({'task_type': task_type, 'status': self.STATUS_PUBLISHED})
-            total_count = self.db.task.count_documents(condition)
             skip_no = get_random_skip()
             tasks = list(self.db.task.find(condition).skip(skip_no).sort('priority', -1).limit(page_size))
 
-        return tasks, total_count
+        return tasks[:page_size], total_count
 
     def count_task(self, task_type=None, status=None, mine=False):
         """ 统计任务数量"""

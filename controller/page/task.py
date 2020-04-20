@@ -267,6 +267,33 @@ class PageCutTaskHandler(PageHandler):
             self.render('page_box.html', page=page, img_url=img_url, readonly=self.readonly)
 
 
+class PageCutTaskApi(PageHandler):
+    URL = ['/api/task/do/(cut_proof|cut_review)/@task_id',
+           '/api/task/update/(cut_proof|cut_review)/@task_id']
+
+    def post(self, task_type, task_id):
+        """ 切分校对、审定页面"""
+        try:
+            print('post api')
+            rules = [(v.not_empty, 'step')]
+            self.validate(self.data, rules)
+
+            submitted = self.prop(self.task, 'steps.submitted') or []
+            if self.data['step'] == 'box':
+                if 'box' not in submitted:
+                    submitted.append('box')
+                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'steps.submitted': submitted}})
+            elif self.data['step'] == 'order':
+                if 'box' not in submitted:
+                    submitted.append('order')
+                update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted}
+                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
 class PageTxtTaskHandler(PageHandler):
     URL = ['/task/(txt_proof|txt_review)/@task_id',
            '/task/do/(txt_proof|txt_review)/@task_id',
@@ -284,7 +311,6 @@ class PageTxtTaskHandler(PageHandler):
         chars_col = self.get_chars_col(chars)
         char_dict = {c['cid']: c for c in chars}
         img_url = self.get_web_img(page['name'])
-        readonly = '/edit' not in self.request.path
         txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
         self.render('page_txt.html', page=page, chars=chars, chars_col=chars_col, char_dict=char_dict,
                     txt_types=txt_types, img_url=img_url, readonly=self.readonly)

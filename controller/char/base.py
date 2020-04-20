@@ -30,12 +30,27 @@ class CharHandler(TaskHandler, Char):
     def get_txt_level(self, kind, task_or_role):
         return self.prop(self.txt_level, kind + '.' + task_or_role, 0)
 
-    def get_user_level(self, field='box'):
+    def get_user_level(self, field):
+        assert field in ['box', 'txt']
         user_roles = auth.get_all_roles(self.current_user['roles'])
         if field == 'box':
             return max([self.get_box_level('role', r) for r in user_roles]) or 0
         if field == 'txt':
             return max([self.get_txt_level('role', r) for r in user_roles]) or 0
+
+    def get_task_level(self, field, task_type):
+        assert field in ['box', 'txt']
+        if field == 'box':
+            return self.get_box_level('task', task_type) or 0
+        if field == 'txt':
+            return self.get_txt_level('task', task_type) or 0
+
+    def get_edit_level(self, field, edit_type):
+        assert field in ['box', 'txt']
+        if edit_type == 'raw_edit':
+            return self.get_user_level(field)
+        else:
+            return self.get_task_level(field, edit_type)
 
     def get_char_count_by_task(self):
         char_tasks = list(self.db.task.find(

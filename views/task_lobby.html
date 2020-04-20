@@ -65,7 +65,7 @@
 {% include _base_js.html %}
 <script src="{{static_url('js/task-pick.js')}}"></script>
 <script>
-  var lobbyTaskType = '{{task_type}}';
+  var taskType = '{{task_type}}';
   // 领任务
   $('.pick-task').on("click", function (e) {
     e.preventDefault();

@@ -70,15 +70,6 @@ function updateWorkPanel(ch) {
     updateColumnImg(ch);
 }
 
-// 离开页面
-var from = decodeFrom();
-window.leave = function () {
-  from ? window.location = from : window.history.back();
-};
-
-// 帮助
-$('#proof-help').on('click', () => $('#helpModal').modal());
-
 // 排序
 $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'));
 $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
@@ -119,11 +110,16 @@ $('.txt-type .radio-item').click(function () {
 });
 
 // 查看page页面
-$('.column-panel').on('click', function () {
+$('.m-footer .page-name').on('click', function () {
   var cid = $('#currentName').val();
   var pageName = cid.split('_').slice(0, -1).join('_');
   if (cid && pageName)
     window.open('/page/' + pageName + '?txt=off&char_id=' + cid, '_blank');
+});
+
+// 查看char页面
+$('.m-footer .char-name').on('click', function () {
+  window.open('/char/' + $('#currentName').val(), '_blank');
 });
 
 // 单击字图
@@ -137,7 +133,7 @@ $('.char-panel .char-item').on('click', function () {
 $('#submit-proof').click(function () {
   var name = $('#currentName').val();
   var data = {
-    edit_type: typeof editType !== 'undefined' ? editType : 'char_edit',
+    edit_type: typeof editType !== 'undefined' ? editType : 'raw_edit',
     txt: $('.proof .txt').val(),
     ori_txt: $('.proof .ori-txt').val() || '',
     remark: $('.proof .remark').val()
@@ -148,7 +144,7 @@ $('#submit-proof').click(function () {
     data.txt_logs = res.txt_logs;
     if ($('.proof .txt-type :checked').length)
       data.txt_type = $('.proof .txt-type :checked').val();
-    chars[id] = $.extend(chars[id], data);
+    // chars[id] = $.extend(chars[id], data);
     var $curItem = $('#' + name);
     $curItem.find('.txt').text($txt.val());
     var index = $curItem.attr('class').search(/proof\d/);

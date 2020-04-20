@@ -244,6 +244,14 @@
   margin-top: 5px;
 }
 
+.m-footer .page-name{
+  cursor: pointer;
+}
+
+.m-footer .char-name{
+  cursor: pointer;
+}
+
 #proof-help {
   cursor: pointer;
   font-size: 16px;

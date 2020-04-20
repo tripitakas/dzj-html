@@ -39,11 +39,11 @@ class CharUpdateApi(CharHandler):
     URL = '/api/char/@char_name'
 
     def post(self, char_name):
-        """ 更新字符"""
+        """ 更新字符的txt"""
 
         def check_level():
             # 暂时简单考虑data_level和updated_count两个参数
-            has_data_level = self.get_user_level() >= (char.get('data_level') or 0)
+            has_data_level = self.get_user_level('txt') >= (char.get('data_level') or 0)
             updated_count = len(char.get('txt_logs') or [])
             is_count_qualified = self.get_updated_char_count() >= updated_count * 100
             return has_data_level and is_count_qualified
@@ -73,7 +73,7 @@ class CharUpdateApi(CharHandler):
             if new_log:
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
-            update = {'txt_logs': logs, 'data_level': self.get_edit_level(self.data['edit_type'])}
+            update = {'txt_logs': logs, 'data_level': self.get_edit_level('txt', self.data['edit_type'])}
             update.update({k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)})
             self.db.char.update_one({'name': char_name}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))

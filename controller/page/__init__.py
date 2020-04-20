@@ -13,7 +13,7 @@ handlers = [
     api.PageDeleteApi, api.PageUpsertApi,
     api.PageBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageTxtDiffApi, api.PageDetectCharsApi, api.PageExportCharsApi, api.PageSourceApi,
-    task.PageTaskPublishApi,
+    task.PageTaskPublishApi, task.PageCutTaskApi,
 ]
 
 modules = {'TextArea': view.TextArea}

@@ -225,7 +225,8 @@
     location.href = '/page/box{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
   });
 
-  saveData = function (jumpUrl) {
+  // 保存数据
+  saveData = function (submit, jumpUrl) {
     var r = $.cut.getCharsCol();
     if (!r.error && r.chars_col.length !== parseInt('{{len(page["columns"])}}')) {
       r.error = '列数有误，请检查是否有断开的列。';
@@ -238,7 +239,19 @@
     bsLoading('保存中‧‧‧');
     postApi('/page/order/{{page["name"]}}', {data: data}, function () {
       bsShow('成功!', '已保存。');
-      jumpUrl ? location.href = jumpUrl : refresh(500);
+      if (submit) {
+        postApi(location.pathname, {data: {submit: true, step: 'order'}}, function () {
+          var autoPick = getStorage('autoPick', '是');
+          if (mode === 'do' && autoPick === '是') {
+            showSuccess('提示', '已成功提交！将自动领取下一个任务。');
+            pick('/task/pick/' + taskType);
+          } else {
+            window.leave();
+          }
+        });
+      } else if (jumpUrl) {
+        location.href = jumpUrl;
+      }
     });
   };
 
