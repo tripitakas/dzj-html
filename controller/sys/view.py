@@ -15,7 +15,7 @@ from controller.task.base import TaskHandler
 
 
 class AdminScriptHandler(BaseHandler):
-    URL = '/admin/script'
+    URL = '/sys/script'
 
     def get(self):
         """ 系统脚本管理"""
@@ -24,7 +24,7 @@ class AdminScriptHandler(BaseHandler):
 
 
 class AdminOplogHandler(BaseHandler, Oplog):
-    URL = '/admin/oplog'
+    URL = '/sys/oplog'
 
     def get(self):
         """ 管理日志"""
@@ -36,7 +36,7 @@ class AdminOplogHandler(BaseHandler, Oplog):
 
 
 class AdminOplogViewHandler(BaseHandler, Oplog):
-    URL = ['/admin/oplog/@oid', '/admin/oplog/(latest)']
+    URL = ['/sys/oplog/@oid', '/sys/oplog/(latest)']
 
     def get(self, oid):
         """ 管理日志"""

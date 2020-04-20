@@ -10,7 +10,7 @@ from controller.base import BaseHandler
 
 
 class OplogDeleteApi(BaseHandler):
-    URL = r'/api/admin/oplog/delete'
+    URL = r'/api/sys/oplog/delete'
 
     def post(self):
         """ 删除日志"""
