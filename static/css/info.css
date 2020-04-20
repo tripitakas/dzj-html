@@ -19,6 +19,12 @@
   cursor: pointer;
 }
 
+.block .item{
+  margin: 5px;
+  display: block;
+  border: 1px solid #ccc;
+}
+
 .info {
   width: 50%;
   float: left;

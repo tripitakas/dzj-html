@@ -78,6 +78,7 @@ role_route_maps = {
             '/page/@page_name': ['GET'],
             '/api/page/cmp_txt/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
+            '/char/@char_name': ['GET'],
         }
     },
     '切分校对员': {

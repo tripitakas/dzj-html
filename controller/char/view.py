@@ -7,6 +7,7 @@ from .char import Char
 from .base import CharHandler
 from controller import helper as h
 from controller import errors as e
+from controller.base import BaseHandler
 
 
 class CharListHandler(CharHandler):
@@ -128,6 +129,21 @@ class CharBrowseHandler(CharHandler):
                     column_url = self.get_web_img(column_name, 'column')
             self.render('char_browse.html', docs=docs, pager=pager, q=q, order=order,
                         column_url=column_url, chars={str(d['_id']): d for d in docs})
+
+        except Exception as error:
+            return self.send_db_error(error)
+
+
+class CharViewHandler(CharHandler, Char):
+    URL = '/char/@char_name'
+
+    def get(self, char_name):
+        """ 查看Char页面"""
+        try:
+            char = self.db.char.find_one({'name': char_name})
+            if not char:
+                return self.send_error_response(e.no_object, message='没有找到数据%s' % char)
+            self.render('char_view.html', char=char, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)
