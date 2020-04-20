@@ -232,8 +232,9 @@ class TaskHandler(BaseHandler, Task):
         """ 更新任务相关的页面数据"""
         task = task or self.task or {}
         if task.get('collection') == 'page' and task.get('doc_id'):
+            num = '_' + str(task['num']) if task.get('num') else ''
+            task_type = task['task_type'] + num
             if status:
-                condition = {'name': task['doc_id'], 'tasks.task_id': task['_id']}
-                self.db.page.update_one(condition, {'$set': {'tasks.$.status': status}})
+                self.db.page.update_one({'name': task['doc_id']}, {'$set': {'tasks.' + task_type: status}})
             else:
-                self.db.page.update_one({'name': task['doc_id']}, {'$pull': {'tasks.task_id': task['_id']}})
+                self.db.page.update_one({'name': task['doc_id']}, {'$unset': {'tasks.' + task_type: ''}})

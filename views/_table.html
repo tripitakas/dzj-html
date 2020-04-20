@@ -37,11 +37,11 @@
     <td><input type="checkbox"/></td>
     {% for f in table_fields %}
     <td class="{{'%s%s' % (f['id'], ' hide' if f['id'] in hide_fields else '')}}" title="{{d.get(f['id']) if f.get('filter') else ''}}">
-      {% raw format_value(prop(d, f['id'].replace('-', '.')), f['id'], d) or '' %}
+      {% raw format_value(prop(d, f['id']), f['id'], d) or '' %}
     </td>
     {% end %}
     <td class="action">
-      {% set info = {f: prop(d, f.replace('-', '.'), '') for f in info_fields} %}
+      {% set info = {f: prop(d, f, '') for f in info_fields} %}
       <span class="hide info">{{pack(info)}}</span>
       {% for a in actions %}
       {% set disabled = a.get('disabled') and a['disabled'](d) %}

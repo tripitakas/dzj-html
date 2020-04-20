@@ -198,9 +198,8 @@ class AssignTasksApi(TaskHandler):
             log['assigned'] = [t['doc_id'] for t in to_assign]
             # 更新page的任务状态
             if collection == 'page':
-                cond = {'name': {'$in': [t['doc_id'] for t in to_assign]}}
-                self.db.page.update_many(cond, {'$set': {'tasks.' + task_type: self.STATUS_PICKED}})
-
+                for t in to_assign:
+                    self.update_page_status(self.STATUS_PICKED, t)
             self.add_log('assign_task', context='%s, %s' % (user_id, assigned))
             self.send_data_response({k: i for k, i in log.items() if i})
 

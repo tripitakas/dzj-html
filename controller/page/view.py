@@ -70,9 +70,8 @@ class PageListHandler(PageHandler):
         """ 格式化page表的字段输出"""
         if key == 'tasks' and value:
             return '<br/>'.join([
-                '%s%s/%s' % (self.get_task_name(t['task_type']), ('#' + t['num']) if t.get('num') else '',
-                             self.get_status_name(t['status']))
-                for t in value
+                '%s/%s' % (self.get_task_name(t), self.get_status_name(status))
+                for t, status in value.items()
             ])
         return h.format_value(value, key, doc)
 

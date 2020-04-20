@@ -19,10 +19,10 @@
   cursor: pointer;
 }
 
-.block .item{
-  margin: 5px;
+.block .item {
+  /*margin-left: 6px;*/
+  border-left: 6px solid rgba(255, 0, 0, .4);
   display: block;
-  border: 1px solid #ccc;
 }
 
 .info {

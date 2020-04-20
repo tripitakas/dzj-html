@@ -140,7 +140,12 @@ class Task(Model):
 
     @classmethod
     def get_task_name(cls, task_type):
-        return h.prop(cls.task_types, '%s.name' % task_type)
+        name = h.prop(cls.task_types, '%s.name' % task_type)
+        if name:
+            return name
+        task_type = '_'.join(task_type.split('_')[:-1])
+        name = h.prop(cls.task_types, '%s.name' % task_type)
+        return name or task_type
 
     @classmethod
     def get_status_name(cls, status):
