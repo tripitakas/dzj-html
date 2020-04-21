@@ -48,10 +48,8 @@ function updateLogs(logs) {
 
 function updateWorkPanel(ch) {
   // 更新当前参数
-  $(this).addClass('current');
   $('.m-footer .char-name').text(ch.cid);
   $('.m-footer .page-name').text(ch.page_name);
-  $('.char-items .current').removeClass('current');
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新OCR候选
   $('.ocr-alternatives .body').html((ch.alternatives || ch.txt || '').split('').map(function (c) {
@@ -128,6 +126,8 @@ $('.m-footer .char-name').on('click', function () {
 
 // 单击字图
 $('.char-panel .char-item').on('click', function () {
+  $('.char-items .current').removeClass('current');
+  $(this).addClass('current');
   var id = $(this).attr('data-id');
   var ch = chars[id] || {};
   updateWorkPanel(ch);
