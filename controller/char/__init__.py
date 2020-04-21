@@ -1,11 +1,11 @@
-from . import api, view, task
+from . import api, view
 
 views = [
     view.CharListHandler, view.CharBrowseHandler, view.CharStatHandler, view.CharViewHandler,
-    task.CharTaskAdminHandler, task.CharTaskStatHandler, task.CharTaskClusterHandler,
+    view.CharTaskAdminHandler, view.CharTaskStatHandler, view.CharTaskClusterHandler,
 ]
 
 handlers = [
     api.CharGenImgApi, api.CharUpdateApi, api.CharSourceApi,
-    task.CharTaskPublishApi, task.CharTaskClusterApi,
+    api.CharTaskPublishApi, api.CharTaskClusterApi,
 ]

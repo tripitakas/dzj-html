@@ -99,3 +99,108 @@ class CharSourceApi(CharHandler):
 
         except self.DbError as error:
             return self.send_db_error(error)
+
+
+class CharTaskPublishApi(CharHandler):
+    URL = r'/api/char/task/publish'
+
+    task2txt = dict(cluster_proof='ocr_txt', cluster_review='ocr_txt', separate_proof='txt',
+                    separate_review='txt')
+
+    def post(self):
+        """ 发布字任务"""
+        try:
+            rules = [(v.not_empty, 'batch', 'task_type', 'source')]
+            self.validate(self.data, rules)
+            if not self.db.char.count_documents({'source': self.data['source']}):
+                self.send_error_response(e.no_object, message='没有找到%s相关的字数据' % self.data['batch'])
+
+            log = self.check_and_publish(self.data['batch'], self.data['source'], self.data['task_type'],
+                                         self.data.get('num'))
+            return self.send_data_response(log)
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+    def check_and_publish(self, batch='', source='', task_type='', num=None):
+        """ 发布聚类、分类的校对、审定任务 """
+
+        def get_task(ps, cnt, remark=None):
+            priority = self.data.get('priority') or 2
+            pre_tasks = self.data.get('pre_tasks') or [],
+            tk = ''.join([p.get('ocr_txt') or p.get('txt') for p in ps])
+            return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
+                        txt_kind=tk, char_count=cnt, doc_id=None, steps=None, status=self.STATUS_PUBLISHED,
+                        priority=priority, pre_tasks=pre_tasks, params=ps, result={}, remark=remark,
+                        create_time=self.now(), updated_time=self.now(), publish_time=self.now(),
+                        publish_user_id=self.user_id, publish_by=self.username)
+
+        def get_txt(task):
+            return ''.join([str(p[field]) for p in task.get('params', [])])
+
+        # 哪个字段
+        field = self.task2txt.get(task_type)
+
+        # 统计字频
+        counts = list(self.db.char.aggregate([
+            {'$match': {'source': source}}, {'$group': {'_id': '$' + field, 'count': {'$sum': 1}}},
+            {'$sort': {'count': -1}},
+        ]))
+
+        # 去除已发布的任务
+        txts = [c['_id'] for c in counts]
+        published = list(self.db.task.find({'task_type': task_type, 'num': num, 'params.' + field: {'$in': txts}}))
+        if published:
+            published = ''.join([get_txt(t) for t in published])
+            counts = [c for c in counts if str(c['_id']) not in published]
+
+        # 发布聚类校对-常见字
+        counts1 = [c for c in counts if c['count'] >= 50]
+        normal_tasks = [
+            get_task([{field: c['_id'], 'count': c['count'], 'source': source}], c['count'])
+            for c in counts1
+        ]
+        if normal_tasks:
+            self.db.task.insert_many(normal_tasks)
+            task_params = [t['params'] for t in normal_tasks]
+            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
+
+        # 发布聚类校对-生僻字
+        counts2 = [c for c in counts if c['count'] < 50]
+        rare_tasks = []
+        params, total_count = [], 0
+        for c in counts2:
+            total_count += c['count']
+            params.append({field: c['_id'], 'count': c['count'], 'source': source})
+            if total_count > 50:
+                rare_tasks.append(get_task(params, total_count, '生僻字'))
+                params, total_count = [], 0
+        if total_count:
+            rare_tasks.append(get_task(params, total_count, '生僻字'))
+        if rare_tasks:
+            self.db.task.insert_many(rare_tasks)
+            task_params = [t['params'] for t in normal_tasks]
+            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
+
+        return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
+
+
+class CharTaskClusterApi(CharHandler):
+    URL = ['/api/task/do/(cluster_proof|cluster_review)/@task_id',
+           '/api/task/update/(cluster_proof|cluster_review)/@task_id']
+
+    def post(self, task_type, task_id):
+        """ 提交聚类校对任务"""
+        try:
+            # 更新char
+            params = self.task['params']
+            cond = {'source': params[0]['source'], 'ocr_txt': {'$in': [c['ocr_txt'] for c in params]}}
+            self.db.char.update_many(cond, {'$inc': {'txt_count.' + task_type: 1}})
+            # 提交任务
+            self.db.task.update_one({'_id': self.task['_id']}, {'$set': {
+                'status': self.STATUS_FINISHED, 'finished_time': self.now()
+            }})
+            self.send_data_response()
+
+        except self.DbError as error:
+            return self.send_db_error(error)

@@ -1,11 +1,11 @@
-from . import view, api, ocr, task
+from . import view, api, ocr
 
 views = [
     view.PageListHandler, view.PageBrowseHandler, view.PageViewHandler, view.PageInfoHandler,
     view.PageBoxHandler, view.PageOrderHandler, view.PageCmpTxtHandler,
     view.PageTxtHandler, view.PageTextHandler,
-    task.PageTaskAdminHandler, task.PageTaskStatHandler, task.PageTaskResumeHandler,
-    task.PageCutTaskHandler, task.PageTxtTaskHandler,
+    view.PageTaskAdminHandler, view.PageTaskStatHandler, view.PageTaskResumeHandler,
+    view.PageCutTaskHandler, view.PageTxtTaskHandler,
 ]
 
 handlers = [
@@ -13,7 +13,7 @@ handlers = [
     api.PageDeleteApi, api.PageUpsertApi,
     api.PageBoxApi, api.PageOrderApi, api.PageCmpTxtApi, api.PageCmpTxtNeighborApi,
     api.PageTxtDiffApi, api.PageDetectCharsApi, api.PageExportCharsApi, api.PageSourceApi,
-    task.PageTaskPublishApi, task.PageCutTaskApi,
+    api.PageTaskPublishApi, api.PageCutTaskApi,
 ]
 
 modules = {'TextArea': view.TextArea}
