@@ -19,7 +19,7 @@ url_placeholder = {
     'char_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_name': r'[a-zA-Z]{2}_[_0-9]+',
     'page_prefix': r'[a-zA-Z]{2}[_0-9]*',
-    'metadata': r'tripitaka|sutra|volume|reel',
+    'metadata': r'tripitaka|sutra|volume|reel|variant',
     'ocr_task': r'ocr_box|ocr_txt',
     'page_task': r'cut_proof|cut_review|txt_proof|txt_review',
     'char_task': r'cluster_proof|cluster_review|separate_proof|separate_review',

@@ -53,6 +53,7 @@ class ComLeft(UIModule):
                 dict(name='卷数据', icon='icon-subitem', link='/data/reel'),
                 dict(name='页数据', icon='icon-subitem', link='/page/list'),
                 dict(name='字数据', icon='icon-subitem', link='/char/list'),
+                dict(name='异体字', icon='icon-subitem', link='/data/variant'),
             ]),
             dict(name='文章管理', icon='icon-article', link='/article/admin'),
             dict(name='人员管理', icon='icon-users', id='user', sub_items=[

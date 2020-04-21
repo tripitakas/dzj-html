@@ -11,6 +11,12 @@ from controller.task.base import TaskHandler
 class TaskLobbyHandler(TaskHandler):
     URL = '/task/lobby/@task_type'
 
+    def format_value(self, value, key=None, doc=None):
+        """ 格式化task表的字段输出"""
+        if key == 'txt_kind' and len(value) > 5:
+            value = value[:5] + '...'
+        return super().format_value(value, key, doc)
+
     def get(self, task_type):
         """ 任务大厅"""
         try:

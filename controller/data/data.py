@@ -144,3 +144,25 @@ class Volume(Model):
             back_cover_pages.sort(key=cmp_to_key(h.cmp_page_code))
             doc['back_cover_pages'] = back_cover_pages
         return doc
+
+
+class Variant(Model):
+    collection = 'variant'
+    fields = [
+        {'id': 'variant_code', 'name': '编码'},
+        {'id': 'txt', 'name': '异体字'},
+        {'id': 'normal_txt', 'name': '所属正字'},
+        {'id': 'img_code', 'name': '字图'},
+        {'id': 'remark', 'name': '备注'}
+    ]
+    rules = [
+        (v.not_empty, 'txt'),
+    ]
+    primary = 'txt'
+
+    page_title = '异体字管理'
+    search_tips = '请搜异体字、正字及编码'
+    search_fields = ['txt', 'normal_txt', 'remark']
+    table_fields = [dict(id=f['id'], name=f['name']) for f in fields]
+    update_fields = [dict(id=f['id'], name=f['name'], input_type=f.get('input_type', 'text'),
+                          options=f.get('options', [])) for f in fields]

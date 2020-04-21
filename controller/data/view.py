@@ -10,11 +10,11 @@ from controller import errors as e
 from controller import helper as h
 from controller.task.task import Task
 from controller.base import BaseHandler
-from controller.data.data import Tripitaka, Volume, Sutra, Reel
+from controller.data.data import Tripitaka, Volume, Sutra, Reel, Variant
 
 
 class DataListHandler(BaseHandler):
-    URL = '/data/(tripitaka|sutra|reel|volume)'
+    URL = '/data/(tripitaka|sutra|reel|volume|variant)'
 
     def get(self, metadata):
         """ 数据管理"""
