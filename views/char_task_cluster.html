@@ -136,11 +136,9 @@
                   <label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
                   {% end %}
-                  <label>校对人</label><span>{{log['username']}}</span><br/>
-                  <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
-                  {% if log.get('updated_time') %}
-                  <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
-                  {% end %}
+                  <label>校对人</label><span>{{log.get('username') or ''}}</span><br/>
+                  <label>创建时间</label><span>{{to_date_str(log.get('create_time') or '')}}</span><br/>
+                  <label>更新时间</label><span>{{to_date_str(log.get('updated_time') or '')}}</span><br/>
                 </div>
               </div>
               {% end %}
