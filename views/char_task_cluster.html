@@ -33,7 +33,7 @@
           </ul>
         </div>
         <div class="btn-group" title="按置信度过滤">
-          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-cc dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
             <div class="menu-title">按置信度过滤</div>
             <li class="divider"></li>
@@ -46,11 +46,25 @@
           </div>
         </div>
         <div class="btn-group" title="按修改过滤">
-          <i class="btn-txt icon-pencil dropdown-toggle" data-toggle="dropdown"></i>
+          <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li><a id="btn-my-update" href="#">我的修改</a></li>
             <li><a id="btn-all-update" href="#">所有修改</a></li>
           </ul>
+        </div>
+        <div class="btn-group" title="批量选择">
+          <i class="btn-txt icon-checkbox2 dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-select" href="#">打开选择</a></li>
+            <li><a id="btn-cancel" href="#">关闭选择</a></li>
+            <li><a id="btn-select-all" href="#">全部选择</a></li>
+            <li><a id="btn-deselect" href="#">全部不选</a></li>
+            <li><a id="bat-update" href="#">批量修改</a></li>
+          </ul>
+        </div>
+        <div class="search">
+          <input id="search-variant" type="text" placeholder="搜索异体字字典">
+          <i id="icon-search" class="icon-search"></i>
         </div>
       </div>
       <div class="right">
@@ -62,7 +76,7 @@
         <div class="txt-kinds">
           <div class="txt-kind{{' current' if not txt else ''}}"></div>
           {% for t in txts %}
-          <div class="txt-kind{{' current' if t == txt else ''}}">{{t}}</div>
+          <span class="txt-kind{{' current' if t == txt else ''}}">{{t}}</span>
           {% end %}
         </div>
         <div class="char-items">
@@ -72,8 +86,10 @@
               <img src="{{handler.get_web_img(d['name'], 'char')}}"/>
             </div>
             <div class="char-info">
-              <span class="txt">{{d.get('txt', '')}}</span><span class="cc">{{d.get('cc', 0)/1000}}</span>
+              <span class="txt">{{d.get('txt', '')}}</span>
+              <span class="cc">{{d.get('cc', 0)/1000}}</span>
             </div>
+            <div><input type="checkbox" class="char-check hide" title="{{d['name']}}"></div>
           </div>
           {% end %}
         </div>
@@ -117,12 +133,14 @@
                 <div class="log-meta">
                   {% for f in ['txt', 'ori_txt', 'txt_type', 'remark'] %}
                   {% if log.get(f) %}
-                  <label>{{handler.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
+                  <label>{{Char.get_field_name(f) or f}}</label><span>{{log[f]}}</span><br/>
                   {% end %}
                   {% end %}
                   <label>校对人</label><span>{{log['username']}}</span><br/>
                   <label>创建时间</label><span>{{to_date_str(log['create_time'])}}</span><br/>
+                  {% if log.get('updated_time') %}
                   <label>更新时间</label><span>{{to_date_str(log['updated_time'])}}</span><br/>
+                  {% end %}
                 </div>
               </div>
               {% end %}
@@ -218,6 +236,55 @@
       location.href = location.pathname;
     else
       location.href = setQueryString('txt', $(this).text());
+  });
+
+  // 检索异体字
+  $('#search-variant').on('keydown', function (event) {
+    var keyCode = event.keyCode || event.which;
+    if (keyCode === 13) {
+      var q = $(this).val().trim();
+      if (q.length)
+        window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
+    }
+  });
+  $('#icon-search').on('click', function () {
+    var q = $('#search-variant').val().trim();
+    if (q.length)
+      window.open('http://hanzi.lqdzj.cn/variant_search?q=' + q, '_blank');
+  });
+
+  // 打开选择
+  $('#btn-select').on('click', function () {
+    $('.char-check').removeClass('hide');
+  });
+  // 关闭选择
+  $('#btn-cancel').on('click', function () {
+    $('.char-check').addClass('hide');
+  });
+
+  // 全部选择
+  $('#btn-select-all').on('click', function () {
+    $('.char-check').removeClass('hide');
+    $('.char-check').prop('checked', true);
+  });
+
+  // 全部不选
+  $('#btn-deselect').on('click', function () {
+    $('.char-check').removeClass('hide');
+    $('.char-check').removeAttr('checked');
+  });
+
+  // 批量修改
+  $('#bat-update').on('click', function () {
+    $('.char-check').removeClass('hide');
+    var names = $.map($('.char-check:checked'), (item) => $(item).attr('title'));
+    if (!names.length)
+      return showWarning('请选择', '当前没有选中任何记录。');
+    Swal2.fire({title: '请输入文字', input: 'text', showLoaderOnConfirm: true}).then((result) => {
+      if (result.value) {
+        postApi('/char/txt', {data: {names: names, txt: result.value}}, () => location.reload());
+      }
+    });
   });
 
   // 保存数据

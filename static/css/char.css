@@ -18,6 +18,30 @@
   float: right;
 }
 
+.m-header .search {
+  margin-left: 25px;
+}
+
+.search input {
+  display: inline-block;
+  border: 0 none;
+  border-bottom: 1px solid #cca78a;
+  background: none;
+  width: 150px;
+  height: 24px;
+  color: var(--Brown_Darker);
+  padding-left: 6px;
+}
+
+.search i {
+  left: 0;
+  top: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-left: -18px;
+  color: var(--Brown_Darker);
+}
+
 /* 字图面板*/
 .flex .char-panel {
   flex: 1;
@@ -61,10 +85,10 @@
   float: left;
   width: 62px;
   height: 85px;
-  margin: 10px;
   cursor: pointer;
   background: #fff;
   text-align: center;
+  margin: 10px 10px 18px;
   border: 1px solid #ccc;
 }
 
@@ -107,7 +131,17 @@
 }
 
 .char-info span {
+  float: left;
   margin: 0 2px;
+}
+
+.char-item .checkbox-inline {
+  padding: 0;
+}
+
+.char-item .char-check {
+  margin: 0 !important;
+  position: relative !important;
 }
 
 /* 列图面板*/
@@ -244,11 +278,11 @@
   margin-top: 5px;
 }
 
-.m-footer .page-name{
+.m-footer .page-name {
   cursor: pointer;
 }
 
-.m-footer .char-name{
+.m-footer .char-name {
   cursor: pointer;
 }
 

@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'icomoon';
-  src:  url('fonts/icomoon.eot?t8x2ud');
-  src:  url('fonts/icomoon.eot?t8x2ud#iefix') format('embedded-opentype'),
-    url('fonts/icomoon.ttf?t8x2ud') format('truetype'),
-    url('fonts/icomoon.woff?t8x2ud') format('woff'),
-    url('fonts/icomoon.svg?t8x2ud#icomoon') format('svg');
+  src:  url('fonts/icomoon.eot?pwib7o');
+  src:  url('fonts/icomoon.eot?pwib7o#iefix') format('embedded-opentype'),
+    url('fonts/icomoon.ttf?pwib7o') format('truetype'),
+    url('fonts/icomoon.woff?pwib7o') format('woff'),
+    url('fonts/icomoon.svg?pwib7o#icomoon') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -25,6 +25,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-checkbox2:before {
+  content: "\e991";
+}
+.icon-cc:before {
+  content: "\e98f";
+}
 .icon-uniE989:before {
   content: "\e989";
 }
@@ -333,6 +339,9 @@
 }
 .icon-done:before {
   content: "\e950";
+}
+.icon-stacked_bar_chart:before {
+  content: "\e98e";
 }
 .icon-all-inclusive:before {
   content: "\e95e";

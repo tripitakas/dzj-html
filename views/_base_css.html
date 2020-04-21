@@ -1,7 +1,7 @@
 <meta charset="UTF-8">
-<meta name="HandheldFriendly" content="True"/>
-<meta name="MobileOptimized" content="320"/>
 <meta name="renderer" content="webkit">
+<meta name="MobileOptimized" content="320"/>
+<meta name="HandheldFriendly" content="True"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="description" content="{{site['description']}}"/>
@@ -9,15 +9,10 @@
 <link href="{{static_url('imgs/favicon.ico')}}" type="image/x-icon" rel="shortcut icon">
 <link href="{{static_url('assets/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet"/>
 <link href="{{static_url('assets/my-icons/style.css')}}" rel="stylesheet"/>
-{% if not debug and 0 %}
-<link href="{{static_url('built/base_assets.css')}}" rel="stylesheet"/>
-<link href="{{static_url('built/base_local.css')}}" rel="stylesheet"/>
-{% else %}
 <link href="{{static_url('assets/sweetalert2/sweetalert2.min.css')}}" rel="stylesheet">
 <link href="{{static_url('assets/css/waves-effect.css')}}" rel="stylesheet">
 <link href="{{static_url('assets/css/animate.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/helper.css')}}" rel="stylesheet">
 <link href="{{static_url('css/style.css')}}" rel="stylesheet"/>
 <link href="{{static_url('css/base.css')}}" rel="stylesheet">
-{% end %}
 <script src="{{static_url('assets/jquery/jquery.min.js')}}"></script>

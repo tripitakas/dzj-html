@@ -302,6 +302,7 @@ class CharTaskClusterHandler(CharHandler):
                 cond['txt_logs'] = {'$nin': [None, []]}
             # 查找单字数据
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
+            chars = {str(d['_id']): d for d in docs}
             column_url = ''
             for d in docs:
                 column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
@@ -311,7 +312,7 @@ class CharTaskClusterHandler(CharHandler):
             self.render('char_task_cluster.html', docs=docs, pager=pager, q=q, order=order,
                         char_count=self.task.get('char_count'), ocr_txts=ocr_txts,
                         txts=txts, txt=txt, column_url=column_url,
-                        chars={str(d['_id']): d for d in docs})
+                        chars=chars, Char=Char)
 
         except Exception as error:
             return self.send_db_error(error)

@@ -15,7 +15,7 @@ class CharHandler(TaskHandler, Char):
 
     txt_level = {
         'task': dict(cluster_proof=1, cluster_review=10, separate_proof=20, separate_review=30),
-        'role': dict(聚类校对员=1, 聚类审定员=10, 分类校对员=20, 分类审定员=30),
+        'role': dict(聚类校对员=1, 聚类审定员=10, 分类校对员=20, 分类审定员=30, 文字专家=100),
     }
 
     def __init__(self, application, request, **kwargs):

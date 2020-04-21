@@ -42,8 +42,8 @@ class CharUpdateApi(CharHandler):
         """ 更新字符的txt"""
 
         def check_level():
-            # 暂时简单考虑data_level和updated_count两个参数
-            has_data_level = self.get_user_level('txt') >= (char.get('data_level') or 0)
+            # todo 简单检查，还需进一步完善
+            has_data_level = self.get_user_level('txt') >= (char.get('txt_level') or 0)
             updated_count = len(char.get('txt_logs') or [])
             is_count_qualified = self.get_updated_char_count() >= updated_count * 100
             return has_data_level and is_count_qualified
@@ -77,6 +77,43 @@ class CharUpdateApi(CharHandler):
             update.update({k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)})
             self.db.char.update_one({'name': char_name}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
+
+        except self.DbError as error:
+            return self.send_db_error(error)
+
+
+class CharTxtApi(CharHandler):
+    URL = '/api/char/txt'
+
+    def post(self):
+        """ 批量更新txt"""
+        try:
+            rules = [(v.not_empty, 'names', 'txt')]
+            self.validate(self.data, rules)
+            cond = {'name': {'$in': self.data['names']}, 'txt': {'$ne': self.data['txt']}}
+            chars = list(self.db.char.find(cond, {'name': 1, 'txt_logs': 1}))
+            new_update, old_update = [], []
+            for c in chars:
+                # todo 还需要进一步检查权限
+                if c.get('txt_logs') and [log for log in c['txt_logs'] if log.get('user_id') == self.user_id]:
+                    old_update.append(c['name'])
+                else:
+                    new_update.append(c['name'])
+
+            self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': {'txt': self.data['txt']}})
+
+            if new_update:
+                self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {
+                    'txt': self.data['txt'], 'edit_type': self.data.get('edit_type') or 'raw_edit',
+                    'user_id': self.user_id, 'username': self.username, 'create_time': self.now()
+                }}})
+            if old_update:
+                cond = {'name': {'$in': old_update}, 'txt_logs.user_id': self.user_id}
+                self.db.char.update_many(cond, {'$set': {'txt_logs.$': {
+                    'txt': self.data['txt'], 'edit_type': self.data.get('edit_type') or 'raw_edit',
+                    'updated_time': self.now()
+                }}})
+            self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)

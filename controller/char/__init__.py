@@ -8,5 +8,5 @@ views = [
 
 handlers = [
     api.CharGenImgApi, api.CharUpdateApi, api.CharSourceApi,
-    api.CharTaskPublishApi, api.CharTaskClusterApi,
+    api.CharTaskPublishApi, api.CharTaskClusterApi, api.CharTxtApi,
 ]

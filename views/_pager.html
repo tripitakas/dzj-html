@@ -20,7 +20,7 @@
   {% end %}
   <span style="margin-left: 15px">每页
   <select name="page-size" class="page-size">
-    {% for v in [5,10,50,100,500]%}
+    {% for v in [10,30,50,100,500]%}
     <option value="{{v}}" {{'selected' if page_size == v else ''}}>{{v}}</option>
     {% end %}
   </select>

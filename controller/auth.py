@@ -79,6 +79,8 @@ role_route_maps = {
             '/api/page/cmp_txt/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
+            '/api/char/txt': ['POST'],
+            '/api/char/@char_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -230,7 +232,6 @@ role_route_maps = {
             '/char/(list|browse|statistic)': ['GET'],
             '/api/char/delete': ['POST'],
             '/api/char/(delete|source|gen_img)': ['POST'],
-            '/api/char/@char_name': ['POST'],
         }
     },
     '文章管理员': {
