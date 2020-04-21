@@ -61,7 +61,8 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                         m['column'] = id2col.get('b%sc%s' % (c['block_no'], c['column_no']))
                         m['uid'] = hp.align_code('%s_%s' % (p['name'], c['char_id'][1:].replace('c', '_')))
                         chars.append(m)
-                    except KeyError:
+                    except KeyError as e:
+                        print(e)
                         invalid_chars.append('%s_%s' % (p['name'], c['cid']))
             except KeyError:
                 invalid_pages.append(p['name'])
