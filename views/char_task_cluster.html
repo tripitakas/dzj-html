@@ -25,14 +25,14 @@
       </div><!--left-->
       <div class="center">
         <div id="help" class="btn-txt icon-help" data-toggle="tooltip" data-placement="bottom" title="帮助"></div>
-        <div id="btn-sort" class="btn-group" title="排序">
+        <div class="btn-group" title="排序">
           <i class="btn-txt icon-sort dropdown-toggle" data-toggle="dropdown"></i>
           <ul class="dropdown-menu" data-stopPropagation="true">
             <li><a id="btn-cc-up" href="#">按置信度升序</a></li>
             <li><a id="btn-cc-down" href="#">按置信度降序</a></li>
           </ul>
         </div>
-        <div class="btn-group" title="过滤">
+        <div class="btn-group" title="按置信度过滤">
           <i class="btn-txt icon-filter dropdown-toggle" data-toggle="dropdown"></i>
           <div class="dropdown-menu filter-menu" data-stopPropagation="true">
             <div class="menu-title">按置信度过滤</div>
@@ -44,6 +44,13 @@
             </div>
             <button id="btn-filter" type="button" class="btn btn-primary btn-sm">确定</button>
           </div>
+        </div>
+        <div class="btn-group" title="按修改过滤">
+          <i class="btn-txt icon-pencil dropdown-toggle" data-toggle="dropdown"></i>
+          <ul class="dropdown-menu" data-stopPropagation="true">
+            <li><a id="btn-my-update" href="#">我的修改</a></li>
+            <li><a id="btn-all-update" href="#">所有修改</a></li>
+          </ul>
         </div>
       </div>
       <div class="right">
@@ -208,7 +215,7 @@
   // 切换字种
   $('.txt-kind').on('click', function () {
     if (!$(this).text().trim())
-      location.href = deleteQueryString('txt');
+      location.href = location.pathname;
     else
       location.href = setQueryString('txt', $(this).text());
   });
@@ -231,6 +238,5 @@
   };
 
 </script>
-
 </body>
 </html>

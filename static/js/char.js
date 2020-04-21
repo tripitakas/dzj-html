@@ -74,7 +74,11 @@ function updateWorkPanel(ch) {
 $('#btn-cc-up').on('click', () => location.href = setQueryString('order', 'cc'));
 $('#btn-cc-down').on('click', () => location.href = setQueryString('order', '-cc'));
 
-// 过滤
+// 按修改过滤
+$('#btn-my-update').on('click', () => location.href = setQueryString('update', 'my'));
+$('#btn-all-update').on('click', () => location.href = setQueryString('update', 'all'));
+
+// 按置信度过滤
 $('#btn-filter').on('click', function () {
   var start = $('#filter-start').val();
   if (start && start.match(/^(0\.\d+|0|1|1\.0)$/) === null)

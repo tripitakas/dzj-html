@@ -148,7 +148,8 @@ class PageHandler(TaskHandler, Page, Box):
         """ 获取chars或columns里的ocr文本"""
         if not boxes:
             return ''
-        pre, txt = boxes[0], ''
+        pre = boxes[0]
+        txt = pre.get('ocr_txt', '')
         for b in boxes[1:]:
             if pre.get('block_no') and b.get('block_no') and pre['block_no'] != b['block_no']:
                 txt += '||'

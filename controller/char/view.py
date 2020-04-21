@@ -282,7 +282,7 @@ class CharTaskClusterHandler(CharHandler):
         try:
             params = self.task['params']
             ocr_txts = [c['ocr_txt'] for c in params]
-            data_level = self.get_txt_level('txt', task_type)
+            data_level = self.get_txt_level('task', task_type)
             cond = {'source': params[0]['source'], 'ocr_txt': {'$in': ocr_txts}, 'data_level': {'$lte': data_level}}
             # 统计字种
             counts = list(self.db.char.aggregate([
@@ -294,6 +294,12 @@ class CharTaskClusterHandler(CharHandler):
             txt = self.get_query_argument('txt', 0)
             if txt:
                 cond.update({'txt': txt})
+            # 按修改过滤
+            update = self.get_query_argument('update', 0)
+            if update == 'my':
+                cond['txt_logs.user_id'] = self.user_id
+            if update == 'all':
+                cond['txt_logs'] = {'$nin': [None, []]}
             # 查找单字数据
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             column_url = ''

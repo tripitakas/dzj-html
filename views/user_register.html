@@ -76,11 +76,9 @@
     </div>
   </div>
 </div>
-{% include _base_footer.html %}
+
 {% include _base_js.html %}
-
 <script>
-
   $("#phone").on('input propertychange', function () {
     var input = $(this).val().trim();
     if (input.length === 0) {

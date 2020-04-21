@@ -11,7 +11,6 @@
 <div class="app-main">
   <div class="main">
     <div class="login clearfix">
-
       <div class="right fl">
         <div class="right-in">
           <h3 class="logo"></h3>
@@ -43,6 +42,7 @@
         </div>
       </div>
     </div>
+    {% include _base_footer.html %}
   </div>
 </div>
 
@@ -71,7 +71,6 @@
   </div>
 </div>
 
-{% include _base_footer.html %}
 {% include _base_js.html %}
 <script>
   $('.log-btn > a').click(function () {
@@ -93,7 +92,7 @@
   // 回车
   $(document).on("keydown", function (event) {
     var keyCode = event.keyCode || event.which;
-    if (keyCode ===  13) {
+    if (keyCode === 13) {
       $('.log-btn > a').click();
     }
   });
@@ -105,10 +104,12 @@
   });
 
   $modal.find('.btn-primary').click(function () {
-    postApi('/user/forget_pwd', {data: {
-      name: $modal.find('#name').val(),
-      phone_or_email: $('#phone_or_email').val()
-    }}, function () {
+    postApi('/user/forget_pwd', {
+      data: {
+        name: $modal.find('#name').val(),
+        phone_or_email: $('#phone_or_email').val()
+      }
+    }, function () {
       showSuccess('新的密码已经发送，请查收。');
       $modal.find('#name').val('新的密码已经发送，请查收。');
     });

@@ -31,7 +31,7 @@ from controller.helper import get_date_time, prop, md5_encode, BASE_DIR
 
 
 class BaseHandler(CorsMixin, RequestHandler):
-    """ 后端API响应类的基类 """
+    """ 后端API响应类的基类"""
     CORS_HEADERS = 'Content-Type,Host,X-Forwarded-For,X-Requested-With,User-Agent,Cache-Control,Cookies,Set-Cookie'
     CORS_CREDENTIALS = True
 
