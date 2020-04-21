@@ -315,3 +315,49 @@ class CharTaskClusterHandler(CharHandler):
 
         except Exception as error:
             return self.send_db_error(error)
+
+
+class CharTaskSeparateHandler(CharHandler):
+    URL = ['/task/(separate_proof|separate_review)/@task_id',
+           '/task/do/(separate_proof|separate_review)/@task_id',
+           '/task/browse/(separate_proof|separate_review)/@task_id',
+           '/task/update/(separate_proof|separate_review)/@task_id']
+
+    page_size = 50
+    txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+
+    def get(self, task_type, task_id):
+        """ 分类校对页面"""
+        try:
+            params = self.task['params']
+            txts = [c['txt'] for c in params]
+            data_level = self.get_txt_level('task', task_type)
+            cond = {'source': params[0]['source'], 'txt': {'$in': txts}, 'data_level': {'$lte': data_level}}
+            # 异体字字种
+            ori_txts = list(self.db.variant.find({'normal_txt': {'$in': txts}}, {'txt': 1}))
+            ori_txts = [t['txt'] for t in ori_txts]
+            # 设置当前异体字
+            ori_txt = self.get_query_argument('ori_txt', 0)
+            if ori_txt:
+                cond.update({'ori_txt': ori_txt})
+            # 按修改过滤
+            update = self.get_query_argument('update', 0)
+            if update == 'my':
+                cond['txt_logs.user_id'] = self.user_id
+            if update == 'all':
+                cond['txt_logs'] = {'$nin': [None, []]}
+            # 查找单字数据
+            docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
+            column_url = ''
+            for d in docs:
+                column_name = '%s_%s' % (d['page_name'], self.prop(d, 'column.cid'))
+                d['column']['hash'] = h.md5_encode(column_name, self.get_config('web_img.salt'))
+                if not column_url:
+                    column_url = self.get_web_img(column_name, 'column')
+            self.render('char_task_separate.html', docs=docs, pager=pager, q=q, order=order,
+                        char_count=self.task.get('char_count'), ori_txts=ori_txts,
+                        txts=txts, ori_txt=ori_txt, column_url=column_url,
+                        chars={str(d['_id']): d for d in docs})
+
+        except Exception as error:
+            return self.send_db_error(error)
