@@ -28,7 +28,7 @@
   border-bottom: 1px solid #cca78a;
   background: none;
   width: 150px;
-  height: 24px;
+  height: 32px;
   color: var(--Brown_Darker);
   padding-left: 6px;
 }
@@ -40,6 +40,7 @@
   font-size: 15px;
   margin-left: -18px;
   color: var(--Brown_Darker);
+  display: inline-block;
 }
 
 /* 字图面板*/
