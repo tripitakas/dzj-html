@@ -4,7 +4,7 @@ $(document).ready(function () {
 });
 
 // 更新列图
-var paper, charBox;
+var paper, charBox, getBox;
 
 function updateColumnImg(ch) {
   var column = ch.column; // 列框
@@ -13,6 +13,31 @@ function updateColumnImg(ch) {
   var imgName = ch['page_name'] + '_' + ch.column.cid;  // 列图文件名
   var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
   var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath); // 列图URL
+
+  if ($.cut) {
+    $.cut.create({
+      addDisable: true,
+      holder: 'col-holder',
+      image: columnUrl,
+      width: column.w,
+      height: column.h,
+      name: imgName,
+      chars: [{x: ch.pos.x - column.x, y: ch.pos.y - column.y, w: ch.pos.w, h: ch.pos.h}]
+    });
+    $.cut.bindKeys();
+    getBox = function() {
+      var c = $.cut.exportBoxes()[0];
+      ch._boxChanged = ch._boxChanged ||
+          Math.abs(c.x + column.x - ch.pos.x) > 1 || Math.abs(c.y + column.y - ch.pos.y) > 1 ||
+          Math.abs(ch.pos.w - c.w) > 1 || Math.abs(ch.pos.h - c.h) > 1;
+      ch.pos.x = c.x + column.x;
+      ch.pos.y = c.y + column.y;
+      ch.pos.w = c.w;
+      ch.pos.h = c.h;
+      return ch;
+    }
+    return;
+  }
 
   charBox && charBox.remove();
   charBox = null;

@@ -490,7 +490,7 @@
         }
 
         // 不能拖动当前字框的控制点，则画出一个新字框
-        if (!state.edit && !state.readonly) {
+        if (!state.edit && !state.readonly && !p.addDisable) {
           state.editHandle.index = 2;  // 右下角为拖动位置
           state.edit = createRect(state.down, state.down, true);
         } else {

@@ -218,8 +218,7 @@
 
 {% include _base_js.html %}
 {% if handler.is_task %} {% include _base_task.html %} {% end %}
-<script src="{{static_url('js/cut/raphael.js')}}"></script>
-<script src="{{static_url('js/cut/raphael.zoom.js')}}"></script>
+{% include _base_cut.html %}
 <script src="{{static_url('js/char.js')}}"></script>
 <script>
   // 公共参数
