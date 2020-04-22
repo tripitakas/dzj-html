@@ -48,7 +48,7 @@ function updateLogs(logs) {
 
 function updateWorkPanel(ch) {
   // 更新当前参数
-  $('.m-footer .char-name').text(ch.cid);
+  $('.m-footer .name').text(ch.cid);
   $('.m-footer .page-name').text(ch.page_name);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新OCR候选
@@ -120,7 +120,7 @@ $('.m-footer .page-name').on('click', function () {
 });
 
 // 查看char页面
-$('.m-footer .char-name').on('click', function () {
+$('.m-footer .name').on('click', function () {
   window.open('/char/' + $('#currentName').val(), '_blank');
 });
 
