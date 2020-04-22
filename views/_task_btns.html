@@ -2,7 +2,7 @@
 <div id="task-return" class="btn-txt icon-return-task {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="退回任务"></div>
 <div id="step-prev" class="btn-txt icon-prev-step {{'' if handler.steps['prev'] else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="上一步"></div>
 <div id="step-next" class="btn-txt icon-next-step {{'' if handler.steps['next'] else 'hide'}}" data-toggle="tooltip" data-placement="bottom" title="下一步"></div>
-<div id="task-submit" class="btn-txt icon-submit {{'hide' if handler.steps['next'] else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交任务"></div>
+<div id="task-submit" class="btn-txt icon-submit {{'hide' if handler.steps['next'] and not handler.readonly else ''}}" data-toggle="tooltip" data-placement="bottom" title="提交任务"></div>
 {% if handler.mode == 'browse' %}
 <div class="btn-txt btn-line"></div>
 <div id="task-remark" class="btn-txt icon-edit" data-toggle="tooltip" data-placement="bottom" title="备注任务"></div>
