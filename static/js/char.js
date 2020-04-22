@@ -4,27 +4,28 @@ $(document).ready(function () {
 });
 
 // 更新列图
-var paper, rect;
+var paper, charBox;
 
 function updateColumnImg(ch) {
-  var column = ch.column;
-  var columnImg = $('#col-holder');
-  var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);
-  var imgName = ch['page_name'] + '_' + ch.column.cid;
-  rect && rect.remove();
-  rect = null;
-  if (imgName !== columnImg.attr('data-id')) {
+  var column = ch.column; // 列框
+  var columnImg = $('#col-holder'); // 列框容器DIV
+  var ratio = Math.min(columnImg.height() / column.h, 108 / column.w);  // 列图显示比例
+  var imgName = ch['page_name'] + '_' + ch.column.cid;  // 列图文件名
+  var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
+  var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath); // 列图URL
+
+  charBox && charBox.remove();
+  charBox = null;
+  if (imgName !== columnImg.attr('data-id')) {  // 列图改变则重新创建，否则只更新字框
     columnImg.attr('data-id', imgName);
     paper && paper.remove();
-    var imgPath = 'columns/' + imgName.split('_').slice(0, -1).join('/') + '/' + imgName + '_' + ch.column.hash + '.jpg';
-    var columnUrl = columnBaseUrl.replace(/columns\/.*?.jpg/, imgPath);
-    paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom();
+    paper = Raphael('col-holder', column.w + 8, column.h + 8).initZoom(); // 创建稍大的画板，以便字框部分出界看不见
     paper.image(columnUrl, 4, 4, column.w, column.h).initZoom();
-    rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
+    charBox = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom()
         .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'});
     paper.setZoom(ratio).setSize((column.w + 8) * ratio, (column.h + 8) * ratio);
   } else if (paper) {
-    rect = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
+    charBox = paper.rect(ch.pos.x - column.x + 4, ch.pos.y - column.y + 4, ch.pos.w, ch.pos.h).initZoom(1)
         .setAttr({stroke: '#158815', 'stroke-width': 0, fill: 'rgba(255, 0, 0, .4)'}).setZoom(ratio);
   }
 }
