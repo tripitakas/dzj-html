@@ -223,6 +223,8 @@ class Model(object):
             existed_codes = [i.get(cls.primary) for i in existed_record]
             existed_docs = [i for i in valid_docs if i.get(cls.primary) in existed_codes]
             valid_docs = [i for i in valid_docs if i.get(cls.primary) not in existed_codes]
+
+        updated_ids, add_ids = [], []
         # 更新数据库中的重复记录
         if update:
             for doc in existed_docs:
@@ -230,9 +232,11 @@ class Model(object):
                     doc = {k: v for k, v in doc.items() if k in updated_fields}
                 assert cls.primary in doc
                 db[collection].update_one({cls.primary: doc.get(cls.primary)}, {'$set': doc})
+                updated_ids.append(str(doc['_id']))
         # 插入新的数据记录
         if valid_docs:
-            db[collection].insert_many(valid_docs)
+            r = db[collection].insert_many(valid_docs)
+            add_ids.append(str(r.inserted_id))
 
         error_tip = '：' + ','.join([i[0] for i in error_codes]) if error_codes else ''
         message = '导入%s，总共%s条记录，插入%s条，%s条旧数据，更新%s条，%s条无效数据%s。' % (
@@ -241,4 +245,4 @@ class Model(object):
             len(error_codes), error_tip)
         print(message)
 
-        return dict(status='success', errors=error_codes, message=message)
+        return dict(status='success', target_ids=updated_ids + add_ids, errors=error_codes, message=message)

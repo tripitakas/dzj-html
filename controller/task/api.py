@@ -71,7 +71,8 @@ class ReturnTaskApi(TaskHandler):
                 'updated_time': self.now(),
             }})
             self.update_page_status(self.STATUS_RETURNED)
-            self.add_log('return_task', target_id=self.task['_id'])
+            content = '%s,%s' % (self.task['task_type'], self.username)
+            self.add_log('return_task', target_id=self.task['_id'], content=content)
             return self.send_data_response()
 
         except self.DbError as error:
@@ -92,11 +93,11 @@ class UpdateTaskApi(TaskHandler):
                 if self.data.get('is_sample'):
                     update['is_sample'] = True if self.data['is_sample'] == '是' else False
                 r = self.db.task.update_one({'_id': ObjectId(self.data['_id'])}, {'$set': update})
-                self.add_log('update_task', target_id=self.data['_id'], content=self.data[field])
+                self.add_log('update_task', target_id=self.data['_id'], content=update)
             else:
                 _ids = [ObjectId(t) for t in self.data['_ids']]
                 r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
-                self.add_log('update_task', target_id=_ids, content=self.data[field])
+                self.add_log('update_task', target_id=_ids, content=update)
             self.send_data_response(dict(count=r.matched_count))
 
         except self.DbError as error:
@@ -139,7 +140,7 @@ class DeleteTasksApi(TaskHandler):
             status = [self.STATUS_PUBLISHED, self.STATUS_PENDING, self.STATUS_RETURNED]
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in _ids]}, 'status': {'$in': status}}))
             r = self.db.task.delete_many({'_id': {'$in': [t['_id'] for t in tasks]}})
-            self.add_log('delete_task', target_id=_ids)
+            self.add_log('delete_task', target_id=self.data['_id'] or self.data['_ids'])
 
             for task in tasks:
                 self.update_page_status(None, task)
@@ -175,7 +176,7 @@ class AssignTasksApi(TaskHandler):
             task_type = self.data['tasks'][1]
             collection = self.prop(self.task_types, task_type + '.collection')
             log, lock_failed, assigned = dict(), [], []
-            now, user_id, user_name = self.now(), user['_id'], user['name']
+            now, user_id, username = self.now(), user['_id'], user['name']
             # 去掉用户无权访问的任务
             log['unauthorized'] = [t[2] for t in self.data['tasks'] if not self.can_user_access(t[1], user)]
             authorized = [t[0] for t in self.data['tasks'] if self.can_user_access(t[1], user)]
@@ -191,8 +192,9 @@ class AssignTasksApi(TaskHandler):
             log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
             # 指派已发布的任务
             to_assign = [t for t in published if t['doc_id'] not in log['picked_before']]
-            self.db.task.update_one({'_id': [t['_id'] for t in to_assign]}, {'$set': {
-                'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': user_name,
+            target_ids = [t['_id'] for t in to_assign]
+            self.db.task.update_many({'_id': [t['_id'] for t in to_assign]}, {'$set': {
+                'status': self.STATUS_PICKED, 'picked_user_id': user_id, 'picked_by': username,
                 'picked_time': now, 'updated_time': now,
             }})
             log['assigned'] = [t['doc_id'] for t in to_assign]
@@ -200,8 +202,8 @@ class AssignTasksApi(TaskHandler):
             if collection == 'page':
                 for t in to_assign:
                     self.update_page_status(self.STATUS_PICKED, t)
-            self.add_log('assign_task', content='%s, %s' % (user_id, assigned))
             self.send_data_response({k: i for k, i in log.items() if i})
+            self.add_log('assign_task', target_id=target_ids, content='%s,%s' % (task_type, username))
 
         except self.DbError as error:
             return self.send_db_error(error)

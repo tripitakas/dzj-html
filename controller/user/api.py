@@ -60,12 +60,12 @@ class LoginApi(BaseHandler):
         user = self.db.user.find_one({'$or': [{'email': phone_or_email}, {'phone': phone_or_email}]})
         if not user:
             if report_error:
-                self.add_log('login_no_user', content=phone_or_email)
+                logging.info('login_no_user, ' + phone_or_email)
                 return send_response and self.send_error_response(e.no_user)
             return
         if user['password'] != helper.gen_id(password):
             if report_error:
-                self.add_log('login_fail', content=phone_or_email)
+                logging.info('login_failed, ' + phone_or_email)
                 return send_response and self.send_error_response(e.incorrect_password)
             return
 
@@ -77,9 +77,8 @@ class LoginApi(BaseHandler):
         self.current_user = user
         self.set_secure_cookie('user', json_util.dumps(user), expires_days=2)
 
-        self.add_log('login_ok', content=phone_or_email + ': ' + user['name'], username=user['name'])
-        info = 'login id=%s, name=%s, phone_or_email=%s, roles=%s'
-        logging.info(info % (user['_id'], user['name'], phone_or_email, user['roles']))
+        content = '%s,%s,%s' % (user['name'], phone_or_email, user['roles'])
+        self.add_log('login_ok', target_id=user['_id'], content=content)
 
         if send_response:
             self.send_data_response(user)
@@ -143,7 +142,7 @@ class RegisterApi(BaseHandler):
             self.set_secure_cookie('user', json_util.dumps(self.data), expires_days=2)
 
             message = '%s, %s, %s' % (self.data.get('email'), self.data.get('phone'), self.data['name'])
-            self.add_log('register', content=message, username=self.data['name'])
+            self.add_log('register', target_id=r.inserted_id, content=message)
 
             next_url = self.get_query_argument('next', '')
             if 'info=1' in next_url:
@@ -206,7 +205,7 @@ class ChangeMyPasswordApi(BaseHandler):
                 return self.send_error_response(e.incorrect_old_password)
             update = dict(password=helper.gen_id(self.data['password']))
             self.db.user.update_one(dict(_id=self.user_id), {'$set': update})
-            self.add_log('change_my_password', content=self.username)
+            self.add_log('change_my_password', target_id=self.user_id)
             self.send_data_response()
 
         except self.DbError as error:
@@ -239,7 +238,7 @@ class ChangeMyProfileApi(BaseHandler):
                 return self.send_error_response(e.not_changed)
 
             self.set_secure_cookie('user', json_util.dumps(self.current_user), expires_days=2)
-            self.add_log('change_my_profile', content=self.data.get('name'))
+            self.add_log('change_my_profile', target_id=self.user_id)
             self.send_data_response()
 
         except self.DbError as error:
@@ -404,7 +403,7 @@ class ChangeUserRoleApi(BaseHandler):
             r = self.db.user.update_one(dict(_id=ObjectId(self.data['_id'])), {'$set': dict(roles=roles)})
             if not r.matched_count:
                 return self.send_error_response(e.no_user)
-            self.add_log('change_role', target_id=self.data['_id'], content='%s: %s' % (user['name'], roles))
+            self.add_log('change_role', target_id=self.data['_id'], content='%s,%s' % (user['name'], roles))
             self.send_data_response({'roles': roles})
 
         except self.DbError as error:
@@ -488,7 +487,7 @@ class UserUpsertApi(BaseHandler):
                 rules.append((v.not_existed, self.db.user, 'phone', 'email'))
             r = User.save_one(self.db, 'user', self.data, rules)
             if r.get('status') == 'success':
-                self.add_log(('update_' if r.get('update') else 'add_') + 'user', content=r.get('message'))
+                self.add_log(('update_' if r.get('update') else 'add_') + 'user', target_id=r.get('id'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
