@@ -28,7 +28,7 @@ class DataUpsertApi(BaseHandler):
             model = eval(metadata.capitalize())
             r = model.save_one(self.db, metadata, self.data)
             if r.get('status') == 'success':
-                self.add_log(('update_' if r.get('update') else 'add_') + metadata, context=r.get('message'))
+                self.add_log(('update_' if r.get('update') else 'add_') + metadata, content=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
@@ -63,7 +63,7 @@ class DataUploadApi(BaseHandler):
                 if r.get('errors'):
                     r['url'] = self.save_error(collection, r.get('errors'))
                 self.send_data_response(r)
-                self.add_log('upload_' + collection, context=r.get('message'))
+                self.add_log('upload_' + collection, content=r.get('message'))
             else:
                 self.send_error_response((r.get('code'), r.get('message')))
 

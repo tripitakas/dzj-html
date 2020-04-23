@@ -92,11 +92,11 @@ class UpdateTaskApi(TaskHandler):
                 if self.data.get('is_sample'):
                     update['is_sample'] = True if self.data['is_sample'] == '是' else False
                 r = self.db.task.update_one({'_id': ObjectId(self.data['_id'])}, {'$set': update})
-                self.add_log('update_task', target_id=self.data['_id'], context=self.data[field])
+                self.add_log('update_task', target_id=self.data['_id'], content=self.data[field])
             else:
                 _ids = [ObjectId(t) for t in self.data['_ids']]
                 r = self.db.task.update_many({'_id': {'$in': _ids}}, {'$set': update})
-                self.add_log('update_task', target_id=_ids, context=self.data[field])
+                self.add_log('update_task', target_id=_ids, content=self.data[field])
             self.send_data_response(dict(count=r.matched_count))
 
         except self.DbError as error:
@@ -200,7 +200,7 @@ class AssignTasksApi(TaskHandler):
             if collection == 'page':
                 for t in to_assign:
                     self.update_page_status(self.STATUS_PICKED, t)
-            self.add_log('assign_task', context='%s, %s' % (user_id, assigned))
+            self.add_log('assign_task', content='%s, %s' % (user_id, assigned))
             self.send_data_response({k: i for k, i in log.items() if i})
 
         except self.DbError as error:

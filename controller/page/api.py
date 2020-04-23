@@ -39,7 +39,7 @@ class PageBoxApi(PageHandler):
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})
         valid, message, box_type, out_boxes = self.check_box_cover(page)
         self.send_data_response(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
-        self.add_log('update_box', target_id=page['_id'], context=page['name'])
+        self.add_log('update_box', target_id=page['_id'], content=page['name'])
 
 
 class PageOrderApi(PageHandler):
@@ -66,7 +66,7 @@ class PageOrderApi(PageHandler):
         update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})
         self.send_data_response()
-        self.add_log('update_order', target_id=page['_id'], context=page['name'])
+        self.add_log('update_order', target_id=page['_id'], content=page['name'])
 
 
 class PageCutTaskApi(PageHandler):
@@ -230,7 +230,7 @@ class PageUpsertApi(PageHandler):
         try:
             r = Page.save_one(self.db, Page, self.data)
             if r.get('status') == 'success':
-                self.add_log(('update_page' if r.get('update') else 'add_page'), context=r.get('message'))
+                self.add_log(('update_page' if r.get('update') else 'add_page'), content=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))

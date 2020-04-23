@@ -264,10 +264,11 @@ role_route_maps = {
             '/api/code/(.+)': ['GET'],
             '/sys/script': ['GET'],
             '/api/data/gen_js': ['POST'],
-            '/sys/oplog': ['GET'],
-            '/sys/oplog/@oid': ['GET'],
+            '/sys/(oplog|log)': ['GET'],
             '/sys/oplog/latest': ['GET'],
-            '/api/sys/oplog/delete': ['POST'],
+            '/sys/(oplog|log)/@oid': ['GET'],
+            '/api/sys/oplog/status/@oid': ['POST'],
+            '/api/sys/(oplog|log)/delete': ['POST'],
         }
     },
 }

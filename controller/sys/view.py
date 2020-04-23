@@ -5,33 +5,105 @@
 """
 import re
 import inspect
-from .oplog import Oplog
 from operator import itemgetter
 from bson.objectid import ObjectId
+from .model import Oplog, Log
+from controller import helper as h
 from controller import errors as e
 from controller.base import BaseHandler
 from controller.auth import get_route_roles
-from controller.task.base import TaskHandler
 
 
 class SysScriptHandler(BaseHandler):
     URL = '/sys/script'
 
     def get(self):
-        """ 系统脚本管理"""
+        """ 系统脚本"""
         tripitakas = ['所有'] + self.db.tripitaka.find().distinct('tripitaka_code')
         self.render('sys_script.html', tripitakas=tripitakas)
+
+
+class SysLogListHandler(BaseHandler, Log):
+    URL = '/sys/log'
+
+    page_title = '操作日志'
+    table_fields = [
+        {'id': 'op_type', 'name': '类型', 'filter': Log.op_types},
+        {'id': 'target_id', 'name': '数据对象'},
+        {'id': 'content', 'name': '内容'},
+        {'id': 'remark', 'name': '备注'},
+        {'id': 'create_time', 'name': '创建时间'},
+    ]
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除'},
+    ]
+    img_operations = []
+    info_fields = ['']
+    actions = [
+        {'action': 'btn-view', 'label': '查看', 'url': '/sys/log/@id'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
+
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        if key == 'op_type':
+            return cls.get_type_name(value)
+        return h.format_value(value, key, doc)
+
+    def get(self):
+        """ 操作日志"""
+        docs, pager, q, order = Log.find_by_page(self, {}, default_order='-_id')
+        kwargs = self.get_template_kwargs()
+        self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
+                    format_value=self.format_value, **kwargs)
+
+
+class SysLogHandler(BaseHandler, Log):
+    URL = '/sys/log/@oid'
+
+    def get(self, oid):
+        """ 查看操作日志"""
+        log = self.db.log.find_one({'_id': ObjectId(oid)})
+        if not log:
+            self.send_error_response(e.no_object, message='日志不存在')
+        self.render('sys_log.html', log=log)
 
 
 class SysOplogListHandler(BaseHandler, Oplog):
     URL = '/sys/oplog'
 
+    page_title = '管理日志'
+    table_fields = [
+        {'id': 'op_type', 'name': '类型', 'filter': Oplog.op_types},
+        {'id': 'status', 'name': '状态', 'filter': Oplog.statuses},
+        {'id': 'content', 'name': '内容'},
+        {'id': 'create_by', 'name': '创建人'},
+        {'id': 'create_time', 'name': '创建时间'},
+    ]
+    operations = [
+        {'operation': 'bat-remove', 'label': '批量删除'},
+    ]
+    img_operations = []
+    info_fields = ['']
+    actions = [
+        {'action': 'btn-view', 'label': '查看', 'url': '/sys/oplog/@id'},
+        {'action': 'btn-remove', 'label': '删除'},
+    ]
+
+    @classmethod
+    def format_value(cls, value, key=None, doc=None):
+        if key == 'op_type':
+            return cls.get_type_name(value)
+        if key == 'content':
+            value, size = str(value), 80
+            return '%s%s' % (value[:size], '...' if len(value) > size else '')
+        return h.format_value(value, key, doc)
+
     def get(self):
-        """ 管理日志"""
-        condition = {}
-        docs, pager, q, order = self.find_by_page(self, condition, default_order='-_id')
+        """ 运维日志"""
+        docs, pager, q, order = Oplog.find_by_page(self, {}, default_order='-_id')
         kwargs = self.get_template_kwargs()
-        self.render('sys_oplog_list.html', docs=docs, pager=pager, q=q, order=order,
+        self.render('_list.html', docs=docs, pager=pager, q=q, order=order,
                     format_value=self.format_value, **kwargs)
 
 
@@ -39,7 +111,7 @@ class SysOplogHandler(BaseHandler, Oplog):
     URL = ['/sys/oplog/@oid', '/sys/oplog/(latest)']
 
     def get(self, oid):
-        """ 管理日志"""
+        """ 查看运维日志"""
         if oid == 'latest':
             log = list(self.db.oplog.find().sort('_id', -1).limit(1))
             log = log and log[0]
@@ -50,7 +122,7 @@ class SysOplogHandler(BaseHandler, Oplog):
         self.render('sys_oplog.html', log=log)
 
 
-class ApiTableHandler(TaskHandler):
+class ApiTableHandler(BaseHandler):
     URL = '/api'
 
     def get(self):
@@ -93,7 +165,7 @@ class ApiTableHandler(TaskHandler):
             add_handler(cls.URL)
 
 
-class ApiSourceHandler(TaskHandler):
+class ApiSourceHandler(BaseHandler):
     URL = '/api/code/(.+)'
 
     def get(self, name):

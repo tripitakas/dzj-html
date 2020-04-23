@@ -4,10 +4,11 @@
 from . import view, api
 
 views = [
-    view.ApiTableHandler, view.ApiSourceHandler, view.SysScriptHandler,
+    view.SysScriptHandler, view.SysLogListHandler, view.SysLogHandler,
     view.SysOplogListHandler, view.SysOplogHandler,
+    view.ApiTableHandler, view.ApiSourceHandler,
 ]
 
 handlers = [
-    api.OplogDeleteApi,
+    api.LogDeleteApi, api.OpLogStatus,
 ]

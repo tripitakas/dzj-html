@@ -59,11 +59,11 @@ class ArticleUpsertApi(BaseHandler):
                 r = self.db.article.update_one({'_id': _id}, {'$set': info})
                 if not r.matched_count:
                     return self.send_error_response(errors.no_object, message='文章不存在')
-                self.add_log('update_article', target_id=_id, context=info['title'])
+                self.add_log('update_article', target_id=_id, content=info['title'])
             else:
                 info.update(dict(create_time=self.now(), author_id=self.user_id, author_name=self.username))
                 r = self.db.article.insert_one(info)
-                self.add_log('add_article', target_id=r.inserted_id, context=info['title'])
+                self.add_log('add_article', target_id=r.inserted_id, content=info['title'])
                 info['_id'] = str(r.inserted_id)
 
             info.pop('content', 0)
@@ -104,7 +104,7 @@ class UploadImageApi(BaseHandler):
         filename, w, h = self.resize_image(filename)
         filename = filename.replace(upload_path, '').strip('/\\')
 
-        self.add_log('upload_image', context='%s,%dx%d' % (filename, w, h))
+        self.add_log('upload_image', content='%s,%dx%d' % (filename, w, h))
         self.write(dict(state='SUCCESS', url=filename, w=w, h=h))
 
     @staticmethod

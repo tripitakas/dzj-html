@@ -143,12 +143,16 @@ $('.btn-add').click(function () {
 // 查看-弹框
 $('.btn-view').click(function () {
   var id = $(this).parent().parent().attr('id');
-  var data = getData(id);
-  var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
-  $modal.find('.modal-title').html(title);
-  toggleModal($modal, fields, true);
-  setModal($modal, data, fields);
-  $modal.modal();
+  if ($(this).attr('url')) {
+    location.href = $(this).attr('url').replace('@id', id);
+  } else {
+    var data = getData(id);
+    var title = 'name' in data ? '查看数据 - ' + data.name : '查看数据';
+    $modal.find('.modal-title').html(title);
+    toggleModal($modal, fields, true);
+    setModal($modal, data, fields);
+    $modal.modal();
+  }
 });
 
 // 修改-弹框

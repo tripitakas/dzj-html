@@ -23,7 +23,6 @@ from tornado.web import RequestHandler
 from tornado.httpclient import HTTPError
 from tornado.escape import to_basestring
 from tornado.httpclient import AsyncHTTPClient
-from controller.l10n import _t
 from controller import errors as e
 from controller import validate as v
 from controller.auth import get_route_roles, can_access
@@ -117,7 +116,6 @@ class BaseHandler(CorsMixin, RequestHandler):
         kwargs['debug'] = self.application.settings['debug']
         kwargs['site'] = dict(self.application.site)
         kwargs['current_path'] = self.request.path
-        kwargs['_t'] = _t
         kwargs['prop'] = self.prop
         kwargs['dumps'] = json_util.dumps
         kwargs['to_date_str'] = lambda t, fmt='%Y-%m-%d %H:%M': get_date_time(fmt=fmt, date_time=t) if t else ''
@@ -280,33 +278,27 @@ class BaseHandler(CorsMixin, RequestHandler):
     def get_config(self, key):
         return self.prop(self.config, key)
 
-    def add_log(self, op_type, target_id=None, context=None, username=None):
-        target_id = target_id and str(target_id) or None
-        user_id = self.current_user and self.current_user.get('_id')
-        username = username or self.current_user and self.current_user.get('name')
-        logging.info('%s,username=%s,target_id=%s,context=%s' % (op_type, username, target_id, context))
+    def add_log(self, op_type, target_id=None, content=None, remark=None):
+        logging.info('%s,username=%s,target_ids=%s,context=%s' % (op_type, self.username, target_id, content))
         try:
             self.db.log.insert_one(dict(
-                op_type=op_type, username=username, user_id=user_id, target_id=target_id,
-                context=str(context), ip=self.get_ip(), create_time=self.now(),
+                op_type=op_type, target_id=target_id, content=content, remark=remark,
+                username=self.username, user_id=self.user_id,
+                ip=self.get_ip(), create_time=self.now(),
             ))
         except self.MongoError:
             pass
 
     @classmethod
-    def add_op_log(cls, db, op_type, content, username):
+    def add_op_log(cls, db, op_type, status, content, username):
+        """ 新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
+        assert status in ['ongoing', 'finished']
         try:
-            content = [dict(updated_time=cls.now(), content=content)]
-            r = db.oplog.insert_one(dict(op_type=op_type, content=content, create_by=username, create_time=cls.now()))
+            r = db.oplog.insert_one(dict(
+                op_type=op_type, status=status, content=content or [], create_by=username,
+                create_time=cls.now(), updated_time=cls.now(),
+            ))
             return r.inserted_id
-        except cls.MongoError:
-            pass
-
-    @classmethod
-    def update_op_log(cls, db, _id, content):
-        try:
-            _id = ObjectId(_id) if isinstance(_id, str) else _id
-            db.oplog.update_one({'_id', _id}, {'$addToSet': {'content': dict(updated_time=cls.now(), content=content)}})
         except cls.MongoError:
             pass
 
