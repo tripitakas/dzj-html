@@ -59,7 +59,7 @@ class Cut(object):
         fields = ['name', 'width', 'height', 'columns', 'chars']
         pages = list(self.db.page.find({'name': {'$in': page_names}}, {f: 1 for f in fields}))
         valid_names = [p['name'] for p in pages]
-        log['fail_char'].extend([
+        log['cut_char_failed'].extend([
             dict(id=c['name'], reason='page not in db') for c in chars if c['page_name'] not in valid_names
         ])
         page_dict = {p['name']: p for p in pages}
@@ -73,7 +73,7 @@ class Cut(object):
                 img_page = Image.open(img_file).convert('L')
             except Exception as e:
                 reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                log['fail_char'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
+                log['cut_char_failed'].extend([dict(id=c['name'], reason=reason) for c in chars_todo])
                 print(reason)
                 continue
             iw, ih = img_page.size
@@ -85,11 +85,11 @@ class Cut(object):
             for c in chars_todo:
                 oc = [ch for ch in page['chars'] if ch['cid'] == c['cid']]
                 if not oc:
-                    log['fail_char'].append(dict(id=c['id'], reason='origin cid not exist'))
+                    log['cut_char_failed'].append(dict(id=c['id'], reason='origin cid not exist'))
                     continue
                 if c.get('has_img') and not self.kwargs.get('regen') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
                     if c.get('has_img') and hp.cmp_obj(c, oc[0], ['x', 'y', 'w', 'h']):
-                        log['exist_char'].append(c['name'])
+                        log['cut_char_existed'].append(c['name'])
                         continue
                 x, y, h, w = int(c['pos']['x']), int(c['pos']['y']), int(c['pos']['h']), int(c['pos']['w'])
                 try:
@@ -99,7 +99,7 @@ class Cut(object):
                     self.write_web_img(img_c, img_name, 'char')
                     chars_done.append(c)
                 except Exception as e:
-                    log['fail_char'].append(dict(id=c['uid'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
+                    log['cut_char_failed'].append(dict(id=c['uid'], reason='[%s] %s' % (e.__class__.__name__, str(e))))
                     print(e)
 
             # 列框切图
@@ -125,9 +125,9 @@ class Cut(object):
                     columns_done.append('%s_%s' % (page_name, c['cid']))
                 except Exception as e:
                     reason = '[%s] %s' % (e.__class__.__name__, str(e))
-                    log['fail_column'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
-            log['success_char'].extend([c['name'] for c in chars_done])
-            log['success_column'].extend(columns_done)
+                    log['cut_column_failed'].append(dict(id='%s_%s' % (page_name, c['cid']), reason=reason))
+            log['cut_char_success'].extend([c['name'] for c in chars_done])
+            log['cut_column_success'].extend(columns_done)
 
         return log
 
@@ -248,9 +248,9 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     if chars:
         print('%d chars to generate' % len(chars))
         log = cut.cut_img(chars)
-        if log.get('success_char'):
+        if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False}
-            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+            db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
         Bh.add_op_log(db, 'extract_img', 'finished', log, username)
         return
 
@@ -267,9 +267,9 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
         print('%d chars to generate' % len(chars))
         log = cut.cut_img(chars)
-        if log.get('success_char'):
+        if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False}
-            db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
+            db.char.update_many({'name': {'$in': log['cut_char_success']}}, {'$set': update})
         db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
     db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
 
