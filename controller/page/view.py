@@ -38,7 +38,7 @@ class PageListHandler(PageHandler):
         {'operation': 'bat-remove', 'label': '批量删除', 'url': '/api/page/delete'},
         {'operation': 'btn-duplicate', 'label': '查找重复'},
         {'operation': 'bat-source', 'label': '更新分类'},
-        {'operation': 'bat-export-char', 'label': '生成字表'},
+        {'operation': 'bat-gen-chars', 'label': '生成字表'},
         {'operation': 'btn-search', 'label': '综合检索', 'data-target': 'searchModal'},
         {'operation': 'btn-publish', 'label': '发布任务', 'groups': [
             {'operation': k, 'label': name} for k, name in PageHandler.task_names('page').items()
@@ -321,8 +321,8 @@ class TextArea(UIModule):
         return self.render_string('page_text_area.html', blocks=cmp_data, sort_by_key=f)
 
 
-class PageTaskAdminHandler(PageHandler):
-    URL = '/page/task/admin'
+class PageTaskListHandler(PageHandler):
+    URL = '/page/task/list'
 
     page_title = '页任务管理'
     search_tips = '请搜索页编码、批次号或备注'
@@ -378,7 +378,7 @@ class PageTaskAdminHandler(PageHandler):
             condition, params = self.get_task_search_condition(self.request.query, 'page')
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id',
                                                       {'input': 0, 'result': 0})
-            self.render('page_task_admin.html', docs=docs, pager=pager, order=order, q=q, params=params,
+            self.render('page_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
                         format_value=self.format_value,
                         **kwargs)
         except Exception as error:

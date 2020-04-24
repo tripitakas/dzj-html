@@ -43,8 +43,8 @@ class ComLeft(UIModule):
                 dict(name='分类审定', icon='icon-subitem', link='/task/my/separate_review'),
             ]),
             dict(name='任务管理', icon='icon-task-admin', id='task-admin', sub_items=[
-                dict(name='页任务', icon='icon-subitem', link='/page/task/admin'),
-                dict(name='字任务', icon='icon-subitem', link='/char/task/admin'),
+                dict(name='页任务', icon='icon-subitem', link='/page/task/list'),
+                dict(name='字任务', icon='icon-subitem', link='/char/task/list'),
             ]),
             dict(name='数据管理', icon='icon-data', id='data', sub_items=[
                 dict(name='藏数据', icon='icon-subitem', link='/data/tripitaka'),

@@ -167,8 +167,8 @@ class CharStatHandler(CharHandler):
             return self.send_db_error(error)
 
 
-class CharTaskAdminHandler(CharHandler):
-    URL = '/char/task/admin'
+class CharTaskListHandler(CharHandler):
+    URL = '/char/task/list'
 
     page_title = '字任务管理'
     search_tips = '请搜索字种、批次号或备注'
@@ -230,7 +230,7 @@ class CharTaskAdminHandler(CharHandler):
             condition, params = self.get_task_search_condition(self.request.query, 'char')
             docs, pager, q, order = self.find_by_page(self, condition, self.search_fields, '-_id')
             self.render(
-                'char_task_admin.html', docs=docs, pager=pager, order=order, q=q, params=params,
+                'char_task_list.html', docs=docs, pager=pager, order=order, q=q, params=params,
                 format_value=self.format_value, **kwargs,
             )
         except Exception as error:

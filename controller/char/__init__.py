@@ -2,7 +2,7 @@ from . import api, view
 
 views = [
     view.CharListHandler, view.CharBrowseHandler, view.CharStatHandler, view.CharViewHandler,
-    view.CharTaskAdminHandler, view.CharTaskStatHandler,
+    view.CharTaskListHandler, view.CharTaskStatHandler,
     view.CharTaskClusterHandler, view.CharTaskSeparateHandler,
 ]
 
