@@ -42,7 +42,6 @@
 .info .label {
   font-weight: bold;
   font-size: 1em;
-  max-width: 120px;
   text-align: left;
   color: #333;
   flex-grow: 0;

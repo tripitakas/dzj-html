@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from controller.model import Model
+from controller.page.api import PageTaskPublishApi
 
 
 class Log(Model):
@@ -16,7 +17,7 @@ class Log(Model):
     primary = '_id'
 
     search_tips = '请搜索类型'
-    search_fields = ['op_type', 'content', 'remark']
+    search_fields = ['op_type', 'username', 'remark']
     op_types = {
         'gen_chars': '生成字表',
     }
@@ -43,19 +44,25 @@ class Oplog(Model):
         'ongoing': '进行中',
         'finished': '已完成',
     }
+
     op_types = {
         'gen_chars': '生成字表',
+        'extract_img': '生成字图',
+        'publish_task': '发布任务',
+    }
+
+    field_names = {
+        'valid_pages': '有效页码',
+        'invalid_pages': '无效页码',
         'inserted_char': '已插入字码',
         'existed_char': '已存在字码',
         'invalid_char': '无效字码',
-        'invalid_pages': '无效页码',
-        'extract_img': '生成字图',
         'success_char': '字图生成成功',
         'fail_char': '字图生成失败',
         'exist_char': '字图已存在',
         'success_column': '列图生成成功',
         'fail_column': '列图生成失败',
-        'publish_task': '发布任务',
+        **PageTaskPublishApi.field_names,
     }
 
     @classmethod
@@ -65,3 +72,8 @@ class Oplog(Model):
     @classmethod
     def get_status_name(cls, status):
         return cls.statuses.get(status) or status
+
+    @classmethod
+    def get_field_name(cls, field):
+        name = cls.field_names.get(field)
+        return name or super().get_field_name(field)

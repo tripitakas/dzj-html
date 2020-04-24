@@ -205,8 +205,8 @@ class PageDeleteApi(BaseHandler):
             return self.send_db_error(error)
 
 
-class PageExportCharsApi(BaseHandler):
-    URL = '/api/page/export_char'
+class PageGenCharsApi(BaseHandler):
+    URL = '/api/page/gen_chars'
 
     def post(self):
         """ 批量生成字表"""
@@ -214,8 +214,10 @@ class PageExportCharsApi(BaseHandler):
             rules = [(v.not_empty, 'page_names')]
             self.validate(self.data, rules)
             # 启动脚本，生成字表
-            script = 'nohup python3 %s/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
-            os.system(script % (path.dirname(__file__), ','.join(self.data['page_names']), self.username))
+            script = 'nohup python3 %s/utils/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
+            script = script % (h.BASE_DIR, ','.join(self.data['page_names']), self.username)
+            print(script)
+            os.system(script)
             self.send_data_response()
 
         except self.DbError as error:
@@ -230,7 +232,7 @@ class PageUpsertApi(PageHandler):
         try:
             r = Page.save_one(self.db, Page, self.data)
             if r.get('status') == 'success':
-                self.add_log(('update_page' if r.get('update') else 'add_page'), content=r.get('message'))
+                self.add_log('%s_page' % ('update' if r.get('update') else 'add'), content=r.get('message'))
                 self.send_data_response(r)
             else:
                 self.send_error_response(r.get('errors'))
@@ -264,6 +266,14 @@ class PageSourceApi(BaseHandler):
 class PageTaskPublishApi(PageHandler):
     URL = r'/api/page/task/publish'
 
+    field_names = {
+        'published': '任务已发布',
+        'pending': '任务被悬挂',
+        'finished_before': '任务已完成',
+        'un_existed': '页面不存在',
+        'published_before': '任务曾经发布',
+    }
+
     def post(self):
         """ 发布任务"""
         try:
@@ -277,8 +287,9 @@ class PageTaskPublishApi(PageHandler):
             ]
             self.validate(self.data, rules)
             log = self.check_and_publish(log)
-            self.add_op_log(self.db, 'publish_task', log, self.username)
-            return self.send_data_response(log)
+            log_id = self.add_op_log(self.db, 'publish_task', None, log, self.username)
+            message = '，'.join(['%s：%s条' % (self.field_names.get(k) or k, len(names)) for k, names in log.items()])
+            return self.send_data_response(dict(message=message, id=str(log_id)))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -353,7 +364,7 @@ class PageTaskPublishApi(PageHandler):
                 self.create_tasks(page_names, self.STATUS_PUBLISHED)
                 log['published'] = page_names
 
-        return {k: v for k, v in log.items() if v}
+        return {k: list(v) for k, v in log.items() if v}
 
     def create_tasks(self, page_names, status, pre_tasks=None):
         def get_task(page_name):

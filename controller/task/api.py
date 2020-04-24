@@ -71,7 +71,7 @@ class ReturnTaskApi(TaskHandler):
                 'updated_time': self.now(),
             }})
             self.update_page_status(self.STATUS_RETURNED)
-            content = '%s,%s' % (self.task['task_type'], self.username)
+            content = dict(task_type=self.task['task_type'])
             self.add_log('return_task', target_id=self.task['_id'], content=content)
             return self.send_data_response()
 
@@ -120,7 +120,7 @@ class RepublishTaskApi(TaskHandler):
                 'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
             ]}})
             self.update_page_status(self.STATUS_PUBLISHED)
-            self.add_log('republish_task', target_id=self.task['_id'])
+            self.add_log('republish_task', target_id=self.task['_id'], content=dict(task_type=self.task['task_type']))
             return self.send_data_response()
 
         except self.DbError as error:
@@ -173,21 +173,22 @@ class AssignTasksApi(TaskHandler):
             if type_count > 1:
                 return self.send_error_response(e.task_type_error, message='一次只能指派一种任务类型')
 
-            task_type = self.data['tasks'][1]
-            collection = self.prop(self.task_types, task_type + '.collection')
+            task_type = self.data['tasks'][0][1]
+            collection = self.prop(self.task_types, task_type + '.data.collection')
             log, lock_failed, assigned = dict(), [], []
             now, user_id, username = self.now(), user['_id'], user['name']
             # 去掉用户无权访问的任务
             log['unauthorized'] = [t[2] for t in self.data['tasks'] if not self.can_user_access(t[1], user)]
-            authorized = [t[0] for t in self.data['tasks'] if self.can_user_access(t[1], user)]
+            authorized = [t[0] for t in self.data['tasks'] if t[2] not in log['unauthorized']]
             tasks = list(self.db.task.find({'_id': {'$in': [ObjectId(t) for t in authorized]}}))
             # 去掉不存在的任务
             log['un_existed'] = set(authorized) - set([str(t['_id']) for t in tasks])
             # 去掉非「已发布」的任务
             log['un_published'] = [t['doc_id'] for t in tasks if t['status'] != self.STATUS_PUBLISHED]
             published = [t for t in tasks if t['status'] == self.STATUS_PUBLISHED]
+            published_docs = [t['doc_id'] for t in published]
             # 去掉用户曾领取过的任务
-            cond = {'task_type': task_type, 'doc_id': {'$in': [t[2] for t in published], 'picked_user_id': user_id}}
+            cond = {'task_type': task_type, 'doc_id': {'$in': published_docs}, 'picked_user_id': user_id}
             tasks = list(self.db.task.find(cond, {'doc_id': 1}))
             log['picked_before'] = [t['doc_id'] for t in tasks] if tasks else []
             # 指派已发布的任务
@@ -203,7 +204,7 @@ class AssignTasksApi(TaskHandler):
                 for t in to_assign:
                     self.update_page_status(self.STATUS_PICKED, t)
             self.send_data_response({k: i for k, i in log.items() if i})
-            self.add_log('assign_task', target_id=target_ids, content='%s,%s' % (task_type, username))
+            self.add_log('assign_task', target_id=target_ids, content=dict(task_type=task_type, username=username))
 
         except self.DbError as error:
             return self.send_db_error(error)

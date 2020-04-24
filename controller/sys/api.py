@@ -35,7 +35,7 @@ class OpLogStatus(BaseHandler):
             oplog = self.db.oplog.find_one({'_id': ObjectId(oid)})
             if not oplog:
                 self.send_error_response(e.no_object, message='没有找到日志')
-            self.send_data_response(dict(status=oplog.status))
+            self.send_data_response(dict(status=oplog.get('status') or ''))
 
         except self.DbError as error:
             return self.send_db_error(error)

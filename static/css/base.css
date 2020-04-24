@@ -930,6 +930,10 @@ body.widescreen {
   font-size: 1em;
 }
 
+.swal2-footer a {
+  color: var(--Brown_Darker);
+}
+
 /*loading*/
 .animate-spin {
   -moz-animation: spin 2s infinite linear;

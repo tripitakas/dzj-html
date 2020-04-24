@@ -32,6 +32,7 @@ class SysLogListHandler(BaseHandler, Log):
         {'id': 'target_id', 'name': '数据对象'},
         {'id': 'content', 'name': '内容'},
         {'id': 'remark', 'name': '备注'},
+        {'id': 'username', 'name': '创建人'},
         {'id': 'create_time', 'name': '创建时间'},
     ]
     operations = [
@@ -39,10 +40,7 @@ class SysLogListHandler(BaseHandler, Log):
     ]
     img_operations = []
     info_fields = ['']
-    actions = [
-        {'action': 'btn-view', 'label': '查看', 'url': '/sys/log/@id'},
-        {'action': 'btn-remove', 'label': '删除'},
-    ]
+    actions = []
 
     @classmethod
     def format_value(cls, value, key=None, doc=None):
@@ -108,15 +106,18 @@ class SysOplogListHandler(BaseHandler, Oplog):
 
 
 class SysOplogHandler(BaseHandler, Oplog):
-    URL = ['/sys/oplog/@oid', '/sys/oplog/(latest)']
+    URL = ['/sys/oplog/@oid',
+           '/sys/oplog/latest',
+           '/sys/oplog/latest/@op_type']
 
-    def get(self, oid):
+    def get(self, id_or_type=None):
         """ 查看运维日志"""
-        if oid == 'latest':
-            log = list(self.db.oplog.find().sort('_id', -1).limit(1))
+        if 'latest' in self.request.path:
+            condition = {'op_type': id_or_type} if id_or_type else {}
+            log = list(self.db.oplog.find(condition).sort('_id', -1).limit(1))
             log = log and log[0]
         else:
-            log = self.db.oplog.find_one({'_id': ObjectId(oid)})
+            log = self.db.oplog.find_one({'_id': ObjectId(id_or_type)})
         if not log:
             self.send_error_response(e.no_object, message='日志不存在')
         self.render('sys_oplog.html', log=log)

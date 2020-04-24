@@ -292,14 +292,15 @@ class BaseHandler(CorsMixin, RequestHandler):
     @classmethod
     def add_op_log(cls, db, op_type, status, content, username):
         """ 新增运维日志。运维日志指的是管理员的各种操作的日志记录"""
-        assert status in ['ongoing', 'finished']
+        assert status in ['ongoing', 'finished', '', None]
         try:
             r = db.oplog.insert_one(dict(
-                op_type=op_type, status=status, content=content or [], create_by=username,
+                op_type=op_type, status=status or None, content=content or [], create_by=username,
                 create_time=cls.now(), updated_time=cls.now(),
             ))
             return r.inserted_id
-        except cls.MongoError:
+        except cls.MongoError as error:
+            print('错误(%s): %s' % (error.__class__.__name__, str(error)))
             pass
 
     def validate(self, data, rules):

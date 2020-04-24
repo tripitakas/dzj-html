@@ -268,25 +268,6 @@
     </div>
   </div>
 </div>
-<div id="publishResultModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="publishResultModal"
-     aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content" style="margin: 0 10px">
-      <div>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h4 class="modal-title">发布结果</h4>
-      </div>
-      <div class="modal-body">
-        <table class="table">
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default waves-effect waves-light" data-dismiss="modal">继续发布</button>
-        <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">查看结果</button>
-      </div>
-    </div>
-  </div>
-</div>
 {% end %}
 
 {% block custom-js %}
@@ -315,13 +296,16 @@
   });
 
   // 生成字表
-  $('.operation .bat-export-char').on('click', function () {
+  $('.operation .bat-gen-chars').on('click', function () {
     var pageNames = $.map($('table tbody :checked'), (item) => $(item).parent().parent().find('.name').text().trim());
     if (!pageNames.length)
       return showWarning('请选择', '当前没有选中任何记录。');
     showConfirm('', `将对选中的${pageNames.length}条记录生成字表`, function () {
-      postApi('/page/export_char', {data: {page_names: pageNames}}, (res) => {
-        showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
+      postApi('/page/gen_chars', {data: {page_names: pageNames}}, (res) => {
+        Swal0.fire({
+          type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
+          footer: '详情可以查看<a href="/sys/oplog/latest/gen_chars">日志</a>'
+        });
       });
     });
   });
@@ -470,11 +454,10 @@
         break;
     }
     postApi('/page/task/publish', isFile ? formData : {data: data}, function (res) {
-      var html = $.map(res.data, function (value, key) {
-        return '<tr><td class="' + key + '">' + l10n[key] + '(' + value.length + ')' + '<td>' + value + '</td>' + '</td></tr>';
-      }).join('');
-      $publishResultModal.find('table').html(html);
-      $publishResultModal.modal();
+      Swal0.fire({
+        type: 'success', title: '成功', html: res.message,
+        footer: `详情可查看<a href="/sys/oplog/${res.id}">日志</a>`
+      });
     }, null, isFile);
   });
 </script>

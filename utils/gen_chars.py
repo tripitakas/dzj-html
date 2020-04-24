@@ -6,6 +6,7 @@ import json
 import math
 import pymongo
 from os import path
+from datetime import datetime
 
 BASE_DIR = path.dirname(path.dirname(path.dirname(__file__)))
 sys.path.append(BASE_DIR)
@@ -42,19 +43,21 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
 
     once_size = 50
     total_count = db.page.count_documents(condition)
-    fields = ['name', 'source', 'columns', 'chars']
+    log_id = Bh.add_op_log(db, 'gen_chars', 'ongoing', [], username)
+    fields1 = ['name', 'source', 'columns', 'chars']
+    fields2 = ['source', 'cid', 'char_id', 'txt', 'ori_txt', 'ocr_txt', 'col_txt', 'cmp_txt', 'alternatives']
     for i in range(int(math.ceil(total_count / once_size))):
-        pages = list(db.page.find(condition, {k: 1 for k in fields}).skip(i * once_size).limit(once_size))
+        pages = list(db.page.find(condition, {k: 1 for k in fields1}).skip(i * once_size).limit(once_size))
         # 查找、分类chars
-        chars, invalid_chars, invalid_pages = [], [], []
+        chars, invalid_chars, invalid_pages, valid_pages = [], [], [], []
         for p in pages:
             try:
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
-                        m = dict(page_name=p['name'], data_level=0)
+                        m = dict(page_name=p['name'])
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
-                        m.update({k: c[k] for k in ['source', 'cid', 'char_id', 'ocr_txt', 'alternatives'] if c.get(k)})
+                        m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})
                         m['txt'] = c.get('txt') or c.get('ocr_txt')
                         m['pos'] = dict(x=c['x'], y=c['y'], w=c['w'], h=c['h'])
@@ -64,6 +67,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                     except KeyError as e:
                         print(e)
                         invalid_chars.append('%s_%s' % (p['name'], c['cid']))
+                valid_pages.append(p['name'])
             except KeyError:
                 invalid_pages.append(p['name'])
         # 更新已存在的chars
@@ -81,8 +85,10 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
             db.char.insert_many(un_existed, ordered=False)
         print('insert new %s records: %s' % (len(un_existed), ','.join([c['name'] for c in un_existed])))
         log = dict(inserted_char=[c['name'] for c in un_existed], existed_char=[c['name'] for c in existed],
-                   invalid_char=invalid_chars, invalid_pages=invalid_pages)
-        Bh.add_op_log(db, 'gen_chars', log, username)
+                   invalid_char=invalid_chars, valid_pages=valid_pages, invalid_pages=invalid_pages,
+                   create_time=datetime.now())
+        db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
+    db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
 
 
 if __name__ == '__main__':

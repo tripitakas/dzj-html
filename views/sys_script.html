@@ -13,24 +13,13 @@
       padding: 0 20px;
     }
 
-    .btn-txt {
-      color: var(--Brown_Darker);
-      cursor: pointer;
-      font-size: 14px;
-      float: right;
+    .intro {
+      width: 70%;
+      text-align: left !important;
     }
 
-    .item .title {
-      padding: 5px;
-      font-size: 18px;
-      display: block;
-      clear: both;
-      background: #fff;
-      margin: 20px 0;
-    }
-
-    .desc {
-      font-size: 16px;
+    .status {
+      color: #797979 !important;
     }
   </style>
 </head>
@@ -42,37 +31,56 @@
     <div class="main-content">
       {% module ComHead() %}
       <div class="layout">
-          <div class="wrapper">
-              <div class="sty-list">
-                <div class="item">
-                  <div class="title">一、册JS<span class="btn-txt" id="gen-volume-js">重新生成</span></div>
-                  <div class="desc">
-                    大藏经阅读界面中，目录导航的数据来源于册JS。
-                    册JS从册数据中生成，如果该部藏经有册数据，则可以生成相应的册JS。如果手工更新了册信息，则可以重新生成册JS。
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="title">二、经JS<span class="btn-txt" id="gen-sutra-js">重新生成</span></div>
-                  <div class="desc">
-                    大藏经阅读界面中，经目信息的数据来源于经JS。
-                    每部藏经都有对应相应的经JS，如果该部藏经有经数据，则可以生成相应的经JS。如果手工更新了经信息，则需要更新手工更新经JS。
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="title">三、自动回收超时任务<span class="btn-txt" id="restart-task-recycle">重启脚本</span></div>
-                  <div class="desc">
-                    系统自动回收超时任务。
-                  </div>
-                </div>
-                <div class="item">
-                  <div class="title">四、自动回收临时数据锁<span class="btn-txt" id="restart-lock-recycle">重启脚本</span></div>
-                  <div class="desc">
-                    系统自动回收超时数据锁。
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div class="wrapper">
+          <div class="sty-list">
+            <table class="sty-table">
+              <thead>
+              <tr>
+                <th><span>脚本</span></th>
+                <th><span>状态</span></th>
+                <th><span>介绍</span></th>
+                <th><span>操作</span></th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="update-db">
+                <td>更新数据库</td>
+                <td></td>
+                <td class="intro">
+                  调用后台脚本，更新数据库。
+                </td>
+                <td><a>启动脚本</a></td>
+              </tr>
+              <tr class="gen-chars">
+                <td>生成字表</td>
+                <td></td>
+                <td class="intro">
+                  根据指定的参数，从页数据生成字数据。
+                </td>
+                <td><a data-toggle="modal" data-target="#genCharsModal">启动脚本</a></td>
+              </tr>
+              <tr class="build-js">
+                <td>生成js脚本</td>
+                <td></td>
+                <td class="intro">
+                  大藏经阅读界面中，左侧目录导航的数据来源于js脚本，包括册js和经js。册js从册数据中生成，经js从经数据中生成。<br/>
+                  如果手工更新了册或经的基础数据，则可以重新生成js。
+                </td>
+                <td><a data-toggle="modal" data-target="#jsModal">启动脚本</a></td>
+              </tr>
+              <tr class="recycle-task">
+                <td>回收超时任务</td>
+                <td class="status">运行中</td>
+                <td class="intro">
+                  自动回收系统中已超时的任务。
+                </td>
+                <td><a>启动脚本</a></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
+      </div>
     </div>
   </div>
 </div>
@@ -83,17 +91,23 @@
       <div class="modal-content" style="width: 400px; margin: auto">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title" id="modal-title">生成JS</h4>
+          <h4 class="modal-title" id="modal-title">生成js</h4>
         </div>
         <div class="modal-body">
-          <h4 class="modal-title">哪部藏经？</h4>
-          <input type="hidden" id="collection">
-          <div style="min-height: 150px; margin-top: 20px; text-align: center">
-            <select id="select-tripitaka" class="form-control">
-              {% for t in tripitakas %}
-              <option title="{{t}}">{{t}}</option>
-              {% end %}
-            </select>
+          <div class="form-group">
+            <h4 class="control-label modal-title">选择数据</h4>
+            <div class="modal-radio collection">
+              <input type="radio" name="collection" value="volume" checked>册
+              <input type="radio" name="collection" value="sutra">经
+            </div>
+            <h4 class="control-label modal-title" style="margin-top: 20px">选择藏经</h4>
+            <div>
+              <select id="select-tripitaka" class="form-control">
+                {% for t in tripitakas %}
+                <option title="{{t}}">{{t}}</option>
+                {% end %}
+              </select>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -108,30 +122,17 @@
 
 {% include _base_js.html %}
 <script>
-  // 生成册JS
-  $("#gen-volume-js").click(function () {
-    $("#collection").val('volume');
-    $("#modal-title").html('生成册JS');
-    $('#jsModal').modal();
-  });
-
-  // 生成经JS
-  $("#gen-sutra-js").click(function () {
-    $("#collection").val('sutra');
-    $("#modal-title").html('生成经JS');
-    $('#jsModal').modal();
-  });
-
-  // modal提交
-  $("#jsModal .modal-confirm").click(function () {
-    var tripitaka_code = $('#select-tripitaka option:selected').attr('title');
-    var data = {collection: $("#collection").val(), tripitaka_code: tripitaka_code};
+  // 生成js
+  $("#jsModal .modal-confirm").on('click', function () {
+    var tripitaka = $('#select-tripitaka option:selected').attr('title');
+    var collection = $("#jsModal :radio[name='collection']:checked").val();
+    var data = {collection: collection, tripitaka_code: tripitaka};
     postApi('/data/gen_js', {data: data}, function () {
       showSuccess('成功', '数据已提交。');
+      $('#jsModal').modal('hide');
     }, function (error) {
-      return showError('提交失败', error.message);
+      showError('提交失败', error.message);
     });
-    $('#jsModal').modal('hide');
   });
 
 
