@@ -92,6 +92,8 @@ class SysOplogListHandler(BaseHandler, Oplog):
     def format_value(cls, value, key=None, doc=None):
         if key == 'op_type':
             return cls.get_type_name(value)
+        if key == 'status':
+            return cls.get_status_name(value)
         if key == 'content':
             value, size = str(value), 80
             return '%s%s' % (value[:size], '...' if len(value) > size else '')

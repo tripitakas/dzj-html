@@ -4,6 +4,7 @@
   <title>脚本管理</title>
   {% include _base_css.html %}
   <link href="{{static_url('css/home.css')}}" rel="stylesheet"/>
+  <link href="{{static_url('css/task-admin.css')}}" rel="stylesheet"/>
   <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.JS"></script>
   <script src="https://oss.maxcdn.com/libs/respond.JS/1.3.0/respond.min.JS"></script>
@@ -86,7 +87,7 @@
 </div>
 
 <div class="panel-body">
-  <div id="jsModal" class="modal fade" role="dialog" aria-labelledby="choose-docs" aria-hidden="true">
+  <div id="jsModal" class="modal fade" role="dialog" aria-labelledby="jsModal-docs" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content" style="width: 400px; margin: auto">
         <div class="modal-header">
@@ -117,7 +118,41 @@
       </div>
     </div>
   </div>
-
+  <div id="genCharsModal" class="modal fade" role="dialog" aria-labelledby="genCharsModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">生成字表</h4>
+        </div>
+        <div class="modal-body">
+          <div class="modal-tab">
+            <h4 class="control-label">选择页面</h4>
+            <ul class="nav nav-tabs" id="tabContent">
+              <li class="active"><a href="#source-select" data-toggle="tab">按输入页码</a></li>
+              <li><a href="#source-search" data-toggle="tab">按检索参数</a></li>
+              <li><a href="#source-all" data-toggle="tab">所有页面</a></li>
+            </ul>
+            <div class="tab-content">
+              <div class="tab-pane active" id="source-select">
+                <textarea type="text" class="form-control" id="page-names" placeholder="请输入页码，按英文逗号分隔"></textarea>
+              </div>
+              <div class="tab-pane" id="source-search">
+                <input type="text" class="form-control" id="search-param" placeholder="请输入检索参数，如?name=gl"/>
+              </div>
+              <div class="tab-pane" id="source-all">
+                <span>针对所有页面</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary waves-effect waves-light modal-confirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% include _base_js.html %}
@@ -132,6 +167,35 @@
       $('#jsModal').modal('hide');
     }, function (error) {
       showError('提交失败', error.message);
+    });
+  });
+
+  // 生成字表
+  $("#genCharsModal .modal-confirm").on('click', function () {
+    var data = {};
+    var source = $('#genCharsModal .tab-pane.active').attr('id');
+    switch (source) {
+      case 'source-search':
+        var searchParam = $('#genCharsModal #search-param').val();
+        if (!searchParam.length)
+          return showError('检索条件不允许为空');
+        data['search'] = searchParam;
+        break;
+      case 'source-select':
+        var pageNames = $('#page-names').val().trim();
+        if (!pageNames.length)
+          return showError('请选择页码');
+        data['page_names'] = pageNames.split(',');
+        break;
+      case 'source-all':
+        data['search'] = '';
+        break;
+    }
+    postApi('/page/gen_chars', {data: data}, function () {
+      Swal0.fire({
+        type: 'success', title: '成功', html: '已成功启动脚本。',
+        footer: `详情可查看<a href="/sys/oplog/latest/gen_chars" target="_blank">日志</a>`
+      });
     });
   });
 

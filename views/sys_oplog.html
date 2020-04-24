@@ -15,6 +15,10 @@
       font-size: 16px;
       margin: 2px 5px 3px;
     }
+
+    .multi {
+      border-bottom: 1px dashed rgba(228, 195, 168, 0.26);
+    }
   </style>
 </head>
 
@@ -68,7 +72,7 @@
             {% for content in log.get('content') %}
             {% for k, v in content.items() %}
             {% if v %}
-            <div class="info long">
+            <div class="info long multi">
               <label class="label">
                 {{handler.get_field_name(k)}}
                 {{'(%s)' % len(v) if isinstance(v, list) else ''}}
@@ -94,8 +98,10 @@
   setInterval(function () {
     if (status === 'ongoing') {
       postApi('/sys/oplog/status/{{log["_id"]}}', {data: {}}, function (res) {
-        if (res.status === 'finished')
+        status = res.status;
+        if (res.status === 'finished') {
           location.reload();
+        }
       });
     }
   }, 1000);

@@ -97,6 +97,14 @@ def not_both_empty(**kw):
         return {k1: err, k2: err}
 
 
+def not_all_empty(**kw):
+    """不允许同时为空以及空串"""
+    code, message = e.not_allowed_empty
+    if len([k for k, v in kw.items() if not v]) == 0:
+        err = code, message % (','.join([i18n(k) for k, v in kw.items()]))
+        return err
+
+
 def not_equal(**kw):
     assert len(kw) == 2
     k1, k2 = kw.keys()

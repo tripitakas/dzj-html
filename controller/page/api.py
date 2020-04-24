@@ -211,11 +211,17 @@ class PageGenCharsApi(BaseHandler):
     def post(self):
         """ 批量生成字表"""
         try:
-            rules = [(v.not_empty, 'page_names')]
+            rules = [(v.not_all_empty, 'page_names', 'search', 'all')]
             self.validate(self.data, rules)
-            # 启动脚本，生成字表
-            script = 'nohup python3 %s/utils/gen_chars.py --page_names="%s" --username="%s" >> log/gen_chars.log 2>&1 &'
-            script = script % (h.BASE_DIR, ','.join(self.data['page_names']), self.username)
+            script = 'nohup python3 %s/utils/gen_chars.py %s --username="%s" >> log/gen_chars.log 2>&1 &'
+            if self.data.get('page_names'):
+                script = script % (h.BASE_DIR, '--page_names=' + ','.join(self.data['page_names']), self.username)
+            elif self.data.get('search'):
+                condition = Page.get_page_search_condition(self.data['search'])[0] or {}
+                condition = json.dumps(condition)
+                script = script % (h.BASE_DIR, '--condition=' + condition, self.username)
+            else:
+                script = script % (h.BASE_DIR, '--condition={}', self.username)
             print(script)
             os.system(script)
             self.send_data_response()
