@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import os
-from os import path
+import re
 from bson.objectid import ObjectId
 from .char import Char
 from .base import CharHandler
 from controller import errors as e
+from controller import helper as h
 from controller import validate as v
 
 
@@ -26,9 +26,10 @@ class CharGenImgApi(CharHandler):
             self.db.char.update_many(condition, {'$set': {'img_need_updated': True}})
 
             # 启动脚本，生成字图
-            script = 'nohup python3 %s/extract_img.py --username="%s" --regen=%s >> log/extract_img.log 2>&1 &'
-            print(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
-            os.system(script % (path.dirname(__file__), self.username, int(self.data.get('regen') in ['是', True])))
+            script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
+            script = script % (h.BASE_DIR, self.username, int(self.data.get('regen') in ['是', True]))
+            print(script)
+            os.system(script)
             self.send_data_response()
 
         except self.DbError as error:

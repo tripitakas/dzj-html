@@ -238,7 +238,8 @@ class Oss(object):
         self.bucket.put_object_from_file(oss_file, local_file)
 
 
-def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, regen=False, username=None, host=None):
+def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
+                regen=False, username=None, host=None):
     """ 从大图中切图，存放到web_img中，供web访问"""
     cfg = hp.load_config()
     db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], host=host)[0]
@@ -250,7 +251,7 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, reg
         if log.get('success_char'):
             update = {'has_img': True, 'img_need_updated': False}
             db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
-        Bh.add_op_log(db, 'extract_img', log, username)
+        Bh.add_op_log(db, 'extract_img', 'finished', log, username)
         return
 
     if not condition:
@@ -260,6 +261,7 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, reg
 
     once_size = 5000
     total_count = db.char.count_documents(condition)
+    log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
     print('%d chars to check...' % total_count)
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
@@ -268,7 +270,8 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None, reg
         if log.get('success_char'):
             update = {'has_img': True, 'img_need_updated': False}
             db.char.update_many({'name': {'$in': log['success_char']}}, {'$set': update})
-        Bh.add_op_log(db, 'extract_img', log, username)
+        db.oplog.update_one({'_id': log_id}, {'$addToSet': {'content': log}})
+    db.oplog.update_one({'_id': log_id}, {'$set': {'status': 'finished'}})
 
 
 if __name__ == '__main__':
