@@ -31,10 +31,9 @@ class Char(Model):
         {'id': 'txt_type', 'name': '类型'},
         {'id': 'box_level', 'name': '切分等级'},
         {'id': 'box_logs', 'name': '切分校对历史'},
-        {'id': 'box_count', 'name': '切分校对次数'},
         {'id': 'txt_level', 'name': '文字等级'},
         {'id': 'txt_logs', 'name': '文字校对历史'},
-        {'id': 'txt_count', 'name': '文字校对次数'},
+        {'id': 'task_count', 'name': '校对任务次数'},
         {'id': 'remark', 'name': '备注'},
     ]
     rules = [
