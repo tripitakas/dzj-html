@@ -174,7 +174,7 @@ class AddPage(object):
                 return meta
 
             info.pop('id', 0)
-            message = '%s:\t%d x %d blocks=%d columns=%d chars=%d'
+            message = '%s:\t%d x %d chars=%d columns=%d blocks=%d'
             print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
 
             if self.reorder:
