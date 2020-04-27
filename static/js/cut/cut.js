@@ -1045,7 +1045,7 @@
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
             box.shape.data('readonly', readonly);
-            box.shape.attr({opacity: readonly ? 0.5 : 1});
+            box.shape.attr({opacity: readonly ? 0.3 : 1});
           }
         }
       });
