@@ -56,9 +56,9 @@
   <img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
   <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
 
-  <img src="{{static_url('imgs/icon_block_1.png')}}" class="btn-img step-box" id="step-block" title="栏框校对"/>
-  <img src="{{static_url('imgs/icon_char_2.png')}}" class="btn-img step-box active" id="step-char" title="字框校对"/>
-  <img src="{{static_url('imgs/icon_column_3.png')}}" class="btn-img step-box" id="step-column" title="列框校对"/>
+  <img src="{{static_url('imgs/icon_char_1.png')}}" class="btn-img step-box active" id="step-char" title="字框校对"/>
+  <img src="{{static_url('imgs/icon_column_2.png')}}" class="btn-img step-box" id="step-column" title="列框校对"/>
+  <img src="{{static_url('imgs/icon_block_3.png')}}" class="btn-img step-box" id="step-block" title="栏框校对"/>
   <img src="{{static_url('imgs/char_icon9.png')}}" class="btn-img" id="finish-box" title="确认切分框"/>
 {% end %}
 
@@ -217,10 +217,14 @@
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    var charActive = cutStep ? cutStep === 2 : $('#toggle-char').hasClass('active');
-    var blockActive = cutStep ? cutStep === 1 : $('#toggle-block').hasClass('active');
-    var columnActive = cutStep ? cutStep === 3 : $('#toggle-column').hasClass('active');
+    var charActive = cutStep ? cutStep === 1 : $('#toggle-char').hasClass('active');
+    var blockActive = cutStep ? cutStep === 3 : $('#toggle-block').hasClass('active');
+    var columnActive = cutStep ? cutStep === 2 : $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
+
+    if (el.data('readonly')) {
+      return false;
+    }
     if ((charActive || threeActive) && cls === 'char') {
       return true;
     }
@@ -233,9 +237,9 @@
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
-    var charActive = cutStep ? cutStep === 2 : $('#toggle-char').hasClass('active');
-    var blockActive = cutStep ? cutStep === 1 : $('#toggle-block').hasClass('active');
-    var columnActive = cutStep ? cutStep === 3 : $('#toggle-column').hasClass('active');
+    var charActive = cutStep ? cutStep === 1 : $('#toggle-char').hasClass('active');
+    var blockActive = cutStep ? cutStep === 3 : $('#toggle-block').hasClass('active');
+    var columnActive = cutStep ? cutStep === 2 : $('#toggle-column').hasClass('active');
 
     if (reason === 'added') {
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
@@ -266,7 +270,7 @@
       }).filter(function (c) { return c; });
       if (invalid.length) {
         var n1 = invalid[0].split('c').length;
-        cutStep = n1 > 1 ? 2 : n1 == 1 ? 3 : 1;
+        cutStep = n1 > 1 ? 1 : n1 == 1 ? 2 : 3;
       }
       updateCutStep(true);
       $.cut.toggleClass(invalid, 'flash', true);
@@ -359,16 +363,16 @@
     $('#step-column').toggle(!!cutStep);
     $('#finish-box').toggle(!!cutStep);
 
-    $('#step-block').toggleClass('active', cutStep === 1);
-    $('#step-char').toggleClass('active', cutStep === 2);
-    $('#step-column').toggleClass('active', cutStep === 3);
+    $('#step-block').toggleClass('active', cutStep === 3);
+    $('#step-char').toggleClass('active', cutStep === 1);
+    $('#step-column').toggleClass('active', cutStep === 2);
 
     if (showBoxes) {
       $.cut.switchCurrentBox(null);
       if (cutStep) {
-        $.cut.toggleBox(cutStep === 1, 'block');
-        $.cut.toggleBox(cutStep === 2, 'char');
-        $.cut.toggleBox(cutStep === 3, 'column');
+        $.cut.toggleBox(cutStep === 3, 'block');
+        $.cut.toggleBox(cutStep === 1, 'char', null, cutStep > 1);
+        $.cut.toggleBox(cutStep === 2, 'column', null, cutStep > 2);
       }
       else {
         updateThreeBoxes();
@@ -386,15 +390,15 @@
   updateCutStep(true);
 
   $('#step-block').click(function () {
-    cutStep = 1;
+    cutStep = 3;
     updateCutStep(true);
   });
   $('#step-char').click(function () {
-    cutStep = 2;
+    cutStep = 1;
     updateCutStep(true);
   });
   $('#step-column').click(function () {
-    cutStep = 3;
+    cutStep = 2;
     updateCutStep(true);
   });
   $('#finish-box').click(function () {
