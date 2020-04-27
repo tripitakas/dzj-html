@@ -25,7 +25,7 @@ function updateColumnImg(ch) {
       chars: [{x: ch.pos.x - column.x, y: ch.pos.y - column.y, w: ch.pos.w, h: ch.pos.h}]
     });
     $.cut.bindKeys();
-    getBox = function() {
+    getBox = function () {
       var c = $.cut.exportBoxes()[0];
       ch._boxChanged = ch._boxChanged ||
           Math.abs(c.x + column.x - ch.pos.x) > 1 || Math.abs(c.y + column.y - ch.pos.y) > 1 ||
@@ -146,27 +146,31 @@ $('.m-footer .page-name').on('click', function () {
 });
 
 // 查看char页面
-$('.m-footer .name').on('click', function () {
+$('.m-footer .char-name').on('click', function () {
   window.open('/char/' + $('#currentName').val(), '_blank');
 });
 
 // 单击字图
-$('.char-panel .char-item').on('click', function () {
+$('.char-panel .char-img').on('click', function () {
   $('.char-items .current').removeClass('current');
-  $(this).addClass('current');
-  var id = $(this).attr('data-id');
+  $(this).parent().addClass('current');
+  var id = $(this).parent().attr('data-id');
   var ch = chars[id] || {};
   updateWorkPanel(ch);
 });
 
+$('.char-panel .char-info').on('click', function () {
+  $(this).parent().find(':checkbox').click();
+});
+
 // 提交修改
-$('#submit-proof').click(function () {
+$('#submit-proof').on('click', function () {
   var name = $('#currentName').val();
   var data = {
     edit_type: typeof editType !== 'undefined' ? editType : 'raw_edit',
     txt: $('.proof .txt').val(),
     ori_txt: $('.proof .ori-txt').val() || '',
-    remark: $('.proof .remark').val()
+    remark: $('.proof .remark').val() || '',
   };
   postApi('/char/' + name, {data: data}, function (res) {
     updateLogs(res.txt_logs);

@@ -279,7 +279,8 @@
       return showWarning('请选择', '当前没有选中任何记录。');
     Swal2.fire({title: '请输入文字', input: 'text', showLoaderOnConfirm: true}).then((result) => {
       if (result.value) {
-        postApi('/char/txt', {data: {names: names, txt: result.value}}, () => location.reload());
+        var data = {names: names, txt: result.value, edit_type: editType};
+        postApi('/char/txt', {data: data}, () => location.reload());
       }
     });
   });

@@ -63,7 +63,7 @@
                 {{'(%s)' % len(v) if isinstance(v, list) else ''}}
               </label>
               <span class="value">
-                {{','.join(v) if isinstance(v, list) else v or ''}}
+                {{','.join([str(i) for i in v]) if isinstance(v, list) else v or ''}}
               </span>
             </div>
             {% end %}
@@ -78,7 +78,7 @@
                 {{'(%s)' % len(v) if isinstance(v, list) else ''}}
               </label>
               <span class="value">
-                {{','.join(v) if isinstance(v, list) else v or ''}}
+                {{','.join([str(i) for i in v]) if isinstance(v, list) else v or ''}}
               </span>
             </div>
             {% end %}

@@ -62,6 +62,8 @@ class Oplog(Model):
         'cut_char_existed': '字图已存在',
         'cut_column_success': '列图生成成功',
         'cut_column_failed': '列图生成失败',
+        'task_type': '任务类型',
+        'task_params': '任务参数',
         **PageTaskPublishApi.field_names,
     }
 

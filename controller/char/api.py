@@ -11,8 +11,8 @@ from controller import helper as h
 from controller import validate as v
 
 
-class CharGenImgApi(CharHandler):
-    URL = '/api/char/gen_img'
+class CharExtractImgApi(CharHandler):
+    URL = '/api/char/extract_img'
 
     def post(self):
         """ 批量生成字图"""
@@ -28,7 +28,7 @@ class CharGenImgApi(CharHandler):
             # 启动脚本，生成字图
             script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
             script = script % (h.BASE_DIR, self.username, int(self.data.get('regen') in ['是', True]))
-            # print(script)
+            print(script)
             os.system(script)
             self.send_data_response()
 
@@ -178,7 +178,7 @@ class CharTaskPublishApi(CharHandler):
 
         def get_task(ps, cnt, remark=None):
             priority = self.data.get('priority') or 2
-            pre_tasks = self.data.get('pre_tasks') or [],
+            pre_tasks = self.data.get('pre_tasks') or []
             tk = ''.join([p.get('ocr_txt') or p.get('txt') for p in ps])
             return dict(task_type=task_type, num=num, batch=batch, collection='char', id_name='name',
                         txt_kind=tk, char_count=cnt, doc_id=None, steps=None, status=self.STATUS_PUBLISHED,
@@ -213,8 +213,6 @@ class CharTaskPublishApi(CharHandler):
         ]
         if normal_tasks:
             self.db.task.insert_many(normal_tasks)
-            task_params = [t['params'] for t in normal_tasks]
-            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
 
         # 发布聚类校对-生僻字
         counts2 = [c for c in counts if c['count'] < 50]
@@ -230,8 +228,9 @@ class CharTaskPublishApi(CharHandler):
             rare_tasks.append(get_task(params, total_count, '生僻字'))
         if rare_tasks:
             self.db.task.insert_many(rare_tasks)
-            task_params = [t['params'] for t in normal_tasks]
-            self.add_op_log(self.db, 'publish_task', dict(task_type=task_type, task_params=task_params), self.username)
+
+        log = dict(task_type=task_type, task_params=[t['params'] for t in normal_tasks + rare_tasks])
+        self.add_op_log(self.db, 'publish_task', None, log, self.username)
 
         return dict(published=published, normal_count=len(normal_tasks), rare_count=len(rare_tasks))
 

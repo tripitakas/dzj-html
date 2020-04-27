@@ -62,6 +62,10 @@ class Model(object):
         return [f['id'] for f in cls.fields]
 
     @classmethod
+    def field_names(cls):
+        return {f['id']: f['name'] for f in cls.fields}
+
+    @classmethod
     def get_field_name(cls, field):
         for f in cls.fields:
             if f['id'] == field:

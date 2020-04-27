@@ -150,7 +150,7 @@
     </div>
   </div>
 </div>
-<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
+<div id="sourceModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sourceModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -178,7 +178,7 @@
     </div>
   </div>
 </div>
-<div id="genModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="genModal" aria-hidden="true">
+<div id="extractModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="extractModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content modal-sm">
       <div class="modal-header">
@@ -223,14 +223,20 @@
             <h4 class="item-title">任务批次</h4>
             <input type="text" class="form-control batch" placeholder="请输入批次"/>
           </div>
-          <div class="form-group num">
-            <h4 class="item-title">选择校次</h4>
-            <label class="radio-inline"><input type="radio" name="num" value="1">1</label>
-            <label class="radio-inline"><input type="radio" name="num" value="2">2</label>
-            <label class="radio-inline"><input type="radio" name="num" value="3">3</label>
+          <h4 class="control-label">选择前置任务</h4>
+          <div class="pre_tasks">
+            {% for k, name in handler.task_names('char').items() %}
+            {% if handler.is_mod_enabled(name) %}
+            <label class="checkbox-inline">
+              <input type="checkbox" class="{{k}}" title="{{k}}">{{name}}
+            </label>
+            {% end %}
+            {% end %}
           </div>
+          <h4 class="control-label label-num">选择校次</h4>
+          <div class="num"></div>
           <div class="form-group source">
-            <h4 class="item-title">数据分类</h4>
+            <h4 class="item-title">选择数据分类</h4>
             <input type="text" class="form-control source" placeholder="请输入分类"/>
             <div class="tips">注：请先设置分类，然后根据分类发布任务。</div>
           </div>
@@ -266,15 +272,18 @@
 
   // 生成字图
   $('.operation .bat-gen-img').on('click', function () {
-    $('#genModal .selected-count').text($('table tbody :checked').length);
-    $('#genModal').modal();
+    $('#extractModal .selected-count').text($('table tbody :checked').length);
+    $('#extractModal').modal();
   });
-  $('#genModal .modal-confirm').on('click', function () {
+  $('#extractModal .modal-confirm').on('click', function () {
     var ids = $.map($('table tbody :checked'), (item) => $(item).parent().parent().attr('id'));
-    var data = {_ids: ids, type: $('.range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
-    postApi('/char/gen_img', {data: data}, (res) => {
-      showSuccess('成功', '已启动脚本，请稍后刷新页面查看。');
-      $('#genModal').modal('hide');
+    var data = {_ids: ids, type: $('#extractModal .range :checked').val(), regen: $('.regen :checked').val(), search: location.search};
+    postApi('/char/extract_img', {data: data}, (res) => {
+      Swal0.fire({
+        type: 'success', title: '成功', html: '已启动脚本，请稍后刷新页面查看。',
+        footer: `详情可查看<a href="/sys/oplog/latest/extract_img">日志</a>`
+      });
+      $('#extractModal').modal('hide');
     });
   });
 
@@ -319,22 +328,37 @@
   });
 
 </script>
+
 <script>
   /*---发布任务---*/
+  var taskType = '';
+  var $publishModal = $('#publishModal');
+  var taskTypes = decodeJSON('{{handler.task_types}}');
   $('.btn-publish a').on('click', function () {
-    $('#publishModal').modal();
-    var taskType = $(this).attr('title');
-    $('#publishModal .task-type').val(taskType);
-    $('#publishModal .task-name').text($(this).text());
-    $('#publishModal .form-group.num').toggleClass('hide', taskType.indexOf('review') > -1);
+    $publishModal.modal();
+    taskType = $(this).attr('title');
+    $publishModal.find('.task-name').text($(this).text());
+    // 前置任务
+    var preTasks = taskTypes[taskType].pre_tasks || [];
+    preTasks.forEach(function (item) {
+      $('.pre_tasks .' + item).prop('checked', true);
+    });
+    // 校次
+    var num = taskTypes[taskType].num || [];
+    $publishModal.find('.label-num').toggleClass('hide', !num.length);
+    $publishModal.find('.num').html($.map(num, function (item) {
+      return `<label class="radio-inline"><input type="radio" name="num" value="${item}" ${item === 1 ? "checked" : ""}>${item}</label>`;
+    }).join(''));
   });
 
   $('#publishModal .modal-confirm').on('click', function () {
     var num = $('#publishModal .num :checked').val();
     var batch = $('#publishModal input.batch').val();
     var source = $('#publishModal input.source').val();
-    var taskType = $('#publishModal .task-type').val();
-    var data = {task_type: taskType, num: num, batch: batch, source: source};
+    var preTasks = $.map($('.pre_tasks :checked'), function (item) {
+      return $(item).attr('title');
+    });
+    var data = {task_type: taskType, num: num, pre_tasks: preTasks, batch: batch, source: source};
     postApi('/char/task/publish', {data: data}, (res) => {
       var tips = `已发布常见字${res['normal_count']}条任务，生僻字${res['rare_count']}条任务。`;
       Swal0.fire({title: '成功', html: tips, type: 'success', footer: '详情可以查看<a href="/sys/oplog/latest">日志</a>'});

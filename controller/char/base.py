@@ -51,14 +51,14 @@ class CharHandler(TaskHandler, Char):
         if field == 'txt':
             return cls.get_txt_level('task', task_type) or 0
 
-    @staticmethod
-    def get_user_level(self, field, edit_type):
+    @classmethod
+    def get_user_level(cls, self, field, edit_type):
         """ 获取用户的数据等级"""
         assert field in ['box', 'txt']
         if edit_type == 'raw_edit':
-            return self.get_role_level(field, self.current_user['roles'])
+            return cls.get_role_level(field, self.current_user['roles'])
         else:
-            return self.get_task_level(field, edit_type)
+            return cls.get_task_level(field, edit_type)
 
     @staticmethod
     def get_user_point(self, task_type):
@@ -96,11 +96,11 @@ class CharHandler(TaskHandler, Char):
                     return task_type, count * ratio.get(task_type)
             return 'cluster_proof', 1000
 
-    @staticmethod
-    def check_level_and_point(self, char, field, edit_type, send_error_response=True):
+    @classmethod
+    def check_level_and_point(cls, self, char, field, edit_type, send_error_response=True):
         """ 检查数据等级和积分"""
-        required_level = self.get_required_level(char, field)
-        user_level = self.get_user_level(self, field, edit_type)
+        required_level = cls.get_required_level(char, field)
+        user_level = cls.get_user_level(self, field, edit_type)
         if int(user_level) < int(required_level):
             msg = '该字符数据等级为%s，您的文字数据等级(%s)不够' % (required_level, user_level)
             if send_error_response:
@@ -108,8 +108,8 @@ class CharHandler(TaskHandler, Char):
             else:
                 return e.data_level_unqualified[0], msg
         if edit_type == 'raw_edit':
-            required_task_type, required_point = self.get_required_point(char, field)
-            user_point = self.get_user_point(self, required_task_type)
+            required_task_type, required_point = cls.get_required_point(char, field)
+            user_point = cls.get_user_point(self, required_task_type)
             if int(user_point) < int(required_point):
                 msg = '该字符需要在%s任务上有%s个积分，您的积分(%s)不够' % (required_task_type, required_point, user_point)
                 if send_error_response:

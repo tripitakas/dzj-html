@@ -55,7 +55,7 @@ def gen_chars(db=None, db_name='tripitaka', uri='localhost', reset=True,
                 id2col = {col['column_id']: {k: col[k] for k in ['cid', 'x', 'y', 'w', 'h']} for col in p['columns']}
                 for c in p['chars']:
                     try:
-                        m = dict(page_name=p['name'])
+                        m = dict(page_name=p['name'], txt_level=0)
                         m['name'] = '%s_%s' % (p['name'], c['cid'])
                         m.update({k: c[k] for k in fields2 if c.get(k)})
                         m.update({k: int(c[k] * 1000) for k in ['cc', 'sc'] if c.get(k)})

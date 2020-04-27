@@ -54,7 +54,8 @@ class Cut(object):
     def cut_img(self, chars):
         """ 切图，包括字图和列图"""
         # 去掉无效页面
-        log = dict(success_char=[], fail_char=[], exist_char=[], success_column=[], fail_column=[])
+        log = dict(cut_char_success=[], cut_char_failed=[], cut_char_existed=[],
+                   cut_column_failed=[], cut_column_success=[])
         page_names = list(set(c['page_name'] for c in chars))
         fields = ['name', 'width', 'height', 'columns', 'chars']
         pages = list(self.db.page.find({'name': {'$in': page_names}}, {f: 1 for f in fields}))
@@ -104,7 +105,7 @@ class Cut(object):
 
             # 列框切图
             columns_todo, columns_done = list(set((c['column'] or {}).get('cid', 0) for c in chars_done)), []
-            print('%d %s: %d generated in %d chars, %d columns' % (
+            print('%d %s: %d char images generated from %d chars, %d columns' % (
                 i + 1, page_name, len(chars_done), len(chars_todo), len(columns_todo)))
 
             for cid in columns_todo:
@@ -245,8 +246,9 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     db = db or uri and pymongo.MongoClient(uri)[db_name] or hp.connect_db(cfg['database'], host=host)[0]
     cut = Cut(db, cfg, regen=regen)
 
+    print('[%s]extract_img.py script started.' % hp.get_date_time())
     if chars:
-        print('%d chars to generate' % len(chars))
+        print('[%s]%s chars to generate.' % (hp.get_date_time(), len(chars)))
         log = cut.cut_img(chars)
         if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False}
@@ -262,10 +264,9 @@ def extract_img(db=None, db_name=None, uri=None, condition=None, chars=None,
     once_size = 5000
     total_count = db.char.count_documents(condition)
     log_id = Bh.add_op_log(db, 'extract_img', 'ongoing', [], username)
-    print('%d chars to check...' % total_count)
+    print('[%s]%s chars to generate.' % (total_count, hp.get_date_time()))
     for i in range(int(math.ceil(total_count / once_size))):
         chars = list(db.char.find(condition).skip(i * once_size).limit(once_size))
-        print('%d chars to generate' % len(chars))
         log = cut.cut_img(chars)
         if log.get('cut_char_success'):
             update = {'has_img': True, 'img_need_updated': False}

@@ -227,7 +227,7 @@ role_route_maps = {
             '/api/page/(box|order|cmp_txt)/@page_name': ['POST'],
             '/char/(list|browse|statistic)': ['GET'],
             '/api/char/delete': ['POST'],
-            '/api/char/(delete|source|gen_img)': ['POST'],
+            '/api/char/(delete|source|extract_img)': ['POST'],
         }
     },
     '文章管理员': {

@@ -129,6 +129,7 @@
 
 .char-item .char-info {
   height: 20px;
+  display: inline-block;
 }
 
 .char-info span {

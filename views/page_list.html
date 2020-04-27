@@ -216,10 +216,10 @@
         </div>
         <h4 class="control-label">选择前置任务</h4>
         <div class="pre_tasks">
-          {% for k, t in handler.task_types.items() %}
-          {% if handler.is_mod_enabled(t['name']) %}
+          {% for k, name in handler.task_names('page').items() %}
+          {% if handler.is_mod_enabled(name) %}
           <label class="checkbox-inline">
-            <input type="checkbox" class="{{k}}" title="{{k}}">{{t['name']}}
+            <input type="checkbox" class="{{k}}" title="{{k}}">{{name}}
           </label>
           {% end %}
           {% end %}
@@ -377,7 +377,6 @@
   var docs = [];
   var taskType = '';
   var $publishModal = $('#publishModal');
-  var $publishResultModal = $('#publishResultModal');
   var taskTypes = decodeJSON('{{handler.task_types}}');
   var publishFields = [
     {id: 'task_type'}, {id: 'batch'}, {id: 'pre_tasks', input_type: 'checkbox'},
@@ -416,9 +415,6 @@
   });
   // 刷新
   $publishModal.find('.modal-refresh').on('click', function () {
-    location.reload();
-  });
-  $publishResultModal.find('.modal-confirm').on('click', function () {
     location.reload();
   });
   // 提交
