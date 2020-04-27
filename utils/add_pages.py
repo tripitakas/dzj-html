@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # 导入页面文件到文档库，可导入页面图到 static/img 供本地调试用
 # 本脚本的执行结果相当于在“数据管理-页数据”中提供了图片、OCR切分数据、文本，是任务管理中发布切分和文字审校任务的前置条件。
-# python utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
+# python3 utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 
 import re
 import sys
@@ -174,7 +174,7 @@ class AddPage(object):
                 return meta
 
             info.pop('id', 0)
-            message = '%s:\t%d x %d blocks=%d columns=%d chars=%d'
+            message = '%s:\t%d x %d chars=%d columns=%d blocks=%d'
             print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
 
             if self.reorder:
@@ -201,7 +201,7 @@ class AddPage(object):
         pages = set()
         for pathname in sorted(glob(path.join(src_dir, '**', '*.json'))):
             fn = path.basename(pathname)
-            if kind and kind != fn[:2]:
+            if kind and kind != fn[:2] or '_char' in fn:
                 continue
             if fn[:-5] in pages:
                 sys.stderr.write('duplicate page name %s \n' % pathname)
@@ -210,15 +210,18 @@ class AddPage(object):
             if not info:
                 sys.stderr.write('invalid json %s \n' % pathname)
                 continue
-            name = info.get('img_name') or info.get('imgname') or info.get('name')
-            if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
-                sys.stderr.write('invalid name in file %s \n' % pathname)
-                continue
-            if name != fn[:-5]:
-                sys.stderr.write('filename not equal to name in json %s \n' % pathname)
-                continue
-            if self.add_box(name, info):
-                pages.add(name)
+            try:
+                name = info.get('img_name') or info.get('imgname') or info.get('name')
+                if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
+                    sys.stderr.write('invalid name in file %s \n' % pathname)
+                    continue
+                if name != fn[:-5]:
+                    sys.stderr.write('filename not equal to name in json %s \n' % pathname)
+                    continue
+                if self.add_box(name, info):
+                    pages.add(name)
+            except Exception as e:
+                sys.stderr.write('invalid page %s: %s \n' % (pathname, str(e)))
         return pages
 
 

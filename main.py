@@ -34,7 +34,7 @@ if __name__ == '__main__':
         server.add_sockets(sockets)
         protocol = 'https' if ssl_options else 'http'
         logging.info('Start the service #%d v%s on %s://localhost:%d' % (fork_id, app.version, protocol, opt.port))
-        if fork_id == 0:
+        if fork_id == 0 and app.config.get('auto_script'):
             script = app.db and 'sh start_worker.sh {0} {1}'.format(app.db_uri, app.config['database']['name'])
             os.system(script)
         ioloop.IOLoop.current().start()
