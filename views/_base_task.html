@@ -1,7 +1,7 @@
 <div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}
-  {% module TaskConfigModal() %}
+  {% module TaskConfigModal(handler.config_fields or []) %}
 </div>
 
 <script src="{{static_url('js/task-pick.js')}}"></script>
@@ -42,7 +42,7 @@
   });
 
   // 是否自动领取新任务
-  $('#taskConfigModal .modal-confirm').click(function () {
+  $('#taskConfigModal .modal-confirm').on('click', function () {
     var autoPick = $('#taskConfigModal .auto-pick :checked');
     autoPick && setStorage('autoPick', autoPick.val());
     $("#taskConfigModal").modal('hide');

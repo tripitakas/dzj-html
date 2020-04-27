@@ -274,8 +274,11 @@ class CharTaskClusterHandler(CharHandler):
            '/task/browse/(cluster_proof|cluster_review)/@task_id',
            '/task/update/(cluster_proof|cluster_review)/@task_id']
 
-    page_size = 50
     txt_types = {'': '没问题', 'M': '模糊或残损', 'N': '不确定', '*': '不认识'}
+    config_fields = [
+        {'id': 'page-size', 'name': '每页显示条数'},
+        {'id': 'auto-pick', 'name': '提交后自动领新任务', 'input_type': 'radio', 'options': ['是', '否']},
+    ]
 
     def get(self, task_type, task_id):
         """ 聚类校对页面"""
@@ -301,6 +304,7 @@ class CharTaskClusterHandler(CharHandler):
             if update == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
             # 查找单字数据
+            self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or 50))
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {str(d['_id']): d for d in docs}
             column_url = ''

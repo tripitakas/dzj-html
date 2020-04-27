@@ -271,6 +271,19 @@
     $('.char-check').removeAttr('checked');
   });
 
+  // 每页显示多少个字图
+  $('#taskConfigModal .modal-confirm').on('click', function () {
+    var pageSize = $('#taskConfigModal .page-size').val();
+    if (pageSize.length) {
+      if (!/^\d+$/.test(pageSize)) {
+        return showWarning('提示', '每页条数中请输入数字');
+      } else {
+        postApi('/session/config', {data: {'cluster_page_size': pageSize}});
+        $("#taskConfigModal").modal('hide');
+      }
+    }
+  });
+
   // 批量修改
   $('#bat-update').on('click', function () {
     $('.char-check').removeClass('hide');
