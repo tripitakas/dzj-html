@@ -11,10 +11,6 @@ from controller.task.base import TaskHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
-    role2level = {
-        'box': dict(切分校对员=1, 切分审定员=10, 切分专家=100),
-        'txt': dict(文字校对员=1, 文字审定员=10, 文字专家=100),
-    }
 
     def __init__(self, application, request, **kwargs):
         super(PageHandler, self).__init__(application, request, **kwargs)
@@ -23,29 +19,6 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['chars'], 'box_logs')
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
-
-    def get_user_level(self, data_type, user=None):
-        """ 根据用户角色，计算用户的数据等级"""
-        assert data_type in ['box', 'txt']
-        user = self.current_user if not user else user
-        user_roles = auth.get_all_roles(user['roles'])
-        return max([self.role2level[data_type].get(r, 0) for r in user_roles])
-
-    def get_user_point(self, data_type):
-        """ 根据用户的工作经验，计算用户积分"""
-        data2task = {
-            'box': ['cut_proof', 'cut_review'],
-            'txt': ['cluster_proof', 'cluster_review'],
-        }
-        task_count = self.db.task.count_documents({'task_type': {'$in': data2task.get(data_type)}})
-        return task_count
-
-    def get_box_point(self, box, data_type):
-        """ 根据字框的校对历史，计算字框积分"""
-        box_count = self.prop(box, '%s_count' % data_type)
-        box_count = box_count and sum(self.prop(box, '%s_count' % data_type).values()) or 0
-        # 每经过一次修改，相当于100个积分。待完善。
-        return box_count * 100
 
     def can_write(self, box, data_type, write_type='raw'):
         """ 检查写权限"""

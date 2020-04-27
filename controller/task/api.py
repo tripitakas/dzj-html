@@ -120,7 +120,8 @@ class RepublishTaskApi(TaskHandler):
                 'steps.submitted', 'picked_user_id', 'picked_by', 'picked_time', 'return_reason'
             ]}})
             self.update_page_status(self.STATUS_PUBLISHED)
-            self.add_log('republish_task', target_id=self.task['_id'], content=dict(task_type=self.task['task_type']))
+            self.add_log('republish_task', self.task['_id'], None,
+                         dict(task_type=self.task['task_type'], doc_id=self.task.get('doc_id') or ''))
             return self.send_data_response()
 
         except self.DbError as error:
@@ -204,7 +205,8 @@ class AssignTasksApi(TaskHandler):
                 for t in to_assign:
                     self.update_page_status(self.STATUS_PICKED, t)
             self.send_data_response({k: i for k, i in log.items() if i})
-            self.add_log('assign_task', target_id=target_ids, content=dict(task_type=task_type, username=username))
+            self.add_log('assign_task', target_ids, None,
+                         dict(task_type=task_type, username=username, doc_id=[t.get('doc_id') for t in to_assign]))
 
         except self.DbError as error:
             return self.send_db_error(error)

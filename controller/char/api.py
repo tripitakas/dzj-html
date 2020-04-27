@@ -28,7 +28,7 @@ class CharGenImgApi(CharHandler):
             # 启动脚本，生成字图
             script = 'nohup python3 %s/utils/extract_img.py --username=%s --regen=%s >> log/extract_img.log 2>&1 &'
             script = script % (h.BASE_DIR, self.username, int(self.data.get('regen') in ['是', True]))
-            print(script)
+            # print(script)
             os.system(script)
             self.send_data_response()
 
@@ -36,37 +36,32 @@ class CharGenImgApi(CharHandler):
             return self.send_db_error(error)
 
 
-class CharUpdateApi(CharHandler):
-    URL = '/api/char/@char_name'
+class CharTxtApi(CharHandler):
+    URL = '/api/char/txt/@char_name'
 
     def post(self, char_name):
         """ 更新字符的txt"""
-
-        def check_level():
-            # todo 简单检查，还需进一步完善
-            has_data_level = self.get_user_level('txt') >= (char.get('txt_level') or 0)
-            updated_count = len(char.get('txt_logs') or [])
-            is_count_qualified = self.get_updated_char_count() >= updated_count * 100
-            return has_data_level and is_count_qualified
 
         try:
             rules = [(v.not_empty, 'txt', 'edit_type'), (v.is_proof_txt, 'txt')]
             self.validate(self.data, rules)
             char = self.db.char.find_one({'name': char_name})
             if not char:
-                self.send_error_response(e.no_object, message='没有找到字符')
-            if not check_level() and char.get('txt_logs')[-1]['user_id'] != self.user_id:
-                self.send_error_response(e.data_level_unqualified, message='数据等级不够')
-
+                return self.send_error_response(e.no_object, message='没有找到字符')
+            # 检查数据等级和积分
+            self.check_level_and_point(self, char, 'txt', self.data['edit_type'])
+            # 检查参数，设置更新
             r = re.findall(r'[XYMN*]', self.data['txt'])
             if r:
                 self.data['txt_type'] = r[0]
                 self.data['txt'] = self.data['txt'].replace(r[0], '')
+            update = {k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)}
+            if h.cmp_obj(update, char, ['txt', 'txt_type', 'ori_txt']):
+                return self.send_error_response(e.not_changed)
 
             my_log = {k: self.data[k] for k in ['txt', 'ori_txt', 'remark', 'edit_type'] if self.data.get(k)}
             my_log.update({'txt_type': self.data.get('txt_type'), 'updated_time': self.now()})
-            new_log = True
-            logs = char.get('txt_logs') or []
+            new_log, logs = True, char.get('txt_logs') or []
             for i, log in enumerate(logs):
                 if log['user_id'] == self.user_id:
                     logs[i].update(my_log)
@@ -74,47 +69,64 @@ class CharUpdateApi(CharHandler):
             if new_log:
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
-            update = {'txt_logs': logs, 'data_level': self.get_edit_level('txt', self.data['edit_type'])}
-            update.update({k: self.data[k] for k in ['txt', 'txt_type', 'ori_txt'] if self.data.get(k)})
+            update.update({'txt_logs': logs, 'txt_level': self.get_user_level(self, 'txt', self.data['edit_type'])})
+            # 更新char表
             self.db.char.update_one({'name': char_name}, {'$set': update})
             self.send_data_response(dict(txt_logs=logs))
+            self.add_log('update_txt', char['_id'], char['name'], update)
 
         except self.DbError as error:
             return self.send_db_error(error)
 
 
-class CharTxtApi(CharHandler):
-    URL = '/api/char/txt'
+class CharsTxtApi(CharHandler):
+    URL = '/api/chars/txt'
 
     def post(self):
         """ 批量更新txt"""
         try:
-            rules = [(v.not_empty, 'names', 'txt')]
+            rules = [(v.not_empty, 'names', 'txt', 'edit_type')]
             self.validate(self.data, rules)
-            cond = {'name': {'$in': self.data['names']}, 'txt': {'$ne': self.data['txt']}}
-            chars = list(self.db.char.find(cond, {'name': 1, 'txt_logs': 1}))
-            new_update, old_update = [], []
-            for c in chars:
-                # todo 还需要进一步检查权限
-                if c.get('txt_logs') and [log for log in c['txt_logs'] if log.get('user_id') == self.user_id]:
-                    old_update.append(c['name'])
+            log = dict(un_changed=[], level_unqualified=[], point_unqualified=[])
+            chars = list(self.db.char.find({'name': {'$in': self.data['names']}, 'txt': {'$ne': self.data['txt']}}))
+            log['un_changed'] = set(self.data['names']) - set(c['name'] for c in chars)
+            # 检查数据权限和积分
+            qualified = []
+            for char in chars:
+                r = self.check_level_and_point(self, char, 'txt', self.data['edit_type'], False)
+                if isinstance(r, tuple):
+                    if r[0] == e.data_level_unqualified[0]:
+                        log['level_unqualified'].append(char['name'])
+                    elif r[0] == e.data_point_unqualified[0]:
+                        log['point_unqualified'].append(char['name'])
                 else:
-                    new_update.append(c['name'])
+                    qualified.append(char)
 
-            self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': {'txt': self.data['txt']}})
+            # 检查用户是否修改过字符
+            new_update, old_update = [], []
+            for char in qualified:
+                if char.get('txt_logs') and [log for log in char['txt_logs'] if log.get('user_id') == self.user_id]:
+                    old_update.append(char['name'])
+                else:
+                    new_update.append(char['name'])
 
+            # 更新char表的txt/txt_level/txt_logs字段
+            self.db.char.update_many({'name': {'$in': new_update + old_update}}, {'$set': {
+                'txt': self.data['txt'], 'txt_level': self.get_user_level(self, 'txt', self.data['edit_type'])
+            }})
             if new_update:
                 self.db.char.update_many({'name': {'$in': new_update}}, {'$addToSet': {'txt_logs': {
-                    'txt': self.data['txt'], 'edit_type': self.data.get('edit_type') or 'raw_edit',
+                    'txt': self.data['txt'], 'edit_type': self.data['edit_type'],
                     'user_id': self.user_id, 'username': self.username, 'create_time': self.now()
                 }}})
             if old_update:
                 cond = {'name': {'$in': old_update}, 'txt_logs.user_id': self.user_id}
                 self.db.char.update_many(cond, {'$set': {'txt_logs.$': {
-                    'txt': self.data['txt'], 'edit_type': self.data.get('edit_type') or 'raw_edit',
+                    'txt': self.data['txt'], 'edit_type': self.data['edit_type'],
                     'updated_time': self.now()
                 }}})
             self.send_data_response()
+            self.add_log('update_txt', None, new_update + old_update, dict(txt=self.data['txt']))
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -134,6 +146,7 @@ class CharSourceApi(CharHandler):
                 condition = Char.get_char_search_condition(self.data['search'])[0]
             r = self.db.char.update_many(condition, {'$set': {'source': self.data['source']}})
             self.send_data_response(dict(matched_count=r.matched_count))
+            self.add_log('update_char', self.data['_ids'], None, dict(source=self.data['source']))
 
         except self.DbError as error:
             return self.send_db_error(error)

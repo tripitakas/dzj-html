@@ -73,6 +73,7 @@ data_is_locked = 4001, '数据已经被其他人锁定'
 data_lock_failed = 4002, '数据锁定失败'
 data_lock_unqualified = 4003, '没有数据资质'
 data_level_unqualified = 4004, '数据等级不够'
+data_point_unqualified = 4005, '任务积分不够'
 
 img_unavailable = 5001, '图片尚未就绪'
 page_code_error = 5002, '页面编码有误'

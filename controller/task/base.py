@@ -14,11 +14,9 @@
 """
 import re
 import random
-from datetime import datetime
 from bson.objectid import ObjectId
 from controller import errors as e
 from controller.task.task import Task
-from controller.task.lock import Lock
 from controller.base import BaseHandler
 
 

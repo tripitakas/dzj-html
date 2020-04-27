@@ -80,8 +80,8 @@ role_route_maps = {
             '/api/page/cmp_txt/neighbor': ['POST'],
             '/api/page/txt/(diff|detect_chars)': ['POST'],
             '/char/@char_name': ['GET'],
-            '/api/char/txt': ['POST'],
-            '/api/char/@char_name': ['POST'],
+            '/api/chars/(txt|box)': ['POST'],
+            '/api/char/(txt|box)/@char_name': ['POST'],
         }
     },
     '切分校对员': {
@@ -133,7 +133,6 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_proof': ['GET'],
             '/api/task/pick/cluster_proof': ['POST'],
             '/task/(do|update)/cluster_proof/@task_id': ['GET'],
@@ -144,7 +143,6 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/cluster_review': ['GET'],
             '/api/task/pick/cluster_review': ['POST'],
             '/task/(do|update)/cluster_review/@task_id': ['GET'],
@@ -155,7 +153,6 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_proof': ['GET'],
             '/api/task/pick/separate_proof': ['POST'],
             '/task/(do|update)/separate_proof/@task_id': ['GET'],
@@ -166,7 +163,6 @@ role_route_maps = {
         'is_assignable': True,
         'roles': ['工作人员'],
         'routes': {
-            '/api/char/@char_name': ['POST'],
             '/task/(lobby|my)/separate_review': ['GET'],
             '/api/task/pick/separate_review': ['POST'],
             '/task/(do|update)/separate_review/@task_id': ['GET'],

@@ -4,6 +4,7 @@
 import re
 from .char import Char
 from controller import auth
+from controller import errors as e
 from controller import helper as hp
 from controller.task.base import TaskHandler
 
@@ -69,6 +70,14 @@ class CharHandler(TaskHandler, Char):
         return counts[0]['count']
 
     @staticmethod
+    def get_required_level(char, field):
+        assert field in ['box', 'txt']
+        if field == 'box':
+            return char.get('box_level') or 0
+        if field == 'txt':
+            return char.get('txt_level') or 0
+
+    @staticmethod
     def get_required_point(char, field):
         """ 获取修改char的box、txt所需的积分"""
         assert field in ['box', 'txt']
@@ -86,3 +95,25 @@ class CharHandler(TaskHandler, Char):
                 if count:
                     return task_type, count * ratio.get(task_type)
             return 'cluster_proof', 1000
+
+    @staticmethod
+    def check_level_and_point(self, char, field, edit_type, send_error_response=True):
+        """ 检查数据等级和积分"""
+        required_level = self.get_required_level(char, field)
+        user_level = self.get_user_level(self, field, edit_type)
+        if int(user_level) < int(required_level):
+            msg = '该字符数据等级为%s，您的文字数据等级(%s)不够' % (required_level, user_level)
+            if send_error_response:
+                return self.send_error_response(e.data_level_unqualified, message=msg)
+            else:
+                return e.data_level_unqualified[0], msg
+        if edit_type == 'raw_edit':
+            required_task_type, required_point = self.get_required_point(char, field)
+            user_point = self.get_user_point(self, required_task_type)
+            if int(user_point) < int(required_point):
+                msg = '该字符需要在%s任务上有%s个积分，您的积分(%s)不够' % (required_task_type, required_point, user_point)
+                if send_error_response:
+                    return self.send_error_response(e.data_point_unqualified, message=msg)
+                else:
+                    return e.data_point_unqualified[0], msg
+        return True

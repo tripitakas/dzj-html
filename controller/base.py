@@ -278,12 +278,12 @@ class BaseHandler(CorsMixin, RequestHandler):
     def get_config(self, key):
         return self.prop(self.config, key)
 
-    def add_log(self, op_type, target_id=None, content=None, remark=None):
-        logging.info('%s,username=%s,target_ids=%s,context=%s' % (op_type, self.username, target_id, content))
+    def add_log(self, op_type, target_id=None, target_name=None, content=None, remark=None):
+        logging.info('%s,username=%s,id=%s,context=%s' % (op_type, self.username, target_id, content))
         try:
             self.db.log.insert_one(dict(
-                op_type=op_type, target_id=target_id, content=content, remark=remark,
-                username=self.username, user_id=self.user_id,
+                op_type=op_type, target_id=target_id, target_name=target_name, content=content,
+                remark=remark, username=self.username, user_id=self.user_id,
                 ip=self.get_ip(), create_time=self.now(),
             ))
         except self.MongoError:
