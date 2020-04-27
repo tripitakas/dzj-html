@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# python3 utils/add_pages.py --json_path=切分文件路径 [--img_path=页面图路径] [--txt_path=经文路径] [--kind=藏经类别码]
 # python3 utils/update_db.py --uri=uri --func=init_variants
-
 
 import re
 import sys
@@ -10,6 +8,7 @@ import math
 import pymongo
 from os import path
 from datetime import datetime
+from pymongo.errors import PyMongoError
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -87,6 +86,23 @@ def update_cid(db):
             if update:
                 db.page.update_one({'_id': page['_id']}, {'$set': update})
             print('processing %s: %s' % (page['name'], 'updated' if update else 'keep'))
+
+
+def index_db(db):
+    """ 给数据库增加索引"""
+    fields2index = {
+        'user': ['name', 'email', 'phone'],
+        'char': ['name', 'uid', 'source', 'ocr_txt', 'txt', 'cc', 'sc',
+                 'page_name', 'data_level', 'has_img'],
+        'page': ['name', 'page_code', 'source', 'level.box', 'level.text'],
+        'task': ['task_type', 'collection', 'id_name', 'doc_id', 'status'],
+    }
+    for collection, fields in fields2index.items():
+        for field in fields:
+            try:
+                db[collection].create_index(field)
+            except PyMongoError as e:
+                print(e)
 
 
 def main(db_name='tripitaka', uri='localhost', func='update_cid'):
