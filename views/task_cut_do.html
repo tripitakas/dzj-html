@@ -178,6 +178,8 @@
 <script>
   // 页面图
   var canvasName = taskType + step + docId;
+  var cutStep = parseInt('{{handler.mode != "browse" and handler.data.get("cut_step") or 0}}');
+
   $.cut.create({
     holder: 'holder',
     name: canvasName,
@@ -345,8 +347,6 @@
     $.cut.switchHighlightBoxes(type);
   });
 
-  var cutStep = parseInt('{{handler.mode != "browse" and handler.data.get("cut_step") or 0}}');
-
   function updateCutStep(showBoxes) {
     $('[data-target="#taskConfigModal"]').toggle(!cutStep);
     $('#next-step').toggle(!cutStep);
@@ -402,6 +402,10 @@
     updateCutStep(true);
   });
   $('#finish-box').click(function () {
+    {% if handler.readonly %}
+    cutStep = 0;
+    updateCutStep(true);
+    {% else %}
     saveTask(false, null, function (submit, res) {
       if (res.valid) {
         cutStep = 0;
@@ -410,6 +414,7 @@
         afterSaved(false, res);
       }
     });
+    {% end %}
   });
 
 </script>
