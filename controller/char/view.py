@@ -304,7 +304,7 @@ class CharTaskClusterHandler(CharHandler):
             if update == 'all':
                 cond['txt_logs'] = {'$nin': [None, []]}
             # 查找单字数据
-            self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or 50))
+            self.page_size = int(json_util.loads(self.get_secure_cookie('cluster_page_size') or '50'))
             docs, pager, q, order = Char.find_by_page(self, cond, default_order='cc')
             chars = {str(d['_id']): d for d in docs}
             column_url = ''
