@@ -24,7 +24,7 @@ class PageTool(BoxOrder):
         """ 过滤掉页面之外的切分框"""
 
         def valid(box):
-            page_box = dict(x=0, y=0, w=width, h=height)
+            page_box = dict(x=2, y=2, w=width - 4, h=height - 4)
             is_valid = cls.box_overlap(box, page_box, True)
             if is_valid:
                 box['x'] = 0 if box['x'] < 0 else box['x']
