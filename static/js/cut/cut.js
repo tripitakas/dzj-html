@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-04-05
+ * Date: 2020-04-27
  */
 (function () {
   'use strict';
@@ -1039,11 +1039,14 @@
       }
     },
 
-    toggleBox: function (visible, cls, boxIds) {
+    toggleBox: function (visible, cls, boxIds, readonly) {
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
-          if (!$(box.shape.node).hasClass('flash'))
-            $(box.shape.node).toggle(!!visible);
+          if (!$(box.shape.node).hasClass('flash')) {
+            $(box.shape.node).toggle(visible || !!readonly);
+            box.shape.data('readonly', readonly);
+            box.shape.attr({opacity: readonly ? 0.3 : 1});
+          }
         }
       });
       if (window.showHighLightCount) {

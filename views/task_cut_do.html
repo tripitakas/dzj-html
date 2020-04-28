@@ -47,6 +47,21 @@
 </div>
 {% end %}
 
+{% block task-actions %}
+  <img src="{{static_url('imgs/loading.gif')}}" class="btn-img hide" id="progress" title="进行中"/>
+  <img src="{{static_url('imgs/icon_config.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" data-toggle="modal" data-target="#taskConfigModal" title="任务配置"/>
+  <img src="{{static_url('imgs/icon_prev.png')}}" class="btn-img {{'hide' if handler.steps.get('is_first') else ''}}" id="prev-step" title="上一步"/>
+  <img src="{{static_url('imgs/icon_return.png')}}" class="btn-img {{'' if handler.mode == 'do' else 'hide'}}" data-toggle="modal" data-target="#returnModal" title="退回"/>
+  <img src="{{static_url('imgs/icon_save.png')}}" class="btn-img {{'hide' if handler.readonly else ''}}" id="save-task" title="保存"/>
+  <img src="{{static_url('imgs/icon_next.png')}}" class="btn-img {{'hide' if handler.steps.get('is_last') else ''}}" id="next-step" title="下一步"/>
+  <img src="{{static_url('imgs/icon_submit.png')}}" class="btn-img {{'' if handler.steps.get('is_last') and not handler.readonly else 'hide'}}" id="submit-task" title="提交"/>
+
+  <img src="{{static_url('imgs/icon_char_1.png')}}" class="btn-img step-box active" id="step-char" title="字框校对"/>
+  <img src="{{static_url('imgs/icon_column_2.png')}}" class="btn-img step-box" id="step-column" title="列框校对"/>
+  <img src="{{static_url('imgs/icon_block_3.png')}}" class="btn-img step-box" id="step-block" title="栏框校对"/>
+  <img src="{{static_url('imgs/char_icon9.png')}}" class="btn-img" id="finish-box" title="确认切分框"/>
+{% end %}
+
 {% block full-bd %}
 <div class="bd" id="holder-container">
   {% if handler.readonly %}
@@ -183,39 +198,33 @@
     $.cut.data.image.node.style.opacity = 0.2;
   }
 
-  var blockActive = localStorage.getItem('toggleBlock') || '-1';
-  if (blockActive === '1') {
-    $('#toggle-block').addClass('active');
-    $.cut.toggleBox(true, 'block');
-  } else {
-    $('#toggle-block').removeClass('active');
-    $.cut.toggleBox(false, 'block');
-  }
+  function updateThreeBoxes(blockActive, columnActive, charActive) {
+    if (blockActive === undefined) {
+      blockActive = localStorage.getItem('toggleBlock') || '-1';
+      columnActive = localStorage.getItem('toggleColumn') || '-1';
+      charActive = localStorage.getItem('toggleChar') || '1';
+    }
 
-  var columnActive = localStorage.getItem('toggleColumn') || '-1';
-  if (columnActive === '1') {
-    $('#toggle-column').addClass('active');
-    $.cut.toggleBox(true, 'column');
-  } else {
-    $('#toggle-column').removeClass('active');
-    $.cut.toggleBox(false, 'column');
-  }
+    $('#toggle-block').toggleClass('active', blockActive === '1');
+    $.cut.toggleBox(blockActive === '1', 'block');
 
-  var charActive = localStorage.getItem('toggleChar') || '1';
-  if (charActive === '1') {
-    $('#toggle-char').addClass('active');
-    $.cut.toggleBox(true, 'char');
-  } else {
-    $('#toggle-char').removeClass('active');
-    $.cut.toggleBox(false, 'char');
+    $('#toggle-column').toggleClass('active', columnActive === '1');
+    $.cut.toggleBox(columnActive === '1', 'column');
+
+    $('#toggle-char').addClass('active', charActive === '1');
+    $.cut.toggleBox(charActive === '1', 'char');
   }
 
   $.cut.state.canHitBox = function (el) {
     var cls = el.data('class');
-    var charActive = $('#toggle-char').hasClass('active');
-    var blockActive = $('#toggle-block').hasClass('active');
-    var columnActive = $('#toggle-column').hasClass('active');
+    var charActive = cutStep ? cutStep === 1 : $('#toggle-char').hasClass('active');
+    var blockActive = cutStep ? cutStep === 3 : $('#toggle-block').hasClass('active');
+    var columnActive = cutStep ? cutStep === 2 : $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
+
+    if (el.data('readonly')) {
+      return false;
+    }
     if ((charActive || threeActive) && cls === 'char') {
       return true;
     }
@@ -228,10 +237,11 @@
   };
 
   $.cut.onBoxChanged(function (info, box, reason) {
+    var charActive = cutStep ? cutStep === 1 : $('#toggle-char').hasClass('active');
+    var blockActive = cutStep ? cutStep === 3 : $('#toggle-block').hasClass('active');
+    var columnActive = cutStep ? cutStep === 2 : $('#toggle-column').hasClass('active');
+
     if (reason === 'added') {
-      var charActive = $('#toggle-char').hasClass('active');
-      var blockActive = $('#toggle-block').hasClass('active');
-      var columnActive = $('#toggle-column').hasClass('active');
       var active = (charActive ? 'char' : '') + (columnActive ? 'column' : '') + (blockActive ? 'block' : '');
       if (active.length > 6) {
         $.cut.removeBox();
@@ -254,10 +264,15 @@
     } else if (reason === 'navigate') {
       $('#cut-info > .cur-char').text('当前字框: ' + ($.cut.getCurrentCharID(true) || '未选中')
           + (info && info.is_small ? '，小字' : '') + ' ' + (info && info.txt || ''));
-    } else if (reason === 'initial') {
+    } else if (reason === 'initial' || reason === 'undo') {
       var invalid = $.cut.data.chars.map(function (c) {
         return /b0c/.test(c.char_id) && c.char_id;
-      });
+      }).filter(function (c) { return c; });
+      if (invalid.length) {
+        var n1 = invalid[0].split('c').length;
+        cutStep = n1 > 1 ? 1 : n1 == 1 ? 2 : 3;
+      }
+      updateCutStep(true);
       $.cut.toggleClass(invalid, 'flash', true);
       $.cut.toggleBox(true, null, invalid);
     }
@@ -281,7 +296,7 @@
 <script>
   $(document).ready(function () {
     var autoAdjust = null; // localStorage.getItem('autoAdjust') || '是';
-    if (autoAdjust.length) {
+    if (autoAdjust && autoAdjust.length) {
       $('#taskConfigModal .auto-adjust :radio[value=' + autoAdjust + ']').prop('checked', true);
     }
     var detectCol = localStorage.getItem('detectCol') || '是';
@@ -292,9 +307,10 @@
 
   // 获取任务数据
   function getSubmitData(submit) {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked').val();
+    var autoAdjust = false; // $('#taskConfigModal .auto-adjust :checked').val();
     var detectCol = $('#taskConfigModal .detect-col :checked').val();
     return {
+      cut_step: cutStep,
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
       chars: $.cut.exportBoxes('char'), submit: submit, step: steps['current'],
       auto_adjust: autoAdjust === '是', detect_col: detectCol === '是'
@@ -303,8 +319,8 @@
 
   // 是否自动调整栏框、列框大小，自适应检测字框在多列的情况
   $('#taskConfigModal .modal-confirm').click(function () {
-    var autoAdjust = $('#taskConfigModal .auto-adjust :checked');
-    if (autoAdjust.length)
+    var autoAdjust = !cutStep && $('#taskConfigModal .auto-adjust :checked');
+    if (autoAdjust && autoAdjust.length)
       localStorage.setItem('autoAdjust', autoAdjust.val());
     var detectCol = $('#taskConfigModal .detect-col :checked');
     if (detectCol.length)
@@ -327,6 +343,73 @@
   $('.hl-box > button').click(function () {
     var type = this.getAttribute('id').replace(/^.*-/, '');
     $.cut.switchHighlightBoxes(type);
+  });
+
+  var cutStep = parseInt('{{handler.mode != "browse" and handler.data.get("cut_step") or 0}}');
+
+  function updateCutStep(showBoxes) {
+    $('[data-target="#taskConfigModal"]').toggle(!cutStep);
+    $('#next-step').toggle(!cutStep);
+    $('#prev-step').toggle(!cutStep);
+    $('#submit-task').toggle(!cutStep);
+
+    $('#toggle-three').toggle(!cutStep);
+    $('#toggle-block').toggle(!cutStep);
+    $('#toggle-column').toggle(!cutStep);
+    $('#toggle-char').toggle(!cutStep);
+
+    $('#step-block').toggle(!!cutStep);
+    $('#step-char').toggle(!!cutStep);
+    $('#step-column').toggle(!!cutStep);
+    $('#finish-box').toggle(!!cutStep);
+
+    $('#step-block').toggleClass('active', cutStep === 3);
+    $('#step-char').toggleClass('active', cutStep === 1);
+    $('#step-column').toggleClass('active', cutStep === 2);
+
+    if (showBoxes) {
+      $.cut.switchCurrentBox(null);
+      if (cutStep) {
+        $.cut.toggleBox(cutStep === 3, 'block');
+        $.cut.toggleBox(cutStep === 1, 'char', null, cutStep > 1);
+        $.cut.toggleBox(cutStep === 2, 'column', null, cutStep > 2);
+      }
+      else {
+        updateThreeBoxes();
+      }
+
+      var invalid = $.cut.data.chars.map(function (c) {
+        return /b0c/.test(c.char_id) && c.char_id;
+      }).filter(function (c) { return c; });
+      $.cut.toggleClass(invalid, 'flash', true);
+      setTimeout(function () {
+        $.cut.toggleClass(invalid, 'flash', false);
+      }, 2000);
+    }
+  }
+  updateCutStep(true);
+
+  $('#step-block').click(function () {
+    cutStep = 3;
+    updateCutStep(true);
+  });
+  $('#step-char').click(function () {
+    cutStep = 1;
+    updateCutStep(true);
+  });
+  $('#step-column').click(function () {
+    cutStep = 2;
+    updateCutStep(true);
+  });
+  $('#finish-box').click(function () {
+    saveTask(false, null, function (submit, res) {
+      if (res.valid) {
+        cutStep = 0;
+        updateCutStep(true);
+      } else {
+        afterSaved(false, res);
+      }
+    });
   });
 
 </script>
