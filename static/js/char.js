@@ -192,7 +192,7 @@ $('#submit-txt').on('click', function () {
 // 提交字框修改
 $('#submit-box').on('click', function () {
   var name = $('#currentName').val();
-  var data = {'pos': $.cut.getBox(), 'edit_type': editType};
+  var data = {'pos': getBox(), 'edit_type': editType};
   postApi('/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
   });
