@@ -1,6 +1,6 @@
 // 初始化
 $(document).ready(function () {
-  getAnchor() ? $('#' + getAnchor()).click() : $('.char-img:first').click();
+  getAnchor() ? $('#' + getAnchor()).find('.char-img').click() : $('.char-img:first').click();
 });
 
 // 更新列图
@@ -167,10 +167,8 @@ $('.char-panel .char-info').on('click', function () {
 $('#submit-txt').on('click', function () {
   var name = $('#currentName').val();
   var data = {
-    edit_type: typeof editType !== 'undefined' ? editType : 'raw_edit',
-    txt: $('.proof .txt').val(),
-    ori_txt: $('.proof .ori-txt').val() || '',
-    remark: $('.proof .remark').val() || '',
+    txt: $('.proof .txt').val(), ori_txt: $('.proof .ori-txt').val() || '',
+    remark: $('.proof .remark').val() || '', edit_type: editType,
   };
   postApi('/char/txt/' + name, {data: data}, function (res) {
     updateLogs(res.txt_logs);
@@ -192,7 +190,7 @@ $('#submit-txt').on('click', function () {
 // 提交字框修改
 $('#submit-box').on('click', function () {
   var name = $('#currentName').val();
-  var data = {'pos': $.cut.getBox(), 'edit_type': editType};
+  var data = {'pos': getBox()['pos'], 'edit_type': editType};
   postApi('/char/box/' + name, {data: data}, function (res) {
     bsShow('成功！', '已保存成功', 'success', 1000);
   });

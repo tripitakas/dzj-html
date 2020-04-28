@@ -49,7 +49,7 @@ class CharBoxApi(CharHandler):
             char = self.db.char.find_one({'name': char_name})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到字符%s' % char_name)
-            page = self.db.page.find_one({'name': page_name, 'chars.cid': cid}, {'name': 1, 'chars.$': 1})
+            page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, {'name': 1, 'chars.$': 1})
             if not char:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             # 检查数据等级和积分
