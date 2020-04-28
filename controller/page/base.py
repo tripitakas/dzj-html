@@ -8,6 +8,7 @@ from controller import auth
 from tornado.escape import url_escape
 from controller.page.page import Page
 from controller.task.base import TaskHandler
+from controller.char.base import CharHandler
 
 
 class PageHandler(TaskHandler, Page, Box):
@@ -20,40 +21,34 @@ class PageHandler(TaskHandler, Page, Box):
         self.pop_fields(page['blocks'], 'box_logs')
         self.pop_fields(page['columns'], 'box_logs')
 
-    def can_write(self, box, data_type, write_type='raw'):
+    def can_write(self, box, edit_type):
         """ 检查写权限"""
-        user_level = self.get_user_level(data_type)
-        level_ok = user_level >= (box.get(data_type) or 0)
-        if write_type == 'task':
-            return level_ok
-        else:
-            user_point = self.get_user_point(data_type)
-            box_point = self.get_box_point(box, data_type)
-            point_ok = user_point >= box_point
-            return point_ok and level_ok
+        # todo 待完善
+        r = CharHandler.check_level_and_point(self, box, 'box', edit_type, False) is True
+        return r or True
 
-    def set_box_access(self, page, write_type='raw'):
+    def set_box_access(self, page, edit_type):
         """ 设置切分框的读写权限"""
         for b in page['blocks']:
-            b['readonly'] = not self.can_write(b, 'box', write_type)
+            b['readonly'] = not self.can_write(b, edit_type)
         for b in page['chars']:
-            b['readonly'] = not self.can_write(b, 'box', write_type)
+            b['readonly'] = not self.can_write(b, edit_type)
         for b in page['columns']:
-            b['readonly'] = not self.can_write(b, 'box', write_type)
+            b['readonly'] = not self.can_write(b, edit_type)
 
-    def merge_post_boxes(self, post_boxes, box_type, page, write_type='raw'):
+    def merge_post_boxes(self, post_boxes, box_type, page, edit_type='raw_edit'):
         """ 合并用户提交和数据库中已有数据"""
         post_box_dict = {b['cid']: b for b in post_boxes if b.get('cid')}
         # 检查删除
         post_cids = [b['cid'] for b in post_boxes if b.get('cid')]
         to_delete = [b for b in page[box_type] if b['cid'] not in post_cids]
-        can_delete = [b['cid'] for b in to_delete if self.can_write(b, 'box', write_type)]
+        can_delete = [b['cid'] for b in to_delete if self.can_write(b, edit_type)]
         cannot_delete = [b['cid'] for b in to_delete if b['cid'] not in can_delete]
         boxes = [b for b in page[box_type] if b['cid'] not in can_delete]
         # 检查修改
         change_cids = [b.get('cid') for b in post_boxes if b.get('changed') is True]
         to_change = [b for b in boxes if b['cid'] in change_cids]
-        can_change = [b for b in to_change if self.can_write(b, 'box', write_type)]
+        can_change = [b for b in to_change if self.can_write(b, edit_type)]
         cannot_change = [b['cid'] for b in to_change if b['cid'] not in can_delete]
         for b in can_change:
             b.pop('changed', 0)

@@ -229,40 +229,28 @@
     location.href = '/page/order{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
   });
 
-  saveData = function (submit, jumpUrl) {
-    var taskType = '{{handler.task_type if handler.is_task else ""}}';
-    var data = {
+  // 获取提交数据
+  function getPostData() {
+    return {
       blocks: $.cut.exportBoxes('block'), columns: $.cut.exportBoxes('column'),
-      chars: $.cut.exportBoxes('char'), auto_adjust: true, task_type: taskType,
+      chars: $.cut.exportBoxes('char'), auto_adjust: true
     };
+  }
+
+  // 保存数据
+  $('#save').on('click', function () {
     bsLoading('保存中‧‧‧');
-    postApi('/page/box/{{page["name"]}}', {data: data}, function (res) {
+    postApi('/page/box/{{page["name"]}}', {data: getPostData()}, function (res) {
       if (res.valid) {
         bsShow('成功!', '已保存。');
-        if (submit) {
-          postApi(location.pathname, {data: {submit: true, step: 'box'}}, function () {
-            location.href = setQueryString('step', 'order');
-          });
-        } else if (jumpUrl) {
-          location.href = jumpUrl;
-        }
       } else {
         // 高亮未被覆盖的框
         $.cut.toggleClass(res['out_boxes'], res['box_type'], 'highlight flash', true);
         $.cut.toggleBox(true, res['box_type'], res['out_boxes']);
-        // 提示
         let tips = `检测到<b style="color:red">${res.message}</b>并高亮显示。`;
-        if (jumpUrl) {
-          tips += `<a href="${jumpUrl}">继续</a>`;
-        }
         bsShow('已保存，发现错误!', tips, 'warning');
       }
     });
-  };
-
-  // 保存数据
-  $('#save').on('click', function () {
-    saveData();
   });
 
 </script>

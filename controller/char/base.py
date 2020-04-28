@@ -63,11 +63,9 @@ class CharHandler(TaskHandler, Char):
     @staticmethod
     def get_user_point(self, task_type):
         """ 针对指定的任务类型，获取用户积分"""
-        counts = list(self.db.task.aggregate([
-            {'$match': {'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED}},
-            {'$group': {'count': {'$sum': 1}}},
-        ]))
-        return counts[0]['count']
+        return self.db.task.count_documents({
+            'task_type': task_type, 'picked_user_id': self.user_id, 'status': self.STATUS_FINISHED
+        })
 
     @staticmethod
     def get_required_level(char, field):

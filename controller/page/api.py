@@ -24,7 +24,9 @@ class PageBoxApi(PageHandler):
     def post(self, page_name):
         """ 提交切分校对"""
         try:
-            self.save_box(self, page_name)
+            r = self.save_box(self, page_name)
+            self.send_data_response(r)
+
         except self.DbError as error:
             return self.send_db_error(error)
 
@@ -35,11 +37,12 @@ class PageBoxApi(PageHandler):
             self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
         rules = [(v.not_empty, 'blocks', 'columns', 'chars')]
         self.validate(self.data, rules)
+        # todo 完善数据权限检查和日志记录
         update = self.get_box_update(self.data, page)
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})
         valid, message, box_type, out_boxes = self.check_box_cover(page)
-        self.send_data_response(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
-        self.add_log('update_box', target_id=page['_id'], content=page['name'])
+        self.add_log('update_box', target_id=page['_id'], target_name=page['name'])
+        return dict(valid=valid, message=message, box_type=box_type, out_boxes=out_boxes)
 
 
 class PageOrderApi(PageHandler):
@@ -49,6 +52,8 @@ class PageOrderApi(PageHandler):
         """ 提交字序校对"""
         try:
             self.save_order(self, page_name)
+            self.send_data_response()
+
         except self.DbError as error:
             return self.send_db_error(error)
 
@@ -62,11 +67,11 @@ class PageOrderApi(PageHandler):
             return self.send_error_response(e.cid_not_identical, message='检测到字框有增减，请刷新页面')
         if len(self.data['chars_col']) != len(page['columns']):
             return self.send_error_response(e.col_not_identical, message='提交的字序中列数有变化，请检查')
+        # todo 完善数据权限检查和日志记录
         chars = self.update_char_order(page['chars'], self.data['chars_col'])
         update = dict(chars=chars, chars_col=self.data['chars_col'])
         self.db.page.update_one({'_id': page['_id']}, {'$set': update})
-        self.send_data_response()
-        self.add_log('update_order', target_id=page['_id'], content=page['name'])
+        self.add_log('update_order', target_id=page['_id'], target_name=page['name'])
 
 
 class PageCutTaskApi(PageHandler):
@@ -76,22 +81,24 @@ class PageCutTaskApi(PageHandler):
     def post(self, task_type, task_id):
         """ 切分校对、审定页面"""
         try:
-            print('post api')
             rules = [(v.not_empty, 'step')]
             self.validate(self.data, rules)
 
             submitted = self.prop(self.task, 'steps.submitted') or []
             if self.data['step'] == 'box':
-                if 'box' not in submitted:
+                if self.data.get('submit') and 'box' not in submitted:
                     submitted.append('box')
                     self.db.task.update_one({'_id': self.task['_id']}, {'$set': {'steps.submitted': submitted}})
+                r = PageBoxApi.save_box(self, self.task['doc_id'])
+                self.send_data_response(r)
             elif self.data['step'] == 'order':
-                if 'box' not in submitted:
+                if self.data.get('submit') and 'order' not in submitted:
                     submitted.append('order')
-                update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted}
-                self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
-                self.update_page_status(self.STATUS_FINISHED, self.task)
-            self.send_data_response()
+                    update = {'status': self.STATUS_FINISHED, 'steps.submitted': submitted}
+                    self.db.task.update_one({'_id': self.task['_id']}, {'$set': update})
+                    self.update_page_status(self.STATUS_FINISHED, self.task)
+                PageOrderApi.save_order(self, self.task['doc_id'])
+                self.send_data_response()
 
         except self.DbError as error:
             return self.send_db_error(error)
@@ -218,8 +225,7 @@ class PageGenCharsApi(BaseHandler):
                 script = script % (h.BASE_DIR, '--page_names=' + ','.join(self.data['page_names']), self.username)
             elif self.data.get('search'):
                 condition = Page.get_page_search_condition(self.data['search'])[0] or {}
-                condition = json.dumps(condition)
-                script = script % (h.BASE_DIR, '--condition=' + condition, self.username)
+                script = script % (h.BASE_DIR, '--condition=' + json.dumps(condition), self.username)
             else:
                 script = script % (h.BASE_DIR, '--condition={}', self.username)
             print(script)
@@ -370,7 +376,7 @@ class PageTaskPublishApi(PageHandler):
                 self.create_tasks(page_names, self.STATUS_PUBLISHED)
                 log['published'] = page_names
 
-        return {k: list(v) for k, v in log.items() if v}
+        return {k: list(l) for k, l in log.items() if l}
 
     def create_tasks(self, page_names, status, pre_tasks=None):
         def get_task(page_name):

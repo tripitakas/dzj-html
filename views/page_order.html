@@ -225,39 +225,27 @@
     location.href = '/page/box{{"" if readonly else "/edit"}}/{{page["name"]}}' + from;
   });
 
-  // 保存数据
-  saveData = function (submit, jumpUrl) {
+  // 获取提交数据
+  function getPostData() {
     var r = $.cut.getCharsCol();
     if (!r.error && r.chars_col.length !== parseInt('{{len(page["columns"])}}')) {
       r.error = '列数有误，请检查是否有断开的列。';
     }
     if (r.error) {
-      return bsShow('失败！', r.error, 'warning');
+      bsShow('失败！', r.error, 'warning');
     }
-    var taskType = '{{handler.task_type if handler.is_task else ""}}';
-    var data = {chars_col: r.chars_col, task_type: taskType};
-    bsLoading('保存中‧‧‧');
-    postApi('/page/order/{{page["name"]}}', {data: data}, function () {
-      bsShow('成功!', '已保存。');
-      if (submit) {
-        postApi(location.pathname, {data: {submit: true, step: 'order'}}, function () {
-          var autoPick = getStorage('autoPick', '是');
-          if (mode === 'do' && autoPick === '是') {
-            showSuccess('提示', '已成功提交！将自动领取下一个任务。');
-            pick('/task/pick/' + taskType);
-          } else {
-            window.leave();
-          }
-        });
-      } else if (jumpUrl) {
-        location.href = jumpUrl;
-      }
-    });
-  };
+    return r;
+  }
 
   // 保存数据
   $('#save').on('click', function () {
-    saveData();
+    var data = getPostData();
+    if (data && !data.error) {
+      bsLoading('保存中‧‧‧');
+      postApi('/page/order/{{page["name"]}}', {data: data}, function () {
+        bsShow('成功!', '已保存。');
+      });
+    }
   });
 
 </script>

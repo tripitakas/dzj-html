@@ -1,7 +1,7 @@
 <div class="panel-body" style="padding: 0">
   {% module ReturnModal() %}
   {% module TaskRemarkModal() %}
-  {% module TaskConfigModal(handler.config_fields or []) %}
+  {% module TaskConfigModal(handler.config_fields if hasattr(handler, 'config_fields') else []) %}
 </div>
 
 <script src="{{static_url('js/task-pick.js')}}"></script>
@@ -12,6 +12,7 @@
   var taskId = '{{handler.task_id}}';
   var taskType = '{{handler.task_type}}';
   var steps = decodeJSON('{{handler.steps}}');
+  var step = '{{handler.steps.get("current") or ""}}';
   var readonly = '{{handler.readonly}}' === 'True';
   var remark = '{{handler.task.get("remark") or ""}}';
   var isSample = '{{"是" if handler.task.get("is_sample") else "否"}}';
@@ -61,15 +62,38 @@
     }
   };
 
-  // 步骤导航
-  var saveData = (submit, jumpUrl) => {
-    return true;
-  };
+  // 保存任务
+  function saveTask(submit, jumpUrl, saveEnded) {
+    var data = getPostData();
+    $.extend(data, {submit: submit, step: step});
+    if (data && !data.error) {
+      $('#progress').removeClass('hide');
+      postApi(location.pathname, {data: data}, function (res) {
+        $('#progress').addClass('hide');
+        if (saveEnded)
+          saveEnded(submit, res, jumpUrl);
+        else
+          location.href = jumpUrl;
+      });
+    }
+  }
 
+  // 提交之后
+  function afterSubmitted(submit, res, jumpUrl) {
+    var autoPick = localStorage.getItem('autoPick') || '是';
+    if (mode === 'do' && autoPick === '是') {
+      showSuccess('成功', '已成功提交！将自动领取下一个任务。');
+      pick('/task/pick/' + taskType);
+    } else {
+      window.leave();
+    }
+  }
+
+  // 跳转步骤
   function navigate(to) {
     var jumpUrl = setQueryString('step', steps[to]);
     if (!readonly) {
-      saveData(to === 'next', jumpUrl);
+      saveTask(to === 'next', jumpUrl);
     } else {
       location.href = jumpUrl;
     }
@@ -87,7 +111,7 @@
 
   // 提交任务
   $('#task-submit').on("click", function () {
-    saveData(true, null);
+    saveTask(true, null, afterSubmitted);
   });
 
   // 任务退回
