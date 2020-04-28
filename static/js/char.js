@@ -1,6 +1,6 @@
 // 初始化
 $(document).ready(function () {
-  getAnchor() ? $('#' + getAnchor()).click() : $('.char-item:first').click();
+  getAnchor() ? $('#' + getAnchor()).click() : $('.char-img:first').click();
 });
 
 // 更新列图
@@ -35,7 +35,7 @@ function updateColumnImg(ch) {
       ch.pos.w = c.w;
       ch.pos.h = c.h;
       return ch;
-    }
+    };
     return;
   }
 
@@ -74,7 +74,7 @@ function updateLogs(logs) {
 
 function updateWorkPanel(ch) {
   // 更新当前参数
-  $('.m-footer .name').text(ch.cid);
+  $('.m-footer .char-name').text(ch.cid);
   $('.m-footer .page-name').text(ch.page_name);
   $('#currentName').val(ch.name || ch.page_name + '_' + ch.cid);
   // 更新OCR候选
@@ -139,10 +139,10 @@ $('.txt-type .radio-item').click(function () {
 
 // 查看page页面
 $('.m-footer .page-name').on('click', function () {
-  var cid = $('#currentName').val();
-  var pageName = cid.split('_').slice(0, -1).join('_');
+  var names = $('#currentName').val().split('_');
+  var cid = names.pop(), pageName = names.join('_');
   if (cid && pageName)
-    window.open('/page/' + pageName + '?txt=off&char_id=' + cid, '_blank');
+    window.open('/page/' + pageName + '?txt=off&cid=' + cid, '_blank');
 });
 
 // 查看char页面
@@ -163,8 +163,8 @@ $('.char-panel .char-info').on('click', function () {
   $(this).parent().find(':checkbox').click();
 });
 
-// 提交修改
-$('#submit-proof').on('click', function () {
+// 提交文字修改
+$('#submit-txt').on('click', function () {
   var name = $('#currentName').val();
   var data = {
     edit_type: typeof editType !== 'undefined' ? editType : 'raw_edit',
@@ -172,7 +172,7 @@ $('#submit-proof').on('click', function () {
     ori_txt: $('.proof .ori-txt').val() || '',
     remark: $('.proof .remark').val() || '',
   };
-  postApi('/char/' + name, {data: data}, function (res) {
+  postApi('/char/txt/' + name, {data: data}, function (res) {
     updateLogs(res.txt_logs);
     location.href = setAnchor(name);
     data.txt_logs = res.txt_logs;
@@ -185,5 +185,15 @@ $('#submit-proof').on('click', function () {
     var no = $curItem.attr('class').substr(index + 5, 1);
     $curItem.removeClass('proof' + no).addClass('proof' + (parseInt(no) + 1));
     bsShow('成功！', '已保存成功', 'success', 1000, '#s-alert');
+  });
+});
+
+
+// 提交字框修改
+$('#submit-box').on('click', function () {
+  var name = $('#currentName').val();
+  var data = {'pos': $.cut.getBox(), 'edit_type': editType};
+  postApi('/char/box/' + name, {data: data}, function (res) {
+    bsShow('成功！', '已保存成功', 'success', 1000);
   });
 });

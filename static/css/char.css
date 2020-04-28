@@ -162,7 +162,7 @@
 .column-panel > :first-child {
   cursor: pointer;
   margin: 1px 0;
-  height: calc(100% - 3px);
+  height: calc(100% - 45px);
   overflow-y: hidden;
 }
 

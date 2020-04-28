@@ -35,7 +35,7 @@ class CharListHandler(CharHandler):
         {'id': 'cmp_txt', 'name': '比对文字'},
         {'id': 'alternatives', 'name': 'OCR候选'},
         {'id': 'txt_logs', 'name': '校对记录'},
-        {'id': 'txt_count', 'name': '文字次数'},
+        {'id': 'task_count', 'name': '校对任务次数'},
         {'id': 'remark', 'name': '备注'},
     ]
     operations = [

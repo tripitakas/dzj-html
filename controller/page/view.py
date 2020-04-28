@@ -158,10 +158,10 @@ class PageViewHandler(PageHandler):
 
             self.pack_boxes(page)
             txts = self.get_txts(page)
+            cid = self.get_query_argument('cid', '')
             img_url = self.get_web_img(page['name'])
             chars_col = self.get_chars_col(page['chars'])
             txt_off = self.get_query_argument('txt', None) == 'off'
-            cid = self.get_query_argument('char_name', '').split('_')[-1]
             self.render('page_view.html', page=page, img_url=img_url, chars_col=chars_col, txts=txts,
                         txt_off=txt_off, cur_cid=cid)
 
