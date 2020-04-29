@@ -135,7 +135,7 @@
 
   var data = {
     normalColor: '#158815',                   // 正常字框的线色
-    normalColor2: '#AA0000',                  // 另一列字框的的线色
+    normalColor2: '#7c6baa',                  // 另一列字框的的线色
     changedColor: '#C53433',                  // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
@@ -1047,7 +1047,8 @@
             box.shape.data('readonly', readonly);
             box.shape.attr({
         opacity: readonly ? 0.3 : 1,
-        stroke: readonly ? '#777' : (box.column_no || 0) % 2 ? data.normalColor2 : data.normalColor});
+        stroke: (box.column_no || 0) % 2 ?
+            readonly ? '#77f' : data.normalColor2 : readonly ? '#777' : data.normalColor});
           }
         }
       });
