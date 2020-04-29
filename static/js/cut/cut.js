@@ -1040,12 +1040,13 @@
     },
 
     toggleBox: function (visible, cls, boxIds, readonly) {
+      var attr = {opacity: readonly ? 0.3 : 1, stroke: readonly ? '#777' : data.normalColor};
       data.chars.forEach(function (box) {
         if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
             box.shape.data('readonly', readonly);
-            box.shape.attr({opacity: readonly ? 0.3 : 1});
+            box.shape.attr(attr);
           }
         }
       });
