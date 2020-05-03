@@ -12,7 +12,8 @@ import pymongo
 from glob2 import glob
 from tornado.util import PY3
 from datetime import datetime
-from os import path, listdir, makedirs, walk
+from os import path, makedirs, walk
+from operator import itemgetter
 
 BASE_DIR = path.dirname(path.dirname(__file__))
 sys.path.append(BASE_DIR)
@@ -166,6 +167,9 @@ class AddPage(object):
             layouts = ['上下一栏', '上下一栏', '上下两栏', '上下三栏']
             meta['layout'] = prop(info, 'layout') or layouts[len(info['blocks'])]
 
+            if name.startswith('JS_'):
+                self.fix_jin_san(info, meta, width)
+
             PageHandler.update_chars_cid(meta['chars'])
             if self.check_id and not self.check_ids(meta):
                 return False
@@ -174,12 +178,23 @@ class AddPage(object):
                 return meta
 
             info.pop('id', 0)
-            message = '%s:\t%d x %d chars=%d columns=%d blocks=%d'
-            print(message % (name, width, height, len(meta['chars']), len(meta['columns']), len(meta['blocks'])))
+            message = '%s:\t%d x %d chars=%d columns=%d blocks=%d layout=%s'
+            print(message % (name, width, height, len(meta['chars']), len(meta['columns']),
+                             len(meta['blocks']), meta['layout']))
 
             if self.reorder:
                 meta['blocks'], meta['columns'], meta['chars'] = PageTool.reorder_boxes(page=meta)
+                if len(meta['blocks']) == 1:  # 单栏页面的栏框原为整个页面，自动缩小为实际范围
+                    for col in meta['columns']:
+                        chars = [c for c in meta['chars'] if c['block_no'] == col['block_no']
+                                 and c['column_no'] == col['column_no']]
+                        for c in chars:
+                            col['y'] = min(col['y'], c['y'])
+                            col['h'] = max(col['y'] + col['h'], c['y'] + c['h']) - col['y']
+                    PageTool.adjust_blocks(meta['blocks'], meta['chars'])
 
+            with open('/Users/zyg/Desktop/lq/JS1/%s.json' % name, 'w') as f:
+                json.dump(meta, f, ensure_ascii=False)
             if exist and self.update:
                 meta.pop('create_time', 0)
                 r = self.db.page.update_one(dict(name=name), {'$set': meta})
@@ -192,6 +207,35 @@ class AddPage(object):
                 info['id'] = str(r.inserted_id)
 
             return r
+
+    @staticmethod
+    def fix_jin_san(info, meta, width):
+        # 得到所有列框的坐标范围
+        min_x = min(c['x'] for c in info['columns']) if info['columns'] else 0
+        max_x = max(c['x'] + c['w'] for c in info['columns']) if info['columns'] else 0
+        min_y = min(c['y'] for c in info['columns']) if info['columns'] else 0
+        max_y = max(c['y'] + c['h'] for c in info['columns']) if info['columns'] else 0
+        x1, x2 = 710, 796
+
+        # 去除完全重合的列框，得到左右页面的列框
+        columns = sorted(PageTool.deduplicate_columns2(meta['columns']), key=itemgetter('x'))
+        left_cols = columns and [c for c in columns if c['x'] + c['w'] < width / 2 and c['h'] > columns[0]['h'] / 3]
+        right_cols = columns and [c for c in columns if c['x'] > width / 2 and c['h'] > columns[0]['h'] / 3]
+        no_mid = len(left_cols) + len(right_cols) == len(columns) and not [
+            c for c in meta['chars'] if c['x'] > x1 and c['x'] + c['w'] < x2]
+
+        # 重置栏框
+        mid_blk = dict(x=x1, y=min_y, w=0 if no_mid else x2 - x1, h=max_y - min_y)
+        blocks = [dict(x=min_x, y=min_y, w=x1 - min_x, h=max_y - min_y), mid_blk,
+                  dict(x=x2, y=min_y, w=max_x - x2, h=max_y - min_y)]
+        meta['blocks'] = [c for c in blocks if c['w'] > 10]
+        meta['layout'] = '左右两栏' if len(meta['blocks']) == 3 else '上下一栏'
+
+        # 合并中缝列框
+        mid_columns = [c for c in columns if x1 - 5 < c['x'] and c['x'] + c['w'] < x2 + 5]
+        if mid_columns:
+            mid_columns[0].update(dict(x=mid_blk['x'], y=min_y, w=mid_blk['w'], h=max_y - min_y))
+        meta['columns'] = PageTool.deduplicate_columns2(columns)
 
     def add_many_from_dir(self, src_dir, kind):
         """ 导入json格式的切分数据
@@ -210,7 +254,7 @@ class AddPage(object):
             if not info:
                 sys.stderr.write('invalid json %s \n' % pathname)
                 continue
-            try:
+            if 1:
                 name = info.get('img_name') or info.get('imgname') or info.get('name')
                 if not re.match(r'^[A-Z]{2}(_\d+)+$', name):
                     sys.stderr.write('invalid name in file %s \n' % pathname)
@@ -220,14 +264,12 @@ class AddPage(object):
                     continue
                 if self.add_box(name, info):
                     pages.add(name)
-            except Exception as e:
-                sys.stderr.write('invalid page %s: %s \n' % (pathname, str(e)))
         return pages
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', source='', check_id=False, reorder=True, reset=True,
-         use_local_img=False, update=False, check_only=False):
+def main(db=None, db_name='tripitaka', uri='localhost', json_path='/Users/zyg/Desktop/lq/JS', img_path='img', txt_path='txt',
+         txt_field='ocr', kind='', source='', check_id=False, reorder='v2', reset=False,
+         use_local_img=False, update=True, check_only=False):
     """
     导入页面的主函数
     :param db: 数据库链接
@@ -249,8 +291,6 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='
     """
     if not db:
         db = pymongo.MongoClient(uri)[db_name]
-    if reset:
-        db.page.delete_many({})
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
 
