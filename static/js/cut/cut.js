@@ -1,7 +1,7 @@
 /*
  * cut.js
  *
- * Date: 2020-02-11
+ * Date: 2020-04-27
  */
 (function () {
   'use strict';
@@ -97,12 +97,6 @@
   function findCharById(id) {
     return id && data.chars.filter(function (box) {
       return box.char_id === id || box.cid == id;
-    })[0];
-  }
-
-  function findCharByCid(cid, boxType) {
-    return data.chars.filter(function (box) {
-      return box.cid == cid || box.class === boxType;
     })[0];
   }
 
@@ -259,7 +253,7 @@
       }
       handle.handles.length = 0;
 
-      if (el && !state.readonly) {
+      if (el && !state.readonly && !el.data('readonly')) {
         for (i = 0; i < 8; i++) {
           pt = getHandle(el, i);
           r = data.paper.rect(pt.x - size, pt.y - size, size * 2, size * 2)
@@ -279,19 +273,21 @@
       var d, i;
 
       handle.index = -1;
-      for (i = el && pt ? 7 : -1; i >= 0; i--) {
-        d = getDistance(pt, getHandle(el, i));
-        if (dist > d) {
-          dist = d;
-          handle.index = i;
+      if (pt && this.isInRect(pt, el, 8)) {
+        for (i = el && pt ? 7 : -1; i >= 0; i--) {
+          d = getDistance(pt, getHandle(el, i));
+          if (dist > d) {
+            dist = d;
+            handle.index = i;
+          }
         }
       }
       this.showHandles(el, handle);
     },
 
     hoverIn: function (box) {
+      state.hover = box;
       if (box && box !== state.edit) {
-        state.hover = box;
         state.hoverHandle.index = -1;
         state.hoverStroke = box.attr('stroke');
         state.hoverHandle.fill = box.attr('fill');
@@ -299,7 +295,9 @@
         state.hoverHandle.hidden = box.node.style.display === 'none';
         box.attr({
           stroke: data.hoverColor,
-          'stroke-opacity': data.boxOpacity
+          'stroke-opacity': data.boxOpacity,
+          fill: data.hoverFill,
+          'fill-opacity': 0.2
         });
       }
     },
@@ -388,18 +386,22 @@
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       }
 
+      // 去掉当前高亮显示
       this.hoverOut(state.hover);
       this.hoverOut(state.edit);
       state.hover = null;
       this.showHandles(state.hover, state.hoverHandle);
 
+      // 设置当前框
       el = typeof el === 'string' ? (this.findCharById(el) || {}).shape : el;
       state.edit = el;
       if (el) {
+        // 记下当前框的显示属性，以便高亮后能恢复
         state.editStroke = el.attr('stroke');
         state.editHandle.fill = el.attr('fill');
         state.editHandle.fillOpacity = el.attr('fill-opacity');
         state.editHandle.hidden = el.node && el.node.style.display === 'none';
+        // 当前框高亮显示
         el.attr({
           stroke: data.changedColor,
           fill: data.hoverFill,
@@ -416,7 +418,7 @@
         console.log('current box:\t' + this.getCurrentCharID() + '\t' + xf(box.x) + ', ' + xf(box.y)
             + ' ' + xf(box.width) + ' x ' + xf(box.height) + '\t' + (el.data('char') || ''));
       }
-      this.showHandles(state.edit, state.editHandle);
+      this.showHandles(state.edit, state.editHandle); // 当前框显示控制点
       notifyChanged(state.edit, 'navigate');
       return el;
     },
@@ -433,29 +435,18 @@
 
       var mouseHover = function (e) {
         var pt = getPoint(e);
-        var box = e.shiftKey ? null : self.findBoxByPoint(pt, e.altKey);
+        var box = self.findBoxByPoint(pt, e.altKey);
 
         if (state.hover !== box) {
-          self.hoverOut(state.hover);
+          if (state.hover !== state.edit) {
+            self.hoverOut(state.hover);
+          }
           self.hoverIn(box);
         }
-        if (box === state.edit) {
-          self.activateHandle(state.edit, state.editHandle, pt);
-          state.hover = null;
-          self.showHandles(null, state.hoverHandle);
-        } else {
-          state.editHandle.index = -1;
-          self.showHandles(null, state.editHandle);
-          self.activateHandle(state.hover, state.hoverHandle, pt);
-        }
 
-        if (state.hover && !state.hoverHandle.fill && state.hoverHandle.index < 0) {
-          self.hoverOut(state.hover);
-          state.hover = null;
-          self.showHandles(state.hover, state.hoverHandle);
-        } else {
-          state.mouseHover(pt, e);
-        }
+        self.activateHandle(state.edit, state.editHandle, box === state.edit && pt);
+
+        state.mouseHover(pt, e);
         e.preventDefault();
       };
 
@@ -464,25 +455,19 @@
         if (e.button === 2) { // right button
           return;
         }
+        // 记下鼠标位置
         state.downOrigin = state.down = getPoint(e);
         state.focus = true;
-        if ($.fn.mapKey) {
+        if ($.fn.mapKey) {  // 激活快捷键
           $.fn.mapKey.enabled = true;
         }
 
-        // 鼠标掠过控制点时，当前字框的控制点不能被选中，则切换为另外已亮显热点控制点的字框
-        var lockBox = e.altKey;
-        if (e.shiftKey) {
-          self.switchCurrentBox(null);
-        } else if ((!state.edit || state.editHandle.index < 0) && !lockBox
-            && (state.hover || !self.isInRect(state.down, state.edit, 1))) {
-          self.switchCurrentBox(state.hover);
-        }
         // 检测可以拖动当前字框的哪个控制点，能拖动则记下控制点的拖动起始位置
         self.activateHandle(state.edit, state.editHandle, state.down);
         if (state.editHandle.index >= 0) {
           state.down = getHandle(state.edit, state.editHandle.index);
-        } else if (!lockBox && !self.isInRect(state.down, state.edit, 1)) {
+        }
+        else if (!self.isInRect(state.down, state.edit, 3) && !state.readonly) {
           // 不能拖动当前字框的控制点，则取消当前字框的高亮显示，准备画出一个新字框
           self.hoverOut(state.edit);
           state.edit = null;
@@ -490,7 +475,7 @@
         }
 
         // 不能拖动当前字框的控制点，则画出一个新字框
-        if (!state.edit && !state.readonly && !p.addDisable) {
+        if (!state.edit && !state.readonly) {
           state.editHandle.index = 2;  // 右下角为拖动位置
           state.edit = createRect(state.down, state.down, true);
         } else {
@@ -503,7 +488,8 @@
 
         e.preventDefault();
         state.mouseDrag(pt, e);
-        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3) {
+        if (state.readonly || !state.originBox && getDistance(pt, state.downOrigin) < 3
+            || state.originBox.data('readonly')) {
           return;
         }
 
@@ -518,7 +504,7 @@
           }
           state.edit = box;
         }
-        self.showHandles(state.edit, state.editHandle);
+        self.showHandles(state.edit, state.editHandle); // 更新控制点坐标
       };
 
       var mouseUp = function (e) {
@@ -526,12 +512,23 @@
         if (state.down) {
           var pt = getPoint(e);
           state.mouseUp(pt, e);
-          if (state.originBox && getDistance(pt, state.down) > 1) {
-            self._changeBox(state.originBox, state.edit);
-          } else {
-            self.cancelDrag();
-            self.switchCurrentBox(state.edit);
+
+          // 开始拖动了就应用改动或放弃很小的移动
+          if (state.originBox) {
+            if (getDistance(pt, state.down) > 1) {
+              self._changeBox(state.originBox, state.edit);
+            } else {
+              self.cancelDrag();
+              self.switchCurrentBox(state.edit);
+            }
           }
+          // 点击时切换当前框
+          else if (getDistance(pt, state.downOrigin) < 3) {
+            self.switchCurrentBox(state.hover);
+            self.activateHandle(state.edit, state.editHandle);
+          }
+
+          state.down = null;
         }
       };
 
@@ -686,6 +683,7 @@
             })
             .data('class', b.class)
             .data('cid', b.cid)
+            .data('readonly', b.readonly)
             .data('char_id', b.char_id)
             .data('char', b.txt);
         c.shape.node.id = b.char_id;
@@ -699,16 +697,6 @@
     canUndo: undoData.canUndo.bind(undoData),
     canRedo: undoData.canRedo.bind(undoData),
 
-    _getMaxCid: function (boxType) {
-      var maxCid = 0;
-      for (var i = 0; i < data.chars.length; i++) {
-        var c = data.chars[i];
-        if (c.class === boxType && c.cid > maxCid)
-          maxCid = c.cid;
-      }
-      return maxCid;
-    },
-
     _changeBox: function (src, dst) {
       var box = dst && dst.getBBox();
       if (!box) {
@@ -718,6 +706,8 @@
       var info = src && this.findCharById(src.data('char_id')) || {};
       var added = !info.char_id;
 
+      info.added = added;
+      info.changed = !added;
       if (added) {
         for (var i = 1; i < 999; i++) {
           info.char_id = 'new' + i;
@@ -728,19 +718,13 @@
             break;
           }
         }
-        info.added = true;
-      } else {
-        info.changed = true;
       }
-
-      info.shape = dst;
       dst.data('char_id', info.char_id).data('char', dst.txt);
       dst.data('class', info.class).data('cid', dst.cid);
 
+      info.shape = dst;
       if (added) {
         notifyChanged(dst, 'added');
-        info.cid = this._getMaxCid(info.class) + 1;
-        dst.data('cid', info.cid);
       }
 
       if (src) {
@@ -825,10 +809,9 @@
       var r = function (v) {
         return Math.round(v * 10 / data.ratio / data.ratioInitial) / 10;
       };
-      var f = function (c) {
+      var chars = data.chars.filter(function (c) {
         return c.w && c.h && c.shape && c.shape.getBBox() && (!boxType || boxType === c.class);
-      };
-      var m = function (c) {
+      }).map(function (c) {
         var box = c.shape.getBBox();
         var ret = {}, ignoreValues = [null, undefined, ''];
         var ignoreFields = ['shape', 'ch', 'class', 'line_no', 'index'];
@@ -839,17 +822,18 @@
             ret[k] = c[k];
           }
         });
-        if (c.class && (c.class.indexOf('block') >= 0 || c.class.indexOf('column') >= 0)) {
-          delete ret.char_id;
+        if (c.class === 'block' || c.class === 'column') {
+          if (ret.char_id.indexOf('new') === -1)
+            delete ret.char_id;
           delete ret.char_no;
+          delete ret.cid;
         }
-        if (c.class && c.class.indexOf('block') >= 0) {
+        if (c.class === 'block') {
           delete ret.column_no;
         }
         return ret;
-      };
+      });
 
-      var chars = data.chars.filter(f).map(m);
       chars.sort(function (a, b) {
         return (a.block_no || 0) - (b.block_no || 0)
             || (a.column_no || 0) - (b.column_no || 0)
@@ -915,7 +899,7 @@
         return;
       }
       this.cancelDrag();
-      if (state.edit && !state.readonly) {
+      if (state.edit && !state.readonly && !state.edit.data('readonly')) {
         var el = state.edit;
         var info = this.findCharById(el.data('char_id'));
         var hi = /small|narrow|flat/.test(data.hlType) && this.switchNextHighlightBox;
@@ -1057,13 +1041,14 @@
       }
     },
 
-    toggleBox: function (visible, boxType, boxIds) {
+    toggleBox: function (visible, cls, boxIds, readonly) {
       data.chars.forEach(function (box) {
-        if (box.shape
-            && (!boxType || boxType === box.shape.data('class'))
-            && (!boxIds || boxIds.indexOf(box.char_id) >= 0 || boxIds.indexOf(box.cid) >= 0)
-            && (!$(box.shape.node).hasClass('flash'))) {
-          $(box.shape.node).toggle(!!visible);
+        if (box.shape && (!cls || cls === box.shape.data('class')) && (!boxIds || boxIds.indexOf(box.char_id) >= 0)) {
+          if (!$(box.shape.node).hasClass('flash')) {
+            $(box.shape.node).toggle(visible || !!readonly);
+            box.shape.data('_readonly', readonly);
+            box.shape.attr({opacity: readonly ? 0.3 : 1});
+          }
         }
       });
       if (window.showHighLightCount) {
@@ -1071,11 +1056,10 @@
       }
     },
 
-    toggleClass: function (boxIds, boxType, className, value) {
+    toggleClass: function (boxIds, className, value) {
       var res = [];
-      boxIds.forEach(function (cid) {
-        var c = findCharByCid(cid, boxType);
-        if (c && c.shape && c.class === boxType && res.indexOf(c) < 0) {
+      boxIds.map(findCharById).forEach(function (c) {
+        if (c && c.shape && res.indexOf(c) < 0) {
           res.push(c);
           var el = $(c.shape.node), old = el.attr('class') + ' ';
           if (value === undefined ? old.indexOf(className + ' ') < 0 : value) {

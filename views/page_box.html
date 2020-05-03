@@ -159,6 +159,9 @@
     var blockActive = $('#toggle-block').hasClass('active');
     var columnActive = $('#toggle-column').hasClass('active');
     var threeActive = $('#toggle-three').hasClass('active');
+
+    if (el.data('readonly') || el.data('_readonly'))
+      return false;
     if ((charActive || threeActive) && el.data('class') === 'char')
       return true;
     if ((columnActive || threeActive) && el.data('class') === 'column')
