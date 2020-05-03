@@ -193,8 +193,6 @@ class AddPage(object):
                             col['h'] = max(col['y'] + col['h'], c['y'] + c['h']) - col['y']
                     PageTool.adjust_blocks(meta['blocks'], meta['chars'])
 
-            with open('/Users/zyg/Desktop/lq/JS1/%s.json' % name, 'w') as f:
-                json.dump(meta, f, ensure_ascii=False)
             if exist and self.update:
                 meta.pop('create_time', 0)
                 r = self.db.page.update_one(dict(name=name), {'$set': meta})
