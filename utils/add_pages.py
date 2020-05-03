@@ -128,7 +128,7 @@ class AddPage(object):
         if self.check_only and exist:
             print('%s exist' % name)
             return
-        if self.update or not exist:
+        if (self.update or not exist) and info.get('chars'):
             width = int(prop(info, 'imgsize.width') or prop(info, 'img_size.width') or prop(info, 'width') or 0)
             height = int(prop(info, 'imgsize.height') or prop(info, 'img_size.height') or prop(info, 'height') or 0)
             chars = self.filter_line_no(prop(info, 'chars', []))
