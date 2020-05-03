@@ -267,9 +267,9 @@ class AddPage(object):
         return pages
 
 
-def main(db=None, db_name='tripitaka', uri='localhost', json_path='/Users/zyg/Desktop/lq/JS', img_path='img', txt_path='txt',
-         txt_field='ocr', kind='', source='', check_id=False, reorder='v2', reset=False,
-         use_local_img=False, update=True, check_only=False):
+def main(db=None, db_name='tripitaka', uri='localhost', json_path='', img_path='img', txt_path='txt',
+         txt_field='ocr', kind='', source='', check_id=False, reorder=True, reset=False,
+         use_local_img=False, update=False, check_only=False):
     """
     导入页面的主函数
     :param db: 数据库链接
@@ -291,6 +291,8 @@ def main(db=None, db_name='tripitaka', uri='localhost', json_path='/Users/zyg/De
     """
     if not db:
         db = pymongo.MongoClient(uri)[db_name]
+    if reset:
+        db.page.delete_many({})
     if not json_path:
         txt_path = json_path = img_path = path.join(BASE_DIR, 'meta', 'sample')
 
