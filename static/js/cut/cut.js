@@ -88,7 +88,7 @@
           .initZoom().setAttr({
             stroke: data.changedColor,
             'stroke-opacity': data.boxOpacity,
-            'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+            'stroke-width': data.boxLineWidth / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来正常
             , 'fill-opacity': 0.1
           });
     }
@@ -135,7 +135,7 @@
 
   var data = {
     normalColor: '#158815',                   // 正常字框的线色
-    normalColor2: '#AA0000',                  // 另一列字框的的线色
+    normalColor2: '#7c6baa',                  // 另一列字框的的线色
     changedColor: '#C53433',                  // 改动字框的线色
     hoverColor: '#e42d81',                    // 掠过时的字框线色
     hoverFill: '#ff0000',                     // 掠过时的字框填充色
@@ -144,6 +144,7 @@
     activeHandleColor: '#72141d',             // 活动控制点的线色
     activeHandleFill: '#434188',              // 活动控制点的填充色
     handleSize: 2.2,                          // 字框控制点的半宽
+    boxLineWidth: 2,                          // 框线宽
     boxFill: 'rgba(0, 0, 0, .01)',            // 默认的字框填充色，不能全透明
     boxOpacity: 0.7,                          // 字框线半透明度
     activeFillOpacity: 0.4,                   // 掠过或当期字框的填充半透明度
@@ -676,7 +677,7 @@
             .setAttr({
               stroke: (b.column_no || 0) % 2 ? data.normalColor2 : data.normalColor,
               'stroke-opacity': data.boxOpacity,
-              'stroke-width': 1.5 / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来是1.5
+              'stroke-width': data.boxLineWidth / data.ratioInitial   // 除以初始比例是为了在刚加载宽撑满显示时线宽看起来正常
               , 'fill-opacity': 0.1
               , 'class': typeof b.class !== 'undefined' ? 'box ' + b.class : 'box'
             })
@@ -1045,7 +1046,10 @@
           if (!$(box.shape.node).hasClass('flash')) {
             $(box.shape.node).toggle(visible || !!readonly);
             box.shape.data('readonly', readonly);
-            box.shape.attr({opacity: readonly ? 0.3 : 1});
+            box.shape.attr({
+        opacity: readonly ? 0.3 : 1,
+        stroke: (box.column_no || 0) % 2 ?
+            readonly ? '#77f' : data.normalColor2 : readonly ? '#777' : data.normalColor});
           }
         }
       });
