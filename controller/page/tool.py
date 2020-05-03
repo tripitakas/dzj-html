@@ -223,6 +223,19 @@ class PageTool(BoxOrder):
         return ret_columns
 
     @classmethod
+    def deduplicate_columns2(cls, columns):
+        """ 删除冗余的列 """
+        if len(columns) < 3:
+            return columns
+        ret_columns = sorted(columns, key=itemgetter('h'), reverse=True)
+        for i, c in enumerate(ret_columns):
+            for c2 in ret_columns[:i]:
+                if c['w'] and cls.box_overlap(c, c2)[1] > 0.1:
+                    c['w'] = 0
+                    break
+        return [c for c in ret_columns if c['w']]
+
+    @classmethod
     def txt2html(cls, txt):
         """ 把文本转换为html，文本以空行或者||为分栏"""
         if re.match('<[a-z]+.*>.*</[a-z]+>', txt):
