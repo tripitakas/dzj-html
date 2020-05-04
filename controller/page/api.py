@@ -52,18 +52,15 @@ class CharBoxApi(PageHandler):
         """ 更新字符的box"""
 
         try:
-            rules = [(v.not_empty, 'pos', 'task_type')]
+            rules = [(v.not_empty, 'pos')]
             self.validate(self.data, rules)
             page_name, cid = '_'.join(char_name.split('_')[:-1]), char_name.split('_')[-1]
-            char = self.db.char.find_one({'name': char_name})
-            if not char:
-                return self.send_error_response(e.no_object, message='没有找到字符%s' % char_name)
             page = self.db.page.find_one({'name': page_name, 'chars.cid': int(cid)}, {'name': 1, 'chars.$': 1})
-            if not char:
+            if not page:
                 return self.send_error_response(e.no_object, message='没有找到页面%s' % page_name)
             # 检查数据等级和积分
-            self.check_level_and_point(self, char, 'box', self.data['task_type'])
-            # todo 待完善：切分数据以page和char哪个为准，更新哪些字段，是否马上切图并上传oss
+            char = page['chars'][0]
+            self.check_box_level_and_point(self, char, self.data.get('task_type'))
             if h.cmp_obj(char, self.data, ['pos']):
                 return self.send_error_response(e.not_changed)
 
@@ -77,10 +74,11 @@ class CharBoxApi(PageHandler):
                 my_log.update({'user_id': self.user_id, 'username': self.username, 'create_time': self.now()})
                 logs.append(my_log)
 
-            box_level = self.get_user_level(self, 'box', self.data['task_type'])
+            box_level = self.get_user_box_level(self, self.data.get('task_type'))
             update = {**self.data['pos'], 'box_logs': logs, 'box_level': box_level}
             self.db.page.update_one({'_id': page['_id'], 'chars.cid': cid}, {'$set': {'chars.$': update}})
-            self.db.char.update_one({'_id': char['_id']}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            self.db.char.update_one({'name': char_name}, {'$set': {'pos': self.data['pos'], 'img_need_updated': True}})
+            # todo 待完善：切分数据以page和char哪个为准，更新哪些字段，是否马上切图并上传oss
 
             self.send_data_response()
 

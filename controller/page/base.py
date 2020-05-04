@@ -32,7 +32,8 @@ class PageHandler(TaskHandler, Page, Box):
         """ 获取用户的数据等级"""
         user = user or self.current_user
         if task_type:
-            return hp.prop(cls.box_level, 'task.' + task_type) or 0
+            # 用户以任务模式修改切分数据时，给与最低修改等级1
+            return hp.prop(cls.box_level, 'task.' + task_type) or 1
         else:
             roles = auth.get_all_roles(user['roles'])
             return max([hp.prop(cls.box_level, 'role.' + role, 0) for role in roles])
