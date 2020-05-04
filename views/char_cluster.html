@@ -9,6 +9,7 @@
   <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
   <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
   <![endif]-->
+  {% import re %}
 </head>
 
 <body class="widescreen">
@@ -79,7 +80,13 @@
         <div class="txt-kinds">
           <span class="txt-kind{{' current' if not cur_txt else ''}}"></span>
           {% for t in txts %}
+          {% if re.match(r'[0-9a-zA-Z_]+', t) %}
+          <span class="txt-kind{{' current' if t == cur_txt else ''}}" data-value="{{t}}">
+            <img src="{{handler.get_web_img(t, 'char')}}"/>
+          </span>
+          {% else %}
           <span class="txt-kind{{' current' if t == cur_txt else ''}}">{{t}}</span>
+          {% end %}
           {% end %}
         </div>
         <div class="variants{{'' if cur_txt else ' hide'}}">

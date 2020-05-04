@@ -71,7 +71,8 @@ $('#toggle-work-panel').on('click', function () {
 /** 左侧字图列表 */
 // 切换字种
 $('.txt-kind').on('click', function () {
-  location.href = $(this).text().trim() ? setQueryString('txt', $(this).text()) : location.pathname;
+  var txt = $(this).attr('data-value') || $(this).text().trim();
+  location.href = txt ? setQueryString('txt', txt) : location.pathname;
 });
 
 // 单击字图
@@ -144,8 +145,9 @@ function updateColumnImg(ch) {
 // 更新校对记录
 function updateLogs(logs) {
   var html = (logs || []).map(function (log) {
-    var head = `<span class="log-txt txt-item">${log.txt || log.ori_txt}</span>`;
-    var meta = log.txt ? `<label>正字</label><span>${/[0-9]/.test(log.txt) ? '' : log.txt}</span><br/>` : '';
+    var txt = log.txt || log.ori_txt;
+    var head = `<span class="log-txt txt-item">${/[0-9]/.test(txt) ? '' : txt}</span>`;
+    var meta = log.txt ? `<label>正字</label><span>${log.txt}</span><br/>` : '';
     meta += log.ori_txt ? `<label>原字</label><span>${log.ori_txt}</span><br/>` : '';
     meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
     meta += log.is_variant ? `<label>是否异体字</label><span>${log.is_variant}</span><br/>` : '';
