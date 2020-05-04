@@ -145,7 +145,7 @@ function updateColumnImg(ch) {
 function updateLogs(logs) {
   var html = (logs || []).map(function (log) {
     var head = `<span class="log-txt txt-item">${log.txt || log.ori_txt}</span>`;
-    var meta = log.txt ? `<label>正字</label><span>${log.txt}</span><br/>` : '';
+    var meta = log.txt ? `<label>正字</label><span>${/[0-9]/.test(log.txt) ? '' : log.txt}</span><br/>` : '';
     meta += log.ori_txt ? `<label>原字</label><span>${log.ori_txt}</span><br/>` : '';
     meta += log.txt_type ? `<label>类型</label><span>${log.txt_type + (txtTypes[log.txt_type] || '')}</span><br/>` : '';
     meta += log.is_variant ? `<label>是否异体字</label><span>${log.is_variant}</span><br/>` : '';
